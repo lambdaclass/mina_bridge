@@ -1,4 +1,4 @@
-import { Bool, method, Proof, SelfProof, SmartContract, State, state, ZkappPublicInput } from "snarkyjs";
+import { Bool, method, SmartContract, State, state } from "snarkyjs";
 
 export class Bridge extends SmartContract {
     @state(Bool) isValidProof = State<Bool>();

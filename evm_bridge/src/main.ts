@@ -7,7 +7,6 @@ import {
     JsonProof,
     Bool,
     ZkappPublicInput,
-    Proof,
     SelfProof,
 } from 'snarkyjs';
 import { Bridge } from "./Bridge.js";
