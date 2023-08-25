@@ -61,7 +61,7 @@ const addTxn = await Mina.transaction(senderAccount, () => {
 let addProof = (await addTxn.prove())[0] as SelfProof<ZkappPublicInput, undefined>;
 let isAddProofValid = await verify(addProof.toJSON() as JsonProof, addVerificationKey.data);
 Bool(isAddProofValid).assertTrue();
-console.log('Proof was verified successfully!');
+console.log('Proof of add transaction was verified successfully!');
 let signedAddTxn = addTxn.sign([senderKey]);
 await signedAddTxn.send();
 
@@ -76,6 +76,7 @@ const bridgeTxn = await Mina.transaction(senderAccount, () => {
 let bridgeProof = (await bridgeTxn.prove())[0] as SelfProof<ZkappPublicInput, undefined>;
 let isBridgeProofValid = await verify(bridgeProof.toJSON() as JsonProof, bridgeVerificationKey.data);
 Bool(isBridgeProofValid).assertTrue();
+console.log('Proof of bridge transaction was verified successfully!');
 let signedBridgeTxn = bridgeTxn.sign([senderKey]);
 await signedBridgeTxn.send();
 
