@@ -1,4 +1,5 @@
 import proof from "../test/proof.json" assert { type: "json" };
+import srs from "../test/srs.json" assert {type: "json"};
 import {
     Mina,
     PrivateKey,
@@ -9,8 +10,10 @@ import {
     ZkappPublicInput,
     SelfProof,
     Field,
+    Provable,
 } from 'snarkyjs';
 import { Bridge } from "./Bridge.js";
+import { FieldFromHex } from "./utils.js";
 
 console.log('SnarkyJS loaded');
 const Local = Mina.LocalBlockchain();
@@ -37,10 +40,11 @@ const valid0 = bridgeInstance.isValidProof.get();
 console.log('state after bridgeDeployTxn:', valid0.toString());
 
 // ----------------------------------------------------
-const z1 = Field(BigInt("0x" + proof.proof.z1));
-const sg = Field(BigInt("0x" + proof.proof.sg));
+const z1 = FieldFromHex(proof.proof.z1);
+const sg = FieldFromHex(proof.proof.sg);
+const g = Provable.Array(Field, srs.g.length);
 const bridgeTxn = await Mina.transaction(senderAccount, () => {
-    bridgeInstance.bridge(z1, sg);
+    bridgeInstance.bridge(g, z1, sg);
 });
 let bridgeProof = (await bridgeTxn.prove())[0] as SelfProof<ZkappPublicInput, undefined>;
 let isBridgeProofValid = await verify(bridgeProof.toJSON() as JsonProof, bridgeVerificationKey.data);
