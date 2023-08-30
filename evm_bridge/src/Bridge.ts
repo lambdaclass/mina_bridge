@@ -1,4 +1,4 @@
-import { Bool, method, SmartContract, State, state } from "snarkyjs";
+import { Bool, Field, method, SmartContract, State, state } from "snarkyjs";
 
 export class Bridge extends SmartContract {
     @state(Bool) isValidProof = State<Bool>();
@@ -8,7 +8,7 @@ export class Bridge extends SmartContract {
         this.isValidProof.set(Bool(false));
     }
 
-    @method bridge() {
+    @method bridge(z1: Field, sg: Field) {
         this.isValidProof.set(Bool(true));
     }
 }

@@ -1,4 +1,4 @@
-import { Add } from "./Add.js";
+import proof from "../test/proof.json" assert { type: "json" };
 import {
     Mina,
     PrivateKey,
@@ -8,6 +8,7 @@ import {
     Bool,
     ZkappPublicInput,
     SelfProof,
+    Field,
 } from 'snarkyjs';
 import { Bridge } from "./Bridge.js";
 
@@ -18,29 +19,11 @@ const { privateKey: deployerKey, publicKey: deployerAccount } = Local.testAccoun
 const { privateKey: senderKey, publicKey: senderAccount } = Local.testAccounts[1];
 
 // ----------------------------------------------------
-// Create a public/private key pair. The public key is your address and where you deploy the addApp to
-const addAppPrivateKey = PrivateKey.random();
-const addAppAddress = addAppPrivateKey.toPublicKey();
-// create an instance of Add - and deploy it to addAppAddress
-const addInstance = new Add(addAppAddress);
-
-// ----------------------------------------------------
 // Create a public/private key pair. The public key is your address and where you deploy the bridgeApp to
 const bridgeAppPrivateKey = PrivateKey.random();
 const bridgeAppAddress = bridgeAppPrivateKey.toPublicKey();
 // create an instance of Add - and deploy it to bridgeAppAddress
 const bridgeInstance = new Bridge(bridgeAppAddress);
-
-// ----------------------------------------------------
-const { verificationKey: addVerificationKey } = await Add.compile();
-const addDeployTxn = await Mina.transaction(deployerAccount, () => {
-    AccountUpdate.fundNewAccount(deployerAccount);
-    addInstance.deploy();
-});
-await addDeployTxn.sign([deployerKey, addAppPrivateKey]).send();
-// get the initial state of Add after deployment
-const num0 = addInstance.num.get();
-console.log('state after addDeployTxn:', num0.toString());
 
 // ----------------------------------------------------
 const { verificationKey: bridgeVerificationKey } = await Bridge.compile();
@@ -54,23 +37,10 @@ const valid0 = bridgeInstance.isValidProof.get();
 console.log('state after bridgeDeployTxn:', valid0.toString());
 
 // ----------------------------------------------------
-const addTxn = await Mina.transaction(senderAccount, () => {
-    addInstance.update();
-});
-let addProof = (await addTxn.prove())[0] as SelfProof<ZkappPublicInput, undefined>;
-let isAddProofValid = await verify(addProof.toJSON() as JsonProof, addVerificationKey.data);
-Bool(isAddProofValid).assertTrue();
-console.log('Proof of add transaction was verified successfully!');
-let signedAddTxn = addTxn.sign([senderKey]);
-await signedAddTxn.send();
-
-const num1 = addInstance.num.get();
-const valid1 = bridgeInstance.isValidProof.get();
-console.log('state after txn_add:', num1.toString(), valid1.toString());
-
-// ----------------------------------------------------
+const z1 = Field(BigInt("0x" + proof.proof.z1));
+const sg = Field(BigInt("0x" + proof.proof.sg));
 const bridgeTxn = await Mina.transaction(senderAccount, () => {
-    bridgeInstance.bridge();
+    bridgeInstance.bridge(z1, sg);
 });
 let bridgeProof = (await bridgeTxn.prove())[0] as SelfProof<ZkappPublicInput, undefined>;
 let isBridgeProofValid = await verify(bridgeProof.toJSON() as JsonProof, bridgeVerificationKey.data);
