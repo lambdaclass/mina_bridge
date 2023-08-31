@@ -1,5 +1,5 @@
 import proof from "../test/proof.json" assert { type: "json" };
-import srs from "../test/srs.json" assert {type: "json"};
+import srs_json from "../test/srs.json" assert {type: "json"};
 import {
     Mina,
     PrivateKey,
@@ -11,9 +11,11 @@ import {
     SelfProof,
     Field,
     Provable,
+    MerkleMap,
 } from 'snarkyjs';
 import { Bridge } from "./Bridge.js";
 import { FieldFromHex } from "./utils.js";
+import { SRS } from "./SRS.js";
 
 console.log('SnarkyJS loaded');
 const Local = Mina.LocalBlockchain();
@@ -42,9 +44,11 @@ console.log('state after bridgeDeployTxn:', valid0.toString());
 // ----------------------------------------------------
 const z1 = FieldFromHex(proof.proof.z1);
 const sg = FieldFromHex(proof.proof.sg);
-const g = Provable.Array(Field, srs.g.length);
+let srs = SRS.from(srs_json);
 const bridgeTxn = await Mina.transaction(senderAccount, () => {
-    bridgeInstance.bridge(g, z1, sg);
+    // WE NEED TO PASS AN ARRAY AS ARGUMENT, BUT ARRAY IS NOT PROVABLE
+    // WE TRIED WITH MERKLEMAP, BUT IT ALSO DOES NOT WORK
+    bridgeInstance.bridge(srs, z1, sg);
 });
 let bridgeProof = (await bridgeTxn.prove())[0] as SelfProof<ZkappPublicInput, undefined>;
 let isBridgeProofValid = await verify(bridgeProof.toJSON() as JsonProof, bridgeVerificationKey.data);

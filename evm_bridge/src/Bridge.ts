@@ -1,4 +1,5 @@
-import { Bool, Field, method, Provable, SmartContract, State, state } from "snarkyjs";
+import { Bool, Field, MerkleMap, method, SmartContract, State, state } from "snarkyjs";
+import { SRS } from "./SRS.js";
 
 export class Bridge extends SmartContract {
     @state(Bool) isValidProof = State<Bool>();
@@ -8,7 +9,7 @@ export class Bridge extends SmartContract {
         this.isValidProof.set(Bool(false));
     }
 
-    @method bridge(g: Provable<Field>, z1: Field, sg: Field) {
+    @method bridge(s: SRS, z1: Field, sg: Field) {
         this.isValidProof.set(Bool(true));
     }
 }
