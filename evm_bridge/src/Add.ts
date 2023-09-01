@@ -1,4 +1,4 @@
-import { Field, SmartContract, state, State, method } from 'snarkyjs';
+import { circuitMain, Circuit, Field, public_ } from 'snarkyjs';
 
 /**
  * Basic Example
@@ -9,17 +9,9 @@ import { Field, SmartContract, state, State, method } from 'snarkyjs';
  *
  * This file is safe to delete and replace with your own contract.
  */
-export class Add extends SmartContract {
-  @state(Field) num = State<Field>();
-
-  init() {
-    super.init();
-    this.num.set(Field(1));
-  }
-
-  @method update() {
-    const currentState = this.num.getAndAssertEquals();
-    const newState = currentState.add(2);
-    this.num.set(newState);
+export class Add extends Circuit {
+  @circuitMain
+  static main(operand1: Field, operand2: Field, @public_ result: Field) {
+    operand1.add(operand2).assertEquals(result);
   }
 }

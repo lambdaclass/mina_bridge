@@ -1,23 +1,22 @@
-import { Bool } from "snarkyjs";
-import proof from "../test/proof.json" assert { type: "json" };
-import { Bridge } from "./Bridge.js";
-import { ProverProof } from "./ProverProof.js";
+import { Bool, Field } from "snarkyjs";
+import { Add } from "./Add.js";
 
 console.log('SnarkyJS loaded');
 
 // ----------------------------------------------------
 
 console.log("Generating keypair...");
-const keypair = await Bridge.generateKeypair();
+const keypair = await Add.generateKeypair();
 
-const proverProof = ProverProof.createFromJSON(proof.proof);
-const isValidProof = Bool(true);
+const operand1 = Field(2);
+const operand2 = Field(3);
+const result = Field(5);
 
 console.log("Proving...");
-const verificationProof = await Bridge.prove([proverProof], [isValidProof], keypair);
+const additionProof = await Add.prove([operand1, operand2], [result], keypair);
 
 console.log("Verifying...");
-const ok = await Bridge.verify([isValidProof], keypair.verificationKey(), verificationProof);
+const ok = await Add.verify([result], keypair.verificationKey(), additionProof);
 console.log("ok?", ok);
 
 // ----------------------------------------------------
