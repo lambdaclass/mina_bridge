@@ -7,3 +7,5 @@ edition = "2021"
 
 [dependencies]
 kimchi = { git = "https://github.com/o1-labs/proof-systems", branch = "feature/kzg-commitment" }
+serde_json = "1"
+serde = { version = "1", features = ["derive"] }
