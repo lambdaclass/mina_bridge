@@ -13,10 +13,10 @@ const operand2 = Field(3);
 const result = Field(5);
 
 console.log("Proving...");
-const additionProof = await Add.prove([operand1, operand2], [result], keypair);
+const additionProof = await Add.prove([], [operand1, operand2, result], keypair);
 
 console.log("Verifying...");
-const ok = await Add.verify([result], keypair.verificationKey(), additionProof);
+const ok = await Add.verify([operand1, operand2, result], keypair.verificationKey(), additionProof);
 console.log("ok?", ok);
 
 // ----------------------------------------------------
