@@ -14,6 +14,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "ark-bn254"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ea691771ebbb28aea556c044e2e5c5227398d840cee0c34d4d20fa8eb2689e8c"
+dependencies = [
+ "ark-ec",
+ "ark-ff",
+ "ark-std",
+]
+
+[[package]]
 name = "ark-ec"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -215,6 +226,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "crunchy"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7a81dae078cea95a014a339291cec439d2f232ebe854a9d672b796c6afafa9b7"
+
+[[package]]
 name = "crypto-common"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -332,7 +349,7 @@ dependencies = [
 [[package]]
 name = "groupmap"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems?branch=feature/kzg-commitment#d86a6c05d47171a0797296dd948e6cd080023561"
+source = "git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge#15709b8845e9c90d884f419e14c44420da97c2a5"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -378,7 +395,7 @@ checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
 [[package]]
 name = "internal-tracing"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems?branch=feature/kzg-commitment#d86a6c05d47171a0797296dd948e6cd080023561"
+source = "git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge#15709b8845e9c90d884f419e14c44420da97c2a5"
 
 [[package]]
 name = "itertools"
@@ -398,8 +415,9 @@ checksum = "af150ab688ff2122fcef229be89cb50dd66af9e01a4ff320cc137eecc9bacc38"
 [[package]]
 name = "kimchi"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems?branch=feature/kzg-commitment#d86a6c05d47171a0797296dd948e6cd080023561"
+source = "git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge#15709b8845e9c90d884f419e14c44420da97c2a5"
 dependencies = [
+ "ark-bn254",
  "ark-ec",
  "ark-ff",
  "ark-poly",
@@ -428,6 +446,7 @@ dependencies = [
  "strum",
  "strum_macros",
  "thiserror",
+ "tiny-keccak",
  "turshi",
 ]
 
@@ -435,6 +454,8 @@ dependencies = [
 name = "kzg_prover"
 version = "0.1.0"
 dependencies = [
+ "ark-bn254",
+ "ark-ec",
  "kimchi",
  "serde",
  "serde_json",
@@ -464,7 +485,7 @@ dependencies = [
 [[package]]
 name = "mina-curves"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems?branch=feature/kzg-commitment#d86a6c05d47171a0797296dd948e6cd080023561"
+source = "git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge#15709b8845e9c90d884f419e14c44420da97c2a5"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -473,7 +494,7 @@ dependencies = [
 [[package]]
 name = "mina-poseidon"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems?branch=feature/kzg-commitment#d86a6c05d47171a0797296dd948e6cd080023561"
+source = "git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge#15709b8845e9c90d884f419e14c44420da97c2a5"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -543,7 +564,7 @@ dependencies = [
 [[package]]
 name = "o1-utils"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems?branch=feature/kzg-commitment#d86a6c05d47171a0797296dd948e6cd080023561"
+source = "git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge#15709b8845e9c90d884f419e14c44420da97c2a5"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -589,7 +610,7 @@ dependencies = [
 [[package]]
 name = "poly-commitment"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems?branch=feature/kzg-commitment#d86a6c05d47171a0797296dd948e6cd080023561"
+source = "git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge#15709b8845e9c90d884f419e14c44420da97c2a5"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -892,9 +913,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "tiny-keccak"
+version = "2.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2c9d3793400a45f954c52e73d068316d76b6f4e36977e3fcebb13a2721e80237"
+dependencies = [
+ "crunchy",
+]
+
+[[package]]
 name = "turshi"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems?branch=feature/kzg-commitment#d86a6c05d47171a0797296dd948e6cd080023561"
+source = "git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge#15709b8845e9c90d884f419e14c44420da97c2a5"
 dependencies = [
  "ark-ff",
  "hex",
