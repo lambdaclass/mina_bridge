@@ -19,5 +19,7 @@ console.log("Verifying...");
 const ok = await Add.verify([operand1, operand2, result], keypair.verificationKey(), additionProof);
 console.log("ok?", ok);
 
+console.log("Keypair constraint system:", JSON.stringify(keypair.constraintSystem()));
+
 // ----------------------------------------------------
 console.log('Shutting down');
