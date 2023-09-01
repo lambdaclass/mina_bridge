@@ -1,15 +1,13 @@
-import { Bool, Field, MerkleMap, method, SmartContract, State, state } from "snarkyjs";
+import { Bool, Circuit, circuitMain, public_ } from "snarkyjs";
+import srs_json from "../test/srs.json" assert {type: "json"};
+import { ProverProof } from "./ProverProof.js";
 import { SRSWindow } from "./SRS.js";
 
-export class Bridge extends SmartContract {
-    @state(Bool) isValidProof = State<Bool>();
+const srs = Array.from(Array(srs_json.g.length / 512).keys()).map(i => SRSWindow.from(srs_json, i));
 
-    init() {
-        super.init();
-        this.isValidProof.set(Bool(false));
-    }
-
-    @method bridge(s: SRSWindow, z1: Field, sg: Field) {
-        this.isValidProof.set(Bool(true));
+export class Bridge extends Circuit {
+    @circuitMain
+    static main(proof: ProverProof, @public_ isValidProof: Bool) {
+        isValidProof.assertTrue();
     }
 }

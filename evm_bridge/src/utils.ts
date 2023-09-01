@@ -1,5 +1,5 @@
 import { Field } from "snarkyjs";
 
-export function FieldFromHex(hex: String) {
+export function fieldFromHex(hex: String) {
     return Field(BigInt("0x" + hex));
 }
