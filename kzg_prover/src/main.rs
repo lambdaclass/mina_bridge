@@ -1,25 +1,23 @@
 pub mod constraint_system;
-pub mod srs;
 
 use std::array;
-use std::collections::HashMap;
+use std::str::FromStr;
 use std::sync::Arc;
 
-use ark_ec::short_weierstrass_jacobian::GroupAffine;
 use kimchi::circuits::gate::{CircuitGate, GateType};
 use kimchi::circuits::wires::Wire;
 use kimchi::curve::KimchiCurve;
 use kimchi::groupmap::GroupMap;
-use kimchi::keccak_sponge::{Keccak256FqSponge, Keccak256FrSponge};
-use kimchi::o1_utils::FieldHelpers;
+use kimchi::mina_curves::pasta::{Fp, Vesta, VestaParameters};
+use kimchi::mina_poseidon::constants::PlonkSpongeConstantsKimchi;
+use kimchi::mina_poseidon::sponge::{DefaultFqSponge, DefaultFrSponge};
 use kimchi::poly_commitment::evaluation_proof::OpeningProof;
+use kimchi::poly_commitment::srs::SRS;
 use kimchi::prover_index::ProverIndex;
 use kimchi::{poly_commitment::commitment::CommitmentCurve, proof::ProverProof};
 
-type BN254 = GroupAffine<ark_bn254::g1::Parameters>;
-type Fp = ark_bn254::Fr;
-type BaseSponge = Keccak256FqSponge<ark_bn254::Fq, ark_bn254::G1Affine, Fp>;
-type ScalarSponge = Keccak256FrSponge<Fp>;
+type BaseSponge = DefaultFqSponge<VestaParameters, PlonkSpongeConstantsKimchi>;
+type ScalarSponge = DefaultFrSponge<Fp, PlonkSpongeConstantsKimchi>;
 
 fn main() {
     let cs_json = std::fs::read_to_string("./test_data/constraint_system.json").unwrap();
@@ -43,7 +41,7 @@ fn main() {
             let coeffs: Vec<Fp> = gate
                 .coeffs
                 .iter()
-                .map(|coeff| Fp::from_hex(coeff).unwrap())
+                .map(|coeff| Fp::from_str(coeff).unwrap())
                 .collect();
             CircuitGate::new(gate_type, wires, coeffs)
         })
@@ -54,21 +52,18 @@ fn main() {
         .unwrap();
 
     let srs_json = std::fs::read_to_string("./test_data/srs.json").unwrap();
-    let srs = srs::SRS::from(srs_json.as_str());
-    let kimchi_srs = kimchi::poly_commitment::srs::SRS {
-        g: srs.g.iter().map(BN254::from).collect::<Vec<_>>(),
-        h: srs.h,
-        lagrange_bases: HashMap::new(),
-    };
+    let mut kimchi_srs: SRS<Vesta> = serde_json::from_str(srs_json.as_str()).unwrap();
+    kimchi_srs.add_lagrange_basis(kimchi_cs.domain.d1);
     let kimchi_srs_arc = Arc::new(kimchi_srs);
 
-    let &endo_q = <BN254 as KimchiCurve>::other_curve_endo();
+    let &endo_q = <Vesta as KimchiCurve>::other_curve_endo();
 
-    let group_map = <BN254 as CommitmentCurve>::Map::setup();
+    let group_map = <Vesta as CommitmentCurve>::Map::setup();
     let witness: [Vec<Fp>; 15] = array::from_fn(|_| vec![Fp::from(0); 4]);
-    let prover_index: ProverIndex<_, OpeningProof<BN254>> =
+    let prover_index: ProverIndex<_, OpeningProof<Vesta>> =
         ProverIndex::create(kimchi_cs, endo_q, kimchi_srs_arc);
     let proof =
         ProverProof::create::<BaseSponge, ScalarSponge>(&group_map, witness, &[], &prover_index)
             .expect("failed to generate proof");
+    println!("proof: {:?}", proof);
 }
