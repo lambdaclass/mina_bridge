@@ -1,4 +1,4 @@
-import { Bool, Field } from "snarkyjs";
+import { Field } from "snarkyjs";
 import { Add } from "./Add.js";
 
 console.log('SnarkyJS loaded');
