@@ -1,6 +1,7 @@
 pub mod constraint_system;
 
 use std::array;
+use std::io::Write;
 use std::str::FromStr;
 use std::sync::Arc;
 
@@ -60,7 +61,6 @@ fn main() {
 
     let srs_json = std::fs::read_to_string("./test_data/srs.json").unwrap();
     let mut kimchi_srs: SRS<Curve> = serde_json::from_str(srs_json.as_str()).unwrap();
-    SRS::<Curve>::create(kimchi_cs.domain.d1.size as usize);
     kimchi_srs.add_lagrange_basis(kimchi_cs.domain.d1);
     let kimchi_srs_arc = Arc::new(kimchi_srs);
 
@@ -75,3 +75,17 @@ fn main() {
             .expect("failed to generate proof");
     println!("proof: {:?}", proof);
 }
+
+/*
+
+    let srs = SRS::<Curve>::create(kimchi_cs.domain.d1.size as usize);
+
+    let out = rmp_serde::encode::to_vec(&srs).unwrap();
+    let mut file = std::fs::File::create("srs.rmp").unwrap();
+    file.write_all(&out).unwrap();
+
+    let out_json = serde_json::to_vec(&srs).unwrap();
+    let mut file = std::fs::File::create("srs.json").unwrap();
+    file.write_all(&out_json).unwrap();
+
+*/

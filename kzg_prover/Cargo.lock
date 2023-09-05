@@ -458,6 +458,7 @@ dependencies = [
  "ark-ec",
  "kimchi",
  "poly-commitment",
+ "rmp-serde",
  "serde",
  "serde_json",
 ]
