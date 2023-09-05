@@ -357,16 +357,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "groupmap"
-version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems#17041948eb2742244464d6749560a304213f4198"
-dependencies = [
- "ark-ec",
- "ark-ff",
- "rand",
-]
-
-[[package]]
 name = "hashbrown"
 version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -434,19 +424,19 @@ dependencies = [
  "ark-serialize",
  "blake2",
  "disjoint-set",
- "groupmap 0.1.0 (git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge)",
+ "groupmap",
  "hex",
  "internal-tracing",
  "itertools",
- "mina-curves 0.1.0 (git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge)",
- "mina-poseidon 0.1.0 (git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge)",
+ "mina-curves",
+ "mina-poseidon",
  "num-bigint",
  "num-derive",
  "num-integer",
  "num-traits",
- "o1-utils 0.1.0 (git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge)",
+ "o1-utils",
  "once_cell",
- "poly-commitment 0.1.0 (git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge)",
+ "poly-commitment",
  "rand",
  "rand_core",
  "rayon",
@@ -467,7 +457,7 @@ dependencies = [
  "ark-bn254",
  "ark-ec",
  "kimchi",
- "poly-commitment 0.1.0 (git+https://github.com/o1-labs/proof-systems)",
+ "poly-commitment",
  "serde",
  "serde_json",
 ]
@@ -503,15 +493,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "mina-curves"
-version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems#17041948eb2742244464d6749560a304213f4198"
-dependencies = [
- "ark-ec",
- "ark-ff",
-]
-
-[[package]]
 name = "mina-poseidon"
 version = "0.1.0"
 source = "git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge#15709b8845e9c90d884f419e14c44420da97c2a5"
@@ -519,25 +500,8 @@ dependencies = [
  "ark-ec",
  "ark-ff",
  "ark-poly",
- "mina-curves 0.1.0 (git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge)",
- "o1-utils 0.1.0 (git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge)",
- "once_cell",
- "rand",
- "rayon",
- "serde",
- "serde_with",
-]
-
-[[package]]
-name = "mina-poseidon"
-version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems#17041948eb2742244464d6749560a304213f4198"
-dependencies = [
- "ark-ec",
- "ark-ff",
- "ark-poly",
- "mina-curves 0.1.0 (git+https://github.com/o1-labs/proof-systems)",
- "o1-utils 0.1.0 (git+https://github.com/o1-labs/proof-systems)",
+ "mina-curves",
+ "o1-utils",
  "once_cell",
  "rand",
  "rayon",
@@ -622,29 +586,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "o1-utils"
-version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems#17041948eb2742244464d6749560a304213f4198"
-dependencies = [
- "ark-ec",
- "ark-ff",
- "ark-poly",
- "ark-serialize",
- "bcs",
- "hex",
- "num-bigint",
- "num-integer",
- "num-traits",
- "rand",
- "rand_core",
- "rayon",
- "serde",
- "serde_with",
- "sha2",
- "thiserror",
-]
-
-[[package]]
 name = "once_cell"
 version = "1.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -677,36 +618,11 @@ dependencies = [
  "ark-poly",
  "ark-serialize",
  "blake2",
- "groupmap 0.1.0 (git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge)",
+ "groupmap",
  "itertools",
- "mina-curves 0.1.0 (git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge)",
- "mina-poseidon 0.1.0 (git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge)",
- "o1-utils 0.1.0 (git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge)",
- "once_cell",
- "rand",
- "rand_core",
- "rayon",
- "rmp-serde",
- "serde",
- "serde_with",
- "thiserror",
-]
-
-[[package]]
-name = "poly-commitment"
-version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems#17041948eb2742244464d6749560a304213f4198"
-dependencies = [
- "ark-ec",
- "ark-ff",
- "ark-poly",
- "ark-serialize",
- "blake2",
- "groupmap 0.1.0 (git+https://github.com/o1-labs/proof-systems)",
- "itertools",
- "mina-curves 0.1.0 (git+https://github.com/o1-labs/proof-systems)",
- "mina-poseidon 0.1.0 (git+https://github.com/o1-labs/proof-systems)",
- "o1-utils 0.1.0 (git+https://github.com/o1-labs/proof-systems)",
+ "mina-curves",
+ "mina-poseidon",
+ "o1-utils",
  "once_cell",
  "rand",
  "rand_core",
@@ -1013,7 +929,7 @@ source = "git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-spo
 dependencies = [
  "ark-ff",
  "hex",
- "o1-utils 0.1.0 (git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge)",
+ "o1-utils",
 ]
 
 [[package]]

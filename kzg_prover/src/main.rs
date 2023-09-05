@@ -60,6 +60,7 @@ fn main() {
 
     let srs_json = std::fs::read_to_string("./test_data/srs.json").unwrap();
     let mut kimchi_srs: SRS<Curve> = serde_json::from_str(srs_json.as_str()).unwrap();
+    SRS::<Curve>::create(kimchi_cs.domain.d1.size as usize);
     kimchi_srs.add_lagrange_basis(kimchi_cs.domain.d1);
     let kimchi_srs_arc = Arc::new(kimchi_srs);
 
