@@ -1,5 +1,5 @@
-import { Field } from "o1js";
 import { Add } from "./Add.js";
+import { PastaField } from "./PastaField.js";
 
 console.log('SnarkyJS loaded');
 
@@ -8,9 +8,9 @@ console.log('SnarkyJS loaded');
 console.log("Generating keypair...");
 const keypair = await Add.generateKeypair();
 
-const operand1 = Field(2);
-const operand2 = Field(3);
-const result = Field(5);
+const operand1 = new PastaField(2);
+const operand2 = new PastaField(3);
+const result = new PastaField(5);
 
 console.log("Proving...");
 const additionProof = await Add.prove([], [operand1, operand2, result], keypair);
