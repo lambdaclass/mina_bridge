@@ -7,6 +7,7 @@ console.log('SnarkyJS loaded');
 
 console.log("Generating keypair...");
 const keypair = await Add.generateKeypair();
+console.log("Keypair generated");
 
 const operand1 = new PastaField(2);
 const operand2 = new PastaField(3);
