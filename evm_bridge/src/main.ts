@@ -1,4 +1,4 @@
-import { Field } from "snarkyjs";
+import { Field } from "o1js";
 import { Add } from "./Add.js";
 
 console.log('SnarkyJS loaded');

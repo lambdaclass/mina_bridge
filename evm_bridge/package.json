@@ -43,6 +43,6 @@
     "typescript": "^4.7.2"
   },
   "dependencies": {
-    "snarkyjs": "file:../../snarkyjs"
+    "o1js": "file:../../o1js"
   }
 }

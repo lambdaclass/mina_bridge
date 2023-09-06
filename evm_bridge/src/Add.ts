@@ -1,4 +1,4 @@
-import { circuitMain, Circuit, Field, public_ } from 'snarkyjs';
+import { circuitMain, Circuit, Field, public_ } from 'o1js';
 
 /**
  * Basic Example
