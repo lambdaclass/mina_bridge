@@ -1,7 +1,6 @@
 pub mod constraint_system;
 
 use std::array;
-use std::io::Write;
 use std::str::FromStr;
 use std::sync::Arc;
 
