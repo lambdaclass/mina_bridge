@@ -1,9 +1,9 @@
+import { Field } from 'o1js';
 import { circuitMain, Circuit, public_ } from 'o1js';
-import { PastaField } from './PastaField.js';
 
 export class Add extends Circuit {
   @circuitMain
-  static main(@public_ operand1: PastaField, @public_ operand2: PastaField, @public_ result: PastaField) {
+  static main(@public_ operand1: Field, @public_ operand2: Field, @public_ result: Field) {
     operand1.add(operand2).assertEquals(result);
   }
 }

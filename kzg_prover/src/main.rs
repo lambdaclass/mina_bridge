@@ -9,17 +9,19 @@ use kimchi::circuits::gate::{CircuitGate, GateType};
 use kimchi::circuits::wires::Wire;
 use kimchi::curve::KimchiCurve;
 use kimchi::groupmap::GroupMap;
+use kimchi::mina_curves::pasta::{Fp, VestaParameters};
 use kimchi::mina_poseidon::constants::PlonkSpongeConstantsKimchi;
 use kimchi::mina_poseidon::sponge::{DefaultFqSponge, DefaultFrSponge};
 use kimchi::poly_commitment::evaluation_proof::OpeningProof;
 use kimchi::poly_commitment::srs::SRS;
 use kimchi::prover_index::ProverIndex;
+use kimchi::verifier::verify;
 use kimchi::{poly_commitment::commitment::CommitmentCurve, proof::ProverProof};
 
-type Parameters = ark_bn254::g1::Parameters;
+type Parameters = VestaParameters;
 type Curve = GroupAffine<Parameters>;
 type SpongeConstants = PlonkSpongeConstantsKimchi;
-type Field = ark_bn254::Fr;
+type Field = Fp;
 
 type BaseSponge = DefaultFqSponge<Parameters, SpongeConstants>;
 type ScalarSponge = DefaultFrSponge<Field, SpongeConstants>;
@@ -52,13 +54,18 @@ fn main() {
         })
         .collect();
 
+    let constants = kimchi::snarky::constants::Constants::new::<Curve>();
+    let mut snarky_cs =
+        kimchi::snarky::constraint_system::SnarkyConstraintSystem::create(constants);
+
     let mut kimchi_cs = kimchi::circuits::constraints::ConstraintSystem::<Field>::create(gates)
+        .public(3)
         .build()
         .unwrap();
     kimchi_cs.feature_flags.foreign_field_add = true;
     kimchi_cs.feature_flags.foreign_field_mul = true;
 
-    let srs_json = std::fs::read_to_string("./test_data/srs.json").unwrap();
+    let srs_json = std::fs::read_to_string("./test_data/srs_pasta.json").unwrap();
     let mut kimchi_srs: SRS<Curve> = serde_json::from_str(srs_json.as_str()).unwrap();
     kimchi_srs.add_lagrange_basis(kimchi_cs.domain.d1);
     let kimchi_srs_arc = Arc::new(kimchi_srs);
@@ -73,6 +80,17 @@ fn main() {
         ProverProof::create::<BaseSponge, ScalarSponge>(&group_map, witness, &[], &prover_index)
             .expect("failed to generate proof");
     println!("proof: {:?}", proof);
+
+    let verifier_index = prover_index.verifier_index();
+    verify::<Curve, BaseSponge, ScalarSponge, OpeningProof<Curve>>(
+        &group_map,
+        &verifier_index,
+        &proof,
+        &[Field::from(2), Field::from(3), Field::from(5)],
+    )
+    .expect("Proof is not valid");
+
+    println!("Done!");
 }
 
 /*
