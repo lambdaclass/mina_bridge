@@ -2,16 +2,13 @@ import { CircuitString, Field, Struct } from "o1js";
 import srs_json from "../test/srs.json";
 import { Point } from "./Point";
 
-export class SRS extends Struct({ h: Field }) {
+let h_json: string[] = srs_json.h;
+
+export class SRS extends Struct({ h: Point }) {
     static createFromJSON() {
-        let h = Field(0);
+        let h = new Point({ x: Field.from("0x" + h_json[0]), y: Field.from("0x" + h_json[1]) });
         return new SRS({
             h
         });
-    }
-
-    static decompressPoint(compressed_point: CircuitString) {
-        let y_sign = compressed_point.substring(0, 2);
-        return new Point({ x: Field(0), y: Field(0) });
     }
 }
