@@ -1,17 +1,27 @@
-import { Field } from 'o1js';
-import { circuitMain, Circuit } from 'o1js';
-import { Point } from './Point.js';
+import { circuitMain, Circuit, Field, Group, Scalar } from 'o1js';
 import { SRS } from './SRS.js';
+
+let srs = SRS.createFromJSON();
 
 export class Verifier extends Circuit {
   @circuitMain
   static main() {
-    let srs = SRS.createFromJSON();
-    let points: Point[] = [srs.h];
-    let scalars: Field[] = [Field(0)];
+    let points: Group[] = [srs.h];
+    let scalars: Scalar[] = [Scalar.from(0)];
+
+    this.msm(points, scalars).assertEquals(Group.zero);
   }
 
-  static msm(points: Field[], scalars: []) {
+  // Naive algorithm
+  static msm(points: Group[], scalars: Scalar[]) {
+    let result = Group.zero;
 
+    for (let i = 0; i < points.length; i++) {
+      let point = points[i];
+      let scalar = scalars[i];
+      result.add(point.scale(scalar));
+    }
+
+    return result;
   }
 }
