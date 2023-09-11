@@ -1,6 +1,7 @@
 import { circuitMain, Circuit, Field, Group, Scalar } from 'o1js';
 import { SRS } from './SRS.js';
 
+console.log("O1JS ORDER:", Field.ORDER.toString(16).toUpperCase());
 let srs = SRS.createFromJSON();
 
 export class Verifier extends Circuit {

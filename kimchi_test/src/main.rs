@@ -1,6 +1,8 @@
 use std::array;
 
+use ark_ff::fields::FpParameters;
 use kimchi::groupmap::GroupMap;
+use kimchi::mina_curves::pasta::fields::{FpParameters as FrParameters, FqParameters};
 use kimchi::{
     circuits::{
         gate::CircuitGate,
@@ -29,6 +31,8 @@ fn main() {
     // create witness
     let mut witness: [Vec<Fp>; COLUMNS] = array::from_fn(|_| vec![Fp::zero(); gates.len()]);
     fill_in_witness(0, &mut witness, &[]);
+    println!("VESTA ORDER: {}", <FqParameters as FpParameters>::MODULUS);
+    println!("PALLAS ORDER: {}", FrParameters::MODULUS);
 
     // create and verify proof based on the witness
     prove_and_verify(gates, witness);

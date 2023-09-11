@@ -8,4 +8,4 @@ edition = "2021"
 [dependencies]
 kimchi = {git = "https://github.com/lambdaclass/proof-systems.git", branch = "min_prover"}
 num-traits = "0.2"
-
+ark-ff = { version = "0.3.0", features = [ "parallel", "asm" ] }
