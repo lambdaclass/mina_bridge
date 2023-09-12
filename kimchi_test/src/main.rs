@@ -86,7 +86,6 @@ fn prove_and_verify(srs: &SRS<Pallas>, gates: Vec<CircuitGate<Fq>>, witness: [Ve
     )
     .map_err(|e| e.to_string())
     .unwrap();
-    println!("z1: {}", proof.proof.z1.to_biguint());
     println!("Done!");
 
     // verify the proof (propagate any errors)
@@ -110,6 +109,14 @@ fn compute_msm_for_verification(
 
     let mut points = vec![srs.h];
     let mut scalars = vec![Fq::zero()];
+
+    println!(
+        "sg: [{}, {}]",
+        proof.sg.x.to_biguint(),
+        proof.sg.y.to_biguint()
+    );
+
+    println!("z1: {}", proof.z1.to_biguint());
 
     points.push(proof.sg);
     scalars.push(neg_rand_base_i * proof.z1 - sg_rand_base_i);
