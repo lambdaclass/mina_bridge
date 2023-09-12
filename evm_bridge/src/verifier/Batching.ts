@@ -1,12 +1,30 @@
+import { Scalar } from "o1js";
 import { Verifier } from './Verifier.js'
+import { SRS } from '../SRS.js';
 
 export class Batch extends Verifier {
   // will take verifier_index, proof and public inputs as args.
   // will output a "batch evaluation proof"
   //
   // essentially will partial verify proofs so they can be batched verified later.
-  static to_batch() {
+  static to_batch(verifier_index: VerifierIndex, public_input: Scalar[]) {
 
+    //~ 1. Commit to the negated public input polynomial.
+    let lgr_comm = verifier_index.srs.lagrange_bases.get(verifier_index.domain_size);
+    let com = lgr_comm?.slice(0, verifier_index.public);
+    let elm = public_input.map(s => -s);
+    //    let public_comm = PolyComm::<G>::multi_scalar_mul(&com, &elm);
+    //    let f_comm = verifier_index
+    //        .srs()
+    //        .mask_custom(
+    //            public_comm,
+    //            &PolyComm {
+    //                unshifted: vec![G::ScalarField::one(); 1],
+    //                shifted: None,
+    //            },
+    //        )
+    //        .unwrap()
+    //        .commitment
     /*
       Check the length of evaluations inside the proof.
       Commit to the negated public input polynomial.
@@ -26,4 +44,10 @@ export class Batch extends Verifier {
           lookup commitments
      */
   }
+}
+
+export class VerifierIndex {
+  srs: SRS
+  domain_size: number
+  public: number
 }
