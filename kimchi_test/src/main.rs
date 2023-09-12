@@ -6,7 +6,7 @@ use ark_ec::ProjectiveCurve;
 use ark_ff::PrimeField;
 use kimchi::groupmap::GroupMap;
 use kimchi::mina_curves::pasta::{Fq, Pallas, PallasParameters};
-use kimchi::o1_utils::FieldHelpers;
+use kimchi::o1_utils::{math, FieldHelpers};
 use kimchi::poly_commitment::evaluation_proof::OpeningProof;
 use kimchi::poly_commitment::srs::SRS;
 use kimchi::precomputed_srs;
@@ -107,8 +107,14 @@ fn compute_msm_for_verification(
     let sg_rand_base_i = Fq::one();
     let neg_rand_base_i = -rand_base_i;
 
+    let nonzero_length = srs.g.len();
+    let max_rounds = math::ceil_log2(nonzero_length);
+    let padded_length = 1 << max_rounds;
+    let padding = padded_length - nonzero_length;
     let mut points = vec![srs.h];
-    let mut scalars = vec![Fq::zero()];
+    points.extend(srs.g.clone());
+    points.extend(vec![Pallas::zero(); padding]);
+    let mut scalars = vec![Fq::zero(); padded_length + 1];
 
     println!(
         "sg: [{}, {}]",
@@ -120,6 +126,13 @@ fn compute_msm_for_verification(
 
     points.push(proof.sg);
     scalars.push(neg_rand_base_i * proof.z1 - sg_rand_base_i);
+
+    let s = vec![Fq::one(); srs.g.len()];
+    let terms: Vec<_> = s.iter().map(|s_i| sg_rand_base_i * s_i).collect();
+    scalars
+        .iter_mut()
+        .zip(terms)
+        .for_each(|(scalar, term)| *scalar += term);
 
     // verify the equation
     let scalars: Vec<_> = scalars.iter().map(|x| x.into_repr()).collect();
