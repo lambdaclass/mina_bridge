@@ -1,21 +1,13 @@
+import { Provable } from "o1js";
 import { Verifier } from "./Verifier.js";
 
 console.log('SnarkyJS loaded');
 
 // ----------------------------------------------------
 
-console.log("Generating keypair...");
-const keypair = await Verifier.generateKeypair();
-console.log("Keypair generated");
-
-console.log("Proving...");
-const verificationProof = await Verifier.prove([], [], keypair);
-
-console.log("Verifying...");
-const ok = await Verifier.verify([], keypair.verificationKey(), verificationProof);
-console.log("ok?", ok);
-
-console.dir(keypair.constraintSystem(), { depth: Infinity });
+console.log("Generating constraint system");
+let cs = Provable.constraintSystem(Verifier.main);
+console.log("Constraint system:", cs);
 
 // ----------------------------------------------------
 console.log('Shutting down');

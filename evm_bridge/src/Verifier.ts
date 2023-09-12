@@ -1,7 +1,6 @@
-import { circuitMain, Circuit, Field, Group, Scalar } from 'o1js';
+import { circuitMain, Circuit, Group, Scalar } from 'o1js';
 import { SRS } from './SRS.js';
 
-console.log("O1JS ORDER:", Field.ORDER.toString(16).toUpperCase());
 let srs = SRS.createFromJSON();
 let h = srs.h;
 
@@ -11,7 +10,7 @@ export class Verifier extends Circuit {
     let points: Group[] = [h];
     let scalars: Scalar[] = [Scalar.from(0)];
 
-    this.msm(points, scalars).assertEquals(Group.zero);
+    Verifier.msm(points, scalars).assertEquals(Group.zero);
   }
 
   // Naive algorithm
