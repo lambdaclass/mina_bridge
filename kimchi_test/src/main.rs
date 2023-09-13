@@ -94,7 +94,7 @@ fn prove_and_verify(srs: &SRS<Pallas>, gates: Vec<CircuitGate<Fq>>, witness: [Ve
     let value_to_compare = compute_msm_for_verification(&srs, &opening).into_affine();
     println!("Done!");
     println!("--- Copy to o1js project ---");
-    println!("const z1 = Scalar.from({}n);", opening.z1.to_biguint());
+    println!("const z1 = {}n;", opening.z1.to_biguint());
     println!(
         "const sg = new Group({{ x: {}n, y: {}n }});",
         opening.sg.x.to_biguint(),
@@ -124,14 +124,6 @@ fn compute_msm_for_verification(
     points.extend(srs.g.clone());
     points.extend(vec![Pallas::zero(); padding]);
     let mut scalars = vec![Fq::zero(); padded_length + 1];
-
-    println!(
-        "sg: [{}, {}]",
-        proof.sg.x.to_biguint(),
-        proof.sg.y.to_biguint()
-    );
-
-    println!("z1: {}", proof.z1.to_biguint());
 
     points.push(proof.sg);
     scalars.push(neg_rand_base_i * proof.z1 - sg_rand_base_i);
