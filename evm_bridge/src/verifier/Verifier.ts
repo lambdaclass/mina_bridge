@@ -1,5 +1,5 @@
 import { circuitMain, Circuit, Group, Scalar } from 'o1js';
-import { SRS } from './SRS.js';
+import { SRS } from '../SRS.js';
 
 let srs = SRS.createFromJSON();
 let h = srs.h;
