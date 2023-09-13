@@ -95,3 +95,71 @@ fn prove_and_verify(gates: Vec<CircuitGate<Fq>>, witness: [Vec<Fq>; COLUMNS]) {
         .unwrap();
     println!("Done!");
 }
+
+/// Reference tests for comparing behaviour with the circuit implementation in o1js.
+mod partial_verification {
+    use ark_ec::AffineCurve;
+    use ark_ff::{One, PrimeField};
+    use ark_poly::domain::EvaluationDomain;
+    use kimchi::{
+        curve::KimchiCurve, error::VerifyError, poly_commitment::PolyComm,
+        verifier_index::VerifierIndex,
+    };
+
+    use super::*;
+
+    fn to_batch_step2<'a, G>(
+        verifier_index: &VerifierIndex<G>,
+        public_input: &'a [<G as AffineCurve>::ScalarField],
+    ) -> Result<(), VerifyError>
+    where
+        G: KimchiCurve,
+        G::BaseField: PrimeField,
+    {
+        println!("to_batch(), step 2: Commit to the negated public input polynomial.");
+        let public_comm = {
+            if public_input.len() != verifier_index.public {
+                return Err(VerifyError::IncorrectPubicInputLength(
+                    verifier_index.public,
+                ));
+            }
+            let lgr_comm = verifier_index
+                .srs()
+                .lagrange_bases
+                .get(&verifier_index.domain.size())
+                .expect("pre-computed committed lagrange bases not found");
+            let com: Vec<_> = lgr_comm.iter().take(verifier_index.public).collect();
+            let elm: Vec<_> = public_input.iter().map(|s| -*s).collect();
+            let public_comm = PolyComm::<G>::multi_scalar_mul(&com, &elm);
+            verifier_index
+                .srs()
+                .mask_custom(
+                    public_comm,
+                    &PolyComm {
+                        unshifted: vec![G::ScalarField::one(); 1],
+                        shifted: None,
+                    },
+                )
+                .unwrap()
+                .commitment
+        };
+        println!("Done, public_comm: {:?}", public_comm);
+        Ok(())
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn to_batch() {
+            let gates = create_circuit(0, 0);
+            let index =
+                new_index_for_test_with_lookups::<Pallas>(gates, 0, 0, vec![], Some(vec![]), false);
+            let verifier_index = index.verifier_index();
+            let public_inputs = vec![];
+
+            to_batch_step2(&verifier_index, &public_inputs).unwrap();
+        }
+    }
+}

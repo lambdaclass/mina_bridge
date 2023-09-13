@@ -429,7 +429,9 @@ dependencies = [
 name = "kimchi_test"
 version = "0.1.0"
 dependencies = [
+ "ark-ec",
  "ark-ff",
+ "ark-poly",
  "kimchi",
  "num-traits",
 ]
