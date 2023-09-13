@@ -90,13 +90,22 @@ fn prove_and_verify(srs: &SRS<Pallas>, gates: Vec<CircuitGate<Fq>>, witness: [Ve
 
     // verify the proof (propagate any errors)
     println!("Verifying...");
-    let value_to_compare = compute_msm_for_verification(&srs, &proof.proof).into_affine();
+    let opening = proof.proof;
+    let value_to_compare = compute_msm_for_verification(&srs, &opening).into_affine();
+    println!("Done!");
+    println!("--- Copy to o1js project ---");
+    println!("const z1 = Scalar.from({}n);", opening.z1.to_biguint());
     println!(
-        "Value to compare with: {}, {}",
+        "const sg = new Group({{ x: {}n, y: {}n }});",
+        opening.sg.x.to_biguint(),
+        opening.sg.y.to_biguint()
+    );
+    println!(
+        "const expected = new Group({{ x: {}n, y: {}n }});",
         value_to_compare.x.to_biguint(),
         value_to_compare.y.to_biguint()
     );
-    println!("Done!");
+    println!("----------------------------");
 }
 
 fn compute_msm_for_verification(
