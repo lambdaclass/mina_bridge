@@ -1,10 +1,13 @@
 use std::{array, fs};
 
-use ark_ff::fields::FpParameters;
+use ark_ec::msm::VariableBaseMSM;
+use ark_ec::short_weierstrass_jacobian::GroupProjective;
+use ark_ec::ProjectiveCurve;
+use ark_ff::PrimeField;
 use kimchi::groupmap::GroupMap;
-use kimchi::mina_curves::pasta::fields::{FpParameters as FrParameters, FqParameters};
 use kimchi::mina_curves::pasta::{Fq, Pallas, PallasParameters};
 use kimchi::o1_utils::FieldHelpers;
+use kimchi::poly_commitment::evaluation_proof::OpeningProof;
 use kimchi::poly_commitment::srs::SRS;
 use kimchi::precomputed_srs;
 use kimchi::{
@@ -20,9 +23,9 @@ use kimchi::{
     poly_commitment::commitment::CommitmentCurve,
     proof::ProverProof,
     prover_index::testing::new_index_for_test_with_lookups,
-    verifier::verify,
 };
 use num_traits::identities::Zero;
+use num_traits::One;
 
 type SpongeParams = PlonkSpongeConstantsKimchi;
 type BaseSponge = DefaultFqSponge<PallasParameters, SpongeParams>;
@@ -34,18 +37,16 @@ fn main() {
     // create witness
     let mut witness: [Vec<Fq>; COLUMNS] = array::from_fn(|_| vec![Fq::zero(); gates.len()]);
     fill_in_witness(0, &mut witness, &[]);
-    println!("VESTA ORDER: {}", <FqParameters as FpParameters>::MODULUS);
-    println!("PALLAS ORDER: {}", FrParameters::MODULUS);
 
-    write_srs_into_file();
+    let srs: SRS<Pallas> = precomputed_srs::get_srs();
+    // write_srs_into_file(&srs);
 
     // create and verify proof based on the witness
-    prove_and_verify(gates, witness);
+    prove_and_verify(&srs, gates, witness);
 }
 
-fn write_srs_into_file() {
+fn write_srs_into_file(srs: &SRS<Pallas>) {
     println!("Writing SRS into file...");
-    let srs: SRS<Pallas> = precomputed_srs::get_srs();
     let mut g = srs
         .g
         .iter()
@@ -64,12 +65,10 @@ fn write_srs_into_file() {
     println!("Done!");
 }
 
-fn prove_and_verify(gates: Vec<CircuitGate<Fq>>, witness: [Vec<Fq>; COLUMNS]) {
+fn prove_and_verify(srs: &SRS<Pallas>, gates: Vec<CircuitGate<Fq>>, witness: [Vec<Fq>; COLUMNS]) {
     println!("Proving...");
-    let index = new_index_for_test_with_lookups::<Pallas>(gates, 0, 0, vec![], Some(vec![]), false);
-
-    let verifier_index = index.verifier_index();
-    let prover = index;
+    let prover =
+        new_index_for_test_with_lookups::<Pallas>(gates, 0, 0, vec![], Some(vec![]), false);
     let public_inputs = vec![];
 
     prover.verify(&witness, &public_inputs).unwrap();
@@ -87,13 +86,37 @@ fn prove_and_verify(gates: Vec<CircuitGate<Fq>>, witness: [Vec<Fq>; COLUMNS]) {
     )
     .map_err(|e| e.to_string())
     .unwrap();
+    println!("z1: {}", proof.proof.z1.to_biguint());
     println!("Done!");
 
     // verify the proof (propagate any errors)
     println!("Verifying...");
-    verify::<Pallas, BaseSponge, ScalarSponge>(&group_map, &verifier_index, &proof, &public_inputs)
-        .unwrap();
+    let value_to_compare = compute_msm_for_verification(&srs, &proof.proof).into_affine();
+    println!(
+        "Value to compare with: {}, {}",
+        value_to_compare.x.to_biguint(),
+        value_to_compare.y.to_biguint()
+    );
     println!("Done!");
+}
+
+fn compute_msm_for_verification(
+    srs: &SRS<Pallas>,
+    proof: &OpeningProof<Pallas>,
+) -> GroupProjective<PallasParameters> {
+    let rand_base_i = Fq::one();
+    let sg_rand_base_i = Fq::one();
+    let neg_rand_base_i = -rand_base_i;
+
+    let mut points = vec![srs.h];
+    let mut scalars = vec![Fq::zero()];
+
+    points.push(proof.sg);
+    scalars.push(neg_rand_base_i * proof.z1 - sg_rand_base_i);
+
+    // verify the equation
+    let scalars: Vec<_> = scalars.iter().map(|x| x.into_repr()).collect();
+    VariableBaseMSM::multi_scalar_mul(&points, &scalars)
 }
 
 /// Reference tests for comparing behaviour with the circuit implementation in o1js.

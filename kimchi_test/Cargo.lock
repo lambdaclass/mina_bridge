@@ -332,7 +332,7 @@ dependencies = [
 [[package]]
 name = "groupmap"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/proof-systems.git?branch=min_prover#14a40e1067c6b4d004e5e4357c4af342063e52e9"
+source = "git+https://github.com/o1-labs/proof-systems.git#17041948eb2742244464d6749560a304213f4198"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -378,7 +378,7 @@ checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
 [[package]]
 name = "internal-tracing"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/proof-systems.git?branch=min_prover#14a40e1067c6b4d004e5e4357c4af342063e52e9"
+source = "git+https://github.com/o1-labs/proof-systems.git#17041948eb2742244464d6749560a304213f4198"
 
 [[package]]
 name = "itertools"
@@ -392,7 +392,7 @@ dependencies = [
 [[package]]
 name = "kimchi"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/proof-systems.git?branch=min_prover#14a40e1067c6b4d004e5e4357c4af342063e52e9"
+source = "git+https://github.com/o1-labs/proof-systems.git#17041948eb2742244464d6749560a304213f4198"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -438,9 +438,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.147"
+version = "0.2.148"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4668fb0ea861c1df094127ac5f1da3409a82116a4ba74fca2e58ef927159bb3"
+checksum = "9cdc71e17332e86d2e1d38c1f99edcb6288ee11b815fb1a4b049eaa2114d369b"
 
 [[package]]
 name = "memchr"
@@ -460,7 +460,7 @@ dependencies = [
 [[package]]
 name = "mina-curves"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/proof-systems.git?branch=min_prover#14a40e1067c6b4d004e5e4357c4af342063e52e9"
+source = "git+https://github.com/o1-labs/proof-systems.git#17041948eb2742244464d6749560a304213f4198"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -469,7 +469,7 @@ dependencies = [
 [[package]]
 name = "mina-poseidon"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/proof-systems.git?branch=min_prover#14a40e1067c6b4d004e5e4357c4af342063e52e9"
+source = "git+https://github.com/o1-labs/proof-systems.git#17041948eb2742244464d6749560a304213f4198"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -539,7 +539,7 @@ dependencies = [
 [[package]]
 name = "o1-utils"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/proof-systems.git?branch=min_prover#14a40e1067c6b4d004e5e4357c4af342063e52e9"
+source = "git+https://github.com/o1-labs/proof-systems.git#17041948eb2742244464d6749560a304213f4198"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -585,7 +585,7 @@ dependencies = [
 [[package]]
 name = "poly-commitment"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/proof-systems.git?branch=min_prover#14a40e1067c6b4d004e5e4357c4af342063e52e9"
+source = "git+https://github.com/o1-labs/proof-systems.git#17041948eb2742244464d6749560a304213f4198"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -615,9 +615,9 @@ checksum = "5b40af805b3121feab8a3c29f04d8ad262fa8e0561883e7653e024ae4479e6de"
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.66"
+version = "1.0.67"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18fb31db3f9bddb2ea821cde30a9f70117e3f119938b5ee630b7403aa6e2ead9"
+checksum = "3d433d9f1a3e8c1263d9456598b16fec66f4acc9a74dacffd35c7bb09b3a1328"
 dependencies = [
  "unicode-ident",
 ]
@@ -761,7 +761,7 @@ checksum = "4eca7ac642d82aa35b60049a6eccb4be6be75e599bd2e9adb5f875a737654af2"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.32",
+ "syn 2.0.33",
 ]
 
 [[package]]
@@ -841,9 +841,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.32"
+version = "2.0.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "239814284fd6f1a4ffe4ca893952cdd93c224b6a1571c9a9eadd670295c0c9e2"
+checksum = "9caece70c63bfba29ec2fed841a09851b14a235c60010fa4de58089b6c025668"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -867,13 +867,13 @@ checksum = "49922ecae66cc8a249b77e68d1d0623c1b2c514f0060c27cdc68bd62a1219d35"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.32",
+ "syn 2.0.33",
 ]
 
 [[package]]
 name = "turshi"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/proof-systems.git?branch=min_prover#14a40e1067c6b4d004e5e4357c4af342063e52e9"
+source = "git+https://github.com/o1-labs/proof-systems.git#17041948eb2742244464d6749560a304213f4198"
 dependencies = [
  "ark-ff",
  "hex",
@@ -894,9 +894,9 @@ checksum = "ed646292ffc8188ef8ea4d1e0e0150fb15a5c2e12ad9b8fc191ae7a8a7f3c4b9"
 
 [[package]]
 name = "unicode-ident"
-version = "1.0.11"
+version = "1.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "301abaae475aa91687eb82514b328ab47a211a533026cb25fc3e519b86adfc3c"
+checksum = "3354b9ac3fae1ff6755cb6db53683adb661634f67557942dea4facebec0fee4b"
 
 [[package]]
 name = "version_check"
@@ -927,5 +927,5 @@ checksum = "ce36e65b0d2999d2aafac989fb249189a141aee1f53c612c1f37d72631959f69"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.32",
+ "syn 2.0.33",
 ]
