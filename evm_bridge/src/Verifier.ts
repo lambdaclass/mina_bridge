@@ -1,16 +1,20 @@
 import assert from 'assert';
+import { readFileSync } from 'fs';
 import { circuitMain, Circuit, Group, Scalar } from 'o1js';
 import { SRS } from './SRS.js';
 
-let { g, h } = SRS.createFromJSON();
+let steps: bigint[][];
+try {
+  steps = JSON.parse(readFileSync("steps.json", "utf-8"));
+} catch (e) {
+  steps = [];
+}
 
-const z1 = Scalar.from(8370756341770614687265652169950746150853295615521166276710307557441785774650n);
-const sg = new Group({ x: 974375293919604067421642828992042234838532512369342211368018365361184475186n, y: 25355274914870068890116392297762844888825113893841661922182961733548015428069n });
-const expected = new Group({ x: 23971162515526044551720809934508194276417125006800220692822425564390575025467n, y: 27079223568793814179815985351796131117498018732446481340536149855784701006245n });
+let { g, h } = SRS.createFromJSON();
 
 export class Verifier extends Circuit {
   @circuitMain
-  static main() {
+  static main(sg: Group, z1: bigint, expected: Group) {
     let nonzero_length = g.length;
     let max_rounds = Math.ceil(Math.log2(nonzero_length));
     let padded_length = Math.pow(2, max_rounds);
@@ -20,27 +24,38 @@ export class Verifier extends Circuit {
     points = points.concat(g);
     points = points.concat(Array(padding).fill(Group.zero));
 
-    let scalars = [Scalar.from(0)];
+    let scalars = [0n];
     //TODO: Add challenges and s polynomial (in that case, using Scalars we could run out of memory)
-    scalars = scalars.concat(Array(padded_length).fill(Scalar.from(1)));
+    scalars = scalars.concat(Array(padded_length).fill(1n));
     assert(points.length == scalars.length, "The number of points is not the same as the number of scalars");
 
     points.push(sg);
-    scalars.push(z1.neg().sub(Scalar.from(1)));
+    scalars.push(mod(-z1 - 1n));
 
     Verifier.msm(points, scalars).assertEquals(expected);
   }
 
   // Naive algorithm
-  static msm(points: Group[], scalars: Scalar[]) {
+  static msm(points: Group[], scalars: bigint[]) {
     let result = Group.zero;
+
+    if (steps.length === 0) {
+      console.log("Steps file not found, skipping MSM check");
+    }
 
     for (let i = 0; i < points.length; i++) {
       let point = points[i];
       let scalar = scalars[i];
       result = result.add(point.scale(scalar));
+      if (steps.length > 0 && (result.x.toBigInt() != steps[i][0] || result.y.toBigInt() != steps[i][1])) {
+        console.log("Result differs at step", i);
+      }
     }
 
     return result;
   }
+}
+
+function mod(n: bigint) {
+  return ((n % Scalar.ORDER) + Scalar.ORDER) % Scalar.ORDER;
 }

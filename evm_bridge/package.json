@@ -44,5 +44,8 @@
   },
   "peerDependencies": {
     "o1js": "0.12.*"
+  },
+  "dependencies": {
+    "@types/node": "^20.6.0"
   }
 }
