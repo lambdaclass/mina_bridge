@@ -45,11 +45,11 @@ export class PolyComm<A> {
             let chunk_msm = Verifier.msm(points, scalars);
             unshifted.push(chunk_msm);
         }
-        
+
         let shifted_pairs = com
-                .filter((c) => c.shifted) // filter those that don't have a shifted property
-                .map((c, i) => [c.shifted, elm[i]] as [Group, Scalar]); // zip with scalars
-                // get rid of scalars that don't have an associated chunk
+                .map((c, i) => [c.shifted, elm[i]] as [Group | undefined, Scalar]) // zip with scalars
+                .filter(([shifted, _]) => shifted)
+                .map((zip) => zip as [Group, Scalar]); // zip with scalars
 
         let shifted = undefined;
         if (shifted_pairs.length != 0) {
