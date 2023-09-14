@@ -1,20 +1,19 @@
 import assert from 'assert';
 import { readFileSync } from 'fs';
-import { circuitMain, Circuit, Group, Scalar } from 'o1js';
+import { circuitMain, Circuit, Group, Scalar, Provable } from 'o1js';
 import { SRS } from './SRS.js';
 
 let steps: bigint[][];
 try {
-  steps = JSON.parse(readFileSync("steps.json", "utf-8"));
+  steps = JSON.parse(readFileSync("./src/steps.json", "utf-8"));
 } catch (e) {
   steps = [];
 }
 
 let { g, h } = SRS.createFromJSON();
 
-export class Verifier extends Circuit {
-  @circuitMain
-  static main(sg: Group, z1: bigint, expected: Group) {
+export class Verifier {
+  static main(sg: Group, z1: bigint, expected: Group, debug: boolean) {
     let nonzero_length = g.length;
     let max_rounds = Math.ceil(Math.log2(nonzero_length));
     let padded_length = Math.pow(2, max_rounds);
@@ -32,11 +31,28 @@ export class Verifier extends Circuit {
     points.push(sg);
     scalars.push(mod(-z1 - 1n));
 
-    Verifier.msm(points, scalars).assertEquals(expected);
+    if (debug) {
+      Verifier.msmDebug(points, scalars).assertEquals(expected);
+    } else {
+      Verifier.msm(points, scalars).assertEquals(expected);
+    }
   }
 
   // Naive algorithm
   static msm(points: Group[], scalars: bigint[]) {
+    let result = Group.zero;
+
+    for (let i = 0; i < points.length; i++) {
+      let point = points[i];
+      let scalar = scalars[i];
+      result = result.add(point.scale(scalar));
+    }
+
+    return result;
+  }
+
+  // Naive algorithm (used for debugging)
+  static msmDebug(points: Group[], scalars: bigint[]) {
     let result = Group.zero;
 
     if (steps.length === 0) {
@@ -47,6 +63,7 @@ export class Verifier extends Circuit {
       let point = points[i];
       let scalar = scalars[i];
       result = result.add(point.scale(scalar));
+
       if (steps.length > 0 && (result.x.toBigInt() != steps[i][0] || result.y.toBigInt() != steps[i][1])) {
         console.log("Result differs at step", i);
       }

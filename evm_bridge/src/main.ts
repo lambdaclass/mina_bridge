@@ -4,8 +4,9 @@ import { Verifier } from "./Verifier.js";
 
 let inputs: { sg: bigint[], z1: bigint, expected: bigint[] };
 try {
-    inputs = JSON.parse(readFileSync("inputs.json", "utf-8"));
+    inputs = JSON.parse(readFileSync("./src/inputs.json", "utf-8"));
 } catch (e) {
+    console.log("Using default inputs");
     inputs = {
         sg:
             [
@@ -29,7 +30,7 @@ let cs = Provable.constraintSystem(() => {
     let sg = Provable.witness(Group, () => new Group({ x: inputs.sg[0], y: inputs.sg[1] }));
     let expected = Provable.witness(Group, () => new Group({ x: inputs.expected[0], y: inputs.expected[1] }));
 
-    Verifier.main(sg, inputs.z1, expected);
+    Verifier.main(sg, BigInt(inputs.z1), expected, false);
 });
 console.log("Constraint system:", cs);
 
