@@ -1,5 +1,5 @@
 import { Provable } from "o1js";
-import { Verifier } from "./Verifier.js";
+import { Verifier } from "./verifier/Verifier.js";
 
 console.log('SnarkyJS loaded');
 

@@ -9,16 +9,15 @@ export class Batch extends Verifier {
   //
   // essentially will partial verify proofs so they can be batched verified later.
     static to_batch(verifier_index: VerifierIndex, public_input: Scalar[]) {
-
         //~ 1. Commit to the negated public input polynomial.
         let lgr_comm = verifier_index.srs.lagrange_bases.get(verifier_index.domain_size)!;
         let com = lgr_comm?.slice(0, verifier_index.public);
-        let elm = public_input.map(s => -s);
+        let elm = public_input.map(s => s.neg());
         let public_comm = PolyComm.msm(com, elm);
         let f_comm = verifier_index
             .srs
             .mask_custom(public_comm,
-                        new PolyComm([1 as Scalar], undefined))?.commitment;
+                        new PolyComm([Scalar.from(1)], undefined))?.commitment;
         /*
           Check the length of evaluations inside the proof.
           Commit to the negated public input polynomial.

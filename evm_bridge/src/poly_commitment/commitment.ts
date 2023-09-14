@@ -1,4 +1,4 @@
-import { Scalar } from "o1js";
+import { Group, Scalar } from "o1js";
 import { Verifier } from "../verifier/Verifier.js";
 
 export class PolyComm<A> {
@@ -23,7 +23,7 @@ export class PolyComm<A> {
         return new PolyComm<B>(unshifted, shifted);
     }
 
-    static msm<C>(com: PolyComm<C>[], elm: Scalar[]): PolyComm<C> {
+    static msm(com: PolyComm<Group>[], elm: Scalar[]): PolyComm<Group> {
         if (com.length === elm.length) {
           // FIXME:: error
         }
@@ -33,10 +33,10 @@ export class PolyComm<A> {
 
         for (let chunk = 0; chunk < unshifted_len; chunk++) {
             let points_and_scalars = com
-                .map((c, i) => [c, elm[i]]) // zip with scalars
+                .map((c, i) => [c, elm[i]] as [PolyComm<Group>, Scalar]) // zip with scalars
                 // get rid of scalars that don't have an associated chunk
                 .filter(([c, _]) => c.unshifted.length > chunk)
-                .map(([c, scalar]) => [c.unshifted[chunk], scalar]);
+                .map(([c, scalar]) => [c.unshifted[chunk], scalar] as [Group, Scalar]);
 
             // unzip
             let points = points_and_scalars.map(([c, _]) => c);
@@ -47,9 +47,9 @@ export class PolyComm<A> {
         }
         
         let shifted_pairs = com
-                .map((c, i) => [c, elm[i]]) // zip with scalars
+                .filter((c) => c.shifted) // filter those that don't have a shifted property
+                .map((c, i) => [c.shifted, elm[i]] as [Group, Scalar]); // zip with scalars
                 // get rid of scalars that don't have an associated chunk
-                .filter(([c, _]) => c.shifted);
 
         let shifted = undefined;
         if (shifted_pairs.length != 0) {
@@ -59,7 +59,7 @@ export class PolyComm<A> {
             shifted = Verifier.msm(points, scalars);
         }
 
-        return new PolyComm<C>(unshifted, shifted);
+        return new PolyComm<Group>(unshifted, shifted);
     }
 }
 

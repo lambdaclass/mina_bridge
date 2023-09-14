@@ -33,8 +33,8 @@ export class SRS {
         let commitment = com
             .zip(blinders)
             .map(([g, b]) => {
-                let g_masked = this.h * b;
-                return g_masked + g;
+                let g_masked = this.h.scale(b);
+                return g_masked.add(g);
         });
         return { commitment: commitment, blinders: blinders }
     }
