@@ -4,10 +4,10 @@ import { PolyComm } from "../poly_commitment/commitment.js";
 import { SRS } from '../SRS.js';
 
 export class Batch extends Verifier {
-  // will take verifier_index, proof and public inputs as args.
-  // will output a "batch evaluation proof"
-  //
-  // essentially will partial verify proofs so they can be batched verified later.
+    // will take verifier_index, proof and public inputs as args.
+    // will output a "batch evaluation proof"
+    //
+    // essentially will partial verify proofs so they can be batched verified later.
     static to_batch(verifier_index: VerifierIndex, public_input: Scalar[]) {
         //~ 1. Commit to the negated public input polynomial.
         let lgr_comm = verifier_index.srs.lagrange_bases.get(verifier_index.domain_size)!;
@@ -17,7 +17,7 @@ export class Batch extends Verifier {
         let f_comm = verifier_index
             .srs
             .mask_custom(public_comm,
-                        new PolyComm([Scalar.from(1)], undefined))?.commitment;
+                new PolyComm([Scalar.from(1)], undefined))?.commitment;
         /*
           Check the length of evaluations inside the proof.
           Commit to the negated public input polynomial.
@@ -40,7 +40,7 @@ export class Batch extends Verifier {
 }
 
 export class VerifierIndex {
-  srs: SRS
-  domain_size: number
-  public: number
+    srs: SRS
+    domain_size: number
+    public: number
 }
