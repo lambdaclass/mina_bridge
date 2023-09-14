@@ -1,9 +1,9 @@
 use std::{array, fs};
 
 use ark_ec::msm::VariableBaseMSM;
-use ark_ec::short_weierstrass_jacobian::GroupProjective;
-use ark_ec::ProjectiveCurve;
-use ark_ff::PrimeField;
+use ark_ec::short_weierstrass_jacobian::{GroupAffine, GroupProjective};
+use ark_ec::{AffineCurve, ProjectiveCurve};
+use ark_ff::{BigInteger256, PrimeField};
 use kimchi::groupmap::GroupMap;
 use kimchi::mina_curves::pasta::{Fq, Pallas, PallasParameters};
 use kimchi::o1_utils::{math, FieldHelpers};
@@ -91,10 +91,10 @@ fn prove_and_verify(srs: &SRS<Pallas>, gates: Vec<CircuitGate<Fq>>, witness: [Ve
     // verify the proof (propagate any errors)
     println!("Verifying...");
     let opening = proof.proof;
-    let value_to_compare = compute_msm_for_verification(&srs, &opening).into_affine();
+    let value_to_compare = compute_msm_for_verification(&srs, &opening);
     println!("Done!");
     println!("--- Copy to o1js project ---");
-    println!("const z1 = {}n;", opening.z1.to_biguint());
+    println!("const z1 = Scalar.from({}n);", opening.z1.to_biguint());
     println!(
         "const sg = new Group({{ x: {}n, y: {}n }});",
         opening.sg.x.to_biguint(),
@@ -111,7 +111,7 @@ fn prove_and_verify(srs: &SRS<Pallas>, gates: Vec<CircuitGate<Fq>>, witness: [Ve
 fn compute_msm_for_verification(
     srs: &SRS<Pallas>,
     proof: &OpeningProof<Pallas>,
-) -> GroupProjective<PallasParameters> {
+) -> GroupAffine<PallasParameters> {
     let rand_base_i = Fq::one();
     let sg_rand_base_i = Fq::one();
     let neg_rand_base_i = -rand_base_i;
@@ -132,10 +132,43 @@ fn compute_msm_for_verification(
     let terms: Vec<_> = s.iter().map(|s_i| sg_rand_base_i * s_i).collect();
     scalars
         .iter_mut()
+        .skip(1)
         .zip(terms)
-        .for_each(|(scalar, term)| *scalar += term);
+        .for_each(|(scalar, term)| {
+            *scalar += term;
+        });
+    println!("scalars len: {}", scalars.len());
 
     // verify the equation
     let scalars: Vec<_> = scalars.iter().map(|x| x.into_repr()).collect();
-    VariableBaseMSM::multi_scalar_mul(&points, &scalars)
+    // VariableBaseMSM::multi_scalar_mul(&points, &scalars)
+    naive_msm(&points, &scalars)
+}
+
+fn naive_msm(points: &[Pallas], scalars: &[BigInteger256]) -> Pallas {
+    let mut steps = vec![];
+    let mut result = Pallas::zero();
+
+    for i in 0..points.len() {
+        result += &points[i].mul(scalars[i]).into_affine();
+        steps.push(result);
+    }
+    fs::write(
+        "out.txt",
+        "export const steps = [".to_owned()
+            + steps
+                .iter()
+                .fold(String::new(), |acc, step| {
+                    acc + "["
+                        + &step.x.to_biguint().to_string()
+                        + "n, "
+                        + &step.y.to_biguint().to_string()
+                        + "n],\n"
+                })
+                .as_str()
+            + "];",
+    )
+    .unwrap();
+
+    result
 }
