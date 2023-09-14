@@ -1,27 +1,45 @@
-import { circuitMain, Circuit, Group, Scalar, Field } from 'o1js';
+import assert from 'assert';
+import { readFileSync } from 'fs';
+import { circuitMain, Circuit, Group, Scalar, Provable } from 'o1js';
 import { SRS } from './SRS.js';
 
-let { h } = SRS.createFromJSON();
+let steps: bigint[][];
+try {
+  steps = JSON.parse(readFileSync("./src/steps.json", "utf-8"));
+} catch (e) {
+  steps = [];
+}
 
-const z1 = Scalar.from(9140459199330635488539022482071352360057123086931083513302456950746879743855n);
-const sg = new Group({ x: 7150761156930520555320873072173932897112225409642658953674970089964888546088n, y: 17188195103491218287333790399350281107383694033134889386035397860944298711813n })
-const randBase = Scalar.from(1);
-const negRandBase = randBase.neg();
-const sgRandBase = Scalar.from(1);
+let { g, h } = SRS.createFromJSON();
 
-const expected = new Group({ x: 15683840072078716790992059511892963252123661633363956975161924564815358836028n, y: 16211880226926008105967726776783409447539547553313354951819425946245139312475n });
+export class Verifier {
+  static main(sg: Group, z1: bigint, expected: Group, debug: boolean) {
+    let nonzero_length = g.length;
+    let max_rounds = Math.ceil(Math.log2(nonzero_length));
+    let padded_length = Math.pow(2, max_rounds);
+    let padding = padded_length - nonzero_length;
 
-export class Verifier extends Circuit {
-  @circuitMain
-  static main() {
-    let points: Group[] = [h, sg];
-    let scalars: Scalar[] = [Scalar.from(0), negRandBase.mul(z1).sub(sgRandBase)];
+    let points = [h];
+    points = points.concat(g);
+    points = points.concat(Array(padding).fill(Group.zero));
 
-    Verifier.msm(points, scalars).assertEquals(expected);
+    let scalars = [0n];
+    //TODO: Add challenges and s polynomial (in that case, using Scalars we could run out of memory)
+    scalars = scalars.concat(Array(padded_length).fill(1n));
+    assert(points.length == scalars.length, "The number of points is not the same as the number of scalars");
+
+    points.push(sg);
+    scalars.push(mod(-z1 - 1n));
+
+    if (debug) {
+      Verifier.msmDebug(points, scalars).assertEquals(expected);
+    } else {
+      Verifier.msm(points, scalars).assertEquals(expected);
+    }
   }
 
   // Naive algorithm
-  static msm(points: Group[], scalars: Scalar[]) {
+  static msm(points: Group[], scalars: bigint[]) {
     let result = Group.zero;
 
     for (let i = 0; i < points.length; i++) {
@@ -32,4 +50,29 @@ export class Verifier extends Circuit {
 
     return result;
   }
+
+  // Naive algorithm (used for debugging)
+  static msmDebug(points: Group[], scalars: bigint[]) {
+    let result = Group.zero;
+
+    if (steps.length === 0) {
+      console.log("Steps file not found, skipping MSM check");
+    }
+
+    for (let i = 0; i < points.length; i++) {
+      let point = points[i];
+      let scalar = scalars[i];
+      result = result.add(point.scale(scalar));
+
+      if (steps.length > 0 && (result.x.toBigInt() != steps[i][0] || result.y.toBigInt() != steps[i][1])) {
+        console.log("Result differs at step", i);
+      }
+    }
+
+    return result;
+  }
+}
+
+function mod(n: bigint) {
+  return ((n % Scalar.ORDER) + Scalar.ORDER) % Scalar.ORDER;
 }
