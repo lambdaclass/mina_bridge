@@ -1,7 +1,6 @@
 use std::{array, fs};
 
-use ark_ec::msm::VariableBaseMSM;
-use ark_ec::short_weierstrass_jacobian::{GroupAffine, GroupProjective};
+use ark_ec::short_weierstrass_jacobian::GroupAffine;
 use ark_ec::{AffineCurve, ProjectiveCurve};
 use ark_ff::{BigInteger256, PrimeField};
 use kimchi::groupmap::GroupMap;
@@ -26,10 +25,18 @@ use kimchi::{
 };
 use num_traits::identities::Zero;
 use num_traits::One;
+use serde::Serialize;
 
 type SpongeParams = PlonkSpongeConstantsKimchi;
 type BaseSponge = DefaultFqSponge<PallasParameters, SpongeParams>;
 type ScalarSponge = DefaultFrSponge<Fq, SpongeParams>;
+
+#[derive(Serialize)]
+struct Inputs {
+    sg: [String; 2],
+    z1: String,
+    expected: [String; 2],
+}
 
 fn main() {
     let gates = create_circuit(0, 0);
@@ -93,19 +100,23 @@ fn prove_and_verify(srs: &SRS<Pallas>, gates: Vec<CircuitGate<Fq>>, witness: [Ve
     let opening = proof.proof;
     let value_to_compare = compute_msm_for_verification(&srs, &opening);
     println!("Done!");
-    println!("--- Copy to o1js project ---");
-    println!("const z1 = Scalar.from({}n);", opening.z1.to_biguint());
-    println!(
-        "const sg = new Group({{ x: {}n, y: {}n }});",
-        opening.sg.x.to_biguint(),
-        opening.sg.y.to_biguint()
-    );
-    println!(
-        "const expected = new Group({{ x: {}n, y: {}n }});",
-        value_to_compare.x.to_biguint(),
-        value_to_compare.y.to_biguint()
-    );
-    println!("----------------------------");
+
+    fs::write(
+        "../evm_bridge/src/inputs.json",
+        serde_json::to_string(&Inputs {
+            sg: [
+                opening.sg.x.to_biguint().to_string(),
+                opening.sg.y.to_biguint().to_string(),
+            ],
+            z1: opening.z1.to_biguint().to_string(),
+            expected: [
+                value_to_compare.x.to_biguint().to_string(),
+                value_to_compare.y.to_biguint().to_string(),
+            ],
+        })
+        .unwrap(),
+    )
+    .unwrap();
 }
 
 fn compute_msm_for_verification(
@@ -154,19 +165,19 @@ fn naive_msm(points: &[Pallas], scalars: &[BigInteger256]) -> Pallas {
         steps.push(result);
     }
     fs::write(
-        "out.txt",
-        "export const steps = [".to_owned()
-            + steps
+        "../evm_bridge/src/steps.json",
+        serde_json::to_string(
+            &steps
                 .iter()
-                .fold(String::new(), |acc, step| {
-                    acc + "["
-                        + &step.x.to_biguint().to_string()
-                        + "n, "
-                        + &step.y.to_biguint().to_string()
-                        + "n],\n"
+                .map(|step| {
+                    [
+                        step.x.to_biguint().to_string(),
+                        step.y.to_biguint().to_string(),
+                    ]
                 })
-                .as_str()
-            + "];",
+                .collect::<Vec<_>>(),
+        )
+        .unwrap(),
     )
     .unwrap();
 
