@@ -1,4 +1,5 @@
 import srs_json from "../test/srs.json" assert { type: "json" };
+import lagrange_bases from "../test/lagrange_bases.json" assert { type: "json" };
 import { Field, Group, Scalar } from "o1js";
 import { BlindedCommitment, PolyComm } from "./poly_commitment/commitment";
 
@@ -26,6 +27,10 @@ export class SRS {
     constructor(g: Group[], h: Group) {
         this.g = g;
         this.h = h;
+        let lagrange_bases_32 = lagrange_bases[32]
+            .map(({unshifted, shifted}) => {
+                return new PolyComm<Group>(Group({x: }))
+        });
     }
 
     /// Turns a non-hiding polynomial commitment into a hidding polynomial commitment. Transforms each given `<a, G>` into `(<a, G> + wH, w)`.

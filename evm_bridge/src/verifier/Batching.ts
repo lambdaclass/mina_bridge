@@ -18,6 +18,7 @@ export class Batch extends Verifier {
             .srs
             .mask_custom(public_comm,
                 new PolyComm([Scalar.from(1)], undefined))?.commitment;
+        console.log(f_comm);
         /*
           Check the length of evaluations inside the proof.
           Commit to the negated public input polynomial.

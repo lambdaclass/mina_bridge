@@ -23,9 +23,21 @@ export class PolyComm<A> {
         return new PolyComm<B>(unshifted, shifted);
     }
 
+    static naive_msm(points: Group[], scalars: Scalar[]) {
+        let result = Group.zero;
+
+        for (let i = 0; i < points.length; i++) {
+            let point = points[i];
+            let scalar = scalars[i];
+            result = result.add(point.scale(scalar));
+        }
+
+        return result;
+    }
+
     static msm(com: PolyComm<Group>[], elm: Scalar[]): PolyComm<Group> {
-        if (com.length === elm.length) {
-          // FIXME:: error
+        if (com.length != elm.length) {
+            // FIXME:: error
         }
 
         let unshifted_len = Math.max(...com.map(pc => pc.unshifted.length));
@@ -42,21 +54,21 @@ export class PolyComm<A> {
             let points = points_and_scalars.map(([c, _]) => c);
             let scalars = points_and_scalars.map(([_, scalar]) => scalar);
 
-            let chunk_msm = Verifier.msm(points, scalars);
+            let chunk_msm = this.naive_msm(points, scalars);
             unshifted.push(chunk_msm);
         }
 
         let shifted_pairs = com
-                .map((c, i) => [c.shifted, elm[i]] as [Group | undefined, Scalar]) // zip with scalars
-                .filter(([shifted, _]) => shifted)
-                .map((zip) => zip as [Group, Scalar]); // zip with scalars
+            .map((c, i) => [c.shifted, elm[i]] as [Group | undefined, Scalar]) // zip with scalars
+            .filter(([shifted, _]) => shifted)
+            .map((zip) => zip as [Group, Scalar]); // zip with scalars
 
         let shifted = undefined;
         if (shifted_pairs.length != 0) {
             // unzip
             let points = shifted_pairs.map(([c, _]) => c);
             let scalars = shifted_pairs.map(([_, scalar]) => scalar);
-            shifted = Verifier.msm(points, scalars);
+            shifted = this.naive_msm(points, scalars);
         }
 
         return new PolyComm<Group>(unshifted, shifted);
