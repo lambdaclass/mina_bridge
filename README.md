@@ -2,13 +2,16 @@
 
 # mina_bridge 🌉
 
-### Zero-knowledge state bridge from Mina to Ethereum.
+### Zero-knowledge state bridge from Mina to Ethereum
+
 </div>
 
 ## About
+
 This project introduces the proof generation, posting and verification of the validity of [Mina](https://minaprotocol.com/) states into a EVM chain, which will serve as a foundation for token bridging.
 
 ## Design objectives
+
 `mina_bridge` will include:
 
 1. Backend service for periodically wrapping and posting Mina state proofs to an EVM chain.
@@ -18,9 +21,11 @@ This project introduces the proof generation, posting and verification of the va
 5. A solidity contract utility that smart contract developers or users can execute on an EVM chain to feed in a Mina state lookup proof that will check the state lookup against the latest posted Mina state proof to verify that this Mina state is valid.
 
 ## Disclaimer
+
 `mina_bridge` is in an early stage of development, currently it misses elemental features and correct functionality is not guaranteed.
 
 ## Architecture
+
 This is subject to change.
 
 ```mermaid
@@ -39,3 +44,25 @@ This is subject to change.
         U<-->S{{Solidity verifier utility}}
         B3-->|Proof request| S
 ```
+
+## Usage
+
+### Kimchi minimum verifier
+
+On `kimchi_test/` run:
+
+```sh
+cargo r --release
+```
+
+This will generate the proof and the expected value (in the completed version, this value would be the point at infinity).
+
+### Verifier circuit
+
+On `evm_bridge/` run:
+
+```sh
+make
+```
+
+This will create the constraint system of the verification of a proof with fixed values.
