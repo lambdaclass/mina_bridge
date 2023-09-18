@@ -1,5 +1,5 @@
 import { Scalar } from "o1js";
-import { Verifier } from './verifier'
+import { Verifier, VerifierIndex } from './verifier'
 import { PolyComm } from "../poly_commitment/commitment.js";
 import { SRS } from '../SRS.js';
 
@@ -38,10 +38,4 @@ export class Batch extends Verifier {
               lookup commitments
         */
     }
-}
-
-export class VerifierIndex {
-    srs: SRS
-    domain_size: number
-    public: number
 }

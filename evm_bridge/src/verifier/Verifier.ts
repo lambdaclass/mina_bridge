@@ -12,6 +12,12 @@ try {
 
 let { g, h } = SRS.createFromJSON();
 
+export class VerifierIndex {
+    srs: SRS
+    domain_size: number
+    public: number
+}
+
 export class Verifier {
   static main(sg: Group, z1: bigint, expected: Group, debug: boolean) {
     let nonzero_length = g.length;

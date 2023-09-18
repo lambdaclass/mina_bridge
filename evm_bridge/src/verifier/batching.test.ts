@@ -1,7 +1,8 @@
 import { Field, Group } from "o1js";
 import { PolyComm } from "../poly_commitment/commitment";
 import { SRS } from "../SRS";
-import { Batch, VerifierIndex } from "./batching";
+import { Batch } from "./batching";
+import { VerifierIndex } from "./verifier";
 
 test("to_batch() step 1", () => {
     const srs = SRS.createFromJSON();
