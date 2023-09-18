@@ -232,7 +232,10 @@ mod partial_verification {
                 .unwrap()
                 .commitment
         };
-        println!("Done, public_comm: {:?}", public_comm.unshifted[0].to_string());
+        println!(
+            "Done, public_comm: {:?}",
+            public_comm.unshifted[0].to_string()
+        );
         Ok(())
     }
 
@@ -256,8 +259,10 @@ mod partial_verification {
             shifted: Option<UncompressedPoint>,
         }
 
-        impl From<&PolyComm<GroupAffine<PallasParameters>>> for UncompressedPolyComm {
-            fn from(value: &PolyComm<GroupAffine<PallasParameters>>) -> Self {
+        type Pallas = GroupAffine<PallasParameters>;
+        impl From<&PolyComm<Pallas>> for UncompressedPolyComm
+        {
+            fn from(value: &PolyComm<Pallas>) -> Self {
                 Self {
                     unshifted: value
                         .unshifted
@@ -303,9 +308,6 @@ mod partial_verification {
             )
             .unwrap();
 
-            //dbg!(&lagrange_bases[&32][0].unshifted);
-            //dbg!(serde_json::to_string_pretty(lagrange_bases).unwrap());
-            //dbg!(std::any::type_name_of_val(lagrange_bases));
             let public_inputs = vec![];
 
             to_batch_step2(&verifier_index, &public_inputs).unwrap();
