@@ -1,5 +1,4 @@
 import { Group, Scalar } from "o1js";
-import { Verifier } from "../verifier/Verifier.js";
 
 export class PolyComm<A> {
     unshifted: A[]
@@ -36,6 +35,10 @@ export class PolyComm<A> {
     }
 
     static msm(com: PolyComm<Group>[], elm: Scalar[]): PolyComm<Group> {
+        if (com.length === 0 || elm.length === 0) {
+            return new PolyComm<Group>([Group.zero]);
+        }
+
         if (com.length != elm.length) {
             // FIXME:: error
         }

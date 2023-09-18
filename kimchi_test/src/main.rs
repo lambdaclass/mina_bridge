@@ -1,3 +1,4 @@
+#![feature(type_name_of_val)]
 use std::{array, fs};
 
 use ark_ec::short_weierstrass_jacobian::GroupAffine;
@@ -231,13 +232,48 @@ mod partial_verification {
                 .unwrap()
                 .commitment
         };
-        println!("Done, public_comm: {:?}", public_comm);
+        println!("Done, public_comm: {:?}", public_comm.unshifted[0].to_string());
         Ok(())
     }
 
     #[cfg(test)]
     mod tests {
+        use std::collections::HashMap;
+
         use super::*;
+
+        /// Useful for serializing into JSON and importing in Typescript tests.
+        #[derive(Serialize)]
+        struct UncompressedPoint {
+            x: String,
+            y: String,
+        }
+
+        /// Useful for serializing into JSON and importing in Typescript tests.
+        #[derive(Serialize)]
+        struct UncompressedPolyComm {
+            unshifted: Vec<UncompressedPoint>,
+            shifted: Option<UncompressedPoint>,
+        }
+
+        impl From<&PolyComm<GroupAffine<PallasParameters>>> for UncompressedPolyComm {
+            fn from(value: &PolyComm<GroupAffine<PallasParameters>>) -> Self {
+                Self {
+                    unshifted: value
+                        .unshifted
+                        .iter()
+                        .map(|u| UncompressedPoint {
+                            x: u.x.to_biguint().to_string(),
+                            y: u.y.to_biguint().to_string(),
+                        })
+                        .collect(),
+                    shifted: value.shifted.map(|s| UncompressedPoint {
+                        x: s.x.to_biguint().to_string(),
+                        y: s.y.to_biguint().to_string(),
+                    }),
+                }
+            }
+        }
 
         #[test]
         fn to_batch() {
@@ -245,6 +281,31 @@ mod partial_verification {
             let index =
                 new_index_for_test_with_lookups::<Pallas>(gates, 0, 0, vec![], Some(vec![]), false);
             let verifier_index = index.verifier_index();
+            dbg!(verifier_index.public);
+
+            // Export lagrange_bases:
+            let lagrange_bases = &verifier_index.srs().lagrange_bases.clone();
+            let uncompressed_lagrange_bases: HashMap<_, _> = lagrange_bases
+                .into_iter()
+                .map(|(u, comm_vec)| {
+                    (
+                        u,
+                        comm_vec
+                            .into_iter()
+                            .map(UncompressedPolyComm::from)
+                            .collect::<Vec<_>>(),
+                    )
+                })
+                .collect();
+            fs::write(
+                "../evm_bridge/test/lagrange_bases.json",
+                serde_json::to_string_pretty(&uncompressed_lagrange_bases).unwrap(),
+            )
+            .unwrap();
+
+            //dbg!(&lagrange_bases[&32][0].unshifted);
+            //dbg!(serde_json::to_string_pretty(lagrange_bases).unwrap());
+            //dbg!(std::any::type_name_of_val(lagrange_bases));
             let public_inputs = vec![];
 
             to_batch_step2(&verifier_index, &public_inputs).unwrap();
