@@ -12,6 +12,9 @@ try {
 
 let { g, h } = SRS.createFromJSON();
 
+/*
+* Will contain information necessary for executing a verification
+*/
 export class VerifierIndex {
     srs: SRS
     domain_size: number

@@ -1,5 +1,8 @@
 import { Group, Scalar } from "o1js";
 
+/*
+* A polynomial commitment
+*/
 export class PolyComm<A> {
     unshifted: A[]
     shifted?: A
@@ -9,6 +12,9 @@ export class PolyComm<A> {
         this.shifted = shifted;
     }
 
+    /*
+    * Zips two commitments into one
+    */
     zip<B>(other: PolyComm<B>): PolyComm<[A, B]> {
         let unshifted = this.unshifted.map((u, i) => [u, other.unshifted[i]] as [A, B]);
         let shifted = (this.shifted && other.shifted) ?
@@ -16,12 +22,18 @@ export class PolyComm<A> {
         return new PolyComm<[A, B]>(unshifted, shifted);
     }
 
+    /*
+    * Maps over self's `unshifted` and `shifted`
+    */
     map<B>(f: (x: A) => B): PolyComm<B> {
         let unshifted = this.unshifted.map(f);
         let shifted = (this.shifted) ? f(this.shifted) : undefined;
         return new PolyComm<B>(unshifted, shifted);
     }
 
+    /*
+    * Execute a simple multi-scalar multiplication
+    */
     static naive_msm(points: Group[], scalars: Scalar[]) {
         let result = Group.zero;
 
@@ -34,6 +46,10 @@ export class PolyComm<A> {
         return result;
     }
 
+    /*
+    * Executes multi-scalar multiplication between scalars `elm` and commitments `com`.
+    * If empty, returns a commitment with the point at infinity.
+    */
     static msm(com: PolyComm<Group>[], elm: Scalar[]): PolyComm<Group> {
         if (com.length === 0 || elm.length === 0) {
             return new PolyComm<Group>([Group.zero]);
@@ -78,6 +94,9 @@ export class PolyComm<A> {
     }
 }
 
+/*
+* Represents a blinded commitment
+*/
 export class BlindedCommitment<C, S> {
     commitment: PolyComm<C>
     blinders: PolyComm<S>
