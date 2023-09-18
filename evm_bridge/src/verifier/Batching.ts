@@ -1,5 +1,5 @@
 import { Scalar } from "o1js";
-import { Verifier } from './Verifier.js'
+import { Verifier } from './verifier'
 import { PolyComm } from "../poly_commitment/commitment.js";
 import { SRS } from '../SRS.js';
 
