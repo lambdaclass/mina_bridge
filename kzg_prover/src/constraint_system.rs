@@ -7,14 +7,14 @@ pub struct Wire {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct ConstraintSystemElem {
+pub struct Gate {
     pub r#type: String,
     pub wires: [Wire; 7],
     pub coeffs: Vec<String>,
 }
 
 #[derive(Deserialize, Debug)]
-pub struct ConstraintSystem(pub Vec<ConstraintSystemElem>);
+pub struct ConstraintSystem(pub Vec<Gate>);
 
 impl From<&str> for ConstraintSystem {
     fn from(s: &str) -> Self {

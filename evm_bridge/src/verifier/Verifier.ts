@@ -1,7 +1,7 @@
 import assert from 'assert';
 import { readFileSync } from 'fs';
-import { circuitMain, Circuit, Group, Scalar, Provable } from 'o1js';
-import { SRS } from '../SRS';
+import { Field, Group, Scalar } from 'o1js';
+import { SRS } from './SRS.js';
 
 let steps: bigint[][];
 try {
@@ -16,13 +16,15 @@ let { g, h } = SRS.createFromJSON();
 * Will contain information necessary for executing a verification
 */
 export class VerifierIndex {
-    srs: SRS
-    domain_size: number
-    public: number
+  srs: SRS
+  domain_size: number
+  public: number
 }
 
 export class Verifier {
-  static main(sg: Group, z1: bigint, expected: Group, debug: boolean) {
+  static main(sgX: Field, sgY: Field, z1: bigint, expected: Group, debug: boolean) {
+    let sg = new Group({ x: sgX, y: sgY });
+
     let nonzero_length = g.length;
     let max_rounds = Math.ceil(Math.log2(nonzero_length));
     let padded_length = Math.pow(2, max_rounds);

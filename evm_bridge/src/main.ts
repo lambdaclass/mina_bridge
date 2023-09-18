@@ -1,6 +1,7 @@
-import { readFileSync } from "fs";
-import { Group, Provable } from "o1js";
-import { Verifier } from "./verifier/verifier";
+import { open, readFileSync, writeFileSync } from "fs";
+import { Field, Group, Provable } from "o1js";
+import { Snarky } from "o1js/dist/node/snarky.js";
+import { Verifier } from "./Verifier.js";
 
 let inputs: { sg: bigint[], z1: bigint, expected: bigint[] };
 try {
@@ -27,12 +28,18 @@ console.log('SnarkyJS loaded');
 
 console.log("Generating constraint system");
 let cs = Provable.constraintSystem(() => {
-    let sg = Provable.witness(Group, () => new Group({ x: inputs.sg[0], y: inputs.sg[1] }));
+    let sgX = Provable.witness(Field, () => Field(inputs.sg[0]));
+    let sgY = Provable.witness(Field, () => Field(inputs.sg[1]));
     let expected = Provable.witness(Group, () => new Group({ x: inputs.expected[0], y: inputs.expected[1] }));
 
-    Verifier.main(sg, BigInt(inputs.z1), expected, false);
+    Verifier.main(sgX, sgY, BigInt(inputs.z1), expected, false);
 });
-console.log("Constraint system:", cs);
+console.log("public inputs:", cs.publicInputSize);
+console.log("Done!");
+
+console.log("Writing constraint system into file");
+writeFileSync("../kzg_prover/test_data/constraint_system.json", JSON.stringify(cs.gates));
+console.log("Done!");
 
 // ----------------------------------------------------
 console.log('Shutting down');
