@@ -49,6 +49,7 @@ fn main() {
             _ => Field::from(0),
         }
     };
+
     let witness = create_witness(get_public_input);
     println!("witness: {:?}", witness);
 
@@ -75,6 +76,8 @@ fn create_witness<F: Fn(usize) -> Field>(get_public_input: F) -> [Vec<Field>; 15
     let mut snarky_cs = SnarkyConstraintSystem::create(constants);
     snarky_cs.set_public_input_size(2);
 
+    snarky_cs.finalize();
+
     let witness = snarky_cs.compute_witness(get_public_input);
 
     witness.try_into().unwrap()
@@ -93,7 +96,21 @@ fn create_prover_index(gates: Vec<CircuitGate<Field>>) -> ProverIndex<Curve, Ope
 
     let &endo_q = <Curve as KimchiCurve>::other_curve_endo();
 
-    ProverIndex::create(kimchi_cs, endo_q, kimchi_srs_arc)
+    let n = kimchi_cs.domain.d1.size as usize;
+
+    let prover_index = ProverIndex::create(kimchi_cs.clone(), endo_q, kimchi_srs_arc);
+    println!(
+        "permutation coeff: {:?}",
+        prover_index
+            .column_evaluations
+            .permutation_coefficients8
+            .iter()
+            .zip(kimchi_cs.shift)
+            .map(|(c, s)| c[8 * (n - 3) as usize] == kimchi_cs.sid[n - 3] * s)
+            .collect::<Vec<bool>>()
+    );
+
+    prover_index
 }
 
 fn convert_to_circuit_gates(elem_list: Vec<Gate>) -> Vec<CircuitGate<Field>> {

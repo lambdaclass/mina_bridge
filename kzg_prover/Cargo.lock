@@ -349,7 +349,7 @@ dependencies = [
 [[package]]
 name = "groupmap"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge#15709b8845e9c90d884f419e14c44420da97c2a5"
+source = "git+https://github.com/lambdaclass/proof-systems?branch=witness_computation#15709b8845e9c90d884f419e14c44420da97c2a5"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -373,9 +373,9 @@ checksum = "95505c38b4572b2d910cecb0281560f54b440a19336cbbcb27bf6ce6adc6f5a8"
 
 [[package]]
 name = "hermit-abi"
-version = "0.3.2"
+version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "443144c8cdadd93ebf52ddb4056d257f5b52c04d3c804e657d19eb73fc33668b"
+checksum = "d77f7ec81a6d05a3abb01ab6eb7590f6083d08449fe5a1c8b1e620283546ccb7"
 
 [[package]]
 name = "hex"
@@ -395,7 +395,7 @@ checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
 [[package]]
 name = "internal-tracing"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge#15709b8845e9c90d884f419e14c44420da97c2a5"
+source = "git+https://github.com/lambdaclass/proof-systems?branch=witness_computation#15709b8845e9c90d884f419e14c44420da97c2a5"
 
 [[package]]
 name = "itertools"
@@ -415,7 +415,7 @@ checksum = "af150ab688ff2122fcef229be89cb50dd66af9e01a4ff320cc137eecc9bacc38"
 [[package]]
 name = "kimchi"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge#15709b8845e9c90d884f419e14c44420da97c2a5"
+source = "git+https://github.com/lambdaclass/proof-systems?branch=witness_computation#15709b8845e9c90d884f419e14c44420da97c2a5"
 dependencies = [
  "ark-bn254",
  "ark-ec",
@@ -465,15 +465,15 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.147"
+version = "0.2.148"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4668fb0ea861c1df094127ac5f1da3409a82116a4ba74fca2e58ef927159bb3"
+checksum = "9cdc71e17332e86d2e1d38c1f99edcb6288ee11b815fb1a4b049eaa2114d369b"
 
 [[package]]
 name = "memchr"
-version = "2.6.2"
+version = "2.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5486aed0026218e61b8a01d5fbd5a0a134649abb71a0e53b7bc088529dced86e"
+checksum = "8f232d6ef707e1956a43342693d2a31e72989554d58299d7a88738cc95b0d35c"
 
 [[package]]
 name = "memoffset"
@@ -487,7 +487,7 @@ dependencies = [
 [[package]]
 name = "mina-curves"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge#15709b8845e9c90d884f419e14c44420da97c2a5"
+source = "git+https://github.com/lambdaclass/proof-systems?branch=witness_computation#15709b8845e9c90d884f419e14c44420da97c2a5"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -496,7 +496,7 @@ dependencies = [
 [[package]]
 name = "mina-poseidon"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge#15709b8845e9c90d884f419e14c44420da97c2a5"
+source = "git+https://github.com/lambdaclass/proof-systems?branch=witness_computation#15709b8845e9c90d884f419e14c44420da97c2a5"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -566,7 +566,7 @@ dependencies = [
 [[package]]
 name = "o1-utils"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge#15709b8845e9c90d884f419e14c44420da97c2a5"
+source = "git+https://github.com/lambdaclass/proof-systems?branch=witness_computation#15709b8845e9c90d884f419e14c44420da97c2a5"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -612,7 +612,7 @@ dependencies = [
 [[package]]
 name = "poly-commitment"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge#15709b8845e9c90d884f419e14c44420da97c2a5"
+source = "git+https://github.com/lambdaclass/proof-systems?branch=witness_computation#15709b8845e9c90d884f419e14c44420da97c2a5"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -642,9 +642,9 @@ checksum = "5b40af805b3121feab8a3c29f04d8ad262fa8e0561883e7653e024ae4479e6de"
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.66"
+version = "1.0.67"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18fb31db3f9bddb2ea821cde30a9f70117e3f119938b5ee630b7403aa6e2ead9"
+checksum = "3d433d9f1a3e8c1263d9456598b16fec66f4acc9a74dacffd35c7bb09b3a1328"
 dependencies = [
  "unicode-ident",
 ]
@@ -794,14 +794,14 @@ checksum = "4eca7ac642d82aa35b60049a6eccb4be6be75e599bd2e9adb5f875a737654af2"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.29",
+ "syn 2.0.37",
 ]
 
 [[package]]
 name = "serde_json"
-version = "1.0.105"
+version = "1.0.107"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "693151e1ac27563d6dbcec9dee9fbd5da8539b20fa14ad3752b2e6d363ace360"
+checksum = "6b420ce6e3d8bd882e9b243c6eed35dbc9a6110c9769e74b584e0d68d1f20c65"
 dependencies = [
  "itoa",
  "ryu",
@@ -885,9 +885,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.29"
+version = "2.0.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c324c494eba9d92503e6f1ef2e6df781e78f6a7705a0202d9801b198807d518a"
+checksum = "7303ef2c05cd654186cb250d29049a24840ca25d2747c25c0381c8d9e2f582e8"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -896,22 +896,22 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "1.0.47"
+version = "1.0.48"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "97a802ec30afc17eee47b2855fc72e0c4cd62be9b4efe6591edde0ec5bd68d8f"
+checksum = "9d6d7a740b8a666a7e828dd00da9c0dc290dff53154ea77ac109281de90589b7"
 dependencies = [
  "thiserror-impl",
 ]
 
 [[package]]
 name = "thiserror-impl"
-version = "1.0.47"
+version = "1.0.48"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6bb623b56e39ab7dcd4b1b98bb6c8f8d907ed255b18de254088016b27a8ee19b"
+checksum = "49922ecae66cc8a249b77e68d1d0623c1b2c514f0060c27cdc68bd62a1219d35"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.29",
+ "syn 2.0.37",
 ]
 
 [[package]]
@@ -926,7 +926,7 @@ dependencies = [
 [[package]]
 name = "turshi"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems?branch=feature/keccak-sponge#15709b8845e9c90d884f419e14c44420da97c2a5"
+source = "git+https://github.com/lambdaclass/proof-systems?branch=witness_computation#15709b8845e9c90d884f419e14c44420da97c2a5"
 dependencies = [
  "ark-ff",
  "hex",
@@ -935,9 +935,9 @@ dependencies = [
 
 [[package]]
 name = "typenum"
-version = "1.16.0"
+version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "497961ef93d974e23eb6f433eb5fe1b7930b659f06d12dec6fc44a8f554c0bba"
+checksum = "42ff0bf0c66b8238c6f3b578df37d0b7848e55df8577b3f74f92a69acceeb825"
 
 [[package]]
 name = "ucd-trie"
@@ -947,9 +947,9 @@ checksum = "ed646292ffc8188ef8ea4d1e0e0150fb15a5c2e12ad9b8fc191ae7a8a7f3c4b9"
 
 [[package]]
 name = "unicode-ident"
-version = "1.0.11"
+version = "1.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "301abaae475aa91687eb82514b328ab47a211a533026cb25fc3e519b86adfc3c"
+checksum = "3354b9ac3fae1ff6755cb6db53683adb661634f67557942dea4facebec0fee4b"
 
 [[package]]
 name = "version_check"
@@ -980,5 +980,5 @@ checksum = "ce36e65b0d2999d2aafac989fb249189a141aee1f53c612c1f37d72631959f69"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.29",
+ "syn 2.0.37",
 ]
