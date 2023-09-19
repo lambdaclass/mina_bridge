@@ -13,7 +13,7 @@ export class Batch extends Verifier {
         //~ 1. Check the length of evaluations inside the proof.
 
         //~ 2. Commit to the negated public input polynomial.
-        let lgr_comm = verifier_index.srs.lagrange_bases.get(verifier_index.domain_size)!;
+        let lgr_comm = verifier_index.srs.lagrangeBases.get(verifier_index.domain_size)!;
         let com = lgr_comm?.slice(0, verifier_index.public);
         let elm = public_input.map(s => s.neg());
         let public_comm = PolyComm.msm(com, elm);

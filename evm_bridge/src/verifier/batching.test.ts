@@ -4,7 +4,7 @@ import { SRS } from "../SRS";
 import { Batch } from "./batching";
 import { VerifierIndex } from "./verifier";
 
-test("to_batch() step 1", () => {
+test("toBatch() step 1", () => {
     const srs = SRS.createFromJSON();
     const domain_size = 32; // extracted from test in Rust.
     const vi: VerifierIndex = {

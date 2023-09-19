@@ -23,7 +23,7 @@ export class SRS {
     /// A group element used for blinding commitments
     h: Group;
     /// Commitments to Lagrange bases, per domain size
-    lagrange_bases: Map<number, PolyComm<Group>[]>
+    lagrangeBases: Map<number, PolyComm<Group>[]>
 
     static createFromJSON() {
         let g: Group[] = g_json.map((g_i_json) => this.#createGroupFromJSON(g_i_json));
@@ -49,7 +49,7 @@ export class SRS {
     constructor(g: Group[], h: Group) {
         this.g = g;
         this.h = h;
-        this.lagrange_bases = SRS.#createLagrangeBasesFromJSON(lagrange_bases_json);
+        this.lagrangeBases = SRS.#createLagrangeBasesFromJSON(lagrange_bases_json);
     }
 
     /*
