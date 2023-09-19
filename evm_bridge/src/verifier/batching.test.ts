@@ -13,7 +13,7 @@ test("to_batch() step 1", () => {
         public: 0
     };
 
-    let f_comm = Batch.to_batch(vi, []); // upto step 2 implemented.
+    let f_comm = Batch.toBatch(vi, []); // upto step 2 implemented.
     let expected_f_comm = new PolyComm<Group>([
         Group({
             x: Field(0x221b959dacd2052aae26193fca36b53279866a4fbbab0d5a2f828b5fd7778201n),

@@ -34,7 +34,7 @@ export class PolyComm<A> {
     /*
     * Execute a simple multi-scalar multiplication
     */
-    static naive_msm(points: Group[], scalars: Scalar[]) {
+    static naiveMSM(points: Group[], scalars: Scalar[]) {
         let result = Group.zero;
 
         for (let i = 0; i < points.length; i++) {
@@ -73,7 +73,7 @@ export class PolyComm<A> {
             let points = points_and_scalars.map(([c, _]) => c);
             let scalars = points_and_scalars.map(([_, scalar]) => scalar);
 
-            let chunk_msm = this.naive_msm(points, scalars);
+            let chunk_msm = this.naiveMSM(points, scalars);
             unshifted.push(chunk_msm);
         }
 
@@ -87,7 +87,7 @@ export class PolyComm<A> {
             // unzip
             let points = shifted_pairs.map(([c, _]) => c);
             let scalars = shifted_pairs.map(([_, scalar]) => scalar);
-            shifted = this.naive_msm(points, scalars);
+            shifted = this.naiveMSM(points, scalars);
         }
 
         return new PolyComm<Group>(unshifted, shifted);

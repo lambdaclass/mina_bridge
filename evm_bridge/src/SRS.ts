@@ -52,8 +52,10 @@ export class SRS {
         this.lagrange_bases = SRS.#createLagrangeBasesFromJSON(lagrange_bases_json);
     }
 
-    /// Turns a non-hiding polynomial commitment into a hidding polynomial commitment. Transforms each given `<a, G>` into `(<a, G> + wH, w)`.
-    mask_custom(com: PolyComm<Group>, blinders: PolyComm<Scalar>): BlindedCommitment<Group, Scalar> | undefined {
+    /*
+     * Turns a non-hiding polynomial commitment into a hidding polynomial commitment. Transforms each given `<a, G>` into `(<a, G> + wH, w)`.
+    */
+    maskCustom(com: PolyComm<Group>, blinders: PolyComm<Scalar>): BlindedCommitment<Group, Scalar> | undefined {
         let commitment = com
             .zip(blinders)
             .map(([g, b]) => {
