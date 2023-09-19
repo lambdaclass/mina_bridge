@@ -191,11 +191,82 @@ mod partial_verification {
     use ark_ff::{One, PrimeField};
     use ark_poly::domain::EvaluationDomain;
     use kimchi::{
-        curve::KimchiCurve, error::VerifyError, poly_commitment::PolyComm,
+        curve::KimchiCurve,
+        error::VerifyError,
+        poly_commitment::PolyComm,
+        proof::{LookupEvaluations, PointEvaluations, ProofEvaluations},
         verifier_index::VerifierIndex,
     };
 
     use super::*;
+
+    /// Enforce the length of evaluations inside [`Proof`].
+    /// Atm, the length of evaluations(both `zeta` and `zeta_omega`) SHOULD be 1.
+    /// The length value is prone to future change.
+    fn check_proof_evals_len<G>(proof: &ProverProof<G>) -> Result<(), VerifyError>
+    where
+        G: KimchiCurve,
+        G::BaseField: PrimeField,
+    {
+        let ProofEvaluations {
+            w,
+            z,
+            s,
+            coefficients,
+            lookup,
+            generic_selector,
+            poseidon_selector,
+        } = &proof.evals;
+
+        let check_eval_len = |eval: &PointEvaluations<Vec<_>>| -> Result<(), VerifyError> {
+            if eval.zeta.len().is_one() && eval.zeta_omega.len().is_one() {
+                Ok(())
+            } else {
+                Err(VerifyError::IncorrectEvaluationsLength)
+            }
+        };
+
+        for w_i in w {
+            check_eval_len(w_i)?;
+        }
+        check_eval_len(z)?;
+        for s_i in s {
+            check_eval_len(s_i)?;
+        }
+        for coeff in coefficients {
+            check_eval_len(coeff)?;
+        }
+        if let Some(LookupEvaluations {
+            sorted,
+            aggreg,
+            table,
+            runtime,
+        }) = lookup
+        {
+            for sorted_i in sorted {
+                check_eval_len(sorted_i)?;
+            }
+            check_eval_len(aggreg)?;
+            check_eval_len(table)?;
+            if let Some(runtime) = &runtime {
+                check_eval_len(runtime)?;
+            }
+        }
+        check_eval_len(generic_selector)?;
+        check_eval_len(poseidon_selector)?;
+
+        Ok(())
+    }
+
+    fn to_batch_step1<'a, G>(proof: &'a ProverProof<G>) -> Result<(), VerifyError>
+    where
+        G: KimchiCurve,
+        G::BaseField: PrimeField,
+    {
+        println!("to_batch(), step 1: Commit to the negated public input polynomial.");
+        check_proof_evals_len(proof)?;
+        Ok(())
+    }
 
     fn to_batch_step2<'a, G>(
         verifier_index: &VerifierIndex<G>,
@@ -243,7 +314,16 @@ mod partial_verification {
     mod tests {
         use std::collections::HashMap;
 
+        use ark_ff::Fp256;
+        use kimchi::mina_curves::pasta::fields::FqParameters;
+
         use super::*;
+
+        type PallasGroup = GroupAffine<PallasParameters>;
+
+        type SpongeParams = PlonkSpongeConstantsKimchi;
+        type BaseSponge = DefaultFqSponge<PallasParameters, SpongeParams>;
+        type ScalarSponge = DefaultFrSponge<Fq, SpongeParams>;
 
         /// Useful for serializing into JSON and importing in Typescript tests.
         #[derive(Serialize)]
@@ -259,10 +339,8 @@ mod partial_verification {
             shifted: Option<UncompressedPoint>,
         }
 
-        type Pallas = GroupAffine<PallasParameters>;
-        impl From<&PolyComm<Pallas>> for UncompressedPolyComm
-        {
-            fn from(value: &PolyComm<Pallas>) -> Self {
+        impl From<&PolyComm<PallasGroup>> for UncompressedPolyComm {
+            fn from(value: &PolyComm<PallasGroup>) -> Self {
                 Self {
                     unshifted: value
                         .unshifted
@@ -282,13 +360,40 @@ mod partial_verification {
 
         #[test]
         fn to_batch() {
+            // Create test circuit
             let gates = create_circuit(0, 0);
-            let index =
-                new_index_for_test_with_lookups::<Pallas>(gates, 0, 0, vec![], Some(vec![]), false);
-            let verifier_index = index.verifier_index();
-            dbg!(verifier_index.public);
+            let num_gates = gates.len();
 
-            // Export lagrange_bases:
+            // Index
+            let prover_index =
+                new_index_for_test_with_lookups::<Pallas>(gates, 0, 0, vec![], Some(vec![]), false);
+            let verifier_index = prover_index.verifier_index();
+
+            // Create proof
+            let proof = {
+                let groupmap = <Pallas as CommitmentCurve>::Map::setup();
+                // dummy array that will get filled
+                let mut witness: [Vec<Fp256<FqParameters>>; COLUMNS] =
+                    array::from_fn(|_| vec![1u32.into(); num_gates]);
+                fill_in_witness(0, &mut witness, &[]);
+
+                ProverProof::create::<BaseSponge, ScalarSponge>(
+                    &groupmap,
+                    witness,
+                    &[],
+                    &prover_index,
+                )
+                .unwrap()
+            };
+
+            // Export proof evaluations
+            fs::write(
+                "../evm_bridge/test/proof_evals.json",
+                serde_json::to_string_pretty(&proof.evals).unwrap(),
+            )
+            .unwrap();
+
+            // Export lagrange_bases (needed for Typescript SRS)
             let lagrange_bases = &verifier_index.srs().lagrange_bases.clone();
             let uncompressed_lagrange_bases: HashMap<_, _> = lagrange_bases
                 .into_iter()
@@ -310,6 +415,7 @@ mod partial_verification {
 
             let public_inputs = vec![];
 
+            to_batch_step1(&proof).unwrap();
             to_batch_step2(&verifier_index, &public_inputs).unwrap();
         }
     }
