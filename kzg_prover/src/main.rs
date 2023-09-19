@@ -50,8 +50,7 @@ fn main() {
         }
     };
 
-    let witness = create_witness(get_public_input);
-    println!("witness: {:?}", witness);
+    let witness = create_witness(&gates, get_public_input);
 
     let prover_index = create_prover_index(gates);
     let proof =
@@ -71,12 +70,14 @@ fn main() {
     println!("Done!");
 }
 
-fn create_witness<F: Fn(usize) -> Field>(get_public_input: F) -> [Vec<Field>; 15] {
+fn create_witness<F: Fn(usize) -> Field>(
+    gates: &[CircuitGate<Field>],
+    get_public_input: F,
+) -> [Vec<Field>; 15] {
     let constants = Constants::new::<Curve>();
     let mut snarky_cs = SnarkyConstraintSystem::create(constants);
     snarky_cs.set_public_input_size(2);
-
-    snarky_cs.finalize();
+    snarky_cs.add_rows_using_gates(gates);
 
     let witness = snarky_cs.compute_witness(get_public_input);
 
@@ -95,20 +96,7 @@ fn create_prover_index(gates: Vec<CircuitGate<Field>>) -> ProverIndex<Curve, Ope
     let kimchi_srs_arc = Arc::new(kimchi_srs);
 
     let &endo_q = <Curve as KimchiCurve>::other_curve_endo();
-
-    let n = kimchi_cs.domain.d1.size as usize;
-
     let prover_index = ProverIndex::create(kimchi_cs.clone(), endo_q, kimchi_srs_arc);
-    println!(
-        "permutation coeff: {:?}",
-        prover_index
-            .column_evaluations
-            .permutation_coefficients8
-            .iter()
-            .zip(kimchi_cs.shift)
-            .map(|(c, s)| c[8 * (n - 3) as usize] == kimchi_cs.sid[n - 3] * s)
-            .collect::<Vec<bool>>()
-    );
 
     prover_index
 }
