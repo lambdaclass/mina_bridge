@@ -45,6 +45,15 @@ This is subject to change.
         B3-->|Proof request| S
 ```
 
+## Components of this Repo
+
+This repository is composed of the following components:
+
+- `evm_bridge/`: Typescript code using `o1js` library. This is the main code of the Mina <-> EVM bridge. Implements the circuits for the verifier of the Kimchi proof system in arthmetic circuits, and generates the proof for the EVM.
+- `kimchi_test/`: Rust code for generating a Mina state proof and verifying it using the Kimchi proof system.
+- `srs/`: Contains tests SRSs for Pallas and Vesta curves.
+- `test_prover/`: Typescript code using `o1js` library. This is a test prover for the Kimchi proof system. It's a PoC and will be removed in the near future.
+
 ## Usage
 
 ### Kimchi minimum verifier
