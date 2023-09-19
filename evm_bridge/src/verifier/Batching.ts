@@ -1,6 +1,7 @@
 import { Scalar } from "o1js";
 import { Verifier, VerifierIndex } from './verifier'
 import { PolyComm } from "../poly_commitment/commitment.js";
+import { ProverProof, PointEvaluations } from "../prover/prover";
 
 export class Batch extends Verifier {
     /**
@@ -9,8 +10,9 @@ export class Batch extends Verifier {
      *
      * essentially will partial verify proofs so they can be batched verified later.
     */
-    static toBatch(verifier_index: VerifierIndex, public_input: Scalar[]) {
+    static toBatch(verifier_index: VerifierIndex, proof: ProverProof, public_input: Scalar[]) {
         //~ 1. Check the length of evaluations inside the proof.
+        this.#check_proof_evals_len(proof)
 
         //~ 2. Commit to the negated public input polynomial.
         let lgr_comm = verifier_index.srs.lagrangeBases.get(verifier_index.domain_size)!;
@@ -40,5 +42,45 @@ export class Batch extends Verifier {
               sigma commitments
               lookup commitments
         */
+    }
+
+    /*
+    * Enforce the length of evaluations inside the `proof`.
+    * Atm, the length of evaluations(both `zeta` and `zeta_omega`) SHOULD be 1.
+    * The length value is prone to future change.
+    */
+    static #check_proof_evals_len(proof: ProverProof): boolean {
+        const {
+            w,
+            z,
+            s,
+            coefficients,
+            lookup,
+            generic_selector,
+            poseidon_selector
+        } = proof.evals;
+
+        const valid_evals_len = (evals: PointEvaluations<Array<Scalar>>): boolean =>
+                evals.zeta.length === 1 && evals.zeta_omega.length === 1;
+
+        // auxiliary
+        let arrays = [w, s, coefficients];
+        let singles = [z, generic_selector, poseidon_selector];
+        if (lookup) {
+            const {
+                sorted,
+                aggreg,
+                table,
+                runtime
+            } = lookup;
+
+            arrays.push(sorted);
+            singles.push(aggreg, table);
+            if (runtime) singles.push(runtime);
+        }
+
+        // true if all evaluation lengths are valid
+        return arrays.every((evals) => evals.every(valid_evals_len)) &&
+            singles.every(valid_evals_len);
     }
 }
