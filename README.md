@@ -47,17 +47,17 @@ This is subject to change.
 
 ## Usage
 
-### Kimchi minimum verifier
+### Generate public inputs
 
-On `kimchi_test/` run:
+On `public_input_gen/` run:
 
 ```sh
 cargo r --release
 ```
 
-This will generate the proof and the expected value (in the completed version, this value would be the point at infinity).
+This will generate the proof and the expected value (in the completed version, this value would be the point at infinity). These values will be used as public inputs for the verifier circuit.
 
-### Verifier circuit
+### Run the Verifier circuit
 
 On `evm_bridge/` run:
 
