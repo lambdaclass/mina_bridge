@@ -1,3 +1,4 @@
+#![feature(type_name_of_val)]
 use std::{array, fs};
 
 use ark_ec::short_weierstrass_jacobian::GroupAffine;
@@ -182,4 +183,134 @@ fn naive_msm(points: &[Pallas], scalars: &[BigInteger256]) -> Pallas {
     .unwrap();
 
     result
+}
+
+/// Reference tests for comparing behaviour with the circuit implementation in o1js.
+mod partial_verification {
+    use ark_ec::AffineCurve;
+    use ark_ff::{One, PrimeField};
+    use ark_poly::domain::EvaluationDomain;
+    use kimchi::{
+        curve::KimchiCurve, error::VerifyError, poly_commitment::PolyComm,
+        verifier_index::VerifierIndex,
+    };
+
+    use super::*;
+
+    fn to_batch_step2<'a, G>(
+        verifier_index: &VerifierIndex<G>,
+        public_input: &'a [<G as AffineCurve>::ScalarField],
+    ) -> Result<(), VerifyError>
+    where
+        G: KimchiCurve,
+        G::BaseField: PrimeField,
+    {
+        println!("to_batch(), step 2: Commit to the negated public input polynomial.");
+        let public_comm = {
+            if public_input.len() != verifier_index.public {
+                return Err(VerifyError::IncorrectPubicInputLength(
+                    verifier_index.public,
+                ));
+            }
+            let lgr_comm = verifier_index
+                .srs()
+                .lagrange_bases
+                .get(&verifier_index.domain.size())
+                .expect("pre-computed committed lagrange bases not found");
+            let com: Vec<_> = lgr_comm.iter().take(verifier_index.public).collect();
+            let elm: Vec<_> = public_input.iter().map(|s| -*s).collect();
+            let public_comm = PolyComm::<G>::multi_scalar_mul(&com, &elm);
+            verifier_index
+                .srs()
+                .mask_custom(
+                    public_comm,
+                    &PolyComm {
+                        unshifted: vec![G::ScalarField::one(); 1],
+                        shifted: None,
+                    },
+                )
+                .unwrap()
+                .commitment
+        };
+        println!(
+            "Done, public_comm: {:?}",
+            public_comm.unshifted[0].to_string()
+        );
+        Ok(())
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use std::collections::HashMap;
+
+        use super::*;
+
+        /// Useful for serializing into JSON and importing in Typescript tests.
+        #[derive(Serialize)]
+        struct UncompressedPoint {
+            x: String,
+            y: String,
+        }
+
+        /// Useful for serializing into JSON and importing in Typescript tests.
+        #[derive(Serialize)]
+        struct UncompressedPolyComm {
+            unshifted: Vec<UncompressedPoint>,
+            shifted: Option<UncompressedPoint>,
+        }
+
+        type Pallas = GroupAffine<PallasParameters>;
+        impl From<&PolyComm<Pallas>> for UncompressedPolyComm
+        {
+            fn from(value: &PolyComm<Pallas>) -> Self {
+                Self {
+                    unshifted: value
+                        .unshifted
+                        .iter()
+                        .map(|u| UncompressedPoint {
+                            x: u.x.to_biguint().to_string(),
+                            y: u.y.to_biguint().to_string(),
+                        })
+                        .collect(),
+                    shifted: value.shifted.map(|s| UncompressedPoint {
+                        x: s.x.to_biguint().to_string(),
+                        y: s.y.to_biguint().to_string(),
+                    }),
+                }
+            }
+        }
+
+        #[test]
+        fn to_batch() {
+            let gates = create_circuit(0, 0);
+            let index =
+                new_index_for_test_with_lookups::<Pallas>(gates, 0, 0, vec![], Some(vec![]), false);
+            let verifier_index = index.verifier_index();
+            dbg!(verifier_index.public);
+
+            // Export lagrange_bases:
+            let lagrange_bases = &verifier_index.srs().lagrange_bases.clone();
+            let uncompressed_lagrange_bases: HashMap<_, _> = lagrange_bases
+                .into_iter()
+                .map(|(u, comm_vec)| {
+                    (
+                        u,
+                        comm_vec
+                            .into_iter()
+                            .map(UncompressedPolyComm::from)
+                            .collect::<Vec<_>>(),
+                    )
+                })
+                .collect();
+            fs::write(
+                "../evm_bridge/test/lagrange_bases.json",
+                serde_json::to_string_pretty(&uncompressed_lagrange_bases).unwrap(),
+            )
+            .unwrap();
+
+            let public_inputs = vec![];
+
+            to_batch_step2(&verifier_index, &public_inputs).unwrap();
+        }
+    }
 }

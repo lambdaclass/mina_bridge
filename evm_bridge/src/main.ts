@@ -1,6 +1,6 @@
 import { readFileSync } from "fs";
 import { Group, Provable } from "o1js";
-import { Verifier } from "./Verifier.js";
+import { Verifier } from "./verifier/verifier";
 
 let inputs: { sg: bigint[], z1: bigint, expected: bigint[] };
 try {
