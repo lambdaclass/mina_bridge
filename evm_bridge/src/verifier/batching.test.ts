@@ -1,8 +1,14 @@
-import { Field, Group } from "o1js";
+import { Field, Group, Scalar } from "o1js";
 import { PolyComm } from "../poly_commitment/commitment";
 import { SRS } from "../SRS";
 import { Batch } from "./batching";
 import { VerifierIndex } from "./verifier";
+import proof_evals from "../../test/proof_evals.json" assert { type: "json" };
+import { PointEvaluations } from "../prover/prover";
+
+function proofEvalsFromJSON(evals: ProofEvalsJSON): {
+
+}
 
 test("toBatch() step 1", () => {
     const srs = SRS.createFromJSON();
@@ -11,6 +17,9 @@ test("toBatch() step 1", () => {
         srs: srs,
         domain_size: domain_size,
         public: 0
+    };
+    const proof = {
+        evals: proof_evals
     };
 
     let f_comm = Batch.toBatch(vi, proof, []); // upto step 2 implemented.
