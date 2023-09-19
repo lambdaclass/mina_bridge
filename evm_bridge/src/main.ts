@@ -1,7 +1,6 @@
-import { open, readFileSync, writeFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import { Field, Group, Provable } from "o1js";
-import { Snarky } from "o1js/dist/node/snarky.js";
-import { Verifier } from "./Verifier.js";
+import { Verifier } from "./verifier/Verifier.js";
 
 let inputs: { sg: bigint[], z1: bigint, expected: bigint[] };
 try {

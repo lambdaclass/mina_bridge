@@ -1,7 +1,7 @@
 import assert from 'assert';
 import { readFileSync } from 'fs';
-import { Field, Group, Scalar } from 'o1js';
-import { SRS } from './SRS.js';
+import { circuitMain, Circuit, Group, Scalar, Provable, Field } from 'o1js';
+import { SRS } from '../SRS.js';
 
 let steps: bigint[][];
 try {
