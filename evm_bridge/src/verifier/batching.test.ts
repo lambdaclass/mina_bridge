@@ -1,7 +1,7 @@
 import { Field, Group, Scalar } from "o1js";
 import { PolyComm } from "../poly_commitment/commitment";
 import { SRS } from "../SRS";
-import { Batch } from "./batching";
+import { Batch } from "./batch";
 import { VerifierIndex } from "./verifier";
 import proof_evals_json from "../../test/proof_evals.json" assert { type: "json" };
 import { PointEvaluations } from "../prover/prover";
