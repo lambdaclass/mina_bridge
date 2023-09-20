@@ -36,7 +36,7 @@ jobs:
         run: cargo nextest run --workspace --all-targets --no-fail-fast
 
       - name: Run rustfmt
-        run: cargo fmt --workspace --all-targets
+        run: cargo fmt --all --check
 
       - name: Run clippy
         run: cargo clippy --workspace --all-targets
