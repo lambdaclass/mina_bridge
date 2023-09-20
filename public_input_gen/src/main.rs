@@ -49,7 +49,7 @@ fn main() {
     let srs: SRS<Pallas> = precomputed_srs::get_srs();
     // write_srs_into_file(&srs);
 
-  // create and verify proof based on the witness
+    // create and verify proof based on the witness
     prove_and_verify(&srs, gates, witness);
 }
 
