@@ -55,7 +55,7 @@ fn main() {
         .collect();
 
     let constants = kimchi::snarky::constants::Constants::new::<Curve>();
-    let mut snarky_cs =
+    let _snarky_cs =
         kimchi::snarky::constraint_system::SnarkyConstraintSystem::create(constants);
 
     let mut kimchi_cs = kimchi::circuits::constraints::ConstraintSystem::<Field>::create(gates)
