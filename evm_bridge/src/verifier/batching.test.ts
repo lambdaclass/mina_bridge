@@ -1,10 +1,14 @@
-import { Field, Group } from "o1js";
+import { Field, Group, Scalar } from "o1js";
 import { PolyComm } from "../poly_commitment/commitment";
 import { SRS } from "../SRS";
-import { Batch } from "./batching";
+import { Batch } from "./batch";
 import { VerifierIndex } from "./verifier";
+import proof_evals_json from "../../test/proof_evals.json" assert { type: "json" };
+import { PointEvaluations } from "../prover/prover";
+import { deserProofEvals } from "../serde/serde_proof";
 
-test("toBatch() step 1", () => {
+
+test("toBatch() step 1 and 2", () => {
     const srs = SRS.createFromJSON();
     const domain_size = 32; // extracted from test in Rust.
     const vi: VerifierIndex = {
@@ -12,8 +16,12 @@ test("toBatch() step 1", () => {
         domain_size: domain_size,
         public: 0
     };
+    const proof_evals = deserProofEvals(proof_evals_json);
+    const proof = {
+        evals: proof_evals
+    };
 
-    let f_comm = Batch.toBatch(vi, []); // upto step 2 implemented.
+    let f_comm = Batch.toBatch(vi, proof, []); // upto step 2 implemented.
     let expected_f_comm = new PolyComm<Group>([
         Group({
             x: Field(0x221b959dacd2052aae26193fca36b53279866a4fbbab0d5a2f828b5fd7778201n),
