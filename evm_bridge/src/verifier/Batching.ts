@@ -56,16 +56,16 @@ export class Batch extends Verifier {
             s,
             coefficients,
             lookup,
-            generic_selector,
-            poseidon_selector
+            genericSelector,
+            poseidonSelector
         } = proof.evals;
 
         const valid_evals_len = (evals: PointEvaluations<Array<Scalar>>): boolean =>
-                evals.zeta.length === 1 && evals.zeta_omega.length === 1;
+                evals.zeta.length === 1 && evals.zetaOmega.length === 1;
 
         // auxiliary
         let arrays = [w, s, coefficients];
-        let singles = [z, generic_selector, poseidon_selector];
+        let singles = [z, genericSelector, poseidonSelector];
         if (lookup) {
             const {
                 sorted,

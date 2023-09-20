@@ -8,7 +8,7 @@ import { PointEvaluations } from "../prover/prover";
 import { deserProofEvals } from "../serde/serde_proof";
 
 
-test("toBatch() step 1", () => {
+test("toBatch() step 1 and 2", () => {
     const srs = SRS.createFromJSON();
     const domain_size = 32; // extracted from test in Rust.
     const vi: VerifierIndex = {

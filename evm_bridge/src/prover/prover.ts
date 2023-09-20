@@ -25,9 +25,9 @@ export class ProofEvaluations<Evals> {
     /* lookup-related evaluations */
      lookup?: LookupEvaluations<Evals>
     /* evaluation of the generic selector polynomial */
-     generic_selector: Evals
+     genericSelector: Evals
     /* evaluation of the poseidon selector polynomial */
-     poseidon_selector: Evals
+     poseidonSelector: Evals
 }
 
 /*
@@ -51,5 +51,5 @@ export class PointEvaluations<Evals> {
     /* evaluation at the challenge point zeta */
     zeta: Evals
     /* Evaluation at `zeta . omega`, the product of the challenge point and the group generator */
-    zeta_omega: Evals
+    zetaOmega: Evals
 }

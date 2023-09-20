@@ -3,6 +3,7 @@ import { PointEvaluations, ProofEvaluations } from "../prover/prover"
 
 type PointEvals = PointEvaluations<Scalar[]>;
 
+// NOTE: snake_case is necessary to match the JSON schemes.
 interface PointEvalsJSON {
     zeta: string[]
     zeta_omega: string[]
@@ -24,16 +25,22 @@ interface ProofEvalsJSON {
     poseidon_selector: PointEvalsJSON
 }
 
+/*
+ * Deserializes a scalar point evaluation from JSON
+ */
 export function deserPointEval(json: PointEvalsJSON): PointEvals {
     const deserHexScalar = (str: string): Scalar => {
         if (!str.startsWith("0x")) str = "0x" + str;
         return Scalar.from(str);
     }
     const zeta = json.zeta.map(deserHexScalar);
-    const zeta_omega = json.zeta_omega.map(deserHexScalar);
-    return { zeta, zeta_omega };
+    const zetaOmega = json.zeta_omega.map(deserHexScalar);
+    return { zeta, zetaOmega };
 }
 
+/*
+ * Deserializes scalar proof evaluations from JSON
+ */
 export function deserProofEvals(json: ProofEvalsJSON): ProofEvaluations<PointEvals> {
     const [
         w,
@@ -42,8 +49,8 @@ export function deserProofEvals(json: ProofEvalsJSON): ProofEvaluations<PointEva
     ] = [json.w, json.s, json.coefficients].map(field => field.map(deserPointEval));
     const [
         z,
-        generic_selector,
-        poseidon_selector
+        genericSelector,
+        poseidonSelector
     ] = [json.z, json.generic_selector, json.poseidon_selector].map(deserPointEval);
 
     // in the current json, there isn't a non-null lookup, so TS infers that it'll always be null.
@@ -61,5 +68,5 @@ export function deserProofEvals(json: ProofEvalsJSON): ProofEvaluations<PointEva
     //     lookup = { sorted, aggreg, table, runtime };
     // }
 
-    return { w, z, s, coefficients, lookup, generic_selector, poseidon_selector };
+    return { w, z, s, coefficients, lookup, genericSelector, poseidonSelector };
 }
