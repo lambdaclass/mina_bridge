@@ -1,7 +1,7 @@
 import { Scalar } from "o1js";
-import { Verifier, VerifierIndex } from './verifier'
+import { Verifier, VerifierIndex } from './Verifier.js'
 import { PolyComm } from "../poly_commitment/commitment.js";
-import { ProverProof, PointEvaluations } from "../prover/prover";
+import { ProverProof, PointEvaluations } from "../prover/prover.js";
 
 export class Batch extends Verifier {
     /**
@@ -61,7 +61,7 @@ export class Batch extends Verifier {
         } = proof.evals;
 
         const valid_evals_len = (evals: PointEvaluations<Array<Scalar>>): boolean =>
-                evals.zeta.length === 1 && evals.zetaOmega.length === 1;
+            evals.zeta.length === 1 && evals.zetaOmega.length === 1;
 
         // auxiliary
         let arrays = [w, s, coefficients];
