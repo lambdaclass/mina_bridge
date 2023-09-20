@@ -5,6 +5,7 @@ This template uses TypeScript.
 ## How to build
 
 ```sh
+npm install
 npm run build
 ```
 

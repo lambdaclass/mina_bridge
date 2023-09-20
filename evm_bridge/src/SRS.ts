@@ -1,7 +1,7 @@
 import srs_json from "../test/srs.json" assert { type: "json" };
 import lagrange_bases_json from "../test/lagrange_bases.json" assert { type: "json" };
 import { Field, Group, Scalar } from "o1js";
-import { BlindedCommitment, PolyComm } from "./poly_commitment/commitment";
+import { BlindedCommitment, PolyComm } from "./poly_commitment/commitment.js";
 
 let g_json: string[][] = srs_json.g;
 let h_json: string[] = srs_json.h;
