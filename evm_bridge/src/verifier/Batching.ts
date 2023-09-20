@@ -33,7 +33,7 @@ export class Batch extends Verifier {
           Compute the (chuncked) commitment of $ft$ (see Maller’s optimization).
           List the polynomial commitments, and their associated evaluations, that are associated to the aggregated evaluation proof in the proof:
               recursion
-              ublic input commitment
+              public input commitment
               ft commitment (chunks of it)
               permutation commitment
               index commitments that use the coefficients

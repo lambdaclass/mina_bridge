@@ -40,7 +40,7 @@ export class LookupEvaluations<Evals> {
     aggreg: Evals
     /* lookup table polynomial */
     table: Evals
-    /* runtabime table polynomial*/
+    /* runtime table polynomial*/
     runtime?: Evals
 }
 
