@@ -432,19 +432,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "kimchi_test"
-version = "0.1.0"
-dependencies = [
- "ark-ec",
- "ark-ff",
- "ark-poly",
- "kimchi",
- "num-traits",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "libc"
 version = "0.2.148"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -628,6 +615,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3d433d9f1a3e8c1263d9456598b16fec66f4acc9a74dacffd35c7bb09b3a1328"
 dependencies = [
  "unicode-ident",
+]
+
+[[package]]
+name = "public_input_gen"
+version = "0.1.0"
+dependencies = [
+ "ark-ec",
+ "ark-ff",
+ "ark-poly",
+ "kimchi",
+ "num-traits",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
