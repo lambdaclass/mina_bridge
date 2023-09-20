@@ -1,5 +1,5 @@
 import { Scalar } from "o1js";
-import { Verifier, VerifierIndex } from './verifier'
+import { Verifier, VerifierIndex } from './Verifier'
 import { PolyComm } from "../poly_commitment/commitment.js";
 
 export class Batch extends Verifier {
