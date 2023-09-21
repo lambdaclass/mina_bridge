@@ -1,22 +1,8 @@
-import {
-    Field,
-    SmartContract,
-    state,
-    State,
-    method
-} from 'snarkyjs';
+import { Field } from 'o1js';
 
-export class Addition extends SmartContract {
-    @state(Field) num = State<Field>();
-
-    init() {
-        super.init();
-        this.num.set(Field(0));
-    }
-
-    @method update(operand: Field) {
-        const currentState = this.num.get();
-        this.num.assertEquals(currentState);
-        this.num.set(currentState.add(operand));
+export class Addition {
+    // (a + b) * c = d
+    static main(a: Field, b: Field, c: Field, d: Field) {
+        a.add(b).mul(c).assertEquals(d);
     }
 }

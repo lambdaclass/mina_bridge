@@ -15,6 +15,7 @@ use kimchi::mina_poseidon::sponge::{DefaultFqSponge, DefaultFrSponge};
 use kimchi::poly_commitment::evaluation_proof::OpeningProof;
 use kimchi::poly_commitment::srs::SRS;
 use kimchi::prover_index::ProverIndex;
+use kimchi::snarky::constraint_system::SnarkyConstraintSystem;
 use kimchi::verifier::verify;
 use kimchi::{poly_commitment::commitment::CommitmentCurve, proof::ProverProof};
 
@@ -54,16 +55,12 @@ fn main() {
         })
         .collect();
 
-    let constants = kimchi::snarky::constants::Constants::new::<Curve>();
-    let mut snarky_cs =
-        kimchi::snarky::constraint_system::SnarkyConstraintSystem::create(constants);
+    create_snarky_constraint_system();
 
-    let mut kimchi_cs = kimchi::circuits::constraints::ConstraintSystem::<Field>::create(gates)
+    let kimchi_cs = kimchi::circuits::constraints::ConstraintSystem::<Field>::create(gates)
         .public(3)
         .build()
         .unwrap();
-    kimchi_cs.feature_flags.foreign_field_add = true;
-    kimchi_cs.feature_flags.foreign_field_mul = true;
 
     let srs_json = std::fs::read_to_string("./test_data/srs_pasta.json").unwrap();
     let mut kimchi_srs: SRS<Curve> = serde_json::from_str(srs_json.as_str()).unwrap();
@@ -73,7 +70,7 @@ fn main() {
     let &endo_q = <Curve as KimchiCurve>::other_curve_endo();
 
     let group_map = <Curve as CommitmentCurve>::Map::setup();
-    let witness: [Vec<Field>; 15] = array::from_fn(|_| vec![Field::from(0); 4]);
+    let witness = create_witness();
     let prover_index: ProverIndex<_, OpeningProof<Curve>> =
         ProverIndex::create(kimchi_cs, endo_q, kimchi_srs_arc);
     let proof =
@@ -91,6 +88,19 @@ fn main() {
     .expect("Proof is not valid");
 
     println!("Done!");
+}
+
+fn create_snarky_constraint_system() -> SnarkyConstraintSystem<Field> {
+    let constants = kimchi::snarky::constants::Constants::new::<Curve>();
+    let mut snarky_cs = SnarkyConstraintSystem::create(constants);
+    snarky_cs.set_public_input_size(4);
+
+    snarky_cs
+}
+
+fn create_witness() -> [Vec<Field>; 15] {
+    let witness: [Vec<Field>; 15] = array::from_fn(|_| vec![Field::from(0); 4]);
+    witness
 }
 
 /*
