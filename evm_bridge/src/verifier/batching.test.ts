@@ -1,9 +1,9 @@
 import { Field, Group } from "o1js";
-import { PolyComm } from "../poly_commitment/commitment";
-import { deserProofEvals } from "../serde/serde_proof";
-import { SRS } from "../SRS";
-import { Batch } from "./batch";
-import { VerifierIndex } from "./verifier";
+import { PolyComm } from "../poly_commitment/commitment.js";
+import { deserProofEvals } from "../serde/serde_proof.js";
+import { SRS } from "../SRS.js";
+import { Batch } from "./batch.js";
+import { VerifierIndex } from "./verifier.js";
 
 import proof_evals_json from "../../test/proof_evals.json" assert { type: "json" };
 
