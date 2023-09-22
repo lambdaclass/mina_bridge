@@ -3,6 +3,7 @@ import { readFileSync } from 'fs';
 import { Group, Scalar, Field } from 'o1js';
 import { PolyComm } from '../poly_commitment/commitment.js';
 import { SRS } from '../SRS.js';
+import { Sponge } from './sponge.js';
 
 let steps: bigint[][];
 try {
@@ -17,9 +18,44 @@ let { g, h } = SRS.createFromJSON();
 * Will contain information necessary for executing a verification
 */
 export class VerifierIndex {
-  srs: SRS
-  domain_size: number
-  public: number
+    srs: SRS
+    domain_size: number
+    public: number
+
+    /* permutation commitments */
+    sigma_comm: PolyComm<Group>[] // size PERMUTS
+    coefficients_comm: PolyComm<Group>[] // size COLUMNS
+    generic_comm: PolyComm<Group>
+
+    /* poseidon constraint selector polynomial commitments */
+    psm_comm: PolyComm<Group>
+
+    /* EC addition selector polynomial commitment */
+    complete_add_comm: PolyComm<Group>
+    /* EC variable base scalar multiplication selector polynomial commitment */
+    mul_comm: PolyComm<Group>
+    /* endoscalar multiplication selector polynomial commitment */
+    emul_comm: PolyComm<Group>
+    /* endoscalar multiplication scalar computation selector polynomial commitment */
+    endomul_scalar_comm: PolyComm<Group>
+
+    /*
+    * Compute the digest of the VerifierIndex, which can be used for the Fiat-Shamir transform.
+    */
+    digest(): Field {
+        let fq_sponge = new Sponge;
+
+        this.sigma_comm.forEach((g) => fq_sponge.absorbGroups(g.unshifted));
+        this.coefficients_comm.forEach((g) => fq_sponge.absorbGroups(g.unshifted));
+        fq_sponge.absorbGroups(this.generic_comm.unshifted);
+        fq_sponge.absorbGroups(this.psm_comm.unshifted);
+        fq_sponge.absorbGroups(this.complete_add_comm.unshifted);
+        fq_sponge.absorbGroups(this.mul_comm.unshifted);
+        fq_sponge.absorbGroups(this.emul_comm.unshifted);
+        fq_sponge.absorbGroups(this.endomul_scalar_comm.unshifted);
+
+        return fq_sponge.squeeze();
+    }
 }
 
 export class Verifier {
