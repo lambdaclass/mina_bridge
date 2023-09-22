@@ -48,12 +48,12 @@ fn main() {
     // Export lagrange_bases (needed for Typescript SRS)
     let lagrange_bases = &verifier_index.srs().lagrange_bases.clone();
     let uncompressed_lagrange_bases: HashMap<_, _> = lagrange_bases
-        .into_iter()
+        .iter()
         .map(|(u, comm_vec)| {
             (
                 u,
                 comm_vec
-                    .into_iter()
+                    .iter()
                     .map(UncompressedPolyComm::from)
                     .collect::<Vec<_>>(),
             )
