@@ -1,0 +1,115 @@
+name: CI Rust package
+on:
+  workflow_call:
+    inputs:
+      directory:
+        required: true
+        type: string
+
+jobs:
+  check:
+    name: Check ${{inputs.directory}}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./${{inputs.directory}}
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Install rust stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Install nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
+
+      - name: Set up cargo cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run cargo check
+        run: cargo check --workspace
+
+  fmt_clippy:
+    name: Format and clippy ${{inputs.directory}}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./${{inputs.directory}}
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Install rust stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Install nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
+
+      - name: Set up cargo cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run rustfmt
+        run: cargo fmt --all --check
+
+      - name: Run clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+  test:
+    name: Test ${{inputs.directory}}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./${{inputs.directory}}
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Install rust stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Install nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
+
+      - name: Set up cargo cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run nextest
+        run: cargo nextest run --workspace --all-targets --no-fail-fast
+
+  run:
+    name: Run ${{inputs.directory}}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./${{inputs.directory}}
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Install rust stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Install nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
+
+      - name: Set up cargo cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run binary
+        run: cargo run

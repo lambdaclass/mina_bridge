@@ -7,39 +7,19 @@ on:
 
 jobs:
   kzg_prover:
-    name: Check, test and fmt KZG prover
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./kzg_prover
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v4
+    uses: lambdaclass/mina_bridge/.github/workflows/rust_ci.yaml@ci
+    with:
+      directory: ${{github.job}}
 
-      - name: Install rust stable toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
+  public_input_gen:
+    uses: lambdaclass/mina_bridge/.github/workflows/rust_ci.yaml@ci
+    with:
+      directory: ${{github.job}}
 
-      - name: Install nextest
-        uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-nextest
-
-      - name: Set up cargo cache
-        uses: Swatinem/rust-cache@v2
-
-      - name: Run cargo check
-        run: cargo check --workspace
-
-      - name: Run nextest
-        run: cargo nextest run --workspace --all-targets --no-fail-fast
-
-      - name: Run rustfmt
-        run: cargo fmt --all --check
-
-      - name: Run clippy
-        run: cargo clippy --workspace --all-targets -- -D warnings
+  verify_circuit_tests:
+    uses: lambdaclass/mina_bridge/.github/workflows/rust_ci.yaml@ci
+    with:
+      directory: ${{github.job}}
 
   evm_bridge:
     name: Build and test EVM bridge
