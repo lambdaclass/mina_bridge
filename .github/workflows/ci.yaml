@@ -7,16 +7,19 @@ on:
 
 jobs:
   kzg_prover:
+    name: KZG Prover
     uses: lambdaclass/mina_bridge/.github/workflows/rust_ci.yaml@ci
     with:
       directory: kzg_prover
 
   public_input_gen:
+    name: Public input generation
     uses: lambdaclass/mina_bridge/.github/workflows/rust_ci.yaml@ci
     with:
       directory: public_input_gen
 
   verify_circuit_tests:
+    name: Verifying circuit Rust tests
     uses: lambdaclass/mina_bridge/.github/workflows/rust_ci.yaml@ci
     with:
       directory: verify_circuit_tests

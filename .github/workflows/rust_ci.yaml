@@ -8,7 +8,7 @@ on:
 
 jobs:
   check:
-    name: Check, fmt, clippy, test and run ${{inputs.directory}} package
+    name: Check, fmt, clippy, test and run
     runs-on: ubuntu-latest
     defaults:
       run:
