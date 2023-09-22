@@ -1,5 +1,5 @@
 import { Scalar } from "o1js"
-import { PointEvaluations, ProofEvaluations } from "../prover/prover"
+import { PointEvaluations, ProofEvaluations } from "../prover/prover.js"
 
 type PointEvals = PointEvaluations<Scalar[]>;
 

@@ -1,5 +1,5 @@
 import { Field } from "o1js";
-import { SRS } from "./SRS";
+import { SRS } from "./SRS.js";
 
 test("Deserialize SRS and check fields", () => {
     let srs = SRS.createFromJSON();

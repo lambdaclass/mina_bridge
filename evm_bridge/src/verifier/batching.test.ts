@@ -1,12 +1,11 @@
-import { Field, Group, Scalar } from "o1js";
+import { Field, Group } from "o1js";
 import { PolyComm } from "../poly_commitment/commitment.js";
+import { deserProofEvals } from "../serde/serde_proof.js";
 import { SRS } from "../SRS.js";
 import { Batch } from "./batch.js";
-import { VerifierIndex } from "./Verifier.js";
-import proof_evals_json from "../../test/proof_evals.json" assert { type: "json" };
-import { PointEvaluations } from "../prover/prover";
-import { deserProofEvals } from "../serde/serde_proof.js";
+import { VerifierIndex } from "./verifier.js";
 
+import proof_evals_json from "../../test/proof_evals.json" assert { type: "json" };
 
 test("toBatch() step 1 and 2", () => {
     const srs = SRS.createFromJSON();

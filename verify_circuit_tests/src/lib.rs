@@ -1,12 +1,18 @@
-use ark_ec::{AffineCurve, short_weierstrass_jacobian::GroupAffine};
+use ark_ec::{short_weierstrass_jacobian::GroupAffine, AffineCurve};
 use ark_ff::{One, PrimeField};
 use ark_poly::domain::EvaluationDomain;
 use kimchi::{
     curve::KimchiCurve,
     error::VerifyError,
+    mina_curves::pasta::{Fq, PallasParameters},
+    mina_poseidon::{
+        constants::PlonkSpongeConstantsKimchi,
+        sponge::{DefaultFqSponge, DefaultFrSponge},
+    },
+    o1_utils::FieldHelpers,
     poly_commitment::PolyComm,
     proof::{LookupEvaluations, PointEvaluations, ProofEvaluations, ProverProof},
-    verifier_index::VerifierIndex, mina_curves::pasta::{PallasParameters, Fq}, mina_poseidon::{constants::PlonkSpongeConstantsKimchi, sponge::{DefaultFqSponge, DefaultFrSponge}}, o1_utils::FieldHelpers,
+    verifier_index::VerifierIndex,
 };
 use serde::Serialize;
 
@@ -108,7 +114,7 @@ impl From<&PolyComm<PallasGroup>> for UncompressedPolyComm {
 }
 
 /// Execute step 1 of partial verification
-pub fn to_batch_step1<'a, G>(proof: &'a ProverProof<G>) -> Result<(), VerifyError>
+pub fn to_batch_step1<G>(proof: &ProverProof<G>) -> Result<(), VerifyError>
 where
     G: KimchiCurve,
     G::BaseField: PrimeField,
@@ -119,9 +125,9 @@ where
 }
 
 /// Execute step 2 of partial verification
-pub fn to_batch_step2<'a, G>(
+pub fn to_batch_step2<G>(
     verifier_index: &VerifierIndex<G>,
-    public_input: &'a [<G as AffineCurve>::ScalarField],
+    public_input: &[<G as AffineCurve>::ScalarField],
 ) -> Result<(), VerifyError>
 where
     G: KimchiCurve,

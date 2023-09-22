@@ -1,4 +1,3 @@
-#![feature(type_name_of_val)]
 use std::{array, fs};
 
 use ark_ec::short_weierstrass_jacobian::GroupAffine;
@@ -100,7 +99,7 @@ fn prove_and_verify(srs: &SRS<Pallas>, gates: Vec<CircuitGate<Fq>>, witness: [Ve
     // verify the proof (propagate any errors)
     println!("Verifying...");
     let opening = proof.proof;
-    let value_to_compare = compute_msm_for_verification(&srs, &opening);
+    let value_to_compare = compute_msm_for_verification(srs, &opening);
     println!("Done!");
 
     fs::write(
