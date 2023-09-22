@@ -1,5 +1,5 @@
 import { readFileSync } from "fs";
-import { Group, Provable } from "o1js";
+import { Field, Group } from "o1js";
 import { Verifier } from "./verifier/verifier.js";
 
 let inputs: { sg: bigint[], z1: bigint, expected: bigint[] };
@@ -25,15 +25,20 @@ console.log('SnarkyJS loaded');
 
 // ----------------------------------------------------
 
-console.log("Generating constraint system");
-let cs = Provable.constraintSystem(() => {
-    let sg = Provable.witness(Group, () => new Group({ x: inputs.sg[0], y: inputs.sg[1] }));
-    let expected = Provable.witness(Group, () => new Group({ x: inputs.expected[0], y: inputs.expected[1] }));
+console.log("Generating keypair");
 
-    Verifier.main(sg, BigInt(inputs.z1), expected, false);
-});
-console.log("add(7, 2):", cs.add(7, 2));
-// console.log("Constraint system:", cs);
+let sg = new Group({ x: inputs.sg[0], y: inputs.sg[1] });
+let expected = new Group({ x: inputs.expected[0], y: inputs.expected[1] });
+let z1 = Field(inputs.z1);
+
+let keypair = await Verifier.generateKeypair();
+
+console.log("Done!");
+
+console.log("Generating witness...");
+// TODO: check how to covert Field to Scalar (or to negate Scalar in provable code)
+let witness = await Verifier.generateWitness([], [sg, z1, expected], keypair);
+console.log("witness:", witness);
 
 // ----------------------------------------------------
 console.log('Shutting down');
