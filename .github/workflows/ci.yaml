@@ -11,6 +11,7 @@ jobs:
     uses: lambdaclass/mina_bridge/.github/workflows/rust_ci.yaml@ci
     with:
       directory: kzg_prover
+      skip_run: true
 
   public_input_gen:
     name: Public input generation

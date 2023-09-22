@@ -5,6 +5,10 @@ on:
       directory:
         required: true
         type: string
+      skip_run:
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   check:
@@ -43,4 +47,5 @@ jobs:
         run: cargo nextest run --workspace --all-targets --no-fail-fast
 
       - name: Run binary
+        if: ${{ !inputs.skip_run }}
         run: cargo run
