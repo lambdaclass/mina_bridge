@@ -32,7 +32,8 @@ let cs = Provable.constraintSystem(() => {
 
     Verifier.main(sg, BigInt(inputs.z1), expected, false);
 });
-console.log("Constraint system:", cs);
+console.log("add(7, 2):", cs.add(7, 2));
+// console.log("Constraint system:", cs);
 
 // ----------------------------------------------------
 console.log('Shutting down');
