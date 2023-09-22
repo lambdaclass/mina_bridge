@@ -9,17 +9,17 @@ jobs:
   kzg_prover:
     uses: lambdaclass/mina_bridge/.github/workflows/rust_ci.yaml@ci
     with:
-      directory: ${{github.job}}
+      directory: kzg_prover
 
   public_input_gen:
     uses: lambdaclass/mina_bridge/.github/workflows/rust_ci.yaml@ci
     with:
-      directory: ${{github.job}}
+      directory: public_input_gen
 
   verify_circuit_tests:
     uses: lambdaclass/mina_bridge/.github/workflows/rust_ci.yaml@ci
     with:
-      directory: ${{github.job}}
+      directory: verify_circuit_tests
 
   evm_bridge:
     name: Build and test EVM bridge
