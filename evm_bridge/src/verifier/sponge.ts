@@ -1,4 +1,5 @@
 import { Field, Group, Poseidon, Scalar } from "o1js"
+import { PolyComm } from "../poly_commitment/commitment";
 
 /*
  * Wrapper over o1js' poseidon `Sponge` class which extends its functionality.
@@ -52,5 +53,10 @@ export class Sponge {
             this.absorb(high);
             this.absorb(low);
         }
+    }
+
+    absorbCommitment(commitment: PolyComm<Group>) {
+        this.absorbGroups(commitment.unshifted);
+        if (commitment.shifted) this.absorbGroup(commitment.shifted);
     }
 }
