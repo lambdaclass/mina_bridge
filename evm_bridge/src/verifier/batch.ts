@@ -1,7 +1,7 @@
-import { Scalar } from "o1js";
-import { Verifier, VerifierIndex } from './verifier.js'
 import { PolyComm } from "../poly_commitment/commitment.js";
 import { ProverProof, PointEvaluations } from "../prover/prover.js";
+import { Verifier, VerifierIndex } from "./verifier.js";
+import { Group, Scalar } from "o1js";
 
 export class Batch extends Verifier {
     /**
