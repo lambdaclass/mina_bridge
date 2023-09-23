@@ -1,5 +1,5 @@
 import { readFileSync } from "fs";
-import { Field, Group } from "o1js";
+import { Group, Scalar } from "o1js";
 import { Verifier } from "./verifier/verifier.js";
 
 let inputs: { sg: bigint[], z1: bigint, expected: bigint[] };
@@ -29,14 +29,13 @@ console.log("Generating keypair");
 
 let sg = new Group({ x: inputs.sg[0], y: inputs.sg[1] });
 let expected = new Group({ x: inputs.expected[0], y: inputs.expected[1] });
-let z1 = Field(inputs.z1);
+let z1 = Scalar.from(inputs.z1);
 
 let keypair = await Verifier.generateKeypair();
 
 console.log("Done!");
 
 console.log("Generating witness...");
-// TODO: check how to covert Field to Scalar (or to negate Scalar in provable code)
 let witness = await Verifier.generateWitness([], [sg, z1, expected], keypair);
 console.log("witness:", witness);
 

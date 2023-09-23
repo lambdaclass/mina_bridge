@@ -23,7 +23,7 @@ export class VerifierIndex {
 
 export class Verifier extends Circuit {
   @circuitMain
-  static main(@public_ sg: Group, @public_ z1: Field, @public_ expected: Group) {
+  static main(@public_ sg: Group, @public_ z1: Scalar, @public_ expected: Group) {
     let nonzero_length = g.length;
     let max_rounds = Math.ceil(Math.log2(nonzero_length));
     let padded_length = Math.pow(2, max_rounds);
@@ -35,11 +35,13 @@ export class Verifier extends Circuit {
 
     let scalars = [Scalar.from(0)];
     //TODO: Add challenges and s polynomial (in that case, using Scalars we could run out of memory)
-    scalars = scalars.concat(Array(padded_length).fill(1n));
+    scalars = scalars.concat(Array(padded_length).fill(Scalar.from(1)));
     assert(points.length == scalars.length, "The number of points is not the same as the number of scalars");
 
     points.push(sg);
-    scalars.push(Scalar.from(z1.neg().sub(1).toBigInt()));
+    Provable.asProver(() => {
+      scalars.push(z1.neg().sub(Scalar.from(1)));
+    });
 
     Verifier.msm(points, scalars).assertEquals(expected);
   }
