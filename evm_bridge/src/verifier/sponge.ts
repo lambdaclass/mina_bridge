@@ -43,7 +43,7 @@ export class Sponge {
         } else {
             const s_bigint = s.toBigInt();
 
-            const low = Field(s_bigint && 1n); // LSB
+            const low = Field(s_bigint & 1n); // LSB
             const high = Field(Number(s_bigint >> 1n)); // rest of the bits
             // WARN: assumes that s_bigint is positive, because >> is the "sign-propagating
             // left shift" operator, so if the number is negative, it'll add 1s instead of 0s.
