@@ -39,9 +39,7 @@ export class Verifier extends Circuit {
     assert(points.length == scalars.length, "The number of points is not the same as the number of scalars");
 
     points.push(sg);
-    Provable.asProver(() => {
-      scalars.push(z1.neg().sub(Scalar.from(1)));
-    });
+    scalars.push(z1.neg().sub(Scalar.from(1)));
 
     Verifier.msm(points, scalars).assertEquals(expected);
   }
@@ -53,7 +51,8 @@ export class Verifier extends Circuit {
     for (let i = 0; i < points.length; i++) {
       let point = points[i];
       let scalar = scalars[i];
-      result = result.add(point.scale(scalar));
+      let scaled = point.scale(scalar);
+      result = result.add(scaled);
     }
 
     return result;
