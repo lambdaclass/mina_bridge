@@ -1,18 +1,20 @@
-import { Group, Poseidon, Scalar } from "o1js"
+import { Field, Group, Scalar } from "o1js"
 import { PolyComm } from "../poly_commitment/commitment";
 import { Sponge } from "../verifier/sponge";
-import { VerifierIndex } from "../verifier/Verifier";
+import { Verifier, VerifierIndex } from "../verifier/verifier.js";
 
 /* The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
     evals: ProofEvaluations<PointEvaluations<Array<Scalar>>>
     prev_challenges: RecursionChallenge[]
+    commitments: ProverCommitments
 
     /*
      * Will run the random oracle argument for removing prover-verifier interaction (Fiat-Shamir transform)
      */
-    oracle(index: VerifierIndex, public_comm: PolyComm<Group>, public_input: Scalar[]) {
+    oracles(index: VerifierIndex, public_comm: PolyComm<Group>, public_input: Scalar[]) {
         const n = index.domain_size;
+        const endo_r = 1; // FIXME: 
 
         //~ 1. Setup the Fq-Sponge.
         let fq_sponge = new Sponge;
@@ -28,70 +30,57 @@ export class ProverProof {
         //~ 4. Absorb the commitment of the public input polynomial with the Fq-Sponge.
         fq_sponge.absorbCommitment(public_comm);
 
-        //   //~ 1. Absorb the commitment of the public input polynomial with the Fq-Sponge.
-        //   absorb_commitment(&mut fq_sponge, public_comm);
+        //~ 5. Absorb the commitments to the registers / witness columns with the Fq-Sponge.
+        this.commitments.wComm.forEach(fq_sponge.absorbCommitment);
 
-        //   //~ 1. Absorb the commitments to the registers / witness columns with the Fq-Sponge.
-        //   self.commitments
-        //       .w_comm
-        //       .iter()
-        //       .for_each(|c| absorb_commitment(&mut fq_sponge, c));
+        //~ 6. If lookup is used:
+        // WARN: omitted lookup-related for now
 
-        //   //~ 1. If lookup is used:
-        //   WARN: omitted lookup-related for now
+        //~ 7. Sample $\beta$ with the Fq-Sponge.
+        const beta = fq_sponge.challenge();
 
-        //   //~ 1. Sample $\beta$ with the Fq-Sponge.
-        //   let beta = fq_sponge.challenge();
+        //~ 8. Sample $\gamma$ with the Fq-Sponge.
+        const gamma = fq_sponge.challenge();
 
-        //   //~ 1. Sample $\gamma$ with the Fq-Sponge.
-        //   let gamma = fq_sponge.challenge();
+        //~ 9. If using lookup, absorb the commitment to the aggregation lookup polynomial.
+        // WARN: omitted lookup-related for now
 
-        //   //~ 1. If using lookup, absorb the commitment to the aggregation lookup polynomial.
-        //   self.commitments.lookup.iter().for_each(|l| {
-        //       absorb_commitment(&mut fq_sponge, &l.aggreg);
-        //   });
+        //~ 10. Absorb the commitment to the permutation trace with the Fq-Sponge.
+        fq_sponge.absorbCommitment(this.commitments.zComm);
 
-        //   //~ 1. Absorb the commitment to the permutation trace with the Fq-Sponge.
-        //   absorb_commitment(&mut fq_sponge, &self.commitments.z_comm);
+        //~ 11. Sample $\alpha'$ with the Fq-Sponge.
+        const alpha_chal = new ScalarChallenge(fq_sponge.challenge());
 
-        //   //~ 1. Sample $\alpha'$ with the Fq-Sponge.
-        //   let alpha_chal = ScalarChallenge(fq_sponge.challenge());
+        //~ 12. Derive $\alpha$ from $\alpha'$ using the endomorphism (TODO: details).
+        const alpha = alpha_chal.toField(endo_r);
 
-        //   //~ 1. Derive $\alpha$ from $\alpha'$ using the endomorphism (TODO: details).
-        //   let alpha = alpha_chal.to_field(endo_r);
+        //~ 13. Enforce that the length of the $t$ commitment is of size `PERMUTS`.
+        if (this.commitments.tComm.unshifted.length !== Verifier.PERMUTS) {
+            // FIXME: return error "incorrect commitment length of 't'"
+        }
 
-        //   //~ 1. Enforce that the length of the $t$ commitment is of size `PERMUTS`.
-        //   if self.commitments.t_comm.unshifted.len() != PERMUTS {
-        //       return Err(VerifyError::IncorrectCommitmentLength("t"));
-        //   }
+        //~ 14. Absorb the commitment to the quotient polynomial $t$ into the argument.
+        fq_sponge.absorbCommitment(this.commitments.tComm);
 
-        //   //~ 1. Absorb the commitment to the quotient polynomial $t$ into the argument.
-        //   absorb_commitment(&mut fq_sponge, &self.commitments.t_comm);
+        //~ 15. Sample $\zeta'$ with the Fq-Sponge.
+        const zeta_chal = new ScalarChallenge(fq_sponge.challenge());
 
-        //   //~ 1. Sample $\zeta'$ with the Fq-Sponge.
-        //   let zeta_chal = ScalarChallenge(fq_sponge.challenge());
+        //~ 16. Derive $\zeta$ from $\zeta'$ using the endomorphism (TODO: specify).
+        const zeta = zeta_chal.toField(endo_r);
 
-        //   //~ 1. Derive $\zeta$ from $\zeta'$ using the endomorphism (TODO: specify).
-        //   let zeta = zeta_chal.to_field(endo_r);
+        //~ 17. Setup the Fr-Sponge.
+        let fr_sponge = new Sponge;
+        const digest = fq_sponge.digest();
 
-        //   //~ 1. Setup the Fr-Sponge.
-        //   let digest = fq_sponge.clone().digest();
-        //   let mut fr_sponge = EFrSponge::new(G::sponge_params());
+        //~ 18. Squeeze the Fq-sponge and absorb the result with the Fr-Sponge.
+        fr_sponge.absorbScalar(digest);
 
-        //   //~ 1. Squeeze the Fq-sponge and absorb the result with the Fr-Sponge.
-        //   fr_sponge.absorb(&digest);
-
-        //   //~ 1. Absorb the previous recursion challenges.
-        //   let prev_challenge_digest = {
-        //       // Note: we absorb in a new sponge here to limit the scope in which we need the
-        //       // more-expensive 'optional sponge'.
-        //       let mut fr_sponge = EFrSponge::new(G::sponge_params());
-        //       for RecursionChallenge { chals, .. } in &self.prev_challenges {
-        //           fr_sponge.absorb_multiple(chals);
-        //       }
-        //       fr_sponge.digest()
-        //   };
-        //   fr_sponge.absorb(&prev_challenge_digest);
+        //~ 19. Absorb the previous recursion challenges.
+        // Note: we absorb in a new sponge here to limit the scope in which we need the
+        // more-expensive 'optional sponge'.
+        let fr_sponge_aux = new Sponge;
+        this.prev_challenges.forEach((prev) => fr_sponge_aux.absorbScalars(prev.chals));
+        fr_sponge.absorbScalar(fr_sponge.digest());
 
         //   // prepare some often used values
         //   let zeta1 = zeta.pow([n]);
@@ -399,4 +388,58 @@ export class PointEvaluations<Evals> {
 export class RecursionChallenge {
     chals: Scalar[]
     comm: PolyComm<Group>
+}
+
+export class ProverCommitments {
+    /* Commitments to the witness (execution trace) */
+    wComm: PolyComm<Group>[]
+    /* Commitment to the permutation */
+    zComm: PolyComm<Group>
+    /* Commitment to the quotient polynomial */
+    tComm: PolyComm<Group>
+    // TODO: lookup commitment
+}
+
+function getBit(limbs_lsb: bigint[], i: number): number {
+    const limb = i / 64;
+    const j = BigInt(i % 64);
+    return Number((limbs_lsb[limb] >> j) & 1n);
+}
+
+export class ScalarChallenge {
+    chal: Scalar
+
+    constructor(chal: Scalar) {
+        this.chal = chal;
+    }
+
+    toFieldWithLength(length_in_bits: number, endo_coeff: Field): Field {
+        const rep = this.chal.toBigInt();
+
+        let a = Field.from(2);
+        let b = Field.from(2);
+
+        const one = Field.from(1);
+        const negone = -one;
+        for (let i = length_in_bits / 2 + 1; i >= 0; i--) {
+            a = a.add(a);
+            b = b.add(b);
+
+            const r_2i = getBit([rep], 2*i);
+            const s = r_2i === 0 ? negone : one;
+
+            if (getBit([rep], 2*i + 1) === 0) {
+                b = b.add(s);
+            } else {
+                a = a.add(s);
+            }
+        }
+
+        return a.mul(endo_coeff).add(b);
+    }
+
+    toField(endo_coeff: Field): Field {
+        const length_in_bits = 64 * Sponge.CHALLENGE_LENGTH_IN_LIMBS;
+        return this.toFieldWithLength(length_in_bits, endo_coeff);
+    }
 }

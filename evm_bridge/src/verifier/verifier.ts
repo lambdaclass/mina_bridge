@@ -59,6 +59,9 @@ export class VerifierIndex {
 }
 
 export class Verifier {
+    static readonly PERMUTS: number = 7;
+    static readonly COLUMNS: number = 15;
+
     static main(sg: Group, z1: bigint, expected: Group, debug: boolean) {
         let nonzero_length = g.length;
         let max_rounds = Math.ceil(Math.log2(nonzero_length));
