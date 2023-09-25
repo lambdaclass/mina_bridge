@@ -1,5 +1,5 @@
 import { Scalar } from "o1js"
-import { PointEvaluations, ProofEvaluations } from "../prover/prover.js"
+import { LookupEvaluations, PointEvaluations, ProofEvaluations } from "../prover/prover.js"
 
 type PointEvals = PointEvaluations<Scalar[]>;
 
@@ -56,17 +56,20 @@ export function deserProofEvals(json: ProofEvalsJSON): ProofEvaluations<PointEva
     // in the current json, there isn't a non-null lookup, so TS infers that it'll always be null.
     let lookup = undefined;
     // let lookup = undefined;
-    // if (json.lookup) {
-    //     const sorted = json.lookup.sorted.map(deserPointEval);
-    //     const [aggreg, table] = [json.lookup.aggreg, json.lookup.table].map(deserPointEval);
+    //   if (json.lookup) {
+    //       const sorted = json.lookup.sorted.map(deserPointEval);
+    //       const [aggreg, table] = [json.lookup.aggreg, json.lookup.table].map(deserPointEval);
 
-    //     let runtime = undefined;
-    //     if (json.lookup.runtime) {
-    //         runtime = deserPointEval(json.lookup.runtime);
-    //     }
+    //       let runtime = undefined;
+    //       if (json.lookup.runtime) {
+    //           runtime = deserPointEval(json.lookup.runtime);
+    //       }
 
-    //     lookup = { sorted, aggreg, table, runtime };
-    // }
+    //       lookup = { sorted, aggreg, table, runtime };
+    //   }
 
-    return { w, z, s, coefficients, lookup, genericSelector, poseidonSelector };
+    // TODO!!!: fix this
+    let lookup2 = new LookupEvaluations<PointEvals>();
+    
+    return new ProofEvaluations( w, z, s, coefficients, lookup2, genericSelector, poseidonSelector );
 }

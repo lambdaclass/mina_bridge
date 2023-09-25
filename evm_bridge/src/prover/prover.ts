@@ -1,9 +1,21 @@
 import { Scalar } from "o1js"
+import { VerifierIndex } from '../verifier/verifier.js'
 
 /* The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
     evals: ProofEvaluations<PointEvaluations<Array<Scalar>>>
 }
+
+export class Context {
+    /// The [VerifierIndex] associated to the proof
+    verifier_index: VerifierIndex
+
+    /// The proof to verify
+    proof: ProverProof
+
+    /// The public input used in the creation of the proof
+    public_input: Scalar[]
+};
 
 /*
  * Polynomial evaluations contained in a `ProverProof`.
@@ -28,6 +40,23 @@ export class ProofEvaluations<Evals> {
      genericSelector: Evals
     /* evaluation of the poseidon selector polynomial */
      poseidonSelector: Evals
+
+    constructor(w: Array<Evals>, z: Evals, s: Array<Evals>, coefficients: Array<Evals>,
+            lookup: LookupEvaluations<Evals>, genericSelector: Evals, poseidonSelector: Evals) {
+        this.w = w;
+        this.z = z;
+        this.s = s;
+        this.coefficients = coefficients;
+        this.lookup = lookup;
+        this.genericSelector = genericSelector;
+        this.poseidonSelector = poseidonSelector;
+        return this;
+    }
+
+    // TODO: implement this!!!!
+    combine(): boolean {
+        return true;
+    }
 }
 
 /*
@@ -42,6 +71,11 @@ export class LookupEvaluations<Evals> {
     table: Evals
     /* runtime table polynomial*/
     runtime?: Evals
+
+    constructor() {
+        this.sorted = [];
+        return this;
+    }
 }
 
 /*
