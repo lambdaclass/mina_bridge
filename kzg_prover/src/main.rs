@@ -96,7 +96,7 @@ fn create_witness() -> [Vec<Field>; 15] {
     // Convert matrix of strings to matrix of Fields
     for (col_str, mut col) in witness.iter_mut().zip(witness_str) {
         for (field_str, field) in col.iter_mut().zip(col_str) {
-            *field = Field::from_str(&field_str).unwrap();
+            *field = Field::from_str(field_str).unwrap();
         }
     }
 
