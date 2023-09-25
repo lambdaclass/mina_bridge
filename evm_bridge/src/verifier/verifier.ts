@@ -23,7 +23,7 @@ export class VerifierIndex {
 
 export class Verifier extends Circuit {
   @circuitMain
-  static main(@public_ sg: Group, @public_ z1: Scalar, @public_ expected: Group) {
+  static main(@public_ sg: Group, @public_ sg_scalar: Scalar, @public_ expected: Group) {
     let nonzero_length = g.length;
     let max_rounds = Math.ceil(Math.log2(nonzero_length));
     let padded_length = Math.pow(2, max_rounds);
@@ -39,7 +39,7 @@ export class Verifier extends Circuit {
     assert(points.length == scalars.length, "The number of points is not the same as the number of scalars");
 
     points.push(sg);
-    scalars.push(z1.neg().sub(Scalar.from(1)));
+    scalars.push(sg_scalar);
 
     Verifier.msm(points, scalars).assertEquals(expected);
   }

@@ -1,6 +1,8 @@
-import { readFileSync } from "fs";
-import { Group, Scalar } from "o1js";
+import { readFileSync, writeFileSync } from "fs";
+import { Field, Group, Scalar } from "o1js";
 import { Verifier } from "./verifier/verifier.js";
+import { MlArray } from "o1js/dist/node/lib/ml/base.js";
+import { FieldVar } from "o1js/dist/node/lib/field.js";
 
 let inputs: { sg: bigint[], z1: bigint, expected: bigint[] };
 try {
@@ -30,14 +32,29 @@ console.log("Generating keypair");
 let sg = new Group({ x: inputs.sg[0], y: inputs.sg[1] });
 let expected = new Group({ x: inputs.expected[0], y: inputs.expected[1] });
 let z1 = Scalar.from(inputs.z1);
+let sg_scalar = z1.neg().sub(Scalar.from(1));
 
 let keypair = await Verifier.generateKeypair();
 
 console.log("Done!");
 
 console.log("Generating witness...");
-let witness = await Verifier.generateWitness([], [sg, z1, expected], keypair);
-console.log("witness:", witness);
+let witness_ml = await Verifier.generateWitness([], [sg, sg_scalar, expected], keypair);
+
+let witness: Field[][] = [];
+for (let maybe_row_ml of witness_ml) {
+    let row_ml = maybe_row_ml as MlArray<FieldVar>;
+    let row = [];
+
+    for (let maybe_field_ml of row_ml) {
+        let field_ml = maybe_field_ml as FieldVar;
+        row.push(new Field(field_ml));
+    }
+
+    witness.push(row);
+}
+
+writeFileSync("../kzg_prover/test_data/witness.json", JSON.stringify(witness));
 
 // ----------------------------------------------------
 console.log('Shutting down');
