@@ -9,6 +9,16 @@ export class ProverProof {
     prev_challenges: RecursionChallenge[]
     commitments: ProverCommitments
 
+    constructor(
+        evals: ProofEvaluations<PointEvaluations<Scalar[]>>,
+        prev_challenges: RecursionChallenge[],
+        commitments: ProverCommitments
+    ) {
+        this.evals = evals;
+        this.prev_challenges = prev_challenges;
+        this.commitments = commitments;
+    }
+
     /**
      * Will run the random oracle argument for removing prover-verifier interaction (Fiat-Shamir transform)
      */

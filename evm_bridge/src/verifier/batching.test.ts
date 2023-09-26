@@ -6,19 +6,19 @@ import { Batch } from "./batch.js";
 import { VerifierIndex } from "./verifier.js";
 
 import proof_evals_json from "../../test/proof_evals.json" assert { type: "json" };
+import verifier_index_json from "../../test/verifier_index.json" assert { type: "json" };
+import { deserVerifierIndex } from "../serde/serde_index.js";
+import { ProverProof } from "../prover/prover.js";
 
 test("toBatch() step 1 and 2", () => {
     const srs = SRS.createFromJSON();
     const domain_size = 32; // extracted from test in Rust.
-    const vi: VerifierIndex = {
-        srs: srs,
-        domain_size: domain_size,
-        public: 0
-    };
-    const proof_evals = deserProofEvals(proof_evals_json);
-    const proof = {
-        evals: proof_evals
-    };
+    const vi = deserVerifierIndex(verifier_index_json);
+    const proof = new ProverProof(
+        deserProofEvals(proof_evals_json),
+        [],
+        commitments,
+    );
 
     let f_comm = Batch.toBatch(vi, proof, []); // upto step 2 implemented.
     let expected_f_comm = new PolyComm<Group>([

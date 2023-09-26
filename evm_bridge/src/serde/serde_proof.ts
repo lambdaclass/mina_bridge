@@ -25,7 +25,7 @@ interface ProofEvalsJSON {
     poseidon_selector: PointEvalsJSON
 }
 
-/*
+/**
  * Deserializes a scalar point evaluation from JSON
  */
 export function deserPointEval(json: PointEvalsJSON): PointEvals {
@@ -38,7 +38,7 @@ export function deserPointEval(json: PointEvalsJSON): PointEvals {
     return { zeta, zetaOmega };
 }
 
-/*
+/**
  * Deserializes scalar proof evaluations from JSON
  */
 export function deserProofEvals(json: ProofEvalsJSON): ProofEvaluations<PointEvals> {

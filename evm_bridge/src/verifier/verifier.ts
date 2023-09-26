@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { readFileSync } from 'fs';
-import { Group, Scalar, Field } from 'o1js';
+import { Group, Scalar, Field, public_ } from 'o1js';
 import { PolyComm } from '../poly_commitment/commitment.js';
 import { SRS } from '../SRS.js';
 import { Sponge } from './sponge.js';
@@ -38,6 +38,31 @@ export class VerifierIndex {
     emul_comm: PolyComm<Group>
     /* endoscalar multiplication scalar computation selector polynomial commitment */
     endomul_scalar_comm: PolyComm<Group>
+
+    constructor(
+        domain_size: number,
+        public_size: number,
+        sigma_comm: PolyComm<Group>[],
+        coefficients_comm: PolyComm<Group>[],
+        generic_comm: PolyComm<Group>,
+        psm_comm: PolyComm<Group>,
+        complete_add_comm: PolyComm<Group>,
+        mul_comm: PolyComm<Group>,
+        emul_comm: PolyComm<Group>,
+        endomul_scalar_comm: PolyComm<Group>
+    ) {
+        this.srs = SRS.createFromJSON();
+        this.domain_size = domain_size;
+        this.public = public_size;
+        this.sigma_comm = sigma_comm;
+        this.coefficients_comm = coefficients_comm;
+        this.generic_comm = generic_comm;
+        this.psm_comm = psm_comm;
+        this.complete_add_comm = complete_add_comm;
+        this.mul_comm = mul_comm;
+        this.emul_comm = emul_comm;
+        this.endomul_scalar_comm = endomul_scalar_comm;
+    }
 
     /*
     * Compute the digest of the VerifierIndex, which can be used for the Fiat-Shamir transform.

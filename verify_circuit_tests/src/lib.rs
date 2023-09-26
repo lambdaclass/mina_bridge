@@ -2,15 +2,16 @@ use ark_ec::{short_weierstrass_jacobian::GroupAffine, AffineCurve};
 use ark_ff::{One, PrimeField};
 use ark_poly::domain::EvaluationDomain;
 use kimchi::{
+    circuits::wires::{COLUMNS, PERMUTS},
     curve::KimchiCurve,
     error::VerifyError,
-    mina_curves::pasta::{Fq, PallasParameters},
+    mina_curves::pasta::{Fq, Pallas, PallasParameters},
     mina_poseidon::{
         constants::PlonkSpongeConstantsKimchi,
         sponge::{DefaultFqSponge, DefaultFrSponge},
     },
     o1_utils::FieldHelpers,
-    poly_commitment::PolyComm,
+    poly_commitment::{srs::SRS, PolyComm},
     proof::{LookupEvaluations, PointEvaluations, ProofEvaluations, ProverProof},
     verifier_index::VerifierIndex,
 };
@@ -81,14 +82,14 @@ where
 }
 
 /// Useful for serializing into JSON and importing in Typescript tests.
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct UncompressedPoint {
     pub x: String,
     pub y: String,
 }
 
 /// Useful for serializing into JSON and importing in Typescript tests.
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct UncompressedPolyComm {
     pub unshifted: Vec<UncompressedPoint>,
     pub shifted: Option<UncompressedPoint>,
@@ -165,4 +166,55 @@ where
         public_comm.unshifted[0].to_string()
     );
     Ok(())
+}
+
+#[derive(Serialize, Debug)]
+pub struct VerifierIndexTS {
+    //srs: SRS<Pallas>,
+    domain_size: usize,
+    public: usize,
+
+    sigma_comm: Vec<UncompressedPolyComm>, // of size PERMUTS
+    coefficients_comm: Vec<UncompressedPolyComm>, // of size COLUMNS
+    generic_comm: UncompressedPolyComm,
+
+    psm_comm: UncompressedPolyComm,
+
+    complete_add_comm: UncompressedPolyComm,
+    mul_comm: UncompressedPolyComm,
+    emul_comm: UncompressedPolyComm,
+    endomul_scalar_comm: UncompressedPolyComm,
+}
+
+impl From<&VerifierIndex<Pallas>> for VerifierIndexTS {
+    fn from(value: &VerifierIndex<Pallas>) -> Self {
+        let VerifierIndex {
+            domain,
+            public,
+            sigma_comm,
+            coefficients_comm,
+            generic_comm,
+            psm_comm,
+            complete_add_comm,
+            mul_comm,
+            emul_comm,
+            endomul_scalar_comm,
+            ..
+        } = value;
+        VerifierIndexTS {
+            domain_size: domain.size(),
+            public: public.clone(),
+            sigma_comm: sigma_comm.iter().map(UncompressedPolyComm::from).collect(),
+            coefficients_comm: coefficients_comm
+                .iter()
+                .map(UncompressedPolyComm::from)
+                .collect(),
+            generic_comm: UncompressedPolyComm::from(generic_comm),
+            psm_comm: UncompressedPolyComm::from(psm_comm),
+            complete_add_comm: UncompressedPolyComm::from(complete_add_comm),
+            mul_comm: UncompressedPolyComm::from(mul_comm),
+            emul_comm: UncompressedPolyComm::from(emul_comm),
+            endomul_scalar_comm: UncompressedPolyComm::from(endomul_scalar_comm),
+        }
+    }
 }
