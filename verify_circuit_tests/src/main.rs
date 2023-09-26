@@ -1,6 +1,5 @@
 use std::{array, collections::HashMap, fs};
 
-use ark_ec::short_weierstrass_jacobian::GroupAffine;
 use ark_ff::Fp256;
 use kimchi::{
     circuits::{
@@ -8,10 +7,10 @@ use kimchi::{
         wires::COLUMNS,
     },
     groupmap::GroupMap,
-    mina_curves::pasta::{fields::FqParameters, Pallas, PallasParameters},
+    mina_curves::pasta::{fields::FqParameters, Pallas},
     poly_commitment::commitment::CommitmentCurve,
     proof::ProverProof,
-    prover_index::testing::new_index_for_test_with_lookups, curve::KimchiCurve,
+    prover_index::testing::new_index_for_test_with_lookups,
 };
 use verify_circuit_tests::{
     to_batch_step1, to_batch_step2, BaseSponge, ScalarSponge, UncompressedPolyComm,
