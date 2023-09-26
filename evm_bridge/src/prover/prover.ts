@@ -1,5 +1,6 @@
 import { Scalar } from "o1js"
 import { VerifierIndex } from '../verifier/verifier.js'
+import { Polynomial } from "../polynomial.js"
 
 /* The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
@@ -62,26 +63,18 @@ export class ProofEvaluations<Evals> {
         return true;
     }
 
-    evaluate(point: Scalar): Scalar {
-        /*
-        if self.is_zero() {
-            return F::zero();
-        } else if point.is_zero() {
-            return self.coeffs[0];
-        }
-        self.internal_evaluate(point)
-        */
-
-        /*
+    evaluate_coefficients(point: Scalar): Scalar {
         let zero = Scalar.from(0);
+        let coeffs = this.coefficients.map((value) => value as Scalar);
+        let p = new Polynomial(coeffs);
+
         if (this.coefficients.length == 0) {
             return zero;
         }
         if (point == zero) {
-            return this.coefficients[0]; // TODO!!!
+            return this.coefficients[0] as Scalar;
         }
-        */
-        return Scalar.from(0); // TODO!
+        return p.evaluate(point);
     }
 
 }
