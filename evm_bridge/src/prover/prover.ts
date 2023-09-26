@@ -3,18 +3,19 @@ import { PolyComm } from "../poly_commitment/commitment";
 import { Sponge } from "../verifier/sponge";
 import { Verifier, VerifierIndex } from "../verifier/verifier.js";
 
-/* The proof that the prover creates from a ProverIndex `witness`. */
+/** The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
     evals: ProofEvaluations<PointEvaluations<Array<Scalar>>>
     prev_challenges: RecursionChallenge[]
     commitments: ProverCommitments
 
-    /*
+    /**
      * Will run the random oracle argument for removing prover-verifier interaction (Fiat-Shamir transform)
      */
     oracles(index: VerifierIndex, public_comm: PolyComm<Group>, public_input: Scalar[]) {
         const n = index.domain_size;
-        const endo_r = 1; // FIXME: 
+        const endo_r = Scalar.from("0x397e65a7d7c1ad71aee24b27e308f0a61259527ec1d4752e619d1840af55f1b1");
+        // FIXME: ^ currently hard-coded, refactor
 
         //~ 1. Setup the Fq-Sponge.
         let fq_sponge = new Sponge;
@@ -333,7 +334,7 @@ export class ProverProof {
     }//
 }
 
-/*
+/**
  * Polynomial evaluations contained in a `ProverProof`.
  * **Chunked evaluations** `Field` is instantiated with vectors with a length that equals the length of the chunk
  * **Non chunked evaluations** `Field` is instantiated with a field, so they are single-sized#[serde_as]
@@ -358,7 +359,7 @@ export class ProofEvaluations<Evals> {
      poseidonSelector: Evals
 }
 
-/*
+/**
  * Evaluations of lookup polynomials.
  */
 export class LookupEvaluations<Evals> {
@@ -372,7 +373,7 @@ export class LookupEvaluations<Evals> {
     runtime?: Evals
 }
 
-/*
+/**
  * Evaluations of a polynomial at 2 points.
  */
 export class PointEvaluations<Evals> {
@@ -382,7 +383,7 @@ export class PointEvaluations<Evals> {
     zetaOmega: Evals
 }
 
-/*
+/**
  * Stores the challenges inside a `ProverProof`
  */
 export class RecursionChallenge {
@@ -413,14 +414,14 @@ export class ScalarChallenge {
         this.chal = chal;
     }
 
-    toFieldWithLength(length_in_bits: number, endo_coeff: Field): Field {
+    toFieldWithLength(length_in_bits: number, endo_coeff: Scalar): Scalar {
         const rep = this.chal.toBigInt();
 
-        let a = Field.from(2);
-        let b = Field.from(2);
+        let a = Scalar.from(2);
+        let b = Scalar.from(2);
 
-        const one = Field.from(1);
-        const negone = -one;
+        const one = Scalar.from(1);
+        const negone = one.neg();
         for (let i = length_in_bits / 2 + 1; i >= 0; i--) {
             a = a.add(a);
             b = b.add(b);
@@ -438,7 +439,7 @@ export class ScalarChallenge {
         return a.mul(endo_coeff).add(b);
     }
 
-    toField(endo_coeff: Field): Field {
+    toField(endo_coeff: Scalar): Scalar {
         const length_in_bits = 64 * Sponge.CHALLENGE_LENGTH_IN_LIMBS;
         return this.toFieldWithLength(length_in_bits, endo_coeff);
     }

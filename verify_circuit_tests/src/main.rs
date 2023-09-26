@@ -1,5 +1,6 @@
 use std::{array, collections::HashMap, fs};
 
+use ark_ec::short_weierstrass_jacobian::GroupAffine;
 use ark_ff::Fp256;
 use kimchi::{
     circuits::{
@@ -7,16 +8,18 @@ use kimchi::{
         wires::COLUMNS,
     },
     groupmap::GroupMap,
-    mina_curves::pasta::{fields::FqParameters, Pallas},
+    mina_curves::pasta::{fields::FqParameters, Pallas, PallasParameters},
     poly_commitment::commitment::CommitmentCurve,
     proof::ProverProof,
-    prover_index::testing::new_index_for_test_with_lookups,
+    prover_index::testing::new_index_for_test_with_lookups, curve::KimchiCurve,
 };
 use verify_circuit_tests::{
     to_batch_step1, to_batch_step2, BaseSponge, ScalarSponge, UncompressedPolyComm,
 };
 
 fn main() {
+    type GPallas = GroupAffine<PallasParameters>;
+    println!("{:?}", GPallas::endos().1.to_string());
     // Create test circuit
     let gates = create_circuit(0, 0);
     let num_gates = gates.len();

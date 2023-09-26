@@ -54,7 +54,7 @@ export class VerifierIndex {
         fq_sponge.absorbGroups(this.emul_comm.unshifted);
         fq_sponge.absorbGroups(this.endomul_scalar_comm.unshifted);
 
-        return fq_sponge.squeeze();
+        return fq_sponge.squeezeField();
     }
 }
 
