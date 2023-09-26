@@ -24,25 +24,29 @@ export class Context {
  */
 export class ProofEvaluations<Evals> {
     /* witness polynomials */
-     w: Array<Evals> // of size 15, total num of registers (columns)
+    w: Array<Evals> // of size 15, total num of registers (columns)
     /* permutation polynomial */
-     z: Evals
+    z: Evals
     /*
      * permutation polynomials
      * (PERMUTS-1 evaluations because the last permutation is only used in commitment form)
      */
-     s: Array<Evals> // of size 7 - 1, total num of wirable registers minus one
+    s: Array<Evals> // of size 7 - 1, total num of wirable registers minus one
     /* coefficient polynomials */
-     coefficients: Array<Evals> // of size 15, total num of registers (columns)
+    coefficients: Array<Evals> // of size 15, total num of registers (columns)
     /* lookup-related evaluations */
-     lookup?: LookupEvaluations<Evals>
+    lookup?: LookupEvaluations<Evals>
     /* evaluation of the generic selector polynomial */
-     genericSelector: Evals
+    genericSelector: Evals
     /* evaluation of the poseidon selector polynomial */
-     poseidonSelector: Evals
+    poseidonSelector: Evals
 
-    constructor(w: Array<Evals>, z: Evals, s: Array<Evals>, coefficients: Array<Evals>,
-            lookup: LookupEvaluations<Evals>, genericSelector: Evals, poseidonSelector: Evals) {
+    constructor(w: Array<Evals>,
+        z: Evals, s: Array<Evals>,
+        coefficients: Array<Evals>,
+        lookup: LookupEvaluations<Evals>,
+        genericSelector: Evals,
+        poseidonSelector: Evals) {
         this.w = w;
         this.z = z;
         this.s = s;
@@ -57,6 +61,29 @@ export class ProofEvaluations<Evals> {
     combine(): boolean {
         return true;
     }
+
+    evaluate(point: Scalar): Scalar {
+        /*
+        if self.is_zero() {
+            return F::zero();
+        } else if point.is_zero() {
+            return self.coeffs[0];
+        }
+        self.internal_evaluate(point)
+        */
+
+        /*
+        let zero = Scalar.from(0);
+        if (this.coefficients.length == 0) {
+            return zero;
+        }
+        if (point == zero) {
+            return this.coefficients[0]; // TODO!!!
+        }
+        */
+        return Scalar.from(0); // TODO!
+    }
+
 }
 
 /*
