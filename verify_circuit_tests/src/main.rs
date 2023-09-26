@@ -18,8 +18,6 @@ use verify_circuit_tests::{
 };
 
 fn main() {
-    type GPallas = GroupAffine<PallasParameters>;
-    println!("{:?}", GPallas::endos().1.to_string());
     // Create test circuit
     let gates = create_circuit(0, 0);
     let num_gates = gates.len();
