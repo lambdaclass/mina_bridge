@@ -7,13 +7,13 @@ export class ProverProof {
 }
 
 export class Context {
-    /// The [VerifierIndex] associated to the proof
+    /* The [VerifierIndex] associated to the proof */
     verifier_index: VerifierIndex
 
-    /// The proof to verify
+    /* The proof to verify */
     proof: ProverProof
 
-    /// The public input used in the creation of the proof
+    /* The public input used in the creation of the proof */
     public_input: Scalar[]
 };
 
