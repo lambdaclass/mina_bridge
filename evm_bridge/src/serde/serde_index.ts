@@ -30,7 +30,11 @@ export function deserScalar(str: string): Scalar {
 
 export function deserPolyComm(json: PolyCommJSON): PolyComm<Group> {
     const unshifted = json.unshifted.map(({ x, y }) => Group.from(x, y));
-    return new PolyComm(unshifted, json.shifted);
+    let shifted = undefined;
+    if (json.shifted != null) {
+        shifted = json.shifted;
+    }
+    return new PolyComm<Group>(unshifted, shifted);
 }
 
 export function deserVerifierIndex(json: VerifierIndexJSON): VerifierIndex {
