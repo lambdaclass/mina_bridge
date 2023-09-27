@@ -41,7 +41,7 @@ jobs:
           node-version: latest
 
       - name: Set up dependencies
-        run: npm ci
+        run: npm i
 
       - name: Run npm build
         run: npm run build
