@@ -1,8 +1,8 @@
-import { Group, Scalar } from "o1js"
+import { Group } from "o1js"
 import { PolyComm } from "../poly_commitment/commitment"
 import { VerifierIndex } from "../verifier/verifier"
 
-type PolyCommJSON = {
+export interface PolyCommJSON {
     unshifted: { x: string, y: string }[]
     shifted: null
 }
@@ -23,13 +23,16 @@ interface VerifierIndexJSON {
     endomul_scalar_comm: PolyCommJSON
 }
 
-export function deserScalar(str: string): Scalar {
-    if (!str.startsWith("0x")) str = "0x" + str;
-    return Scalar.from(str);
+export function deserGroup(x: string, y: string): Group {
+    if (x === "0" && y === "1") {
+        return Group.zero
+    } else {
+        return Group.from(x, y);
+    }
 }
 
 export function deserPolyComm(json: PolyCommJSON): PolyComm<Group> {
-    const unshifted = json.unshifted.map(({ x, y }) => Group.from(x, y));
+    const unshifted = json.unshifted.map(({ x, y }) => deserGroup(x, y));
     let shifted = undefined;
     if (json.shifted != null) {
         shifted = json.shifted;
