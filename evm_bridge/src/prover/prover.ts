@@ -87,10 +87,8 @@ export class PointEvaluations<Evals> {
     /* Evaluation at `zeta . omega`, the product of the challenge point and the group generator */
     zetaOmega: Evals
 
-    constructor(zeta: Scalar[], zetaOmega: Scalar[]) {
-        this.zeta = zeta as Evals;
-        this.zetaOmega = zetaOmega as Evals;
-        return this;
+    constructor(zeta: Scalar, zetaOmega: Scalar) {
+        return new PointEvaluations(zeta, zetaOmega);
     }
 
     // TODO: implement this!!!!
