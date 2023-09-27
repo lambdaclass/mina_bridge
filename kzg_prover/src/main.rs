@@ -13,7 +13,6 @@ use kimchi::groupmap::GroupMap;
 use kimchi::mina_curves::pasta::{Fq, PallasParameters};
 use kimchi::mina_poseidon::constants::PlonkSpongeConstantsKimchi;
 use kimchi::mina_poseidon::sponge::{DefaultFqSponge, DefaultFrSponge};
-use kimchi::poly_commitment::evaluation_proof::OpeningProof;
 use kimchi::poly_commitment::srs::SRS;
 use kimchi::precomputed_srs;
 use kimchi::prover_index::ProverIndex;
@@ -28,36 +27,24 @@ type BaseSponge = DefaultFqSponge<Parameters, SpongeConstants>;
 type ScalarSponge = DefaultFrSponge<Field, SpongeConstants>;
 
 fn main() {
-    let public_input = create_public_input();
     let gates = create_gates();
 
     let constraint_system = KimchiConstraintSystem::<Field>::create(gates)
-        .public(public_input.len())
+        .public(3)
         .build()
         .unwrap();
 
     let srs_arc = create_srs(&constraint_system);
 
-    let &endo_q = <Curve as KimchiCurve>::other_curve_endo();
+    let &(_, endo_r) = <Curve as KimchiCurve>::endos();
     let group_map = <Curve as CommitmentCurve>::Map::setup();
     let witness = create_witness();
-    let prover_index: ProverIndex<_, OpeningProof<Curve>> =
-        ProverIndex::create(constraint_system, endo_q, srs_arc);
+    let prover_index: ProverIndex<_> = ProverIndex::create(constraint_system, endo_r, srs_arc);
 
     ProverProof::create::<BaseSponge, ScalarSponge>(&group_map, witness, &[], &prover_index)
         .expect("failed to generate proof");
 
     println!("Done!");
-}
-
-fn create_public_input() -> Vec<Field> {
-    let public_input_json = std::fs::read_to_string("./test_data/inputs.json").unwrap();
-    let public_input_str: Vec<String> = serde_json::from_str(&public_input_json).unwrap();
-
-    public_input_str
-        .iter()
-        .map(|input_str| Field::from_str(input_str).unwrap())
-        .collect::<Vec<_>>()
 }
 
 fn create_gates() -> Vec<CircuitGate<Field>> {
