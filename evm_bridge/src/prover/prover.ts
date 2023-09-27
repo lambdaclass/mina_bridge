@@ -57,26 +57,6 @@ export class ProofEvaluations<Evals> {
         this.poseidonSelector = poseidonSelector;
         return this;
     }
-
-    // TODO: implement this!!!!
-    combine(): boolean {
-        return true;
-    }
-
-    evaluate_coefficients(point: Scalar): Scalar {
-        let zero = Scalar.from(0);
-        let coeffs = this.coefficients.map((value) => value as Scalar);
-        let p = new Polynomial(coeffs);
-
-        if (this.coefficients.length == 0) {
-            return zero;
-        }
-        if (point == zero) {
-            return this.coefficients[0] as Scalar;
-        }
-        return p.evaluate(point);
-    }
-
 }
 
 /*
@@ -106,4 +86,25 @@ export class PointEvaluations<Evals> {
     zeta: Evals
     /* Evaluation at `zeta . omega`, the product of the challenge point and the group generator */
     zetaOmega: Evals
+
+    // TODO: implement this!!!!
+    combine(): boolean {
+        return true;
+    }
+
+    // ### CONTINUE HERE ###
+    evaluate_coefficients(point: Scalar): Scalar {
+        let zero = Scalar.from(0);
+        let coeffs = this.coefficients.map((value) => value as Scalar);
+        let p = new Polynomial(coeffs);
+
+        if (this.coefficients.length == 0) {
+            return zero;
+        }
+        if (point == zero) {
+            return this.coefficients[0] as Scalar;
+        }
+        return p.evaluate(point);
+    }
+
 }
