@@ -27,20 +27,27 @@ console.log('SnarkyJS loaded');
 
 // ----------------------------------------------------
 
-console.log("Generating keypair");
+console.log("Generating keypair...");
 
+// Convert JSON inputs to O1JS inputs so that we can pass them to the circuit
 let sg = new Group({ x: inputs.sg[0], y: inputs.sg[1] });
 let expected = new Group({ x: inputs.expected[0], y: inputs.expected[1] });
 let z1 = Scalar.from(inputs.z1);
 let sg_scalar = z1.neg().sub(Scalar.from(1));
+let public_input = [sg, sg_scalar, expected];
 
 let keypair = await Verifier.generateKeypair();
 
-console.log("Done!");
+console.log("Proving...");
+let proof = await Verifier.prove([], public_input, keypair);
+console.log("Verifying...");
+let isValid = await Verifier.verify(public_input, keypair.verificationKey(), proof);
+console.log("Is valid proof:", isValid);
 
 console.log("Generating witness...");
-let witness_ml = await Verifier.generateWitness([], [sg, sg_scalar, expected], keypair);
+let witness_ml = await Verifier.generateWitness([], public_input, keypair);
 
+// Convert OCaml witness to JSON witness so that we can write it into a file
 let witness: Field[][] = [];
 for (let maybe_row_ml of witness_ml) {
     let row_ml = maybe_row_ml as MlArray<FieldVar>;
@@ -57,4 +64,4 @@ for (let maybe_row_ml of witness_ml) {
 writeFileSync("../kzg_prover/test_data/witness.json", JSON.stringify(witness));
 
 // ----------------------------------------------------
-console.log('Shutting down');
+console.log('Done! Shutting down');
