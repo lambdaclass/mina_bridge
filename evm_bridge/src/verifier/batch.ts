@@ -33,7 +33,7 @@ export class Batch extends Verifier {
 
         let original_evals = proof.evals;
 
-        original_evals.combine();
+        //original_evals.combine();
 
         // let evals = proof.evals.combine(&powers_of_eval_points_for_chunks);
         //let context = Context {
