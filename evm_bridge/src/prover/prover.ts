@@ -87,30 +87,30 @@ export class PointEvaluations<Evals> {
     /* Evaluation at `zeta . omega`, the product of the challenge point and the group generator */
     zetaOmega: Evals
 
-    constructor(zeta: Scalar, zetaOmega: Scalar) {
-        return new PointEvaluations(zeta, zetaOmega);
+    constructor(zeta: Evals, zetaOmega: Evals) {
+        this.zeta = zeta;
+        this.zetaOmega = zetaOmega;
     }
-
-    // TODO: implement this!!!!
-    combine(): boolean {
-        return true;
-    }
-
-    // ### CONTINUE HERE ###
-    /*
-    evaluate_coefficients(point: Scalar): Scalar {
-        let zero = Scalar.from(0);
-        let coeffs = this.coefficients.map((value) => value as Scalar);
-        let p = new Polynomial(coeffs);
-
-        if (this.coefficients.length == 0) {
-            return zero;
-        }
-        if (point == zero) {
-            return this.coefficients[0] as Scalar;
-        }
-        return p.evaluate(point);
-    }
-    */
-
 }
+
+// TODO: implement this!!!!
+export function combine_point_evaluations(): boolean {
+    return true;
+}
+
+// ### CONTINUE HERE ###
+/*
+evaluate_coefficients(point: Scalar): Scalar {
+    let zero = Scalar.from(0);
+    let coeffs = this.coefficients.map((value) => value as Scalar);
+    let p = new Polynomial(coeffs);
+
+    if (this.coefficients.length == 0) {
+        return zero;
+    }
+    if (point == zero) {
+        return this.coefficients[0] as Scalar;
+    }
+    return p.evaluate(point);
+}
+*/
