@@ -9,7 +9,7 @@ on:
         required: false
         type: boolean
         default: false
-      monorepo:
+      mina_monorepo:
         required: false
         type: boolean
         default: false
@@ -39,7 +39,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
       
       - name: Clone Mina monorepo
-        if: ${{ inputs.monorepo }}
+        if: ${{ inputs.mina_monorepo }}
         run: sh ../evm_bridge/scripts/preinstall.sh
 
       - name: Run cargo check

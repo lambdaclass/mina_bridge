@@ -12,7 +12,7 @@ jobs:
     with:
       directory: kzg_prover
       skip_run: true
-      monorepo: true
+      mina_monorepo: true
 
   public_input_gen:
     name: Public input generation
