@@ -111,20 +111,3 @@ export class PointEvaluations<Evals> {
         return true;
     }
 }
-
-// ### CONTINUE HERE ###
-/*
-evaluate_coefficients(point: Scalar): Scalar {
-    let zero = Scalar.from(0);
-    let coeffs = this.coefficients.map((value) => value as Scalar);
-    let p = new Polynomial(coeffs);
-
-    if (this.coefficients.length == 0) {
-        return zero;
-    }
-    if (point == zero) {
-        return this.coefficients[0] as Scalar;
-    }
-    return p.evaluate(point);
-}
-*/
