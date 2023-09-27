@@ -9,6 +9,10 @@ on:
         required: false
         type: boolean
         default: false
+      monorepo:
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   check:
@@ -33,6 +37,10 @@ jobs:
 
       - name: Set up cargo cache
         uses: Swatinem/rust-cache@v2
+      
+      - name: Clone Mina monorepo
+        if: ${{ !inputs.monorepo }}
+        run: sh ../evm_bridge/scripts/preinstall.sh
 
       - name: Run cargo check
         run: cargo check --workspace
