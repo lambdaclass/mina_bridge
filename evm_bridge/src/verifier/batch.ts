@@ -22,8 +22,12 @@ export class Batch extends Verifier {
         let public_comm = verifier_index
             .srs
             .maskCustom(non_hiding_public_comm,
-                new PolyComm([Scalar.from(1)], undefined))?.commitment;
+                new PolyComm([Scalar.from(1)], undefined))?.commitment!;
+
+        proof.oracles(verifier_index, public_comm, public_input);
+
         return public_comm;
+
         /*
           Check the length of evaluations inside the proof.
           Commit to the negated public input polynomial.

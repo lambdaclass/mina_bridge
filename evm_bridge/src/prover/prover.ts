@@ -23,12 +23,20 @@ export class ProverProof {
      * Will run the random oracle argument for removing prover-verifier interaction (Fiat-Shamir transform)
      */
     oracles(index: VerifierIndex, public_comm: PolyComm<Group>, public_input: Scalar[]) {
+        let sponge_test = new Sponge();
+        const fields = [Field.from(1), Field.from(2)];
+        fields.forEach((f) => {
+            console.log(sponge_test.lastSqueezed);
+            sponge_test.absorb(f);
+        });
+        console.log("TEST SPONGE");
+
         const n = index.domain_size;
         const endo_r = Scalar.from("0x397e65a7d7c1ad71aee24b27e308f0a61259527ec1d4752e619d1840af55f1b1");
         // FIXME: ^ currently hard-coded, refactor
 
         //~ 1. Setup the Fq-Sponge.
-        let fq_sponge = new Sponge;
+        let fq_sponge = new Sponge();
 
         //~ 2. Absorb the digest of the VerifierIndex.
         fq_sponge.absorb(index.digest());
@@ -80,7 +88,7 @@ export class ProverProof {
         const zeta = zeta_chal.toField(endo_r);
 
         //~ 17. Setup the Fr-Sponge.
-        let fr_sponge = new Sponge;
+        let fr_sponge = new Sponge();
         const digest = fq_sponge.digest();
 
         //~ 18. Squeeze the Fq-sponge and absorb the result with the Fr-Sponge.
@@ -89,7 +97,7 @@ export class ProverProof {
         //~ 19. Absorb the previous recursion challenges.
         // Note: we absorb in a new sponge here to limit the scope in which we need the
         // more-expensive 'optional sponge'.
-        let fr_sponge_aux = new Sponge;
+        let fr_sponge_aux = new Sponge();
         this.prev_challenges.forEach((prev) => fr_sponge_aux.absorbScalars(prev.chals));
         fr_sponge.absorbScalar(fr_sponge.digest());
 

@@ -1,8 +1,7 @@
-use ark_ec::{short_weierstrass_jacobian::GroupAffine, AffineCurve};
+use ark_ec::AffineCurve;
 use ark_ff::{One, PrimeField};
 use ark_poly::domain::EvaluationDomain;
 use kimchi::{
-    circuits::wires::{COLUMNS, PERMUTS},
     curve::KimchiCurve,
     error::VerifyError,
     mina_curves::pasta::{Fq, Pallas, PallasParameters},
@@ -11,13 +10,30 @@ use kimchi::{
         sponge::{DefaultFqSponge, DefaultFrSponge},
     },
     o1_utils::FieldHelpers,
-    poly_commitment::{srs::SRS, PolyComm},
-    proof::{LookupEvaluations, PointEvaluations, ProofEvaluations, ProverProof},
+    poly_commitment::PolyComm,
+    proof::{
+        LookupCommitments, LookupEvaluations, PointEvaluations, ProofEvaluations,
+        ProverCommitments, ProverProof, RecursionChallenge,
+    },
     verifier_index::VerifierIndex,
 };
 use serde::Serialize;
 
-pub type PallasGroup = GroupAffine<PallasParameters>;
+pub type PallasScalar = <Pallas as AffineCurve>::ScalarField;
+pub type PallasPointEvals = PointEvaluations<Vec<PallasScalar>>;
+
+pub struct SerializablePallasScalar {
+    element: PallasScalar,
+}
+
+impl Serialize for SerializablePallasScalar {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.element.to_string())
+    }
+}
 
 pub type SpongeParams = PlonkSpongeConstantsKimchi;
 pub type BaseSponge = DefaultFqSponge<PallasParameters, SpongeParams>;
@@ -95,8 +111,8 @@ pub struct UncompressedPolyComm {
     pub shifted: Option<UncompressedPoint>,
 }
 
-impl From<&PolyComm<PallasGroup>> for UncompressedPolyComm {
-    fn from(value: &PolyComm<PallasGroup>) -> Self {
+impl From<&PolyComm<Pallas>> for UncompressedPolyComm {
+    fn from(value: &PolyComm<Pallas>) -> Self {
         Self {
             unshifted: value
                 .unshifted
@@ -215,6 +231,80 @@ impl From<&VerifierIndex<Pallas>> for VerifierIndexTS {
             mul_comm: UncompressedPolyComm::from(mul_comm),
             emul_comm: UncompressedPolyComm::from(emul_comm),
             endomul_scalar_comm: UncompressedPolyComm::from(endomul_scalar_comm),
+        }
+    }
+}
+
+#[derive(Serialize)]
+pub struct ProverCommitmentsTS {
+    w_comm: Vec<UncompressedPolyComm>, // size COLUMNS
+    z_comm: UncompressedPolyComm,
+    t_comm: UncompressedPolyComm,
+    lookup: Option<LookupCommitments<Pallas>>, // doesn't really matter as it'll be null for
+                                               // our tests
+}
+
+impl From<&ProverCommitments<Pallas>> for ProverCommitmentsTS {
+    fn from(value: &ProverCommitments<Pallas>) -> Self {
+        let ProverCommitments {
+            w_comm,
+            z_comm,
+            t_comm,
+            lookup,
+        } = value;
+
+        ProverCommitmentsTS {
+            w_comm: w_comm.iter().map(UncompressedPolyComm::from).collect(),
+            z_comm: UncompressedPolyComm::from(z_comm),
+            t_comm: UncompressedPolyComm::from(t_comm),
+            lookup: lookup.clone(),
+        }
+    }
+}
+
+#[derive(Serialize)]
+pub struct RecursionChallengeTS {
+    chals: Vec<SerializablePallasScalar>,
+    comm: UncompressedPolyComm,
+}
+
+impl From<&RecursionChallenge<Pallas>> for RecursionChallengeTS {
+    fn from(value: &RecursionChallenge<Pallas>) -> Self {
+        let RecursionChallenge { chals, comm } = value;
+
+        RecursionChallengeTS {
+            chals: chals
+                .iter()
+                .map(|s| SerializablePallasScalar { element: s.clone() })
+                .collect(),
+            comm: UncompressedPolyComm::from(comm),
+        }
+    }
+}
+
+#[derive(Serialize)]
+pub struct ProverProofTS {
+    evals: ProofEvaluations<PallasPointEvals>,
+    prev_challenges: Vec<RecursionChallengeTS>,
+    commitments: ProverCommitmentsTS,
+}
+
+impl From<&ProverProof<Pallas>> for ProverProofTS {
+    fn from(value: &ProverProof<Pallas>) -> Self {
+        let ProverProof {
+            evals,
+            prev_challenges,
+            commitments,
+            ..
+        } = value;
+
+        ProverProofTS {
+            evals: evals.clone(),
+            prev_challenges: prev_challenges
+                .iter()
+                .map(RecursionChallengeTS::from)
+                .collect(),
+            commitments: ProverCommitmentsTS::from(commitments),
         }
     }
 }

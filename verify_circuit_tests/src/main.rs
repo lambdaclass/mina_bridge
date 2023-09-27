@@ -8,12 +8,13 @@ use kimchi::{
     },
     groupmap::GroupMap,
     mina_curves::pasta::{fields::FqParameters, Pallas},
-    poly_commitment::{commitment::CommitmentCurve, srs::SRS},
+    poly_commitment::commitment::CommitmentCurve,
     proof::ProverProof,
     prover_index::testing::new_index_for_test_with_lookups,
 };
 use verify_circuit_tests::{
-    to_batch_step1, to_batch_step2, BaseSponge, ScalarSponge, UncompressedPolyComm, VerifierIndexTS,
+    to_batch_step1, to_batch_step2, BaseSponge, ProverProofTS, ScalarSponge, UncompressedPolyComm,
+    VerifierIndexTS,
 };
 
 fn main() {
@@ -44,10 +45,10 @@ fn main() {
             .unwrap()
     };
 
-    // Export proof evaluations
+    // Export proof
     fs::write(
-        "../evm_bridge/test/proof_evals.json",
-        serde_json::to_string_pretty(&proof.evals).unwrap(),
+        "../evm_bridge/test/proof.json",
+        serde_json::to_string_pretty(&ProverProofTS::from(&proof)).unwrap(),
     )
     .unwrap();
 

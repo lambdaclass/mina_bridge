@@ -11,9 +11,7 @@ import { deserVerifierIndex } from "../serde/serde_index.js";
 test("toBatch() step 1 and 2", () => {
     const srs = SRS.createFromJSON();
     const domain_size = 32; // extracted from test in Rust.
-    console.log("deser verifier_index")
     const vi = deserVerifierIndex(verifier_index_json);
-    console.log("deser verifier_index");
     const proof = deserProverProof(proof_json);
 
     let f_comm = Batch.toBatch(vi, proof, []); // upto step 2 implemented.
