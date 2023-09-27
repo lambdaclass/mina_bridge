@@ -56,7 +56,7 @@ fn create_public_input() -> Vec<Field> {
 
     public_input_str
         .iter()
-        .map(|input_str| Field::from_str(&input_str).unwrap())
+        .map(|input_str| Field::from_str(input_str).unwrap())
         .collect::<Vec<_>>()
 }
 
