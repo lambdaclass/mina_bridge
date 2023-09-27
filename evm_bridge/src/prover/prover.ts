@@ -87,12 +87,19 @@ export class PointEvaluations<Evals> {
     /* Evaluation at `zeta . omega`, the product of the challenge point and the group generator */
     zetaOmega: Evals
 
+    constructor(zeta: Scalar[], zetaOmega: Scalar[]) {
+        this.zeta = zeta as Evals;
+        this.zetaOmega = zetaOmega as Evals;
+        return this;
+    }
+
     // TODO: implement this!!!!
     combine(): boolean {
         return true;
     }
 
     // ### CONTINUE HERE ###
+    /*
     evaluate_coefficients(point: Scalar): Scalar {
         let zero = Scalar.from(0);
         let coeffs = this.coefficients.map((value) => value as Scalar);
@@ -106,5 +113,6 @@ export class PointEvaluations<Evals> {
         }
         return p.evaluate(point);
     }
+    */
 
 }
