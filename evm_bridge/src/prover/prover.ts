@@ -91,11 +91,11 @@ export class PointEvaluations<Evals> {
         this.zeta = zeta;
         this.zetaOmega = zetaOmega;
     }
-}
 
-// TODO: implement this!!!!
-export function combine_point_evaluations(): boolean {
-    return true;
+    // TODO: implement this!!!!
+    combine_point_evaluations(): boolean {
+        return true;
+    }
 }
 
 // ### CONTINUE HERE ###
