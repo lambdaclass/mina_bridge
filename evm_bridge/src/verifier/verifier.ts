@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { readFileSync } from 'fs';
-import { circuitMain, Circuit, Group, Scalar, Provable } from 'o1js';
+import { circuitMain, Circuit, Group, Scalar, Provable, public_, Field } from 'o1js';
 import { SRS } from '../SRS.js';
 
 let steps: bigint[][];
@@ -21,8 +21,9 @@ export class VerifierIndex {
   public: number
 }
 
-export class Verifier {
-  static main(sg: Group, z1: bigint, expected: Group, debug: boolean) {
+export class Verifier extends Circuit {
+  @circuitMain
+  static main(@public_ sg: Group, @public_ sg_scalar: Scalar, @public_ expected: Group) {
     let nonzero_length = g.length;
     let max_rounds = Math.ceil(Math.log2(nonzero_length));
     let padded_length = Math.pow(2, max_rounds);
@@ -32,36 +33,33 @@ export class Verifier {
     points = points.concat(g);
     points = points.concat(Array(padding).fill(Group.zero));
 
-    let scalars = [0n];
+    let scalars = [Scalar.from(0)];
     //TODO: Add challenges and s polynomial (in that case, using Scalars we could run out of memory)
-    scalars = scalars.concat(Array(padded_length).fill(1n));
+    scalars = scalars.concat(Array(padded_length).fill(Scalar.from(1)));
     assert(points.length == scalars.length, "The number of points is not the same as the number of scalars");
 
     points.push(sg);
-    scalars.push(mod(-z1 - 1n));
+    scalars.push(sg_scalar);
 
-    if (debug) {
-      Verifier.msmDebug(points, scalars).assertEquals(expected);
-    } else {
-      Verifier.msm(points, scalars).assertEquals(expected);
-    }
+    Verifier.msm(points, scalars).assertEquals(expected);
   }
 
   // Naive algorithm
-  static msm(points: Group[], scalars: bigint[]) {
+  static msm(points: Group[], scalars: Scalar[]) {
     let result = Group.zero;
 
     for (let i = 0; i < points.length; i++) {
       let point = points[i];
       let scalar = scalars[i];
-      result = result.add(point.scale(scalar));
+      let scaled = point.scale(scalar);
+      result = result.add(scaled);
     }
 
     return result;
   }
 
   // Naive algorithm (used for debugging)
-  static msmDebug(points: Group[], scalars: bigint[]) {
+  static msmDebug(points: Group[], scalars: Scalar[]) {
     let result = Group.zero;
 
     if (steps.length === 0) {
@@ -80,8 +78,4 @@ export class Verifier {
 
     return result;
   }
-}
-
-function mod(n: bigint) {
-  return ((n % Scalar.ORDER) + Scalar.ORDER) % Scalar.ORDER;
 }

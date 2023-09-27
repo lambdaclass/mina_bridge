@@ -6,11 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-kimchi = { git = "https://github.com/o1-labs/proof-systems", branch = "feature/keccak-sponge", features = [
-    "keccak-sponges",
-    "bn254",
-] }
-poly-commitment = { git = "https://github.com/o1-labs/proof-systems", branch = "feature/keccak-sponge" }
+kimchi = { path = "../mina_monorepo/src/lib/crypto/proof-systems/kimchi" }
+poly-commitment = { path = "../mina_monorepo/src/lib/crypto/proof-systems/poly-commitment" }
 serde_json = "1"
 serde = { version = "1", features = ["derive"] }
 ark-ec = { version = "0.3.0", features = ["parallel"] }

@@ -5,32 +5,54 @@ use std::str::FromStr;
 use std::sync::Arc;
 
 use ark_ec::short_weierstrass_jacobian::GroupAffine;
+use kimchi::circuits::constraints::ConstraintSystem as KimchiConstraintSystem;
 use kimchi::circuits::gate::{CircuitGate, GateType};
 use kimchi::circuits::wires::Wire;
 use kimchi::curve::KimchiCurve;
 use kimchi::groupmap::GroupMap;
-use kimchi::mina_curves::pasta::{Fp, VestaParameters};
+use kimchi::mina_curves::pasta::{Fq, PallasParameters};
 use kimchi::mina_poseidon::constants::PlonkSpongeConstantsKimchi;
 use kimchi::mina_poseidon::sponge::{DefaultFqSponge, DefaultFrSponge};
-use kimchi::poly_commitment::evaluation_proof::OpeningProof;
 use kimchi::poly_commitment::srs::SRS;
+use kimchi::precomputed_srs;
 use kimchi::prover_index::ProverIndex;
-use kimchi::verifier::verify;
 use kimchi::{poly_commitment::commitment::CommitmentCurve, proof::ProverProof};
 
-type Parameters = VestaParameters;
+type Parameters = PallasParameters;
 type Curve = GroupAffine<Parameters>;
 type SpongeConstants = PlonkSpongeConstantsKimchi;
-type Field = Fp;
+type Field = Fq;
 
 type BaseSponge = DefaultFqSponge<Parameters, SpongeConstants>;
 type ScalarSponge = DefaultFrSponge<Field, SpongeConstants>;
 
 fn main() {
+    let gates = create_gates();
+
+    let constraint_system = KimchiConstraintSystem::<Field>::create(gates)
+        .public(3)
+        .build()
+        .unwrap();
+
+    let srs_arc = create_srs(&constraint_system);
+
+    let &(_, endo_r) = <Curve as KimchiCurve>::endos();
+    let group_map = <Curve as CommitmentCurve>::Map::setup();
+    let witness = create_witness();
+    let prover_index: ProverIndex<_> = ProverIndex::create(constraint_system, endo_r, srs_arc);
+
+    ProverProof::create::<BaseSponge, ScalarSponge>(&group_map, witness, &[], &prover_index)
+        .expect("failed to generate proof");
+
+    println!("Done!");
+}
+
+fn create_gates() -> Vec<CircuitGate<Field>> {
     let cs_json = std::fs::read_to_string("./test_data/constraint_system.json").unwrap();
     let cs = constraint_system::ConstraintSystem::from(cs_json.as_str());
     let elem_list = cs.0;
-    let gates: Vec<_> = elem_list
+
+    elem_list
         .iter()
         .map(|gate| {
             let gate_type = if gate.r#type == "Generic" {
@@ -52,56 +74,27 @@ fn main() {
                 .collect();
             CircuitGate::new(gate_type, wires, coeffs)
         })
-        .collect();
-
-    let constants = kimchi::snarky::constants::Constants::new::<Curve>();
-    let _snarky_cs = kimchi::snarky::constraint_system::SnarkyConstraintSystem::create(constants);
-
-    let mut kimchi_cs = kimchi::circuits::constraints::ConstraintSystem::<Field>::create(gates)
-        .public(3)
-        .build()
-        .unwrap();
-    kimchi_cs.feature_flags.foreign_field_add = true;
-    kimchi_cs.feature_flags.foreign_field_mul = true;
-
-    let srs_json = std::fs::read_to_string("./test_data/srs_pasta.json").unwrap();
-    let mut kimchi_srs: SRS<Curve> = serde_json::from_str(srs_json.as_str()).unwrap();
-    kimchi_srs.add_lagrange_basis(kimchi_cs.domain.d1);
-    let kimchi_srs_arc = Arc::new(kimchi_srs);
-
-    let &endo_q = <Curve as KimchiCurve>::other_curve_endo();
-
-    let group_map = <Curve as CommitmentCurve>::Map::setup();
-    let witness: [Vec<Field>; 15] = array::from_fn(|_| vec![Field::from(0); 4]);
-    let prover_index: ProverIndex<_, OpeningProof<Curve>> =
-        ProverIndex::create(kimchi_cs, endo_q, kimchi_srs_arc);
-    let proof =
-        ProverProof::create::<BaseSponge, ScalarSponge>(&group_map, witness, &[], &prover_index)
-            .expect("failed to generate proof");
-    println!("proof: {:?}", proof);
-
-    let verifier_index = prover_index.verifier_index();
-    verify::<Curve, BaseSponge, ScalarSponge, OpeningProof<Curve>>(
-        &group_map,
-        &verifier_index,
-        &proof,
-        &[Field::from(2), Field::from(3), Field::from(5)],
-    )
-    .expect("Proof is not valid");
-
-    println!("Done!");
+        .collect()
 }
 
-/*
+fn create_srs(constraint_system: &KimchiConstraintSystem<Field>) -> Arc<SRS<Curve>> {
+    let mut srs = precomputed_srs::get_srs();
+    srs.add_lagrange_basis(constraint_system.domain.d1);
 
-    let srs = SRS::<Curve>::create(kimchi_cs.domain.d1.size as usize);
+    Arc::new(srs)
+}
 
-    let out = rmp_serde::encode::to_vec(&srs).unwrap();
-    let mut file = std::fs::File::create("srs.rmp").unwrap();
-    file.write_all(&out).unwrap();
+fn create_witness() -> [Vec<Field>; 15] {
+    let witness_json = std::fs::read_to_string("./test_data/witness.json").unwrap();
+    let witness_str: Vec<Vec<String>> = serde_json::from_str(&witness_json).unwrap();
+    let mut witness: [Vec<Field>; 15] = array::from_fn(|_| vec![]);
 
-    let out_json = serde_json::to_vec(&srs).unwrap();
-    let mut file = std::fs::File::create("srs.json").unwrap();
-    file.write_all(&out_json).unwrap();
+    // Convert matrix of strings to matrix of Fields
+    for (col_str, mut col) in witness.iter_mut().zip(witness_str) {
+        for (field_str, field) in col.iter_mut().zip(col_str) {
+            *field = Field::from_str(field_str).unwrap();
+        }
+    }
 
-*/
+    witness
+}
