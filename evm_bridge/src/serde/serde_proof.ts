@@ -35,7 +35,9 @@ export function deserPointEval(json: PointEvalsJSON): PointEvals {
     }
     const zeta = json.zeta.map(deserHexScalar);
     const zetaOmega = json.zeta_omega.map(deserHexScalar);
-    return { zeta, zetaOmega };
+    let ret = new PointEvaluations(zeta, zetaOmega);
+
+    return ret;
 }
 
 /*
@@ -70,6 +72,6 @@ export function deserProofEvals(json: ProofEvalsJSON): ProofEvaluations<PointEva
 
     // TODO!!!: fix this
     let lookup2 = new LookupEvaluations<PointEvals>();
-    
-    return new ProofEvaluations( w, z, s, coefficients, lookup2, genericSelector, poseidonSelector );
+
+    return new ProofEvaluations(w, z, s, coefficients, lookup2, genericSelector, poseidonSelector);
 }
