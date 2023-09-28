@@ -22,21 +22,21 @@ export class VerifierIndex {
     domain_size: number
     public: number
 
-    /* permutation commitments */
+    /** permutation commitments */
     sigma_comm: PolyComm<Group>[] // size PERMUTS
     coefficients_comm: PolyComm<Group>[] // size COLUMNS
     generic_comm: PolyComm<Group>
 
-    /* poseidon constraint selector polynomial commitments */
+    /** poseidon constraint selector polynomial commitments */
     psm_comm: PolyComm<Group>
 
-    /* EC addition selector polynomial commitment */
+    /** EC addition selector polynomial commitment */
     complete_add_comm: PolyComm<Group>
-    /* EC variable base scalar multiplication selector polynomial commitment */
+    /** EC variable base scalar multiplication selector polynomial commitment */
     mul_comm: PolyComm<Group>
-    /* endoscalar multiplication selector polynomial commitment */
+    /** endoscalar multiplication selector polynomial commitment */
     emul_comm: PolyComm<Group>
-    /* endoscalar multiplication scalar computation selector polynomial commitment */
+    /** endoscalar multiplication scalar computation selector polynomial commitment */
     endomul_scalar_comm: PolyComm<Group>
 
     constructor(
@@ -84,6 +84,11 @@ export class VerifierIndex {
 }
 
 export class Verifier extends Circuit {
+    /** Number of total registers */
+    static readonly COLUMNS: number = 15;
+    /** Number of registers that can be wired (participating in the permutation) */
+    static readonly PERMUTS: number = 7;
+
     @circuitMain
     static main(@public_ sg: Group, @public_ sg_scalar: Scalar, @public_ expected: Group) {
         let nonzero_length = g.length;
