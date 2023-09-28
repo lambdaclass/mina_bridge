@@ -22,16 +22,14 @@ use serde::Serialize;
 pub type PallasScalar = <Pallas as AffineCurve>::ScalarField;
 pub type PallasPointEvals = PointEvaluations<Vec<PallasScalar>>;
 
-pub struct SerializablePallasScalar {
-    element: PallasScalar,
-}
+pub struct SerializablePallasScalar(PallasScalar);
 
 impl Serialize for SerializablePallasScalar {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
-        serializer.serialize_str(&self.element.to_string())
+        serializer.serialize_str(&self.0.to_string())
     }
 }
 
@@ -219,7 +217,7 @@ impl From<&VerifierIndex<Pallas>> for VerifierIndexTS {
         } = value;
         VerifierIndexTS {
             domain_size: domain.size(),
-            public: public.clone(),
+            public: *public,
             sigma_comm: sigma_comm.iter().map(UncompressedPolyComm::from).collect(),
             coefficients_comm: coefficients_comm
                 .iter()
@@ -273,10 +271,7 @@ impl From<&RecursionChallenge<Pallas>> for RecursionChallengeTS {
         let RecursionChallenge { chals, comm } = value;
 
         RecursionChallengeTS {
-            chals: chals
-                .iter()
-                .map(|s| SerializablePallasScalar { element: s.clone() })
-                .collect(),
+            chals: chals.iter().map(|s| SerializablePallasScalar(*s)).collect(),
             comm: UncompressedPolyComm::from(comm),
         }
     }
