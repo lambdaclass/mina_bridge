@@ -24,6 +24,7 @@ export class ProverProof {
      */
     oracles(index: VerifierIndex, public_comm: PolyComm<Group>, public_input: Scalar[]) {
         let sponge_test = new Sponge();
+        console.log(sponge_test);
         const fields = [Field.from(1), Field.from(2)];
         fields.forEach((f) => {
             console.log(sponge_test.lastSqueezed);
@@ -43,50 +44,61 @@ export class ProverProof {
 
         //~ 3. Absorb the commitments of the previous challenges with the Fq-sponge.
         this.prev_challenges.forEach(
-            (challenge) => fq_sponge.absorbCommitment(challenge.comm)
+            (challenge) => fq_sponge.absorbCommitment.bind(fq_sponge)(challenge.comm)
         );
 
         //~ 4. Absorb the commitment of the public input polynomial with the Fq-Sponge.
         fq_sponge.absorbCommitment(public_comm);
 
         //~ 5. Absorb the commitments to the registers / witness columns with the Fq-Sponge.
-        this.commitments.wComm.forEach(fq_sponge.absorbCommitment);
+        this.commitments.wComm.forEach(fq_sponge.absorbCommitment.bind(fq_sponge));
 
+        console.log("step 6");
         //~ 6. If lookup is used:
         // WARN: omitted lookup-related for now
 
+        console.log("step 7");
         //~ 7. Sample $\beta$ with the Fq-Sponge.
         const beta = fq_sponge.challenge();
 
+        console.log("step 8");
         //~ 8. Sample $\gamma$ with the Fq-Sponge.
         const gamma = fq_sponge.challenge();
 
         //~ 9. If using lookup, absorb the commitment to the aggregation lookup polynomial.
         // WARN: omitted lookup-related for now
 
+        console.log("step 10");
         //~ 10. Absorb the commitment to the permutation trace with the Fq-Sponge.
         fq_sponge.absorbCommitment(this.commitments.zComm);
 
+        console.log("step 11");
         //~ 11. Sample $\alpha'$ with the Fq-Sponge.
         const alpha_chal = new ScalarChallenge(fq_sponge.challenge());
 
+        console.log("step 12");
         //~ 12. Derive $\alpha$ from $\alpha'$ using the endomorphism (TODO: details).
         const alpha = alpha_chal.toField(endo_r);
 
+        console.log("step 13");
         //~ 13. Enforce that the length of the $t$ commitment is of size `PERMUTS`.
         if (this.commitments.tComm.unshifted.length !== Verifier.PERMUTS) {
             // FIXME: return error "incorrect commitment length of 't'"
         }
 
+        console.log("step 14");
         //~ 14. Absorb the commitment to the quotient polynomial $t$ into the argument.
         fq_sponge.absorbCommitment(this.commitments.tComm);
 
+        console.log("step 15");
         //~ 15. Sample $\zeta'$ with the Fq-Sponge.
         const zeta_chal = new ScalarChallenge(fq_sponge.challenge());
 
+        console.log("step 16");
         //~ 16. Derive $\zeta$ from $\zeta'$ using the endomorphism (TODO: specify).
         const zeta = zeta_chal.toField(endo_r);
 
+        console.log("step 17");
         //~ 17. Setup the Fr-Sponge.
         let fr_sponge = new Sponge();
         const digest = fq_sponge.digest();
@@ -419,10 +431,12 @@ export class ProverCommitments {
     // TODO: lookup commitment
 }
 
-function getBit(limbs_lsb: bigint[], i: number): number {
+function getBit(limbs_lsb: bigint[], i: number): bigint {
     const limb = i / 64;
     const j = BigInt(i % 64);
-    return Number((limbs_lsb[limb] >> j) & 1n);
+    const limb_lsb = limbs_lsb[limb];
+    const unmasked = limb_lsb >> j;
+    return unmasked & 1n;
 }
 
 export class ScalarChallenge {
@@ -445,9 +459,9 @@ export class ScalarChallenge {
             b = b.add(b);
 
             const r_2i = getBit([rep], 2*i);
-            const s = r_2i === 0 ? negone : one;
+            const s = r_2i === 0n ? negone : one;
 
-            if (getBit([rep], 2*i + 1) === 0) {
+            if (getBit([rep], 2*i + 1) === 0n) {
                 b = b.add(s);
             } else {
                 a = a.add(s);

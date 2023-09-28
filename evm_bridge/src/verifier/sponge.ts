@@ -18,36 +18,28 @@ export class Sponge {
         this.lastSqueezed = [];
     }
 
-    checkSponge() {
-        if (!this.#internalSponge) {
-            this.#internalSponge = new Poseidon.Sponge();
-        }
-    }
-
     absorb(x: Field) {
-        this.checkSponge();
         this.lastSqueezed = [];
         this.#internalSponge.absorb(x);
     }
 
     squeezeField(): Field {
-        this.checkSponge();
         return this.#internalSponge.squeeze();
     }
 
     absorbGroup(g: Group) {
-        this.checkSponge();
+        console.log(this);
         this.#internalSponge.absorb(g.x);
         this.#internalSponge.absorb(g.y);
     }
 
     absorbGroups(gs: Group[]) {
-        gs.forEach(this.absorbGroup);
+        gs.forEach(this.absorbGroup.bind(this));
+        // bind is necessary for avoiding context loss
     }
 
     /** Will do an operation over the scalar to make it suitable for absorbing */
     absorbScalar(s: Scalar) {
-        this.checkSponge();
         // this operation was extracted from Kimchi FqSponge's`absorb_fr()`.
         if (Scalar.ORDER < Field.ORDER) {
             const f = Field(s.toBigInt());
@@ -87,7 +79,6 @@ export class Sponge {
     * This squeezes until `numLimbs` 64-bit high entropy limbs are retrieved.
     */
     squeezeLimbs(numLimbs: number): bigint[] { // will return limbs of 64 bits.
-        this.checkSponge();
         if (this.lastSqueezed.length >= numLimbs) {
             const limbs = this.lastSqueezed.slice(0, numLimbs);
             const remaining = this.lastSqueezed.slice(0, numLimbs);
@@ -103,7 +94,7 @@ export class Sponge {
                 xLimbs.push(x & mask); // 64 bits limbs, least significant first
                 x >>= 64n;
             }
-            this.lastSqueezed.concat(xLimbs);
+            this.lastSqueezed = this.lastSqueezed.concat(xLimbs);
             return this.squeezeLimbs(numLimbs);
         }
     }
@@ -112,7 +103,6 @@ export class Sponge {
     * Calls `squeezeLimbs()` and composes them into a scalar.
     */
     squeeze(numLimbs: number): Scalar {
-        this.checkSponge();
         let squeezed = 0n;
         const squeezedLimbs = this.squeezeLimbs(numLimbs);
         for (const i in this.squeezeLimbs(numLimbs)) {
@@ -126,7 +116,6 @@ export class Sponge {
     }
 
     digest(): Scalar {
-        this.checkSponge();
         const x = this.squeezeField().toBigInt();
         const result = x < Scalar.ORDER ? x : 0;
         // Comment copied from Kimchi's codebase:
