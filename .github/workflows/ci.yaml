@@ -40,6 +40,9 @@ jobs:
         with:
           node-version: latest
 
+      - name: Install opam
+        run: sudo apt-get install opam
+
       - name: Set up dependencies
         run: npm ci
 
