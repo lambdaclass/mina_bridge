@@ -32,7 +32,7 @@ jobs:
           tool: cargo-nextest
       
       - name: Install opam
-        run: sudo apt-get install opam && opam init
+        run: sudo apt-get install opam liblmdb-dev && opam init
 
       - name: Set up cargo cache
         uses: Swatinem/rust-cache@v2

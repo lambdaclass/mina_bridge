@@ -41,7 +41,7 @@ jobs:
           node-version: latest
 
       - name: Install opam
-        run: sudo apt-get install opam && opam init
+        run: sudo apt-get install opam liblmdb-dev && opam init
 
       - name: Set up dependencies
         run: npm ci
