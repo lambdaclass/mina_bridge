@@ -1,7 +1,7 @@
-import { Scalar } from "o1js";
-import { Verifier, VerifierIndex } from './verifier.js'
 import { PolyComm } from "../poly_commitment/commitment.js";
 import { ProverProof, PointEvaluations } from "../prover/prover.js";
+import { Verifier, VerifierIndex } from "./verifier.js";
+import { Group, Scalar } from "o1js";
 
 export class Batch extends Verifier {
     /**
@@ -22,7 +22,10 @@ export class Batch extends Verifier {
         let public_comm = verifier_index
             .srs
             .maskCustom(non_hiding_public_comm,
-                new PolyComm([Scalar.from(1)], undefined))?.commitment;
+                new PolyComm([Scalar.from(1)], undefined))?.commitment!;
+
+        proof.oracles(verifier_index, public_comm, public_input);
+
         /*
           Check the length of evaluations inside the proof.
           Commit to the negated public input polynomial.
