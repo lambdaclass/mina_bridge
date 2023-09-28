@@ -1,5 +1,6 @@
 import { Field, Group, Scalar } from "o1js"
 import { PolyComm } from "../poly_commitment/commitment";
+import { getLimbs64 } from "../util/bigint";
 import { Sponge } from "../verifier/sponge";
 import { Verifier, VerifierIndex } from "../verifier/verifier.js";
 
@@ -24,17 +25,14 @@ export class ProverProof {
      */
     oracles(index: VerifierIndex, public_comm: PolyComm<Group>, public_input: Scalar[]) {
         let sponge_test = new Sponge();
-        console.log(sponge_test);
         const fields = [Field.from(1), Field.from(2)];
         fields.forEach((f) => {
-            console.log(sponge_test.lastSqueezed);
             sponge_test.absorb(f);
         });
-        console.log("TEST SPONGE");
 
         const n = index.domain_size;
         const endo_r = Scalar.from("0x397e65a7d7c1ad71aee24b27e308f0a61259527ec1d4752e619d1840af55f1b1");
-        // FIXME: ^ currently hard-coded, refactor
+        // FIXME: ^ currently hard-coded, refactor this in the future
 
         //~ 1. Setup the Fq-Sponge.
         let fq_sponge = new Sponge();
@@ -53,52 +51,41 @@ export class ProverProof {
         //~ 5. Absorb the commitments to the registers / witness columns with the Fq-Sponge.
         this.commitments.wComm.forEach(fq_sponge.absorbCommitment.bind(fq_sponge));
 
-        console.log("step 6");
         //~ 6. If lookup is used:
         // WARN: omitted lookup-related for now
 
-        console.log("step 7");
         //~ 7. Sample $\beta$ with the Fq-Sponge.
         const beta = fq_sponge.challenge();
 
-        console.log("step 8");
         //~ 8. Sample $\gamma$ with the Fq-Sponge.
         const gamma = fq_sponge.challenge();
 
         //~ 9. If using lookup, absorb the commitment to the aggregation lookup polynomial.
         // WARN: omitted lookup-related for now
 
-        console.log("step 10");
         //~ 10. Absorb the commitment to the permutation trace with the Fq-Sponge.
         fq_sponge.absorbCommitment(this.commitments.zComm);
 
-        console.log("step 11");
         //~ 11. Sample $\alpha'$ with the Fq-Sponge.
         const alpha_chal = new ScalarChallenge(fq_sponge.challenge());
 
-        console.log("step 12");
         //~ 12. Derive $\alpha$ from $\alpha'$ using the endomorphism (TODO: details).
         const alpha = alpha_chal.toField(endo_r);
 
-        console.log("step 13");
         //~ 13. Enforce that the length of the $t$ commitment is of size `PERMUTS`.
         if (this.commitments.tComm.unshifted.length !== Verifier.PERMUTS) {
             // FIXME: return error "incorrect commitment length of 't'"
         }
 
-        console.log("step 14");
         //~ 14. Absorb the commitment to the quotient polynomial $t$ into the argument.
         fq_sponge.absorbCommitment(this.commitments.tComm);
 
-        console.log("step 15");
         //~ 15. Sample $\zeta'$ with the Fq-Sponge.
         const zeta_chal = new ScalarChallenge(fq_sponge.challenge());
 
-        console.log("step 16");
         //~ 16. Derive $\zeta$ from $\zeta'$ using the endomorphism (TODO: specify).
         const zeta = zeta_chal.toField(endo_r);
 
-        console.log("step 17");
         //~ 17. Setup the Fr-Sponge.
         let fr_sponge = new Sponge();
         const digest = fq_sponge.digest();
@@ -432,11 +419,10 @@ export class ProverCommitments {
 }
 
 function getBit(limbs_lsb: bigint[], i: number): bigint {
-    const limb = i / 64;
+    const limb = Math.floor(i / 64);
     const j = BigInt(i % 64);
-    const limb_lsb = limbs_lsb[limb];
-    const unmasked = limb_lsb >> j;
-    return unmasked & 1n;
+    return (limbs_lsb[limb] >> j) & 1n;
+    // FIXME: if it's negative, then >> will fill with ones
 }
 
 export class ScalarChallenge {
@@ -448,20 +434,21 @@ export class ScalarChallenge {
 
     toFieldWithLength(length_in_bits: number, endo_coeff: Scalar): Scalar {
         const rep = this.chal.toBigInt();
+        const rep_64_limbs = getLimbs64(rep);
 
         let a = Scalar.from(2);
         let b = Scalar.from(2);
 
         const one = Scalar.from(1);
         const negone = one.neg();
-        for (let i = length_in_bits / 2 + 1; i >= 0; i--) {
+        for (let i = Math.floor(length_in_bits / 2) - 1; i >= 0; i--) {
             a = a.add(a);
             b = b.add(b);
 
-            const r_2i = getBit([rep], 2*i);
+            const r_2i = getBit(rep_64_limbs, 2*i);
             const s = r_2i === 0n ? negone : one;
 
-            if (getBit([rep], 2*i + 1) === 0n) {
+            if (getBit(rep_64_limbs, 2*i + 1) === 0n) {
                 b = b.add(s);
             } else {
                 a = a.add(s);

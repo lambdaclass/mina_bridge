@@ -28,7 +28,6 @@ export class Sponge {
     }
 
     absorbGroup(g: Group) {
-        console.log(this);
         this.#internalSponge.absorb(g.x);
         this.#internalSponge.absorb(g.y);
     }
