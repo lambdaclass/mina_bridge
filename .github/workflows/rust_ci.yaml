@@ -30,12 +30,15 @@ jobs:
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-nextest
+      
+      - name: Install opam
+        run: apt install opam
 
       - name: Set up cargo cache
         uses: Swatinem/rust-cache@v2
       
       - name: Clone Mina monorepo
-        run: sh ../setup.sh
+        run: cd .. && sh setup.sh
 
       - name: Run cargo check
         run: cargo check --workspace
