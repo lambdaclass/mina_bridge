@@ -288,8 +288,8 @@ impl From<&RecursionChallenge<Pallas>> for RecursionChallengeTS {
 #[derive(Serialize)]
 pub struct ProverProofTS {
     evals: ProofEvaluations<PallasPointEvals>, // a helper for ProofEvaluattions is not needed
-                                               // because it can be correctly deserialized in TS
-                                               // as it is now.
+    // because it can be correctly deserialized in TS
+    // as it is now.
     prev_challenges: Vec<RecursionChallengeTS>,
     commitments: ProverCommitmentsTS,
 }
