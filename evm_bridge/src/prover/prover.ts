@@ -58,6 +58,26 @@ export class ProofEvaluations<Evals> {
         return this;
     }
 
+    // TODO: implement this!!!!
+    /*
+    Returns a new PointEvaluations struct with the combined evaluations.
+    */
+    combine_point_evaluations(): PointEvaluations<Evals> {
+        let zeta: Evals = Scalar.from(0) as Evals;
+        let zetaOmega: Evals = Scalar.from(0) as Evals;
+
+        let ret = new PointEvaluations(zeta, zetaOmega);
+        return ret;
+    }
+    /*
+    pub fn combine(&self, pt: &PointEvaluations<F>) -> ProofEvaluations<PointEvaluations<F>> {
+        self.map_ref(&|evals| PointEvaluations {
+            zeta: DensePolynomial::eval_polynomial(&evals.zeta, pt.zeta),
+            zeta_omega: DensePolynomial::eval_polynomial(&evals.zeta_omega, pt.zeta_omega),
+        })
+    }    
+    */
+
     evaluate_coefficients(point: Scalar): Scalar {
         let zero = Scalar.from(0);
 
@@ -104,10 +124,5 @@ export class PointEvaluations<Evals> {
     constructor(zeta: Evals, zetaOmega: Evals) {
         this.zeta = zeta;
         this.zetaOmega = zetaOmega;
-    }
-
-    // TODO: implement this!!!!
-    combine_point_evaluations(): boolean {
-        return true;
     }
 }
