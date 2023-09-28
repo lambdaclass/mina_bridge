@@ -1,22 +1,39 @@
-use ark_ec::{short_weierstrass_jacobian::GroupAffine, AffineCurve};
+use ark_ec::AffineCurve;
 use ark_ff::{One, PrimeField};
 use ark_poly::domain::EvaluationDomain;
 use kimchi::{
     curve::KimchiCurve,
     error::VerifyError,
-    mina_curves::pasta::{Fq, PallasParameters},
+    mina_curves::pasta::{Fq, Pallas, PallasParameters},
     mina_poseidon::{
         constants::PlonkSpongeConstantsKimchi,
         sponge::{DefaultFqSponge, DefaultFrSponge},
     },
     o1_utils::FieldHelpers,
     poly_commitment::PolyComm,
-    proof::{LookupEvaluations, PointEvaluations, ProofEvaluations, ProverProof},
+    proof::{
+        LookupCommitments, LookupEvaluations, PointEvaluations, ProofEvaluations,
+        ProverCommitments, ProverProof, RecursionChallenge,
+    },
     verifier_index::VerifierIndex,
 };
 use serde::Serialize;
 
-pub type PallasGroup = GroupAffine<PallasParameters>;
+pub type PallasScalar = <Pallas as AffineCurve>::ScalarField;
+pub type PallasPointEvals = PointEvaluations<Vec<PallasScalar>>;
+
+/// `PallasScalar` is an external type and it doesn't implement `Serialize`. This is a wapper for
+/// implementing a serialize function to it.
+pub struct SerializablePallasScalar(PallasScalar);
+
+impl Serialize for SerializablePallasScalar {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.0.to_string())
+    }
+}
 
 pub type SpongeParams = PlonkSpongeConstantsKimchi;
 pub type BaseSponge = DefaultFqSponge<PallasParameters, SpongeParams>;
@@ -81,21 +98,21 @@ where
 }
 
 /// Useful for serializing into JSON and importing in Typescript tests.
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct UncompressedPoint {
     pub x: String,
     pub y: String,
 }
 
 /// Useful for serializing into JSON and importing in Typescript tests.
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct UncompressedPolyComm {
     pub unshifted: Vec<UncompressedPoint>,
     pub shifted: Option<UncompressedPoint>,
 }
 
-impl From<&PolyComm<PallasGroup>> for UncompressedPolyComm {
-    fn from(value: &PolyComm<PallasGroup>) -> Self {
+impl From<&PolyComm<Pallas>> for UncompressedPolyComm {
+    fn from(value: &PolyComm<Pallas>) -> Self {
         Self {
             unshifted: value
                 .unshifted
@@ -165,4 +182,134 @@ where
         public_comm.unshifted[0].to_string()
     );
     Ok(())
+}
+
+/// A helper type for serializing the VerifierIndex data used in the verifier circuit.
+#[derive(Serialize, Debug)]
+pub struct VerifierIndexTS {
+    //srs: SRS<Pallas>, // excluded because it already is serialized in typescript
+    domain_size: usize,
+    public: usize,
+
+    sigma_comm: Vec<UncompressedPolyComm>, // of size PERMUTS
+    coefficients_comm: Vec<UncompressedPolyComm>, // of size COLUMNS
+    generic_comm: UncompressedPolyComm,
+
+    psm_comm: UncompressedPolyComm,
+
+    complete_add_comm: UncompressedPolyComm,
+    mul_comm: UncompressedPolyComm,
+    emul_comm: UncompressedPolyComm,
+    endomul_scalar_comm: UncompressedPolyComm,
+}
+
+impl From<&VerifierIndex<Pallas>> for VerifierIndexTS {
+    fn from(value: &VerifierIndex<Pallas>) -> Self {
+        let VerifierIndex {
+            domain,
+            public,
+            sigma_comm,
+            coefficients_comm,
+            generic_comm,
+            psm_comm,
+            complete_add_comm,
+            mul_comm,
+            emul_comm,
+            endomul_scalar_comm,
+            ..
+        } = value;
+        VerifierIndexTS {
+            domain_size: domain.size(),
+            public: *public,
+            sigma_comm: sigma_comm.iter().map(UncompressedPolyComm::from).collect(),
+            coefficients_comm: coefficients_comm
+                .iter()
+                .map(UncompressedPolyComm::from)
+                .collect(),
+            generic_comm: UncompressedPolyComm::from(generic_comm),
+            psm_comm: UncompressedPolyComm::from(psm_comm),
+            complete_add_comm: UncompressedPolyComm::from(complete_add_comm),
+            mul_comm: UncompressedPolyComm::from(mul_comm),
+            emul_comm: UncompressedPolyComm::from(emul_comm),
+            endomul_scalar_comm: UncompressedPolyComm::from(endomul_scalar_comm),
+        }
+    }
+}
+
+/// A helper type for serializing the ProverCommitments data used in the verifier circuit. This
+/// will be part of `ProverProofTS`.
+#[derive(Serialize)]
+pub struct ProverCommitmentsTS {
+    w_comm: Vec<UncompressedPolyComm>, // size COLUMNS
+    z_comm: UncompressedPolyComm,
+    t_comm: UncompressedPolyComm,
+    lookup: Option<LookupCommitments<Pallas>>, // doesn't really matter as it'll be null for
+                                               // our tests
+}
+
+impl From<&ProverCommitments<Pallas>> for ProverCommitmentsTS {
+    fn from(value: &ProverCommitments<Pallas>) -> Self {
+        let ProverCommitments {
+            w_comm,
+            z_comm,
+            t_comm,
+            lookup,
+        } = value;
+
+        ProverCommitmentsTS {
+            w_comm: w_comm.iter().map(UncompressedPolyComm::from).collect(),
+            z_comm: UncompressedPolyComm::from(z_comm),
+            t_comm: UncompressedPolyComm::from(t_comm),
+            lookup: lookup.clone(),
+        }
+    }
+}
+
+/// A helper type for serializing the RecursionChallenge data used in the verifier circuit.
+/// This will be part of `ProverProofTS`.
+#[derive(Serialize)]
+pub struct RecursionChallengeTS {
+    chals: Vec<SerializablePallasScalar>,
+    comm: UncompressedPolyComm,
+}
+
+impl From<&RecursionChallenge<Pallas>> for RecursionChallengeTS {
+    fn from(value: &RecursionChallenge<Pallas>) -> Self {
+        let RecursionChallenge { chals, comm } = value;
+
+        RecursionChallengeTS {
+            chals: chals.iter().map(|s| SerializablePallasScalar(*s)).collect(),
+            comm: UncompressedPolyComm::from(comm),
+        }
+    }
+}
+
+/// A helper type for serializing the proof data used in the verifier circuit.
+#[derive(Serialize)]
+pub struct ProverProofTS {
+    evals: ProofEvaluations<PallasPointEvals>, // a helper for ProofEvaluattions is not needed
+    // because it can be correctly deserialized in TS
+    // as it is now.
+    prev_challenges: Vec<RecursionChallengeTS>,
+    commitments: ProverCommitmentsTS,
+}
+
+impl From<&ProverProof<Pallas>> for ProverProofTS {
+    fn from(value: &ProverProof<Pallas>) -> Self {
+        let ProverProof {
+            evals,
+            prev_challenges,
+            commitments,
+            ..
+        } = value;
+
+        ProverProofTS {
+            evals: evals.clone(),
+            prev_challenges: prev_challenges
+                .iter()
+                .map(RecursionChallengeTS::from)
+                .collect(),
+            commitments: ProverCommitmentsTS::from(commitments),
+        }
+    }
 }
