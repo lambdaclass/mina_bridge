@@ -3,7 +3,7 @@ import { getLimbs64 } from "./bigint";
 test("getLimbs64", () => {
     // Create random bigint
     const rand_exp = BigInt(
-        Math.floor(Math.random() * 384)
+        Math.floor(Math.random() * 512)
     );
     const n = 1n << rand_exp;
 

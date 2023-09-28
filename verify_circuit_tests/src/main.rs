@@ -77,3 +77,25 @@ fn main() {
     to_batch_step1(&proof).unwrap();
     to_batch_step2(&verifier_index, &public_inputs).unwrap();
 }
+
+#[cfg(test)]
+mod unit_tests {
+    use kimchi::mina_poseidon::sponge::ScalarChallenge;
+    use num_bigint::BigUint;
+    use verify_circuit_tests::PallasScalar;
+
+    #[test]
+    fn to_field_with_length() {
+        let chal = ScalarChallenge(BigUint::parse_bytes(b"123456789", 16).unwrap().into());
+        let endo_coeff: PallasScalar = BigUint::parse_bytes(
+            b"397e65a7d7c1ad71aee24b27e308f0a61259527ec1d4752e619d1840af55f1b1",
+            16,
+        )
+        .unwrap()
+        .into();
+        let length_in_bits = 10;
+
+        let result = chal.to_field_with_length(length_in_bits, &endo_coeff);
+        println!("{}", result);
+    }
+}
