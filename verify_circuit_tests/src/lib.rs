@@ -22,6 +22,8 @@ use serde::Serialize;
 pub type PallasScalar = <Pallas as AffineCurve>::ScalarField;
 pub type PallasPointEvals = PointEvaluations<Vec<PallasScalar>>;
 
+/// `PallasScalar` is an external type and it doesn't implement `Serialize`. This is a wapper for
+/// implementing a serialize function to it.
 pub struct SerializablePallasScalar(PallasScalar);
 
 impl Serialize for SerializablePallasScalar {
@@ -182,9 +184,10 @@ where
     Ok(())
 }
 
+/// A helper type for serializing the VerifierIndex data used in the verifier circuit.
 #[derive(Serialize, Debug)]
 pub struct VerifierIndexTS {
-    //srs: SRS<Pallas>,
+    //srs: SRS<Pallas>, // excluded because it already is serialized in typescript
     domain_size: usize,
     public: usize,
 
@@ -233,6 +236,8 @@ impl From<&VerifierIndex<Pallas>> for VerifierIndexTS {
     }
 }
 
+/// A helper type for serializing the ProverCommitments data used in the verifier circuit. This
+/// will be part of `ProverProofTS`.
 #[derive(Serialize)]
 pub struct ProverCommitmentsTS {
     w_comm: Vec<UncompressedPolyComm>, // size COLUMNS
@@ -260,6 +265,8 @@ impl From<&ProverCommitments<Pallas>> for ProverCommitmentsTS {
     }
 }
 
+/// A helper type for serializing the RecursionChallenge data used in the verifier circuit.
+/// This will be part of `ProverProofTS`.
 #[derive(Serialize)]
 pub struct RecursionChallengeTS {
     chals: Vec<SerializablePallasScalar>,
@@ -277,9 +284,12 @@ impl From<&RecursionChallenge<Pallas>> for RecursionChallengeTS {
     }
 }
 
+/// A helper type for serializing the proof data used in the verifier circuit.
 #[derive(Serialize)]
 pub struct ProverProofTS {
-    evals: ProofEvaluations<PallasPointEvals>,
+    evals: ProofEvaluations<PallasPointEvals>, // a helper for ProofEvaluattions is not needed
+                                               // because it can be correctly deserialized in TS
+                                               // as it is now.
     prev_challenges: Vec<RecursionChallengeTS>,
     commitments: ProverCommitmentsTS,
 }
