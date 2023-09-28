@@ -76,3 +76,4 @@ make
 ```
 
 This will create the constraint system of the verification of a proof with fixed values.
+This will also clone the Monorepo version of Mina so that the bridge uses o1js from there.

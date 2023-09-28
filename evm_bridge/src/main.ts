@@ -1,6 +1,8 @@
-import { readFileSync } from "fs";
-import { Group, Provable } from "o1js";
+import { readFileSync, writeFileSync } from "fs";
+import { Field, Group, Scalar } from "o1js";
 import { Verifier } from "./verifier/verifier.js";
+import { MlArray } from "o1js/dist/node/lib/ml/base.js";
+import { FieldVar } from "o1js/dist/node/lib/field.js";
 
 let inputs: { sg: bigint[], z1: bigint, expected: bigint[] };
 try {
@@ -25,14 +27,41 @@ console.log('SnarkyJS loaded');
 
 // ----------------------------------------------------
 
-console.log("Generating constraint system");
-let cs = Provable.constraintSystem(() => {
-    let sg = Provable.witness(Group, () => new Group({ x: inputs.sg[0], y: inputs.sg[1] }));
-    let expected = Provable.witness(Group, () => new Group({ x: inputs.expected[0], y: inputs.expected[1] }));
+console.log("Generating keypair...");
 
-    Verifier.main(sg, BigInt(inputs.z1), expected, false);
-});
-console.log("Constraint system:", cs);
+// Convert JSON inputs to O1JS inputs so that we can pass them to the circuit
+let sg = new Group({ x: inputs.sg[0], y: inputs.sg[1] });
+let expected = new Group({ x: inputs.expected[0], y: inputs.expected[1] });
+let z1 = Scalar.from(inputs.z1);
+let sg_scalar = z1.neg().sub(Scalar.from(1));
+let public_input = [sg, sg_scalar, expected];
+
+let keypair = await Verifier.generateKeypair();
+
+console.log("Proving...");
+let proof = await Verifier.prove([], public_input, keypair);
+console.log("Verifying...");
+let isValid = await Verifier.verify(public_input, keypair.verificationKey(), proof);
+console.log("Is valid proof:", isValid);
+
+console.log("Generating witness...");
+let witness_ml = await Verifier.generateWitness([], public_input, keypair);
+
+// Convert OCaml witness to JSON witness so that we can write it into a file
+let witness: Field[][] = [];
+for (let maybe_row_ml of witness_ml) {
+    let row_ml = maybe_row_ml as MlArray<FieldVar>;
+    let row = [];
+
+    for (let maybe_field_ml of row_ml) {
+        let field_ml = maybe_field_ml as FieldVar;
+        row.push(new Field(field_ml));
+    }
+
+    witness.push(row);
+}
+
+writeFileSync("../kzg_prover/test_data/witness.json", JSON.stringify(witness));
 
 // ----------------------------------------------------
-console.log('Shutting down');
+console.log('Done! Shutting down');

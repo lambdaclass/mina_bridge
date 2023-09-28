@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { readFileSync } from 'fs';
-import { Group, Scalar, Field, public_ } from 'o1js';
+import { circuitMain, Circuit, Group, Scalar, public_, Field } from 'o1js';
 import { PolyComm } from '../poly_commitment/commitment.js';
 import { SRS } from '../SRS.js';
 import { Sponge } from './sponge.js';
@@ -14,7 +14,7 @@ try {
 
 let { g, h } = SRS.createFromJSON();
 
-/*
+/**
 * Will contain information necessary for executing a verification
 */
 export class VerifierIndex {
@@ -83,11 +83,9 @@ export class VerifierIndex {
     }
 }
 
-export class Verifier {
-    static readonly PERMUTS: number = 7;
-    static readonly COLUMNS: number = 15;
-
-    static main(sg: Group, z1: bigint, expected: Group, debug: boolean) {
+export class Verifier extends Circuit {
+    @circuitMain
+    static main(@public_ sg: Group, @public_ sg_scalar: Scalar, @public_ expected: Group) {
         let nonzero_length = g.length;
         let max_rounds = Math.ceil(Math.log2(nonzero_length));
         let padded_length = Math.pow(2, max_rounds);
@@ -97,36 +95,33 @@ export class Verifier {
         points = points.concat(g);
         points = points.concat(Array(padding).fill(Group.zero));
 
-        let scalars = [0n];
+        let scalars = [Scalar.from(0)];
         //TODO: Add challenges and s polynomial (in that case, using Scalars we could run out of memory)
-        scalars = scalars.concat(Array(padded_length).fill(1n));
+        scalars = scalars.concat(Array(padded_length).fill(Scalar.from(1)));
         assert(points.length == scalars.length, "The number of points is not the same as the number of scalars");
 
         points.push(sg);
-        scalars.push(mod(-z1 - 1n));
+        scalars.push(sg_scalar);
 
-        if (debug) {
-            Verifier.msmDebug(points, scalars).assertEquals(expected);
-        } else {
-            Verifier.msm(points, scalars).assertEquals(expected);
-        }
+        Verifier.msm(points, scalars).assertEquals(expected);
     }
 
     // Naive algorithm
-    static msm(points: Group[], scalars: bigint[]) {
+    static msm(points: Group[], scalars: Scalar[]) {
         let result = Group.zero;
 
         for (let i = 0; i < points.length; i++) {
             let point = points[i];
             let scalar = scalars[i];
-            result = result.add(point.scale(scalar));
+            let scaled = point.scale(scalar);
+            result = result.add(scaled);
         }
 
         return result;
     }
 
     // Naive algorithm (used for debugging)
-    static msmDebug(points: Group[], scalars: bigint[]) {
+    static msmDebug(points: Group[], scalars: Scalar[]) {
         let result = Group.zero;
 
         if (steps.length === 0) {
@@ -145,8 +140,4 @@ export class Verifier {
 
         return result;
     }
-}
-
-function mod(n: bigint) {
-    return ((n % Scalar.ORDER) + Scalar.ORDER) % Scalar.ORDER;
 }
