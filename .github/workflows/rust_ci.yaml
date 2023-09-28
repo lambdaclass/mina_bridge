@@ -35,7 +35,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
       
       - name: Clone Mina monorepo
-        run: sh ../evm_bridge/scripts/preinstall.sh
+        run: sh ../setup.sh
 
       - name: Run cargo check
         run: cargo check --workspace
