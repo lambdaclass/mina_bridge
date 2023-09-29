@@ -28,7 +28,7 @@ fn main() {
     let verifier_index = prover_index.verifier_index();
     // Export for typescript tests
     fs::write(
-        "../evm_bridge/test/verifier_index.json",
+        "../verifier_circuit/test/verifier_index.json",
         serde_json::to_string_pretty(&VerifierIndexTS::from(&verifier_index)).unwrap(),
     )
     .unwrap();
@@ -47,7 +47,7 @@ fn main() {
 
     // Export proof
     fs::write(
-        "../evm_bridge/test/proof.json",
+        "../verifier_circuit/test/proof.json",
         serde_json::to_string_pretty(&ProverProofTS::from(&proof)).unwrap(),
     )
     .unwrap();
@@ -67,7 +67,7 @@ fn main() {
         })
         .collect();
     fs::write(
-        "../evm_bridge/test/lagrange_bases.json",
+        "../verifier_circuit/test/lagrange_bases.json",
         serde_json::to_string_pretty(&uncompressed_lagrange_bases).unwrap(),
     )
     .unwrap();
