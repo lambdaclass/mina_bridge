@@ -1,3 +1,4 @@
+import { Polynomial } from "../polynomial.js"
 import { Field, Group, Scalar } from "o1js"
 import { PolyComm } from "../poly_commitment/commitment";
 import { getLimbs64 } from "../util/bigint";
@@ -351,6 +352,17 @@ export class ProverProof {
     }//
 }
 
+export class Context {
+    /* The [VerifierIndex] associated to the proof */
+    verifier_index: VerifierIndex
+
+    /* The proof to verify */
+    proof: ProverProof
+
+    /* The public input used in the creation of the proof */
+    public_input: Scalar[]
+};
+
 /**
  * Polynomial evaluations contained in a `ProverProof`.
  * **Chunked evaluations** `Field` is instantiated with vectors with a length that equals the length of the chunk
@@ -358,22 +370,72 @@ export class ProverProof {
  */
 export class ProofEvaluations<Evals> {
     /* witness polynomials */
-     w: Array<Evals> // of size 15, total num of registers (columns)
+    w: Array<Evals> // of size 15, total num of registers (columns)
     /* permutation polynomial */
-     z: Evals
+    z: Evals
     /*
      * permutation polynomials
      * (PERMUTS-1 evaluations because the last permutation is only used in commitment form)
      */
-     s: Array<Evals> // of size 7 - 1, total num of wirable registers minus one
+    s: Array<Evals> // of size 7 - 1, total num of wirable registers minus one
     /* coefficient polynomials */
-     coefficients: Array<Evals> // of size 15, total num of registers (columns)
+    coefficients: Array<Evals> // of size 15, total num of registers (columns)
     /* lookup-related evaluations */
-     lookup?: LookupEvaluations<Evals>
+    lookup?: LookupEvaluations<Evals>
     /* evaluation of the generic selector polynomial */
-     genericSelector: Evals
+    genericSelector: Evals
     /* evaluation of the poseidon selector polynomial */
-     poseidonSelector: Evals
+    poseidonSelector: Evals
+
+    constructor(w: Array<Evals>,
+        z: Evals, s: Array<Evals>,
+        coefficients: Array<Evals>,
+        lookup: LookupEvaluations<Evals>,
+        genericSelector: Evals,
+        poseidonSelector: Evals) {
+        this.w = w;
+        this.z = z;
+        this.s = s;
+        this.coefficients = coefficients;
+        this.lookup = lookup;
+        this.genericSelector = genericSelector;
+        this.poseidonSelector = poseidonSelector;
+        return this;
+    }
+
+    // TODO: implement this!!!!
+    /*
+    Returns a new PointEvaluations struct with the combined evaluations.
+    */
+    combine_point_evaluations(): PointEvaluations<Evals> {
+        let zeta: Evals = Scalar.from(0) as Evals;
+        let zetaOmega: Evals = Scalar.from(0) as Evals;
+
+        let ret = new PointEvaluations(zeta, zetaOmega);
+        return ret;
+    }
+    /*
+    pub fn combine(&self, pt: &PointEvaluations<F>) -> ProofEvaluations<PointEvaluations<F>> {
+        self.map_ref(&|evals| PointEvaluations {
+            zeta: DensePolynomial::eval_polynomial(&evals.zeta, pt.zeta),
+            zeta_omega: DensePolynomial::eval_polynomial(&evals.zeta_omega, pt.zeta_omega),
+        })
+    }    
+    */
+
+    evaluate_coefficients(point: Scalar): Scalar {
+        let zero = Scalar.from(0);
+
+        let coeffs = this.coefficients.map((value) => value as Scalar);
+        let p = new Polynomial(coeffs);
+        if (this.coefficients.length == 0) {
+            return zero;
+        }
+        if (point == zero) {
+            return this.coefficients[0] as Scalar;
+        }
+        return p.evaluate(point);
+    }
 }
 
 /**
@@ -388,6 +450,11 @@ export class LookupEvaluations<Evals> {
     table: Evals
     /* runtime table polynomial*/
     runtime?: Evals
+
+    constructor() {
+        this.sorted = [];
+        return this;
+    }
 }
 
 /**
@@ -398,6 +465,11 @@ export class PointEvaluations<Evals> {
     zeta: Evals
     /* Evaluation at `zeta . omega`, the product of the challenge point and the group generator */
     zetaOmega: Evals
+
+    constructor(zeta: Evals, zetaOmega: Evals) {
+        this.zeta = zeta;
+        this.zetaOmega = zetaOmega;
+    }
 }
 
 /**
@@ -445,10 +517,10 @@ export class ScalarChallenge {
             a = a.add(a);
             b = b.add(b);
 
-            const r_2i = getBit(rep_64_limbs, 2*i);
+            const r_2i = getBit(rep_64_limbs, 2 * i);
             const s = r_2i === 0n ? negone : one;
 
-            if (getBit(rep_64_limbs, 2*i + 1) === 0n) {
+            if (getBit(rep_64_limbs, 2 * i + 1) === 0n) {
                 b = b.add(s);
             } else {
                 a = a.add(s);
