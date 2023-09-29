@@ -1,6 +1,6 @@
 import { Group, Scalar } from "o1js";
 
-/*
+/**
 * A polynomial commitment
 */
 export class PolyComm<A> {
@@ -12,7 +12,7 @@ export class PolyComm<A> {
         this.shifted = shifted;
     }
 
-    /*
+    /**
     * Zips two commitments into one
     */
     zip<B>(other: PolyComm<B>): PolyComm<[A, B]> {
@@ -22,7 +22,7 @@ export class PolyComm<A> {
         return new PolyComm<[A, B]>(unshifted, shifted);
     }
 
-    /*
+    /**
     * Maps over self's `unshifted` and `shifted`
     */
     map<B>(f: (x: A) => B): PolyComm<B> {
@@ -31,7 +31,7 @@ export class PolyComm<A> {
         return new PolyComm<B>(unshifted, shifted);
     }
 
-    /*
+    /**
     * Execute a simple multi-scalar multiplication
     */
     static naiveMSM(points: Group[], scalars: Scalar[]) {
@@ -46,7 +46,7 @@ export class PolyComm<A> {
         return result;
     }
 
-    /*
+    /**
     * Executes multi-scalar multiplication between scalars `elm` and commitments `com`.
     * If empty, returns a commitment with the point at infinity.
     */
@@ -94,10 +94,49 @@ export class PolyComm<A> {
     }
 }
 
-/*
-* Represents a blinded commitment
-*/
+/**
+ * Represents a blinded commitment
+ */
 export class BlindedCommitment<C, S> {
     commitment: PolyComm<C>
     blinders: PolyComm<S>
+}
+
+/**
+ * Returns the product of all elements of `xs`
+ */
+export function product(xs: Scalar[]): Scalar {
+    return xs.reduce((acc, x) => acc * x, Scalar.from(1));
+}
+
+/**
+ * Returns (1 + chal[-1] x)(1 + chal[-2] x^2)(1 + chal[-3] x^4) ...
+ */
+export function bPoly(chals: Scalar[], x: Scalar): Scalar { 
+    const k = chals.length;
+
+    let prev_x_squared = x;
+    let terms = [];
+    for (let i = k - 1; i >= 0; i--) {
+        terms.push(1 + chals[i] * prev_x_squared);
+        prev_x_squared *= prev_x_squared;
+    }
+
+    return product(terms);
+}
+
+export function bPolyCoefficients(chals: Scalar[]) {
+    const rounds = chals.length;
+    const s_length = 1 << rounds;
+
+    let s = Array<Scalar>(s_length).fill(Scalar.from(1));
+    let k = 0;
+    let pow = 1;
+    for (let i = 1; i < s_length; i++) {
+        k += i === pow ? 1 : 0;
+        pow <<= i === pow ? 1 : 0;
+        s[i] = s[i - (pow >> 1)] * chals[rounds - 1 - (k - 1)];
+    }
+
+    return s;
 }

@@ -20,7 +20,9 @@ let { g, h } = SRS.createFromJSON();
 export class VerifierIndex {
     srs: SRS
     domain_size: number
+    domain_gen: Field
     public: number
+    max_poly_size: number
 
     /** permutation commitments */
     sigma_comm: PolyComm<Group>[] // size PERMUTS

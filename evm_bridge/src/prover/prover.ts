@@ -1,6 +1,6 @@
 import { Polynomial } from "../polynomial.js"
 import { Field, Group, Scalar } from "o1js"
-import { PolyComm } from "../poly_commitment/commitment";
+import { PolyComm, bPoly, bPolyCoefficients } from "../poly_commitment/commitment";
 import { getLimbs64 } from "../util/bigint";
 import { Sponge } from "../verifier/sponge";
 import { Verifier, VerifierIndex } from "../verifier/verifier.js";
@@ -99,36 +99,33 @@ export class ProverProof {
         // more-expensive 'optional sponge'.
         let fr_sponge_aux = new Sponge();
         this.prev_challenges.forEach((prev) => fr_sponge_aux.absorbScalars(prev.chals));
-        fr_sponge.absorbScalar(fr_sponge.digest());
+        fr_sponge.absorbScalar(fr_sponge_aux.digest());
 
-        //   // prepare some often used values
-        //   let zeta1 = zeta.pow([n]);
-        //   let zetaw = zeta * index.domain.group_gen;
-        //   let evaluation_points = [zeta, zetaw];
-        //   let powers_of_eval_points_for_chunks = PointEvaluations {
-        //       zeta: zeta.pow([index.max_poly_size as u64]),
-        //       zeta_omega: zetaw.pow([index.max_poly_size as u64]),
-        //   };
+        // prepare some often used values
 
-        //   //~ 1. Compute evaluations for the previous recursion challenges.
-        //   let polys: Vec<(PolyComm<G>, _)> = self
-        //       .prev_challenges
-        //       .iter()
-        //       .map(|challenge| {
-        //           let evals = challenge.evals(
-        //               index.max_poly_size,
-        //               &evaluation_points,
-        //               &[
-        //                   powers_of_eval_points_for_chunks.zeta,
-        //                   powers_of_eval_points_for_chunks.zeta_omega,
-        //               ],
-        //           );
-        //           let RecursionChallenge { chals: _, comm } = challenge;
-        //           (comm.clone(), evals)
-        //       })
-        //       .collect();
+        let zeta1 = powScalar(zeta, n);
+        const zetaw = zeta.mul(index.domain_gen);
+        const evaluation_points = [zeta, zetaw];
+        const powers_of_eval_points_for_chunks: PointEvaluations<Field> = {
+            zeta: powScalar(zeta, index.max_poly_size),
+            zetaOmega: powScalar(zetaw, index.max_poly_size)
+        };
 
-        //   // retrieve ranges for the powers of alphas
+        //~ 20. Compute evaluations for the previous recursion challenges.
+        const polys = this.prev_challenges.map((chal) => {
+            const evals = chal.evals(
+                index.max_poly_size,
+                evaluation_points,
+                [
+                    powers_of_eval_points_for_chunks.zeta,
+                    powers_of_eval_points_for_chunks.zetaOmega
+                ]
+            );
+            return [chal.comm, evals];
+        });
+
+        // retrieve ranges for the powers of alphas
+        let all_alphas = index.powers_of_alpha
         //   let mut all_alphas = index.powers_of_alpha.clone();
         //   all_alphas.instantiate(alpha);
 
@@ -478,6 +475,48 @@ export class PointEvaluations<Evals> {
 export class RecursionChallenge {
     chals: Scalar[]
     comm: PolyComm<Group>
+
+    evals(
+        max_poly_size: number,
+        evaluation_points: Scalar[],
+        powers_of_eval_points_for_chunks: Scalar[]
+    ): Scalar[][] {
+        const chals = this.chals;
+        // Comment copied from Kimchi code:
+        //
+        // No need to check the correctness of poly explicitly. Its correctness is assured by the
+        // checking of the inner product argument.
+        const b_len = 1 << chals.length;
+        let b: Scalar[] | undefined = undefined;
+
+        return [0, 1, 2].map((i) => {
+            const full = bPoly(chals, evaluation_points[i])
+            if (max_poly_size === b_len) {
+                return [full];
+            }
+
+            let betacc = Scalar.from(1);
+            let diff = [];
+            for (let j = max_poly_size; j < b_len; j++) {
+                let b_j;
+                if (b) {
+                    b_j = b[j];
+                } else {
+                    const t = bPolyCoefficients(chals);
+                    const res = t[j];
+                    b = t;
+                    b_j = res;
+                }
+
+                const ret = betacc * b_j;
+                betacc *= evaluation_points[i];
+                diff.push(ret);
+            }
+
+            diff = diff.reduce((x, y) => x + y, Scalar.from(0));
+            return [full - (diff * powers_of_eval_points_for_chunks[i]), diff];
+        });
+    }
 }
 
 export class ProverCommitments {
