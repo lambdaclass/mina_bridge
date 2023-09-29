@@ -46,13 +46,12 @@ fn main() {
     fill_in_witness(0, &mut witness, &[]);
 
     let srs: SRS<Pallas> = precomputed_srs::get_srs();
-    // write_srs_into_file(&srs);
+    write_srs_into_file(&srs);
 
     // create and verify proof based on the witness
     prove_and_verify(&srs, gates, witness);
 }
 
-#[allow(dead_code)]
 fn write_srs_into_file(srs: &SRS<Pallas>) {
     println!("Writing SRS into file...");
     let mut g = srs
@@ -69,7 +68,7 @@ fn write_srs_into_file(srs: &SRS<Pallas>) {
         srs.h.y.to_biguint()
     );
     let srs_json = format!("{{\"g\":[{}],\"h\":{}}}", g, h);
-    fs::write("srs.json", srs_json).unwrap();
+    fs::write("../evm_bridge/test/srs.json", srs_json).unwrap();
 }
 
 fn prove_and_verify(srs: &SRS<Pallas>, gates: Vec<CircuitGate<Fq>>, witness: [Vec<Fq>; COLUMNS]) {
@@ -100,7 +99,7 @@ fn prove_and_verify(srs: &SRS<Pallas>, gates: Vec<CircuitGate<Fq>>, witness: [Ve
     let value_to_compare = compute_msm_for_verification(srs, &opening);
 
     fs::write(
-        "../evm_bridge/src/inputs.json",
+        "../evm_bridge/test/inputs.json",
         serde_json::to_string(&Inputs {
             sg: [
                 opening.sg.x.to_biguint().to_string(),
@@ -163,7 +162,7 @@ fn naive_msm(points: &[Pallas], scalars: &[BigInteger256]) -> Pallas {
         steps.push(result);
     }
     fs::write(
-        "../evm_bridge/src/steps.json",
+        "../evm_bridge/test/steps.json",
         serde_json::to_string(
             &steps
                 .iter()

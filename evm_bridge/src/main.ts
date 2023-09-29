@@ -7,7 +7,7 @@ import { exit } from "process";
 
 let inputs: { sg: bigint[], z1: bigint, expected: bigint[] };
 try {
-    inputs = JSON.parse(readFileSync("./src/inputs.json", "utf-8"));
+    inputs = JSON.parse(readFileSync("./test/inputs.json", "utf-8"));
 } catch (e) {
     console.log("Using default inputs");
     inputs = {
