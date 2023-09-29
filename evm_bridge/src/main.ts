@@ -3,6 +3,7 @@ import { Field, Group, Scalar } from "o1js";
 import { Verifier } from "./verifier/verifier.js";
 import { MlArray } from "o1js/dist/node/lib/ml/base.js";
 import { FieldVar } from "o1js/dist/node/lib/field.js";
+import { exit } from "process";
 
 let inputs: { sg: bigint[], z1: bigint, expected: bigint[] };
 try {
@@ -23,7 +24,7 @@ try {
     };
 }
 
-console.log('SnarkyJS loaded');
+console.log('O1JS loaded');
 
 // ----------------------------------------------------
 
@@ -43,6 +44,14 @@ let proof = await Verifier.prove([], public_input, keypair);
 console.log("Verifying...");
 let isValid = await Verifier.verify(public_input, keypair.verificationKey(), proof);
 console.log("Is valid proof:", isValid);
+
+if (!isValid) {
+    exit();
+}
+
+console.log("Generating constraint system...");
+let cs = keypair.constraintSystem();
+writeFileSync("../kzg_prover/test_data/constraint_system.json", JSON.stringify(cs));
 
 console.log("Generating witness...");
 let witness_ml = await Verifier.generateWitness([], public_input, keypair);
@@ -64,4 +73,4 @@ for (let maybe_row_ml of witness_ml) {
 writeFileSync("../kzg_prover/test_data/witness.json", JSON.stringify(witness));
 
 // ----------------------------------------------------
-console.log('Done! Shutting down');
+console.log('Shutting down O1JS...');

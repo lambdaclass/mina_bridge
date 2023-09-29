@@ -70,11 +70,10 @@ fn write_srs_into_file(srs: &SRS<Pallas>) {
     );
     let srs_json = format!("{{\"g\":[{}],\"h\":{}}}", g, h);
     fs::write("srs.json", srs_json).unwrap();
-    println!("Done!");
 }
 
 fn prove_and_verify(srs: &SRS<Pallas>, gates: Vec<CircuitGate<Fq>>, witness: [Vec<Fq>; COLUMNS]) {
-    println!("Proving...");
+    println!("Generating dummy proof...");
     let prover =
         new_index_for_test_with_lookups::<Pallas>(gates, 0, 0, vec![], Some(vec![]), false);
     let public_inputs = vec![];
@@ -94,13 +93,11 @@ fn prove_and_verify(srs: &SRS<Pallas>, gates: Vec<CircuitGate<Fq>>, witness: [Ve
     )
     .map_err(|e| e.to_string())
     .unwrap();
-    println!("Done!");
 
     // verify the proof (propagate any errors)
-    println!("Verifying...");
+    println!("Verifying dummy proof...");
     let opening = proof.proof;
     let value_to_compare = compute_msm_for_verification(srs, &opening);
-    println!("Done!");
 
     fs::write(
         "../evm_bridge/src/inputs.json",
@@ -149,7 +146,7 @@ fn compute_msm_for_verification(
         .for_each(|(scalar, term)| {
             *scalar += term;
         });
-    println!("scalars len: {}", scalars.len());
+    println!("Number of scalars: {}", scalars.len());
 
     // verify the equation
     let scalars: Vec<_> = scalars.iter().map(|x| x.into_repr()).collect();

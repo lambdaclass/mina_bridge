@@ -48,8 +48,6 @@ fn main() {
 
     let proof_json = serde_json::to_string(&proof).unwrap();
     fs::write("./test_data/proof.json", proof_json).unwrap();
-
-    println!("Done!");
 }
 
 fn create_gates(cs_json: &str) -> Vec<CircuitGate<Field>> {
