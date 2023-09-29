@@ -12,7 +12,7 @@ use kimchi::{
     proof::ProverProof,
     prover_index::testing::new_index_for_test_with_lookups,
 };
-use verify_circuit_tests::{
+use verifier_circuit_tests::{
     to_batch_step1, to_batch_step2, BaseSponge, ProverProofTS, ScalarSponge, UncompressedPolyComm,
     VerifierIndexTS,
 };
@@ -82,7 +82,7 @@ fn main() {
 mod unit_tests {
     use kimchi::mina_poseidon::sponge::ScalarChallenge;
     use num_bigint::BigUint;
-    use verify_circuit_tests::PallasScalar;
+    use verifier_circuit_tests::PallasScalar;
 
     #[test]
     fn to_field_with_length() {

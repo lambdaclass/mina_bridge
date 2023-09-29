@@ -9,13 +9,13 @@ The code is written entirely in Typescript using the [o1js](https://github.com/o
 
 - `poly_commitment/`: Includes the `PolyComm` type and methods used for representing a polynomial commitment.
 - `prover/`: Proof data and associated methods necessary to the verifier. The Fiat-Shamir heuristic is included here (`ProverProof.oracles()`).
-- `serde/`: Mostly deserialization helpers for using data from the `verify_circuit_tests/` module, like a proof made over a testing circuit.
+- `serde/`: Mostly deserialization helpers for using data from the `verifier_circuit_tests/` module, like a proof made over a testing circuit.
 - `util/`: Miscellaneous utility functions.
 - `verifier/`: The protagonist code used for verifying a Kimchi + IPA + Pasta proof. Here:
     - `batch.ts/` includes the partial verification code used for verifying a batch of proofs.
     - `verifier.ts/` has the main circuit for verification, executes a final verification over a batch of partially verified proofs.
     - `sponge.ts/` has a custom sponge implementation which extends the `Poseidon.Sponge` type from [o1js](https://github.com/o1-labs/o1js).
-- `test/`: JSON data used for testing, which are derived from the `verify_circuit_tests/`.
+- `test/`: JSON data used for testing, which are derived from the `verifier_circuit_tests/`.
 - `SRS.ts` contains a type representing a (Universal Reference String)[https://o1-labs.github.io/proof-systems/specs/urs.html?highlight=universal#universal-reference-string-urs] (but uses the old Structured Reference String name).
 - `polynomial.ts` contains a type used for representing and operating with polynomials.
 - `main.ts` is the main entrypoint of the module.

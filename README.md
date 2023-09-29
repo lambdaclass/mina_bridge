@@ -49,7 +49,7 @@ This is subject to change.
 
 This repository is composed of the following components:
 
-- `verifier_circuit/`: Typescript code using `o1js` library. This is the main code of the Mina <-> EVM bridge. Implements the circuits for the verifier of the Kimchi proof system in arthmetic circuits, and generates the proof for the EVM (this is a WIP, as the proof is not yet generated).
+- [`verifier_circuit/`](verifier_circuit/README.md): Typescript code using `o1js` library. This is the main code of the Mina <-> EVM bridge. Implements the circuits for the verifier of the Kimchi proof system in arthmetic circuits, and generates the proof for the EVM (this is a WIP, as the proof is not yet generated).
 - `kzg_prover`: Rust code for generating a KZG proof. This proof is used in the `verifier_circuit`.
 - `public_input_gen/`: Rust code for generating a Mina state proof. This proof is used in the `verifier_circuit`.
 - `srs/`: Contains tests SRSs for Pallas and Vesta curves.
