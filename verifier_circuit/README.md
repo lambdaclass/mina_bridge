@@ -16,7 +16,7 @@ The code is written entirely in Typescript using the [o1js](https://github.com/o
     - `verifier.ts/` has the main circuit for verification, executes a final verification over a batch of partially verified proofs.
     - `sponge.ts/` has a custom sponge implementation which extends the `Poseidon.Sponge` type from [o1js](https://github.com/o1-labs/o1js).
 - `test/`: JSON data used for testing, which are derived from the `verifier_circuit_tests/`.
-- `SRS.ts` contains a type representing a (Universal Reference String)[https://o1-labs.github.io/proof-systems/specs/urs.html?highlight=universal#universal-reference-string-urs] (but uses the old Structured Reference String name).
+- `SRS.ts` contains a type representing a [Universal Reference String](https://o1-labs.github.io/proof-systems/specs/urs.html?highlight=universal#universal-reference-string-urs) (but uses the old Structured Reference String name).
 - `polynomial.ts` contains a type used for representing and operating with polynomials.
 - `main.ts` is the main entrypoint of the module.
 
