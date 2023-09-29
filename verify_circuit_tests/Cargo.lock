@@ -918,6 +918,7 @@ dependencies = [
  "ark-ff",
  "ark-poly",
  "kimchi",
+ "num-bigint",
  "num-traits",
  "serde",
  "serde_json",

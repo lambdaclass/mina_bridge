@@ -1,5 +1,7 @@
-import { Scalar } from "o1js"
-import { PointEvaluations, ProofEvaluations } from "../prover/prover.js"
+import { Proof, Scalar } from "o1js"
+import { PolyComm } from "../poly_commitment/commitment.js";
+import { PointEvaluations, ProofEvaluations, ProverCommitments, ProverProof, RecursionChallenge } from "../prover/prover.js"
+import { deserPolyComm, PolyCommJSON } from "./serde_index.js";
 
 type PointEvals = PointEvaluations<Scalar[]>;
 
@@ -25,7 +27,13 @@ interface ProofEvalsJSON {
     poseidon_selector: PointEvalsJSON
 }
 
-/*
+interface ProverCommitmentsJSON {
+    w_comm: PolyCommJSON[]
+    z_comm: PolyCommJSON
+    t_comm: PolyCommJSON
+}
+
+/**
  * Deserializes a scalar point evaluation from JSON
  */
 export function deserPointEval(json: PointEvalsJSON): PointEvals {
@@ -38,7 +46,7 @@ export function deserPointEval(json: PointEvalsJSON): PointEvals {
     return { zeta, zetaOmega };
 }
 
-/*
+/**
  * Deserializes scalar proof evaluations from JSON
  */
 export function deserProofEvals(json: ProofEvalsJSON): ProofEvaluations<PointEvals> {
@@ -69,4 +77,27 @@ export function deserProofEvals(json: ProofEvalsJSON): ProofEvaluations<PointEva
     // }
 
     return { w, z, s, coefficients, lookup, genericSelector, poseidonSelector };
+}
+
+export function deserProverCommitments(json: ProverCommitmentsJSON): ProverCommitments {
+    return {
+        wComm: json.w_comm.map(deserPolyComm),
+        zComm: deserPolyComm(json.z_comm),
+        tComm: deserPolyComm(json.t_comm)
+    };
+}
+
+interface ProverProofJSON {
+    evals: ProofEvalsJSON
+    prev_challenges: RecursionChallenge[]
+    commitments: ProverCommitmentsJSON
+}
+
+export function deserProverProof(json: ProverProofJSON): ProverProof {
+    const { evals, prev_challenges, commitments } = json;
+    return new ProverProof(
+        deserProofEvals(evals),
+        prev_challenges,
+        deserProverCommitments(commitments)
+    );
 }

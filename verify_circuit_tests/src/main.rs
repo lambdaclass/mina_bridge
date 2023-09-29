@@ -13,7 +13,8 @@ use kimchi::{
     prover_index::testing::new_index_for_test_with_lookups,
 };
 use verify_circuit_tests::{
-    to_batch_step1, to_batch_step2, BaseSponge, ScalarSponge, UncompressedPolyComm,
+    to_batch_step1, to_batch_step2, BaseSponge, ProverProofTS, ScalarSponge, UncompressedPolyComm,
+    VerifierIndexTS,
 };
 
 fn main() {
@@ -25,6 +26,12 @@ fn main() {
     let prover_index =
         new_index_for_test_with_lookups::<Pallas>(gates, 0, 0, vec![], Some(vec![]), false);
     let verifier_index = prover_index.verifier_index();
+    // Export for typescript tests
+    fs::write(
+        "../evm_bridge/test/verifier_index.json",
+        serde_json::to_string_pretty(&VerifierIndexTS::from(&verifier_index)).unwrap(),
+    )
+    .unwrap();
 
     // Create proof
     let proof = {
@@ -38,10 +45,10 @@ fn main() {
             .unwrap()
     };
 
-    // Export proof evaluations
+    // Export proof
     fs::write(
-        "../evm_bridge/test/proof_evals.json",
-        serde_json::to_string_pretty(&proof.evals).unwrap(),
+        "../evm_bridge/test/proof.json",
+        serde_json::to_string_pretty(&ProverProofTS::from(&proof)).unwrap(),
     )
     .unwrap();
 
@@ -69,4 +76,26 @@ fn main() {
 
     to_batch_step1(&proof).unwrap();
     to_batch_step2(&verifier_index, &public_inputs).unwrap();
+}
+
+#[cfg(test)]
+mod unit_tests {
+    use kimchi::mina_poseidon::sponge::ScalarChallenge;
+    use num_bigint::BigUint;
+    use verify_circuit_tests::PallasScalar;
+
+    #[test]
+    fn to_field_with_length() {
+        let chal = ScalarChallenge(BigUint::parse_bytes(b"123456789", 16).unwrap().into());
+        let endo_coeff: PallasScalar = BigUint::parse_bytes(
+            b"397e65a7d7c1ad71aee24b27e308f0a61259527ec1d4752e619d1840af55f1b1",
+            16,
+        )
+        .unwrap()
+        .into();
+        let length_in_bits = 10;
+
+        let result = chal.to_field_with_length(length_in_bits, &endo_coeff);
+        println!("{}", result);
+    }
 }
