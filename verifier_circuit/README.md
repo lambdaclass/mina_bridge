@@ -3,7 +3,7 @@
 This module contains the [o1js](https://github.com/o1-labs/o1js) circuit used for recursively verify Mina state proofs.
 A proof of the circuit will be constructed in subsequent modules for validating the state.
 
-The code is written entirely in Typescript using the [o1js](https://github.com/o1-labs/o1js) library and is heavily based on (Kimchi)[https://github.com/o1-labs/proof-systems/tree/master/kimchi]'s original verifier implementation.
+The code is written entirely in Typescript using the [o1js](https://github.com/o1-labs/o1js) library and is heavily based on [Kimchi](https://github.com/o1-labs/proof-systems/tree/master/kimchi)'s original verifier implementation.
 
 ## Structure
 
