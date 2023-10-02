@@ -4,13 +4,16 @@ import { PolyComm, bPoly, bPolyCoefficients } from "../poly_commitment/commitmen
 import { getLimbs64 } from "../util/bigint";
 import { Sponge } from "../verifier/sponge";
 import { Verifier, VerifierIndex } from "../verifier/verifier.js";
-import { powScalar } from "../util/scalar.js";
+import { invScalar, powScalar } from "../util/scalar.js";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
     evals: ProofEvaluations<PointEvaluations<Array<Scalar>>>
     prev_challenges: RecursionChallenge[]
     commitments: ProverCommitments
+
+    /** Required evaluation for Maller's optimization */
+    ft_eval1: Scalar
 
     constructor(
         evals: ProofEvaluations<PointEvaluations<Scalar[]>>,
@@ -153,77 +156,63 @@ export class ProverProof {
 
             w.forEach((w_i) => zeta_minus_x.push(zetaw.sub(w_i)))
 
-            zeta_minus_x = zeta_minus_x.map(Scalar.from(1).div);
+            zeta_minus_x = zeta_minus_x.map(invScalar);
 
             //~ 21. Evaluate the negated public polynomial (if present) at $\zeta$ and $\zeta\omega$.
             //  NOTE: this works only in the case when the poly segment size is not smaller than that of the domain.
             if (public_input.length === 0) {
                 public_evals = [[Scalar.from(0)], [Scalar.from(0)]];
             } else {
+                let pe_zeta = Scalar.from(0);
+                const min_len = Math.min(
+                    zeta_minus_x.length,
+                    w.length,
+                    public_input.length
+                );
+                for (let i = 0; i < min_len; i++) {
+                    const p = public_input[i];
+                    const l = zeta_minus_x[i];
+                    const w_i = w[i];
 
+                    pe_zeta = pe_zeta.add(l.neg().mul(p).mul(w_i));
+                }
+                const size_inv = invScalar(Scalar.from(index.domain_size));
+                pe_zeta = pe_zeta.mul(zeta1.sub(Scalar.from(1))).mul(size_inv);
+
+                let pe_zetaOmega = Scalar.from(0);
+                const min_lenOmega = Math.min(
+                    zeta_minus_x.length - public_input.length,
+                    w.length,
+                    public_input.length
+                );
+                for (let i = 0; i < min_lenOmega; i++) {
+                    const p = public_input[i];
+                    const l = zeta_minus_x[i + public_input.length];
+                    const w_i = w[i];
+
+                    pe_zetaOmega = pe_zetaOmega.add(l.neg().mul(p).mul(w_i));
+                }
+                pe_zetaOmega = pe_zetaOmega
+                    .mul(powScalar(zetaw, n).sub(Scalar.from(1)))
+                    .mul(size_inv);
+
+                public_evals = [[pe_zeta], [pe_zetaOmega]];
             }
+        } else {
+            // FIXME: missing public input eval error
         }
 
+        //~ 22. Absorb the unique evaluation of ft: $ft(\zeta\omega)$.
+        fr_sponge.absorb(this.ft_eval1);
 
-        // let public_evals = if let Some(public_evals) = &self.evals.public {
-        //     [public_evals.zeta.clone(), public_evals.zeta_omega.clone()]
-        // } else if chunk_size > 1 {
-        //     return Err(VerifyError::MissingPublicInputEvaluation);
-        // } else if let Some(public_input) = public_input {
-        //     // compute Lagrange base evaluation denominators
-        //     let w: Vec<_> = index.domain.elements().take(public_input.len()).collect();
+        //~ 1. Absorb all the polynomial evaluations in $\zeta$ and $\zeta\omega$:
+        //~~ * the public polynomial
+        //~~ * z
+        //~~ * generic selector
+        //~~ * poseidon selector
+        //~~ * the 15 register/witness
+        //~~ * 6 sigmas evaluations (the last one is not evaluated)
 
-        //     let mut zeta_minus_x: Vec<_> = w.iter().map(|w| zeta - w).collect();
-
-        //     w.iter()
-        //         .take(public_input.len())
-        //         .for_each(|w| zeta_minus_x.push(zetaw - w));
-
-        //     ark_ff::fields::batch_inversion::<G::ScalarField>(&mut zeta_minus_x);
-
-        //     //~ 1. Evaluate the negated public polynomial (if present) at $\zeta$ and $\zeta\omega$.
-        //     //~
-        //     //~    NOTE: this works only in the case when the poly segment size is not smaller than that of the domain.
-        //     if public_input.is_empty() {
-        //         [vec![G::ScalarField::zero()], vec![G::ScalarField::zero()]]
-        //     } else {
-        //         [
-        //             vec![
-        //                 (public_input
-        //                     .iter()
-        //                     .zip(zeta_minus_x.iter())
-        //                     .zip(index.domain.elements())
-        //                     .map(|((p, l), w)| -*l * p * w)
-        //                     .fold(G::ScalarField::zero(), |x, y| x + y))
-        //                     * (zeta1 - G::ScalarField::one())
-        //                     * index.domain.size_inv,
-        //             ],
-        //             vec![
-        //                 (public_input
-        //                     .iter()
-        //                     .zip(zeta_minus_x[public_input.len()..].iter())
-        //                     .zip(index.domain.elements())
-        //                     .map(|((p, l), w)| -*l * p * w)
-        //                     .fold(G::ScalarField::zero(), |x, y| x + y))
-        //                     * index.domain.size_inv
-        //                     * (zetaw.pow([n]) - G::ScalarField::one()),
-        //             ],
-        //         ]
-        //     }
-        // } else {
-        //     return Err(VerifyError::MissingPublicInputEvaluation);
-        // };
-
-        // //~ 1. Absorb the unique evaluation of ft: $ft(\zeta\omega)$.
-        // fr_sponge.absorb(&self.ft_eval1);
-
-        // //~ 1. Absorb all the polynomial evaluations in $\zeta$ and $\zeta\omega$:
-        // //~~ * the public polynomial
-        // //~~ * z
-        // //~~ * generic selector
-        // //~~ * poseidon selector
-        // //~~ * the 15 register/witness
-        // //~~ * 6 sigmas evaluations (the last one is not evaluated)
         // fr_sponge.absorb_multiple(&public_evals[0]);
         // fr_sponge.absorb_multiple(&public_evals[1]);
         // fr_sponge.absorb_evaluations(&self.evals);
