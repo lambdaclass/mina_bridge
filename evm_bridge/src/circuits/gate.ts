@@ -56,3 +56,7 @@ export namespace ArgumentType {
     }
 }
 
+export type ArgumentType =
+    | ArgumentType.Gate
+    | ArgumentType.Permutation
+    | ArgumentType.Lookup

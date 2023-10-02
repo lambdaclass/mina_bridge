@@ -106,7 +106,7 @@ export class BlindedCommitment<C, S> {
  * Returns the product of all elements of `xs`
  */
 export function product(xs: Scalar[]): Scalar {
-    return xs.reduce((acc, x) => acc * x, Scalar.from(1));
+    return xs.reduce((acc, x) => acc.mul(x), Scalar.from(1));
 }
 
 /**
@@ -118,8 +118,8 @@ export function bPoly(chals: Scalar[], x: Scalar): Scalar {
     let prev_x_squared = x;
     let terms = [];
     for (let i = k - 1; i >= 0; i--) {
-        terms.push(1 + chals[i] * prev_x_squared);
-        prev_x_squared *= prev_x_squared;
+        terms.push(Scalar.from(1).add(chals[i].mul(prev_x_squared)));
+        prev_x_squared = prev_x_squared.mul(prev_x_squared);
     }
 
     return product(terms);
@@ -135,7 +135,7 @@ export function bPolyCoefficients(chals: Scalar[]) {
     for (let i = 1; i < s_length; i++) {
         k += i === pow ? 1 : 0;
         pow <<= i === pow ? 1 : 0;
-        s[i] = s[i - (pow >> 1)] * chals[rounds - 1 - (k - 1)];
+        s[i] = s[i - (pow >> 1)].mul(chals[rounds - 1 - (k - 1)]);
     }
 
     return s;
