@@ -1,19 +1,19 @@
 use serde::Deserialize;
 
-#[derive(Deserialize, Debug, PartialEq)]
+#[derive(Deserialize, Debug, PartialEq, Eq)]
 pub struct Wire {
     pub row: usize,
     pub col: usize,
 }
 
-#[derive(Deserialize, Debug, PartialEq)]
+#[derive(Deserialize, Debug, PartialEq, Eq)]
 pub struct ConstraintSystemElem {
     pub r#type: String,
     pub wires: [Wire; 7],
     pub coeffs: Vec<String>,
 }
 
-#[derive(Deserialize, Debug, PartialEq)]
+#[derive(Deserialize, Debug, PartialEq, Eq)]
 pub struct ConstraintSystem(pub Vec<ConstraintSystemElem>);
 
 impl From<&str> for ConstraintSystem {
