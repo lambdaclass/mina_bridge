@@ -14,4 +14,9 @@ export class Polynomial {
         }
         return result
     }
+
+    static buildAndEvaluate(coeffs: Scalar[], x: Scalar): Scalar {
+        const poly = new Polynomial(coeffs);
+        return poly.evaluate(x);
+    }
 }

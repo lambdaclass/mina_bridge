@@ -1,5 +1,6 @@
 import { Field, Group, Poseidon, Scalar } from "o1js"
 import { PolyComm } from "../poly_commitment/commitment";
+import { PointEvaluations, ProofEvaluations } from "../prover/prover";
 
 /**
  * Wrapper over o1js' poseidon `Sponge` class which extends its functionality.
@@ -72,6 +73,37 @@ export class Sponge {
     absorbCommitment(commitment: PolyComm<Group>) {
         this.absorbGroups(commitment.unshifted);
         if (commitment.shifted) this.absorbGroup(commitment.shifted);
+    }
+
+    absorbEvals(evals: ProofEvaluations<PointEvaluations<Scalar[]>>) {
+        const {
+            public_input,
+            w,
+            z,
+            s,
+            coefficients,
+            //lookup,
+            genericSelector,
+            poseidonSelector
+        } = evals;
+        let points = [
+            z,
+            genericSelector,
+            poseidonSelector,
+        ]
+        // arrays:
+        points = points.concat(w);
+        points = points.concat(s);
+        points = points.concat(coefficients);
+
+        // optional:
+        if (public_input) points.push(public_input);
+        //if (lookup) points.push(lookup); // FIXME: ignoring lookups
+        
+        points.forEach((p) => {
+            this.absorb.bind(this)(p.zeta);
+            this.absorb.bind(this)(p.zetaOmega);
+        });
     }
 
     /**

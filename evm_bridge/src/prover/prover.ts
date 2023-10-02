@@ -8,7 +8,7 @@ import { invScalar, powScalar } from "../util/scalar.js";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
-    evals: ProofEvaluations<PointEvaluations<Array<Scalar>>>
+    evals: ProofEvaluations<PointEvaluations<Scalar[]>>
     prev_challenges: RecursionChallenge[]
     commitments: ProverCommitments
 
@@ -203,9 +203,9 @@ export class ProverProof {
         }
 
         //~ 22. Absorb the unique evaluation of ft: $ft(\zeta\omega)$.
-        fr_sponge.absorb(this.ft_eval1);
+        fr_sponge.absorbScalar(this.ft_eval1);
 
-        //~ 1. Absorb all the polynomial evaluations in $\zeta$ and $\zeta\omega$:
+        //~ 23. Absorb all the polynomial evaluations in $\zeta$ and $\zeta\omega$:
         //~~ * the public polynomial
         //~~ * z
         //~~ * generic selector
@@ -213,27 +213,27 @@ export class ProverProof {
         //~~ * the 15 register/witness
         //~~ * 6 sigmas evaluations (the last one is not evaluated)
 
-        // fr_sponge.absorb_multiple(&public_evals[0]);
-        // fr_sponge.absorb_multiple(&public_evals[1]);
-        // fr_sponge.absorb_evaluations(&self.evals);
+        fr_sponge.absorbScalars(public_input![0]);
+        fr_sponge.absorbScalars(public_input![1]);
+        fr_sponge.absorbEvals(this.evals)
 
-        // //~ 1. Sample $v'$ with the Fr-Sponge.
-        // let v_chal = fr_sponge.challenge();
+        //~ 24. Sample $v'$ with the Fr-Sponge.
+        const v_chal = fr_sponge.challenge();
 
-        // //~ 1. Derive $v$ from $v'$ using the endomorphism (TODO: specify).
-        // let v = v_chal.to_field(endo_r);
+        //~ 25. Derive $v$ from $v'$ using the endomorphism (TODO: specify).
+        const v = v_chal.to_field(endo_r);
 
-        // //~ 1. Sample $u'$ with the Fr-Sponge.
-        // let u_chal = fr_sponge.challenge();
+        //~ 26. Sample $u'$ with the Fr-Sponge.
+        const u_chal = fr_sponge.challenge();
 
-        // //~ 1. Derive $u$ from $u'$ using the endomorphism (TODO: specify).
-        // let u = u_chal.to_field(endo_r);
+        //~ 27. Derive $u$ from $u'$ using the endomorphism (TODO: specify).
+        const u = u_chal.to_field(endo_r);
 
-        // //~ 1. Create a list of all polynomials that have an evaluation proof.
+        //~ 28. Create a list of all polynomials that have an evaluation proof.
 
-        // let evals = self.evals.combine(&powers_of_eval_points_for_chunks);
+        const evals = ProofEvaluations.combine(this.evals, powers_of_eval_points_for_chunks);
 
-        // //~ 1. Compute the evaluation of $ft(\zeta)$.
+        //~ 29. Compute the evaluation of $ft(\zeta)$.
         // let ft_eval0 = {
         //     let permutation_vanishing_polynomial =
         //         index.permutation_vanishing_polynomial_m().evaluate(&zeta);
@@ -495,9 +495,10 @@ export class ProofEvaluations<Evals> {
 
     constructor(
         w: Array<Evals>,
-        z: Evals, s: Array<Evals>,
+        z: Evals,
+        s: Array<Evals>,
         coefficients: Array<Evals>,
-        lookup: LookupEvaluations<Evals>,
+        lookup?: LookupEvaluations<Evals>,
         genericSelector: Evals,
         poseidonSelector: Evals,
         public_input?: Evals,
@@ -524,6 +525,43 @@ export class ProofEvaluations<Evals> {
         let ret = new PointEvaluations(zeta, zetaOmega);
         return ret;
     }
+
+    map<Evals2>(f: (e: Evals) => Evals2): ProofEvaluations<Evals2> {
+        let {
+            w,
+            z,
+            s,
+            coefficients,
+            //lookup,
+            genericSelector,
+            poseidonSelector,
+        } = this;
+
+        let public_input = undefined;
+        if (this.public_input) public_input = f(this.public_input);
+
+        return new ProofEvaluations(
+            w.map(f),
+            f(z),
+            s.map(f),
+            coefficients.map(f),
+            undefined, // FIXME: ignoring lookup
+            f(genericSelector),
+            f(poseidonSelector),
+            public_input
+        )
+    }
+
+    static combine<F>(
+        evals: ProofEvaluations<PointEvaluations<F[]>>,
+        pt: PointEvaluations<F>
+    ): ProofEvaluations<PointEvaluations<F>> {
+        return evals.map((orig) => new PointEvaluations(
+            Polynomial.buildAndEvaluate(orig.zeta, pt.zeta),
+            Polynomial.buildAndEvaluate(orig.zetaOmega, pt.zetaOmega)
+        ));
+    }
+
     /*
     pub fn combine(&self, pt: &PointEvaluations<F>) -> ProofEvaluations<PointEvaluations<F>> {
         self.map_ref(&|evals| PointEvaluations {
