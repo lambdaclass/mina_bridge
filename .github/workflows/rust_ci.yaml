@@ -25,16 +25,12 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
+          toolchain: nightly-2022-09-12-x86_64-unknown-linux-gnu
 
       - name: Install nextest
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-nextest
-      
-      - name: Install rust toolchain for Mina monorepo
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: nightly-2022-09-12-x86_64-unknown-linux-gnu
       
       - name: Install opam
         run: sudo apt-get install opam liblmdb-dev && opam init
