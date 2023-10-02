@@ -1,6 +1,6 @@
 import { Proof, Scalar } from "o1js"
 import { PolyComm } from "../poly_commitment/commitment.js";
-import { PointEvaluations, ProofEvaluations, ProverCommitments, ProverProof, RecursionChallenge } from "../prover/prover.js"
+import { LookupEvaluations, PointEvaluations, ProofEvaluations, ProverCommitments, ProverProof, RecursionChallenge } from "../prover/prover.js"
 import { deserPolyComm, PolyCommJSON } from "./serde_index.js";
 
 type PointEvals = PointEvaluations<Scalar[]>;
@@ -43,7 +43,9 @@ export function deserPointEval(json: PointEvalsJSON): PointEvals {
     }
     const zeta = json.zeta.map(deserHexScalar);
     const zetaOmega = json.zeta_omega.map(deserHexScalar);
-    return { zeta, zetaOmega };
+    let ret = new PointEvaluations(zeta, zetaOmega);
+
+    return ret;
 }
 
 /**
@@ -64,19 +66,22 @@ export function deserProofEvals(json: ProofEvalsJSON): ProofEvaluations<PointEva
     // in the current json, there isn't a non-null lookup, so TS infers that it'll always be null.
     let lookup = undefined;
     // let lookup = undefined;
-    // if (json.lookup) {
-    //     const sorted = json.lookup.sorted.map(deserPointEval);
-    //     const [aggreg, table] = [json.lookup.aggreg, json.lookup.table].map(deserPointEval);
+    //   if (json.lookup) {
+    //       const sorted = json.lookup.sorted.map(deserPointEval);
+    //       const [aggreg, table] = [json.lookup.aggreg, json.lookup.table].map(deserPointEval);
 
-    //     let runtime = undefined;
-    //     if (json.lookup.runtime) {
-    //         runtime = deserPointEval(json.lookup.runtime);
-    //     }
+    //       let runtime = undefined;
+    //       if (json.lookup.runtime) {
+    //           runtime = deserPointEval(json.lookup.runtime);
+    //       }
 
-    //     lookup = { sorted, aggreg, table, runtime };
-    // }
+    //       lookup = { sorted, aggreg, table, runtime };
+    //   }
 
-    return { w, z, s, coefficients, lookup, genericSelector, poseidonSelector };
+    // TODO!!!: fix this
+    let lookup2 = new LookupEvaluations<PointEvals>();
+
+    return new ProofEvaluations(w, z, s, coefficients, lookup2, genericSelector, poseidonSelector);
 }
 
 export function deserProverCommitments(json: ProverCommitmentsJSON): ProverCommitments {
