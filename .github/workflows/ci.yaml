@@ -38,8 +38,14 @@ jobs:
       - name: Cache opam packages
         uses: actions/cache@v3
         with:
-          key: mina_monorepo
+          key: opam
           path: /home/runner/.opam
+      
+      - name: Cache Mina monorepo packages
+        uses: actions/cache@v3
+        with:
+          key: mina_monorepo-${{ cd /home/runner/mina_monorepo && git rev-parse HEAD }}
+          path: /home/runner/mina_monorepo
 
       - name: Install node
         uses: actions/setup-node@v3
