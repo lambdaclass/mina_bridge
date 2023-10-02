@@ -35,22 +35,27 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v4
 
-      - name: Install node
-        uses: actions/setup-node@v3
-        with:
-          node-version: latest
-      
-      - name: Install opam
-        run: sudo apt-get install opam liblmdb-dev && opam init
-
-      - name: Set up dependencies
-        run: npm ci
-      
       - name: Cache opam packages
         uses: actions/cache@v3
         with:
           key: mina_monorepo
           path: /home/runner/.opam
+
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          node-version: latest
+        
+      - name: Install rust toolchain for Mina monorepo
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: nightly-2022-09-12-x86_64-unknown-linux-gnu
+      
+      - name: Install opam dependencies
+        run: sudo apt-get install opam liblmdb-dev && opam init
+
+      - name: Set up dependencies
+        run: npm ci
 
       - name: Run npm build
         run: npm run build
