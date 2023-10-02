@@ -38,14 +38,17 @@ jobs:
           key: mina_monorepo
           path: /home/runner/.opam
 
-      - name: Set Mina monorepo commit env var
-        run: echo "MINA_COMMIT=$(cd $GITHUB_WORKSPACE/mina_monorepo && git rev-parse HEAD)" >> $GITHUB_ENV
+      - name: Clone Mina monorepo and set commit env var
+        run: |
+          git clone https://github.com/lambdaclass/mina_monorepo.git
+          cd mina_monorepo
+          echo "MINA_COMMIT=$(git rev-parse HEAD)" >> $GITHUB_ENV
       
       - name: Cache Mina monorepo packages
         uses: actions/cache@v3
         with:
           key: mina_monorepo-${{ env.MINA_COMMIT }}
-          path: ${GITHUB_WORKSPACE}/mina_monorepo
+          path: /home/runner/work/mina_bridge/mina_bridge/mina_monorepo
       
       - name: Install opam
         run: sudo apt-get install opam liblmdb-dev && opam init
@@ -53,7 +56,7 @@ jobs:
       - name: Set up cargo cache
         uses: Swatinem/rust-cache@v2
       
-      - name: Clone Mina monorepo
+      - name: Setup Mina monorepo
         run: cd .. && sh setup.sh
 
       - name: Run cargo check

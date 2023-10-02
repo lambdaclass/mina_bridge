@@ -51,7 +51,7 @@ jobs:
           key: opam
           path: /home/runner/.opam
 
-      - name: Set Mina monorepo commit env var
+      - name: Clone Mina monorepo and set commit env var
         run: |
           git clone https://github.com/lambdaclass/mina_monorepo.git
           cd mina_monorepo
@@ -61,7 +61,7 @@ jobs:
         uses: actions/cache@v3
         with:
           key: mina_monorepo-${{ env.MINA_COMMIT }}
-          path: /home/runner/mina_monorepo
+          path: /home/runner/work/mina_bridge/mina_bridge/mina_monorepo
       
       - name: Install opam dependencies
         run: sudo apt-get install opam liblmdb-dev && opam init
