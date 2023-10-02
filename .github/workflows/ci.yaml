@@ -52,7 +52,10 @@ jobs:
           path: /home/runner/.opam
 
       - name: Set Mina monorepo commit env var
-        run: echo "MINA_COMMIT=$(cd $GITHUB_WORKSPACE/monorepo && git rev-parse HEAD)" >> $GITHUB_ENV
+        run: |
+          git clone https://github.com/lambdaclass/mina_monorepo.git
+          cd mina_monorepo
+          echo "MINA_COMMIT=$(git rev-parse HEAD)" >> $GITHUB_ENV
 
       - name: Cache Mina monorepo packages
         uses: actions/cache@v3
