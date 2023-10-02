@@ -34,6 +34,9 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
+      
+      - name: Set Mina monorepo commit env var
+        run: echo "MINA_COMMIT=$(cd /home/runner/mina_monorepo && git rev-parse HEAD)" >> $GITHUB_ENV
 
       - name: Cache opam packages
         uses: actions/cache@v3
@@ -44,7 +47,7 @@ jobs:
       - name: Cache Mina monorepo packages
         uses: actions/cache@v3
         with:
-          key: mina_monorepo-${{ cd /home/runner/mina_monorepo && git rev-parse HEAD }}
+          key: mina_monorepo-${{ env.MINA_COMMIT }}
           path: /home/runner/mina_monorepo
 
       - name: Install node
