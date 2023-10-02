@@ -46,6 +46,12 @@ jobs:
         with:
           key: mina_monorepo
           path: /home/runner/.opam
+      
+      - name: Cache Mina monorepo packages
+        uses: actions/cache@v3
+        with:
+          key: mina_monorepo-${{ env.MINA_COMMIT }}
+          path: /home/runner/mina_monorepo
 
       - name: Run cargo check
         run: cargo check --workspace
