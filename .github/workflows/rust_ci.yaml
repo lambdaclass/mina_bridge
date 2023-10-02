@@ -37,6 +37,9 @@ jobs:
         with:
           key: mina_monorepo
           path: /home/runner/.opam
+
+      - name: Set Mina monorepo commit env var
+        run: echo "MINA_COMMIT=$(cd $GITHUB_WORKSPACE/monorepo && git rev-parse HEAD)" >> $GITHUB_ENV
       
       - name: Cache Mina monorepo packages
         uses: actions/cache@v3
@@ -52,9 +55,6 @@ jobs:
       
       - name: Clone Mina monorepo
         run: cd .. && sh setup.sh
-      
-      - name: Set Mina monorepo commit env var
-        run: echo "MINA_COMMIT=$(cd $GITHUB_WORKSPACE/monorepo && git rev-parse HEAD)" >> $GITHUB_ENV
 
       - name: Run cargo check
         run: cargo check --workspace

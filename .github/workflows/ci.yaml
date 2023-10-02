@@ -50,7 +50,10 @@ jobs:
         with:
           key: opam
           path: /home/runner/.opam
-      
+
+      - name: Set Mina monorepo commit env var
+        run: echo "MINA_COMMIT=$(cd $GITHUB_WORKSPACE/monorepo && git rev-parse HEAD)" >> $GITHUB_ENV
+
       - name: Cache Mina monorepo packages
         uses: actions/cache@v3
         with:
@@ -62,10 +65,6 @@ jobs:
 
       - name: Set up dependencies
         run: npm ci
-
-      - name: Set Mina monorepo commit env var
-        run: echo "MINA_COMMIT=$(cd $GITHUB_WORKSPACE/monorepo && git rev-parse HEAD)" >> $GITHUB_ENV
-      
 
       - name: Run npm build
         run: npm run build
