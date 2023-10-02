@@ -31,6 +31,18 @@ jobs:
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-nextest
+
+      - name: Cache opam packages
+        uses: actions/cache@v3
+        with:
+          key: mina_monorepo
+          path: /home/runner/.opam
+      
+      - name: Cache Mina monorepo packages
+        uses: actions/cache@v3
+        with:
+          key: mina_monorepo-${{ env.MINA_COMMIT }}
+          path: ${GITHUB_WORKSPACE}/mina_monorepo
       
       - name: Install opam
         run: sudo apt-get install opam liblmdb-dev && opam init
@@ -43,18 +55,6 @@ jobs:
       
       - name: Set Mina monorepo commit env var
         run: echo "MINA_COMMIT=$(cd $GITHUB_WORKSPACE/monorepo && git rev-parse HEAD)" >> $GITHUB_ENV
-      
-      - name: Cache opam packages
-        uses: actions/cache@v3
-        with:
-          key: mina_monorepo
-          path: /home/runner/.opam
-      
-      - name: Cache Mina monorepo packages
-        uses: actions/cache@v3
-        with:
-          key: mina_monorepo-${{ env.MINA_COMMIT }}
-          path: ${GITHUB_WORKSPACE}/mina_monorepo
 
       - name: Run cargo check
         run: cargo check --workspace
