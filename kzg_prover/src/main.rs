@@ -1,8 +1,8 @@
 pub mod constraint_system;
 
-use std::array;
 use std::str::FromStr;
 use std::sync::Arc;
+use std::{array, fs};
 
 use ark_ec::short_weierstrass_jacobian::GroupAffine;
 use kimchi::circuits::constraints::ConstraintSystem as KimchiConstraintSystem;
@@ -27,7 +27,8 @@ type BaseSponge = DefaultFqSponge<Parameters, SpongeConstants>;
 type ScalarSponge = DefaultFrSponge<Field, SpongeConstants>;
 
 fn main() {
-    let gates = create_gates();
+    let cs_json = fs::read_to_string("./test_data/constraint_system.json").unwrap();
+    let gates = create_gates(&cs_json);
 
     let constraint_system = KimchiConstraintSystem::<Field>::create(gates)
         .public(3)
@@ -41,15 +42,18 @@ fn main() {
     let witness = create_witness();
     let prover_index: ProverIndex<_> = ProverIndex::create(constraint_system, endo_r, srs_arc);
 
-    ProverProof::create::<BaseSponge, ScalarSponge>(&group_map, witness, &[], &prover_index)
-        .expect("failed to generate proof");
+    let proof =
+        ProverProof::create::<BaseSponge, ScalarSponge>(&group_map, witness, &[], &prover_index)
+            .expect("failed to generate proof");
+
+    let proof_json = serde_json::to_string(&proof).unwrap();
+    fs::write("./test_data/proof.json", proof_json).unwrap();
 
     println!("Done!");
 }
 
-fn create_gates() -> Vec<CircuitGate<Field>> {
-    let cs_json = std::fs::read_to_string("./test_data/constraint_system.json").unwrap();
-    let cs = constraint_system::ConstraintSystem::from(cs_json.as_str());
+fn create_gates(cs_json: &str) -> Vec<CircuitGate<Field>> {
+    let cs = constraint_system::ConstraintSystem::from(cs_json);
     let elem_list = cs.0;
 
     elem_list
