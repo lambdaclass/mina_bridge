@@ -1,8 +1,18 @@
 import { readFileSync, writeFileSync } from "fs";
-import { Field, Group, Scalar } from "o1js";
+import { Field, Group, Scalar, createForeignField, circuitMain, Circuit, public_ } from "o1js";
 import { Verifier } from "./verifier/verifier.js";
 import { MlArray } from "o1js/dist/node/lib/ml/base.js";
 import { FieldVar } from "o1js/dist/node/lib/field.js";
+//import { ForeignField, createForeignField, limbBits } from 'o1js/foreign-field.js';
+
+class SmallField extends createForeignField(17n) { }
+
+class ToyVerifier extends Circuit {
+    @circuitMain
+    static main(@public_ f1: SmallField, @public_ f2: SmallField, @public_ expected: SmallField) {
+        f1.add(f2).assertEquals(expected);
+    }
+}
 
 let inputs: { sg: bigint[], z1: bigint, expected: bigint[] };
 try {
@@ -45,6 +55,23 @@ let isValid = await Verifier.verify(public_input, keypair.verificationKey(), pro
 console.log("Is valid proof:", isValid);
 
 console.log("Generating witness...");
+
+
+
+// toy example - F_17
+
+
+let x = new SmallField(16);
+x.assertEquals(-1); // 16 = -1 (mod 17)
+x.mul(x).assertEquals(1); // 16 * 16 = 15 * 17 + 1 = 1 (mod 17)
+
+
+let keypair2 = await ToyVerifier.generateKeypair();
+
+console.log("Proving...");
+console.log(keypair2);
+
+/*
 let witness_ml = await Verifier.generateWitness([], public_input, keypair);
 
 // Convert OCaml witness to JSON witness so that we can write it into a file
@@ -62,6 +89,7 @@ for (let maybe_row_ml of witness_ml) {
 }
 
 writeFileSync("../kzg_prover/test_data/witness.json", JSON.stringify(witness));
+*/
 
 // ----------------------------------------------------
 console.log('Done! Shutting down');
