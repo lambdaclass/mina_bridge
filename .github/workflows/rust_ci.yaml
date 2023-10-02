@@ -51,7 +51,7 @@ jobs:
         uses: actions/cache@v3
         with:
           key: mina_monorepo-${{ env.MINA_COMMIT }}
-          path: /home/runner/mina_monorepo
+          path: ${GITHUB_WORKSPACE}/mina_monorepo
 
       - name: Run cargo check
         run: cargo check --workspace
