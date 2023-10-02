@@ -30,12 +30,21 @@ jobs:
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-nextest
+      
+      - name: Install opam
+        run: sudo apt-get install opam liblmdb-dev && opam init
 
       - name: Set up cargo cache
         uses: Swatinem/rust-cache@v2
       
       - name: Clone Mina monorepo
         run: cd .. && sh setup.sh
+      
+      - name: Cache opam packages
+        uses: actions/cache@v3
+        with:
+          key: mina_monorepo
+          path: /home/runner/.opam
 
       - name: Run cargo check
         run: cargo check --workspace

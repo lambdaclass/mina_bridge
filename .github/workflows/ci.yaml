@@ -39,9 +39,18 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: latest
+      
+      - name: Install opam
+        run: sudo apt-get install opam liblmdb-dev && opam init
 
       - name: Set up dependencies
         run: npm ci
+      
+      - name: Cache opam packages
+        uses: actions/cache@v3
+        with:
+          key: mina_monorepo
+          path: /home/runner/.opam
 
       - name: Run npm build
         run: npm run build
