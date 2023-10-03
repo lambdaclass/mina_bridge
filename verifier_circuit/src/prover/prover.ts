@@ -251,7 +251,7 @@ export class ProverProof {
             .mul(alpha0)
             .mul(zkp);
 
-        let ft_eval0 = evals.w
+        let ft_eval0: Scalar = evals.w
             .map((w, i) => (beta.mul(evals.s[i].zeta).add(w.zetaOmega).add(gamma)))
             .reduce((acc, curr) => acc.mul(curr), init);
 
@@ -390,6 +390,7 @@ export function combinedInnerProduct(
             res = res.add((xi_i.mul(Polynomial.buildAndEvaluate(shifted_evals, evalscale))));
             xi_i = xi_i.mul(polyscale);
         }
+        return res;
     }
 }
 
