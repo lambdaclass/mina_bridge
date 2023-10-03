@@ -101,8 +101,8 @@ export class Sponge {
         //if (lookup) points.push(lookup); // FIXME: ignoring lookups
         
         points.forEach((p) => {
-            this.absorb.bind(this)(p.zeta);
-            this.absorb.bind(this)(p.zetaOmega);
+            this.absorbScalars.bind(this)(p.zeta);
+            this.absorbScalars.bind(this)(p.zetaOmega);
         });
     }
 

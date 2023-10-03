@@ -140,7 +140,7 @@ export class ProverProof {
         let all_alphas = index.powers_of_alpha;
         all_alphas.instantiate(alpha);
 
-        let public_evals;
+        let public_evals: Scalar[][] | undefined;
         if (this.evals.public_input) {
             public_evals = [this.evals.public_input.zeta, this.evals.public_input.zetaOmega];
         } else if (chunk_size > 1) {
@@ -199,6 +199,7 @@ export class ProverProof {
                 public_evals = [[pe_zeta], [pe_zetaOmega]];
             }
         } else {
+            public_evals = undefined;
             // FIXME: missing public input eval error
         }
 
@@ -213,21 +214,21 @@ export class ProverProof {
         //~~ * the 15 register/witness
         //~~ * 6 sigmas evaluations (the last one is not evaluated)
 
-        fr_sponge.absorbScalars(public_input![0]);
-        fr_sponge.absorbScalars(public_input![1]);
+        fr_sponge.absorbScalars(public_evals![0]);
+        fr_sponge.absorbScalars(public_evals![1]);
         fr_sponge.absorbEvals(this.evals)
 
         //~ 24. Sample $v'$ with the Fr-Sponge.
-        const v_chal = fr_sponge.challenge();
+        const v_chal = new ScalarChallenge(fr_sponge.challenge());
 
         //~ 25. Derive $v$ from $v'$ using the endomorphism (TODO: specify).
-        const v = v_chal.to_field(endo_r);
+        const v = v_chal.toField(endo_r);
 
         //~ 26. Sample $u'$ with the Fr-Sponge.
-        const u_chal = fr_sponge.challenge();
+        const u_chal = new ScalarChallenge(fr_sponge.challenge());
 
         //~ 27. Derive $u$ from $u'$ using the endomorphism (TODO: specify).
-        const u = u_chal.to_field(endo_r);
+        const u = u_chal.toField(endo_r);
 
         //~ 28. Create a list of all polynomials that have an evaluation proof.
 
@@ -498,9 +499,9 @@ export class ProofEvaluations<Evals> {
         z: Evals,
         s: Array<Evals>,
         coefficients: Array<Evals>,
-        lookup?: LookupEvaluations<Evals>,
         genericSelector: Evals,
         poseidonSelector: Evals,
+        lookup?: LookupEvaluations<Evals>,
         public_input?: Evals,
     ) {
         this.w = w;
@@ -545,17 +546,17 @@ export class ProofEvaluations<Evals> {
             f(z),
             s.map(f),
             coefficients.map(f),
-            undefined, // FIXME: ignoring lookup
             f(genericSelector),
             f(poseidonSelector),
+            undefined, // FIXME: ignoring lookup
             public_input
         )
     }
 
-    static combine<F>(
-        evals: ProofEvaluations<PointEvaluations<F[]>>,
-        pt: PointEvaluations<F>
-    ): ProofEvaluations<PointEvaluations<F>> {
+    static combine(
+        evals: ProofEvaluations<PointEvaluations<Scalar[]>>,
+        pt: PointEvaluations<Scalar>
+    ): ProofEvaluations<PointEvaluations<Scalar>> {
         return evals.map((orig) => new PointEvaluations(
             Polynomial.buildAndEvaluate(orig.zeta, pt.zeta),
             Polynomial.buildAndEvaluate(orig.zetaOmega, pt.zetaOmega)
