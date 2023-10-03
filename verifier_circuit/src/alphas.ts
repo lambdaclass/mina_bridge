@@ -1,4 +1,4 @@
-import { ArgumentType } from "./circuits/gate"
+import { ArgumentType, GateType } from "./circuits/gate"
 import { Scalar } from "o1js"
 
 /**
@@ -35,5 +35,23 @@ export class Alphas {
             alphas.push(last_power);
         }
         this.alphas = alphas;
+    }
+
+    /**
+     * Retrieves the powers of alpha, upperbounded by `num`
+     */
+    getAlphas(ty: ArgumentType, num: number) {
+        if (ty.kind === "gate") {
+            ty.type = GateType.Zero;
+        }
+
+        const range = this.mapping.get(ty)!;
+        if (num > range[1]) {
+            // FIXME: panic! asked for num alphas but there aren't as many.
+        }
+
+        return this.alphas!.slice(range[0], num);
+        // INFO: in kimchi this returns a "MustConsumeIterator", which warns you if
+        // not consumed entirely.
     }
 }

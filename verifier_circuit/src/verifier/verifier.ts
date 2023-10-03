@@ -5,6 +5,7 @@ import { PolyComm } from '../poly_commitment/commitment.js';
 import { SRS } from '../SRS.js';
 import { Sponge } from './sponge.js';
 import { Alphas } from '../alphas.js';
+import { Polynomial } from '../polynomial.js';
 
 let steps: bigint[][];
 try {
@@ -48,6 +49,14 @@ export class VerifierIndex {
 
     /** The mapping between powers of alpha and constraints */
     powers_of_alpha: Alphas
+    /** Wire coordinate shifts */
+    shift: Scalar[] // of size PERMUTS
+    /** Zero knowledge polynomial */
+    zkpm: Polynomial
+    /** Domain offset for zero-knowledge */
+    w: Scalar
+    /** Endoscalar coefficient */
+    endo: Scalar
 
     constructor(
         domain_size: number,

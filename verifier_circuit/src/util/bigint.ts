@@ -13,3 +13,14 @@ export function getLimbs64(n: bigint): bigint[] {
 
     return limbs;
 }
+
+/**
+ * Recomposes 64-bit `limbs` into a bigint, less significant first
+ */
+export function fromLimbs64(limbs: bigint[]): bigint {
+    let n_rebuilt = 0n;
+    for (const i in limbs) {
+        n_rebuilt += limbs[i] << 64n*BigInt(i);
+    }
+    return n_rebuilt;
+}

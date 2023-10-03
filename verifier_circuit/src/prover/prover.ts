@@ -5,6 +5,8 @@ import { getLimbs64 } from "../util/bigint";
 import { Sponge } from "../verifier/sponge";
 import { Verifier, VerifierIndex } from "../verifier/verifier.js";
 import { invScalar, powScalar } from "../util/scalar.js";
+import { GateType } from "../circuits/gate.js";
+import { Alphas } from "../alphas.js";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
@@ -28,7 +30,7 @@ export class ProverProof {
     /**
      * Will run the random oracle argument for removing prover-verifier interaction (Fiat-Shamir transform)
      */
-    oracles(index: VerifierIndex, public_comm: PolyComm<Group>, public_input?: Scalar[]) {
+    oracles(index: VerifierIndex, public_comm: PolyComm<Group>, public_input?: Scalar[]): OraclesResult {
         let sponge_test = new Sponge();
         const fields = [Field.from(1), Field.from(2)];
         fields.forEach((f) => {
@@ -124,7 +126,7 @@ export class ProverProof {
         };
 
         //~ 20. Compute evaluations for the previous recursion challenges.
-        const polys = this.prev_challenges.map((chal) => {
+        const polys: [PolyComm<Group>, Scalar[][]][] = this.prev_challenges.map((chal) => {
             const evals = chal.evals(
                 index.max_poly_size,
                 evaluation_points,
@@ -235,67 +237,52 @@ export class ProverProof {
         const evals = ProofEvaluations.combine(this.evals, powers_of_eval_points_for_chunks);
 
         //~ 29. Compute the evaluation of $ft(\zeta)$.
-        // let ft_eval0 = {
-        //     let permutation_vanishing_polynomial =
-        //         index.permutation_vanishing_polynomial_m().evaluate(&zeta);
-        //     let zeta1m1 = zeta1 - G::ScalarField::one();
+        const zkp = index.zkpm.evaluate(zeta);
+        const zeta1m1 = zeta1.sub(Scalar.from(1));
 
-        //     let mut alpha_powers =
-        //         all_alphas.get_alphas(ArgumentType::Permutation, permutation::CONSTRAINTS);
-        //     let alpha0 = alpha_powers
-        //         .next()
-        //         .expect("missing power of alpha for permutation");
-        //     let alpha1 = alpha_powers
-        //         .next()
-        //         .expect("missing power of alpha for permutation");
-        //     let alpha2 = alpha_powers
-        //         .next()
-        //         .expect("missing power of alpha for permutation");
+        const PERMUTATION_CONSTRAINTS = 3; // FIXME: hardcoded here
+        let alpha_powers = all_alphas.getAlphas({ kind: "permutation" }, PERMUTATION_CONSTRAINTS);
+        const alpha0 = alpha_powers[0];
+        const alpha1 = alpha_powers[1];
+        const alpha2 = alpha_powers[2];
 
-        //     let init = (evals.w[PERMUTS - 1].zeta + gamma)
-        //         * evals.z.zeta_omega
-        //         * alpha0
-        //         * permutation_vanishing_polynomial;
-        //     let mut ft_eval0 = evals
-        //         .w
-        //         .iter()
-        //         .zip(evals.s.iter())
-        //         .map(|(w, s)| (beta * s.zeta) + w.zeta + gamma)
-        //         .fold(init, |x, y| x * y);
+        const init = (evals.w[Verifier.PERMUTS - 1].zeta.add(gamma))
+            .mul(evals.z.zetaOmega)
+            .mul(alpha0)
+            .mul(zkp);
 
-        //     ft_eval0 -= DensePolynomial::eval_polynomial(
-        //         &public_evals[0],
-        //         powers_of_eval_points_for_chunks.zeta,
-        //     );
+        let ft_eval0 = evals.w
+            .map((w, i) => (beta.mul(evals.s[i].zeta).add(w.zetaOmega).add(gamma)))
+            .reduce((acc, curr) => acc.mul(curr), init);
 
-        //     ft_eval0 -= evals
-        //         .w
-        //         .iter()
-        //         .zip(index.shift.iter())
-        //         .map(|(w, s)| gamma + (beta * zeta * s) + w.zeta)
-        //         .fold(
-        //             alpha0 * permutation_vanishing_polynomial * evals.z.zeta,
-        //             |x, y| x * y,
-        //         );
+        ft_eval0 = ft_eval0.sub(
+            public_evals![0].length === 0 ? Scalar.from(0) : public_evals![0][0]
+        );
 
-        //     let numerator = ((zeta1m1 * alpha1 * (zeta - index.w()))
-        //         + (zeta1m1 * alpha2 * (zeta - G::ScalarField::one())))
-        //         * (G::ScalarField::one() - evals.z.zeta);
+        ft_eval0 = ft_eval0.sub(
+            evals.w
+                .map((w_i, i) => gamma.add(beta.mul(zeta).mul(index.shift[i])).add(w_i.zeta))
+                .reduce((acc, curr) => acc.mul(curr), alpha0.mul(zkp).mul(evals.z.zeta))
+        );
 
-        //     let denominator = (zeta - index.w()) * (zeta - G::ScalarField::one());
-        //     let denominator = denominator.inverse().expect("negligible probability");
+        const numerator = (zeta1m1.mul(alpha1).mul((zeta.sub(index.w))))
+            .add(zeta1m1.mul(alpha2).mul(zeta.sub(Scalar.from(1))))
+            .mul(Scalar.from(1).sub(evals.z.zeta));
 
-        //     ft_eval0 += numerator * denominator;
+        const denominator = invScalar(zeta.sub(index.w).mul(zeta.sub(Scalar.from(1))));
+        // FIXME: if error when inverting, "negligible probability"
 
-        //     let constants = Constants {
-        //         alpha,
-        //         beta,
-        //         gamma,
-        //         joint_combiner: joint_combiner.as_ref().map(|j| j.1),
-        //         endo_coefficient: index.endo,
-        //         mds: &G::sponge_params().mds,
-        //         zk_rows,
-        //     };
+        ft_eval0 = ft_eval0.add(numerator.mul(denominator));
+
+        const constants: Constants<Scalar> = {
+            alpha,
+            beta,
+            gamma,
+            endo_coefficient: index.endo,
+            mds: [[]] // FIXME: empty for now, should be a sponge param
+        }
+
+        ft_eval0 = ft_eval0.sub(evaluate_rpn());
 
         //     ft_eval0 -= PolishToken::evaluate(
         //         &index.linearization.constant_term,
@@ -308,152 +295,101 @@ export class ProverProof {
 
         //     ft_eval0
         // };
+        polys
 
-        // let combined_inner_product =
-        //     {
-        //         let ft_eval0 = vec![ft_eval0];
-        //         let ft_eval1 = vec![self.ft_eval1];
+        ft_eval0 = [ft_eval0];
+        const ft_eval1 = [this.ft_eval1];
+        let es: [Scalar[][], number | undefined][] = polys.map(([_, e]) => [e, undefined]);
+        es.push([public_evals!, undefined]);
+        es.push([[ft_eval0, ft_eval1], undefined]);
 
-        //         #[allow(clippy::type_complexity)]
-        //         let mut es: Vec<(Vec<Vec<G::ScalarField>>, Option<usize>)> =
-        //             polys.iter().map(|(_, e)| (e.clone(), None)).collect();
-        //         es.push((public_evals.to_vec(), None));
-        //         es.push((vec![ft_eval0, ft_eval1], None));
-        //         for col in [
-        //             Column::Z,
-        //             Column::Index(GateType::Generic),
-        //             Column::Index(GateType::Poseidon),
-        //             Column::Index(GateType::CompleteAdd),
-        //             Column::Index(GateType::VarBaseMul),
-        //             Column::Index(GateType::EndoMul),
-        //             Column::Index(GateType::EndoMulScalar),
-        //         ]
-        //         .into_iter()
-        //         .chain((0..COLUMNS).map(Column::Witness))
-        //         .chain((0..COLUMNS).map(Column::Coefficient))
-        //         .chain((0..PERMUTS - 1).map(Column::Permutation))
-        //         .chain(
-        //             index
-        //                 .range_check0_comm
-        //                 .as_ref()
-        //                 .map(|_| Column::Index(GateType::RangeCheck0)),
-        //         )
-        //         .chain(
-        //             index
-        //                 .range_check1_comm
-        //                 .as_ref()
-        //                 .map(|_| Column::Index(GateType::RangeCheck1)),
-        //         )
-        //         .chain(
-        //             index
-        //                 .foreign_field_add_comm
-        //                 .as_ref()
-        //                 .map(|_| Column::Index(GateType::ForeignFieldAdd)),
-        //         )
-        //         .chain(
-        //             index
-        //                 .foreign_field_mul_comm
-        //                 .as_ref()
-        //                 .map(|_| Column::Index(GateType::ForeignFieldMul)),
-        //         )
-        //         .chain(
-        //             index
-        //                 .xor_comm
-        //                 .as_ref()
-        //                 .map(|_| Column::Index(GateType::Xor16)),
-        //         )
-        //         .chain(
-        //             index
-        //                 .rot_comm
-        //                 .as_ref()
-        //                 .map(|_| Column::Index(GateType::Rot64)),
-        //         )
-        //         .chain(
-        //             index
-        //                 .lookup_index
-        //                 .as_ref()
-        //                 .map(|li| {
-        //                     (0..li.lookup_info.max_per_row + 1)
-        //                         .map(Column::LookupSorted)
-        //                         .chain([Column::LookupAggreg, Column::LookupTable].into_iter())
-        //                         .chain(
-        //                             li.runtime_tables_selector
-        //                                 .as_ref()
-        //                                 .map(|_| [Column::LookupRuntimeTable].into_iter())
-        //                                 .into_iter()
-        //                                 .flatten(),
-        //                         )
-        //                         .chain(
-        //                             self.evals
-        //                                 .runtime_lookup_table_selector
-        //                                 .as_ref()
-        //                                 .map(|_| Column::LookupRuntimeSelector),
-        //                         )
-        //                         .chain(
-        //                             self.evals
-        //                                 .xor_lookup_selector
-        //                                 .as_ref()
-        //                                 .map(|_| Column::LookupKindIndex(LookupPattern::Xor)),
-        //                         )
-        //                         .chain(
-        //                             self.evals
-        //                                 .lookup_gate_lookup_selector
-        //                                 .as_ref()
-        //                                 .map(|_| Column::LookupKindIndex(LookupPattern::Lookup)),
-        //                         )
-        //                         .chain(
-        //                             self.evals.range_check_lookup_selector.as_ref().map(|_| {
-        //                                 Column::LookupKindIndex(LookupPattern::RangeCheck)
-        //                             }),
-        //                         )
-        //                         .chain(self.evals.foreign_field_mul_lookup_selector.as_ref().map(
-        //                             |_| Column::LookupKindIndex(LookupPattern::ForeignFieldMul),
-        //                         ))
-        //                 })
-        //                 .into_iter()
-        //                 .flatten(),
-        //         ) {
-        //             es.push((
-        //                 {
-        //                     let evals = self
-        //                         .evals
-        //                         .get_column(col)
-        //                         .ok_or(VerifyError::MissingEvaluation(col))?;
-        //                     vec![evals.zeta.clone(), evals.zeta_omega.clone()]
-        //                 },
-        //                 None,
-        //             ))
-        //         }
+        const push_column_eval = (col: Column) => {
+            const evals = this
+                .evals
+                .getColumn(col)!;
+            es.push([[evals.zeta, evals.zetaOmega], undefined]);
+        };
 
-        //         combined_inner_product(&evaluation_points, &v, &u, &es, index.srs().g.len())
-        //     };
+        push_column_eval({ kind: "z" })
+        push_column_eval({ kind: "index", typ: GateType.Generic })
+        push_column_eval({ kind: "index", typ: GateType.Poseidon })
+        Array(Verifier.COLUMNS).fill({ kind: "witness" }).forEach(push_column_eval);
+        Array(Verifier.COLUMNS).fill({ kind: "coefficient" }).forEach(push_column_eval);
+        // FIXME: ignoring lookup
 
-        // let oracles = RandomOracles {
-        //     joint_combiner,
-        //     beta,
-        //     gamma,
-        //     alpha_chal,
-        //     alpha,
-        //     zeta,
-        //     v,
-        //     u,
-        //     zeta_chal,
-        //     v_chal,
-        //     u_chal,
-        // };
+        const combined_inner_product = combinedInnerProduct(
+            evaluation_points,
+            v,
+            u,
+            es,
+            index.srs.g.length
+        );
 
-        // Ok(OraclesResult {
-        //     fq_sponge,
-        //     digest,
-        //     oracles,
-        //     all_alphas,
-        //     public_evals,
-        //     powers_of_eval_points_for_chunks,
-        //     polys,
-        //     zeta1,
-        //     ft_eval0,
-        //     combined_inner_product,
-        // })
+        const oracles: RandomOracles = {
+            //joint_combiner // FIXME: ignoring lookups
+            beta,
+            gamma,
+            alpha_chal,
+            alpha,
+            zeta,
+            v,
+            u,
+            zeta_chal,
+            v_chal,
+            u_chal
+        }
+
+        const res: OraclesResult = {
+            fq_sponge,
+            digest,
+            oracles,
+            all_alphas,
+            public_evals: public_evals!,
+            powers_of_eval_points_for_chunks,
+            polys,
+            zeta1,
+            ft_eval0,
+            combined_inner_product
+        }
+
+        return res;
+    }
+}
+
+export function combinedInnerProduct(
+    evaluation_points: Scalar[],
+    polyscale: Scalar,
+    evalscale: Scalar,
+    polys: [Scalar[][], number | undefined][],
+    srs_length: number
+): Scalar {
+    let res = Scalar.from(0);
+    let xi_i = Scalar.from(1);
+
+    for (const [evals_tr, shifted] of polys.filter(([evals_tr, _]) => evals_tr[0].length != 0)) {
+        const evals = [...Array(evals_tr[0].length).keys()]
+            .map((i) => evals_tr.map((v) => v[i]));
+
+        for (const evaluation of evals) {
+            const term = Polynomial.buildAndEvaluate(evaluation, evalscale);
+            res = res.add(xi_i.mul(term));
+            xi_i = xi_i.mul(polyscale);
+        }
+
+        if (shifted) {
+            let last_evals: number[];
+            if (shifted >= evals.length * srs_length) {
+                last_evals = [Scalar.from(0), evaluation_points.length];
+            } else {
+                last_evals = evals[evals.length - 1];
+            }
+
+            const shifted_evals = evaluation_points
+                .map((elm, i) => powScalar(elm, (srs_length - (shifted % srs_length)) * last_evals[i]))
+
+            res = res.add((xi_i.mul(Polynomial.buildAndEvaluate(shifted_evals, evalscale))));
+            xi_i = xi_i.mul(polyscale);
+        }
     }
 }
 
@@ -467,6 +403,40 @@ export class Context {
     /* The public input used in the creation of the proof */
     public_input: Scalar[]
 };
+
+/** A type representing one of the polynomials involved in the PLONK IOP */
+export namespace Column {
+    export type Witness = {
+        kind: "witness"
+        index: number
+    }
+
+    export type Z = {
+        kind: "z"
+    }
+
+    export type Index = {
+        kind: "index"
+        typ: GateType
+    }
+
+    export type Coefficient = {
+        kind: "coefficient"
+        index: number
+    }
+
+    export type Permutation = {
+        kind: "permutation"
+        index: number
+    }
+}
+
+export type Column =
+    | Column.Witness
+    | Column.Z
+    | Column.Index
+    | Column.Coefficient
+    | Column.Permutation;
 
 /**
  * Polynomial evaluations contained in a `ProverProof`.
@@ -563,15 +533,6 @@ export class ProofEvaluations<Evals> {
         ));
     }
 
-    /*
-    pub fn combine(&self, pt: &PointEvaluations<F>) -> ProofEvaluations<PointEvaluations<F>> {
-        self.map_ref(&|evals| PointEvaluations {
-            zeta: DensePolynomial::eval_polynomial(&evals.zeta, pt.zeta),
-            zeta_omega: DensePolynomial::eval_polynomial(&evals.zeta_omega, pt.zeta_omega),
-        })
-    }    
-    */
-
     evaluate_coefficients(point: Scalar): Scalar {
         let zero = Scalar.from(0);
 
@@ -584,6 +545,28 @@ export class ProofEvaluations<Evals> {
             return this.coefficients[0] as Scalar;
         }
         return p.evaluate(point);
+    }
+
+    getColumn(col: Column): Evals | undefined {
+        switch (col.kind) {
+            case "witness": {
+                return this.w[col.index];
+            }
+            case "z": {
+                return this.z;
+            }
+            case "index": {
+                if (col.typ === GateType.Generic) return this.genericSelector;
+                if (col.typ === GateType.Poseidon) return this.poseidonSelector;
+                else return undefined;
+            }
+            case "coefficient": {
+                return this.coefficients[col.index];
+            }
+            case "permutation": {
+                return this.s[col.index];
+            }
+        }
     }
 }
 
@@ -725,4 +708,66 @@ export class ScalarChallenge {
         const length_in_bits = 64 * Sponge.CHALLENGE_LENGTH_IN_LIMBS;
         return this.toFieldWithLength(length_in_bits, endo_coeff);
     }
+}
+
+export class Constants<F> {
+    /** The challenge alpha from the PLONK IOP. */
+    alpha: F
+    /** The challenge beta from the PLONK IOP. */
+    beta: F
+    /** The challenge gamma from the PLONK IOP. */
+    gamma: F
+    /**
+     * The challenge joint_combiner which is used to combine
+     * joint lookup tables.
+     */
+    //joint_combiner?: F // WARN: skipped lookups
+    /** The endomorphism coefficient */
+    endo_coefficient: F
+    /** The MDS matrix */
+    mds: F[][]
+}
+
+// TODO: implement this
+/** Evaluates a reverse polish notation expression into a field element */
+function evaluate_rpn(): Scalar {
+    return Scalar.from(0);
+}
+
+export class RandomOracles {
+    //joint_combiner // FIXME: ignoring for now
+    beta: Scalar
+    gamma: Scalar
+    alpha_chal: ScalarChallenge
+    alpha: Scalar
+    zeta: Scalar
+    v: Scalar
+    u: Scalar
+    zeta_chal: ScalarChallenge
+    v_chal: ScalarChallenge
+    u_chal: ScalarChallenge
+}
+
+/** The result of running the oracle protocol */
+export class OraclesResult {
+    /** A sponge that acts on the base field of a curve */
+    fq_sponge: Sponge
+    /** the last evaluation of the Fq-Sponge in this protocol */
+    digest: Scalar
+    /** the challenges produced in the protocol */
+    oracles: RandomOracles
+    /** the computed powers of alpha */
+    all_alphas: Alphas
+    /** public polynomial evaluations */
+    public_evals: Scalar[][] // array of size 2 of vecs of scalar
+    /** zeta^n and (zeta * omega)^n */
+    powers_of_eval_points_for_chunks: PointEvaluations<Scalar>
+    /** recursion data */
+    polys: [PolyComm<Group>, Scalar[][]][]
+    /** pre-computed zeta^n */
+    zeta1: Scalar
+    /** The evaluation f(zeta) - t(zeta) * Z_H(zeta) */
+    ft_eval0: Scalar
+    /** Used by the OCaml side */
+    combined_inner_product: Scalar
 }
