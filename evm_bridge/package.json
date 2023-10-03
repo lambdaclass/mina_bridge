@@ -42,6 +42,6 @@
     "prettier": "^2.3.2",
     "ts-jest": "^28.0.8",
     "typescript": "^4.9.5",
-    "o1js": "https://github.com/o1-labs/o1js.git#feature/foreign-field-merged"
+    "o1js": "file:o1js"
   }
 }
