@@ -1,7 +1,7 @@
 import { Scalar } from "o1js";
 import { ScalarChallenge } from "./prover"
 
-// This test has a twin in the 'verify_circuit_tests' Rust crate.
+// This test has a twin in the 'verifier_circuit_tests' Rust crate.
 test("toFieldWithLength", () => {
     const chal = new ScalarChallenge(Scalar.from("0x123456789"));
     const endo_coeff = Scalar.from(

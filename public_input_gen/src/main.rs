@@ -99,7 +99,7 @@ fn prove_and_verify(srs: &SRS<Pallas>, gates: Vec<CircuitGate<Fq>>, witness: [Ve
     let value_to_compare = compute_msm_for_verification(srs, &opening);
 
     fs::write(
-        "../evm_bridge/test/inputs.json",
+        "../verifier_circuit/src/inputs.json",
         serde_json::to_string(&Inputs {
             sg: [
                 opening.sg.x.to_biguint().to_string(),
@@ -162,7 +162,7 @@ fn naive_msm(points: &[Pallas], scalars: &[BigInteger256]) -> Pallas {
         steps.push(result);
     }
     fs::write(
-        "../evm_bridge/test/steps.json",
+        "../verifier_circuit/src/steps.json",
         serde_json::to_string(
             &steps
                 .iter()

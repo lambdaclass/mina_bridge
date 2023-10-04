@@ -12,7 +12,7 @@ use kimchi::{
     proof::ProverProof,
     prover_index::testing::new_index_for_test_with_lookups,
 };
-use verify_circuit_tests::{
+use verifier_circuit_tests::{
     to_batch_step1, to_batch_step2, BaseSponge, ProverProofTS, ScalarSponge, UncompressedPolyComm,
     VerifierIndexTS,
 };
@@ -28,7 +28,7 @@ fn main() {
     let verifier_index = prover_index.verifier_index();
     // Export for typescript tests
     fs::write(
-        "../evm_bridge/test/verifier_index.json",
+        "../verifier_circuit/test/verifier_index.json",
         serde_json::to_string_pretty(&VerifierIndexTS::from(&verifier_index)).unwrap(),
     )
     .unwrap();
@@ -47,7 +47,7 @@ fn main() {
 
     // Export proof
     fs::write(
-        "../evm_bridge/test/proof.json",
+        "../verifier_circuit/test/proof.json",
         serde_json::to_string_pretty(&ProverProofTS::from(&proof)).unwrap(),
     )
     .unwrap();
@@ -67,7 +67,7 @@ fn main() {
         })
         .collect();
     fs::write(
-        "../evm_bridge/test/lagrange_bases.json",
+        "../verifier_circuit/test/lagrange_bases.json",
         serde_json::to_string_pretty(&uncompressed_lagrange_bases).unwrap(),
     )
     .unwrap();
@@ -82,7 +82,7 @@ fn main() {
 mod unit_tests {
     use kimchi::mina_poseidon::sponge::ScalarChallenge;
     use num_bigint::BigUint;
-    use verify_circuit_tests::PallasScalar;
+    use verifier_circuit_tests::PallasScalar;
 
     #[test]
     fn to_field_with_length() {

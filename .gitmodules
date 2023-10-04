@@ -1,0 +1,3 @@
+[submodule "verifier_circuit/o1js"]
+	path = verifier_circuit/o1js
+	url = https://github.com/o1-labs/o1js.git
