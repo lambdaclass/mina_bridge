@@ -49,28 +49,5 @@ if (!isValid) {
     exit();
 }
 
-console.log("Generating constraint system...");
-let cs = keypair.constraintSystem();
-writeFileSync("../kzg_prover/test_data/constraint_system.json", JSON.stringify(cs));
-
-console.log("Generating witness...");
-let witness_ml = await Verifier.generateWitness([], public_input, keypair);
-
-// Convert OCaml witness to JSON witness so that we can write it into a file
-let witness: Field[][] = [];
-for (let maybe_row_ml of witness_ml) {
-    let row_ml = maybe_row_ml as MlArray<FieldVar>;
-    let row = [];
-
-    for (let maybe_field_ml of row_ml) {
-        let field_ml = maybe_field_ml as FieldVar;
-        row.push(new Field(field_ml));
-    }
-
-    witness.push(row);
-}
-
-writeFileSync("../kzg_prover/test_data/witness.json", JSON.stringify(witness));
-
 // ----------------------------------------------------
 console.log('Shutting down O1JS...');
