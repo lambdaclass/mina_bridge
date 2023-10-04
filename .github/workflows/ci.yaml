@@ -6,13 +6,6 @@ on:
     branches: ["*"]
 
 jobs:
-  kzg_prover:
-    name: KZG Prover
-    uses: ./.github/workflows/rust_ci.yaml
-    with:
-      directory: kzg_prover
-      skip_run: true
-
   public_input_gen:
     name: Public input generation
     uses: ./.github/workflows/rust_ci.yaml
