@@ -33,6 +33,9 @@ jobs:
         with:
           node-version: latest
 
+      - name: Init O1JS submodule
+        run: git submodule init
+
       - name: Set up dependencies
         run: npm ci
 
