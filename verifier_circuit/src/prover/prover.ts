@@ -1,15 +1,19 @@
 import { Polynomial } from "../polynomial.js"
 import { Field, Group, Scalar } from "o1js"
-import { PolyComm } from "../poly_commitment/commitment";
+import { PolyComm, bPoly, bPolyCoefficients } from "../poly_commitment/commitment";
 import { getLimbs64 } from "../util/bigint";
 import { Sponge } from "../verifier/sponge";
 import { Verifier, VerifierIndex } from "../verifier/verifier.js";
+import { invScalar, powScalar } from "../util/scalar.js";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
-    evals: ProofEvaluations<PointEvaluations<Array<Scalar>>>
+    evals: ProofEvaluations<PointEvaluations<Scalar[]>>
     prev_challenges: RecursionChallenge[]
     commitments: ProverCommitments
+
+    /** Required evaluation for Maller's optimization */
+    ft_eval1: Scalar
 
     constructor(
         evals: ProofEvaluations<PointEvaluations<Scalar[]>>,
@@ -24,7 +28,7 @@ export class ProverProof {
     /**
      * Will run the random oracle argument for removing prover-verifier interaction (Fiat-Shamir transform)
      */
-    oracles(index: VerifierIndex, public_comm: PolyComm<Group>, public_input: Scalar[]) {
+    oracles(index: VerifierIndex, public_comm: PolyComm<Group>, public_input?: Scalar[]) {
         let sponge_test = new Sponge();
         const fields = [Field.from(1), Field.from(2)];
         fields.forEach((f) => {
@@ -35,6 +39,14 @@ export class ProverProof {
         const endo_r = Scalar.from("0x397e65a7d7c1ad71aee24b27e308f0a61259527ec1d4752e619d1840af55f1b1");
         // FIXME: ^ currently hard-coded, refactor this in the future
 
+        let chunk_size;
+        if (index.domain_size < index.max_poly_size) {
+            chunk_size = 1;
+        } else {
+            chunk_size = index.domain_size / index.max_poly_size;
+        }
+
+        let zk_rows = index.zk_rows;
         //~ 1. Setup the Fq-Sponge.
         let fq_sponge = new Sponge();
 
@@ -99,257 +111,350 @@ export class ProverProof {
         // more-expensive 'optional sponge'.
         let fr_sponge_aux = new Sponge();
         this.prev_challenges.forEach((prev) => fr_sponge_aux.absorbScalars(prev.chals));
-        fr_sponge.absorbScalar(fr_sponge.digest());
+        fr_sponge.absorbScalar(fr_sponge_aux.digest());
 
-        //   // prepare some often used values
-        //   let zeta1 = zeta.pow([n]);
-        //   let zetaw = zeta * index.domain.group_gen;
-        //   let evaluation_points = [zeta, zetaw];
-        //   let powers_of_eval_points_for_chunks = PointEvaluations {
-        //       zeta: zeta.pow([index.max_poly_size as u64]),
-        //       zeta_omega: zetaw.pow([index.max_poly_size as u64]),
-        //   };
+        // prepare some often used values
 
-        //   //~ 1. Compute evaluations for the previous recursion challenges.
-        //   let polys: Vec<(PolyComm<G>, _)> = self
-        //       .prev_challenges
-        //       .iter()
-        //       .map(|challenge| {
-        //           let evals = challenge.evals(
-        //               index.max_poly_size,
-        //               &evaluation_points,
-        //               &[
-        //                   powers_of_eval_points_for_chunks.zeta,
-        //                   powers_of_eval_points_for_chunks.zeta_omega,
-        //               ],
-        //           );
-        //           let RecursionChallenge { chals: _, comm } = challenge;
-        //           (comm.clone(), evals)
-        //       })
-        //       .collect();
+        let zeta1 = powScalar(zeta, n);
+        const zetaw = zeta.mul(index.domain_gen);
+        const evaluation_points = [zeta, zetaw];
+        const powers_of_eval_points_for_chunks: PointEvaluations<Scalar> = {
+            zeta: powScalar(zeta, index.max_poly_size),
+            zetaOmega: powScalar(zetaw, index.max_poly_size)
+        };
 
-        //   // retrieve ranges for the powers of alphas
-        //   let mut all_alphas = index.powers_of_alpha.clone();
-        //   all_alphas.instantiate(alpha);
+        //~ 20. Compute evaluations for the previous recursion challenges.
+        const polys = this.prev_challenges.map((chal) => {
+            const evals = chal.evals(
+                index.max_poly_size,
+                evaluation_points,
+                [
+                    powers_of_eval_points_for_chunks.zeta,
+                    powers_of_eval_points_for_chunks.zetaOmega
+                ]
+            );
+            return [chal.comm, evals];
+        });
 
-        //   // compute Lagrange base evaluation denominators
-        //   let w: Vec<_> = index.domain.elements().take(public_input.len()).collect();
+        // retrieve ranges for the powers of alphas
+        let all_alphas = index.powers_of_alpha;
+        all_alphas.instantiate(alpha);
 
-        //   let mut zeta_minus_x: Vec<_> = w.iter().map(|w| zeta - w).collect();
+        let public_evals: Scalar[][] | undefined;
+        if (this.evals.public_input) {
+            public_evals = [this.evals.public_input.zeta, this.evals.public_input.zetaOmega];
+        } else if (chunk_size > 1) {
+            // FIXME: missing public input eval error
+        } else if (public_input) {
+            // compute Lagrange base evaluation denominators
+            let w = [Scalar.from(1)];
+            for (let i = 0; i < public_input.length; i++) {
+                w.push(powScalar(index.domain_gen, i));
+            }
 
-        //   w.iter()
-        //       .take(public_input.len())
-        //       .for_each(|w| zeta_minus_x.push(zetaw - w));
+            let zeta_minus_x = w.map((w_i) => zeta.sub(w_i));
 
-        //   ark_ff::fields::batch_inversion::<G::ScalarField>(&mut zeta_minus_x);
+            w.forEach((w_i) => zeta_minus_x.push(zetaw.sub(w_i)))
 
-        //   //~ 1. Evaluate the negated public polynomial (if present) at $\zeta$ and $\zeta\omega$.
-        //   //~
-        //   //~    NOTE: this works only in the case when the poly segment size is not smaller than that of the domain.
-        //   let public_evals = if public_input.is_empty() {
-        //       [vec![G::ScalarField::zero()], vec![G::ScalarField::zero()]]
-        //   } else {
-        //       [
-        //           vec![
-        //               (public_input
-        //                   .iter()
-        //                   .zip(zeta_minus_x.iter())
-        //                   .zip(index.domain.elements())
-        //                   .map(|((p, l), w)| -*l * p * w)
-        //                   .fold(G::ScalarField::zero(), |x, y| x + y))
-        //                   * (zeta1 - G::ScalarField::one())
-        //                   * index.domain.size_inv,
-        //           ],
-        //           vec![
-        //               (public_input
-        //                   .iter()
-        //                   .zip(zeta_minus_x[public_input.len()..].iter())
-        //                   .zip(index.domain.elements())
-        //                   .map(|((p, l), w)| -*l * p * w)
-        //                   .fold(G::ScalarField::zero(), |x, y| x + y))
-        //                   * index.domain.size_inv
-        //                   * (zetaw.pow([n]) - G::ScalarField::one()),
-        //           ],
-        //       ]
-        //   };
+            zeta_minus_x = zeta_minus_x.map(invScalar);
 
-        //   //~ 1. Absorb the unique evaluation of ft: $ft(\zeta\omega)$.
-        //   fr_sponge.absorb(&self.ft_eval1);
+            //~ 21. Evaluate the negated public polynomial (if present) at $\zeta$ and $\zeta\omega$.
+            //  NOTE: this works only in the case when the poly segment size is not smaller than that of the domain.
+            if (public_input.length === 0) {
+                public_evals = [[Scalar.from(0)], [Scalar.from(0)]];
+            } else {
+                let pe_zeta = Scalar.from(0);
+                const min_len = Math.min(
+                    zeta_minus_x.length,
+                    w.length,
+                    public_input.length
+                );
+                for (let i = 0; i < min_len; i++) {
+                    const p = public_input[i];
+                    const l = zeta_minus_x[i];
+                    const w_i = w[i];
 
-        //   //~ 1. Absorb all the polynomial evaluations in $\zeta$ and $\zeta\omega$:
-        //   //~~ * the public polynomial
-        //   //~~ * z
-        //   //~~ * generic selector
-        //   //~~ * poseidon selector
-        //   //~~ * the 15 register/witness
-        //   //~~ * 6 sigmas evaluations (the last one is not evaluated)
-        //   fr_sponge.absorb_multiple(&public_evals[0]);
-        //   fr_sponge.absorb_multiple(&public_evals[1]);
-        //   fr_sponge.absorb_evaluations(&self.evals);
+                    pe_zeta = pe_zeta.add(l.neg().mul(p).mul(w_i));
+                }
+                const size_inv = invScalar(Scalar.from(index.domain_size));
+                pe_zeta = pe_zeta.mul(zeta1.sub(Scalar.from(1))).mul(size_inv);
 
-        //   //~ 1. Sample $v'$ with the Fr-Sponge.
-        //   let v_chal = fr_sponge.challenge();
+                let pe_zetaOmega = Scalar.from(0);
+                const min_lenOmega = Math.min(
+                    zeta_minus_x.length - public_input.length,
+                    w.length,
+                    public_input.length
+                );
+                for (let i = 0; i < min_lenOmega; i++) {
+                    const p = public_input[i];
+                    const l = zeta_minus_x[i + public_input.length];
+                    const w_i = w[i];
 
-        //   //~ 1. Derive $v$ from $v'$ using the endomorphism (TODO: specify).
-        //   let v = v_chal.to_field(endo_r);
+                    pe_zetaOmega = pe_zetaOmega.add(l.neg().mul(p).mul(w_i));
+                }
+                pe_zetaOmega = pe_zetaOmega
+                    .mul(powScalar(zetaw, n).sub(Scalar.from(1)))
+                    .mul(size_inv);
 
-        //   //~ 1. Sample $u'$ with the Fr-Sponge.
-        //   let u_chal = fr_sponge.challenge();
+                public_evals = [[pe_zeta], [pe_zetaOmega]];
+            }
+        } else {
+            public_evals = undefined;
+            // FIXME: missing public input eval error
+        }
 
-        //   //~ 1. Derive $u$ from $u'$ using the endomorphism (TODO: specify).
-        //   let u = u_chal.to_field(endo_r);
+        //~ 22. Absorb the unique evaluation of ft: $ft(\zeta\omega)$.
+        fr_sponge.absorbScalar(this.ft_eval1);
 
-        //   //~ 1. Create a list of all polynomials that have an evaluation proof.
+        //~ 23. Absorb all the polynomial evaluations in $\zeta$ and $\zeta\omega$:
+        //~~ * the public polynomial
+        //~~ * z
+        //~~ * generic selector
+        //~~ * poseidon selector
+        //~~ * the 15 register/witness
+        //~~ * 6 sigmas evaluations (the last one is not evaluated)
 
-        //   let evals = self.evals.combine(&powers_of_eval_points_for_chunks);
+        fr_sponge.absorbScalars(public_evals![0]);
+        fr_sponge.absorbScalars(public_evals![1]);
+        fr_sponge.absorbEvals(this.evals)
 
-        //   //~ 1. Compute the evaluation of $ft(\zeta)$.
-        //   let ft_eval0 = {
-        //       let zkp = index.zkpm().evaluate(&zeta);
-        //       let zeta1m1 = zeta1 - G::ScalarField::one();
+        //~ 24. Sample $v'$ with the Fr-Sponge.
+        const v_chal = new ScalarChallenge(fr_sponge.challenge());
 
-        //       let mut alpha_powers =
-        //           all_alphas.get_alphas(ArgumentType::Permutation, permutation::CONSTRAINTS);
-        //       let alpha0 = alpha_powers
-        //           .next()
-        //           .expect("missing power of alpha for permutation");
-        //       let alpha1 = alpha_powers
-        //           .next()
-        //           .expect("missing power of alpha for permutation");
-        //       let alpha2 = alpha_powers
-        //           .next()
-        //           .expect("missing power of alpha for permutation");
+        //~ 25. Derive $v$ from $v'$ using the endomorphism (TODO: specify).
+        const v = v_chal.toField(endo_r);
 
-        //       let init = (evals.w[PERMUTS - 1].zeta + gamma) * evals.z.zeta_omega * alpha0 * zkp;
-        //       let mut ft_eval0 = evals
-        //           .w
-        //           .iter()
-        //           .zip(evals.s.iter())
-        //           .map(|(w, s)| (beta * s.zeta) + w.zeta + gamma)
-        //           .fold(init, |x, y| x * y);
+        //~ 26. Sample $u'$ with the Fr-Sponge.
+        const u_chal = new ScalarChallenge(fr_sponge.challenge());
 
-        //       ft_eval0 -= if public_evals[0].is_empty() {
-        //           G::ScalarField::zero()
-        //       } else {
-        //           public_evals[0][0]
-        //       };
+        //~ 27. Derive $u$ from $u'$ using the endomorphism (TODO: specify).
+        const u = u_chal.toField(endo_r);
 
-        //       ft_eval0 -= evals
-        //           .w
-        //           .iter()
-        //           .zip(index.shift.iter())
-        //           .map(|(w, s)| gamma + (beta * zeta * s) + w.zeta)
-        //           .fold(alpha0 * zkp * evals.z.zeta, |x, y| x * y);
+        //~ 28. Create a list of all polynomials that have an evaluation proof.
 
-        //       let numerator = ((zeta1m1 * alpha1 * (zeta - index.w()))
-        //           + (zeta1m1 * alpha2 * (zeta - G::ScalarField::one())))
-        //           * (G::ScalarField::one() - evals.z.zeta);
+        const evals = ProofEvaluations.combine(this.evals, powers_of_eval_points_for_chunks);
 
-        //       let denominator = (zeta - index.w()) * (zeta - G::ScalarField::one());
-        //       let denominator = denominator.inverse().expect("negligible probability");
+        //~ 29. Compute the evaluation of $ft(\zeta)$.
+        // let ft_eval0 = {
+        //     let permutation_vanishing_polynomial =
+        //         index.permutation_vanishing_polynomial_m().evaluate(&zeta);
+        //     let zeta1m1 = zeta1 - G::ScalarField::one();
 
-        //       ft_eval0 += numerator * denominator;
+        //     let mut alpha_powers =
+        //         all_alphas.get_alphas(ArgumentType::Permutation, permutation::CONSTRAINTS);
+        //     let alpha0 = alpha_powers
+        //         .next()
+        //         .expect("missing power of alpha for permutation");
+        //     let alpha1 = alpha_powers
+        //         .next()
+        //         .expect("missing power of alpha for permutation");
+        //     let alpha2 = alpha_powers
+        //         .next()
+        //         .expect("missing power of alpha for permutation");
 
-        //       let constants = Constants {
-        //           alpha,
-        //           beta,
-        //           gamma,
-        //           joint_combiner: joint_combiner.as_ref().map(|j| j.1),
-        //           endo_coefficient: index.endo,
-        //           mds: &G::sponge_params().mds,
-        //       };
+        //     let init = (evals.w[PERMUTS - 1].zeta + gamma)
+        //         * evals.z.zeta_omega
+        //         * alpha0
+        //         * permutation_vanishing_polynomial;
+        //     let mut ft_eval0 = evals
+        //         .w
+        //         .iter()
+        //         .zip(evals.s.iter())
+        //         .map(|(w, s)| (beta * s.zeta) + w.zeta + gamma)
+        //         .fold(init, |x, y| x * y);
 
-        //       ft_eval0 -= PolishToken::evaluate(
-        //           &index.linearization.constant_term,
-        //           index.domain,
-        //           zeta,
-        //           &evals,
-        //           &constants,
-        //       )
-        //       .unwrap();
+        //     ft_eval0 -= DensePolynomial::eval_polynomial(
+        //         &public_evals[0],
+        //         powers_of_eval_points_for_chunks.zeta,
+        //     );
 
-        //       ft_eval0
-        //   };
+        //     ft_eval0 -= evals
+        //         .w
+        //         .iter()
+        //         .zip(index.shift.iter())
+        //         .map(|(w, s)| gamma + (beta * zeta * s) + w.zeta)
+        //         .fold(
+        //             alpha0 * permutation_vanishing_polynomial * evals.z.zeta,
+        //             |x, y| x * y,
+        //         );
 
-        //   let combined_inner_product = {
-        //       let ft_eval0 = vec![ft_eval0];
-        //       let ft_eval1 = vec![self.ft_eval1];
+        //     let numerator = ((zeta1m1 * alpha1 * (zeta - index.w()))
+        //         + (zeta1m1 * alpha2 * (zeta - G::ScalarField::one())))
+        //         * (G::ScalarField::one() - evals.z.zeta);
 
-        //       #[allow(clippy::type_complexity)]
-        //       let mut es: Vec<(Vec<Vec<G::ScalarField>>, Option<usize>)> =
-        //           polys.iter().map(|(_, e)| (e.clone(), None)).collect();
-        //       es.push((public_evals.to_vec(), None));
-        //       es.push((vec![ft_eval0, ft_eval1], None));
-        //       for col in [
-        //           Column::Z,
-        //           Column::Index(GateType::Generic),
-        //           Column::Index(GateType::Poseidon),
-        //       ]
-        //       .into_iter()
-        //       .chain((0..COLUMNS).map(Column::Witness))
-        //       .chain((0..COLUMNS).map(Column::Coefficient))
-        //       .chain((0..PERMUTS - 1).map(Column::Permutation))
-        //       .chain(
-        //           index
-        //               .lookup_index
-        //               .as_ref()
-        //               .map(|li| {
-        //                   (0..li.lookup_info.max_per_row + 1)
-        //                       .map(Column::LookupSorted)
-        //                       .chain([Column::LookupAggreg, Column::LookupTable].into_iter())
-        //                       .chain(
-        //                           li.runtime_tables_selector
-        //                               .as_ref()
-        //                               .map(|_| [Column::LookupRuntimeTable].into_iter())
-        //                               .into_iter()
-        //                               .flatten(),
-        //                       )
-        //               })
-        //               .into_iter()
-        //               .flatten(),
-        //       ) {
-        //           es.push((
-        //               {
-        //                   let evals = self
-        //                       .evals
-        //                       .get_column(col)
-        //                       .ok_or(VerifyError::MissingEvaluation(col))?;
-        //                   vec![evals.zeta.clone(), evals.zeta_omega.clone()]
-        //               },
-        //               None,
-        //           ))
-        //       }
+        //     let denominator = (zeta - index.w()) * (zeta - G::ScalarField::one());
+        //     let denominator = denominator.inverse().expect("negligible probability");
 
-        //       combined_inner_product(&evaluation_points, &v, &u, &es, index.srs().g.len())
-        //   };
+        //     ft_eval0 += numerator * denominator;
 
-        //   let oracles = RandomOracles {
-        //       joint_combiner,
-        //       beta,
-        //       gamma,
-        //       alpha_chal,
-        //       alpha,
-        //       zeta,
-        //       v,
-        //       u,
-        //       zeta_chal,
-        //       v_chal,
-        //       u_chal,
-        //   };
+        //     let constants = Constants {
+        //         alpha,
+        //         beta,
+        //         gamma,
+        //         joint_combiner: joint_combiner.as_ref().map(|j| j.1),
+        //         endo_coefficient: index.endo,
+        //         mds: &G::sponge_params().mds,
+        //         zk_rows,
+        //     };
 
-        //   Ok(OraclesResult {
-        //       fq_sponge,
-        //       digest,
-        //       oracles,
-        //       all_alphas,
-        //       public_evals,
-        //       powers_of_eval_points_for_chunks,
-        //       polys,
-        //       zeta1,
-        //       ft_eval0,
-        //       combined_inner_product,
-        //   })
-    }//
+        //     ft_eval0 -= PolishToken::evaluate(
+        //         &index.linearization.constant_term,
+        //         index.domain,
+        //         zeta,
+        //         &evals,
+        //         &constants,
+        //     )
+        //     .unwrap();
+
+        //     ft_eval0
+        // };
+
+        // let combined_inner_product =
+        //     {
+        //         let ft_eval0 = vec![ft_eval0];
+        //         let ft_eval1 = vec![self.ft_eval1];
+
+        //         #[allow(clippy::type_complexity)]
+        //         let mut es: Vec<(Vec<Vec<G::ScalarField>>, Option<usize>)> =
+        //             polys.iter().map(|(_, e)| (e.clone(), None)).collect();
+        //         es.push((public_evals.to_vec(), None));
+        //         es.push((vec![ft_eval0, ft_eval1], None));
+        //         for col in [
+        //             Column::Z,
+        //             Column::Index(GateType::Generic),
+        //             Column::Index(GateType::Poseidon),
+        //             Column::Index(GateType::CompleteAdd),
+        //             Column::Index(GateType::VarBaseMul),
+        //             Column::Index(GateType::EndoMul),
+        //             Column::Index(GateType::EndoMulScalar),
+        //         ]
+        //         .into_iter()
+        //         .chain((0..COLUMNS).map(Column::Witness))
+        //         .chain((0..COLUMNS).map(Column::Coefficient))
+        //         .chain((0..PERMUTS - 1).map(Column::Permutation))
+        //         .chain(
+        //             index
+        //                 .range_check0_comm
+        //                 .as_ref()
+        //                 .map(|_| Column::Index(GateType::RangeCheck0)),
+        //         )
+        //         .chain(
+        //             index
+        //                 .range_check1_comm
+        //                 .as_ref()
+        //                 .map(|_| Column::Index(GateType::RangeCheck1)),
+        //         )
+        //         .chain(
+        //             index
+        //                 .foreign_field_add_comm
+        //                 .as_ref()
+        //                 .map(|_| Column::Index(GateType::ForeignFieldAdd)),
+        //         )
+        //         .chain(
+        //             index
+        //                 .foreign_field_mul_comm
+        //                 .as_ref()
+        //                 .map(|_| Column::Index(GateType::ForeignFieldMul)),
+        //         )
+        //         .chain(
+        //             index
+        //                 .xor_comm
+        //                 .as_ref()
+        //                 .map(|_| Column::Index(GateType::Xor16)),
+        //         )
+        //         .chain(
+        //             index
+        //                 .rot_comm
+        //                 .as_ref()
+        //                 .map(|_| Column::Index(GateType::Rot64)),
+        //         )
+        //         .chain(
+        //             index
+        //                 .lookup_index
+        //                 .as_ref()
+        //                 .map(|li| {
+        //                     (0..li.lookup_info.max_per_row + 1)
+        //                         .map(Column::LookupSorted)
+        //                         .chain([Column::LookupAggreg, Column::LookupTable].into_iter())
+        //                         .chain(
+        //                             li.runtime_tables_selector
+        //                                 .as_ref()
+        //                                 .map(|_| [Column::LookupRuntimeTable].into_iter())
+        //                                 .into_iter()
+        //                                 .flatten(),
+        //                         )
+        //                         .chain(
+        //                             self.evals
+        //                                 .runtime_lookup_table_selector
+        //                                 .as_ref()
+        //                                 .map(|_| Column::LookupRuntimeSelector),
+        //                         )
+        //                         .chain(
+        //                             self.evals
+        //                                 .xor_lookup_selector
+        //                                 .as_ref()
+        //                                 .map(|_| Column::LookupKindIndex(LookupPattern::Xor)),
+        //                         )
+        //                         .chain(
+        //                             self.evals
+        //                                 .lookup_gate_lookup_selector
+        //                                 .as_ref()
+        //                                 .map(|_| Column::LookupKindIndex(LookupPattern::Lookup)),
+        //                         )
+        //                         .chain(
+        //                             self.evals.range_check_lookup_selector.as_ref().map(|_| {
+        //                                 Column::LookupKindIndex(LookupPattern::RangeCheck)
+        //                             }),
+        //                         )
+        //                         .chain(self.evals.foreign_field_mul_lookup_selector.as_ref().map(
+        //                             |_| Column::LookupKindIndex(LookupPattern::ForeignFieldMul),
+        //                         ))
+        //                 })
+        //                 .into_iter()
+        //                 .flatten(),
+        //         ) {
+        //             es.push((
+        //                 {
+        //                     let evals = self
+        //                         .evals
+        //                         .get_column(col)
+        //                         .ok_or(VerifyError::MissingEvaluation(col))?;
+        //                     vec![evals.zeta.clone(), evals.zeta_omega.clone()]
+        //                 },
+        //                 None,
+        //             ))
+        //         }
+
+        //         combined_inner_product(&evaluation_points, &v, &u, &es, index.srs().g.len())
+        //     };
+
+        // let oracles = RandomOracles {
+        //     joint_combiner,
+        //     beta,
+        //     gamma,
+        //     alpha_chal,
+        //     alpha,
+        //     zeta,
+        //     v,
+        //     u,
+        //     zeta_chal,
+        //     v_chal,
+        //     u_chal,
+        // };
+
+        // Ok(OraclesResult {
+        //     fq_sponge,
+        //     digest,
+        //     oracles,
+        //     all_alphas,
+        //     public_evals,
+        //     powers_of_eval_points_for_chunks,
+        //     polys,
+        //     zeta1,
+        //     ft_eval0,
+        //     combined_inner_product,
+        // })
+    }
 }
 
 export class Context {
@@ -369,6 +474,8 @@ export class Context {
  * **Non chunked evaluations** `Field` is instantiated with a field, so they are single-sized#[serde_as]
  */
 export class ProofEvaluations<Evals> {
+    /* public input polynomials */
+    public_input?: Evals
     /* witness polynomials */
     w: Array<Evals> // of size 15, total num of registers (columns)
     /* permutation polynomial */
@@ -387,12 +494,16 @@ export class ProofEvaluations<Evals> {
     /* evaluation of the poseidon selector polynomial */
     poseidonSelector: Evals
 
-    constructor(w: Array<Evals>,
-        z: Evals, s: Array<Evals>,
+    constructor(
+        w: Array<Evals>,
+        z: Evals,
+        s: Array<Evals>,
         coefficients: Array<Evals>,
-        lookup: LookupEvaluations<Evals>,
         genericSelector: Evals,
-        poseidonSelector: Evals) {
+        poseidonSelector: Evals,
+        lookup?: LookupEvaluations<Evals>,
+        public_input?: Evals,
+    ) {
         this.w = w;
         this.z = z;
         this.s = s;
@@ -400,6 +511,7 @@ export class ProofEvaluations<Evals> {
         this.lookup = lookup;
         this.genericSelector = genericSelector;
         this.poseidonSelector = poseidonSelector;
+        this.public_input = public_input;
         return this;
     }
 
@@ -414,6 +526,43 @@ export class ProofEvaluations<Evals> {
         let ret = new PointEvaluations(zeta, zetaOmega);
         return ret;
     }
+
+    map<Evals2>(f: (e: Evals) => Evals2): ProofEvaluations<Evals2> {
+        let {
+            w,
+            z,
+            s,
+            coefficients,
+            //lookup,
+            genericSelector,
+            poseidonSelector,
+        } = this;
+
+        let public_input = undefined;
+        if (this.public_input) public_input = f(this.public_input);
+
+        return new ProofEvaluations(
+            w.map(f),
+            f(z),
+            s.map(f),
+            coefficients.map(f),
+            f(genericSelector),
+            f(poseidonSelector),
+            undefined, // FIXME: ignoring lookup
+            public_input
+        )
+    }
+
+    static combine(
+        evals: ProofEvaluations<PointEvaluations<Scalar[]>>,
+        pt: PointEvaluations<Scalar>
+    ): ProofEvaluations<PointEvaluations<Scalar>> {
+        return evals.map((orig) => new PointEvaluations(
+            Polynomial.buildAndEvaluate(orig.zeta, pt.zeta),
+            Polynomial.buildAndEvaluate(orig.zetaOmega, pt.zetaOmega)
+        ));
+    }
+
     /*
     pub fn combine(&self, pt: &PointEvaluations<F>) -> ProofEvaluations<PointEvaluations<F>> {
         self.map_ref(&|evals| PointEvaluations {
@@ -478,6 +627,48 @@ export class PointEvaluations<Evals> {
 export class RecursionChallenge {
     chals: Scalar[]
     comm: PolyComm<Group>
+
+    evals(
+        max_poly_size: number,
+        evaluation_points: Scalar[],
+        powers_of_eval_points_for_chunks: Scalar[]
+    ): Scalar[][] {
+        const chals = this.chals;
+        // Comment copied from Kimchi code:
+        //
+        // No need to check the correctness of poly explicitly. Its correctness is assured by the
+        // checking of the inner product argument.
+        const b_len = 1 << chals.length;
+        let b: Scalar[] | undefined = undefined;
+
+        return [0, 1, 2].map((i) => {
+            const full = bPoly(chals, evaluation_points[i])
+            if (max_poly_size === b_len) {
+                return [full];
+            }
+
+            let betacc = Scalar.from(1);
+            let diffs: Scalar[] = [];
+            for (let j = max_poly_size; j < b_len; j++) {
+                let b_j;
+                if (b) {
+                    b_j = b[j];
+                } else {
+                    const t = bPolyCoefficients(chals);
+                    const res = t[j];
+                    b = t;
+                    b_j = res;
+                }
+
+                const ret = betacc.mul(b_j);
+                betacc = betacc.mul(evaluation_points[i]);
+                diffs.push(ret);
+            }
+
+            const diff = diffs.reduce((x, y) => x.add(y), Scalar.from(0));
+            return [full.sub(diff.mul(powers_of_eval_points_for_chunks[i])), diff];
+        });
+    }
 }
 
 export class ProverCommitments {

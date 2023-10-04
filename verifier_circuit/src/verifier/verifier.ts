@@ -4,6 +4,7 @@ import { circuitMain, Circuit, Group, Scalar, public_, Field } from 'o1js';
 import { PolyComm } from '../poly_commitment/commitment.js';
 import { SRS } from '../SRS.js';
 import { Sponge } from './sponge.js';
+import { Alphas } from '../alphas.js';
 
 let steps: bigint[][];
 try {
@@ -20,7 +21,13 @@ let { g, h } = SRS.createFromJSON();
 export class VerifierIndex {
     srs: SRS
     domain_size: number
+    domain_gen: Scalar
+    /** number of public inputs */
     public: number
+    /** maximal size of polynomial section */
+    max_poly_size: number
+    /** the number of randomized rows to achieve zero knowledge */
+    zk_rows: number
 
     /** permutation commitments */
     sigma_comm: PolyComm<Group>[] // size PERMUTS
@@ -38,6 +45,9 @@ export class VerifierIndex {
     emul_comm: PolyComm<Group>
     /** endoscalar multiplication scalar computation selector polynomial commitment */
     endomul_scalar_comm: PolyComm<Group>
+
+    /** The mapping between powers of alpha and constraints */
+    powers_of_alpha: Alphas
 
     constructor(
         domain_size: number,

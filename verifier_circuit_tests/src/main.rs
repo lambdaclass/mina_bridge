@@ -80,7 +80,7 @@ fn main() {
 
 #[cfg(test)]
 mod unit_tests {
-    use kimchi::mina_poseidon::sponge::ScalarChallenge;
+    use kimchi::{mina_poseidon::sponge::ScalarChallenge, poly_commitment::commitment::{b_poly, b_poly_coefficients}};
     use num_bigint::BigUint;
     use verifier_circuit_tests::PallasScalar;
 
@@ -96,6 +96,25 @@ mod unit_tests {
         let length_in_bits = 10;
 
         let result = chal.to_field_with_length(length_in_bits, &endo_coeff);
-        println!("{}", result);
+        println!("to_field_with_length: {}", result);
+    }
+
+    #[test]
+    fn b_poly_test() {
+        // arbitrary values
+        let coeffs = vec![PallasScalar::from(42), PallasScalar::from(25), PallasScalar::from(420)];
+        let x = PallasScalar::from(12);
+
+        let result = b_poly(&coeffs, x);
+        println!("b_poly_test: {}", result);
+    }
+
+    #[test]
+    fn b_poly_coefficients_test() {
+        // arbitrary values
+        let coeffs = vec![PallasScalar::from(42), PallasScalar::from(25)];
+
+        let result = b_poly_coefficients(&coeffs);
+        println!("b_poly_coefficients_test: {:?}", result);
     }
 }
