@@ -25,12 +25,12 @@ jobs:
     with:
       directory: verify_circuit_tests
 
-  evm_bridge:
+  verifier_circuit:
     name: Build and test EVM bridge
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./evm_bridge
+        working-directory: ./verifier_circuit
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4

@@ -1,8 +1,6 @@
 import { readFileSync, writeFileSync } from "fs";
 import { Field, Group, Scalar } from "o1js";
 import { Verifier } from "./verifier/verifier.js";
-import { MlArray } from "o1js/dist/node/lib/ml/base.js";
-import { FieldVar } from "o1js/dist/node/lib/field.js";
 import { exit } from "process";
 
 let inputs: { sg: bigint[], z1: bigint, expected: bigint[] };
@@ -48,6 +46,14 @@ console.log("Is valid proof:", isValid);
 if (!isValid) {
     exit();
 }
+
+console.log("Writing proof into file...");
+
+// See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt#use_within_json
+const replacer = (_key: string, value: any) =>
+    typeof value === "bigint" ? value.toString() : value;
+
+writeFileSync("../proof.json", JSON.stringify(proof, replacer));
 
 // ----------------------------------------------------
 console.log('Shutting down O1JS...');
