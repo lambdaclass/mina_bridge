@@ -7,7 +7,7 @@ import { Verifier, VerifierIndex } from "../verifier/verifier.js";
 import { invScalar, powScalar } from "../util/scalar.js";
 import { GateType } from "../circuits/gate.js";
 import { Alphas } from "../alphas.js";
-import { PolishToken } from "./expr.js";
+import { Column, PolishToken } from "./expr.js";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
@@ -399,40 +399,6 @@ export class Context {
     /* The public input used in the creation of the proof */
     public_input: Scalar[]
 };
-
-/** A type representing one of the polynomials involved in the PLONK IOP */
-export namespace Column {
-    export type Witness = {
-        kind: "witness"
-        index: number
-    }
-
-    export type Z = {
-        kind: "z"
-    }
-
-    export type Index = {
-        kind: "index"
-        typ: GateType
-    }
-
-    export type Coefficient = {
-        kind: "coefficient"
-        index: number
-    }
-
-    export type Permutation = {
-        kind: "permutation"
-        index: number
-    }
-}
-
-export type Column =
-    | Column.Witness
-    | Column.Z
-    | Column.Index
-    | Column.Coefficient
-    | Column.Permutation;
 
 /**
  * Polynomial evaluations contained in a `ProverProof`.

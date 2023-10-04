@@ -1,6 +1,97 @@
 import { Scalar } from "o1js";
 import { Constants, PointEvaluations, ProofEvaluations } from "./prover";
 import { invScalar, powScalar } from "../util/scalar";
+import { GateType } from "../circuits/gate";
+
+/** A type representing one of the polynomials involved in the PLONK IOP */
+export namespace Column {
+    export type Witness = {
+        kind: "witness"
+        index: number
+    }
+
+    export type Z = {
+        kind: "z"
+    }
+
+    export type Index = {
+        kind: "index"
+        typ: GateType
+    }
+
+    export type Coefficient = {
+        kind: "coefficient"
+        index: number
+    }
+
+    export type Permutation = {
+        kind: "permutation"
+        index: number
+    }
+}
+
+export type Column =
+    | Column.Witness
+    | Column.Z
+    | Column.Index
+    | Column.Coefficient
+    | Column.Permutation;
+
+/**
+ * A row accessible from a given row, corresponds to the fact that we open all polynomials
+ * at `zeta` **and** `omega * zeta`
+ */
+export enum CurrOrNext {
+    Curr,
+    Next
+}
+
+/**
+ * A type representing a variable which can appear in a constraint. It specifies a column
+ * and a relative position (Curr or Next)
+ */
+export class Variable {
+    col: Column
+    row: CurrOrNext
+
+    evaluate(evals: ProofEvaluations<PointEvaluations<Scalar>>): Scalar {
+        let point_evaluations: PointEvaluations<Scalar> | undefined = undefined;
+        switch (this.col.kind) {
+            case "witness": {
+                point_evaluations = evals.w[this.col.index];
+                break;
+            }
+            case "z": {
+                point_evaluations = evals.z;
+                break;
+            }
+            case "index": {
+                switch (this.col.typ) {
+                    case GateType.Poseidon: {
+                        point_evaluations = evals.poseidonSelector;
+                        break;
+                    }
+                    case GateType.Generic: {
+                        point_evaluations = evals.genericSelector;
+                        break;
+                    }
+                }
+                break;
+            }
+            case "permutation": {
+                point_evaluations = evals.s[this.col.index];
+                break;
+            }
+            case "coefficient": {
+                point_evaluations = evals.coefficients[this.col.index];
+                break;
+            }
+        }
+        return this.row === CurrOrNext.Curr
+            ? point_evaluations!.zeta
+            : point_evaluations!.zetaOmega;
+    }
+}
 
 export namespace PolishToken {
     export type Alpha = {
@@ -30,7 +121,7 @@ export namespace PolishToken {
     }
     export type Cell = {
         kind: "cell"
-        //cell: Variable // FIXME: implement
+        cell: Variable
     }
     export type Dup = {
         kind: "dup"
@@ -108,10 +199,10 @@ export namespace PolishToken {
                     stack.push(c.gamma);
                     break;
                 }
-                case "gamma": {
-                    stack.push(c.gamma);
-                    break;
-                }
+                // case "jointcombiner": {
+                //     break;
+                // }
+                // FIXME: lookup related
                 case "endocoefficient": {
                     stack.push(c.endo_coefficient);
                     break;
@@ -150,8 +241,7 @@ export namespace PolishToken {
                     break;
                 }
                 case "cell": {
-                    // FIXME: implement
-                    evals; // leave this temporarily so evals isn't unused
+                    stack.push(t.cell.evaluate(evals));
                     break;
                 }
                 case "pow": {
