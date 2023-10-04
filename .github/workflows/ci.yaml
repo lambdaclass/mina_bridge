@@ -6,31 +6,24 @@ on:
     branches: ["*"]
 
 jobs:
-  kzg_prover:
-    name: KZG Prover
-    uses: ./.github/workflows/rust_ci.yaml
-    with:
-      directory: kzg_prover
-      skip_run: true
-
   public_input_gen:
     name: Public input generation
     uses: ./.github/workflows/rust_ci.yaml
     with:
       directory: public_input_gen
 
-  verify_circuit_tests:
+  verifier_circuit_tests:
     name: Verifying circuit Rust tests
     uses: ./.github/workflows/rust_ci.yaml
     with:
-      directory: verify_circuit_tests
+      directory: verifier_circuit_tests
 
-  evm_bridge:
+  verifier_circuit:
     name: Build and test EVM bridge
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./evm_bridge
+        working-directory: ./verifier_circuit
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
@@ -40,6 +33,9 @@ jobs:
         with:
           node-version: latest
 
+      - name: Setup o1js submodule
+        run: git submodule update --init --recursive
+
       - name: Set up dependencies
         run: npm ci
 
@@ -48,3 +44,13 @@ jobs:
 
       - name: Run npm test
         run: npm run test
+
+  integration:
+    name: Integration test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Run integration test
+        run: make

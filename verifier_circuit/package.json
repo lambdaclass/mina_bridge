@@ -18,7 +18,7 @@
     "buildw": "tsc --watch",
     "coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
     "format": "prettier --write --ignore-unknown **/*",
-    "preinstall": "cd .. && sh setup.sh",
+    "preinstall": "cd o1js && npm run build",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "testw": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
     "lint": "npx eslint src/* --fix"
@@ -42,9 +42,7 @@
     "lint-staged": "^11.0.1",
     "prettier": "^2.3.2",
     "ts-jest": "^28.0.8",
-    "typescript": "^4.9.5"
-  },
-  "peerDependencies": {
-    "o1js": "../mina_monorepo/src/lib/snarkyjs"
+    "typescript": "^4.9.5",
+    "o1js": "file:o1js"
   }
 }
