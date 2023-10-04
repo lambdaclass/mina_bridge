@@ -19,11 +19,11 @@ jobs:
     with:
       directory: public_input_gen
 
-  verify_circuit_tests:
+  verifier_circuit_tests:
     name: Verifying circuit Rust tests
     uses: ./.github/workflows/rust_ci.yaml
     with:
-      directory: verify_circuit_tests
+      directory: verifier_circuit_tests
 
   verifier_circuit:
     name: Build and test EVM bridge
