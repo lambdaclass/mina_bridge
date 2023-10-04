@@ -46,7 +46,11 @@ jobs:
         run: npm run test
 
   integration:
-    name: Run integration test
+    name: Integration test
     runs-on: ubuntu-latest
     steps:
-      - run: make
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Run integration test
+        run: make
