@@ -6,6 +6,7 @@ import { SRS } from '../SRS.js';
 import { Sponge } from './sponge.js';
 import { Alphas } from '../alphas.js';
 import { Polynomial } from '../polynomial.js';
+import { PolishToken } from '../prover/expr.js';
 
 let steps: bigint[][];
 try {
@@ -57,6 +58,12 @@ export class VerifierIndex {
     w: Scalar
     /** Endoscalar coefficient */
     endo: Scalar
+
+    /**
+     * The constant term of a a "linearization", which is linear combination with
+     * coefficients of columns.
+     */
+    linear_constant_term: PolishToken[]
 
     constructor(
         domain_size: number,

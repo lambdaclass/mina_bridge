@@ -7,6 +7,7 @@ import { Verifier, VerifierIndex } from "../verifier/verifier.js";
 import { invScalar, powScalar } from "../util/scalar.js";
 import { GateType } from "../circuits/gate.js";
 import { Alphas } from "../alphas.js";
+import { PolishToken } from "./expr.js";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
@@ -282,20 +283,14 @@ export class ProverProof {
             mds: [[]] // FIXME: empty for now, should be a sponge param
         }
 
-        ft_eval0 = ft_eval0.sub(evaluate_rpn());
-
-        //     ft_eval0 -= PolishToken::evaluate(
-        //         &index.linearization.constant_term,
-        //         index.domain,
-        //         zeta,
-        //         &evals,
-        //         &constants,
-        //     )
-        //     .unwrap();
-
-        //     ft_eval0
-        // };
-        polys
+        ft_eval0 = ft_eval0.sub(PolishToken.evaluate(
+            index.linear_constant_term,
+            zeta,
+            evals,
+            index.domain_gen,
+            index.domain_size,
+            constants
+        ));
 
         const ft_eval0_a = [ft_eval0];
         const ft_eval1_a = [this.ft_eval1];
@@ -727,12 +722,6 @@ export class Constants<F> {
     endo_coefficient: F
     /** The MDS matrix */
     mds: F[][]
-}
-
-// TODO: implement this
-/** Evaluates a reverse polish notation expression into a field element */
-function evaluate_rpn(): Scalar {
-    return Scalar.from(0);
 }
 
 export class RandomOracles {
