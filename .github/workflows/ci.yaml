@@ -39,32 +39,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: latest
-        
-      - name: Install rust toolchain for Mina monorepo
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: nightly-2022-09-12-x86_64-unknown-linux-gnu
-
-      - name: Cache opam packages
-        uses: actions/cache@v3
-        with:
-          key: opam
-          path: /home/runner/.opam
-
-      - name: Clone Mina monorepo and set commit env var
-        run: |
-          git clone https://github.com/lambdaclass/mina_monorepo.git
-          cd mina_monorepo
-          echo "MINA_COMMIT=$(git rev-parse HEAD)" >> $GITHUB_ENV
-
-      - name: Cache Mina monorepo packages
-        uses: actions/cache@v3
-        with:
-          key: mina_monorepo-${{ env.MINA_COMMIT }}
-          path: /home/runner/work/mina_bridge/mina_bridge/mina_monorepo
-      
-      - name: Install opam dependencies
-        run: sudo apt-get install opam liblmdb-dev && opam init
 
       - name: Set up dependencies
         run: npm ci
