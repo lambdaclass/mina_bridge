@@ -1,12 +1,11 @@
 import { readFileSync, writeFileSync } from "fs";
 import { Field, Group, Scalar } from "o1js";
 import { Verifier } from "./verifier/verifier.js";
-import { MlArray } from "o1js/dist/node/lib/ml/base.js";
-import { FieldVar } from "o1js/dist/node/lib/field.js";
+import { exit } from "process";
 
 let inputs: { sg: bigint[], z1: bigint, expected: bigint[] };
 try {
-    inputs = JSON.parse(readFileSync("./src/inputs.json", "utf-8"));
+    inputs = JSON.parse(readFileSync("./test/inputs.json", "utf-8"));
 } catch (e) {
     console.log("Using default inputs");
     inputs = {
@@ -23,7 +22,7 @@ try {
     };
 }
 
-console.log('SnarkyJS loaded');
+console.log('O1JS loaded');
 
 // ----------------------------------------------------
 
@@ -44,24 +43,17 @@ console.log("Verifying...");
 let isValid = await Verifier.verify(public_input, keypair.verificationKey(), proof);
 console.log("Is valid proof:", isValid);
 
-console.log("Generating witness...");
-let witness_ml = await Verifier.generateWitness([], public_input, keypair);
-
-// Convert OCaml witness to JSON witness so that we can write it into a file
-let witness: Field[][] = [];
-for (let maybe_row_ml of witness_ml) {
-    let row_ml = maybe_row_ml as MlArray<FieldVar>;
-    let row = [];
-
-    for (let maybe_field_ml of row_ml) {
-        let field_ml = maybe_field_ml as FieldVar;
-        row.push(new Field(field_ml));
-    }
-
-    witness.push(row);
+if (!isValid) {
+    exit();
 }
 
-writeFileSync("../kzg_prover/test_data/witness.json", JSON.stringify(witness));
+console.log("Writing proof into file...");
+
+// See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt#use_within_json
+const replacer = (_key: string, value: any) =>
+    typeof value === "bigint" ? value.toString() : value;
+
+writeFileSync("../proof.json", JSON.stringify(proof, replacer));
 
 // ----------------------------------------------------
-console.log('Done! Shutting down');
+console.log('Shutting down O1JS...');

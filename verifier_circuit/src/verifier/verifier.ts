@@ -8,7 +8,7 @@ import { Alphas } from '../alphas.js';
 
 let steps: bigint[][];
 try {
-    steps = JSON.parse(readFileSync("./src/steps.json", "utf-8"));
+    steps = JSON.parse(readFileSync("./test/steps.json", "utf-8"));
 } catch (e) {
     steps = [];
 }
