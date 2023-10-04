@@ -33,8 +33,8 @@ jobs:
         with:
           node-version: latest
 
-      - name: Init O1JS submodule
-        run: git submodule init
+      - name: Setup o1js submodule
+        run: git submodule update --init --recursive
 
       - name: Set up dependencies
         run: npm ci
