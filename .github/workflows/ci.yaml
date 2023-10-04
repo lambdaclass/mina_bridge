@@ -45,7 +45,8 @@ jobs:
       - name: Run npm test
         run: npm run test
 
-    integration:
-      name: Run integration test
-      steps:
-        - run: make
+  integration:
+    name: Run integration test
+    runs-on: ubuntu-latest
+    steps:
+      - run: make
