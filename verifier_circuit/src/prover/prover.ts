@@ -297,11 +297,11 @@ export class ProverProof {
         // };
         polys
 
-        ft_eval0 = [ft_eval0];
-        const ft_eval1 = [this.ft_eval1];
+        const ft_eval0_a = [ft_eval0];
+        const ft_eval1_a = [this.ft_eval1];
         let es: [Scalar[][], number | undefined][] = polys.map(([_, e]) => [e, undefined]);
         es.push([public_evals!, undefined]);
-        es.push([[ft_eval0, ft_eval1], undefined]);
+        es.push([[ft_eval0_a, ft_eval1_a], undefined]);
 
         const push_column_eval = (col: Column) => {
             const evals = this
@@ -377,21 +377,21 @@ export function combinedInnerProduct(
         }
 
         if (shifted) {
-            let last_evals: number[];
+            let last_evals: Scalar[];
             if (shifted >= evals.length * srs_length) {
-                last_evals = [Scalar.from(0), evaluation_points.length];
+                last_evals = Array(evaluation_points.length).fill(Scalar.from(0));
             } else {
                 last_evals = evals[evals.length - 1];
             }
 
             const shifted_evals = evaluation_points
-                .map((elm, i) => powScalar(elm, (srs_length - (shifted % srs_length)) * last_evals[i]))
+                .map((elm, i) => powScalar(elm, (srs_length - (shifted % srs_length))).mul(last_evals[i]))
 
             res = res.add((xi_i.mul(Polynomial.buildAndEvaluate(shifted_evals, evalscale))));
             xi_i = xi_i.mul(polyscale);
         }
-        return res;
     }
+    return res;
 }
 
 export class Context {
