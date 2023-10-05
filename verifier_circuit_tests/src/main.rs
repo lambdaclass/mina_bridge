@@ -80,7 +80,10 @@ fn main() {
 
 #[cfg(test)]
 mod unit_tests {
-    use kimchi::{mina_poseidon::sponge::ScalarChallenge, poly_commitment::commitment::{b_poly, b_poly_coefficients}};
+    use kimchi::{
+        mina_poseidon::sponge::ScalarChallenge,
+        poly_commitment::commitment::{b_poly, b_poly_coefficients},
+    };
     use num_bigint::BigUint;
     use verifier_circuit_tests::PallasScalar;
 
@@ -102,7 +105,11 @@ mod unit_tests {
     #[test]
     fn b_poly_test() {
         // arbitrary values
-        let coeffs = vec![PallasScalar::from(42), PallasScalar::from(25), PallasScalar::from(420)];
+        let coeffs = vec![
+            PallasScalar::from(42),
+            PallasScalar::from(25),
+            PallasScalar::from(420),
+        ];
         let x = PallasScalar::from(12);
 
         let result = b_poly(&coeffs, x);
