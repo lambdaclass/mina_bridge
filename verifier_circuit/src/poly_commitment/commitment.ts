@@ -135,7 +135,7 @@ export function bPolyCoefficients(chals: Scalar[]) {
     for (let i = 1; i < s_length; i++) {
         k += i === pow ? 1 : 0;
         pow <<= i === pow ? 1 : 0;
-        s[i] = s[i - (pow >> 1)].mul(chals[rounds - 1 - (k - 1)]);
+        s[i] = s[i - (pow >>> 1)].mul(chals[rounds - 1 - (k - 1)]);
     }
 
     return s;
