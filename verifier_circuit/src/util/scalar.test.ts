@@ -10,11 +10,11 @@ test("powScalar", () => {
 })
 
 
-// test("invScalar", () => {
-//     // Create random Scalar
-//     const rand_base = Scalar.from(Math.floor(Math.random() * 16));
-//     const rand_exp = Math.floor(Math.random() * 32);
-//     const n = powScalar(rand_base, rand_exp);
-// 
-//     expect(n.mul(invScalar(n))).toEqual(Scalar.from(1));
-// })
+test("invScalar", () => {
+    // Create random Scalar
+    const rand_base = Scalar.from(Math.floor(Math.random() * 16));
+    const rand_exp = Math.floor(Math.random() * 32);
+    const n = powScalar(rand_base, rand_exp);
+
+    expect(n.mul(invScalar(n))).toEqual(Scalar.from(1));
+})
