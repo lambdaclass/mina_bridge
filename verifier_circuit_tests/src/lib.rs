@@ -15,7 +15,7 @@ use kimchi::{
         LookupCommitments, LookupEvaluations, PointEvaluations, ProofEvaluations,
         ProverCommitments, ProverProof, RecursionChallenge,
     },
-    verifier_index::VerifierIndex, alphas::Alphas,
+    verifier_index::VerifierIndex, alphas::Alphas, circuits::expr::PolishToken,
 };
 use serde::Serialize;
 
@@ -205,12 +205,12 @@ pub struct VerifierIndexTS {
     emul_comm: UncompressedPolyComm,
     endomul_scalar_comm: UncompressedPolyComm,
 
-    powers_of_alpha: Alphas<PallasScalar>,
+    powers_of_alpha: Alphas<String>,
     shift: Vec<String>,
     zkpm: Vec<String>,
     w: String,
     endo: String,
-    linear_constant_term: PolishTokenJSON
+    linear_constant_term: Vec<PolishToken<String>>
 }
 
 impl From<&VerifierIndex<Pallas>> for VerifierIndexTS {
