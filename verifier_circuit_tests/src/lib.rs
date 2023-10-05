@@ -15,7 +15,7 @@ use kimchi::{
         LookupCommitments, LookupEvaluations, PointEvaluations, ProofEvaluations,
         ProverCommitments, ProverProof, RecursionChallenge,
     },
-    verifier_index::VerifierIndex,
+    verifier_index::VerifierIndex, alphas::Alphas,
 };
 use serde::Serialize;
 
@@ -189,7 +189,10 @@ where
 pub struct VerifierIndexTS {
     //srs: SRS<Pallas>, // excluded because it already is serialized in typescript
     domain_size: usize,
+    domain_gen: String,
     public: usize,
+    max_poly_size: usize,
+    zk_rows: usize,
 
     sigma_comm: Vec<UncompressedPolyComm>, // of size PERMUTS
     coefficients_comm: Vec<UncompressedPolyComm>, // of size COLUMNS
@@ -201,6 +204,13 @@ pub struct VerifierIndexTS {
     mul_comm: UncompressedPolyComm,
     emul_comm: UncompressedPolyComm,
     endomul_scalar_comm: UncompressedPolyComm,
+
+    powers_of_alpha: Alphas<PallasScalar>,
+    shift: Vec<String>,
+    zkpm: Vec<String>,
+    w: String,
+    endo: String,
+    linear_constant_term: PolishTokenJSON
 }
 
 impl From<&VerifierIndex<Pallas>> for VerifierIndexTS {

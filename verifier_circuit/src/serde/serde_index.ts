@@ -9,7 +9,10 @@ export interface PolyCommJSON {
 
 interface VerifierIndexJSON {
     domain_size: number,
+    domain_gen: string,
     public: number,
+    max_poly_size: number
+    zk_rows: number
 
     sigma_comm: PolyCommJSON[]
     coefficients_comm: PolyCommJSON[]
@@ -21,6 +24,13 @@ interface VerifierIndexJSON {
     mul_comm: PolyCommJSON
     emul_comm: PolyCommJSON
     endomul_scalar_comm: PolyCommJSON
+
+    powers_of_alpha: AlphasJSON
+    shift: string[]
+    zkpm: PolynomialJSON
+    w: string
+    endo: string
+    linear_constant_term: PolishTokenJSON
 }
 
 export function deserGroup(x: string, y: string): Group {

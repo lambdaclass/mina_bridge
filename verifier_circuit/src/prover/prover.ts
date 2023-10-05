@@ -88,6 +88,7 @@ export class ProverProof {
         //~ 12. Derive $\alpha$ from $\alpha'$ using the endomorphism (TODO: details).
         const alpha = alpha_chal.toField(endo_r);
 
+        console.log("here");
         //~ 13. Enforce that the length of the $t$ commitment is of size `PERMUTS`.
         if (this.commitments.tComm.unshifted.length !== Verifier.PERMUTS) {
             // FIXME: return error "incorrect commitment length of 't'"
@@ -118,14 +119,18 @@ export class ProverProof {
 
         // prepare some often used values
 
+        console.log("step 19");
         let zeta1 = powScalar(zeta, n);
+        console.log(index.domain_gen)
         const zetaw = zeta.mul(index.domain_gen);
+        console.log("breaks after prev line")
         const evaluation_points = [zeta, zetaw];
         const powers_of_eval_points_for_chunks: PointEvaluations<Scalar> = {
             zeta: powScalar(zeta, index.max_poly_size),
             zetaOmega: powScalar(zetaw, index.max_poly_size)
         };
 
+        console.log("step 20");
         //~ 20. Compute evaluations for the previous recursion challenges.
         const polys: [PolyComm<Group>, Scalar[][]][] = this.prev_challenges.map((chal) => {
             const evals = chal.evals(
