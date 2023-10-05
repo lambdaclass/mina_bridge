@@ -5,7 +5,7 @@ export function powScalar(f: Scalar, exp: number): Scalar {
     for (let _ = 1; _ < exp; _++) {
         res = res.mul(f);
     }
-    return f
+    return res
 }
 
 export function powScalarBig(f: Scalar, exp: bigint): Scalar {
@@ -13,7 +13,7 @@ export function powScalarBig(f: Scalar, exp: bigint): Scalar {
     for (let _ = 1n; _ < exp; _++) {
         res = res.mul(f);
     }
-    return f
+    return res
 }
 
 export function invScalar(f: Scalar): Scalar {

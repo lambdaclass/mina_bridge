@@ -6,7 +6,7 @@ test("powScalar", () => {
     const exp = 5;
     const res = Scalar.from(130691232); // from python
 
-    expect(powScalar(n, exp)).toEqual(res);
+    expect(powScalar(n, exp).toBigInt().toString()).toEqual(res.toBigInt().toString());
 })
 
 

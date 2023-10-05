@@ -121,7 +121,10 @@ mod unit_tests {
         // arbitrary values
         let coeffs = vec![PallasScalar::from(42), PallasScalar::from(25)];
 
-        let result = b_poly_coefficients(&coeffs);
+        let result: Vec<_> = b_poly_coefficients(&coeffs)
+            .iter()
+            .map(|e| e.to_string())
+            .collect();
         println!("b_poly_coefficients_test: {:?}", result);
     }
 }
