@@ -1,33 +1,33 @@
 export enum GateType {
     /** Zero gate */
-    Zero = "Zero",
+    Zero,
     /** Generic arithmetic gate */
-    Generic = "Generic",
+    Generic,
     /** Poseidon permutation gate */
-    Poseidon = "Poseidon",
+    Poseidon,
     /** Complete EC addition in Affine form */
-    CompleteAdd = "CompleteAdd",
+    CompleteAdd,
     /** EC variable base scalar multiplication */
-    VarBaseMul = "VarBaseMul",
+    VarBaseMul,
     /** EC variable base scalar multiplication with group endomorphim optimization */
-    EndoMul = "EndoMul",
+    EndoMul,
     /** Gate for computing the scalar corresponding to an endoscaling */
-    EndoMulScalar = "EndoMulScalar",
+    EndoMulScalar,
     /** Lookup */
-    Lookup = "Lookup",
+    Lookup,
     // Cairo
-    CairoClaim = "CairoClaim",
-    CairoInstruction = "CairoInstruction",
-    CairoFlags = "CairoFlags",
-    CairoTransition = "CairoTransition",
+    CairoClaim,
+    CairoInstruction,
+    CairoFlags,
+    CairoTransition,
     // Range check
-    RangeCheck0 = "RangeCheck0",
-    RangeCheck1 = "RangeCheck1",
-    ForeignFieldAdd = "ForeignFieldAdd",
-    ForeignFieldMul = "ForeignFieldMul",
+    RangeCheck0,
+    RangeCheck1,
+    ForeignFieldAdd,
+    ForeignFieldMul,
     // Gates for Keccak
-    Xor16 = "Xor16",
-    Rot64 = "Rot64",
+    Xor16,
+    Rot64,
 }
 
 /**

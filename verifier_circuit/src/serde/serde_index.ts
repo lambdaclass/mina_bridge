@@ -2,8 +2,10 @@ import { Group, Scalar } from "o1js"
 import { PolyComm } from "../poly_commitment/commitment"
 import { VerifierIndex } from "../verifier/verifier"
 import { deserHexScalar } from "./serde_proof"
-import { PolishToken, CurrOrNext } from "../prover/expr"
+import { PolishToken, CurrOrNext, Variable, Column } from "../prover/expr"
 import { GateType } from "../circuits/gate"
+import { Polynomial } from "../polynomial"
+import { Alphas } from "../alphas"
 
 export interface PolyCommJSON {
     unshifted: { x: string, y: string }[]
@@ -43,9 +45,10 @@ export type VariableJSON = {
 }
 
 export namespace PolishTokenJSON {
-    export type UnitVariant = string;
+    export type UnitVariant = string
     export type Literal = Scalar
     export type Cell = VariableJSON
+    export type Pow = number
     export type Mds = {
         row: number
         col: number
@@ -61,6 +64,7 @@ export type PolishTokenJSON =
     | {
         Literal?: PolishTokenJSON.Literal
         Cell?: PolishTokenJSON.Cell
+        Pow?: PolishTokenJSON.Pow
         Mds?: PolishTokenJSON.Mds
         UnnormalizedLagrangeBasis?: PolishTokenJSON.UnnormalizedLagrangeBasis
         Load?: PolishTokenJSON.Load
@@ -110,6 +114,30 @@ export function deserPolyComm(json: PolyCommJSON): PolyComm<Group> {
     return new PolyComm<Group>(unshifted, shifted);
 }
 
+export function deserGateType(json: GateTypeJSON): GateType {
+    return GateType[json as keyof typeof GateType];
+}
+
+export function deserColumn(json: ColumnJSON): Column | undefined {
+    if (json.Witness) return { kind: "witness", index: json.Witness };
+    if (json.Index) return { kind: "index", typ: deserGateType(json.Index) };
+    if (json.Coefficient) return { kind: "coefficient", index: json.Coefficient };
+    if (json.Permutation) return { kind: "permutation", index: json.Permutation };
+    return undefined;
+}
+
+export function deserCurrOrNext(json: CurrOrNextJSON): CurrOrNext {
+    return CurrOrNext[json as keyof typeof CurrOrNext];
+}
+
+export function deserVariable(json: VariableJSON): Variable {
+    return new Variable(deserColumn(json.col)!, deserCurrOrNext(json.row));
+}
+
+export function deserPolynomial(json: PolynomialJSON): Polynomial {
+    return new Polynomial(json.map(deserHexScalar));
+}
+
 export function deserPolishToken(json: PolishTokenJSON): PolishToken | undefined {
     if (typeof json === "string") {
         switch (json) {
@@ -126,11 +154,14 @@ export function deserPolishToken(json: PolishTokenJSON): PolishToken | undefined
         }
     } else {
         if (json.Literal) return { kind: "literal", lit: json.Literal };
-        if (json.Cell) return { kind: "cell", cell: json.Cell };
+        if (json.Cell) {
+            return { kind: "cell", cell: deserVariable(json.Cell) };
+        }
         if (json.UnnormalizedLagrangeBasis)
             return { kind: "unnormalizedlagrangebasis", index: json.UnnormalizedLagrangeBasis };
-        if (json.Mds) return { kind: "mds", row: json.Cell, col:  };
+        if (json.Mds) return { kind: "mds", row: json.Mds.row, col: json.Mds.col };
         if (json.Load) return { kind: "load", index: json.Load };
+        if (json.Pow) return { kind: "pow", pow: json.Pow };
         if (json.SkipIf) return { kind: "skipif", num: json.SkipIf };
         if (json.SkipIfNot) return { kind: "skipifnot", num: json.SkipIfNot };
     }
@@ -151,13 +182,16 @@ export function deserVerifierIndex(json: VerifierIndexJSON): VerifierIndex {
         mul_comm,
         emul_comm,
         endomul_scalar_comm,
-        powers_of_alpha,
+        //powers_of_alpha,
         shift,
         zkpm,
         w,
         endo,
         linear_constant_term,
     } = json;
+
+    // FIXME: hardcoded because of the difficulty of serializing this in Rust.
+    const powers_of_alpha = new Alphas(0, new Map());
 
     return new VerifierIndex(
         domain_size,
@@ -172,11 +206,11 @@ export function deserVerifierIndex(json: VerifierIndexJSON): VerifierIndex {
         deserPolyComm(mul_comm),
         deserPolyComm(emul_comm),
         deserPolyComm(endomul_scalar_comm),
-        deserAlphas(powers_of_alpha),
+        powers_of_alpha,
         shift.map(deserHexScalar),
         deserPolynomial(zkpm),
         deserHexScalar(w),
         deserHexScalar(endo),
-        deserPolishToken(linear_constant_term),
+        linear_constant_term.map((token) => deserPolishToken(token)!),
     );
 }

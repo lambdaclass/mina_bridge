@@ -21,6 +21,16 @@ export class Alphas {
     */
     alphas?: Scalar[]
 
+    constructor(
+        next_power: number,
+        mapping: Map<ArgumentType, [number, number]>,
+        alphas?: Scalar[]
+    ) {
+        this.next_power = next_power;
+        this.mapping = mapping,
+        this.alphas = alphas;
+    }
+
     /**
      * Instantiates the ranges with an actual field element `alpha`.
      * Once you call this function, you cannot register new constraints.
