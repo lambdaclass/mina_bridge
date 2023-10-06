@@ -359,6 +359,7 @@ pub struct ProverProofTS {
     // as it is now.
     prev_challenges: Vec<RecursionChallengeTS>,
     commitments: ProverCommitmentsTS,
+    ft_eval1: String
 }
 
 impl From<&ProverProof<Pallas>> for ProverProofTS {
@@ -367,6 +368,7 @@ impl From<&ProverProof<Pallas>> for ProverProofTS {
             evals,
             prev_challenges,
             commitments,
+            ft_eval1,
             ..
         } = value;
 
@@ -377,6 +379,7 @@ impl From<&ProverProof<Pallas>> for ProverProofTS {
                 .map(RecursionChallengeTS::from)
                 .collect(),
             commitments: ProverCommitmentsTS::from(commitments),
+            ft_eval1: ft_eval1.to_hex()
         }
     }
 }

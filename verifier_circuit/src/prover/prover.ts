@@ -21,11 +21,13 @@ export class ProverProof {
     constructor(
         evals: ProofEvaluations<PointEvaluations<Scalar[]>>,
         prev_challenges: RecursionChallenge[],
-        commitments: ProverCommitments
+        commitments: ProverCommitments,
+        ft_eval1: Scalar
     ) {
         this.evals = evals;
         this.prev_challenges = prev_challenges;
         this.commitments = commitments;
+        this.ft_eval1 = ft_eval1
     }
 
     /**
@@ -118,18 +120,14 @@ export class ProverProof {
 
         // prepare some often used values
 
-        console.log("step 19");
         let zeta1 = powScalar(zeta, n);
-        console.log(index.domain_gen)
         const zetaw = zeta.mul(index.domain_gen);
-        console.log("breaks after prev line")
         const evaluation_points = [zeta, zetaw];
         const powers_of_eval_points_for_chunks: PointEvaluations<Scalar> = {
             zeta: powScalar(zeta, index.max_poly_size),
             zetaOmega: powScalar(zetaw, index.max_poly_size)
         };
 
-        console.log("step 20");
         //~ 20. Compute evaluations for the previous recursion challenges.
         const polys: [PolyComm<Group>, Scalar[][]][] = this.prev_challenges.map((chal) => {
             const evals = chal.evals(
@@ -210,6 +208,7 @@ export class ProverProof {
             // FIXME: missing public input eval error
         }
 
+        console.log(this.ft_eval1);
         //~ 22. Absorb the unique evaluation of ft: $ft(\zeta\omega)$.
         fr_sponge.absorbScalar(this.ft_eval1);
 
