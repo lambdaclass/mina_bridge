@@ -54,9 +54,20 @@ export namespace ArgumentType {
     export type Lookup = {
         kind: "lookup",
     }
+
+    export function id(arg: ArgumentType): ArgumentTypeID {
+        if (arg.kind === "gate") return arg.kind + arg.type;
+        return arg.kind;
+    }
 }
 
 export type ArgumentType =
     | ArgumentType.Gate
     | ArgumentType.Permutation
     | ArgumentType.Lookup
+
+/**
+ * This is necessary to use an argument type as a key in a map, as `Map`
+ * will compare a key by reference and not by value
+ */
+export type ArgumentTypeID = string;

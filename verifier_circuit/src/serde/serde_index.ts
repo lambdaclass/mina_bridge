@@ -3,7 +3,7 @@ import { PolyComm } from "../poly_commitment/commitment"
 import { VerifierIndex } from "../verifier/verifier"
 import { deserHexScalar } from "./serde_proof"
 import { PolishToken, CurrOrNext, Variable, Column } from "../prover/expr"
-import { GateType } from "../circuits/gate"
+import { ArgumentType, GateType } from "../circuits/gate"
 import { Polynomial } from "../polynomial"
 import { Alphas } from "../alphas"
 
@@ -191,7 +191,15 @@ export function deserVerifierIndex(json: VerifierIndexJSON): VerifierIndex {
     } = json;
 
     // FIXME: hardcoded because of the difficulty of serializing this in Rust.
-    const powers_of_alpha = new Alphas(0, new Map());
+    // Alphas { next_power: 24, mapping: {Gate(Zero): (0, 21), Permutation: (21, 3)}, alphas: None }
+    // this was generated from the verifier_circuit_tests/ crate.
+    const powers_of_alpha = new Alphas(
+        24,
+        new Map([
+            [ArgumentType.id({ kind: "gate", type: GateType.Zero }), [0, 21]],
+            [ArgumentType.id({ kind: "permutation" }), [21, 3]]
+        ]
+    ));
 
     return new VerifierIndex(
         domain_size,

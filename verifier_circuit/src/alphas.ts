@@ -1,4 +1,4 @@
-import { ArgumentType, GateType } from "./circuits/gate"
+import { ArgumentType, ArgumentTypeID, GateType } from "./circuits/gate"
 import { Scalar } from "o1js"
 
 /**
@@ -14,7 +14,7 @@ export class Alphas {
      */
     next_power: number
     /** The mapping between constraint types and powers of alpha */
-    mapping: Map<ArgumentType, [number, number]>
+    mapping: Map<ArgumentTypeID, [number, number]>
     /**
      * The powers of alpha: 1, alpha, alpha^2, ..
      * If not undefined, you can't register new contraints.
@@ -23,7 +23,7 @@ export class Alphas {
 
     constructor(
         next_power: number,
-        mapping: Map<ArgumentType, [number, number]>,
+        mapping: Map<ArgumentTypeID, [number, number]>,
         alphas?: Scalar[]
     ) {
         this.next_power = next_power;
@@ -55,7 +55,7 @@ export class Alphas {
             ty.type = GateType.Zero;
         }
 
-        const range = this.mapping.get(ty)!;
+        const range = this.mapping.get(ArgumentType.id(ty))!;
         if (num > range[1]) {
             // FIXME: panic! asked for num alphas but there aren't as many.
         }

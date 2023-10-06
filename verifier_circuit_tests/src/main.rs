@@ -26,6 +26,7 @@ fn main() {
     let prover_index =
         new_index_for_test_with_lookups::<Pallas>(gates, 0, 0, vec![], Some(vec![]), false);
     let verifier_index = prover_index.verifier_index();
+    println!("{:?}", verifier_index.powers_of_alpha);
     // Export for typescript tests
     fs::write(
         "../verifier_circuit/test/verifier_index.json",

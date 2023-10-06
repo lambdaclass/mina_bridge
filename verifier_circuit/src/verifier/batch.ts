@@ -30,7 +30,6 @@ export class Batch extends Verifier {
           Check the length of evaluations inside the proof.
           Commit to the negated public input polynomial.
           Run the Fiat-Shamir argument.
-          
           Combine the chunked polynomials’ evaluations (TODO: most likely only the quotient polynomial is chunked) with the right powers of $\zeta^n$ and $(\zeta * \omega)^n$.
         */
 
