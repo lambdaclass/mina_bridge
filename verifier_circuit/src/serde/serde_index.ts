@@ -1,18 +1,78 @@
-import { Group } from "o1js"
+import { Group, Scalar } from "o1js"
 import { PolyComm } from "../poly_commitment/commitment"
 import { VerifierIndex } from "../verifier/verifier"
+import { deserHexScalar } from "./serde_proof"
+import { PolishToken, CurrOrNext } from "../prover/expr"
+import { GateType } from "../circuits/gate"
 
 export interface PolyCommJSON {
     unshifted: { x: string, y: string }[]
     shifted: null
 }
 
+export interface AlphasJSON {
+
+}
+
+export type PolynomialJSON = string[];
+export type GateTypeJSON = string;
+export type CurrOrNextJSON = string;
+
+export namespace ColumnJSON {
+    export type Z = string;
+
+    export type Witness = number
+
+    export type Index = GateTypeJSON
+
+    export type Coefficient = number
+
+    export type Permutation = number
+}
+
+export type ColumnJSON = {
+    Witness?: ColumnJSON.Witness
+    Index?: ColumnJSON.Index
+    Coefficient?: ColumnJSON.Coefficient
+    Permutation?: ColumnJSON.Permutation
+}
+
+export type VariableJSON = {
+    col: ColumnJSON
+    row: CurrOrNextJSON
+}
+
+export namespace PolishTokenJSON {
+    export type UnitVariant = string;
+    export type Literal = Scalar
+    export type Cell = VariableJSON
+    export type Mds = {
+        row: number
+        col: number
+    }
+    export type UnnormalizedLagrangeBasis = number
+    export type Load = number
+    export type SkipIf = number
+    export type SkipIfNot = number
+}
+
+export type PolishTokenJSON =
+    | PolishTokenJSON.UnitVariant
+    | {
+        Literal?: PolishTokenJSON.Literal
+        Cell?: PolishTokenJSON.Cell
+        Mds?: PolishTokenJSON.Mds
+        UnnormalizedLagrangeBasis?: PolishTokenJSON.UnnormalizedLagrangeBasis
+        Load?: PolishTokenJSON.Load
+        SkipIf?: PolishTokenJSON.SkipIf
+        SkipIfNot?: PolishTokenJSON.SkipIfNot
+    }
+
 interface VerifierIndexJSON {
     domain_size: number,
     domain_gen: string,
-    public: number,
+    public_size: number,
     max_poly_size: number
-    zk_rows: number
 
     sigma_comm: PolyCommJSON[]
     coefficients_comm: PolyCommJSON[]
@@ -25,12 +85,12 @@ interface VerifierIndexJSON {
     emul_comm: PolyCommJSON
     endomul_scalar_comm: PolyCommJSON
 
-    powers_of_alpha: AlphasJSON
+    //powers_of_alpha: AlphasJSON
     shift: string[]
     zkpm: PolynomialJSON
     w: string
     endo: string
-    linear_constant_term: PolishTokenJSON
+    linear_constant_term: PolishTokenJSON[]
 }
 
 export function deserGroup(x: string, y: string): Group {
@@ -50,9 +110,39 @@ export function deserPolyComm(json: PolyCommJSON): PolyComm<Group> {
     return new PolyComm<Group>(unshifted, shifted);
 }
 
+export function deserPolishToken(json: PolishTokenJSON): PolishToken | undefined {
+    if (typeof json === "string") {
+        switch (json) {
+            case "Alpha": return { kind: "alpha" }
+            case "Beta": return { kind: "beta" }
+            case "Gamma": return { kind: "gamma" }
+            case "EndoCoefficint": return { kind: "endocoefficient" }
+            case "Dup": return { kind: "dup" }
+            case "Add": return { kind: "add" }
+            case "Mul": return { kind: "mul" }
+            case "Sub": return { kind: "sub" }
+            case "VanishesOnLast4Rows": return { kind: "vanishesonlast4rows" }
+            case "Store": return { kind: "store" }
+        }
+    } else {
+        if (json.Literal) return { kind: "literal", lit: json.Literal };
+        if (json.Cell) return { kind: "cell", cell: json.Cell };
+        if (json.UnnormalizedLagrangeBasis)
+            return { kind: "unnormalizedlagrangebasis", index: json.UnnormalizedLagrangeBasis };
+        if (json.Mds) return { kind: "mds", row: json.Cell, col:  };
+        if (json.Load) return { kind: "load", index: json.Load };
+        if (json.SkipIf) return { kind: "skipif", num: json.SkipIf };
+        if (json.SkipIfNot) return { kind: "skipifnot", num: json.SkipIfNot };
+    }
+    return undefined;
+}
+
 export function deserVerifierIndex(json: VerifierIndexJSON): VerifierIndex {
     const {
         domain_size,
+        domain_gen,
+        max_poly_size,
+        public_size,
         sigma_comm,
         coefficients_comm,
         generic_comm,
@@ -61,11 +151,18 @@ export function deserVerifierIndex(json: VerifierIndexJSON): VerifierIndex {
         mul_comm,
         emul_comm,
         endomul_scalar_comm,
+        powers_of_alpha,
+        shift,
+        zkpm,
+        w,
+        endo,
+        linear_constant_term,
     } = json;
-    const public_size = json.public;
 
     return new VerifierIndex(
         domain_size,
+        deserHexScalar(domain_gen),
+        max_poly_size,
         public_size,
         sigma_comm.map(deserPolyComm),
         coefficients_comm.map(deserPolyComm),
@@ -75,5 +172,11 @@ export function deserVerifierIndex(json: VerifierIndexJSON): VerifierIndex {
         deserPolyComm(mul_comm),
         deserPolyComm(emul_comm),
         deserPolyComm(endomul_scalar_comm),
+        deserAlphas(powers_of_alpha),
+        shift.map(deserHexScalar),
+        deserPolynomial(zkpm),
+        deserHexScalar(w),
+        deserHexScalar(endo),
+        deserPolishToken(linear_constant_term),
     );
 }

@@ -49,7 +49,6 @@ export class ProverProof {
             chunk_size = index.domain_size / index.max_poly_size;
         }
 
-        let zk_rows = index.zk_rows;
         //~ 1. Setup the Fq-Sponge.
         let fq_sponge = new Sponge();
 

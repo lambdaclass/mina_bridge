@@ -28,8 +28,6 @@ export class VerifierIndex {
     public: number
     /** maximal size of polynomial section */
     max_poly_size: number
-    /** the number of randomized rows to achieve zero knowledge */
-    zk_rows: number
 
     /** permutation commitments */
     sigma_comm: PolyComm<Group>[] // size PERMUTS
@@ -69,7 +67,6 @@ export class VerifierIndex {
         domain_size: number,
         domain_gen: Scalar,
         max_poly_size: number,
-        zk_rows: number,
         public_size: number,
         sigma_comm: PolyComm<Group>[],
         coefficients_comm: PolyComm<Group>[],
@@ -90,7 +87,6 @@ export class VerifierIndex {
         this.domain_size = domain_size;
         this.domain_gen = domain_gen;
         this.max_poly_size = max_poly_size;
-        this.zk_rows = zk_rows;
         this.public = public_size;
         this.sigma_comm = sigma_comm;
         this.coefficients_comm = coefficients_comm;

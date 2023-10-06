@@ -42,8 +42,8 @@ export type Column =
  * at `zeta` **and** `omega * zeta`
  */
 export enum CurrOrNext {
-    Curr,
-    Next
+    Curr = "Curr",
+    Next = "Next"
 }
 
 /**

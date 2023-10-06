@@ -2,6 +2,8 @@ use ark_ec::AffineCurve;
 use ark_ff::{One, PrimeField};
 use ark_poly::domain::EvaluationDomain;
 use kimchi::{
+    alphas::Alphas,
+    circuits::expr::PolishToken,
     curve::KimchiCurve,
     error::VerifyError,
     mina_curves::pasta::{Fq, Pallas, PallasParameters},
@@ -15,7 +17,7 @@ use kimchi::{
         LookupCommitments, LookupEvaluations, PointEvaluations, ProofEvaluations,
         ProverCommitments, ProverProof, RecursionChallenge,
     },
-    verifier_index::VerifierIndex, alphas::Alphas, circuits::expr::PolishToken,
+    verifier_index::VerifierIndex,
 };
 use serde::Serialize;
 
@@ -190,9 +192,8 @@ pub struct VerifierIndexTS {
     //srs: SRS<Pallas>, // excluded because it already is serialized in typescript
     domain_size: usize,
     domain_gen: String,
-    public: usize,
+    public_size: usize,
     max_poly_size: usize,
-    zk_rows: usize,
 
     sigma_comm: Vec<UncompressedPolyComm>, // of size PERMUTS
     coefficients_comm: Vec<UncompressedPolyComm>, // of size COLUMNS
@@ -205,12 +206,12 @@ pub struct VerifierIndexTS {
     emul_comm: UncompressedPolyComm,
     endomul_scalar_comm: UncompressedPolyComm,
 
-    powers_of_alpha: Alphas<String>,
+    //powers_of_alpha: Alphas<String>,
     shift: Vec<String>,
     zkpm: Vec<String>,
     w: String,
     endo: String,
-    linear_constant_term: Vec<PolishToken<String>>
+    linear_constant_term: Vec<PolishToken<String>>,
 }
 
 impl From<&VerifierIndex<Pallas>> for VerifierIndexTS {
@@ -218,6 +219,7 @@ impl From<&VerifierIndex<Pallas>> for VerifierIndexTS {
         let VerifierIndex {
             domain,
             public,
+            max_poly_size,
             sigma_comm,
             coefficients_comm,
             generic_comm,
@@ -226,11 +228,54 @@ impl From<&VerifierIndex<Pallas>> for VerifierIndexTS {
             mul_comm,
             emul_comm,
             endomul_scalar_comm,
+            //powers_of_alpha,
+            shift,
+            zkpm,
+            w,
+            endo,
+            linearization,
             ..
         } = value;
+
+        let linear_constant_term = {
+            linearization
+                .constant_term
+                .iter()
+                .map(|token| {
+                    // Only the Literal variant needs to be converted to another specialization,
+                    // but Rust doesn't seem to allow me to put an arm to match any other variant and convert
+                    // its generic. It doesn't "know" that all other variants don't care about the
+                    // generic and can be converted directly. This is why I specified every variant.
+                    match token {
+                        PolishToken::Alpha => PolishToken::Alpha,
+                        PolishToken::Beta => PolishToken::Beta,
+                        PolishToken::Gamma => PolishToken::Gamma,
+                        PolishToken::JointCombiner => PolishToken::JointCombiner,
+                        PolishToken::EndoCoefficient => PolishToken::EndoCoefficient,
+                        PolishToken::Mds { row, col } => PolishToken::Mds { row: *row, col: *col },
+                        PolishToken::Literal(elem) => PolishToken::Literal(elem.to_hex()),
+                        PolishToken::Cell(x) => PolishToken::Cell(*x),
+                        PolishToken::Dup => PolishToken::Dup,
+                        PolishToken::Pow(x) => PolishToken::Pow(*x),
+                        PolishToken::Add => PolishToken::Add,
+                        PolishToken::Mul => PolishToken::Mul,
+                        PolishToken::Sub => PolishToken::Sub,
+                        PolishToken::VanishesOnLast4Rows => PolishToken::VanishesOnLast4Rows,
+                        PolishToken::UnnormalizedLagrangeBasis(x) => PolishToken::UnnormalizedLagrangeBasis(*x),
+                        PolishToken::Store => PolishToken::Store,
+                        PolishToken::Load(x) => PolishToken::Load(*x),
+                        PolishToken::SkipIf(x, y) => PolishToken::SkipIf(*x, *y),
+                        PolishToken::SkipIfNot(x, y) => PolishToken::SkipIfNot(*x, *y),
+                    }
+                })
+                .collect::<Vec<_>>()
+        };
+
         VerifierIndexTS {
             domain_size: domain.size(),
-            public: *public,
+            domain_gen: domain.group_gen.to_hex(),
+            public_size: *public,
+            max_poly_size: *max_poly_size,
             sigma_comm: sigma_comm.iter().map(UncompressedPolyComm::from).collect(),
             coefficients_comm: coefficients_comm
                 .iter()
@@ -242,6 +287,18 @@ impl From<&VerifierIndex<Pallas>> for VerifierIndexTS {
             mul_comm: UncompressedPolyComm::from(mul_comm),
             emul_comm: UncompressedPolyComm::from(emul_comm),
             endomul_scalar_comm: UncompressedPolyComm::from(endomul_scalar_comm),
+            //powers_of_alpha,
+            shift: shift.iter().map(|e| e.to_hex()).collect::<Vec<_>>(),
+            zkpm: zkpm
+                .get()
+                .unwrap()
+                .coeffs
+                .iter()
+                .map(|e| e.to_hex())
+                .collect::<Vec<_>>(),
+            w: w.get().unwrap().to_hex(),
+            endo: endo.to_hex(),
+            linear_constant_term,
         }
     }
 }
