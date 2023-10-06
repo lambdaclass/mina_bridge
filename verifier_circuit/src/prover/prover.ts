@@ -89,7 +89,6 @@ export class ProverProof {
         //~ 12. Derive $\alpha$ from $\alpha'$ using the endomorphism (TODO: details).
         const alpha = alpha_chal.toField(endo_r);
 
-        console.log("here");
         //~ 13. Enforce that the length of the $t$ commitment is of size `PERMUTS`.
         if (this.commitments.tComm.unshifted.length !== Verifier.PERMUTS) {
             // FIXME: return error "incorrect commitment length of 't'"
@@ -208,7 +207,6 @@ export class ProverProof {
             // FIXME: missing public input eval error
         }
 
-        console.log(this.ft_eval1);
         //~ 22. Absorb the unique evaluation of ft: $ft(\zeta\omega)$.
         fr_sponge.absorbScalar(this.ft_eval1);
 
@@ -220,6 +218,7 @@ export class ProverProof {
         //~~ * the 15 register/witness
         //~~ * 6 sigmas evaluations (the last one is not evaluated)
 
+        console.log("public_evals[0]: ", public_evals![0]);
         fr_sponge.absorbScalars(public_evals![0]);
         fr_sponge.absorbScalars(public_evals![1]);
         fr_sponge.absorbEvals(this.evals)
