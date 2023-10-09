@@ -8,7 +8,7 @@ import proof_json from "../../test/proof.json" assert { type: "json" };
 import verifier_index_json from "../../test/verifier_index.json" assert { type: "json" };
 import { deserVerifierIndex } from "../serde/serde_index.js";
 
-test("toBatch() step 1 and 2", () => {
+test("Partial verification integration test", () => {
     const srs = SRS.createFromJSON();
     const domain_size = 32; // extracted from test in Rust.
     const vi = deserVerifierIndex(verifier_index_json);
