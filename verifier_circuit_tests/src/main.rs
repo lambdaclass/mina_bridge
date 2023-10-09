@@ -10,7 +10,7 @@ use kimchi::{
     mina_curves::pasta::{fields::FqParameters, Pallas},
     poly_commitment::commitment::CommitmentCurve,
     proof::ProverProof,
-    prover_index::testing::new_index_for_test_with_lookups,
+    prover_index::testing::new_index_for_test_with_lookups, curve::KimchiCurve,
 };
 use verifier_circuit_tests::{
     to_batch_step1, to_batch_step2, BaseSponge, ProverProofTS, ScalarSponge, UncompressedPolyComm,
@@ -18,6 +18,9 @@ use verifier_circuit_tests::{
 };
 
 fn main() {
+    let mds = Pallas::sponge_params().mds.iter().map(|arr| arr.iter().map(|e| e.to_hex()).collect::<Vec<_>>()).collect::<Vec<_>>();
+    println!("{:?}", mds);
+    println!("{:?}", Pallas::sponge_params().mds);
     // Create test circuit
     let gates = create_circuit(0, 0);
     let num_gates = gates.len();

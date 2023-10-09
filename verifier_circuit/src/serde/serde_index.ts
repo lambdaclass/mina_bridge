@@ -119,10 +119,10 @@ export function deserGateType(json: GateTypeJSON): GateType {
 }
 
 export function deserColumn(json: ColumnJSON): Column | undefined {
-    if (json.Witness) return { kind: "witness", index: json.Witness };
-    if (json.Index) return { kind: "index", typ: deserGateType(json.Index) };
-    if (json.Coefficient) return { kind: "coefficient", index: json.Coefficient };
-    if (json.Permutation) return { kind: "permutation", index: json.Permutation };
+    if (json.Witness != null) return { kind: "witness", index: json.Witness };
+    if (json.Index != null) return { kind: "index", typ: deserGateType(json.Index) };
+    if (json.Coefficient != null) return { kind: "coefficient", index: json.Coefficient };
+    if (json.Permutation != null) return { kind: "permutation", index: json.Permutation };
     return undefined;
 }
 
@@ -139,7 +139,7 @@ export function deserPolynomial(json: PolynomialJSON): Polynomial {
 }
 
 export function deserPolishToken(json: PolishTokenJSON): PolishToken | undefined {
-    if (typeof json === "string") {
+    if (typeof json === "string") { // unit variant
         switch (json) {
             case "Alpha": return { kind: "alpha" }
             case "Beta": return { kind: "beta" }
@@ -153,17 +153,17 @@ export function deserPolishToken(json: PolishTokenJSON): PolishToken | undefined
             case "Store": return { kind: "store" }
         }
     } else {
-        if (json.Literal) return { kind: "literal", lit: json.Literal };
-        if (json.Cell) {
+        if (json.Literal != null) return { kind: "literal", lit: json.Literal };
+        if (json.Cell != null) {
             return { kind: "cell", cell: deserVariable(json.Cell) };
         }
-        if (json.UnnormalizedLagrangeBasis)
+        if (json.UnnormalizedLagrangeBasis != null)
             return { kind: "unnormalizedlagrangebasis", index: json.UnnormalizedLagrangeBasis };
-        if (json.Mds) return { kind: "mds", row: json.Mds.row, col: json.Mds.col };
-        if (json.Load) return { kind: "load", index: json.Load };
-        if (json.Pow) return { kind: "pow", pow: json.Pow };
-        if (json.SkipIf) return { kind: "skipif", num: json.SkipIf };
-        if (json.SkipIfNot) return { kind: "skipifnot", num: json.SkipIfNot };
+        if (json.Mds != null) return { kind: "mds", row: json.Mds.row, col: json.Mds.col };
+        if (json.Load != null) return { kind: "load", index: json.Load };
+        if (json.Pow != null) return { kind: "pow", pow: json.Pow };
+        if (json.SkipIf != null) return { kind: "skipif", num: json.SkipIf };
+        if (json.SkipIfNot != null) return { kind: "skipifnot", num: json.SkipIfNot };
     }
     return undefined;
 }
