@@ -37,7 +37,7 @@ export class Alphas {
      */
     instantiate(alpha: Scalar) {
         let last_power = Scalar.from(1);
-        let alphas = Array<Scalar>(this.next_power);
+        let alphas = Array<Scalar>();
         alphas.push(last_power);
 
         for (let _ = 1; _ < this.next_power; _++) {
@@ -60,7 +60,7 @@ export class Alphas {
             // FIXME: panic! asked for num alphas but there aren't as many.
         }
 
-        return this.alphas!.slice(range[0], num);
+        return this.alphas!.slice(range[0], range[0] + num);
         // INFO: in kimchi this returns a "MustConsumeIterator", which warns you if
         // not consumed entirely.
     }
