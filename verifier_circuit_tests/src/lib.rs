@@ -2,7 +2,6 @@ use ark_ec::AffineCurve;
 use ark_ff::{One, PrimeField};
 use ark_poly::domain::EvaluationDomain;
 use kimchi::{
-    alphas::Alphas,
     circuits::expr::PolishToken,
     curve::KimchiCurve,
     error::VerifyError,
