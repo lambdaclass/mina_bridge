@@ -252,7 +252,10 @@ impl From<&VerifierIndex<Pallas>> for VerifierIndexTS {
                         PolishToken::Gamma => PolishToken::Gamma,
                         PolishToken::JointCombiner => PolishToken::JointCombiner,
                         PolishToken::EndoCoefficient => PolishToken::EndoCoefficient,
-                        PolishToken::Mds { row, col } => PolishToken::Mds { row: *row, col: *col },
+                        PolishToken::Mds { row, col } => PolishToken::Mds {
+                            row: *row,
+                            col: *col,
+                        },
                         PolishToken::Literal(elem) => PolishToken::Literal(elem.to_hex()),
                         PolishToken::Cell(x) => PolishToken::Cell(*x),
                         PolishToken::Dup => PolishToken::Dup,
@@ -261,7 +264,9 @@ impl From<&VerifierIndex<Pallas>> for VerifierIndexTS {
                         PolishToken::Mul => PolishToken::Mul,
                         PolishToken::Sub => PolishToken::Sub,
                         PolishToken::VanishesOnLast4Rows => PolishToken::VanishesOnLast4Rows,
-                        PolishToken::UnnormalizedLagrangeBasis(x) => PolishToken::UnnormalizedLagrangeBasis(*x),
+                        PolishToken::UnnormalizedLagrangeBasis(x) => {
+                            PolishToken::UnnormalizedLagrangeBasis(*x)
+                        }
                         PolishToken::Store => PolishToken::Store,
                         PolishToken::Load(x) => PolishToken::Load(*x),
                         PolishToken::SkipIf(x, y) => PolishToken::SkipIf(*x, *y),
@@ -359,7 +364,7 @@ pub struct ProverProofTS {
     // as it is now.
     prev_challenges: Vec<RecursionChallengeTS>,
     commitments: ProverCommitmentsTS,
-    ft_eval1: String
+    ft_eval1: String,
 }
 
 impl From<&ProverProof<Pallas>> for ProverProofTS {
@@ -379,7 +384,7 @@ impl From<&ProverProof<Pallas>> for ProverProofTS {
                 .map(RecursionChallengeTS::from)
                 .collect(),
             commitments: ProverCommitmentsTS::from(commitments),
-            ft_eval1: ft_eval1.to_hex()
+            ft_eval1: ft_eval1.to_hex(),
         }
     }
 }

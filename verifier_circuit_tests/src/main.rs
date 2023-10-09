@@ -6,11 +6,13 @@ use kimchi::{
         polynomials::generic::testing::{create_circuit, fill_in_witness},
         wires::COLUMNS,
     },
+    curve::KimchiCurve,
     groupmap::GroupMap,
     mina_curves::pasta::{fields::FqParameters, Pallas},
+    o1_utils::FieldHelpers,
     poly_commitment::commitment::CommitmentCurve,
     proof::ProverProof,
-    prover_index::testing::new_index_for_test_with_lookups, curve::KimchiCurve,
+    prover_index::testing::new_index_for_test_with_lookups,
 };
 use verifier_circuit_tests::{
     to_batch_step1, to_batch_step2, BaseSponge, ProverProofTS, ScalarSponge, UncompressedPolyComm,
@@ -18,9 +20,6 @@ use verifier_circuit_tests::{
 };
 
 fn main() {
-    let mds = Pallas::sponge_params().mds.iter().map(|arr| arr.iter().map(|e| e.to_hex()).collect::<Vec<_>>()).collect::<Vec<_>>();
-    println!("{:?}", mds);
-    println!("{:?}", Pallas::sponge_params().mds);
     // Create test circuit
     let gates = create_circuit(0, 0);
     let num_gates = gates.len();
@@ -28,8 +27,17 @@ fn main() {
     // Index
     let prover_index =
         new_index_for_test_with_lookups::<Pallas>(gates, 0, 0, vec![], Some(vec![]), false);
+
+    // Print values for hardcoding in verifier_circuit/
     let verifier_index = prover_index.verifier_index();
-    println!("{:?}", verifier_index.powers_of_alpha);
+    let mds = Pallas::sponge_params()
+        .mds
+        .iter()
+        .map(|arr| arr.iter().map(|e| e.to_hex()).collect::<Vec<_>>())
+        .collect::<Vec<_>>();
+    println!("Powers of alpha: {:?}", verifier_index.powers_of_alpha);
+    println!("Sponge MDS: {:?}", mds);
+
     // Export for typescript tests
     fs::write(
         "../verifier_circuit/test/verifier_index.json",
