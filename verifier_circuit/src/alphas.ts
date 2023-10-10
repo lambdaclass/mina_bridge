@@ -50,7 +50,7 @@ export class Alphas {
     /**
      * Retrieves the powers of alpha, upperbounded by `num`
      */
-    getAlphas(ty: ArgumentType, num: number) {
+    getAlphas(ty: ArgumentType, num: number): Scalar[] {
         if (ty.kind === "gate") {
             ty.type = GateType.Zero;
         }

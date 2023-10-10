@@ -2,7 +2,7 @@ import { Group, Scalar } from "o1js"
 import { PolyComm } from "../poly_commitment/commitment"
 import { VerifierIndex } from "../verifier/verifier"
 import { deserHexScalar } from "./serde_proof"
-import { PolishToken, CurrOrNext, Variable, Column } from "../prover/expr"
+import { PolishToken, CurrOrNext, Variable, Column, Linearization } from "../prover/expr"
 import { ArgumentType, GateType } from "../circuits/gate"
 import { Polynomial } from "../polynomial"
 import { Alphas } from "../alphas"
@@ -72,11 +72,17 @@ export type PolishTokenJSON =
         SkipIfNot?: PolishTokenJSON.SkipIfNot
     }
 
+interface LinearizationJSON {
+    constant_term: PolishTokenJSON[]
+    index_terms: [ColumnJSON, PolishTokenJSON[]][]
+}
+
 interface VerifierIndexJSON {
     domain_size: number,
     domain_gen: string,
     public_size: number,
     max_poly_size: number
+    zk_rows: number
 
     sigma_comm: PolyCommJSON[]
     coefficients_comm: PolyCommJSON[]
@@ -94,7 +100,7 @@ interface VerifierIndexJSON {
     permutation_vanishing_polynomial_m: PolynomialJSON
     w: string
     endo: string
-    linear_constant_term: PolishTokenJSON[]
+    linearization: LinearizationJSON,
 }
 
 export function deserGroup(x: string, y: string): Group {
@@ -168,11 +174,19 @@ export function deserPolishToken(json: PolishTokenJSON): PolishToken | undefined
     return undefined;
 }
 
+export function deserLinearization(json: LinearizationJSON): Linearization<PolishToken[]> {
+    const constant_term = json.constant_term.map((t) => deserPolishToken(t)!);
+    const index_terms = json.index_terms.map(([col, coeff]) =>
+        [deserColumn(col), coeff.map((t) => deserPolishToken(t)!)] as [Column, PolishToken[]]);
+    return { constant_term, index_terms };
+}
+
 export function deserVerifierIndex(json: VerifierIndexJSON): VerifierIndex {
     const {
         domain_size,
         domain_gen,
         max_poly_size,
+        zk_rows,
         public_size,
         sigma_comm,
         coefficients_comm,
@@ -187,7 +201,7 @@ export function deserVerifierIndex(json: VerifierIndexJSON): VerifierIndex {
         permutation_vanishing_polynomial_m,
         w,
         endo,
-        linear_constant_term,
+        linearization,
     } = json;
 
     // FIXME: hardcoded because of the difficulty of serializing this in Rust.
@@ -205,6 +219,7 @@ export function deserVerifierIndex(json: VerifierIndexJSON): VerifierIndex {
         domain_size,
         deserHexScalar(domain_gen),
         max_poly_size,
+        zk_rows,
         public_size,
         sigma_comm.map(deserPolyComm),
         coefficients_comm.map(deserPolyComm),
@@ -219,6 +234,6 @@ export function deserVerifierIndex(json: VerifierIndexJSON): VerifierIndex {
         deserPolynomial(permutation_vanishing_polynomial_m),
         deserHexScalar(w),
         deserHexScalar(endo),
-        linear_constant_term.map((token) => deserPolishToken(token)!),
+        deserLinearization(linearization)
     );
 }

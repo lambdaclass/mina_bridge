@@ -1,7 +1,10 @@
 import { PolyComm } from "../poly_commitment/commitment.js";
-import { ProverProof, PointEvaluations, ProofEvaluations } from "../prover/prover.js";
+import { ProverProof, PointEvaluations, ProofEvaluations, Constants } from "../prover/prover.js";
 import { Verifier, VerifierIndex } from "./verifier.js";
 import { Group, Scalar } from "o1js";
+import { deserHexScalar } from "../serde/serde_proof.js";
+import { Column, PolishToken } from "../prover/expr.js";
+import { GateType } from "../circuits/gate.js";
 
 export class Context {
     verifier_index: VerifierIndex
@@ -12,6 +15,28 @@ export class Context {
         this.verifier_index = verifier_index;
         this.proof = proof;
         this.public_input = public_input;
+    }
+
+    getColumn(col: Column): PolyComm<Group> | undefined {
+        switch(col.kind) {
+            case "witness": return this.proof.commitments.wComm[col.index];
+            case "coefficient": return this.verifier_index.coefficients_comm[col.index];
+            case "permutation": return this.verifier_index.sigma_comm[col.index];
+            case "z": return this.proof.commitments.zComm;
+            case "index": {
+                switch (col.typ) {
+                    case GateType.Zero: return undefined;
+                    case GateType.Generic: return this.verifier_index.generic_comm;
+                    case GateType.CompleteAdd: return this.verifier_index.complete_add_comm;
+                    case GateType.VarBaseMul: return this.verifier_index.psm_comm;
+                    case GateType.EndoMul: return this.verifier_index.emul_comm;
+                    case GateType.EndoMulScalar: return this.verifier_index.endomul_scalar_comm;
+                    case GateType.Poseidon: return this.verifier_index.psm_comm;
+                }
+                break;
+            }
+        }
+        return undefined;
     }
 }
 
@@ -52,6 +77,68 @@ export class Batch extends Verifier {
         //~ 4. Combine the chunked polynomials' evaluations
         const evals = ProofEvaluations.combine(proof.evals, powers_of_eval_points_for_chunks);
         const context = new Context(verifier_index, proof, public_input);
+
+        //~ 5. Compute the commitment to the linearized polynomial $f$ by adding
+        // all constraints, in commitment form or evaluation if not present.
+
+        // Permutation constraints
+        const permutation_vanishing_polynomial = verifier_index.permutation_vanishing_polynomial_m
+            .evaluate(oracles.zeta);
+        const alphas = all_alphas.getAlphas(
+            { kind: "permutation" },
+            Verifier.PERMUTATION_CONSTRAINTS
+        );
+
+        let commitments = [verifier_index.sigma_comm[Verifier.PERMUTS - 1]];
+        const init = evals.z.zetaOmega
+            .mul(oracles.beta)
+            .mul(alphas[0])
+            .mul(permutation_vanishing_polynomial);
+        let scalars: Scalar[] = [evals.s
+            .map((s, i) => oracles.gamma.add(oracles.beta.mul(s.zeta)).add(evals.w[i].zeta))
+            .reduce((acc, curr) => acc.mul(curr), init)];
+
+        // FIXME: hardcoded for now, should be a sponge parameter.
+        // this was generated from the verifier_circuit_tests/ crate.
+        const mds = [
+            [
+                "4e59dd23f06c2400f3ba607d02926badee7add77d3544a307e7af417ddf7283e",
+                "0026c37744e275497518904a3d4bd83f3d89f414c28ab292cbfc96b6ab06db30",
+                "3a567f1bc5592630ba6ae6014d6c2e6efb3fab52815eff16608c051bbc104117"
+            ].map(deserHexScalar),
+            [
+                "0ceb4a2b7e38fea058a153e390439d2e0dd5bc481d5ac08069140335a86fd312",
+                "559c4de970165cd66fd0068edcbe3615c7af8b5e380c9f6ea7be69b38e7cb12a",
+                "37854a5bdac3b836763e2ec95d0ca6d9e5b908e127f16a98135c16285391cc00"
+            ].map(deserHexScalar),
+            [
+                "1bd343a1e09a4080831e5afbf0ca3d3a610c383b154643eb88666970d2a6d904",
+                "24c37437a332198bd134339acfab5fee7fd2e4ab157d1fae8b7c31e3ee05a802",
+                "bd7b2b50cd898d9badcb3d2787a7b98322bb00bc2ddfb6b11efddfc6e992b019"
+            ].map(deserHexScalar)
+        ];
+
+        const constants: Constants<Scalar> = {
+            alpha: oracles.alpha,
+            beta: oracles.beta,
+            gamma: oracles.gamma,
+            endo_coefficient: verifier_index.endo,
+            mds: mds,
+            zk_rows: verifier_index.zk_rows,
+        }
+
+        for (const [col, toks] of verifier_index.linearization.index_terms) {
+            scalars.push(PolishToken.evaluate(
+                toks,
+                oracles.zeta,
+                evals,
+                verifier_index.domain_gen,
+                verifier_index.domain_size,
+                constants
+            ));
+            commitments.push(context.getColumn(col)!);
+        }
+        const f_comm = PolyComm.msm(commitments, scalars);
 
         /*
           Compute the commitment to the linearized polynomial $f$. To do this, add the constraints of all of the gates, of the permutation, and optionally of the lookup. (See the separate sections in the constraints section.) Any polynomial should be replaced by its associated commitment, contained in the verifier index or in the proof, unless a polynomial has its evaluation provided by the proof in which case the evaluation should be used in place of the commitment.
