@@ -77,3 +77,18 @@ make
 
 This will create the constraint system of the verification of a proof with fixed values.
 This will also clone the Monorepo version of Mina so that the bridge uses o1js from there.
+
+## Kimchi proving system
+
+Kimchi is a zero-knowledge proof system that’s a variant of PLONK.
+
+Kimchi represents a series of enhancements, optimizations, and modifications implemented atop PLONK. To illustrate, it addresses PLONK's trusted setup constraint by incorporating a polynomial commitment in a bulletproof-style within the protocol. In this manner, there's no necessity to rely on the honesty of the participants in the trusted setup.
+
+Kimchi increases PLONK's register count from 3 to 15 by adding 12 registers.
+With an increased number of registers, Kimchi incorporate gates that accept multiple inputs, as opposed to just two. This unveils new opportunities; for instance, a scalar multiplication gate would necessitate a minimum of three inputs—a scalar and two coordinates for the curve point.
+
+New proof systems resembling Plonk employ custom gates to efficiently represent frequently used functionalities, as opposed to connecting a series of generic gates. Kimchi is among these innovative protocols.
+
+In Kimchi, there's a concept where a gate has the ability to directly record its output onto the registers utilized by the subsequent gate.
+
+Another enhancement in Kimchi involves the incorporation of lookups for performance improvement. Occasionally, certain operations can be expressed in a tabular form, such as an XOR table.
