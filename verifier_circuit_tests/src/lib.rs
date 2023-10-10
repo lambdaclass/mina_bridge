@@ -395,7 +395,7 @@ impl From<&VerifierIndex<Pallas, OpeningProof<Pallas>>> for VerifierIndexTS {
                 .get()
                 .unwrap()
                 .coeffs()
-                .into_iter()
+                .iter()
                 .map(|e| e.to_hex())
                 .collect::<Vec<_>>(),
             w: w.get().unwrap().to_hex(),
