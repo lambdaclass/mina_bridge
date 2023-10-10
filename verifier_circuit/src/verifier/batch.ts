@@ -5,6 +5,7 @@ import { Group, Scalar } from "o1js";
 import { deserHexScalar } from "../serde/serde_proof.js";
 import { Column, PolishToken } from "../prover/expr.js";
 import { GateType } from "../circuits/gate.js";
+import { powScalar } from "../util/scalar.js";
 
 export class Context {
     verifier_index: VerifierIndex
@@ -139,6 +140,16 @@ export class Batch extends Verifier {
             commitments.push(context.getColumn(col)!);
         }
         const f_comm = PolyComm.msm(commitments, scalars);
+
+        //~ 6. Compute the (chuncked) commitment of $ft$ (see Maller’s optimization).
+        const zeta_to_srs_len = powScalar(oracles.zeta, verifier_index.max_poly_size);
+        const chunked_f_comm = PolyComm.chunk_commitment(f_comm, zeta_to_srs_len);
+        const chunked_t_comm = PolyComm.chunk_commitment(proof.commitments.tComm, zeta_to_srs_len);
+        const ft_comm = PolyComm.sub(
+            chunked_f_comm,
+            PolyComm.scale(
+                chunked_t_comm,
+                zeta_to_domain_size.sub(Scalar.from(1))));
 
         /*
           Compute the commitment to the linearized polynomial $f$. To do this, add the constraints of all of the gates, of the permutation, and optionally of the lookup. (See the separate sections in the constraints section.) Any polynomial should be replaced by its associated commitment, contained in the verifier index or in the proof, unless a polynomial has its evaluation provided by the proof in which case the evaluation should be used in place of the commitment.

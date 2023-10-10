@@ -32,6 +32,36 @@ export class PolyComm<A> {
     }
 
     /**
+     * Substract two commitments
+     */
+    static sub(lhs: PolyComm<Group>, rhs: PolyComm<Group>): PolyComm<Group> {
+        let unshifted = [];
+        const n1 = lhs.unshifted.length;
+        const n2 = rhs.unshifted.length;
+
+        for (let i = 0; i < Math.max(n1, n2); i++) {
+            const pt = i < n1 && i < n2 ?
+                lhs.unshifted[i].sub(rhs.unshifted[i]) :
+                i < n1 ? lhs.unshifted[i] : rhs.unshifted[i];
+            unshifted.push(pt);
+        }
+
+        let shifted;
+        if (lhs.shifted == undefined) shifted = rhs.shifted;
+        else if (rhs.unshifted == undefined) shifted = lhs.shifted;
+        else shifted = rhs.shifted?.sub(lhs.shifted);
+
+        return new PolyComm(unshifted, shifted);
+    }
+
+    /**
+     * Scale a commitments
+     */
+    static scale(v: PolyComm<Group>, c: Scalar) {
+        return new PolyComm(v.unshifted.map((u) => u.scale(c)), v.shifted?.scale(c));
+    }
+
+    /**
     * Execute a simple multi-scalar multiplication
     */
     static naiveMSM(points: Group[], scalars: Scalar[]) {
@@ -91,6 +121,18 @@ export class PolyComm<A> {
         }
 
         return new PolyComm<Group>(unshifted, shifted);
+    }
+
+    static chunk_commitment(comm: PolyComm<Group>, zeta_n: Scalar): PolyComm<Group> {
+        let res = Group.zero;
+
+        // use Horner's to compute chunk[0] + z^n chunk[1] + z^2n chunk[2] + ...
+        // as ( chunk[-1] * z^n + chunk[-2] ) * z^n + chunk[-3]
+        for (const chunk of comm.unshifted.reverse()) {
+            res = res.scale(zeta_n);
+            res = res.add(chunk);
+        }
+        return new PolyComm([res], comm.shifted);
     }
 }
 
