@@ -240,7 +240,7 @@ export class ProverProof {
         const evals = ProofEvaluations.combine(this.evals, powers_of_eval_points_for_chunks);
 
         //~ 29. Compute the evaluation of $ft(\zeta)$.
-        const zkp = index.zkpm.evaluate(zeta);
+        const zkp = index.permutation_vanishing_polynomial_m.evaluate(zeta);
         const zeta1m1 = zeta1.sub(Scalar.from(1));
 
         const PERMUTATION_CONSTRAINTS = 3; // FIXME: hardcoded here
@@ -456,6 +456,14 @@ export class ProofEvaluations<Evals> {
     genericSelector: Evals
     /* evaluation of the poseidon selector polynomial */
     poseidonSelector: Evals
+    /** evaluation of the elliptic curve addition selector polynomial */
+    completeAddSelector: Evals
+    /** evaluation of the elliptic curve variable base scalar multiplication selector polynomial */
+    mulSelector: Evals
+    /** evaluation of the endoscalar multiplication selector polynomial */
+    emulSelector: Evals
+    /** evaluation of the endoscalar multiplication scalar computation selector polynomial */
+    endomulScalarSelector: Evals
 
     constructor(
         w: Array<Evals>,
@@ -464,6 +472,10 @@ export class ProofEvaluations<Evals> {
         coefficients: Array<Evals>,
         genericSelector: Evals,
         poseidonSelector: Evals,
+        completeAddSelector: Evals,
+        mulSelector: Evals,
+        emulSelector: Evals,
+        endomulScalarSelector: Evals,
         lookup?: LookupEvaluations<Evals>,
         public_input?: Evals,
     ) {
@@ -474,6 +486,10 @@ export class ProofEvaluations<Evals> {
         this.lookup = lookup;
         this.genericSelector = genericSelector;
         this.poseidonSelector = poseidonSelector;
+        this.completeAddSelector = completeAddSelector;
+        this.mulSelector = mulSelector;
+        this.emulSelector = emulSelector;
+        this.endomulScalarSelector = endomulScalarSelector;
         this.public_input = public_input;
         return this;
     }
@@ -499,6 +515,10 @@ export class ProofEvaluations<Evals> {
             //lookup,
             genericSelector,
             poseidonSelector,
+            completeAddSelector,
+            mulSelector,
+            emulSelector,
+            endomulScalarSelector,
         } = this;
 
         let public_input = undefined;
@@ -511,6 +531,10 @@ export class ProofEvaluations<Evals> {
             coefficients.map(f),
             f(genericSelector),
             f(poseidonSelector),
+            f(completeAddSelector),
+            f(mulSelector),
+            f(emulSelector),
+            f(endomulScalarSelector),
             undefined, // FIXME: ignoring lookup
             public_input
         )

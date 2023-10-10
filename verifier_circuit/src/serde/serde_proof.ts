@@ -22,9 +22,12 @@ interface ProofEvalsJSON {
     s: PointEvalsJSON[] // of size 7 - 1, total num of wirable registers minus one
     coefficients: PointEvalsJSON[] // of size 15, total num of registers (columns)
     //lookup?: LookupEvaluationsJSON
-    lookup: null,
     generic_selector: PointEvalsJSON
     poseidon_selector: PointEvalsJSON
+    complete_add_selector: PointEvalsJSON
+    mul_selector: PointEvalsJSON
+    emul_selector: PointEvalsJSON
+    endomul_scalar_selector: PointEvalsJSON
 }
 
 interface ProverCommitmentsJSON {
@@ -64,8 +67,20 @@ export function deserProofEvals(json: ProofEvalsJSON): ProofEvaluations<PointEva
     const [
         z,
         genericSelector,
-        poseidonSelector
-    ] = [json.z, json.generic_selector, json.poseidon_selector].map(deserPointEval);
+        poseidonSelector,
+        completeAddSelector,
+        mulSelector,
+        emulSelector,
+        endomulScalarSelector,
+    ] = [
+        json.z,
+        json.generic_selector,
+        json.poseidon_selector,
+        json.complete_add_selector,
+        json.mul_selector,
+        json.emul_selector,
+        json.endomul_scalar_selector
+    ].map(deserPointEval);
 
     // in the current json, there isn't a non-null lookup, so TS infers that it'll always be null.
     let lookup = undefined;
@@ -82,7 +97,19 @@ export function deserProofEvals(json: ProofEvalsJSON): ProofEvaluations<PointEva
     //       lookup = { sorted, aggreg, table, runtime };
     //   }
 
-    return new ProofEvaluations(w, z, s, coefficients, genericSelector, poseidonSelector, lookup);
+    return new ProofEvaluations(
+        w,
+        z,
+        s,
+        coefficients,
+        genericSelector,
+        poseidonSelector,
+        completeAddSelector,
+        mulSelector,
+        emulSelector,
+        endomulScalarSelector,
+        lookup
+    );
 }
 
 export function deserProverCommitments(json: ProverCommitmentsJSON): ProverCommitments {

@@ -26,7 +26,7 @@ fn main() {
 
     // Index
     let prover_index =
-        new_index_for_test_with_lookups::<Pallas>(gates, 0, 0, vec![], Some(vec![]), false);
+        new_index_for_test_with_lookups::<Pallas>(gates, 0, 0, vec![], Some(vec![]), false, None);
 
     // Print values for hardcoding in verifier_circuit/
     let verifier_index = prover_index.verifier_index();
@@ -86,7 +86,7 @@ fn main() {
 
     let public_inputs = vec![];
 
-    to_batch_step1(&proof).unwrap();
+    to_batch_step1(&proof, &verifier_index).unwrap();
     to_batch_step2(&verifier_index, &public_inputs).unwrap();
 }
 
