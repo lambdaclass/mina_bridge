@@ -221,6 +221,15 @@ export class AggregatedEvaluationProof
     /** scaling factor for polynomials */
     evalscale: Scalar
     /** batched opening proof */
-    opening: &'a OpeningProof
+    opening: OpeningProof
     combined_inner_product: Scalar
+}
+
+export class OpeningProof {
+    /** vector of rounds of L & R commitments */
+    lr: [Group, Group][]
+    delta: Group
+    z1: Scalar
+    z2: Scalar
+    sg: Group
 }

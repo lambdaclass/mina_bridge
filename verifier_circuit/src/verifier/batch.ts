@@ -1,4 +1,4 @@
-import { Evaluation, PolyComm } from "../poly_commitment/commitment.js";
+import { AggregatedEvaluationProof, Evaluation, PolyComm } from "../poly_commitment/commitment.js";
 import { ProverProof, PointEvaluations, ProofEvaluations, Constants } from "../prover/prover.js";
 import { Verifier, VerifierIndex } from "./verifier.js";
 import { Group, Scalar } from "o1js";
@@ -181,31 +181,17 @@ export class Batch extends Verifier {
         }
 
         // prepare for the opening proof verification
-        let evaluation_points = vec![oracles.zeta, oracles.zeta * verifier_index.domain.group_gen];
-        Ok(BatchEvaluationProof {
+        let evaluation_points = [oracles.zeta, oracles.zeta.mul(verifier_index.domain_gen)];
+        const agg_proof: AggregatedEvaluationProof = {
             sponge: fq_sponge,
             evaluations,
             evaluation_points,
             polyscale: oracles.v,
             evalscale: oracles.u,
-            opening: &proof.proof,
+            opening: proof.proof,
             combined_inner_product,
-        })
-        /*
-          Compute the commitment to the linearized polynomial $f$. To do this, add the constraints of all of the gates, of the permutation, and optionally of the lookup. (See the separate sections in the constraints section.) Any polynomial should be replaced by its associated commitment, contained in the verifier index or in the proof, unless a polynomial has its evaluation provided by the proof in which case the evaluation should be used in place of the commitment.
-          Compute the (chuncked) commitment of $ft$ (see Maller’s optimization).
-          List the polynomial commitments, and their associated evaluations, that are associated to the aggregated evaluation proof in the proof:
-              recursion
-              public input commitment
-              ft commitment (chunks of it)
-              permutation commitment
-              index commitments that use the coefficients
-              witness commitments
-              coefficient commitments
-              sigma commitments
-              lookup commitments
-        */
-        return public_comm;
+        };
+        return agg_proof;
     }
 
     /*

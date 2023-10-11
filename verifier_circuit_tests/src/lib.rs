@@ -191,6 +191,15 @@ pub struct UncompressedPoint {
     pub y: String,
 }
 
+impl From<&Pallas> for UncompressedPoint {
+    fn from(value: &Pallas) -> Self {
+        UncompressedPoint {
+            x: value.x.to_biguint().to_string(),
+            y: value.y.to_biguint().to_string(),
+        }
+    }
+}
+
 /// Useful for serializing into JSON and importing in Typescript tests.
 #[derive(Serialize, Debug)]
 pub struct UncompressedPolyComm {
@@ -204,15 +213,9 @@ impl From<&PolyComm<Pallas>> for UncompressedPolyComm {
             unshifted: value
                 .unshifted
                 .iter()
-                .map(|u| UncompressedPoint {
-                    x: u.x.to_biguint().to_string(),
-                    y: u.y.to_biguint().to_string(),
-                })
+                .map(UncompressedPoint::from)
                 .collect(),
-            shifted: value.shifted.map(|s| UncompressedPoint {
-                x: s.x.to_biguint().to_string(),
-                y: s.y.to_biguint().to_string(),
-            }),
+            shifted: value.shifted.map(|s| UncompressedPoint::from(&s)),
         }
     }
 }
@@ -465,6 +468,41 @@ impl From<&RecursionChallenge<Pallas>> for RecursionChallengeTS {
     }
 }
 
+#[derive(Serialize)]
+pub struct OpeningProofTS {
+    lr: Vec<(UncompressedPoint, UncompressedPoint)>,
+    delta: UncompressedPoint,
+    z1: String,
+    z2: String,
+    sg: UncompressedPoint,
+}
+
+impl From<&OpeningProof<Pallas>> for OpeningProofTS {
+    fn from(value: &OpeningProof<Pallas>) -> Self {
+        let OpeningProof {
+            lr,
+            delta,
+            z1,
+            z2,
+            sg,
+        } = value;
+
+        let lr = lr.iter().map(|(g1, g2)| (g1.into(), g2.into())).collect();
+        let delta = delta.into();
+        let z1 = z1.to_hex();
+        let z2 = z2.to_hex();
+        let sg = sg.into();
+
+        OpeningProofTS {
+            lr,
+            delta,
+            z1,
+            z2,
+            sg,
+        }
+    }
+}
+
 /// A helper type for serializing the proof data used in the verifier circuit.
 #[derive(Serialize)]
 pub struct ProverProofTS {
@@ -474,6 +512,7 @@ pub struct ProverProofTS {
     prev_challenges: Vec<RecursionChallengeTS>,
     commitments: ProverCommitmentsTS,
     ft_eval1: String,
+    proof: OpeningProofTS,
 }
 
 impl From<&ProverProof<Pallas, OpeningProof<Pallas>>> for ProverProofTS {
@@ -483,6 +522,7 @@ impl From<&ProverProof<Pallas, OpeningProof<Pallas>>> for ProverProofTS {
             prev_challenges,
             commitments,
             ft_eval1,
+            proof,
             ..
         } = value;
 
@@ -494,6 +534,7 @@ impl From<&ProverProof<Pallas, OpeningProof<Pallas>>> for ProverProofTS {
                 .collect(),
             commitments: ProverCommitmentsTS::from(commitments),
             ft_eval1: ft_eval1.to_hex(),
+            proof: proof.into(),
         }
     }
 }

@@ -1,7 +1,7 @@
-import { Proof, Scalar } from "o1js"
-import { PolyComm } from "../poly_commitment/commitment.js";
+import { Group, Proof, Scalar } from "o1js"
+import { OpeningProof, PolyComm } from "../poly_commitment/commitment.js";
 import { LookupEvaluations, PointEvaluations, ProofEvaluations, ProverCommitments, ProverProof, RecursionChallenge } from "../prover/prover.js"
-import { deserPolyComm, PolyCommJSON } from "./serde_index.js";
+import { deserPolyComm, PolyCommJSON, deserGroup, GroupJSON } from "./serde_index.js";
 
 type PointEvals = PointEvaluations<Scalar[]>;
 
@@ -120,19 +120,41 @@ export function deserProverCommitments(json: ProverCommitmentsJSON): ProverCommi
     };
 }
 
+
+interface OpeningProofJSON {
+    lr: GroupJSON[][] // [GroupJSON, GroupJSON]
+    delta: GroupJSON
+    z1: string
+    z2: string
+    sg: GroupJSON
+}
+
+export function deserOpeningProof(json: OpeningProofJSON): OpeningProof {
+    return {
+        lr: json.lr.map((g) => [deserGroup(g[0]), deserGroup(g[1])]),
+        delta: deserGroup(json.delta),
+        z1: deserHexScalar(json.z1),
+        z2: deserHexScalar(json.z2),
+        sg: deserGroup(json.sg),
+    }
+}
+
 interface ProverProofJSON {
     evals: ProofEvalsJSON
     prev_challenges: RecursionChallenge[]
     commitments: ProverCommitmentsJSON
     ft_eval1: string
+    proof: OpeningProofJSON
 }
 
+
 export function deserProverProof(json: ProverProofJSON): ProverProof {
-    const { evals, prev_challenges, commitments, ft_eval1 } = json;
+    const { evals, prev_challenges, commitments, ft_eval1, proof } = json;
     return new ProverProof(
         deserProofEvals(evals),
         prev_challenges,
         deserProverCommitments(commitments),
-        deserHexScalar(ft_eval1)
+        deserHexScalar(ft_eval1),
+        deserOpeningProof(proof)
     );
 }
