@@ -97,5 +97,9 @@ In the beginning, Kimchi relies on an interactive protocol, which undergoes a co
 
 ### Proof Construction & Verification
 
-![commitments to secret polynomials](/img/commitments_to_secret_poly.png)
-![commitments to quotient polynomials](/img/commitments_to_quotient_poly.png)
+![Commitments to secret polynomials](/img/commitments_to_secret_poly.png)
+![Commitments to quotient polynomials](/img/commitments_to_quotient_poly.png)
+![Verifier produces an evaluation point](/img/verifier_produces_evaluation_point.png)
+![Prover provides needed evaluations for the linearization - 1](/img/prover_provides_evaluations_linearization_01.png)
+![Prover provides needed evaluations for the linearization - 2](/img/prover_provides_evaluations_linearization_02.png)
+![Batch verification of evaluation proofs](/img/batch_verification_evaluation_proofs.png)
