@@ -52,6 +52,8 @@ export class ProverProof {
             chunk_size = index.domain_size / index.max_poly_size;
         }
 
+        const zk_rows = index.zk_rows;
+
         //~ 1. Setup the Fq-Sponge.
         let fq_sponge = new Sponge();
 
@@ -243,11 +245,11 @@ export class ProverProof {
         const zkp = index.permutation_vanishing_polynomial_m.evaluate(zeta);
         const zeta1m1 = zeta1.sub(Scalar.from(1));
 
-        const PERMUTATION_CONSTRAINTS = 3; // FIXME: hardcoded here
-        let alpha_powers = all_alphas.getAlphas({ kind: "permutation" }, PERMUTATION_CONSTRAINTS);
+        let alpha_powers = all_alphas.getAlphas({ kind: "permutation" }, Verifier.PERMUTATION_CONSTRAINTS);
         const alpha0 = alpha_powers[0];
         const alpha1 = alpha_powers[1];
         const alpha2 = alpha_powers[2];
+        // WARN: alpha_powers should be an iterator and alphai = alpha_powers.next(), for i = 0,1,2.
 
         const init = (evals.w[Verifier.PERMUTS - 1].zeta.add(gamma))
             .mul(evals.z.zetaOmega)
@@ -302,11 +304,12 @@ export class ProverProof {
             beta,
             gamma,
             endo_coefficient: index.endo,
-            mds
+            mds,
+            zk_rows
         }
 
         ft_eval0 = ft_eval0.sub(PolishToken.evaluate(
-            index.linear_constant_term,
+            index.linearization.constant_term,
             zeta,
             evals,
             index.domain_gen,
@@ -575,6 +578,10 @@ export class ProofEvaluations<Evals> {
             case "index": {
                 if (col.typ === GateType.Generic) return this.genericSelector;
                 if (col.typ === GateType.Poseidon) return this.poseidonSelector;
+                if (col.typ === GateType.CompleteAdd) return this.completeAddSelector;
+                if (col.typ === GateType.VarBaseMul) return this.mulSelector;
+                if (col.typ === GateType.EndoMul) return this.emulSelector;
+                if (col.typ === GateType.EndoMulScalar) return this.endomulScalarSelector;
                 else return undefined;
             }
             case "coefficient": {
@@ -743,6 +750,8 @@ export class Constants<F> {
     endo_coefficient: F
     /** The MDS matrix */
     mds: F[][]
+    /** The number of zero-knowledge rows */
+    zk_rows: number
 }
 
 export class RandomOracles {

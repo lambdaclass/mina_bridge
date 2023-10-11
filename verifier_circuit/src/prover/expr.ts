@@ -334,3 +334,11 @@ export type PolishToken =
     | PolishToken.Load
     | PolishToken.SkipIf
     | PolishToken.SkipIfNot
+
+/**
+ * A linear combination of F coefficients of columns
+ */
+export class Linearization<F> {
+    constant_term: F
+    index_terms: [Column, F][]
+}

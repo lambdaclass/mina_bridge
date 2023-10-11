@@ -6,7 +6,7 @@ import { SRS } from '../SRS.js';
 import { Sponge } from './sponge.js';
 import { Alphas } from '../alphas.js';
 import { Polynomial } from '../polynomial.js';
-import { PolishToken } from '../prover/expr.js';
+import { Linearization, PolishToken } from '../prover/expr.js';
 
 let steps: bigint[][];
 try {
@@ -28,6 +28,8 @@ export class VerifierIndex {
     public: number
     /** maximal size of polynomial section */
     max_poly_size: number
+    /** the number of randomized rows to achieve zero knowledge */
+    zk_rows: number
 
     /** permutation commitments */
     sigma_comm: PolyComm<Group>[] // size PERMUTS
@@ -57,16 +59,13 @@ export class VerifierIndex {
     /** Endoscalar coefficient */
     endo: Scalar
 
-    /**
-     * The constant term of a a "linearization", which is linear combination with
-     * coefficients of columns.
-     */
-    linear_constant_term: PolishToken[]
+    linearization: Linearization<PolishToken[]>
 
     constructor(
         domain_size: number,
         domain_gen: Scalar,
         max_poly_size: number,
+        zk_rows: number,
         public_size: number,
         sigma_comm: PolyComm<Group>[],
         coefficients_comm: PolyComm<Group>[],
@@ -81,12 +80,13 @@ export class VerifierIndex {
         permutation_vanishing_polynomial_m: Polynomial,
         w: Scalar,
         endo: Scalar,
-        linear_constant_term: PolishToken[]
+        linearization: Linearization<PolishToken[]>
     ) {
         this.srs = SRS.createFromJSON();
         this.domain_size = domain_size;
         this.domain_gen = domain_gen;
         this.max_poly_size = max_poly_size;
+        this.zk_rows = zk_rows;
         this.public = public_size;
         this.sigma_comm = sigma_comm;
         this.coefficients_comm = coefficients_comm;
@@ -101,7 +101,7 @@ export class VerifierIndex {
         this.permutation_vanishing_polynomial_m = permutation_vanishing_polynomial_m;
         this.w = w;
         this.endo = endo;
-        this.linear_constant_term = linear_constant_term;
+        this.linearization = linearization;
     }
 
     /*
@@ -128,6 +128,7 @@ export class Verifier extends Circuit {
     static readonly COLUMNS: number = 15;
     /** Number of registers that can be wired (participating in the permutation) */
     static readonly PERMUTS: number = 7;
+    static readonly PERMUTATION_CONSTRAINTS: number = 3;
 
     @circuitMain
     static main(@public_ sg: Group, @public_ sg_scalar: Scalar, @public_ expected: Group) {
