@@ -34,13 +34,17 @@ interface ProverCommitmentsJSON {
 }
 
 /**
+ * Deserializes a scalar from a hex string, prefix doesn't matter
+ */
+export function deserHexScalar(str: string): Scalar {
+    if (!str.startsWith("0x")) str = "0x" + str;
+    return Scalar.from(str);
+}
+
+/**
  * Deserializes a scalar point evaluation from JSON
  */
 export function deserPointEval(json: PointEvalsJSON): PointEvals {
-    const deserHexScalar = (str: string): Scalar => {
-        if (!str.startsWith("0x")) str = "0x" + str;
-        return Scalar.from(str);
-    }
     const zeta = json.zeta.map(deserHexScalar);
     const zetaOmega = json.zeta_omega.map(deserHexScalar);
     let ret = new PointEvaluations(zeta, zetaOmega);
@@ -93,13 +97,15 @@ interface ProverProofJSON {
     evals: ProofEvalsJSON
     prev_challenges: RecursionChallenge[]
     commitments: ProverCommitmentsJSON
+    ft_eval1: string
 }
 
 export function deserProverProof(json: ProverProofJSON): ProverProof {
-    const { evals, prev_challenges, commitments } = json;
+    const { evals, prev_challenges, commitments, ft_eval1 } = json;
     return new ProverProof(
         deserProofEvals(evals),
         prev_challenges,
-        deserProverCommitments(commitments)
+        deserProverCommitments(commitments),
+        deserHexScalar(ft_eval1)
     );
 }

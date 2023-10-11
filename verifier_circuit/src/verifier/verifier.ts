@@ -28,8 +28,6 @@ export class VerifierIndex {
     public: number
     /** maximal size of polynomial section */
     max_poly_size: number
-    /** the number of randomized rows to achieve zero knowledge */
-    zk_rows: number
 
     /** permutation commitments */
     sigma_comm: PolyComm<Group>[] // size PERMUTS
@@ -67,6 +65,8 @@ export class VerifierIndex {
 
     constructor(
         domain_size: number,
+        domain_gen: Scalar,
+        max_poly_size: number,
         public_size: number,
         sigma_comm: PolyComm<Group>[],
         coefficients_comm: PolyComm<Group>[],
@@ -75,10 +75,18 @@ export class VerifierIndex {
         complete_add_comm: PolyComm<Group>,
         mul_comm: PolyComm<Group>,
         emul_comm: PolyComm<Group>,
-        endomul_scalar_comm: PolyComm<Group>
+        endomul_scalar_comm: PolyComm<Group>,
+        powers_of_alpha: Alphas,
+        shift: Scalar[],
+        zkpm: Polynomial,
+        w: Scalar,
+        endo: Scalar,
+        linear_constant_term: PolishToken[]
     ) {
         this.srs = SRS.createFromJSON();
         this.domain_size = domain_size;
+        this.domain_gen = domain_gen;
+        this.max_poly_size = max_poly_size;
         this.public = public_size;
         this.sigma_comm = sigma_comm;
         this.coefficients_comm = coefficients_comm;
@@ -88,6 +96,12 @@ export class VerifierIndex {
         this.mul_comm = mul_comm;
         this.emul_comm = emul_comm;
         this.endomul_scalar_comm = endomul_scalar_comm;
+        this.powers_of_alpha = powers_of_alpha;
+        this.shift = shift;
+        this.zkpm = zkpm;
+        this.w = w;
+        this.endo = endo;
+        this.linear_constant_term = linear_constant_term;
     }
 
     /*

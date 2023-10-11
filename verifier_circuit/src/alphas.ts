@@ -1,4 +1,4 @@
-import { ArgumentType, GateType } from "./circuits/gate"
+import { ArgumentType, ArgumentTypeID, GateType } from "./circuits/gate"
 import { Scalar } from "o1js"
 
 /**
@@ -14,12 +14,22 @@ export class Alphas {
      */
     next_power: number
     /** The mapping between constraint types and powers of alpha */
-    mapping: Map<ArgumentType, [number, number]>
+    mapping: Map<ArgumentTypeID, [number, number]>
     /**
      * The powers of alpha: 1, alpha, alpha^2, ..
      * If not undefined, you can't register new contraints.
     */
     alphas?: Scalar[]
+
+    constructor(
+        next_power: number,
+        mapping: Map<ArgumentTypeID, [number, number]>,
+        alphas?: Scalar[]
+    ) {
+        this.next_power = next_power;
+        this.mapping = mapping,
+        this.alphas = alphas;
+    }
 
     /**
      * Instantiates the ranges with an actual field element `alpha`.
@@ -27,7 +37,7 @@ export class Alphas {
      */
     instantiate(alpha: Scalar) {
         let last_power = Scalar.from(1);
-        let alphas = Array<Scalar>(this.next_power);
+        let alphas = Array<Scalar>();
         alphas.push(last_power);
 
         for (let _ = 1; _ < this.next_power; _++) {
@@ -45,12 +55,12 @@ export class Alphas {
             ty.type = GateType.Zero;
         }
 
-        const range = this.mapping.get(ty)!;
+        const range = this.mapping.get(ArgumentType.id(ty))!;
         if (num > range[1]) {
             // FIXME: panic! asked for num alphas but there aren't as many.
         }
 
-        return this.alphas!.slice(range[0], num);
+        return this.alphas!.slice(range[0], range[0] + num);
         // INFO: in kimchi this returns a "MustConsumeIterator", which warns you if
         // not consumed entirely.
     }

@@ -1,6 +1,8 @@
 {
   "domain_size": 32,
-  "public": 0,
+  "domain_gen": "ec038391b92226a455da89f17a980cf597275ac469f86011e5fc21d0f93ecd3c",
+  "public_size": 0,
+  "max_poly_size": 65536,
   "sigma_comm": [
     {
       "unshifted": [
@@ -256,5 +258,1196 @@
       }
     ],
     "shifted": null
-  }
+  },
+  "shift": [
+    "0100000000000000000000000000000000000000000000000000000000000000",
+    "e3a214e91334d0caf1eb85df5bd7524d73d5eb7aaf742a7eb2d40bfdc8cdb900",
+    "c627350db4ff37a501a0e2d694338be612ad32a946006e621240d86081f67c00",
+    "6d0f44339a339fb8a4e49bf1099620aa649918482b95a397ae39b9ec5ad47700",
+    "b40923bd78e619c80a7b39c0f3f11e48005519d2fef16a1f77d40545e5c77700",
+    "847440624c26426e8480a31f28991cbe3647df8e70f027477aaec6ec68afb300",
+    "a17401b24a567ee6bc8d8918b675061a6f13874aa7505d93edc06f53a41c3800"
+  ],
+  "zkpm": [
+    "5aa64070cfa6b53073a54eaa71fdd846db7cec674172ccbee0f50ec031c1841e",
+    "5b280603c585ca9e67cae70b868be9e1bfbbcac31b487b553d22c6f4ea31dc37",
+    "98ad9f969f783138e1fb5c6010da258f82017d1e624fc62521dff2640d630307",
+    "0100000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "w": "3183020efb8ea7613009a36ed0d08c0617310f9d09eadc2f0e502e5fc7242c39",
+  "endo": "4f0eaa50e0d2a92aaf33c0477d46ed0f5a0ff71cd8b41d518e523e28589a8106",
+  "linear_constant_term": [
+    {
+      "Cell": {
+        "col": {
+          "Index": "Poseidon"
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 6
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Coefficient": 0
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Mds": {
+        "row": 0,
+        "col": 0
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Pow": 7
+    },
+    "Store",
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 0,
+        "col": 1
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 1
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Pow": 7
+    },
+    "Store",
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 0,
+        "col": 2
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 2
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Pow": 7
+    },
+    "Store",
+    "Mul",
+    "Add",
+    "Sub",
+    "Alpha",
+    {
+      "Pow": 1
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Coefficient": 1
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Mds": {
+        "row": 1,
+        "col": 0
+      }
+    },
+    {
+      "Load": 0
+    },
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 1,
+        "col": 1
+      }
+    },
+    {
+      "Load": 1
+    },
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 1,
+        "col": 2
+      }
+    },
+    {
+      "Load": 2
+    },
+    "Mul",
+    "Add",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 2
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Coefficient": 2
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Mds": {
+        "row": 2,
+        "col": 0
+      }
+    },
+    {
+      "Load": 0
+    },
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 2,
+        "col": 1
+      }
+    },
+    {
+      "Load": 1
+    },
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 2,
+        "col": 2
+      }
+    },
+    {
+      "Load": 2
+    },
+    "Mul",
+    "Add",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 3
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 9
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Coefficient": 3
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Mds": {
+        "row": 0,
+        "col": 0
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 6
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Pow": 7
+    },
+    "Store",
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 0,
+        "col": 1
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Pow": 7
+    },
+    "Store",
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 0,
+        "col": 2
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Pow": 7
+    },
+    "Store",
+    "Mul",
+    "Add",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 4
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 10
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Coefficient": 4
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Mds": {
+        "row": 1,
+        "col": 0
+      }
+    },
+    {
+      "Load": 3
+    },
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 1,
+        "col": 1
+      }
+    },
+    {
+      "Load": 4
+    },
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 1,
+        "col": 2
+      }
+    },
+    {
+      "Load": 5
+    },
+    "Mul",
+    "Add",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 5
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 11
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Coefficient": 5
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Mds": {
+        "row": 2,
+        "col": 0
+      }
+    },
+    {
+      "Load": 3
+    },
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 2,
+        "col": 1
+      }
+    },
+    {
+      "Load": 4
+    },
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 2,
+        "col": 2
+      }
+    },
+    {
+      "Load": 5
+    },
+    "Mul",
+    "Add",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 6
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 12
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Coefficient": 6
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Mds": {
+        "row": 0,
+        "col": 0
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 9
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Pow": 7
+    },
+    "Store",
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 0,
+        "col": 1
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 10
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Pow": 7
+    },
+    "Store",
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 0,
+        "col": 2
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 11
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Pow": 7
+    },
+    "Store",
+    "Mul",
+    "Add",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 7
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 13
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Coefficient": 7
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Mds": {
+        "row": 1,
+        "col": 0
+      }
+    },
+    {
+      "Load": 6
+    },
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 1,
+        "col": 1
+      }
+    },
+    {
+      "Load": 7
+    },
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 1,
+        "col": 2
+      }
+    },
+    {
+      "Load": 8
+    },
+    "Mul",
+    "Add",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 8
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 14
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Coefficient": 8
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Mds": {
+        "row": 2,
+        "col": 0
+      }
+    },
+    {
+      "Load": 6
+    },
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 2,
+        "col": 1
+      }
+    },
+    {
+      "Load": 7
+    },
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 2,
+        "col": 2
+      }
+    },
+    {
+      "Load": 8
+    },
+    "Mul",
+    "Add",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 9
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 3
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Coefficient": 9
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Mds": {
+        "row": 0,
+        "col": 0
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 12
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Pow": 7
+    },
+    "Store",
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 0,
+        "col": 1
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 13
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Pow": 7
+    },
+    "Store",
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 0,
+        "col": 2
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 14
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Pow": 7
+    },
+    "Store",
+    "Mul",
+    "Add",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 10
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 4
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Coefficient": 10
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Mds": {
+        "row": 1,
+        "col": 0
+      }
+    },
+    {
+      "Load": 9
+    },
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 1,
+        "col": 1
+      }
+    },
+    {
+      "Load": 10
+    },
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 1,
+        "col": 2
+      }
+    },
+    {
+      "Load": 11
+    },
+    "Mul",
+    "Add",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 11
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 5
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Coefficient": 11
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Mds": {
+        "row": 2,
+        "col": 0
+      }
+    },
+    {
+      "Load": 9
+    },
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 2,
+        "col": 1
+      }
+    },
+    {
+      "Load": 10
+    },
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 2,
+        "col": 2
+      }
+    },
+    {
+      "Load": 11
+    },
+    "Mul",
+    "Add",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 12
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Next"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Coefficient": 12
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Mds": {
+        "row": 0,
+        "col": 0
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 3
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Pow": 7
+    },
+    "Store",
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 0,
+        "col": 1
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 4
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Pow": 7
+    },
+    "Store",
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 0,
+        "col": 2
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 5
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Pow": 7
+    },
+    "Store",
+    "Mul",
+    "Add",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 13
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 1
+        },
+        "row": "Next"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Coefficient": 13
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Mds": {
+        "row": 1,
+        "col": 0
+      }
+    },
+    {
+      "Load": 12
+    },
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 1,
+        "col": 1
+      }
+    },
+    {
+      "Load": 13
+    },
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 1,
+        "col": 2
+      }
+    },
+    {
+      "Load": 14
+    },
+    "Mul",
+    "Add",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 14
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 2
+        },
+        "row": "Next"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Coefficient": 14
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Mds": {
+        "row": 2,
+        "col": 0
+      }
+    },
+    {
+      "Load": 12
+    },
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 2,
+        "col": 1
+      }
+    },
+    {
+      "Load": 13
+    },
+    "Mul",
+    "Add",
+    {
+      "Mds": {
+        "row": 2,
+        "col": 2
+      }
+    },
+    {
+      "Load": 14
+    },
+    "Mul",
+    "Add",
+    "Sub",
+    "Mul",
+    "Add",
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Index": "Generic"
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Coefficient": 0
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Coefficient": 1
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 1
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Coefficient": 2
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 2
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Coefficient": 3
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 1
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Coefficient": 4
+        },
+        "row": "Curr"
+      }
+    },
+    "Add",
+    "Alpha",
+    {
+      "Pow": 1
+    },
+    {
+      "Cell": {
+        "col": {
+          "Coefficient": 5
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 3
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Coefficient": 6
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 4
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Coefficient": 7
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 5
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Coefficient": 8
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 3
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 4
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Coefficient": 9
+        },
+        "row": "Curr"
+      }
+    },
+    "Add",
+    "Mul",
+    "Add",
+    "Mul",
+    "Add"
+  ]
 }

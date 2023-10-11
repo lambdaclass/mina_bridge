@@ -54,6 +54,11 @@ export class Variable {
     col: Column
     row: CurrOrNext
 
+    constructor(col: Column, row: CurrOrNext) {
+        this.col = col;
+        this.row = row;
+    }
+
     evaluate(evals: ProofEvaluations<PointEvaluations<Scalar>>): Scalar {
         let point_evaluations: PointEvaluations<Scalar> | undefined = undefined;
         switch (this.col.kind) {

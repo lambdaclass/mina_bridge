@@ -67,7 +67,7 @@ export class Sponge {
 
     absorbScalars(s: Scalar[]) {
         this.lastSqueezed = [];
-        s.forEach(this.absorbScalar);
+        s.forEach(this.absorbScalar.bind(this));
     }
 
     absorbCommitment(commitment: PolyComm<Group>) {

@@ -1,11 +1,32 @@
 import { Scalar } from "o1js";
 
 export function powScalar(f: Scalar, exp: number): Scalar {
-    let res = f;
-    for (let _ = 1; _ < exp; _++) {
-        res = res.mul(f);
+    if (exp === 0) return Scalar.from(1);
+    else if (exp === 1) return f;
+    else {
+        let res = f;
+
+        while ((exp & 1) === 0) {
+            res = res.mul(res);
+            exp >>= 1;
+        }
+
+        if (exp === 0) return res;
+        else {
+            let base = res;
+            exp >>= 1;
+
+            while (exp !== 0) {
+                base = base.mul(base);
+                if ((exp & 1) === 1) {
+                    res = res.mul(base);
+                }
+                exp >>= 1;
+            }
+
+            return res;
+        }
     }
-    return res
 }
 
 export function powScalarBig(f: Scalar, exp: bigint): Scalar {
@@ -16,12 +37,37 @@ export function powScalarBig(f: Scalar, exp: bigint): Scalar {
     return res
 }
 
+/**
+ * Extended euclidean algorithm. Returns [gcd, Bezout_a, Bezout_b]
+ * so gcd = a*Bezout_a + b*Bezout_b.
+ * source: https://www.extendedeuclideanalgorithm.com/code
+ */
+function xgcd(
+    a: bigint,
+    b: bigint,
+    s1 = 1n,
+    s2 = 0n,
+    t1 = 0n,
+    t2 = 1n
+): [bigint, bigint, bigint] {
+    if (b === 0n) {
+        return [a, 1n, 0n];
+    }
+
+    let q = a / b;
+    let r = a - q * b;
+    let s3 = s1 - q * s2;
+    let t3 = t1 - q * t2;
+
+    return (r === 0n) ? [b, s2, t2] : xgcd(b, r, s2, s3, t2, t3);
+}
+
+
 export function invScalar(f: Scalar): Scalar {
-    if (f === Scalar.from(0)) {
-        return Scalar.from(0);
+    const [gcd, inv, _] = xgcd(f.toBigInt(), Scalar.ORDER);
+    if (gcd !== 1n) {
         // FIXME: error
     }
 
-    // using fermat's little theorem:
-    return powScalarBig(f, Scalar.ORDER - 2n);
+    return Scalar.from(inv);
 }
