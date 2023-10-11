@@ -86,11 +86,11 @@ export class PolyComm<A> {
         }
 
         if (com.length != elm.length) {
-            // FIXME:: error
+            throw new Error("MSM with invalid comm. and scalar counts");
         }
 
         let unshifted_len = Math.max(...com.map(pc => pc.unshifted.length));
-        let unshifted = Array(unshifted_len);
+        let unshifted = [];
 
         for (let chunk = 0; chunk < unshifted_len; chunk++) {
             let points_and_scalars = com
@@ -109,7 +109,7 @@ export class PolyComm<A> {
 
         let shifted_pairs = com
             .map((c, i) => [c.shifted, elm[i]] as [Group | undefined, Scalar]) // zip with scalars
-            .filter(([shifted, _]) => shifted)
+            .filter(([shifted, _]) => shifted != null)
             .map((zip) => zip as [Group, Scalar]); // zip with scalars
 
         let shifted = undefined;
@@ -124,11 +124,11 @@ export class PolyComm<A> {
     }
 
     static chunk_commitment(comm: PolyComm<Group>, zeta_n: Scalar): PolyComm<Group> {
-        let res = Group.zero;
+        let res = comm.unshifted[comm.unshifted.length - 1];
 
         // use Horner's to compute chunk[0] + z^n chunk[1] + z^2n chunk[2] + ...
         // as ( chunk[-1] * z^n + chunk[-2] ) * z^n + chunk[-3]
-        for (const chunk of comm.unshifted.reverse()) {
+        for (const chunk of comm.unshifted.reverse().slice(1)) {
             res = res.scale(zeta_n);
             res = res.add(chunk);
         }
