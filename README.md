@@ -92,3 +92,10 @@ New proof systems resembling Plonk employ custom gates to efficiently represent 
 In Kimchi, there's a concept where a gate has the ability to directly record its output onto the registers utilized by the subsequent gate.
 
 Another enhancement in Kimchi involves the incorporation of lookups for performance improvement. Occasionally, certain operations can be expressed in a tabular form, such as an XOR table.
+
+In the beginning, Kimchi relies on an interactive protocol, which undergoes a conversion into a non-interactive form through the Fiat-Shamir transform.
+
+### Proof Construction & Verification
+
+![commitments to secret polynomials](/img/commitments_to_secret_poly.png)
+![commitments to quotient polynomials](/img/commitments_to_quotient_poly.png)
