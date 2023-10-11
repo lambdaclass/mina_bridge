@@ -1,7 +1,19 @@
 import { PolyComm } from "../poly_commitment/commitment.js";
-import { ProverProof, PointEvaluations } from "../prover/prover.js";
+import { ProverProof, PointEvaluations, ProofEvaluations } from "../prover/prover.js";
 import { Verifier, VerifierIndex } from "./verifier.js";
 import { Group, Scalar } from "o1js";
+
+export class Context {
+    verifier_index: VerifierIndex
+    proof: ProverProof
+    public_input: Scalar[]
+
+    constructor(verifier_index: VerifierIndex, proof: ProverProof, public_input: Scalar[]) {
+        this.verifier_index = verifier_index;
+        this.proof = proof;
+        this.public_input = public_input;
+    }
+}
 
 export class Batch extends Verifier {
     /**
@@ -24,26 +36,23 @@ export class Batch extends Verifier {
             .maskCustom(non_hiding_public_comm,
                 new PolyComm([Scalar.from(1)], undefined))?.commitment!;
 
-        proof.oracles(verifier_index, public_comm, public_input);
+        //~ 3. Run the Fiat-Shamir heuristic.
+        const {
+            fq_sponge,
+            oracles,
+            all_alphas,
+            public_evals,
+            powers_of_eval_points_for_chunks,
+            polys,
+            zeta1: zeta_to_domain_size,
+            ft_eval0,
+            combined_inner_product
+        } = proof.oracles(verifier_index, public_comm, public_input);
 
-        /*
-          Check the length of evaluations inside the proof.
-          Commit to the negated public input polynomial.
-          Run the Fiat-Shamir argument.
-          Combine the chunked polynomials’ evaluations (TODO: most likely only the quotient polynomial is chunked) with the right powers of $\zeta^n$ and $(\zeta * \omega)^n$.
-        */
 
-        let original_evals = proof.evals;
-
-        //original_evals.combine();
-
-        // let evals = proof.evals.combine(&powers_of_eval_points_for_chunks);
-        //let context = Context {
-        //    verifier_index,
-        //    proof,
-        //    public_input,
-        //};
-
+        //~ 4. Combine the chunked polynomials' evaluations
+        const evals = ProofEvaluations.combine(proof.evals, powers_of_eval_points_for_chunks);
+        const context = new Context(verifier_index, proof, public_input);
 
         /*
           Compute the commitment to the linearized polynomial $f$. To do this, add the constraints of all of the gates, of the permutation, and optionally of the lookup. (See the separate sections in the constraints section.) Any polynomial should be replaced by its associated commitment, contained in the verifier index or in the proof, unless a polynomial has its evaluation provided by the proof in which case the evaluation should be used in place of the commitment.

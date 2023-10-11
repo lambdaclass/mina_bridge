@@ -1,6 +1,6 @@
 use ark_ec::AffineCurve;
 use ark_ff::{One, PrimeField};
-use ark_poly::domain::EvaluationDomain;
+use ark_poly::{domain::EvaluationDomain, UVPolynomial};
 use kimchi::{
     circuits::expr::PolishToken,
     curve::KimchiCurve,
@@ -11,10 +11,10 @@ use kimchi::{
         sponge::{DefaultFqSponge, DefaultFrSponge},
     },
     o1_utils::FieldHelpers,
-    poly_commitment::PolyComm,
+    poly_commitment::{evaluation_proof::OpeningProof, OpenProof, PolyComm, SRS},
     proof::{
-        LookupCommitments, LookupEvaluations, PointEvaluations, ProofEvaluations,
-        ProverCommitments, ProverProof, RecursionChallenge,
+        LookupCommitments, PointEvaluations, ProofEvaluations, ProverCommitments, ProverProof,
+        RecursionChallenge,
     },
     verifier_index::VerifierIndex,
 };
@@ -43,57 +43,143 @@ pub type ScalarSponge = DefaultFrSponge<Fq, SpongeParams>;
 /// Enforce the length of evaluations inside [`Proof`].
 /// Atm, the length of evaluations(both `zeta` and `zeta_omega`) SHOULD be 1.
 /// The length value is prone to future change.
-pub fn check_proof_evals_len<G>(proof: &ProverProof<G>) -> Result<(), VerifyError>
+pub fn check_proof_evals_len<G, OpeningProof>(
+    proof: &ProverProof<G, OpeningProof>,
+    expected_size: usize,
+) -> Result<(), VerifyError>
 where
     G: KimchiCurve,
     G::BaseField: PrimeField,
 {
     let ProofEvaluations {
+        public,
         w,
         z,
         s,
         coefficients,
-        lookup,
         generic_selector,
         poseidon_selector,
+        complete_add_selector,
+        mul_selector,
+        emul_selector,
+        endomul_scalar_selector,
+        range_check0_selector,
+        range_check1_selector,
+        foreign_field_add_selector,
+        foreign_field_mul_selector,
+        xor_selector,
+        rot_selector,
+        lookup_aggregation,
+        lookup_table,
+        lookup_sorted,
+        runtime_lookup_table,
+        runtime_lookup_table_selector,
+        xor_lookup_selector,
+        lookup_gate_lookup_selector,
+        range_check_lookup_selector,
+        foreign_field_mul_lookup_selector,
     } = &proof.evals;
 
-    let check_eval_len = |eval: &PointEvaluations<Vec<_>>| -> Result<(), VerifyError> {
-        if eval.zeta.len().is_one() && eval.zeta_omega.len().is_one() {
-            Ok(())
-        } else {
-            Err(VerifyError::IncorrectEvaluationsLength)
-        }
-    };
+    let check_eval_len =
+        |eval: &PointEvaluations<Vec<_>>, str: &'static str| -> Result<(), VerifyError> {
+            if eval.zeta.len() != expected_size {
+                Err(VerifyError::IncorrectEvaluationsLength(
+                    expected_size,
+                    eval.zeta.len(),
+                    str,
+                ))
+            } else if eval.zeta_omega.len() != expected_size {
+                Err(VerifyError::IncorrectEvaluationsLength(
+                    expected_size,
+                    eval.zeta_omega.len(),
+                    str,
+                ))
+            } else {
+                Ok(())
+            }
+        };
+
+    if let Some(public) = public {
+        check_eval_len(public, "public input")?;
+    }
 
     for w_i in w {
-        check_eval_len(w_i)?;
+        check_eval_len(w_i, "witness")?;
     }
-    check_eval_len(z)?;
+    check_eval_len(z, "permutation accumulator")?;
     for s_i in s {
-        check_eval_len(s_i)?;
+        check_eval_len(s_i, "permutation shifts")?;
     }
     for coeff in coefficients {
-        check_eval_len(coeff)?;
+        check_eval_len(coeff, "coefficients")?;
     }
-    if let Some(LookupEvaluations {
-        sorted,
-        aggreg,
-        table,
-        runtime,
-    }) = lookup
-    {
-        for sorted_i in sorted {
-            check_eval_len(sorted_i)?;
-        }
-        check_eval_len(aggreg)?;
-        check_eval_len(table)?;
-        if let Some(runtime) = &runtime {
-            check_eval_len(runtime)?;
-        }
+
+    // Lookup evaluations
+    for sorted in lookup_sorted.iter().flatten() {
+        check_eval_len(sorted, "lookup sorted")?
     }
-    check_eval_len(generic_selector)?;
-    check_eval_len(poseidon_selector)?;
+
+    if let Some(lookup_aggregation) = lookup_aggregation {
+        check_eval_len(lookup_aggregation, "lookup aggregation")?;
+    }
+    if let Some(lookup_table) = lookup_table {
+        check_eval_len(lookup_table, "lookup table")?;
+    }
+    if let Some(runtime_lookup_table) = runtime_lookup_table {
+        check_eval_len(runtime_lookup_table, "runtime lookup table")?;
+    }
+
+    check_eval_len(generic_selector, "generic selector")?;
+    check_eval_len(poseidon_selector, "poseidon selector")?;
+    check_eval_len(complete_add_selector, "complete add selector")?;
+    check_eval_len(mul_selector, "mul selector")?;
+    check_eval_len(emul_selector, "endomul selector")?;
+    check_eval_len(endomul_scalar_selector, "endomul scalar selector")?;
+
+    // Optional gates
+
+    if let Some(range_check0_selector) = range_check0_selector {
+        check_eval_len(range_check0_selector, "range check 0 selector")?
+    }
+    if let Some(range_check1_selector) = range_check1_selector {
+        check_eval_len(range_check1_selector, "range check 1 selector")?
+    }
+    if let Some(foreign_field_add_selector) = foreign_field_add_selector {
+        check_eval_len(foreign_field_add_selector, "foreign field add selector")?
+    }
+    if let Some(foreign_field_mul_selector) = foreign_field_mul_selector {
+        check_eval_len(foreign_field_mul_selector, "foreign field mul selector")?
+    }
+    if let Some(xor_selector) = xor_selector {
+        check_eval_len(xor_selector, "xor selector")?
+    }
+    if let Some(rot_selector) = rot_selector {
+        check_eval_len(rot_selector, "rot selector")?
+    }
+
+    // Lookup selectors
+
+    if let Some(runtime_lookup_table_selector) = runtime_lookup_table_selector {
+        check_eval_len(
+            runtime_lookup_table_selector,
+            "runtime lookup table selector",
+        )?
+    }
+    if let Some(xor_lookup_selector) = xor_lookup_selector {
+        check_eval_len(xor_lookup_selector, "xor lookup selector")?
+    }
+    if let Some(lookup_gate_lookup_selector) = lookup_gate_lookup_selector {
+        check_eval_len(lookup_gate_lookup_selector, "lookup gate lookup selector")?
+    }
+    if let Some(range_check_lookup_selector) = range_check_lookup_selector {
+        check_eval_len(range_check_lookup_selector, "range check lookup selector")?
+    }
+    if let Some(foreign_field_mul_lookup_selector) = foreign_field_mul_lookup_selector {
+        check_eval_len(
+            foreign_field_mul_lookup_selector,
+            "foreign field mul lookup selector",
+        )?
+    }
 
     Ok(())
 }
@@ -132,19 +218,30 @@ impl From<&PolyComm<Pallas>> for UncompressedPolyComm {
 }
 
 /// Execute step 1 of partial verification
-pub fn to_batch_step1<G>(proof: &ProverProof<G>) -> Result<(), VerifyError>
+pub fn to_batch_step1<G, OpeningProof: OpenProof<G>>(
+    proof: &ProverProof<G, OpeningProof>,
+    verifier_index: &VerifierIndex<G, OpeningProof>,
+) -> Result<(), VerifyError>
 where
     G: KimchiCurve,
     G::BaseField: PrimeField,
 {
+    let chunk_size = {
+        let d1_size = verifier_index.domain.size();
+        if d1_size < verifier_index.max_poly_size {
+            1
+        } else {
+            d1_size / verifier_index.max_poly_size
+        }
+    };
     println!("to_batch(), step 1: Commit to the negated public input polynomial.");
-    check_proof_evals_len(proof)?;
+    check_proof_evals_len(proof, chunk_size)?;
     Ok(())
 }
 
 /// Execute step 2 of partial verification
-pub fn to_batch_step2<G>(
-    verifier_index: &VerifierIndex<G>,
+pub fn to_batch_step2<G, OpeningProof: OpenProof<G>>(
+    verifier_index: &VerifierIndex<G, OpeningProof>,
     public_input: &[<G as AffineCurve>::ScalarField],
 ) -> Result<(), VerifyError>
 where
@@ -160,8 +257,7 @@ where
         }
         let lgr_comm = verifier_index
             .srs()
-            .lagrange_bases
-            .get(&verifier_index.domain.size())
+            .get_lagrange_basis(verifier_index.domain.size())
             .expect("pre-computed committed lagrange bases not found");
         let com: Vec<_> = lgr_comm.iter().take(verifier_index.public).collect();
         let elm: Vec<_> = public_input.iter().map(|s| -*s).collect();
@@ -207,14 +303,14 @@ pub struct VerifierIndexTS {
 
     //powers_of_alpha: Alphas<String>,
     shift: Vec<String>,
-    zkpm: Vec<String>,
+    permutation_vanishing_polynomial_m: Vec<String>,
     w: String,
     endo: String,
     linear_constant_term: Vec<PolishToken<String>>,
 }
 
-impl From<&VerifierIndex<Pallas>> for VerifierIndexTS {
-    fn from(value: &VerifierIndex<Pallas>) -> Self {
+impl From<&VerifierIndex<Pallas, OpeningProof<Pallas>>> for VerifierIndexTS {
+    fn from(value: &VerifierIndex<Pallas, OpeningProof<Pallas>>) -> Self {
         let VerifierIndex {
             domain,
             public,
@@ -229,7 +325,7 @@ impl From<&VerifierIndex<Pallas>> for VerifierIndexTS {
             endomul_scalar_comm,
             //powers_of_alpha,
             shift,
-            zkpm,
+            permutation_vanishing_polynomial_m,
             w,
             endo,
             linearization,
@@ -262,7 +358,9 @@ impl From<&VerifierIndex<Pallas>> for VerifierIndexTS {
                         PolishToken::Add => PolishToken::Add,
                         PolishToken::Mul => PolishToken::Mul,
                         PolishToken::Sub => PolishToken::Sub,
-                        PolishToken::VanishesOnLast4Rows => PolishToken::VanishesOnLast4Rows,
+                        PolishToken::VanishesOnZeroKnowledgeAndPreviousRows => {
+                            PolishToken::VanishesOnZeroKnowledgeAndPreviousRows
+                        }
                         PolishToken::UnnormalizedLagrangeBasis(x) => {
                             PolishToken::UnnormalizedLagrangeBasis(*x)
                         }
@@ -293,10 +391,10 @@ impl From<&VerifierIndex<Pallas>> for VerifierIndexTS {
             endomul_scalar_comm: UncompressedPolyComm::from(endomul_scalar_comm),
             //powers_of_alpha,
             shift: shift.iter().map(|e| e.to_hex()).collect::<Vec<_>>(),
-            zkpm: zkpm
+            permutation_vanishing_polynomial_m: permutation_vanishing_polynomial_m
                 .get()
                 .unwrap()
-                .coeffs
+                .coeffs()
                 .iter()
                 .map(|e| e.to_hex())
                 .collect::<Vec<_>>(),
@@ -366,8 +464,8 @@ pub struct ProverProofTS {
     ft_eval1: String,
 }
 
-impl From<&ProverProof<Pallas>> for ProverProofTS {
-    fn from(value: &ProverProof<Pallas>) -> Self {
+impl From<&ProverProof<Pallas, OpeningProof<Pallas>>> for ProverProofTS {
+    fn from(value: &ProverProof<Pallas, OpeningProof<Pallas>>) -> Self {
         let ProverProof {
             evals,
             prev_challenges,

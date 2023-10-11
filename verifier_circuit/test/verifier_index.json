@@ -226,8 +226,8 @@
   "complete_add_comm": {
     "unshifted": [
       {
-        "x": "0",
-        "y": "1"
+        "x": "15427374333697483577096356340297985232933727912694971579453397496858943128065",
+        "y": "2509910240642018366461735648111399592717548684137438645981418079872989533888"
       }
     ],
     "shifted": null
@@ -235,8 +235,8 @@
   "mul_comm": {
     "unshifted": [
       {
-        "x": "0",
-        "y": "1"
+        "x": "15427374333697483577096356340297985232933727912694971579453397496858943128065",
+        "y": "2509910240642018366461735648111399592717548684137438645981418079872989533888"
       }
     ],
     "shifted": null
@@ -244,8 +244,8 @@
   "emul_comm": {
     "unshifted": [
       {
-        "x": "0",
-        "y": "1"
+        "x": "15427374333697483577096356340297985232933727912694971579453397496858943128065",
+        "y": "2509910240642018366461735648111399592717548684137438645981418079872989533888"
       }
     ],
     "shifted": null
@@ -253,8 +253,8 @@
   "endomul_scalar_comm": {
     "unshifted": [
       {
-        "x": "0",
-        "y": "1"
+        "x": "15427374333697483577096356340297985232933727912694971579453397496858943128065",
+        "y": "2509910240642018366461735648111399592717548684137438645981418079872989533888"
       }
     ],
     "shifted": null
@@ -268,7 +268,7 @@
     "847440624c26426e8480a31f28991cbe3647df8e70f027477aaec6ec68afb300",
     "a17401b24a567ee6bc8d8918b675061a6f13874aa7505d93edc06f53a41c3800"
   ],
-  "zkpm": [
+  "permutation_vanishing_polynomial_m": [
     "5aa64070cfa6b53073a54eaa71fdd846db7cec674172ccbee0f50ec031c1841e",
     "5b280603c585ca9e67cae70b868be9e1bfbbcac31b487b553d22c6f4ea31dc37",
     "98ad9f969f783138e1fb5c6010da258f82017d1e624fc62521dff2640d630307",
@@ -1255,6 +1255,3466 @@
     "Mul",
     "Add",
     "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Index": "VarBaseMul"
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 5
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 6
+        },
+        "row": "Next"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 5
+        },
+        "row": "Next"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 4
+        },
+        "row": "Next"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 3
+        },
+        "row": "Next"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 2
+        },
+        "row": "Next"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 4
+        },
+        "row": "Curr"
+      }
+    },
+    "Dup",
+    "Add",
+    "Add",
+    "Dup",
+    "Add",
+    "Add",
+    "Dup",
+    "Add",
+    "Add",
+    "Dup",
+    "Add",
+    "Add",
+    "Dup",
+    "Add",
+    "Add",
+    "Sub",
+    "Alpha",
+    {
+      "Pow": 1
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 2
+        },
+        "row": "Next"
+      }
+    },
+    "Dup",
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 2
+        },
+        "row": "Next"
+      }
+    },
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 2
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 2
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Next"
+      }
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 3
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 2
+        },
+        "row": "Next"
+      }
+    },
+    "Dup",
+    "Add",
+    {
+      "Literal": "0100000000000000000000000000000000000000000000000000000000000000"
+    },
+    "Sub",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 1
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Sub",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 3
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 3
+        },
+        "row": "Curr"
+      }
+    },
+    "Dup",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 2
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Next"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Next"
+      }
+    },
+    "Mul",
+    "Store",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 2
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    "Sub",
+    "Store",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Next"
+      }
+    },
+    "Mul",
+    "Sub",
+    "Store",
+    {
+      "Load": 17
+    },
+    "Mul",
+    {
+      "Load": 16
+    },
+    {
+      "Load": 16
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    {
+      "Load": 15
+    },
+    "Add",
+    "Mul",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 4
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 3
+        },
+        "row": "Curr"
+      }
+    },
+    "Add",
+    {
+      "Load": 16
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 2
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    {
+      "Load": 17
+    },
+    "Mul",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 5
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 3
+        },
+        "row": "Next"
+      }
+    },
+    "Dup",
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 3
+        },
+        "row": "Next"
+      }
+    },
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 6
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Next"
+      }
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 3
+        },
+        "row": "Next"
+      }
+    },
+    "Dup",
+    "Add",
+    {
+      "Literal": "0100000000000000000000000000000000000000000000000000000000000000"
+    },
+    "Sub",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 1
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Sub",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 7
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Curr"
+      }
+    },
+    "Dup",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Next"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Next"
+      }
+    },
+    "Mul",
+    "Store",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    "Sub",
+    "Store",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Next"
+      }
+    },
+    "Mul",
+    "Sub",
+    "Store",
+    {
+      "Load": 20
+    },
+    "Mul",
+    {
+      "Load": 19
+    },
+    {
+      "Load": 19
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 9
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    {
+      "Load": 18
+    },
+    "Add",
+    "Mul",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 8
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 10
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Curr"
+      }
+    },
+    "Add",
+    {
+      "Load": 19
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 9
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    {
+      "Load": 20
+    },
+    "Mul",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 9
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 4
+        },
+        "row": "Next"
+      }
+    },
+    "Dup",
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 4
+        },
+        "row": "Next"
+      }
+    },
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 10
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 9
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 9
+        },
+        "row": "Next"
+      }
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 10
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 4
+        },
+        "row": "Next"
+      }
+    },
+    "Dup",
+    "Add",
+    {
+      "Literal": "0100000000000000000000000000000000000000000000000000000000000000"
+    },
+    "Sub",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 1
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Sub",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 11
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 10
+        },
+        "row": "Curr"
+      }
+    },
+    "Dup",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 9
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 9
+        },
+        "row": "Next"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 9
+        },
+        "row": "Next"
+      }
+    },
+    "Mul",
+    "Store",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 9
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    "Sub",
+    "Store",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 9
+        },
+        "row": "Next"
+      }
+    },
+    "Mul",
+    "Sub",
+    "Store",
+    {
+      "Load": 23
+    },
+    "Mul",
+    {
+      "Load": 22
+    },
+    {
+      "Load": 22
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 11
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    {
+      "Load": 21
+    },
+    "Add",
+    "Mul",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 12
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 12
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 10
+        },
+        "row": "Curr"
+      }
+    },
+    "Add",
+    {
+      "Load": 22
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 9
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 11
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    {
+      "Load": 23
+    },
+    "Mul",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 13
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 5
+        },
+        "row": "Next"
+      }
+    },
+    "Dup",
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 5
+        },
+        "row": "Next"
+      }
+    },
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 14
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 11
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 10
+        },
+        "row": "Next"
+      }
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 12
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 5
+        },
+        "row": "Next"
+      }
+    },
+    "Dup",
+    "Add",
+    {
+      "Literal": "0100000000000000000000000000000000000000000000000000000000000000"
+    },
+    "Sub",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 1
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Sub",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 15
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 12
+        },
+        "row": "Curr"
+      }
+    },
+    "Dup",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 11
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 10
+        },
+        "row": "Next"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 10
+        },
+        "row": "Next"
+      }
+    },
+    "Mul",
+    "Store",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 11
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    "Sub",
+    "Store",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 10
+        },
+        "row": "Next"
+      }
+    },
+    "Mul",
+    "Sub",
+    "Store",
+    {
+      "Load": 26
+    },
+    "Mul",
+    {
+      "Load": 25
+    },
+    {
+      "Load": 25
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 13
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    {
+      "Load": 24
+    },
+    "Add",
+    "Mul",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 16
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 14
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 12
+        },
+        "row": "Curr"
+      }
+    },
+    "Add",
+    {
+      "Load": 25
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 11
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 13
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    {
+      "Load": 26
+    },
+    "Mul",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 17
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 6
+        },
+        "row": "Next"
+      }
+    },
+    "Dup",
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 6
+        },
+        "row": "Next"
+      }
+    },
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 18
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 13
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 11
+        },
+        "row": "Next"
+      }
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 14
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 6
+        },
+        "row": "Next"
+      }
+    },
+    "Dup",
+    "Add",
+    {
+      "Literal": "0100000000000000000000000000000000000000000000000000000000000000"
+    },
+    "Sub",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 1
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Sub",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 19
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 14
+        },
+        "row": "Curr"
+      }
+    },
+    "Dup",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 13
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 11
+        },
+        "row": "Next"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 11
+        },
+        "row": "Next"
+      }
+    },
+    "Mul",
+    "Store",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 13
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    "Sub",
+    "Store",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 11
+        },
+        "row": "Next"
+      }
+    },
+    "Mul",
+    "Sub",
+    "Store",
+    {
+      "Load": 29
+    },
+    "Mul",
+    {
+      "Load": 28
+    },
+    {
+      "Load": 28
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Next"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    {
+      "Load": 27
+    },
+    "Add",
+    "Mul",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 20
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 1
+        },
+        "row": "Next"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 14
+        },
+        "row": "Curr"
+      }
+    },
+    "Add",
+    {
+      "Load": 28
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 13
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Next"
+      }
+    },
+    "Sub",
+    {
+      "Load": 29
+    },
+    "Mul",
+    "Sub",
+    "Mul",
+    "Add",
+    "Mul",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Index": "CompleteAdd"
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 10
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 2
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    "Store",
+    "Mul",
+    {
+      "Literal": "0100000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    "Sub",
+    "Alpha",
+    {
+      "Pow": 1
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Load": 30
+    },
+    "Mul",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 2
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Curr"
+      }
+    },
+    "Dup",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 1
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Store",
+    "Dup",
+    "Add",
+    "Sub",
+    {
+      "Load": 31
+    },
+    "Sub",
+    "Mul",
+    {
+      "Literal": "0100000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    {
+      "Load": 30
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 3
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 1
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    "Store",
+    "Sub",
+    "Mul",
+    "Add",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 3
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 2
+        },
+        "row": "Curr"
+      }
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 4
+        },
+        "row": "Curr"
+      }
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 4
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 4
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 1
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 5
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 5
+    },
+    {
+      "Load": 32
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 6
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    "Mul",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 6
+    },
+    {
+      "Load": 32
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 9
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 6
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    "Mul",
+    "Add",
+    "Mul",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Index": "EndoMul"
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 11
+        },
+        "row": "Curr"
+      }
+    },
+    "Dup",
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 11
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    "Alpha",
+    {
+      "Pow": 1
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 12
+        },
+        "row": "Curr"
+      }
+    },
+    "Dup",
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 12
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 2
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 13
+        },
+        "row": "Curr"
+      }
+    },
+    "Dup",
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 13
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 3
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 14
+        },
+        "row": "Curr"
+      }
+    },
+    "Dup",
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 14
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 4
+    },
+    {
+      "Literal": "0100000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 11
+        },
+        "row": "Curr"
+      }
+    },
+    "EndoCoefficient",
+    {
+      "Literal": "0100000000000000000000000000000000000000000000000000000000000000"
+    },
+    "Sub",
+    "Mul",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Store",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 4
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 9
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 12
+        },
+        "row": "Curr"
+      }
+    },
+    "Dup",
+    "Add",
+    {
+      "Literal": "0100000000000000000000000000000000000000000000000000000000000000"
+    },
+    "Sub",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 1
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 5
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 5
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 4
+        },
+        "row": "Curr"
+      }
+    },
+    "Dup",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 9
+        },
+        "row": "Curr"
+      }
+    },
+    "Dup",
+    "Mul",
+    "Store",
+    "Sub",
+    {
+      "Load": 33
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 4
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    "Store",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 9
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 5
+        },
+        "row": "Curr"
+      }
+    },
+    "Add",
+    "Store",
+    "Add",
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 5
+        },
+        "row": "Curr"
+      }
+    },
+    "Dup",
+    "Add",
+    {
+      "Load": 35
+    },
+    "Mul",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 6
+    },
+    {
+      "Load": 36
+    },
+    "Dup",
+    "Mul",
+    {
+      "Load": 35
+    },
+    "Dup",
+    "Mul",
+    {
+      "Load": 34
+    },
+    {
+      "Load": 33
+    },
+    "Sub",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    "Add",
+    "Mul",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 7
+    },
+    {
+      "Literal": "0100000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 13
+        },
+        "row": "Curr"
+      }
+    },
+    "EndoCoefficient",
+    {
+      "Literal": "0100000000000000000000000000000000000000000000000000000000000000"
+    },
+    "Sub",
+    "Mul",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Store",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 10
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 14
+        },
+        "row": "Curr"
+      }
+    },
+    "Dup",
+    "Add",
+    {
+      "Literal": "0100000000000000000000000000000000000000000000000000000000000000"
+    },
+    "Sub",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 1
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 8
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    "Dup",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 10
+        },
+        "row": "Curr"
+      }
+    },
+    "Dup",
+    "Mul",
+    "Store",
+    "Sub",
+    {
+      "Load": 37
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 4
+        },
+        "row": "Next"
+      }
+    },
+    "Sub",
+    "Store",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 10
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 5
+        },
+        "row": "Next"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Curr"
+      }
+    },
+    "Add",
+    "Store",
+    "Add",
+    "Mul",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Curr"
+      }
+    },
+    "Dup",
+    "Add",
+    {
+      "Load": 39
+    },
+    "Mul",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 9
+    },
+    {
+      "Load": 40
+    },
+    "Dup",
+    "Mul",
+    {
+      "Load": 39
+    },
+    "Dup",
+    "Mul",
+    {
+      "Load": 38
+    },
+    {
+      "Load": 37
+    },
+    "Sub",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 4
+        },
+        "row": "Next"
+      }
+    },
+    "Add",
+    "Mul",
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 10
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 6
+        },
+        "row": "Curr"
+      }
+    },
+    "Dup",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 11
+        },
+        "row": "Curr"
+      }
+    },
+    "Add",
+    "Dup",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 12
+        },
+        "row": "Curr"
+      }
+    },
+    "Add",
+    "Dup",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 13
+        },
+        "row": "Curr"
+      }
+    },
+    "Add",
+    "Dup",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 14
+        },
+        "row": "Curr"
+      }
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 6
+        },
+        "row": "Next"
+      }
+    },
+    "Sub",
+    "Mul",
+    "Add",
+    "Mul",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Index": "EndoMulScalar"
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 0
+        },
+        "row": "Curr"
+      }
+    },
+    "Dup",
+    "Add",
+    "Dup",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 6
+        },
+        "row": "Curr"
+      }
+    },
+    "Add",
+    "Dup",
+    "Add",
+    "Dup",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    "Add",
+    "Dup",
+    "Add",
+    "Dup",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Curr"
+      }
+    },
+    "Add",
+    "Dup",
+    "Add",
+    "Dup",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 9
+        },
+        "row": "Curr"
+      }
+    },
+    "Add",
+    "Dup",
+    "Add",
+    "Dup",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 10
+        },
+        "row": "Curr"
+      }
+    },
+    "Add",
+    "Dup",
+    "Add",
+    "Dup",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 11
+        },
+        "row": "Curr"
+      }
+    },
+    "Add",
+    "Dup",
+    "Add",
+    "Dup",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 12
+        },
+        "row": "Curr"
+      }
+    },
+    "Add",
+    "Dup",
+    "Add",
+    "Dup",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 13
+        },
+        "row": "Curr"
+      }
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 1
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    "Alpha",
+    {
+      "Pow": 1
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 2
+        },
+        "row": "Curr"
+      }
+    },
+    "Dup",
+    "Add",
+    {
+      "Literal": "010000000bf96cd94938dcadfe32c26055555555555555555555555555555515"
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 6
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "feffff7f907523c66e54ca047e4c231100000000000000000000000000000020"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 6
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "02000080857cb6ec241cee567f1961b0aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0a"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 6
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Store",
+    "Add",
+    "Dup",
+    "Add",
+    {
+      "Literal": "010000000bf96cd94938dcadfe32c26055555555555555555555555555555515"
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "feffff7f907523c66e54ca047e4c231100000000000000000000000000000020"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "02000080857cb6ec241cee567f1961b0aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0a"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Store",
+    "Add",
+    "Dup",
+    "Add",
+    {
+      "Literal": "010000000bf96cd94938dcadfe32c26055555555555555555555555555555515"
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "feffff7f907523c66e54ca047e4c231100000000000000000000000000000020"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "02000080857cb6ec241cee567f1961b0aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0a"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Store",
+    "Add",
+    "Dup",
+    "Add",
+    {
+      "Literal": "010000000bf96cd94938dcadfe32c26055555555555555555555555555555515"
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 9
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "feffff7f907523c66e54ca047e4c231100000000000000000000000000000020"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 9
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "02000080857cb6ec241cee567f1961b0aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0a"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 9
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Store",
+    "Add",
+    "Dup",
+    "Add",
+    {
+      "Literal": "010000000bf96cd94938dcadfe32c26055555555555555555555555555555515"
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 10
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "feffff7f907523c66e54ca047e4c231100000000000000000000000000000020"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 10
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "02000080857cb6ec241cee567f1961b0aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0a"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 10
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Store",
+    "Add",
+    "Dup",
+    "Add",
+    {
+      "Literal": "010000000bf96cd94938dcadfe32c26055555555555555555555555555555515"
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 11
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "feffff7f907523c66e54ca047e4c231100000000000000000000000000000020"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 11
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "02000080857cb6ec241cee567f1961b0aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0a"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 11
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Store",
+    "Add",
+    "Dup",
+    "Add",
+    {
+      "Literal": "010000000bf96cd94938dcadfe32c26055555555555555555555555555555515"
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 12
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "feffff7f907523c66e54ca047e4c231100000000000000000000000000000020"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 12
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "02000080857cb6ec241cee567f1961b0aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0a"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 12
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Store",
+    "Add",
+    "Dup",
+    "Add",
+    {
+      "Literal": "010000000bf96cd94938dcadfe32c26055555555555555555555555555555515"
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 13
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "feffff7f907523c66e54ca047e4c231100000000000000000000000000000020"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 13
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "02000080857cb6ec241cee567f1961b0aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0a"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 13
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Store",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 4
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 2
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 3
+        },
+        "row": "Curr"
+      }
+    },
+    "Dup",
+    "Add",
+    {
+      "Load": 41
+    },
+    {
+      "Literal": "0000000021eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 6
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "0300000000000000000000000000000000000000000000000000000000000000"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 6
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "0000000021eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    "Add",
+    "Add",
+    "Add",
+    "Dup",
+    "Add",
+    {
+      "Load": 42
+    },
+    {
+      "Literal": "0000000021eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "0300000000000000000000000000000000000000000000000000000000000000"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "0000000021eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    "Add",
+    "Add",
+    "Add",
+    "Dup",
+    "Add",
+    {
+      "Load": 43
+    },
+    {
+      "Literal": "0000000021eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "0300000000000000000000000000000000000000000000000000000000000000"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "0000000021eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    "Add",
+    "Add",
+    "Add",
+    "Dup",
+    "Add",
+    {
+      "Load": 44
+    },
+    {
+      "Literal": "0000000021eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 9
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "0300000000000000000000000000000000000000000000000000000000000000"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 9
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "0000000021eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    "Add",
+    "Add",
+    "Add",
+    "Dup",
+    "Add",
+    {
+      "Load": 45
+    },
+    {
+      "Literal": "0000000021eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 10
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "0300000000000000000000000000000000000000000000000000000000000000"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 10
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "0000000021eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    "Add",
+    "Add",
+    "Add",
+    "Dup",
+    "Add",
+    {
+      "Load": 46
+    },
+    {
+      "Literal": "0000000021eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 11
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "0300000000000000000000000000000000000000000000000000000000000000"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 11
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "0000000021eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    "Add",
+    "Add",
+    "Add",
+    "Dup",
+    "Add",
+    {
+      "Load": 47
+    },
+    {
+      "Literal": "0000000021eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 12
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "0300000000000000000000000000000000000000000000000000000000000000"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 12
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "0000000021eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    "Add",
+    "Add",
+    "Add",
+    "Dup",
+    "Add",
+    {
+      "Load": 48
+    },
+    {
+      "Literal": "0000000021eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 13
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "0300000000000000000000000000000000000000000000000000000000000000"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 13
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "0000000021eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    "Add",
+    "Add",
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 5
+        },
+        "row": "Curr"
+      }
+    },
+    "Sub",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 3
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 6
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Literal": "fbffffff20eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 6
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "0b00000000000000000000000000000000000000000000000000000000000000"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 6
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "fbffffff20eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 6
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 4
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Literal": "fbffffff20eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "0b00000000000000000000000000000000000000000000000000000000000000"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "fbffffff20eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 7
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 5
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Literal": "fbffffff20eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "0b00000000000000000000000000000000000000000000000000000000000000"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "fbffffff20eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 8
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 6
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 9
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Literal": "fbffffff20eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 9
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "0b00000000000000000000000000000000000000000000000000000000000000"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 9
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "fbffffff20eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 9
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 7
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 10
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Literal": "fbffffff20eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 10
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "0b00000000000000000000000000000000000000000000000000000000000000"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 10
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "fbffffff20eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 10
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 8
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 11
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Literal": "fbffffff20eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 11
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "0b00000000000000000000000000000000000000000000000000000000000000"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 11
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "fbffffff20eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 11
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 9
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 12
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Literal": "fbffffff20eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 12
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "0b00000000000000000000000000000000000000000000000000000000000000"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 12
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "fbffffff20eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 12
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Mul",
+    "Add",
+    "Alpha",
+    {
+      "Pow": 10
+    },
+    {
+      "Cell": {
+        "col": {
+          "Witness": 13
+        },
+        "row": "Curr"
+      }
+    },
+    {
+      "Literal": "fbffffff20eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 13
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "0b00000000000000000000000000000000000000000000000000000000000000"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 13
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    {
+      "Literal": "fbffffff20eb468cdda89409fc98462200000000000000000000000000000040"
+    },
+    "Add",
+    {
+      "Cell": {
+        "col": {
+          "Witness": 13
+        },
+        "row": "Curr"
+      }
+    },
+    "Mul",
+    "Mul",
+    "Add",
+    "Mul",
+    "Add",
     {
       "Cell": {
         "col": {
