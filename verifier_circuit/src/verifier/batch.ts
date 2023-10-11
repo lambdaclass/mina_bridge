@@ -76,6 +76,7 @@ export class Batch extends Verifier {
             combined_inner_product
         } = proof.oracles(verifier_index, public_comm, public_input);
 
+<<<<<<< HEAD
         //~ 4. Combine the chunked polynomials' evaluations
         const evals = ProofEvaluations.combine(proof.evals, powers_of_eval_points_for_chunks);
         const context = new Context(verifier_index, proof, public_input);
