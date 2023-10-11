@@ -332,7 +332,7 @@ dependencies = [
 [[package]]
 name = "groupmap"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems.git#17041948eb2742244464d6749560a304213f4198"
+source = "git+https://github.com/o1-labs/proof-systems.git?branch=develop#b62865a375ef9c962cbbcdcdf6a9e49d82f7fe4e"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -378,7 +378,7 @@ checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
 [[package]]
 name = "internal-tracing"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems.git#17041948eb2742244464d6749560a304213f4198"
+source = "git+https://github.com/o1-labs/proof-systems.git?branch=develop#b62865a375ef9c962cbbcdcdf6a9e49d82f7fe4e"
 
 [[package]]
 name = "itertools"
@@ -398,7 +398,7 @@ checksum = "af150ab688ff2122fcef229be89cb50dd66af9e01a4ff320cc137eecc9bacc38"
 [[package]]
 name = "kimchi"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems.git#17041948eb2742244464d6749560a304213f4198"
+source = "git+https://github.com/o1-labs/proof-systems.git?branch=develop#b62865a375ef9c962cbbcdcdf6a9e49d82f7fe4e"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -455,7 +455,7 @@ dependencies = [
 [[package]]
 name = "mina-curves"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems.git#17041948eb2742244464d6749560a304213f4198"
+source = "git+https://github.com/o1-labs/proof-systems.git?branch=develop#b62865a375ef9c962cbbcdcdf6a9e49d82f7fe4e"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -464,7 +464,7 @@ dependencies = [
 [[package]]
 name = "mina-poseidon"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems.git#17041948eb2742244464d6749560a304213f4198"
+source = "git+https://github.com/o1-labs/proof-systems.git?branch=develop#b62865a375ef9c962cbbcdcdf6a9e49d82f7fe4e"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -534,7 +534,7 @@ dependencies = [
 [[package]]
 name = "o1-utils"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems.git#17041948eb2742244464d6749560a304213f4198"
+source = "git+https://github.com/o1-labs/proof-systems.git?branch=develop#b62865a375ef9c962cbbcdcdf6a9e49d82f7fe4e"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -580,7 +580,7 @@ dependencies = [
 [[package]]
 name = "poly-commitment"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems.git#17041948eb2742244464d6749560a304213f4198"
+source = "git+https://github.com/o1-labs/proof-systems.git?branch=develop#b62865a375ef9c962cbbcdcdf6a9e49d82f7fe4e"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -885,7 +885,7 @@ dependencies = [
 [[package]]
 name = "turshi"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems.git#17041948eb2742244464d6749560a304213f4198"
+source = "git+https://github.com/o1-labs/proof-systems.git?branch=develop#b62865a375ef9c962cbbcdcdf6a9e49d82f7fe4e"
 dependencies = [
  "ark-ff",
  "hex",

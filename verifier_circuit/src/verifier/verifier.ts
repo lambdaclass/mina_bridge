@@ -51,7 +51,7 @@ export class VerifierIndex {
     /** Wire coordinate shifts */
     shift: Scalar[] // of size PERMUTS
     /** Zero knowledge polynomial */
-    zkpm: Polynomial
+    permutation_vanishing_polynomial_m: Polynomial
     /** Domain offset for zero-knowledge */
     w: Scalar
     /** Endoscalar coefficient */
@@ -78,7 +78,7 @@ export class VerifierIndex {
         endomul_scalar_comm: PolyComm<Group>,
         powers_of_alpha: Alphas,
         shift: Scalar[],
-        zkpm: Polynomial,
+        permutation_vanishing_polynomial_m: Polynomial,
         w: Scalar,
         endo: Scalar,
         linear_constant_term: PolishToken[]
@@ -98,7 +98,7 @@ export class VerifierIndex {
         this.endomul_scalar_comm = endomul_scalar_comm;
         this.powers_of_alpha = powers_of_alpha;
         this.shift = shift;
-        this.zkpm = zkpm;
+        this.permutation_vanishing_polynomial_m = permutation_vanishing_polynomial_m;
         this.w = w;
         this.endo = endo;
         this.linear_constant_term = linear_constant_term;

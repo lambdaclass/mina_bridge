@@ -46,7 +46,7 @@ export type VariableJSON = {
 
 export namespace PolishTokenJSON {
     export type UnitVariant = string
-    export type Literal = Scalar
+    export type Literal = string // Scalar
     export type Cell = VariableJSON
     export type Pow = number
     export type Mds = {
@@ -91,7 +91,7 @@ interface VerifierIndexJSON {
 
     //powers_of_alpha: AlphasJSON
     shift: string[]
-    zkpm: PolynomialJSON
+    permutation_vanishing_polynomial_m: PolynomialJSON
     w: string
     endo: string
     linear_constant_term: PolishTokenJSON[]
@@ -144,16 +144,16 @@ export function deserPolishToken(json: PolishTokenJSON): PolishToken | undefined
             case "Alpha": return { kind: "alpha" }
             case "Beta": return { kind: "beta" }
             case "Gamma": return { kind: "gamma" }
-            case "EndoCoefficint": return { kind: "endocoefficient" }
+            case "EndoCoefficient": return { kind: "endocoefficient" }
             case "Dup": return { kind: "dup" }
             case "Add": return { kind: "add" }
             case "Mul": return { kind: "mul" }
             case "Sub": return { kind: "sub" }
-            case "VanishesOnLast4Rows": return { kind: "vanishesonlast4rows" }
+            case "VanishesOnZeroKnowledgeAndPreviousRows": return { kind: "vanishesonzeroknowledgeandpreviousrows" }
             case "Store": return { kind: "store" }
         }
     } else {
-        if (json.Literal != null) return { kind: "literal", lit: json.Literal };
+        if (json.Literal != null) return { kind: "literal", lit: deserHexScalar(json.Literal) };
         if (json.Cell != null) {
             return { kind: "cell", cell: deserVariable(json.Cell) };
         }
@@ -184,7 +184,7 @@ export function deserVerifierIndex(json: VerifierIndexJSON): VerifierIndex {
         endomul_scalar_comm,
         //powers_of_alpha,
         shift,
-        zkpm,
+        permutation_vanishing_polynomial_m,
         w,
         endo,
         linear_constant_term,
@@ -199,7 +199,7 @@ export function deserVerifierIndex(json: VerifierIndexJSON): VerifierIndex {
             [ArgumentType.id({ kind: "gate", type: GateType.Zero }), [0, 21]],
             [ArgumentType.id({ kind: "permutation" }), [21, 3]]
         ]
-    ));
+        ));
 
     return new VerifierIndex(
         domain_size,
@@ -216,7 +216,7 @@ export function deserVerifierIndex(json: VerifierIndexJSON): VerifierIndex {
         deserPolyComm(endomul_scalar_comm),
         powers_of_alpha,
         shift.map(deserHexScalar),
-        deserPolynomial(zkpm),
+        deserPolynomial(permutation_vanishing_polynomial_m),
         deserHexScalar(w),
         deserHexScalar(endo),
         linear_constant_term.map((token) => deserPolishToken(token)!),
