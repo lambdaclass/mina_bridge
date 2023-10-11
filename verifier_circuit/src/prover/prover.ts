@@ -9,6 +9,7 @@ import { GateType } from "../circuits/gate.js";
 import { Alphas } from "../alphas.js";
 import { Column, PolishToken } from "./expr.js";
 import { deserHexScalar } from "../serde/serde_proof.js";
+import { range } from "../util/misc.js";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
@@ -329,7 +330,6 @@ export class ProverProof {
                 .getColumn(col)!;
             es.push([[evals.zeta, evals.zetaOmega], undefined]);
         };
-        const range = (n: number) => Array.from({ length: n }, (value, key) => key);
 
         push_column_eval({ kind: "z" })
         push_column_eval({ kind: "index", typ: GateType.Generic })

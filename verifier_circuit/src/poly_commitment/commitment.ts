@@ -1,4 +1,5 @@
 import { Group, Scalar } from "o1js";
+import { Sponge } from "../verifier/sponge";
 
 /**
 * A polynomial commitment
@@ -181,4 +182,45 @@ export function bPolyCoefficients(chals: Scalar[]) {
     }
 
     return s;
+}
+
+/**
+ * Contains the evaluation of a polynomial commitment at a set of points.
+ */
+export class Evaluation
+{
+    /** The commitment of the polynomial being evaluated */
+    commitment: PolyComm<Group>
+    /** Contains an evaluation table */
+    evaluations: Scalar[][]
+    /** optional degree bound */
+    degree_bound?: number
+
+    constructor(
+        commitment: PolyComm<Group>,
+        evaluations: Scalar[][],
+        degree_bound?: number
+    ) {
+        this.commitment = commitment;
+        this.evaluations = evaluations;
+        this.degree_bound = degree_bound;
+    }
+}
+
+/**
+ * Contains the batch evaluation
+ */
+export class AggregatedEvaluationProof
+{
+    sponge: Sponge
+    evaluations: Evaluation[]
+    /** vector of evaluation points */
+    evaluation_points: Scalar[]
+    /** scaling factor for evaluation point powers */
+    polyscale: Scalar
+    /** scaling factor for polynomials */
+    evalscale: Scalar
+    /** batched opening proof */
+    opening: &'a OpeningProof
+    combined_inner_product: Scalar
 }
