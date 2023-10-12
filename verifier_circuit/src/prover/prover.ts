@@ -1,6 +1,6 @@
 import { Polynomial } from "../polynomial.js"
 import { Field, Group, Scalar } from "o1js"
-import { PolyComm, bPoly, bPolyCoefficients } from "../poly_commitment/commitment";
+import { PolyComm, bPoly, bPolyCoefficients, OpeningProof } from "../poly_commitment/commitment";
 import { getLimbs64 } from "../util/bigint";
 import { Sponge } from "../verifier/sponge";
 import { Verifier, VerifierIndex } from "../verifier/verifier.js";
@@ -9,26 +9,29 @@ import { GateType } from "../circuits/gate.js";
 import { Alphas } from "../alphas.js";
 import { Column, PolishToken } from "./expr.js";
 import { deserHexScalar } from "../serde/serde_proof.js";
+import { range } from "../util/misc.js";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
     evals: ProofEvaluations<PointEvaluations<Scalar[]>>
     prev_challenges: RecursionChallenge[]
     commitments: ProverCommitments
-
     /** Required evaluation for Maller's optimization */
     ft_eval1: Scalar
+    proof: OpeningProof
 
     constructor(
         evals: ProofEvaluations<PointEvaluations<Scalar[]>>,
         prev_challenges: RecursionChallenge[],
         commitments: ProverCommitments,
-        ft_eval1: Scalar
+        ft_eval1: Scalar,
+        proof: OpeningProof
     ) {
         this.evals = evals;
         this.prev_challenges = prev_challenges;
         this.commitments = commitments;
-        this.ft_eval1 = ft_eval1
+        this.ft_eval1 = ft_eval1;
+        this.proof = proof;
     }
 
     /**
@@ -329,7 +332,6 @@ export class ProverProof {
                 .getColumn(col)!;
             es.push([[evals.zeta, evals.zetaOmega], undefined]);
         };
-        const range = (n: number) => Array.from({ length: n }, (value, key) => key);
 
         push_column_eval({ kind: "z" })
         push_column_eval({ kind: "index", typ: GateType.Generic })

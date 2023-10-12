@@ -8,7 +8,7 @@ import { Polynomial } from "../polynomial"
 import { Alphas } from "../alphas"
 
 export interface PolyCommJSON {
-    unshifted: { x: string, y: string }[]
+    unshifted: GroupJSON[]
     shifted: null
 }
 
@@ -103,16 +103,21 @@ interface VerifierIndexJSON {
     linearization: LinearizationJSON,
 }
 
-export function deserGroup(x: string, y: string): Group {
-    if (x === "0" && y === "1") {
+export interface GroupJSON {
+    x: string
+    y: string
+}
+
+export function deserGroup(json: GroupJSON): Group {
+    if (json.x === "0" && json.y === "1") {
         return Group.zero
     } else {
-        return Group.from(x, y);
+        return Group.from(json.x, json.y);
     }
 }
 
 export function deserPolyComm(json: PolyCommJSON): PolyComm<Group> {
-    const unshifted = json.unshifted.map(({ x, y }) => deserGroup(x, y));
+    const unshifted = json.unshifted.map(deserGroup);
     let shifted = undefined;
     if (json.shifted != null) {
         shifted = json.shifted;

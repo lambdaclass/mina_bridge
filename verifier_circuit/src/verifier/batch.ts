@@ -1,4 +1,4 @@
-import { PolyComm } from "../poly_commitment/commitment.js";
+import { AggregatedEvaluationProof, Evaluation, PolyComm } from "../poly_commitment/commitment.js";
 import { ProverProof, PointEvaluations, ProofEvaluations, Constants } from "../prover/prover.js";
 import { Verifier, VerifierIndex } from "./verifier.js";
 import { Group, Scalar } from "o1js";
@@ -6,6 +6,7 @@ import { deserHexScalar } from "../serde/serde_proof.js";
 import { Column, PolishToken } from "../prover/expr.js";
 import { GateType } from "../circuits/gate.js";
 import { powScalar } from "../util/scalar.js";
+import { range } from "../util/misc.js";
 
 export class Context {
     verifier_index: VerifierIndex
@@ -19,7 +20,7 @@ export class Context {
     }
 
     getColumn(col: Column): PolyComm<Group> | undefined {
-        switch(col.kind) {
+        switch (col.kind) {
             case "witness": return this.proof.commitments.wComm[col.index];
             case "coefficient": return this.verifier_index.coefficients_comm[col.index];
             case "permutation": return this.verifier_index.sigma_comm[col.index];
@@ -151,21 +152,46 @@ export class Batch extends Verifier {
                 chunked_t_comm,
                 zeta_to_domain_size.sub(Scalar.from(1))));
 
-        /*
-          Compute the commitment to the linearized polynomial $f$. To do this, add the constraints of all of the gates, of the permutation, and optionally of the lookup. (See the separate sections in the constraints section.) Any polynomial should be replaced by its associated commitment, contained in the verifier index or in the proof, unless a polynomial has its evaluation provided by the proof in which case the evaluation should be used in place of the commitment.
-          Compute the (chuncked) commitment of $ft$ (see Maller’s optimization).
-          List the polynomial commitments, and their associated evaluations, that are associated to the aggregated evaluation proof in the proof:
-              recursion
-              public input commitment
-              ft commitment (chunks of it)
-              permutation commitment
-              index commitments that use the coefficients
-              witness commitments
-              coefficient commitments
-              sigma commitments
-              lookup commitments
-        */
-        return public_comm;
+        //~ 7. List the polynomial commitments, and their associated evaluations,
+        //~    that are associated to the aggregated evaluation proof in the proof:
+        let evaluations: Evaluation[] = [];
+
+        //recursion
+        evaluations.concat(polys.map(([c, e]) => new Evaluation(c, e)));
+        // public input
+        evaluations.push(new Evaluation(public_comm, public_evals));
+        // ft commitment (chunks)
+        evaluations.push(new Evaluation(ft_comm, [[ft_eval0], [proof.ft_eval1]]));
+
+        for (const col of [
+            { kind: "z" },
+            { kind: "index", typ: GateType.Generic },
+            { kind: "index", typ: GateType.Poseidon },
+            { kind: "index", typ: GateType.CompleteAdd },
+            { kind: "index", typ: GateType.VarBaseMul },
+            { kind: "index", typ: GateType.EndoMul },
+            { kind: "index", typ: GateType.EndoMulScalar },
+        ]
+            .concat(range(Verifier.COLUMNS).map((i) => { return { kind: "witness", index: i } }))
+            .concat(range(Verifier.COLUMNS).map((i) => { return { kind: "coefficient", index: i } }))
+            .concat(range(Verifier.PERMUTS - 1).map((i) => { return { kind: "permutation", index: i } })) as Column[]
+        ) {
+            const eva = proof.evals.getColumn(col)!;
+            evaluations.push(new Evaluation(context.getColumn(col)!, [eva?.zeta, eva?.zetaOmega]));
+        }
+
+        // prepare for the opening proof verification
+        let evaluation_points = [oracles.zeta, oracles.zeta.mul(verifier_index.domain_gen)];
+        const agg_proof: AggregatedEvaluationProof = {
+            sponge: fq_sponge,
+            evaluations,
+            evaluation_points,
+            polyscale: oracles.v,
+            evalscale: oracles.u,
+            opening: proof.proof,
+            combined_inner_product,
+        };
+        return agg_proof;
     }
 
     /*
