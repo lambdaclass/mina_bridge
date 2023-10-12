@@ -87,7 +87,7 @@ Kimchi represents a series of enhancements, optimizations, and modifications imp
 Kimchi increases PLONK's register count from 3 to 15 by adding 12 registers.
 With an increased number of registers, Kimchi incorporate gates that accept multiple inputs, as opposed to just two. This unveils new opportunities; for instance, a scalar multiplication gate would necessitate a minimum of three inputs—a scalar and two coordinates for the curve point.
 
-New proof systems resembling Plonk employ custom gates to efficiently represent frequently used functionalities, as opposed to connecting a series of generic gates. Kimchi is among these innovative protocols.
+New proof systems resembling PLONK employ custom gates to efficiently represent frequently used functionalities, as opposed to connecting a series of generic gates. Kimchi is among these innovative protocols.
 
 In Kimchi, there's a concept where a gate has the ability to directly record its output onto the registers utilized by the subsequent gate.
 
