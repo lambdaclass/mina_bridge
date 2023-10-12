@@ -57,23 +57,14 @@ This repository is composed of the following components:
 
 ## Usage
 
-### Generate public inputs
-
-On `public_input_gen/` run:
-
-```sh
-cargo r --release
-```
-
-This will generate the proof and the expected value (in the completed version, this value would be the point at infinity). These values will be used as public inputs for the verifier circuit.
-
-### Run the Verifier circuit
-
-On `verifier_circuit/` run:
+On root folder run:
 
 ```sh
 make
 ```
 
-This will create the constraint system of the verification of a proof with fixed values.
-This will also clone the Monorepo version of Mina so that the bridge uses o1js from there.
+This will:
+
+- Generate the test proof and the expected value of the MSM that will be done in the verification (in the completed version, this value would be the point at infinity). These values will be used as public inputs for the verifier circuit.
+- Run the verifier circuit using the test proof as input.
+- Generate the proof of the verification and write it into a JSON file.
