@@ -116,8 +116,97 @@ On root folder run:
 ```sh
 make
 ```
+
 This will:
 
 - Generate the test proof and the expected value of the MSM that will be done in the verification (in the completed version, this value would be the point at infinity). These values will be used as public inputs for the verifier circuit.
 - Run the verifier circuit using the test proof as input.
 - Generate the proof of the verification and write it into a JSON file.
+
+
+## Kimchi proving system
+
+Kimchi is a zero-knowledge proof system that’s a variant of PLONK.
+
+Kimchi represents a series of enhancements, optimizations, and modifications implemented atop PLONK. To illustrate, it addresses PLONK's trusted setup constraint by incorporating a polynomial commitment in a bulletproof-style within the protocol. In this manner, there's no necessity to rely on the honesty of the participants in the trusted setup.
+
+Kimchi increases PLONK's register count from 3 to 15 by adding 12 registers.
+With an increased number of registers, Kimchi incorporate gates that accept multiple inputs, as opposed to just two. This unveils new opportunities; for instance, a scalar multiplication gate would necessitate a minimum of three inputs—a scalar and two coordinates for the curve point.
+
+New proof systems resembling PLONK employ custom gates to efficiently represent frequently used functionalities, as opposed to connecting a series of generic gates. Kimchi is among these innovative protocols.
+
+In Kimchi, there's a concept where a gate has the ability to directly record its output onto the registers utilized by the subsequent gate.
+
+Another enhancement in Kimchi involves the incorporation of lookups for performance improvement. Occasionally, certain operations can be expressed in a tabular form, such as an XOR table.
+
+In the beginning, Kimchi relies on an interactive protocol, which undergoes a conversion into a non-interactive form through the Fiat-Shamir transform.
+
+### Proof Construction & Verification
+
+#### Secuence diagram linked to ``proof-systems/kimchi/src/verifier.rs``
+
+![Commitments to secret polynomials](/img/commitments_to_secret_poly.png)
+
+Links to the associated code.
+
+[public input & witness commitment](https://github.com/o1-labs/proof-systems/blob/17041948eb2742244464d6749560a304213f4198/kimchi/src/verifier.rs#L134)
+
+[beta](https://github.com/o1-labs/proof-systems/blob/17041948eb2742244464d6749560a304213f4198/kimchi/src/verifier.rs#L196)
+
+[gamma](https://github.com/o1-labs/proof-systems/blob/17041948eb2742244464d6749560a304213f4198/kimchi/src/verifier.rs#L199)
+
+[permutation commitment](https://github.com/o1-labs/proof-systems/blob/17041948eb2742244464d6749560a304213f4198/kimchi/src/verifier.rs#L206)
+
+---
+
+![Commitments to quotient polynomials](/img/commitments_to_quotient_poly.png)
+
+Links to the associated code.
+
+[alpha](https://github.com/o1-labs/proof-systems/blob/17041948eb2742244464d6749560a304213f4198/kimchi/src/verifier.rs#L213)
+
+[quotient commitment](https://github.com/o1-labs/proof-systems/blob/17041948eb2742244464d6749560a304213f4198/kimchi/src/verifier.rs#L221)
+
+---
+
+![Verifier produces an evaluation point](/img/verifier_produces_evaluation_point.png)
+
+Links to the associated code.
+
+[zeta](https://github.com/o1-labs/proof-systems/blob/17041948eb2742244464d6749560a304213f4198/kimchi/src/verifier.rs#L227)
+
+[change of sponge](https://github.com/o1-labs/proof-systems/blob/17041948eb2742244464d6749560a304213f4198/kimchi/src/verifier.rs#L234)
+
+[recursion challenges](https://github.com/o1-labs/proof-systems/blob/17041948eb2742244464d6749560a304213f4198/kimchi/src/verifier.rs#L236)
+
+---
+
+![Prover provides needed evaluations for the linearization - 1](/img/prover_provides_evaluations_linearization_01.png)
+
+Links to the associated code.
+
+[zeta](https://github.com/o1-labs/proof-systems/blob/17041948eb2742244464d6749560a304213f4198/kimchi/src/verifier.rs#L227)
+
+[negated public input](https://github.com/o1-labs/proof-systems/blob/17041948eb2742244464d6749560a304213f4198/kimchi/src/verifier.rs#L290)
+
+[15 register/witness - 6 sigmas evaluations](https://github.com/o1-labs/proof-systems/blob/17041948eb2742244464d6749560a304213f4198/kimchi/src/verifier.rs#L323)
+
+---
+
+![Prover provides needed evaluations for the linearization - 2](/img/prover_provides_evaluations_linearization_02.png)
+
+Links to the associated code.
+
+TODO
+
+---
+
+![Batch verification of evaluation proofs](/img/batch_verification_evaluation_proofs.png)
+
+Links to the associated code.
+
+[v,u](https://github.com/o1-labs/proof-systems/blob/17041948eb2742244464d6749560a304213f4198/kimchi/src/verifier.rs#L334)
+
+[polynomials that have an evaluation proof](https://github.com/o1-labs/proof-systems/blob/17041948eb2742244464d6749560a304213f4198/kimchi/src/verifier.rs#L346)
+
+---
