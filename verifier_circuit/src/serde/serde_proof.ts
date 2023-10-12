@@ -1,7 +1,7 @@
-import { Proof, Scalar } from "o1js"
-import { PolyComm } from "../poly_commitment/commitment.js";
+import { Group, Proof, Scalar } from "o1js"
+import { OpeningProof, PolyComm } from "../poly_commitment/commitment.js";
 import { LookupEvaluations, PointEvaluations, ProofEvaluations, ProverCommitments, ProverProof, RecursionChallenge } from "../prover/prover.js"
-import { deserPolyComm, PolyCommJSON } from "./serde_index.js";
+import { deserPolyComm, PolyCommJSON, deserGroup, GroupJSON } from "./serde_index.js";
 
 type PointEvals = PointEvaluations<Scalar[]>;
 
@@ -22,9 +22,12 @@ interface ProofEvalsJSON {
     s: PointEvalsJSON[] // of size 7 - 1, total num of wirable registers minus one
     coefficients: PointEvalsJSON[] // of size 15, total num of registers (columns)
     //lookup?: LookupEvaluationsJSON
-    lookup: null,
     generic_selector: PointEvalsJSON
     poseidon_selector: PointEvalsJSON
+    complete_add_selector: PointEvalsJSON
+    mul_selector: PointEvalsJSON
+    emul_selector: PointEvalsJSON
+    endomul_scalar_selector: PointEvalsJSON
 }
 
 interface ProverCommitmentsJSON {
@@ -34,13 +37,17 @@ interface ProverCommitmentsJSON {
 }
 
 /**
+ * Deserializes a scalar from a hex string, prefix doesn't matter
+ */
+export function deserHexScalar(str: string): Scalar {
+    if (!str.startsWith("0x")) str = "0x" + str;
+    return Scalar.from(str);
+}
+
+/**
  * Deserializes a scalar point evaluation from JSON
  */
 export function deserPointEval(json: PointEvalsJSON): PointEvals {
-    const deserHexScalar = (str: string): Scalar => {
-        if (!str.startsWith("0x")) str = "0x" + str;
-        return Scalar.from(str);
-    }
     const zeta = json.zeta.map(deserHexScalar);
     const zetaOmega = json.zeta_omega.map(deserHexScalar);
     let ret = new PointEvaluations(zeta, zetaOmega);
@@ -60,8 +67,20 @@ export function deserProofEvals(json: ProofEvalsJSON): ProofEvaluations<PointEva
     const [
         z,
         genericSelector,
-        poseidonSelector
-    ] = [json.z, json.generic_selector, json.poseidon_selector].map(deserPointEval);
+        poseidonSelector,
+        completeAddSelector,
+        mulSelector,
+        emulSelector,
+        endomulScalarSelector,
+    ] = [
+        json.z,
+        json.generic_selector,
+        json.poseidon_selector,
+        json.complete_add_selector,
+        json.mul_selector,
+        json.emul_selector,
+        json.endomul_scalar_selector
+    ].map(deserPointEval);
 
     // in the current json, there isn't a non-null lookup, so TS infers that it'll always be null.
     let lookup = undefined;
@@ -78,7 +97,19 @@ export function deserProofEvals(json: ProofEvalsJSON): ProofEvaluations<PointEva
     //       lookup = { sorted, aggreg, table, runtime };
     //   }
 
-    return new ProofEvaluations(w, z, s, coefficients, genericSelector, poseidonSelector, lookup);
+    return new ProofEvaluations(
+        w,
+        z,
+        s,
+        coefficients,
+        genericSelector,
+        poseidonSelector,
+        completeAddSelector,
+        mulSelector,
+        emulSelector,
+        endomulScalarSelector,
+        lookup
+    );
 }
 
 export function deserProverCommitments(json: ProverCommitmentsJSON): ProverCommitments {
@@ -89,17 +120,41 @@ export function deserProverCommitments(json: ProverCommitmentsJSON): ProverCommi
     };
 }
 
+
+interface OpeningProofJSON {
+    lr: GroupJSON[][] // [GroupJSON, GroupJSON]
+    delta: GroupJSON
+    z1: string
+    z2: string
+    sg: GroupJSON
+}
+
+export function deserOpeningProof(json: OpeningProofJSON): OpeningProof {
+    return {
+        lr: json.lr.map((g) => [deserGroup(g[0]), deserGroup(g[1])]),
+        delta: deserGroup(json.delta),
+        z1: deserHexScalar(json.z1),
+        z2: deserHexScalar(json.z2),
+        sg: deserGroup(json.sg),
+    }
+}
+
 interface ProverProofJSON {
     evals: ProofEvalsJSON
     prev_challenges: RecursionChallenge[]
     commitments: ProverCommitmentsJSON
+    ft_eval1: string
+    proof: OpeningProofJSON
 }
 
+
 export function deserProverProof(json: ProverProofJSON): ProverProof {
-    const { evals, prev_challenges, commitments } = json;
+    const { evals, prev_challenges, commitments, ft_eval1, proof } = json;
     return new ProverProof(
         deserProofEvals(evals),
         prev_challenges,
-        deserProverCommitments(commitments)
+        deserProverCommitments(commitments),
+        deserHexScalar(ft_eval1),
+        deserOpeningProof(proof)
     );
 }

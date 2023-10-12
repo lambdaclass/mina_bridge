@@ -1,6 +1,6 @@
 import { Polynomial } from "../polynomial.js"
 import { Field, Group, Scalar } from "o1js"
-import { PolyComm, bPoly, bPolyCoefficients } from "../poly_commitment/commitment";
+import { PolyComm, bPoly, bPolyCoefficients, OpeningProof } from "../poly_commitment/commitment";
 import { getLimbs64 } from "../util/bigint";
 import { Sponge } from "../verifier/sponge";
 import { Verifier, VerifierIndex } from "../verifier/verifier.js";
@@ -8,24 +8,30 @@ import { invScalar, powScalar } from "../util/scalar.js";
 import { GateType } from "../circuits/gate.js";
 import { Alphas } from "../alphas.js";
 import { Column, PolishToken } from "./expr.js";
+import { deserHexScalar } from "../serde/serde_proof.js";
+import { range } from "../util/misc.js";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
     evals: ProofEvaluations<PointEvaluations<Scalar[]>>
     prev_challenges: RecursionChallenge[]
     commitments: ProverCommitments
-
     /** Required evaluation for Maller's optimization */
     ft_eval1: Scalar
+    proof: OpeningProof
 
     constructor(
         evals: ProofEvaluations<PointEvaluations<Scalar[]>>,
         prev_challenges: RecursionChallenge[],
-        commitments: ProverCommitments
+        commitments: ProverCommitments,
+        ft_eval1: Scalar,
+        proof: OpeningProof
     ) {
         this.evals = evals;
         this.prev_challenges = prev_challenges;
         this.commitments = commitments;
+        this.ft_eval1 = ft_eval1;
+        this.proof = proof;
     }
 
     /**
@@ -49,7 +55,8 @@ export class ProverProof {
             chunk_size = index.domain_size / index.max_poly_size;
         }
 
-        let zk_rows = index.zk_rows;
+        const zk_rows = index.zk_rows;
+
         //~ 1. Setup the Fq-Sponge.
         let fq_sponge = new Sponge();
 
@@ -238,22 +245,22 @@ export class ProverProof {
         const evals = ProofEvaluations.combine(this.evals, powers_of_eval_points_for_chunks);
 
         //~ 29. Compute the evaluation of $ft(\zeta)$.
-        const zkp = index.zkpm.evaluate(zeta);
+        const zkp = index.permutation_vanishing_polynomial_m.evaluate(zeta);
         const zeta1m1 = zeta1.sub(Scalar.from(1));
 
-        const PERMUTATION_CONSTRAINTS = 3; // FIXME: hardcoded here
-        let alpha_powers = all_alphas.getAlphas({ kind: "permutation" }, PERMUTATION_CONSTRAINTS);
+        let alpha_powers = all_alphas.getAlphas({ kind: "permutation" }, Verifier.PERMUTATION_CONSTRAINTS);
         const alpha0 = alpha_powers[0];
         const alpha1 = alpha_powers[1];
         const alpha2 = alpha_powers[2];
+        // WARN: alpha_powers should be an iterator and alphai = alpha_powers.next(), for i = 0,1,2.
 
         const init = (evals.w[Verifier.PERMUTS - 1].zeta.add(gamma))
             .mul(evals.z.zetaOmega)
             .mul(alpha0)
             .mul(zkp);
 
-        let ft_eval0: Scalar = evals.w
-            .map((w, i) => (beta.mul(evals.s[i].zeta).add(w.zetaOmega).add(gamma)))
+        let ft_eval0: Scalar = evals.s
+            .map((s, i) => (beta.mul(s.zeta).add(evals.w[i].zetaOmega).add(gamma)))
             .reduce((acc, curr) => acc.mul(curr), init);
 
         ft_eval0 = ft_eval0.sub(
@@ -261,10 +268,11 @@ export class ProverProof {
         );
 
         ft_eval0 = ft_eval0.sub(
-            evals.w
-                .map((w_i, i) => gamma.add(beta.mul(zeta).mul(index.shift[i])).add(w_i.zeta))
+            index.shift
+                .map((s, i) => gamma.add(beta.mul(zeta).mul(s)).add(evals.w[i].zeta))
                 .reduce((acc, curr) => acc.mul(curr), alpha0.mul(zkp).mul(evals.z.zeta))
         );
+
 
         const numerator = (zeta1m1.mul(alpha1).mul((zeta.sub(index.w))))
             .add(zeta1m1.mul(alpha2).mul(zeta.sub(Scalar.from(1))))
@@ -275,16 +283,36 @@ export class ProverProof {
 
         ft_eval0 = ft_eval0.add(numerator.mul(denominator));
 
+        // FIXME: hardcoded for now, should be a sponge parameter.
+        // this was generated from the verifier_circuit_tests/ crate.
+        const mds = [
+            [
+                "4e59dd23f06c2400f3ba607d02926badee7add77d3544a307e7af417ddf7283e",
+                "0026c37744e275497518904a3d4bd83f3d89f414c28ab292cbfc96b6ab06db30",
+                "3a567f1bc5592630ba6ae6014d6c2e6efb3fab52815eff16608c051bbc104117"
+            ].map(deserHexScalar),
+            [
+                "0ceb4a2b7e38fea058a153e390439d2e0dd5bc481d5ac08069140335a86fd312",
+                "559c4de970165cd66fd0068edcbe3615c7af8b5e380c9f6ea7be69b38e7cb12a",
+                "37854a5bdac3b836763e2ec95d0ca6d9e5b908e127f16a98135c16285391cc00"
+            ].map(deserHexScalar),
+            [
+                "1bd343a1e09a4080831e5afbf0ca3d3a610c383b154643eb88666970d2a6d904",
+                "24c37437a332198bd134339acfab5fee7fd2e4ab157d1fae8b7c31e3ee05a802",
+                "bd7b2b50cd898d9badcb3d2787a7b98322bb00bc2ddfb6b11efddfc6e992b019"
+            ].map(deserHexScalar)
+        ];
         const constants: Constants<Scalar> = {
             alpha,
             beta,
             gamma,
             endo_coefficient: index.endo,
-            mds: [[]] // FIXME: empty for now, should be a sponge param
+            mds,
+            zk_rows
         }
 
         ft_eval0 = ft_eval0.sub(PolishToken.evaluate(
-            index.linear_constant_term,
+            index.linearization.constant_term,
             zeta,
             evals,
             index.domain_gen,
@@ -308,8 +336,16 @@ export class ProverProof {
         push_column_eval({ kind: "z" })
         push_column_eval({ kind: "index", typ: GateType.Generic })
         push_column_eval({ kind: "index", typ: GateType.Poseidon })
-        Array(Verifier.COLUMNS).fill({ kind: "witness" }).forEach(push_column_eval);
-        Array(Verifier.COLUMNS).fill({ kind: "coefficient" }).forEach(push_column_eval);
+
+        range(Verifier.COLUMNS)
+            .map((i) => { return { kind: "witness", index: i } as Column })
+            .forEach(push_column_eval);
+        range(Verifier.COLUMNS)
+            .map((i) => { return { kind: "coefficient", index: i } as Column })
+            .forEach(push_column_eval);
+        range(Verifier.PERMUTS - 1)
+            .map((i) => { return { kind: "permutation", index: i } as Column })
+            .forEach(push_column_eval);
         // FIXME: ignoring lookup
 
         const combined_inner_product = combinedInnerProduct(
@@ -425,6 +461,14 @@ export class ProofEvaluations<Evals> {
     genericSelector: Evals
     /* evaluation of the poseidon selector polynomial */
     poseidonSelector: Evals
+    /** evaluation of the elliptic curve addition selector polynomial */
+    completeAddSelector: Evals
+    /** evaluation of the elliptic curve variable base scalar multiplication selector polynomial */
+    mulSelector: Evals
+    /** evaluation of the endoscalar multiplication selector polynomial */
+    emulSelector: Evals
+    /** evaluation of the endoscalar multiplication scalar computation selector polynomial */
+    endomulScalarSelector: Evals
 
     constructor(
         w: Array<Evals>,
@@ -433,6 +477,10 @@ export class ProofEvaluations<Evals> {
         coefficients: Array<Evals>,
         genericSelector: Evals,
         poseidonSelector: Evals,
+        completeAddSelector: Evals,
+        mulSelector: Evals,
+        emulSelector: Evals,
+        endomulScalarSelector: Evals,
         lookup?: LookupEvaluations<Evals>,
         public_input?: Evals,
     ) {
@@ -443,6 +491,10 @@ export class ProofEvaluations<Evals> {
         this.lookup = lookup;
         this.genericSelector = genericSelector;
         this.poseidonSelector = poseidonSelector;
+        this.completeAddSelector = completeAddSelector;
+        this.mulSelector = mulSelector;
+        this.emulSelector = emulSelector;
+        this.endomulScalarSelector = endomulScalarSelector;
         this.public_input = public_input;
         return this;
     }
@@ -468,6 +520,10 @@ export class ProofEvaluations<Evals> {
             //lookup,
             genericSelector,
             poseidonSelector,
+            completeAddSelector,
+            mulSelector,
+            emulSelector,
+            endomulScalarSelector,
         } = this;
 
         let public_input = undefined;
@@ -480,6 +536,10 @@ export class ProofEvaluations<Evals> {
             coefficients.map(f),
             f(genericSelector),
             f(poseidonSelector),
+            f(completeAddSelector),
+            f(mulSelector),
+            f(emulSelector),
+            f(endomulScalarSelector),
             undefined, // FIXME: ignoring lookup
             public_input
         )
@@ -520,6 +580,10 @@ export class ProofEvaluations<Evals> {
             case "index": {
                 if (col.typ === GateType.Generic) return this.genericSelector;
                 if (col.typ === GateType.Poseidon) return this.poseidonSelector;
+                if (col.typ === GateType.CompleteAdd) return this.completeAddSelector;
+                if (col.typ === GateType.VarBaseMul) return this.mulSelector;
+                if (col.typ === GateType.EndoMul) return this.emulSelector;
+                if (col.typ === GateType.EndoMulScalar) return this.endomulScalarSelector;
                 else return undefined;
             }
             case "coefficient": {
@@ -688,6 +752,8 @@ export class Constants<F> {
     endo_coefficient: F
     /** The MDS matrix */
     mds: F[][]
+    /** The number of zero-knowledge rows */
+    zk_rows: number
 }
 
 export class RandomOracles {

@@ -6,7 +6,7 @@ import { SRS } from '../SRS.js';
 import { Sponge } from './sponge.js';
 import { Alphas } from '../alphas.js';
 import { Polynomial } from '../polynomial.js';
-import { PolishToken } from '../prover/expr.js';
+import { Linearization, PolishToken } from '../prover/expr.js';
 
 let steps: bigint[][];
 try {
@@ -53,20 +53,19 @@ export class VerifierIndex {
     /** Wire coordinate shifts */
     shift: Scalar[] // of size PERMUTS
     /** Zero knowledge polynomial */
-    zkpm: Polynomial
+    permutation_vanishing_polynomial_m: Polynomial
     /** Domain offset for zero-knowledge */
     w: Scalar
     /** Endoscalar coefficient */
     endo: Scalar
 
-    /**
-     * The constant term of a a "linearization", which is linear combination with
-     * coefficients of columns.
-     */
-    linear_constant_term: PolishToken[]
+    linearization: Linearization<PolishToken[]>
 
     constructor(
         domain_size: number,
+        domain_gen: Scalar,
+        max_poly_size: number,
+        zk_rows: number,
         public_size: number,
         sigma_comm: PolyComm<Group>[],
         coefficients_comm: PolyComm<Group>[],
@@ -75,10 +74,19 @@ export class VerifierIndex {
         complete_add_comm: PolyComm<Group>,
         mul_comm: PolyComm<Group>,
         emul_comm: PolyComm<Group>,
-        endomul_scalar_comm: PolyComm<Group>
+        endomul_scalar_comm: PolyComm<Group>,
+        powers_of_alpha: Alphas,
+        shift: Scalar[],
+        permutation_vanishing_polynomial_m: Polynomial,
+        w: Scalar,
+        endo: Scalar,
+        linearization: Linearization<PolishToken[]>
     ) {
         this.srs = SRS.createFromJSON();
         this.domain_size = domain_size;
+        this.domain_gen = domain_gen;
+        this.max_poly_size = max_poly_size;
+        this.zk_rows = zk_rows;
         this.public = public_size;
         this.sigma_comm = sigma_comm;
         this.coefficients_comm = coefficients_comm;
@@ -88,6 +96,12 @@ export class VerifierIndex {
         this.mul_comm = mul_comm;
         this.emul_comm = emul_comm;
         this.endomul_scalar_comm = endomul_scalar_comm;
+        this.powers_of_alpha = powers_of_alpha;
+        this.shift = shift;
+        this.permutation_vanishing_polynomial_m = permutation_vanishing_polynomial_m;
+        this.w = w;
+        this.endo = endo;
+        this.linearization = linearization;
     }
 
     /*
@@ -114,6 +128,7 @@ export class Verifier extends Circuit {
     static readonly COLUMNS: number = 15;
     /** Number of registers that can be wired (participating in the permutation) */
     static readonly PERMUTS: number = 7;
+    static readonly PERMUTATION_CONSTRAINTS: number = 3;
 
     @circuitMain
     static main(@public_ sg: Group, @public_ sg_scalar: Scalar, @public_ expected: Group) {

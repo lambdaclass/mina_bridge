@@ -54,6 +54,11 @@ export class Variable {
     col: Column
     row: CurrOrNext
 
+    constructor(col: Column, row: CurrOrNext) {
+        this.col = col;
+        this.row = row;
+    }
+
     evaluate(evals: ProofEvaluations<PointEvaluations<Scalar>>): Scalar {
         let point_evaluations: PointEvaluations<Scalar> | undefined = undefined;
         switch (this.col.kind) {
@@ -73,6 +78,22 @@ export class Variable {
                     }
                     case GateType.Generic: {
                         point_evaluations = evals.genericSelector;
+                        break;
+                    }
+                    case GateType.CompleteAdd: {
+                        point_evaluations = evals.completeAddSelector;
+                        break;
+                    }
+                    case GateType.VarBaseMul: {
+                        point_evaluations = evals.mulSelector;
+                        break;
+                    }
+                    case GateType.EndoMul: {
+                        point_evaluations = evals.emulSelector;
+                        break;
+                    }
+                    case GateType.EndoMulScalar: {
+                        point_evaluations = evals.endomulScalarSelector;
                         break;
                     }
                 }
@@ -139,8 +160,8 @@ export namespace PolishToken {
     export type Sub = {
         kind: "sub"
     }
-    export type VanishesOnLast4Rows = {
-        kind: "vanishesonlast4rows"
+    export type VanishesOnZeroKnowledgeAndPreviousRows = {
+        kind: "vanishesonzeroknowledgeandpreviousrows"
     }
     export type UnnormalizedLagrangeBasis = {
         kind: "unnormalizedlagrangebasis"
@@ -211,7 +232,7 @@ export namespace PolishToken {
                     stack.push(c.mds[t.row][t.col]);
                     break;
                 }
-                case "vanishesonlast4rows": {
+                case "vanishesonzeroknowledgeandpreviousrows": {
                     const ZK_ROWS = 3;
                     const w4 = powScalar(domain_gen, domain_size - (ZK_ROWS + 1));
                     const w3 = domain_gen.mul(w4);
@@ -307,9 +328,17 @@ export type PolishToken =
     | PolishToken.Add
     | PolishToken.Mul
     | PolishToken.Sub
-    | PolishToken.VanishesOnLast4Rows
+    | PolishToken.VanishesOnZeroKnowledgeAndPreviousRows
     | PolishToken.UnnormalizedLagrangeBasis
     | PolishToken.Store
     | PolishToken.Load
     | PolishToken.SkipIf
     | PolishToken.SkipIfNot
+
+/**
+ * A linear combination of F coefficients of columns
+ */
+export class Linearization<F> {
+    constant_term: F
+    index_terms: [Column, F][]
+}
