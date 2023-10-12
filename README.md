@@ -49,7 +49,62 @@ This is subject to change.
 
 This repository is composed of the following components:
 
-- [`verifier_circuit/`](verifier_circuit/README.md): Typescript code using `o1js` library. This is the main code of the Mina <-> EVM bridge. Implements the circuits for the verifier of the Kimchi proof system in arthmetic circuits, and generates the proof for the EVM (this is a WIP, as the proof is not yet generated).
+### Verifier circuit
+
+This module contains the [o1js](https://github.com/o1-labs/o1js) circuit used for recursively verify Mina state proofs.
+A proof of the circuit will be constructed in subsequent modules for validating the state.
+
+The code is written entirely in Typescript using the [o1js](https://github.com/o1-labs/o1js) library and is heavily based on [Kimchi](https://github.com/o1-labs/proof-systems/tree/master/kimchi)'s original verifier implementation.
+
+## Running
+On `verifier_circuit/` run:
+```sh
+make
+```
+This will create the constraint system of the verification of a proof with fixed values.
+This will also clone the Monorepo version of Mina so that the bridge uses o1js from there.
+
+## Testing
+```bash
+npm run test
+npm run testw # watch mod
+```
+will execute Jest unit and integration tests of the module.
+
+## Structure
+
+- `poly_commitment/`: Includes the `PolyComm` type and methods used for representing a polynomial commitment.
+- `prover/`: Proof data and associated methods necessary to the verifier. The Fiat-Shamir heuristic is included here (`ProverProof.oracles()`).
+- `serde/`: Mostly deserialization helpers for using data from the `verifier_circuit_tests/` module, like a proof made over a testing circuit.
+- `util/`: Miscellaneous utility functions.
+- `verifier/`: The protagonist code used for verifying a Kimchi + IPA + Pasta proof. Here:
+    - `batch.ts/` includes the partial verification code used for verifying a batch of proofs.
+    - `verifier.ts/` has the main circuit for verification, currently executes a minimal final verification over a batch of partially verified proofs.
+    - `sponge.ts/` has a custom sponge implementation which extends the `Poseidon.Sponge` type from [o1js](https://github.com/o1-labs/o1js).
+- `test/`: JSON data used for testing, which are derived from the `verifier_circuit_tests/`.
+- `SRS.ts` contains a type representing a [Universal Reference String](https://o1-labs.github.io/proof-systems/specs/urs.html?highlight=universal#universal-reference-string-urs) (but uses the old Structured Reference String name).
+- `polynomial.ts` contains a type used for representing and operating with polynomials.
+- `alphas.ts` contains a type representing a mapping between powers of a challenge (alpha) and different constraints. The linear combination resulting from these two will get you the
+main polynomial of the circuit.
+- `main.ts` is the main entrypoint of the module.
+
+### Verifier circuit tests
+
+Contains a Rust crate with Kimchi as a dependency, and runs some components of it generating data for feeding and comparing tests inside the verifier circuit.
+
+For executing the main integration flow, do:
+```bash
+cargo run
+```
+this will run the verification of a test circuit defined in Kimchi and will export some JSON data into `verifier_circuit/src/test`.
+
+For executing unit tests, do:
+```bash
+cargo test -- --nocapture
+```
+this will execute some unit tests and output results that can be used as reference value in analogous reference tests inside the verifier circuit.
+
+## Other components
 - `kzg_prover`: Rust code for generating a KZG proof. This proof is used in the `verifier_circuit`.
 - `public_input_gen/`: Rust code for generating a Mina state proof. This proof is used in the `verifier_circuit`.
 - `srs/`: Contains tests SRSs for Pallas and Vesta curves.
@@ -58,11 +113,9 @@ This repository is composed of the following components:
 ## Usage
 
 On root folder run:
-
 ```sh
 make
 ```
-
 This will:
 
 - Generate the test proof and the expected value of the MSM that will be done in the verification (in the completed version, this value would be the point at infinity). These values will be used as public inputs for the verifier circuit.
