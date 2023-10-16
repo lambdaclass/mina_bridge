@@ -184,6 +184,8 @@ dependencies = [
  "kimchi",
  "num-bigint",
  "num-traits",
+ "rand",
+ "rand_core",
  "serde",
  "serde_json",
 ]
@@ -410,6 +412,7 @@ name = "kimchi"
 version = "0.1.0"
 source = "git+https://github.com/o1-labs/proof-systems.git?branch=develop#88bf98662fbdb3f7647e8857af48f7705a94dd5e"
 dependencies = [
+ "ark-bn254",
  "ark-ec",
  "ark-ff",
  "ark-poly",

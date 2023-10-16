@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-kimchi = { git = "https://github.com/o1-labs/proof-systems.git", branch = "develop" }
+kimchi = { git = "https://github.com/o1-labs/proof-systems.git", branch = "develop", features = [ "bn254" ] }
 num-traits = "0.2"
 ark-ff = { version = "0.3.0", features = [ "parallel", "asm" ] }
 ark-ec = { version = "0.3.0", features = [ "parallel" ] }
@@ -15,3 +15,5 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 num-bigint = "0.4.3"
 ark-bn254 = "0.3.0"
+rand = "0.8.0"
+rand_core = "0.6.3"
