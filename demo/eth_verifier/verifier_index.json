@@ -1,0 +1,195 @@
+{
+  "domain": "200000000000000005000000200000000000000000000000000000000000000000000000000000000000000001008050e7e5c2b90ca5eb350649f23e9a4d75cd88c38d6a2813284aff2be12ed012b53b534ced3e1deb8e831bd5189ca9b2c0470d207896d2936b30c632c5099d9710f20c98998c4d5b903413318fefe7d825dfe7f3ea0a79bdbf0336712427676666c6d4fbf3e7062d4acae95caea98b56cd337cb5b949aad9135a94525b13",
+  "max_poly_size": 32,
+  "zk_rows": 3,
+  "public": 0,
+  "prev_challenges": 0,
+  "sigma_comm": [
+    {
+      "unshifted": [
+        "dcc42d1db27d0c4dd8293a510febf604e9e7240990aa966fe225bcc2ea6f3c9f"
+      ],
+      "shifted": null
+    },
+    {
+      "unshifted": [
+        "9edf88920048952684d3a67b45fc6fc300f4e7f5b4aa9507014acb283a6a5105"
+      ],
+      "shifted": null
+    },
+    {
+      "unshifted": [
+        "d5820fecb7ab4eea4286e2f6e8605e3a7eb0b69eb30ae36e719631002e364028"
+      ],
+      "shifted": null
+    },
+    {
+      "unshifted": [
+        "0241ed3818b6e2ebc1ec108112e3991f221d0a7c07f8e48696cc7870434bd8a1"
+      ],
+      "shifted": null
+    },
+    {
+      "unshifted": [
+        "98c53b0ffac820a9ac6dcdf0292272311ccb95f8eca76b6d1d198b52e63e7818"
+      ],
+      "shifted": null
+    },
+    {
+      "unshifted": [
+        "732e38177bfbfeabea417d4775cc825a07d548d3ed60891465ddf85dae802181"
+      ],
+      "shifted": null
+    },
+    {
+      "unshifted": [
+        "e19a4121fa95b8709a3a1a7efbe1719995f12a53e036f10bc015d31dce4e5c19"
+      ],
+      "shifted": null
+    }
+  ],
+  "coefficients_comm": [
+    {
+      "unshifted": [
+        "5cd3bb42bcf4a8097a8b8738fd254c13e3f0a7f15c301db9b89134f8958e62a2"
+      ],
+      "shifted": null
+    },
+    {
+      "unshifted": [
+        "911ce9529f0fac58f5ac77ae7c8978cb3d7a58eca4cbecf7899a6d0b94f79207"
+      ],
+      "shifted": null
+    },
+    {
+      "unshifted": [
+        "37cf57aaa26b87cf953d77e518f07df6e1257d0bae671f3cad02e6ece2e9c484"
+      ],
+      "shifted": null
+    },
+    {
+      "unshifted": [
+        "0000000000000000000000000000000000000000000000000000000000000040"
+      ],
+      "shifted": null
+    },
+    {
+      "unshifted": [
+        "a92986866763a9af0c686b2e99a7653ecee2df7a6dcbba380b4f68608f46d010"
+      ],
+      "shifted": null
+    },
+    {
+      "unshifted": [
+        "ac86f3f6421ca74a5a9d099cdaf68bfcce7cb13c87f40a81b2a50c879f6fc49d"
+      ],
+      "shifted": null
+    },
+    {
+      "unshifted": [
+        "0000000000000000000000000000000000000000000000000000000000000040"
+      ],
+      "shifted": null
+    },
+    {
+      "unshifted": [
+        "37cf57aaa26b87cf953d77e518f07df6e1257d0bae671f3cad02e6ece2e9c484"
+      ],
+      "shifted": null
+    },
+    {
+      "unshifted": [
+        "7f27899a0decdc4990dff58704ad0bd9d218c0797b36eecbde805e101403faa0"
+      ],
+      "shifted": null
+    },
+    {
+      "unshifted": [
+        "14224f9e9206036e1533689a9004798f784061d17ce0d027798c5f00fff1158c"
+      ],
+      "shifted": null
+    },
+    {
+      "unshifted": [
+        "0000000000000000000000000000000000000000000000000000000000000040"
+      ],
+      "shifted": null
+    },
+    {
+      "unshifted": [
+        "0000000000000000000000000000000000000000000000000000000000000040"
+      ],
+      "shifted": null
+    },
+    {
+      "unshifted": [
+        "0000000000000000000000000000000000000000000000000000000000000040"
+      ],
+      "shifted": null
+    },
+    {
+      "unshifted": [
+        "0000000000000000000000000000000000000000000000000000000000000040"
+      ],
+      "shifted": null
+    },
+    {
+      "unshifted": [
+        "0000000000000000000000000000000000000000000000000000000000000040"
+      ],
+      "shifted": null
+    }
+  ],
+  "generic_comm": {
+    "unshifted": [
+      "bd3de8f259d6dcd1bfa5bdd709bcf7bdd3833b0f4455c9f2bb93c5da839bcf22"
+    ],
+    "shifted": null
+  },
+  "psm_comm": {
+    "unshifted": [
+      "723737cf1cc96bb40021504a4ff45d21914e9484f2113d66545a3826919a9c25"
+    ],
+    "shifted": null
+  },
+  "complete_add_comm": {
+    "unshifted": [
+      "723737cf1cc96bb40021504a4ff45d21914e9484f2113d66545a3826919a9c25"
+    ],
+    "shifted": null
+  },
+  "mul_comm": {
+    "unshifted": [
+      "723737cf1cc96bb40021504a4ff45d21914e9484f2113d66545a3826919a9c25"
+    ],
+    "shifted": null
+  },
+  "emul_comm": {
+    "unshifted": [
+      "723737cf1cc96bb40021504a4ff45d21914e9484f2113d66545a3826919a9c25"
+    ],
+    "shifted": null
+  },
+  "endomul_scalar_comm": {
+    "unshifted": [
+      "723737cf1cc96bb40021504a4ff45d21914e9484f2113d66545a3826919a9c25"
+    ],
+    "shifted": null
+  },
+  "range_check0_comm": null,
+  "range_check1_comm": null,
+  "foreign_field_add_comm": null,
+  "foreign_field_mul_comm": null,
+  "xor_comm": null,
+  "rot_comm": null,
+  "shift": [
+    "0100000000000000000000000000000000000000000000000000000000000000",
+    "e3a214e91334d0caf1eb85df5bd7524d73d5eb7aaf742a7eb2d40bfdc8cdb900",
+    "6d0f44339a339fb8a4e49bf1099620aa649918482b95a397ae39b9ec5ad47700",
+    "b40923bd78e619c80a7b39c0f3f11e48005519d2fef16a1f77d40545e5c77700",
+    "f9c95cd6b11b38df7855fd4d2a036329adcad613f100b923109540356a597c00",
+    "5a696526fa309c412c10e86604c3c0ad2cd9443dd85b823203721281cfbf3300",
+    "43423bb307cec19f297c4188deb23acc7b5812719b2eaccbf1b7034ae6ace800"
+  ],
+  "lookup_index": null
+}
