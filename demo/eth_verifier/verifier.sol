@@ -8,7 +8,30 @@ library Kimchi {
 }
 
 contract KimchiVerifier {
+    Kimchi.Proof proof;
+
     function verify() public view returns (bool) {
+        /*
+        This is a list of steps needed for verification, we need to determine which
+        ones can be skipped or simplified.
+
+        Partial verification:
+            1. Check the length of evaluations insde the proof.
+            2. Commit to the negated public input poly
+            3. Fiat-Shamir (MAY SKIP OR VASTLY SIMPLIFY)
+            4. Combined chunk polynomials evaluations
+            5. Commitment to linearized polynomial f
+            6. Chunked commitment of ft
+            7. List poly commitments for final verification
+
+        Final verification:
+            1. Combine commitments, compute final poly commitment (MSM)
+            2. Combine evals
+            3. Commit divisor and eval polynomials
+            4. Compute numerator commitment
+            5. Compute scaled quotient
+            6. Check numerator == scaled_quotient
+        */
         return true;
     }
 }
