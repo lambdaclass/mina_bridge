@@ -49,6 +49,32 @@ This is subject to change.
 
 This repository is composed of the following components:
 
+### Demo
+
+This is a minimized version of the project, in which a user can submit a [o1js](https://github.com/o1-labs/o1js) circuit, generate a [Kimchi](https://github.com/o1-labs/proof-systems/tree/master/kimchi) KZG proof of it and verify it in an Ethereum smart contract. The bridge project will work the same way, with the difference that the submitted circuit will execute the verification of a Mina state proof.
+
+#### Flowgraph
+```mermaid
+flowchart TB
+    U((User))-->|Submits a provable o1js program/circuit| P(Kimchi KZG Prover)
+    -->|Kimchi+KZG+bn254 proof| V(Ethereum smart contract verifier)
+    -->|Deploy| B2
+
+    subgraph EB["EVM Chain"]
+		direction LR
+		B1["Block 1"] --> B2["Block 2"] 
+        --> B3["Block 3"]
+    end
+```
+
+#### Kimchi KZG prover
+
+To-Do!
+
+#### Ethereum smart contract verifier
+1. Will take as input a JSON file containing the needed proof info. For now a test proof is being generated from a test circuit with `test_circuit/`.
+2. Will run a stripped-out version of the verification of the submitted proof.
+
 ### Verifier circuit
 
 This module contains the [o1js](https://github.com/o1-labs/o1js) circuit used for recursively verify Mina state proofs.
@@ -56,7 +82,7 @@ A proof of the circuit will be constructed in subsequent modules for validating 
 
 The code is written entirely in Typescript using the [o1js](https://github.com/o1-labs/o1js) library and is heavily based on [Kimchi](https://github.com/o1-labs/proof-systems/tree/master/kimchi)'s original verifier implementation.
 
-## Running
+#### Running
 On `verifier_circuit/` run:
 ```sh
 make
@@ -64,14 +90,14 @@ make
 This will create the constraint system of the verification of a proof with fixed values.
 This will also clone the Monorepo version of Mina so that the bridge uses o1js from there.
 
-## Testing
+#### Testing
 ```bash
 npm run test
 npm run testw # watch mod
 ```
 will execute Jest unit and integration tests of the module.
 
-## Structure
+#### Structure
 
 - `poly_commitment/`: Includes the `PolyComm` type and methods used for representing a polynomial commitment.
 - `prover/`: Proof data and associated methods necessary to the verifier. The Fiat-Shamir heuristic is included here (`ProverProof.oracles()`).
