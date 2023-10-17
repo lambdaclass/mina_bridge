@@ -1,3 +1,6 @@
 [submodule "verifier_circuit/o1js"]
 	path = verifier_circuit/o1js
 	url = https://github.com/o1-labs/o1js.git
+[submodule "demo/eth_verifier_2/lib/forge-std"]
+	path = demo/eth_verifier_2/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
