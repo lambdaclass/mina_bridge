@@ -12,6 +12,7 @@ contract CounterTest is Test {
     }
 
     function test_Verify() public {
-        assertEq(verifier.verify(), true);
+        uint256[] memory serializedProof = new uint256[](1);
+        assertEq(verifier.verify(serializedProof), true);
     }
 }

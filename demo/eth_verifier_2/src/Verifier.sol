@@ -7,10 +7,19 @@ library Kimchi {
     }
 }
 
+struct ProofInput {
+    uint256[] serializedProof;
+}
+
 contract KimchiVerifier {
     Kimchi.Proof proof;
 
-    function verify() public view returns (bool) {
+    // 1) deserialize
+    // 2) staticcall to precompile of pairing check
+
+    function verify(
+        uint256[] memory serializedProof
+    ) public view returns (bool) {
         bool success;
         assembly {
             let freeMemPointer := 0x40
