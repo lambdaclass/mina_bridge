@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import {Test, console2} from "forge-std/Test.sol";
 import {KimchiVerifier} from "../src/Verifier.sol";
+import {BN254} from "../src/BN254.sol";
 
 contract CounterTest is Test {
     KimchiVerifier public verifier;
