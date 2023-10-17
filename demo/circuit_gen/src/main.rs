@@ -70,12 +70,12 @@ fn main() {
 
     // Serialize into JSON file
     fs::write(
-        "../proof.json",
+        "proof.json",
         serde_json::to_string_pretty(&proof).unwrap(),
     )
     .unwrap();
     fs::write(
-        "../verifier_index.json",
+        "verifier_index.json",
         serde_json::to_string_pretty(&prover_index.verifier_index()).unwrap(),
     )
     .unwrap();
