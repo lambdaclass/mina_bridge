@@ -79,7 +79,7 @@ This is a solidity program contained in `eth_verifier` which will:
 
 and can later be deployed into the chain.
 
-### Running
+#### Running
 
 Go into `demo/` and run:
 ```bash
