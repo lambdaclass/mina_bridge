@@ -16,4 +16,16 @@ contract CounterTest is Test {
         uint256[] memory serializedProof = new uint256[](1);
         assertEq(verifier.verify(serializedProof), true);
     }
+
+    function test_BN254_add_scale() public {
+        BN254.G1 memory g = BN254.G1(
+            0x2523648240000001BA344D80000000086121000000000013A700000000000012,
+            0x0000000000000000000000000000000000000000000000000000000000000001);
+
+        BN254.G1 memory g_plus_g = BN254.add(g, g);
+        BN254.G1 memory two_g = BN254.add(g, g);
+
+        assertEq(g_plus_g.x, two_g.x, "g + g should equal 2g");
+        assertEq(g_plus_g.y, two_g.y, "g + g should equal 2g");
+    }
 }

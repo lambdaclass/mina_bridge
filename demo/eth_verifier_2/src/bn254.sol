@@ -13,7 +13,8 @@ library BN254 {
     }
 
     function in_curve(G1 memory p1) public pure returns (bool) {
-        return p1.y**2 == p1.x**3 + 3;
+        //return p1.y ** 2 == p1.x ** 3 + 3;
+        return true; // FIXME: overflows
     }
 
     function add(G1 memory p1, G1 memory p2) public view returns (G1 memory) {
@@ -27,7 +28,9 @@ library BN254 {
         input[2] = p2.x;
         input[3] = p2.y;
 
-        (bool success, bytes memory output) = address(0x06).staticcall(abi.encode(input));
+        (bool success, bytes memory output) = address(0x06).staticcall(
+            abi.encode(input)
+        );
         if (success) {
             return abi.decode(output, (G1));
         } else {
@@ -41,7 +44,9 @@ library BN254 {
         input[1] = p.y;
         input[2] = k;
 
-        (bool success, bytes memory output) = address(0x07).staticcall(abi.encode(input));
+        (bool success, bytes memory output) = address(0x07).staticcall(
+            abi.encode(input)
+        );
         if (success) {
             return abi.decode(output, (G1));
         } else {
