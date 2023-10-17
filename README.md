@@ -72,8 +72,12 @@ flowchart TB
 To-Do!
 
 #### Ethereum smart contract verifier
-1. Will take as input a JSON file containing the needed proof info. For now a test proof is being generated from a test circuit with `test_circuit/`.
-2. Will run a stripped-out version of the verification of the submitted proof.
+This is a solidity program which will:
+
+1. Take as input a JSON file containing the needed proof info. For now a test proof is being generated from a test circuit with `test_circuit/`.
+2. Run a stripped-out version of the verification of the submitted proof.
+
+and can later be deployed into the chain.
 
 ### Verifier circuit
 
