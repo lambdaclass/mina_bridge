@@ -67,17 +67,31 @@ flowchart TB
     end
 ```
 
-#### Kimchi KZG prover
+##### Kimchi KZG prover
 
 To-Do!
 
-#### Ethereum smart contract verifier
-This is a solidity program which will:
+##### Ethereum smart contract verifier
+This is a solidity program contained in `eth_verifier` which will:
 
 1. Take as input a JSON file containing the needed proof info. For now a test proof is being generated from a test circuit with `test_circuit/`.
 2. Run a stripped-out version of the verification of the submitted proof.
 
 and can later be deployed into the chain.
+
+### Running
+
+Go into `demo/` and run:
+```bash
+make
+```
+this will take a o1js program, generate a proof of it, serialize it into JSON and send it into the solidity verifier.
+
+You can generate a test proof for the verifier by going to `demo/eth_verifier/` and running:
+```bash
+make proof
+```
+which does this by executing a Rust binary.
 
 ### Verifier circuit
 
