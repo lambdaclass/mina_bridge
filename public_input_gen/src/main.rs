@@ -27,6 +27,8 @@ use num_traits::identities::Zero;
 use num_traits::One;
 use serde::Serialize;
 
+pub mod bn254;
+
 type SpongeParams = PlonkSpongeConstantsKimchi;
 type BaseSponge = DefaultFqSponge<PallasParameters, SpongeParams>;
 type ScalarSponge = DefaultFrSponge<Fq, SpongeParams>;
