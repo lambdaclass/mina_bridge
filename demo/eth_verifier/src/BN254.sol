@@ -2,7 +2,14 @@
 
 pragma solidity >=0.8.2 <0.9.0;
 
+import {BaseField} from "./Fields.sol";
+
 library BN254 {
+    type Base is uint256;
+    type Scalar is uint256;
+
+    using {BaseField.add as +, BaseField.mul as *} for Base;
+
     struct G1 {
         uint256 x;
         uint256 y;
@@ -39,6 +46,10 @@ library BN254 {
     }
 
     function scale(G1 memory p, uint256 k) public view returns (G1 memory) {
+        if (!in_curve(p1) || !in_curve(p2)) {
+            return point_at_inf();
+        }
+
         uint256[4] memory input;
         input[0] = p.x;
         input[1] = p.y;
