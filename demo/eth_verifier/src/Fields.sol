@@ -29,32 +29,35 @@ function xgcd(
 }
 
 /// @notice Implements 256 bit modular arithmetic over the base field of bn254.
-library BaseField {
-    uint256 public constant MODULUS =
-        21888242871839275222246405745257275088696311157297823662689037894645226208583; // FIXME: correct mod
+library Base {
     type FE is uint256;
 
+    using { add, mul, inv } for FE;
+
+    uint256 public constant MODULUS =
+        21888242871839275222246405745257275088696311157297823662689037894645226208583; // FIXME: correct mod
+
     function add(
-        uint256 self,
-        uint256 other
-    ) public pure returns (uint256 res) {
+        FE self,
+        FE other
+    ) public pure returns (FE res) {
         assembly {
             res := addmod(self, other, MODULUS) // addmod has arbitrary precision
         }
     }
 
     function mul(
-        uint256 self,
-        uint256 other
-    ) public pure returns (uint256 res) {
+        FE self,
+        FE other
+    ) public pure returns (FE res) {
         assembly {
             res := mulmod(self, other, MODULUS) // mulmod has arbitrary precision
         }
     }
 
-    function inv(uint256 self) public pure returns (uint256) {
+    function inv(FE self) public pure returns (FE) {
         (uint256 gcd, uint256 res, uint256 _x) = xgcd(
-            self,
+            FE.unwrap(self),
             MODULUS,
             1,
             0,
@@ -65,37 +68,39 @@ library BaseField {
             // FIXME: error
         }
 
-        return res;
+        return FE.wrap(res);
     }
 }
 
 /// @notice Implements 256 bit modular arithmetic over the scalar field of bn254.
-library ScalarField {
+library Scalar {
     uint256 public constant MODULUS =
         21888242871839275222246405745257275088548364400416034343698204186575808495617; // FIXME: correct mod
     type FE is uint256;
 
+    using { add, mul, inv } for FE;
+
     function add(
-        uint256 self,
-        uint256 other
-    ) public pure returns (uint256 res) {
+        FE self,
+        FE other
+    ) public pure returns (FE res) {
         assembly {
             res := addmod(self, other, MODULUS) // addmod has arbitrary precision
         }
     }
 
     function mul(
-        uint256 self,
-        uint256 other
-    ) public pure returns (uint256 res) {
+        FE self,
+        FE other
+    ) public pure returns (FE res) {
         assembly {
             res := mulmod(self, other, MODULUS) // mulmod has arbitrary precision
         }
     }
 
-    function inv(uint256 self) public pure returns (uint256) {
+    function inv(FE self) public pure returns (FE) {
         (uint256 gcd, uint256 res, uint256 _x) = xgcd(
-            self,
+            FE.unwrap(self),
             MODULUS,
             1,
             0,
@@ -106,6 +111,6 @@ library ScalarField {
             // FIXME: error
         }
 
-        return res;
+        return FE.wrap(res);
     }
 }

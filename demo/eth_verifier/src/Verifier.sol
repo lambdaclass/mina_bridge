@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
+import {Scalar, Base} from "./Fields.sol";
+
 library Kimchi {
     struct Proof {
         uint data;
@@ -20,8 +22,6 @@ contract KimchiVerifier {
     function verify(
         uint256[] memory serializedProof
     ) public view returns (bool) {
-
-
         bool success;
         assembly {
             let freeMemPointer := 0x40
@@ -70,9 +70,7 @@ contract KimchiVerifier {
             6. Chunked commitment of ft
             7. List poly commitments for final verification
     */
-    function partial_verify() public view {
-
-
+    function partial_verify(Scalar.FE[] memory public_inputs) public view {
         /*
         let public_comm = {
             if public_input.len() != verifier_index.public {
