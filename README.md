@@ -210,3 +210,14 @@ Links to the associated code.
 [polynomials that have an evaluation proof](https://github.com/o1-labs/proof-systems/blob/17041948eb2742244464d6749560a304213f4198/kimchi/src/verifier.rs#L346)
 
 ---
+
+## Pickles - Mina’s inductive zk-SNARK composition system
+
+To efficiently provide incremental verifiable computation, Pickles employs a set of friendly curves known as Pasta.
+Within the Mina source code, these curves are denoted as "tick" and "tock."
+
+- Tick - Vesta (a.k.a. Step), constraint domain size 2¹⁸  [block and transaction proofs]
+- Tock - Pallas (a.k.a. Wrap), constraint domain size 2¹²  [signatures]
+
+The Tock prover undertakes a more limited role, exclusively engaging in recursive verifications without involving other logical processes. As a result, it necessitates fewer constraints and operates within a more compact domain size. Within Pickles' internal terminology, Tick is denoted as _Step_, and Tock is referred to as _Wrap_.
+
