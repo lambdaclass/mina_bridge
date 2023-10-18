@@ -35,7 +35,7 @@ library Base {
     using { add, mul, inv } for FE;
 
     uint256 public constant MODULUS =
-        21888242871839275222246405745257275088696311157297823662689037894645226208583; // FIXME: correct mod
+        21888242871839275222246405745257275088696311157297823662689037894645226208583;
 
     function add(
         FE self,
@@ -74,11 +74,12 @@ library Base {
 
 /// @notice Implements 256 bit modular arithmetic over the scalar field of bn254.
 library Scalar {
-    uint256 public constant MODULUS =
-        21888242871839275222246405745257275088548364400416034343698204186575808495617; // FIXME: correct mod
     type FE is uint256;
 
     using { add, mul, inv } for FE;
+
+    uint256 public constant MODULUS =
+        21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
     function add(
         FE self,
