@@ -6,16 +6,25 @@ library BaseField {
     uint256 public constant MODULUS = 21888242871839275222246405745257275088696311157297823662689037894645226208583; // FIXME: correct mod
     type FE is uint256;
 
-    function add(FE self, FE other) public pure returns (FE res) {
+    function add(uint256 self, uint256 other) public pure returns (uint256 res) {
         assembly {
             res := addmod(self, other, MODULUS) // addmod has arbitrary precision
         }
     }
 
-    function mul(FE self, FE other) public pure returns (FE res) {
+    function mul(uint256 self, uint256 other) public pure returns (uint256 res) {
         assembly {
             res := mulmod(self, other, MODULUS) // mulmod has arbitrary precision
         }
+    }
+
+    function inv(uint256 self) public pure returns (uint256) {
+        (uint256 gcd, uint256 res, uint256 _x) = xgcd(self, MODULUS, 1, 0, 0, 1);
+        if (gcd != 1) {
+            // FIXME: error
+        }
+
+        return res;
     }
 
     /// @notice Extended euclidean algorithm. Returns [gcd, Bezout_a, Bezout_b]
@@ -28,7 +37,7 @@ library BaseField {
         uint256 s2,
         uint256 t1,
         uint256 t2
-    ) private returns (uint256, uint256, uint256) {
+    ) private pure returns (uint256, uint256, uint256) {
         if (b == 0) {
             return (a, 1, 0);
         }
