@@ -6,3 +6,6 @@ setup:
 
 test:
 	forge test
+
+proof:
+	cd circuit_gen && cargo run
