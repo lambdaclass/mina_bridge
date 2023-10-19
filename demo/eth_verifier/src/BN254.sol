@@ -3,6 +3,7 @@
 pragma solidity >=0.8.2 <0.9.0;
 
 library BN254 {
+
     struct G1 {
         uint256 x;
         uint256 y;
@@ -39,6 +40,10 @@ library BN254 {
     }
 
     function scale(G1 memory p, uint256 k) public view returns (G1 memory) {
+        if (!in_curve(p) || k == 0) {
+            return point_at_inf();
+        }
+
         uint256[4] memory input;
         input[0] = p.x;
         input[1] = p.y;

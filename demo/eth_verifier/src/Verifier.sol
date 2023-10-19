@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
+import {Scalar, Base} from "./Fields.sol";
+
 library Kimchi {
     struct Proof {
         uint data;
@@ -56,6 +58,50 @@ contract KimchiVerifier {
             6. Check numerator == scaled_quotient
         */
         return true;
+    }
+
+    /*
+        Partial verification:
+            1. Check the length of evaluations insde the proof. SKIPPED
+            2. Commit to the negated public input poly
+            3. Fiat-Shamir (MAY SKIP OR VASTLY SIMPLIFY)
+            4. Combined chunk polynomials evaluations
+            5. Commitment to linearized polynomial f
+            6. Chunked commitment of ft
+            7. List poly commitments for final verification
+    */
+    function partial_verify(Scalar.FE[] memory public_inputs) public view {
+        /*
+        let public_comm = {
+            if public_input.len() != verifier_index.public {
+                return Err(VerifyError::IncorrectPubicInputLength(
+                    verifier_index.public,
+                ));
+            }
+            let lgr_comm = verifier_index
+                .srs()
+                .get_lagrange_basis(verifier_index.domain.size())
+                .expect("pre-computed committed lagrange bases not found");
+            let com: Vec<_> = lgr_comm.iter().take(verifier_index.public).collect();
+            if public_input.is_empty() {
+                PolyComm::new(
+                    vec![verifier_index.srs().blinding_commitment(); chunk_size],
+                    None,
+                )
+            } else {
+                let elm: Vec<_> = public_input.iter().map(|s| -*s).collect();
+                let public_comm = PolyComm::<G>::multi_scalar_mul(&com, &elm);
+                verifier_index
+                    .srs()
+                    .mask_custom(
+                        public_comm.clone(),
+                        &public_comm.map(|_| G::ScalarField::one()),
+                    )
+                    .unwrap()
+                    .commitment
+            }
+        };
+        */
     }
 
     /* TODO WIP
