@@ -91,7 +91,10 @@ contract KimchiVerifier {
         PolyComm memory public_comm;
         if (public_inputs.length == 0) {
             PolyComm[] blindings = new PolyComm[](chunk_size);
-            // TODO: fill arr
+            // INFO: can use unchecked on this loop to save gas
+            for (uint i = 0; i < chunk_size; i++) {
+                blindings[i] = 
+            }
             public_comm = new PolyComm(blindings);
         }
 
