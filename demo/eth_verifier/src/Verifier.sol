@@ -2,10 +2,12 @@
 pragma solidity >=0.4.16 <0.9.0;
 
 import {Scalar, Base} from "./Fields.sol";
+import {VerifierIndex} from "./VerifierIndex.sol";
+import {PolyComm} from "./Commitment.sol";
 
 library Kimchi {
     struct Proof {
-        uint data;
+        uint256 data;
     }
 }
 
@@ -14,14 +16,16 @@ struct ProofInput {
 }
 
 contract KimchiVerifier {
-    Kimchi.Proof proof;
+    VerifierIndex verifier_index;
 
     // 1) deserialize
     // 2) staticcall to precompile of pairing check
 
-    function verify(
-        uint256[] memory serializedProof
-    ) public view returns (bool) {
+    function verify(uint256[] memory serializedProof)
+        public
+        view
+        returns (bool)
+    {
         bool success;
         assembly {
             let freeMemPointer := 0x40
@@ -70,7 +74,27 @@ contract KimchiVerifier {
             6. Chunked commitment of ft
             7. List poly commitments for final verification
     */
+    error IncorrectPublicInputLength();
+
     function partial_verify(Scalar.FE[] memory public_inputs) public view {
+        if (public_inputs.length != verifier_index.public_len) {
+            revert IncorrectPublicInputLength();
+        }
+        PolyComm[] memory lgr_comm = verifier_index.urs.lagrange_bases[
+            verifier_index.domain_size
+        ];
+        PolyComm[] memory comm = new PolyComm[](verifier_index.public_len);
+        // INFO: can use unchecked on this loop to save gas
+        for (uint256 i = 0; i < verifier_index.public_len; i++) {
+            comm[i] = lgr_comm[i];
+        }
+        PolyComm memory public_comm;
+        if (public_inputs.length == 0) {
+            PolyComm[] blindings = new PolyComm[](chunk_size);
+            // TODO: fill arr
+            public_comm = new PolyComm(blindings);
+        }
+
         /*
         let public_comm = {
             if public_input.len() != verifier_index.public {
