@@ -11,8 +11,3 @@ coverage
 
 # Never commit keys to Git!
 keys
-
-# JSON files
-steps.json
-inputs.json
-srs.json
