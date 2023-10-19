@@ -103,4 +103,11 @@ contract KimchiVerifier {
         };
         */
     }
+
+    /* TODO WIP
+    function deserialize_proof(
+        uint256[] calldata public_inputs,
+        uint256[] calldata serialized_proof
+    ) returns (Proof memory) {}
+    */
 }
