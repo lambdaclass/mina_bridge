@@ -9,5 +9,5 @@ struct VerifierIndex {
     uint public_len;
     uint domain_size;
     uint max_poly_size;
-    BN254.G1 blinding_commitment;
+    BN254.G1Point blinding_commitment;
 }
