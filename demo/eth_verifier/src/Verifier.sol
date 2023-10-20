@@ -111,40 +111,8 @@ contract KimchiVerifier {
             for (uint i = 0; i < public_comm.unshifted.length; i++) {
                 blinders[i] = Scalar.FE.wrap(1);
             }
-            mask_custom(verifier_index.urs, public_comm, blinders);
+            public_comm = mask_custom(verifier_index.urs, public_comm, blinders).commitment;
         }
-
-        /*
-        let public_comm = {
-            if public_input.len() != verifier_index.public {
-                return Err(VerifyError::IncorrectPubicInputLength(
-                    verifier_index.public,
-                ));
-            }
-            let lgr_comm = verifier_index
-                .srs()
-                .get_lagrange_basis(verifier_index.domain.size())
-                .expect("pre-computed committed lagrange bases not found");
-            let com: Vec<_> = lgr_comm.iter().take(verifier_index.public).collect();
-            if public_input.is_empty() {
-                PolyComm::new(
-                    vec![verifier_index.srs().blinding_commitment(); chunk_size],
-                    None,
-                )
-            } else {
-                let elm: Vec<_> = public_input.iter().map(|s| -*s).collect();
-                let public_comm = PolyComm::<G>::multi_scalar_mul(&com, &elm);
-                verifier_index
-                    .srs()
-                    .mask_custom(
-                        public_comm.clone(),
-                        &public_comm.map(|_| G::ScalarField::one()),
-                    )
-                    .unwrap()
-                    .commitment
-            }
-        };
-        */
     }
 
     /* TODO WIP

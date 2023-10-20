@@ -78,55 +78,6 @@ function naive_msm(BN254.G1[] memory points, Scalar.FE[] memory scalars)
     return result;
 }
 
-/*
-    //
-    // Executes multi-scalar multiplication between scalars `elm` and commitments `com`.
-    // If empty, returns a commitment with the point at infinity.
-    //
-    static msm(com: PolyComm<Group>[], elm: Scalar[]): PolyComm<Group> {
-        if (com.length === 0 || elm.length === 0) {
-            return new PolyComm<Group>([Group.zero]);
-        }
-
-        if (com.length != elm.length) {
-            throw new Error("MSM with invalid comm. and scalar counts");
-        }
-
-        let unshifted_len = Math.max(...com.map(pc => pc.unshifted.length));
-        let unshifted = [];
-
-        for (let chunk = 0; chunk < unshifted_len; chunk++) {
-            let points_and_scalars = com
-                .map((c, i) => [c, elm[i]] as [PolyComm<Group>, Scalar]) // zip with scalars
-                // get rid of scalars that don't have an associated chunk
-                .filter(([c, _]) => c.unshifted.length > chunk)
-                .map(([c, scalar]) => [c.unshifted[chunk], scalar] as [Group, Scalar]);
-
-            // unzip
-            let points = points_and_scalars.map(([c, _]) => c);
-            let scalars = points_and_scalars.map(([_, scalar]) => scalar);
-
-            let chunk_msm = this.naiveMSM(points, scalars);
-            unshifted.push(chunk_msm);
-        }
-
-        let shifted_pairs = com
-            .map((c, i) => [c.shifted, elm[i]] as [Group | undefined, Scalar]) // zip with scalars
-            .filter(([shifted, _]) => shifted != null)
-            .map((zip) => zip as [Group, Scalar]); // zip with scalars
-
-        let shifted = undefined;
-        if (shifted_pairs.length != 0) {
-            // unzip
-            let points = shifted_pairs.map(([c, _]) => c);
-            let scalars = shifted_pairs.map(([_, scalar]) => scalar);
-            shifted = this.naiveMSM(points, scalars);
-        }
-
-        return new PolyComm<Group>(unshifted, shifted);
-    }
-*/
-
 struct BlindedCommitment {
     PolyComm commitments;
     Scalar.FE[] blinders;
@@ -138,9 +89,9 @@ error InvalidPolycommLength();
 // @notice Transforms each given `<a, G>` into `(<a, G> + wH, w)`.
 // INFO: since we are ignoring shifted elements of a commitment, `blinders` only needs to be a Scalar[]
 function mask_custom(
+    URS memory urs,
     PolyComm memory com,
-    Scalar.FE[] memory blinders,
-    URS memory urs
+    Scalar.FE[] memory blinders
 ) view returns (BlindedCommitment memory) {
     if (com.length != blinders.length) {
         revert InvalidPolycommLength();
