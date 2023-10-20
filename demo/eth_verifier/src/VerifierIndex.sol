@@ -8,5 +8,6 @@ struct VerifierIndex {
     URS urs;
     uint public_len;
     uint domain_size;
+    uint max_poly_size;
     BN254.G1 blinding_commitment;
 }

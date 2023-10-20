@@ -3,7 +3,8 @@ pragma solidity >=0.4.16 <0.9.0;
 
 import {Scalar, Base} from "./Fields.sol";
 import {VerifierIndex} from "./VerifierIndex.sol";
-import {PolyComm} from "./Commitment.sol";
+import {PolyComm, polycomm_msm} from "./Commitment.sol";
+import {BN254} from "./BN254.sol";
 
 library Kimchi {
     struct Proof {
@@ -77,6 +78,11 @@ contract KimchiVerifier {
     error IncorrectPublicInputLength();
 
     function partial_verify(Scalar.FE[] memory public_inputs) public view {
+        uint256 chunk_size = verifier_index.domain_size <
+            verifier_index.max_poly_size
+            ? 1
+            : verifier_index.domain_size / verifier_index.max_poly_size;
+
         if (public_inputs.length != verifier_index.public_len) {
             revert IncorrectPublicInputLength();
         }
@@ -84,18 +90,23 @@ contract KimchiVerifier {
             verifier_index.domain_size
         ];
         PolyComm[] memory comm = new PolyComm[](verifier_index.public_len);
-        // INFO: can use unchecked on this loop to save gas
+        // INFO: can use unchecked on for loops to save gas
         for (uint256 i = 0; i < verifier_index.public_len; i++) {
             comm[i] = lgr_comm[i];
         }
         PolyComm memory public_comm;
         if (public_inputs.length == 0) {
-            PolyComm[] blindings = new PolyComm[](chunk_size);
-            // INFO: can use unchecked on this loop to save gas
-            for (uint i = 0; i < chunk_size; i++) {
-                blindings[i] = 
+            BN254.G1[] memory blindings = new BN254.G1[](chunk_size);
+            for (uint256 i = 0; i < chunk_size; i++) {
+                blindings[i] = verifier_index.blinding_commitment;
             }
-            public_comm = new PolyComm(blindings);
+            public_comm = PolyComm(blindings);
+        } else {
+            Scalar.FE[] memory elm = new Scalar.FE[](public_inputs.length);
+            for (uint i = 0; i < elm.length; i++) {
+                elm[i] = public_inputs[i].neg();
+            }
+            BN254.G1 memory public_comm = polycomm_msm(comm, elm);
         }
 
         /*

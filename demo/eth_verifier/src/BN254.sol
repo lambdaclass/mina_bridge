@@ -2,6 +2,8 @@
 
 pragma solidity >=0.8.2 <0.9.0;
 
+import {Scalar} from "./Fields.sol";
+
 library BN254 {
 
     struct G1 {
@@ -37,6 +39,10 @@ library BN254 {
         } else {
             return point_at_inf();
         }
+    }
+
+    function scale_scalar(G1 memory p, Scalar.FE k) public view returns (G1 memory) {
+        scale(p, Scalar.FE.unwrap(k));
     }
 
     function scale(G1 memory p, uint256 k) public view returns (G1 memory) {
