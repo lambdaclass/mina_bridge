@@ -2,15 +2,98 @@
 pragma solidity >=0.4.16 <0.9.0;
 
 import {Scalar, Base} from "./Fields.sol";
+import {BN254} from "../src/BN254.sol";
+
+import "forge-std/console.sol";
 
 library Kimchi {
     struct Proof {
         uint data;
     }
-}
 
-struct ProofInput {
-    uint256[] serializedProof;
+    function deserializeProof(
+        uint8[69] calldata serialized_proof
+    ) public view returns (ProverProof memory proof) {
+        uint256 i = 0;
+        uint8 firstbyte = serialized_proof[i];
+        // first byte is 0x92, indicating this is a map with 2 elements
+        if (firstbyte != 0x92) {
+            // TODO: return error
+            proof.opening_proof_quotient = BN254.P1();
+            return proof;
+        }
+
+        // read lenght of the data
+        i += 1;
+        if (serialized_proof[i] != 0xC4) {
+            // TODO! not implemented!
+            proof.opening_proof_quotient = BN254.P1();
+            return proof;
+        }
+
+        // next byte is the length of the data in one byte
+        i += 1;
+        if (serialized_proof[i] != 0x20) {
+            // length of data is not 32 bytes
+            // TODO! not implemented!
+            proof.opening_proof_quotient = BN254.P1();
+            return proof;
+        }
+
+        // read data
+        i += 1;
+        uint256 data_quotient = 0;
+        for (uint256 j = 0; j < 32; j++) {
+            data_quotient =
+                data_quotient +
+                uint256(serialized_proof[j + i]) *
+                (2 ** (8 * (31 - j)));
+        }
+
+        proof.opening_proof_quotient = BN254.g1Deserialize(
+            bytes32(data_quotient)
+        );
+
+        // read blinding
+        i += 32;
+        // read length of the data
+        if (serialized_proof[i] != 0xC4) {
+            // TODO! not implemented!
+            proof.opening_proof_quotient = BN254.P1();
+            return proof;
+        }
+
+        // next byte is the length of the data in one byte
+        i += 1;
+        if (serialized_proof[i] != 0x20) {
+            // length of data is not 32 bytes
+            // TODO! not implemented!
+            proof.opening_proof_quotient = BN254.P1();
+            return proof;
+        }
+
+        // read data
+        i += 1;
+        uint256 data_blinding = 0;
+        for (uint256 j = 0; j < 32; j++) {
+            data_blinding =
+                data_blinding +
+                uint256(serialized_proof[j + i]) *
+                (2 ** (8 * (31 - j)));
+        }
+
+        proof.opening_proof_blinding = data_blinding;
+        return proof;
+    }
+
+    struct ProofInput {
+        uint256[] serializedProof;
+    }
+
+    struct ProverProof {
+        BN254.G1 opening_proof_quotient;
+        uint256 opening_proof_blinding;
+    }
 }
 
 contract KimchiVerifier {
