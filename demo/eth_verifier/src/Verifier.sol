@@ -2,13 +2,15 @@
 pragma solidity >=0.4.16 <0.9.0;
 
 import {Scalar, Base} from "./Fields.sol";
-import {BN254} from "../src/BN254.sol";
+import {BN254} from "./BN254.sol";
+import {VerifierIndex} from "./VerifierIndex.sol";
+import {PolyComm, polycomm_msm, mask_custom} from "./Commitment.sol";
 
 import "forge-std/console.sol";
 
 library Kimchi {
     struct Proof {
-        uint data;
+        uint256 data;
     }
 
     function deserializeProof(
@@ -97,7 +99,7 @@ library Kimchi {
 }
 
 contract KimchiVerifier {
-    Kimchi.Proof proof;
+    VerifierIndex verifier_index;
 
     // 1) deserialize
     // 2) staticcall to precompile of pairing check
@@ -153,38 +155,47 @@ contract KimchiVerifier {
             6. Chunked commitment of ft
             7. List poly commitments for final verification
     */
+    error IncorrectPublicInputLength();
+
     function partial_verify(Scalar.FE[] memory public_inputs) public view {
-        /*
-        let public_comm = {
-            if public_input.len() != verifier_index.public {
-                return Err(VerifyError::IncorrectPubicInputLength(
-                    verifier_index.public,
-                ));
+        uint256 chunk_size = verifier_index.domain_size <
+            verifier_index.max_poly_size
+            ? 1
+            : verifier_index.domain_size / verifier_index.max_poly_size;
+
+        if (public_inputs.length != verifier_index.public_len) {
+            revert IncorrectPublicInputLength();
+        }
+        PolyComm[] memory lgr_comm = verifier_index.urs.lagrange_bases[
+            verifier_index.domain_size
+        ];
+        PolyComm[] memory comm = new PolyComm[](verifier_index.public_len);
+        // INFO: can use unchecked on for loops to save gas
+        for (uint256 i = 0; i < verifier_index.public_len; i++) {
+            comm[i] = lgr_comm[i];
+        }
+        PolyComm memory public_comm;
+        if (public_inputs.length == 0) {
+            BN254.G1[] memory blindings = new BN254.G1[](chunk_size);
+            for (uint256 i = 0; i < chunk_size; i++) {
+                blindings[i] = verifier_index.blinding_commitment;
             }
-            let lgr_comm = verifier_index
-                .srs()
-                .get_lagrange_basis(verifier_index.domain.size())
-                .expect("pre-computed committed lagrange bases not found");
-            let com: Vec<_> = lgr_comm.iter().take(verifier_index.public).collect();
-            if public_input.is_empty() {
-                PolyComm::new(
-                    vec![verifier_index.srs().blinding_commitment(); chunk_size],
-                    None,
-                )
-            } else {
-                let elm: Vec<_> = public_input.iter().map(|s| -*s).collect();
-                let public_comm = PolyComm::<G>::multi_scalar_mul(&com, &elm);
-                verifier_index
-                    .srs()
-                    .mask_custom(
-                        public_comm.clone(),
-                        &public_comm.map(|_| G::ScalarField::one()),
-                    )
-                    .unwrap()
-                    .commitment
+            public_comm = PolyComm(blindings);
+        } else {
+            Scalar.FE[] memory elm = new Scalar.FE[](public_inputs.length);
+            for (uint i = 0; i < elm.length; i++) {
+                elm[i] = public_inputs[i].neg();
             }
-        };
-        */
+            BN254.G1 memory public_comm = polycomm_msm(comm, elm);
+            Scalar.FE[] memory blinders = new Scalar.FE[](
+                public_comm.unshifted.length
+            );
+            for (uint i = 0; i < public_comm.unshifted.length; i++) {
+                blinders[i] = Scalar.FE.wrap(1);
+            }
+            public_comm = mask_custom(verifier_index.urs, public_comm, blinders)
+                .commitment;
+        }
     }
 
     /* TODO WIP
