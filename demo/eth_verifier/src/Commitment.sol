@@ -77,6 +77,7 @@ function naive_msm(BN254.G1[] memory points, Scalar.FE[] memory scalars)
 
     return result;
 }
+
 /*
     //
     // Executes multi-scalar multiplication between scalars `elm` and commitments `com`.
@@ -125,3 +126,31 @@ function naive_msm(BN254.G1[] memory points, Scalar.FE[] memory scalars)
         return new PolyComm<Group>(unshifted, shifted);
     }
 */
+
+struct BlindedCommitment {
+    PolyComm commitments;
+    Scalar.FE[] blinders;
+}
+
+error InvalidPolycommLength();
+
+// @notice Turns a non-hiding polynomial commitment into a hidding polynomial commitment.
+// @notice Transforms each given `<a, G>` into `(<a, G> + wH, w)`.
+// INFO: since we are ignoring shifted elements of a commitment, `blinders` only needs to be a Scalar[]
+function mask_custom(
+    PolyComm memory com,
+    Scalar.FE[] memory blinders,
+    URS memory urs
+) view returns (BlindedCommitment memory) {
+    if (com.length != blinders.length) {
+        revert InvalidPolycommLength();
+    }
+
+    BN254.G1[] storage unshifted;
+    for (uint256 i = 0; i < com.length; i++) {
+        BN254.G1 memory g_masked = urs.h.scale_scalar(blinders[i]);
+        unshifted.push(g_masked.add(com.unshifted[i]));
+    }
+
+    return BlindedCommitment(PolyComm(unshifted), blinders);
+}

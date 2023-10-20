@@ -3,7 +3,7 @@ pragma solidity >=0.4.16 <0.9.0;
 
 import {Scalar, Base} from "./Fields.sol";
 import {VerifierIndex} from "./VerifierIndex.sol";
-import {PolyComm, polycomm_msm} from "./Commitment.sol";
+import {PolyComm, polycomm_msm, mask_custom} from "./Commitment.sol";
 import {BN254} from "./BN254.sol";
 
 library Kimchi {
@@ -107,6 +107,11 @@ contract KimchiVerifier {
                 elm[i] = public_inputs[i].neg();
             }
             BN254.G1 memory public_comm = polycomm_msm(comm, elm);
+            Scalar.FE[] memory blinders = new Scalar.FE[](public_comm.unshifted.length);
+            for (uint i = 0; i < public_comm.unshifted.length; i++) {
+                blinders[i] = Scalar.FE.wrap(1);
+            }
+            mask_custom(verifier_index.urs, public_comm, blinders);
         }
 
         /*
