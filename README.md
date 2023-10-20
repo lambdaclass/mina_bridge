@@ -221,3 +221,11 @@ Within the Mina source code, these curves are denoted as "tick" and "tock."
 
 The Tock prover undertakes a more limited role, exclusively engaging in recursive verifications without involving other logical processes. As a result, it necessitates fewer constraints and operates within a more compact domain size. Within Pickles' internal terminology, Tick is denoted as _Step_, and Tock is referred to as _Wrap_.
 
+Tock is used to prove the verification of a Tick proof and outputs a Tick proof. Tick is used to prove the verification of a Tock proof and outputs a Tock proof.
+
+- Prove<sub>tock</sub> ( Verify(_Tick_) ) = Tick<sub>proof</sub>
+
+- Prove <sub>tick</sub> (Verify(_Tock_) ) = Tock<sub>proof</sub>
+​
+
+​
