@@ -37,7 +37,10 @@ let public_input = [sg, sg_scalar, expected];
 
 let keypair = await Verifier.generateKeypair();
 
-console.log("Proving...");
+console.log("Proving with Ethereum backend...");
+await Verifier.proveKZG([], public_input, keypair);
+
+console.log("Proving with Mina backend...");
 let proof = await Verifier.prove([], public_input, keypair);
 console.log("Verifying...");
 let isValid = await Verifier.verify(public_input, keypair.verificationKey(), proof);
