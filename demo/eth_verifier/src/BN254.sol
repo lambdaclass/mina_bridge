@@ -96,17 +96,12 @@ library BN254 {
         }
     }
 
-    /// @return r the negation of p, i.e. p.add(p.negate()) should be zero.
-    function negate(G1Point memory p) internal pure returns (G1Point memory) {
+    /// @return r the negation of p, i.e. p.add(p.neg()) should be zero.
+    function neg(G1Point memory p) internal pure returns (G1Point memory) {
         if (isInfinity(p)) {
             return p;
         }
         return G1Point(p.x, P_MOD - (p.y % P_MOD));
-    }
-
-    /// @return res = -fr the negation of scalar field element.
-    function negate(uint256 fr) internal pure returns (uint256 res) {
-        return R_MOD - (fr % R_MOD);
     }
 
     /// @return r the sum of two points of G1

@@ -6,6 +6,9 @@ import {VerifierIndex} from "./VerifierIndex.sol";
 import {PolyComm, polycomm_msm, mask_custom} from "./Commitment.sol";
 import "./BN254.sol";
 
+using { BN254.neg } for BN254.G1Point;
+using { Scalar.neg } for Scalar.FE;
+
 library Kimchi {
     struct Proof {
         uint256 data;
@@ -106,7 +109,7 @@ contract KimchiVerifier {
             for (uint i = 0; i < elm.length; i++) {
                 elm[i] = public_inputs[i].neg();
             }
-            BN254.G1Point memory public_comm_tmp = polycomm_msm(comm, elm);
+            PolyComm memory public_comm_tmp = polycomm_msm(comm, elm);
             Scalar.FE[] memory blinders = new Scalar.FE[](public_comm_tmp.unshifted.length);
             for (uint i = 0; i < public_comm_tmp.unshifted.length; i++) {
                 blinders[i] = Scalar.FE.wrap(1);
