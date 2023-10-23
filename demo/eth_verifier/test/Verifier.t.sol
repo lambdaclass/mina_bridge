@@ -29,13 +29,8 @@ contract CounterTest is Test {
     }
 
     function test_PartialVerify() public {
-        Scalar.FE[] memory public_inputs = new Scalar.FE[](3);
-        public_inputs[0] = Scalar.FE.wrap(1);
-        public_inputs[1] = Scalar.FE.wrap(2);
-        public_inputs[2] = Scalar.FE.wrap(3);
-
-
-        verifier.set_verifier_index_for_testing(public_inputs.length);
-        // verifier.partial_verify(public_inputs);
+        Scalar.FE[] memory public_inputs = new Scalar.FE[](0);
+        verifier.set_verifier_index_for_testing();
+        verifier.partial_verify(public_inputs);
     }
 }

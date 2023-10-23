@@ -5,6 +5,7 @@ import {Scalar, Base} from "./Fields.sol";
 import {VerifierIndex} from "./VerifierIndex.sol";
 import {PolyComm, polycomm_msm, mask_custom} from "./Commitment.sol";
 import "./BN254.sol";
+import {console} from "forge-std/Test.sol";
 
 using { BN254.neg } for BN254.G1Point;
 using { Scalar.neg } for Scalar.FE;
@@ -126,8 +127,7 @@ contract KimchiVerifier {
     */
 
     /// @notice This is used exclusively in `test_PartialVerify()`.
-    function set_verifier_index_for_testing(uint public_len) public {
+    function set_verifier_index_for_testing() public {
         verifier_index.max_poly_size = 1;
-        verifier_index.public_len = public_len;
     }
 }
