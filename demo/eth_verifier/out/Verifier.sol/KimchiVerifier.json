@@ -1,0 +1,791 @@
+{
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "Scalar.FE[]",
+          "name": "public_inputs",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "partial_verify",
+      "outputs": [],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "serializedProof",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "verify",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x608060405234801561001057600080fd5b506101c6806100206000396000f3fe608060405234801561001057600080fd5b50600436106100365760003560e01c80630a24c16b1461003b5780630ca5fc251461004e575b600080fd5b61004c6100493660046100fa565b50565b005b61006161005c3660046100fa565b610075565b604051901515815260200160405180910390f35b600080604081806080605c60085afa506001949350505050565b634e487b7160e01b600052604160045260246000fd5b604051601f8201601f1916810167ffffffffffffffff811182821017156100ce576100ce61008f565b604052919050565b600067ffffffffffffffff8211156100f0576100f061008f565b5060051b60200190565b6000602080838503121561010d57600080fd5b823567ffffffffffffffff81111561012457600080fd5b8301601f8101851361013557600080fd5b8035610148610143826100d6565b6100a5565b81815260059190911b8201830190838101908783111561016757600080fd5b928401925b828410156101855783358252928401929084019061016c565b97965050505050505056fea264697066735822122000ac5415fc3802aa0a1dc160967eea3797694b2c06389d5f709f753c72644d2964736f6c63430008150033",
+    "sourceMap": "232:3397:23:-:0;;;;;;;;;;;;;;;;;;;",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x608060405234801561001057600080fd5b50600436106100365760003560e01c80630a24c16b1461003b5780630ca5fc251461004e575b600080fd5b61004c6100493660046100fa565b50565b005b61006161005c3660046100fa565b610075565b604051901515815260200160405180910390f35b600080604081806080605c60085afa506001949350505050565b634e487b7160e01b600052604160045260246000fd5b604051601f8201601f1916810167ffffffffffffffff811182821017156100ce576100ce61008f565b604052919050565b600067ffffffffffffffff8211156100f0576100f061008f565b5060051b60200190565b6000602080838503121561010d57600080fd5b823567ffffffffffffffff81111561012457600080fd5b8301601f8101851361013557600080fd5b8035610148610143826100d6565b6100a5565b81815260059190911b8201830190838101908783111561016757600080fd5b928401925b828410156101855783358252928401929084019061016c565b97965050505050505056fea264697066735822122000ac5415fc3802aa0a1dc160967eea3797694b2c06389d5f709f753c72644d2964736f6c63430008150033",
+    "sourceMap": "232:3397:23:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;2138:1315;;;;;;:::i;:::-;;;;;362:1335;;;;;;:::i;:::-;;:::i;:::-;;;2643:14:27;;2636:22;2618:41;;2606:2;2591:18;362:1335:23;;;;;;;;447:4;;530;447;;671:25;630:23;609:3;586:5;558:196;-1:-1:-1;1686:4:23;;362:1335;-1:-1:-1;;;;362:1335:23:o;14:127:27:-;75:10;70:3;66:20;63:1;56:31;106:4;103:1;96:15;130:4;127:1;120:15;146:275;217:2;211:9;282:2;263:13;;-1:-1:-1;;259:27:27;247:40;;317:18;302:34;;338:22;;;299:62;296:88;;;364:18;;:::i;:::-;400:2;393:22;146:275;;-1:-1:-1;146:275:27:o;426:199::-;502:4;535:18;527:6;524:30;521:56;;;557:18;;:::i;:::-;-1:-1:-1;602:1:27;598:14;614:4;594:25;;426:199::o;630:931::-;738:6;769:2;812;800:9;791:7;787:23;783:32;780:52;;;828:1;825;818:12;780:52;868:9;855:23;901:18;893:6;890:30;887:50;;;933:1;930;923:12;887:50;956:22;;1009:4;1001:13;;997:27;-1:-1:-1;987:55:27;;1038:1;1035;1028:12;987:55;1074:2;1061:16;1097:76;1113:59;1169:2;1113:59;:::i;:::-;1097:76;:::i;:::-;1207:15;;;1289:1;1285:10;;;;1277:19;;1273:28;;;1238:12;;;;1313:19;;;1310:39;;;1345:1;1342;1335:12;1310:39;1369:11;;;;1389:142;1405:6;1400:3;1397:15;1389:142;;;1471:17;;1459:30;;1422:12;;;;1509;;;;1389:142;;;1550:5;630:931;-1:-1:-1;;;;;;;630:931:27:o",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "partial_verify(uint256[])": "0a24c16b",
+    "verify(uint256[])": "0ca5fc25"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.21+commit.d9974bed\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"Scalar.FE[]\",\"name\":\"public_inputs\",\"type\":\"uint256[]\"}],\"name\":\"partial_verify\",\"outputs\":[],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[]\",\"name\":\"serializedProof\",\"type\":\"uint256[]\"}],\"name\":\"verify\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"src/Verifier.sol\":\"KimchiVerifier\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":ds-test/=lib/forge-std/lib/ds-test/src/\",\":forge-std/=lib/forge-std/src/\"]},\"sources\":{\"src/Fields.sol\":{\"keccak256\":\"0x3611cacd4f49cdca155f7895443de4dc8f052addeefd59a7ea4d77133859f5f5\",\"license\":\"GPL-3.0\",\"urls\":[\"bzz-raw://403cb1c734a5e34dd869b82b3350cf9ab1812965ece40674890d606ac495d3f7\",\"dweb:/ipfs/QmVaAD6BSAT2n7VwbSb1SCSyZSqGUuHvVPYBtrcyrGkK3s\"]},\"src/Verifier.sol\":{\"keccak256\":\"0x159f7edcc07373d0cf9069c19399ffebec7303d62a242e3394cbbef9e175d868\",\"license\":\"GPL-3.0\",\"urls\":[\"bzz-raw://223e9aca20bdd62553061785f0b8391f0539ffe9271e9932caa20e14805a547e\",\"dweb:/ipfs/QmR2TaGZy8XkqHsvWkcpNH6H23giFoBo8jfgmvz1w5Maam\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.8.21+commit.d9974bed"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [
+            {
+              "internalType": "Scalar.FE[]",
+              "name": "public_inputs",
+              "type": "uint256[]"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "partial_verify"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256[]",
+              "name": "serializedProof",
+              "type": "uint256[]"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function",
+          "name": "verify",
+          "outputs": [
+            {
+              "internalType": "bool",
+              "name": "",
+              "type": "bool"
+            }
+          ]
+        }
+      ],
+      "devdoc": {
+        "kind": "dev",
+        "methods": {},
+        "version": 1
+      },
+      "userdoc": {
+        "kind": "user",
+        "methods": {},
+        "version": 1
+      }
+    },
+    "settings": {
+      "remappings": [
+        "ds-test/=lib/forge-std/lib/ds-test/src/",
+        "forge-std/=lib/forge-std/src/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "metadata": {
+        "bytecodeHash": "ipfs"
+      },
+      "compilationTarget": {
+        "src/Verifier.sol": "KimchiVerifier"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "src/Fields.sol": {
+        "keccak256": "0x3611cacd4f49cdca155f7895443de4dc8f052addeefd59a7ea4d77133859f5f5",
+        "urls": [
+          "bzz-raw://403cb1c734a5e34dd869b82b3350cf9ab1812965ece40674890d606ac495d3f7",
+          "dweb:/ipfs/QmVaAD6BSAT2n7VwbSb1SCSyZSqGUuHvVPYBtrcyrGkK3s"
+        ],
+        "license": "GPL-3.0"
+      },
+      "src/Verifier.sol": {
+        "keccak256": "0x159f7edcc07373d0cf9069c19399ffebec7303d62a242e3394cbbef9e175d868",
+        "urls": [
+          "bzz-raw://223e9aca20bdd62553061785f0b8391f0539ffe9271e9932caa20e14805a547e",
+          "dweb:/ipfs/QmR2TaGZy8XkqHsvWkcpNH6H23giFoBo8jfgmvz1w5Maam"
+        ],
+        "license": "GPL-3.0"
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "src/Verifier.sol",
+    "id": 43776,
+    "exportedSymbols": {
+      "Base": [
+        43679
+      ],
+      "Kimchi": [
+        43744
+      ],
+      "KimchiVerifier": [
+        43775
+      ],
+      "ProofInput": [
+        43748
+      ],
+      "Scalar": [
+        43735
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "36:3594:23",
+    "nodes": [
+      {
+        "id": 43737,
+        "nodeType": "PragmaDirective",
+        "src": "36:32:23",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          ">=",
+          "0.4",
+          ".16",
+          "<",
+          "0.9",
+          ".0"
+        ]
+      },
+      {
+        "id": 43740,
+        "nodeType": "ImportDirective",
+        "src": "70:42:23",
+        "nodes": [],
+        "absolutePath": "src/Fields.sol",
+        "file": "./Fields.sol",
+        "nameLocation": "-1:-1:-1",
+        "scope": 43776,
+        "sourceUnit": 43736,
+        "symbolAliases": [
+          {
+            "foreign": {
+              "id": 43738,
+              "name": "Scalar",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "referencedDeclaration": 43735,
+              "src": "78:6:23",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          },
+          {
+            "foreign": {
+              "id": 43739,
+              "name": "Base",
+              "nodeType": "Identifier",
+              "overloadedDeclarations": [],
+              "referencedDeclaration": 43679,
+              "src": "86:4:23",
+              "typeDescriptions": {}
+            },
+            "nameLocation": "-1:-1:-1"
+          }
+        ],
+        "unitAlias": ""
+      },
+      {
+        "id": 43744,
+        "nodeType": "ContractDefinition",
+        "src": "114:62:23",
+        "nodes": [
+          {
+            "id": 43743,
+            "nodeType": "StructDefinition",
+            "src": "135:39:23",
+            "nodes": [],
+            "canonicalName": "Kimchi.Proof",
+            "members": [
+              {
+                "constant": false,
+                "id": 43742,
+                "mutability": "mutable",
+                "name": "data",
+                "nameLocation": "163:4:23",
+                "nodeType": "VariableDeclaration",
+                "scope": 43743,
+                "src": "158:9:23",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 43741,
+                  "name": "uint",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "158:4:23",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "visibility": "internal"
+              }
+            ],
+            "name": "Proof",
+            "nameLocation": "142:5:23",
+            "scope": 43744,
+            "visibility": "public"
+          }
+        ],
+        "abstract": false,
+        "baseContracts": [],
+        "canonicalName": "Kimchi",
+        "contractDependencies": [],
+        "contractKind": "library",
+        "fullyImplemented": true,
+        "linearizedBaseContracts": [
+          43744
+        ],
+        "name": "Kimchi",
+        "nameLocation": "122:6:23",
+        "scope": 43776,
+        "usedErrors": [],
+        "usedEvents": []
+      },
+      {
+        "id": 43748,
+        "nodeType": "StructDefinition",
+        "src": "178:52:23",
+        "nodes": [],
+        "canonicalName": "ProofInput",
+        "members": [
+          {
+            "constant": false,
+            "id": 43747,
+            "mutability": "mutable",
+            "name": "serializedProof",
+            "nameLocation": "212:15:23",
+            "nodeType": "VariableDeclaration",
+            "scope": 43748,
+            "src": "202:25:23",
+            "stateVariable": false,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_array$_t_uint256_$dyn_storage_ptr",
+              "typeString": "uint256[]"
+            },
+            "typeName": {
+              "baseType": {
+                "id": 43745,
+                "name": "uint256",
+                "nodeType": "ElementaryTypeName",
+                "src": "202:7:23",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                }
+              },
+              "id": 43746,
+              "nodeType": "ArrayTypeName",
+              "src": "202:9:23",
+              "typeDescriptions": {
+                "typeIdentifier": "t_array$_t_uint256_$dyn_storage_ptr",
+                "typeString": "uint256[]"
+              }
+            },
+            "visibility": "internal"
+          }
+        ],
+        "name": "ProofInput",
+        "nameLocation": "185:10:23",
+        "scope": 43776,
+        "visibility": "public"
+      },
+      {
+        "id": 43775,
+        "nodeType": "ContractDefinition",
+        "src": "232:3397:23",
+        "nodes": [
+          {
+            "id": 43751,
+            "nodeType": "VariableDeclaration",
+            "src": "262:18:23",
+            "nodes": [],
+            "constant": false,
+            "mutability": "mutable",
+            "name": "proof",
+            "nameLocation": "275:5:23",
+            "scope": 43775,
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_struct$_Proof_$43743_storage",
+              "typeString": "struct Kimchi.Proof"
+            },
+            "typeName": {
+              "id": 43750,
+              "nodeType": "UserDefinedTypeName",
+              "pathNode": {
+                "id": 43749,
+                "name": "Kimchi.Proof",
+                "nameLocations": [
+                  "262:6:23",
+                  "269:5:23"
+                ],
+                "nodeType": "IdentifierPath",
+                "referencedDeclaration": 43743,
+                "src": "262:12:23"
+              },
+              "referencedDeclaration": 43743,
+              "src": "262:12:23",
+              "typeDescriptions": {
+                "typeIdentifier": "t_struct$_Proof_$43743_storage_ptr",
+                "typeString": "struct Kimchi.Proof"
+              }
+            },
+            "visibility": "internal"
+          },
+          {
+            "id": 43766,
+            "nodeType": "FunctionDefinition",
+            "src": "362:1335:23",
+            "nodes": [],
+            "body": {
+              "id": 43765,
+              "nodeType": "Block",
+              "src": "453:1244:23",
+              "nodes": [],
+              "statements": [
+                {
+                  "assignments": [
+                    43760
+                  ],
+                  "declarations": [
+                    {
+                      "constant": false,
+                      "id": 43760,
+                      "mutability": "mutable",
+                      "name": "success",
+                      "nameLocation": "468:7:23",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 43765,
+                      "src": "463:12:23",
+                      "stateVariable": false,
+                      "storageLocation": "default",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bool",
+                        "typeString": "bool"
+                      },
+                      "typeName": {
+                        "id": 43759,
+                        "name": "bool",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "463:4:23",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      },
+                      "visibility": "internal"
+                    }
+                  ],
+                  "id": 43761,
+                  "nodeType": "VariableDeclarationStatement",
+                  "src": "463:12:23"
+                },
+                {
+                  "AST": {
+                    "nativeSrc": "494:270:23",
+                    "nodeType": "YulBlock",
+                    "src": "494:270:23",
+                    "statements": [
+                      {
+                        "nativeSrc": "508:26:23",
+                        "nodeType": "YulVariableDeclaration",
+                        "src": "508:26:23",
+                        "value": {
+                          "kind": "number",
+                          "nativeSrc": "530:4:23",
+                          "nodeType": "YulLiteral",
+                          "src": "530:4:23",
+                          "type": "",
+                          "value": "0x40"
+                        },
+                        "variables": [
+                          {
+                            "name": "freeMemPointer",
+                            "nativeSrc": "512:14:23",
+                            "nodeType": "YulTypedName",
+                            "src": "512:14:23",
+                            "type": ""
+                          }
+                        ]
+                      },
+                      {
+                        "nativeSrc": "547:207:23",
+                        "nodeType": "YulAssignment",
+                        "src": "547:207:23",
+                        "value": {
+                          "arguments": [
+                            {
+                              "arguments": [],
+                              "functionName": {
+                                "name": "gas",
+                                "nativeSrc": "586:3:23",
+                                "nodeType": "YulIdentifier",
+                                "src": "586:3:23"
+                              },
+                              "nativeSrc": "586:5:23",
+                              "nodeType": "YulFunctionCall",
+                              "src": "586:5:23"
+                            },
+                            {
+                              "kind": "number",
+                              "nativeSrc": "609:3:23",
+                              "nodeType": "YulLiteral",
+                              "src": "609:3:23",
+                              "type": "",
+                              "value": "0x8"
+                            },
+                            {
+                              "arguments": [
+                                {
+                                  "name": "freeMemPointer",
+                                  "nativeSrc": "634:14:23",
+                                  "nodeType": "YulIdentifier",
+                                  "src": "634:14:23"
+                                },
+                                {
+                                  "kind": "number",
+                                  "nativeSrc": "650:2:23",
+                                  "nodeType": "YulLiteral",
+                                  "src": "650:2:23",
+                                  "type": "",
+                                  "value": "28"
+                                }
+                              ],
+                              "functionName": {
+                                "name": "add",
+                                "nativeSrc": "630:3:23",
+                                "nodeType": "YulIdentifier",
+                                "src": "630:3:23"
+                              },
+                              "nativeSrc": "630:23:23",
+                              "nodeType": "YulFunctionCall",
+                              "src": "630:23:23"
+                            },
+                            {
+                              "arguments": [
+                                {
+                                  "name": "freeMemPointer",
+                                  "nativeSrc": "675:14:23",
+                                  "nodeType": "YulIdentifier",
+                                  "src": "675:14:23"
+                                },
+                                {
+                                  "kind": "number",
+                                  "nativeSrc": "691:4:23",
+                                  "nodeType": "YulLiteral",
+                                  "src": "691:4:23",
+                                  "type": "",
+                                  "value": "0x40"
+                                }
+                              ],
+                              "functionName": {
+                                "name": "add",
+                                "nativeSrc": "671:3:23",
+                                "nodeType": "YulIdentifier",
+                                "src": "671:3:23"
+                              },
+                              "nativeSrc": "671:25:23",
+                              "nodeType": "YulFunctionCall",
+                              "src": "671:25:23"
+                            },
+                            {
+                              "kind": "number",
+                              "nativeSrc": "714:4:23",
+                              "nodeType": "YulLiteral",
+                              "src": "714:4:23",
+                              "type": "",
+                              "value": "0x00"
+                            },
+                            {
+                              "kind": "number",
+                              "nativeSrc": "736:4:23",
+                              "nodeType": "YulLiteral",
+                              "src": "736:4:23",
+                              "type": "",
+                              "value": "0x00"
+                            }
+                          ],
+                          "functionName": {
+                            "name": "staticcall",
+                            "nativeSrc": "558:10:23",
+                            "nodeType": "YulIdentifier",
+                            "src": "558:10:23"
+                          },
+                          "nativeSrc": "558:196:23",
+                          "nodeType": "YulFunctionCall",
+                          "src": "558:196:23"
+                        },
+                        "variableNames": [
+                          {
+                            "name": "success",
+                            "nativeSrc": "547:7:23",
+                            "nodeType": "YulIdentifier",
+                            "src": "547:7:23"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "evmVersion": "paris",
+                  "externalReferences": [
+                    {
+                      "declaration": 43760,
+                      "isOffset": false,
+                      "isSlot": false,
+                      "src": "547:7:23",
+                      "valueSize": 1
+                    }
+                  ],
+                  "id": 43762,
+                  "nodeType": "InlineAssembly",
+                  "src": "485:279:23"
+                },
+                {
+                  "expression": {
+                    "hexValue": "74727565",
+                    "id": 43763,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": true,
+                    "kind": "bool",
+                    "lValueRequested": false,
+                    "nodeType": "Literal",
+                    "src": "1686:4:23",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    },
+                    "value": "true"
+                  },
+                  "functionReturnParameters": 43758,
+                  "id": 43764,
+                  "nodeType": "Return",
+                  "src": "1679:11:23"
+                }
+              ]
+            },
+            "functionSelector": "0ca5fc25",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "verify",
+            "nameLocation": "371:6:23",
+            "parameters": {
+              "id": 43755,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 43754,
+                  "mutability": "mutable",
+                  "name": "serializedProof",
+                  "nameLocation": "404:15:23",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 43766,
+                  "src": "387:32:23",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_uint256_$dyn_memory_ptr",
+                    "typeString": "uint256[]"
+                  },
+                  "typeName": {
+                    "baseType": {
+                      "id": 43752,
+                      "name": "uint256",
+                      "nodeType": "ElementaryTypeName",
+                      "src": "387:7:23",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      }
+                    },
+                    "id": 43753,
+                    "nodeType": "ArrayTypeName",
+                    "src": "387:9:23",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_uint256_$dyn_storage_ptr",
+                      "typeString": "uint256[]"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "377:48:23"
+            },
+            "returnParameters": {
+              "id": 43758,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 43757,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 43766,
+                  "src": "447:4:23",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 43756,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "447:4:23",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "446:6:23"
+            },
+            "scope": 43775,
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "public"
+          },
+          {
+            "id": 43774,
+            "nodeType": "FunctionDefinition",
+            "src": "2138:1315:23",
+            "nodes": [],
+            "body": {
+              "id": 43773,
+              "nodeType": "Block",
+              "src": "2208:1245:23",
+              "nodes": [],
+              "statements": []
+            },
+            "functionSelector": "0a24c16b",
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "partial_verify",
+            "nameLocation": "2147:14:23",
+            "parameters": {
+              "id": 43771,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 43770,
+                  "mutability": "mutable",
+                  "name": "public_inputs",
+                  "nameLocation": "2181:13:23",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 43774,
+                  "src": "2162:32:23",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_userDefinedValueType$_FE_$43682_$dyn_memory_ptr",
+                    "typeString": "Scalar.FE[]"
+                  },
+                  "typeName": {
+                    "baseType": {
+                      "id": 43768,
+                      "nodeType": "UserDefinedTypeName",
+                      "pathNode": {
+                        "id": 43767,
+                        "name": "Scalar.FE",
+                        "nameLocations": [
+                          "2162:6:23",
+                          "2169:2:23"
+                        ],
+                        "nodeType": "IdentifierPath",
+                        "referencedDeclaration": 43682,
+                        "src": "2162:9:23"
+                      },
+                      "referencedDeclaration": 43682,
+                      "src": "2162:9:23",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_userDefinedValueType$_FE_$43682",
+                        "typeString": "Scalar.FE"
+                      }
+                    },
+                    "id": 43769,
+                    "nodeType": "ArrayTypeName",
+                    "src": "2162:11:23",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_userDefinedValueType$_FE_$43682_$dyn_storage_ptr",
+                      "typeString": "Scalar.FE[]"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "2161:34:23"
+            },
+            "returnParameters": {
+              "id": 43772,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "2208:0:23"
+            },
+            "scope": 43775,
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "public"
+          }
+        ],
+        "abstract": false,
+        "baseContracts": [],
+        "canonicalName": "KimchiVerifier",
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "fullyImplemented": true,
+        "linearizedBaseContracts": [
+          43775
+        ],
+        "name": "KimchiVerifier",
+        "nameLocation": "241:14:23",
+        "scope": 43776,
+        "usedErrors": [],
+        "usedEvents": []
+      }
+    ],
+    "license": "GPL-3.0"
+  },
+  "id": 23
+}
