@@ -124,4 +124,10 @@ contract KimchiVerifier {
         uint256[] calldata serialized_proof
     ) returns (Proof memory) {}
     */
+
+    /// @notice This is used exclusively in `test_PartialVerify()`.
+    function set_verifier_index_for_testing(uint public_len) public {
+        verifier_index.max_poly_size = 1;
+        verifier_index.public_len = public_len;
+    }
 }

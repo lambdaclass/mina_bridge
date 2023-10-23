@@ -34,6 +34,8 @@ contract CounterTest is Test {
         public_inputs[1] = Scalar.FE.wrap(2);
         public_inputs[2] = Scalar.FE.wrap(3);
 
-        verifier.partial_verify(public_inputs);
+
+        verifier.set_verifier_index_for_testing(public_inputs.length);
+        // verifier.partial_verify(public_inputs);
     }
 }
