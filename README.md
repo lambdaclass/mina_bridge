@@ -254,3 +254,72 @@ Links to the associated code.
 [polynomials that have an evaluation proof](https://github.com/o1-labs/proof-systems/blob/17041948eb2742244464d6749560a304213f4198/kimchi/src/verifier.rs#L346)
 
 ---
+
+## Pickles - Mina’s inductive zk-SNARK composition system
+
+To efficiently provide incremental verifiable computation, Pickles employs a set of friendly curves known as Pasta.
+Within the Mina source code, these curves are denoted as "tick" and "tock."
+
+- Tick - Vesta (a.k.a. Step), constraint domain size 2¹⁸  [block and transaction proofs]
+- Tock - Pallas (a.k.a. Wrap), constraint domain size 2¹²  [signatures]
+
+The Tock prover undertakes a more limited role, exclusively engaging in recursive verifications without involving other logical processes. As a result, it necessitates fewer constraints and operates within a more compact domain size. Within Pickles' internal terminology, Tick is denoted as _Step_, and Tock is referred to as _Wrap_.
+
+Tock is used to prove the verification of a Tick proof and outputs a Tick proof. Tick is used to prove the verification of a Tock proof and outputs a Tock proof.
+
+- Prove<sub>tock</sub> ( Verify(_Tick_) ) = Tick<sub>proof</sub>
+
+- Prove <sub>tick</sub> (Verify(_Tock_) ) = Tock<sub>proof</sub>
+​
+---
+
+Analysis of the Induction (recursion) method applied in Pickles. Then the original HALO2 will be analyzed.
+
+The __Verifier__ is divided into 2 modules, one part __Slow__ and one part __Fast__.
+
+![Figure 1](/img/pickles_step_01.png)
+
+__S0__ is the initial statement, __U__ is the Update algorithm, the __Pi__ are the proofs, and the __S's__ are the updated statements.
+
+![Figure 2](/img/pickles_step_02.png)
+
+On top of each **Pi** proof, we run a **Fast** verifier. With the **Pi** proof and the cumulative Statement from the previous step, the **U** algorithm is applied and a new updated Statement is created. This *new updated Statement* is the input of the Slow part of the Verifier, but we don't run the Slow Verifier until we reach the end of the whole round.
+
+---
+Execution of **Verifier Slow** (which is very slow) can be <ins>deferred</ins> in sequences, and the V slow current always accumulates to the previous statement. This implicitly 'runs Vs on S1' as well.
+
+---
+
+Remember that the S's are statements that accumulate, so each one has information from the previous ones.
+
+![Figure 3](/img/pickles_step_03.png)
+
+When we reached the last round we see that the intermediate Verifiers Slow disappears, as they are no longer useful to us.
+
+![Figure 4](/img/pickles_step_04.png)
+
+Attention!! We haven't executed any Verifier Slow yet; we only run Verifier Fast in each round.
+
+Therefore, in the last step, we execute the current **Verifier Fast** on its Pi, and the **Last Verifier Slow** on the **Final S**. This may take 1 second, but it accumulates all the previous ones.
+
+![Figure 5](/img/pickles_step_05.png)
+
+---
+
+Everything inside the large red square in the following figure has already been processed by the time we reach the last round.
+
+![Figure 6](/img/pickles_step_06.png)
+
+---
+
+Let's now see how the Verifier Fast is 
+divided.
+
+![Figure 7](/img/pickles_step_07.png)
+
+**Vf** corresponds to field operations in a field ***F***, and **Vg** corresponds to group operations in a group ***G***.
+
+![Figure 8](/img/pickles_step_08.png)
+
+The proof **Pi** is divided into 2 parts, one corresponding to group operations ***G***, and it exposes, as a public input to the circuit, the part of the proof that is necessary to execute ***Vf***.
+
