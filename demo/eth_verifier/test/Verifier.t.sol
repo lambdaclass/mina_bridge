@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import {Test, console2} from "forge-std/Test.sol";
 import {KimchiVerifier} from "../src/Verifier.sol";
 import "../src/BN254.sol";
+import "../src/Fields.sol";
 
 contract CounterTest is Test {
     KimchiVerifier public verifier;
@@ -25,5 +26,14 @@ contract CounterTest is Test {
 
         assertEq(g_plus_g.x, two_g.x, "g + g should equal 2g");
         assertEq(g_plus_g.y, two_g.y, "g + g should equal 2g");
+    }
+
+    function test_PartialVerify() public {
+        Scalar.FE[] memory public_inputs = new Scalar.FE[](3);
+        public_inputs[0] = Scalar.FE.wrap(1);
+        public_inputs[1] = Scalar.FE.wrap(2);
+        public_inputs[2] = Scalar.FE.wrap(3);
+
+        verifier.partial_verify(public_inputs);
     }
 }
