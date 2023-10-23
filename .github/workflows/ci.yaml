@@ -65,5 +65,8 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v4
 
+      - name: Setup
+        run: make setup
+
       - name: Run tests
         run: make test
