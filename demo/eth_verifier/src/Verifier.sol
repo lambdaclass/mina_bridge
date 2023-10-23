@@ -13,34 +13,21 @@ library Kimchi {
         uint256 data;
     }
 
-    function deserializeProof(
+    function deserializeOpeningProof(
         uint8[69] calldata serialized_proof
     ) public view returns (ProverProof memory proof) {
         uint256 i = 0;
         uint8 firstbyte = serialized_proof[i];
         // first byte is 0x92, indicating this is a map with 2 elements
-        if (firstbyte != 0x92) {
-            // TODO: return error
-            proof.opening_proof_quotient = BN254.P1();
-            return proof;
-        }
+        require(firstbyte == 0x92, "first byte is not 0x92");
 
         // read lenght of the data
         i += 1;
-        if (serialized_proof[i] != 0xC4) {
-            // TODO! not implemented!
-            proof.opening_proof_quotient = BN254.P1();
-            return proof;
-        }
+        require(serialized_proof[i] == 0xC4, "second byte is not 0xC4");
 
         // next byte is the length of the data in one byte
         i += 1;
-        if (serialized_proof[i] != 0x20) {
-            // length of data is not 32 bytes
-            // TODO! not implemented!
-            proof.opening_proof_quotient = BN254.P1();
-            return proof;
-        }
+        require(serialized_proof[i] == 0x20, "size of element is not 32 bytes");
 
         // read data
         i += 1;
@@ -59,20 +46,11 @@ library Kimchi {
         // read blinding
         i += 32;
         // read length of the data
-        if (serialized_proof[i] != 0xC4) {
-            // TODO! not implemented!
-            proof.opening_proof_quotient = BN254.P1();
-            return proof;
-        }
+        require(serialized_proof[i] == 0xC4, "second byte is not 0xC4");
 
         // next byte is the length of the data in one byte
         i += 1;
-        if (serialized_proof[i] != 0x20) {
-            // length of data is not 32 bytes
-            // TODO! not implemented!
-            proof.opening_proof_quotient = BN254.P1();
-            return proof;
-        }
+        require(serialized_proof[i] == 0x20, "size of element is not 32 bytes");
 
         // read data
         i += 1;
@@ -93,9 +71,23 @@ library Kimchi {
     }
 
     struct ProverProof {
+        // evals
+
+        // opening proof
         BN254.G1 opening_proof_quotient;
         uint256 opening_proof_blinding;
     }
+
+    struct Evals {
+        Base.FE zeta;
+        Base.FE zeta_omega;
+    }
+
+    /*
+    function deserializeEvals(
+        uint8[71] calldata serialized_evals
+    ) public view returns (Evals memory evals) {}
+    */
 }
 
 contract KimchiVerifier {
