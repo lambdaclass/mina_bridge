@@ -5,8 +5,6 @@ pragma solidity >=0.4.16 <0.9.0;
 library Base {
     type FE is uint256;
 
-    using { add, mul, inv, neg, sub } for FE;
-
     uint256 public constant MODULUS =
         21888242871839275222246405745257275088696311157297823662689037894645226208583;
 
