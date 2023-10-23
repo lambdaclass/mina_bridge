@@ -8,6 +8,10 @@ library Base {
     uint256 public constant MODULUS =
         21888242871839275222246405745257275088696311157297823662689037894645226208583;
 
+    function from(uint256 self) public pure returns (FE) {
+        return FE.wrap(self % MODULUS);
+    }
+
     function add(
         FE self,
         FE other
@@ -50,6 +54,15 @@ library Scalar {
 
     uint256 public constant MODULUS =
         21888242871839275222246405745257275088548364400416034343698204186575808495617;
+
+    function from(uint256 self) public pure returns (FE) {
+        return FE.wrap(self % MODULUS);
+    }
+
+    function from_bytes(bytes memory self) public pure returns (FE) {
+        uint256 n = abi.decode(self);
+        return FE.wrap(n % MODULUS);
+    }
 
     function add(
         FE self,
