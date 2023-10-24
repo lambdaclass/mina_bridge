@@ -4,7 +4,7 @@
 //! This crate is based on `verifier_circuit_tests/` and the Kimchi test
 //! "test_generic_gate_pairing".
 
-use std::{array, fs};
+use std::{array, fs, sync::Arc};
 
 use ark_ec::short_weierstrass_jacobian::GroupAffine;
 use ark_ff::UniformRand;
@@ -23,7 +23,7 @@ use kimchi::{
         pairing_proof::{PairingProof, PairingSRS},
     },
     proof::ProverProof,
-    prover_index::testing::new_index_for_test_with_lookups_and_custom_srs,
+    prover_index::testing::new_index_for_test_with_lookups_and_custom_srs, verifier_index,
 };
 use num_traits::Zero;
 
@@ -68,11 +68,13 @@ fn main() {
     )
     .unwrap();
 
+    let verifier_index = prover_index.verifier_index();
+
     // Serialize into JSON file
     fs::write("proof.json", serde_json::to_string_pretty(&proof).unwrap()).unwrap();
     fs::write(
         "verifier_index.json",
-        serde_json::to_string_pretty(&prover_index.verifier_index()).unwrap(),
+        serde_json::to_string_pretty(&verifier_index).unwrap(),
     )
     .unwrap();
 
@@ -85,6 +87,20 @@ fn main() {
     fs::write(
         "opening_proof.mpk",
         rmp_serde::to_vec(&proof.proof).unwrap(),
+    )
+    .unwrap();
+
+    let srs = (**verifier_index.srs()).clone();
+
+    // Serialize URS into JSON and MessagePack
+    fs::write(
+        "urs.json",
+        serde_json::to_vec(&srs.verifier_srs).unwrap(),
+    )
+    .unwrap();
+    fs::write(
+        "urs.mpk",
+        rmp_serde::to_vec(&srs.verifier_srs).unwrap(),
     )
     .unwrap();
 }
