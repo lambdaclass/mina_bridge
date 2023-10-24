@@ -2,7 +2,7 @@
 
 pragma solidity >=0.8.2 <0.9.0;
 
-import {Scalar} from "./Fields.sol";
+import "./Fields.sol";
 
 library BN254 {
     uint256 public constant MODULUS =

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
-import "./Fields.sol";
+import "./primitives/Fields.sol";
 
 library Oracles {
     using { to_field } for ScalarChallenge;
@@ -26,6 +26,7 @@ library Oracles {
         Scalar.from(keccak256(abi.encode(block.timestamp)));
     }
 
+    /// @notice creates a `ScaharChallenge` using `challenge()`.
     function scalar_chal() internal view returns (ScalarChallenge memory) {
         return ScalarChallenge(challenge());
     }

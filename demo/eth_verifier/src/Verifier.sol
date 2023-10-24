@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
-import {Scalar, Base} from "./Fields.sol";
-import {VerifierIndex} from "./VerifierIndex.sol";
-import {PolyComm, polycomm_msm, mask_custom} from "./Commitment.sol";
-import "./BN254.sol";
 import {console} from "forge-std/Test.sol";
+import "./VerifierIndex.sol";
+import "./Commitment.sol";
+import "./primitives/BN254.sol";
+import "./primitives/Fields.sol";
 
 using { BN254.neg } for BN254.G1Point;
 using { Scalar.neg } for Scalar.FE;
