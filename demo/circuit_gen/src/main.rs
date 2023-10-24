@@ -69,14 +69,22 @@ fn main() {
     .unwrap();
 
     // Serialize into JSON file
-    fs::write(
-        "proof.json",
-        serde_json::to_string_pretty(&proof).unwrap(),
-    )
-    .unwrap();
+    fs::write("proof.json", serde_json::to_string_pretty(&proof).unwrap()).unwrap();
     fs::write(
         "verifier_index.json",
         serde_json::to_string_pretty(&prover_index.verifier_index()).unwrap(),
+    )
+    .unwrap();
+
+    // Serialize OpeningProof into JSON and MessagePack
+    fs::write(
+        "opening_proof.json",
+        serde_json::to_string_pretty(&proof.proof).unwrap(),
+    )
+    .unwrap();
+    fs::write(
+        "opening_proof.mpk",
+        rmp_serde::to_vec(&proof.proof).unwrap(),
     )
     .unwrap();
 }

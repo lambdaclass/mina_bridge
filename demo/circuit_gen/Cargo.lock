@@ -186,6 +186,7 @@ dependencies = [
  "num-traits",
  "rand",
  "rand_core",
+ "rmp-serde",
  "serde",
  "serde_json",
 ]
