@@ -5,10 +5,11 @@ import "../Verifier.sol";
 import "../BN254.sol";
 
 library MsgPk {
-
-    function deserializeOpeningProof(
-        bytes calldata serialized_proof
-    ) public view returns (Kimchi.ProverProof memory proof) {
+    function deserializeOpeningProof(bytes calldata serialized_proof)
+        public
+        view
+        returns (Kimchi.ProverProof memory proof)
+    {
         uint256 i = 0;
         bytes1 firstbyte = serialized_proof[i];
         // first byte is 0x92, indicating this is a map with 2 elements
@@ -24,11 +25,12 @@ library MsgPk {
 
         // read data
         i += 1;
-        bytes32 data_quotient = abi.decode(serialized_proof[i:i+32], (bytes32));
-
-        proof.opening_proof_quotient = BN254.g1Deserialize(
-            data_quotient
+        bytes32 data_quotient = abi.decode(
+            serialized_proof[i:i + 32],
+            (bytes32)
         );
+
+        proof.opening_proof_quotient = BN254.g1Deserialize(data_quotient);
 
         // read blinding
         i += 32;
@@ -41,10 +43,12 @@ library MsgPk {
 
         // read data
         i += 1;
-        uint256 data_blinding = abi.decode(serialized_proof[i:i+32], (uint256));
+        uint256 data_blinding = abi.decode(
+            serialized_proof[i:i + 32],
+            (uint256)
+        );
 
         proof.opening_proof_blinding = data_blinding;
         return proof;
     }
-
 }
