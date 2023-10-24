@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
-import {Scalar} from "./Fields.sol";
-import {BN254} from "./BN254.sol";
+import "./Fields.sol";
+import "./BN254.sol";
 import {VerifierIndex} from "./VerifierIndex.sol";
 import {PolyComm, polycomm_msm, mask_custom} from "./Commitment.sol";
 
