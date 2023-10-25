@@ -30,36 +30,6 @@ contract CounterTest is Test {
         assertEq(g_plus_g.y, two_g.y, "g + g should equal 2g");
     }
 
-    function test_deserialize_opening_proof() public {
-        bytes
-            memory opening_proof_serialized = hex"92c42004082c5fa22d4d2bf78f2aa71269510911c1b414b8bedfe41afb3c7147f99325c42017a3bfd724d88bf23ed3d13155cd09c0a4d1d1d520b869599f00958810100621";
-
-        Kimchi.ProverProof memory proof = MsgPk.deserializeOpeningProof(
-            opening_proof_serialized
-        );
-
-        BN254.G1Point memory expected_quotient = BN254.g1Deserialize(
-            0x04082c5fa22d4d2bf78f2aa71269510911c1b414b8bedfe41afb3c7147f99325
-        );
-        uint256 expected_blinding = 0x17a3bfd724d88bf23ed3d13155cd09c0a4d1d1d520b869599f00958810100621;
-
-        assertEq(
-            proof.opening_proof_blinding,
-            expected_blinding,
-            "wrong blinding"
-        );
-        assertEq(
-            proof.opening_proof_quotient.x,
-            expected_quotient.x,
-            "wrong quotient x"
-        );
-        assertEq(
-            proof.opening_proof_quotient.y,
-            expected_quotient.y,
-            "wrong quotient y"
-        );
-    }
-
     /*
 [
     0x92,

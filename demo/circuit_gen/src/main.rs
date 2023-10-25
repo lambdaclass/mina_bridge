@@ -4,7 +4,7 @@
 //! This crate is based on `verifier_circuit_tests/` and the Kimchi test
 //! "test_generic_gate_pairing".
 
-use std::{array, fs, sync::Arc};
+use std::{array, fs};
 
 use ark_ec::short_weierstrass_jacobian::GroupAffine;
 use ark_ff::UniformRand;
@@ -23,7 +23,7 @@ use kimchi::{
         pairing_proof::{PairingProof, PairingSRS},
     },
     proof::ProverProof,
-    prover_index::testing::new_index_for_test_with_lookups_and_custom_srs, verifier_index,
+    prover_index::testing::new_index_for_test_with_lookups_and_custom_srs,
 };
 use num_traits::Zero;
 
@@ -93,14 +93,6 @@ fn main() {
     let srs = (**verifier_index.srs()).clone();
 
     // Serialize URS into JSON and MessagePack
-    fs::write(
-        "urs.json",
-        serde_json::to_vec(&srs.verifier_srs).unwrap(),
-    )
-    .unwrap();
-    fs::write(
-        "urs.mpk",
-        rmp_serde::to_vec(&srs.verifier_srs).unwrap(),
-    )
-    .unwrap();
+    fs::write("urs.json", serde_json::to_vec(&srs.full_srs).unwrap()).unwrap();
+    fs::write("urs.mpk", rmp_serde::to_vec(&srs.full_srs).unwrap()).unwrap();
 }
