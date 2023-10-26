@@ -68,4 +68,9 @@ library Utils {
             even[i] = points[2 * i];
         }
     }
+
+    /// @notice returns minimum between a and b.
+    function min(uint a, uint b) public pure returns (uint) {
+       return a < b ? a : b;
+    }
 }

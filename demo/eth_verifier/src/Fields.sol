@@ -76,6 +76,25 @@ library Base {
             }
         }
     }
+
+    /// @notice returns a primitive root of unity of order $2^{order}$.
+    // Reference: Lambdaworks
+    // https://github.com/lambdaclass/lambdaworks/
+    function get_primitive_root_of_unity(
+        uint order
+    ) public pure returns (FE) {
+        FE two_adic_primitive_root_of_unity =
+            FieldElement::new();
+        if (order == 0) {
+            return Ok(FieldElement::one());
+        }
+        if (order > F::TWO_ADICITY) {
+            return Err(FieldError::RootOfUnityError(order));
+        }
+        let log_power = F::TWO_ADICITY - order;
+        let root = (0..log_power).fold(two_adic_primitive_root_of_unity, |acc, _| acc.square());
+        Ok(root)
+    }
 }
 
 /// @notice Implements 256 bit modular arithmetic over the scalar field of bn254.
