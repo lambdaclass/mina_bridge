@@ -9,7 +9,7 @@ using { Base.pow } for Base.FE;
 
 library Utils {
     /// @notice implements FFT via the recursive Cooley-Tukey algorithm for BN254.
-    function fft(BN254.G1Point[] memory points, Base.FE root)
+    function cooley_tukey(BN254.G1Point[] memory points, Base.FE root)
         public
         view
         returns (BN254.G1Point[] memory results)
@@ -26,12 +26,12 @@ library Utils {
             BN254.G1Point[] memory even
         ) = get_odd_even(points);
 
-        BN254.G1Point[] memory transf_odd = fft(odd, root);
-        BN254.G1Point[] memory transf_even = fft(even, root);
+        BN254.G1Point[] memory transf_odd = cooley_tukey(odd, root);
+        BN254.G1Point[] memory transf_even = cooley_tukey(even, root);
 
         for (uint k = 0; k < n / 2; k++) {
-            BN254.G1Point memory a = even[k];
-            BN254.G1Point memory b = odd[k].scalarMul(Base.FE.unwrap(Base.pow(root, k)));
+            BN254.G1Point memory a = transf_even[k];
+            BN254.G1Point memory b = transf_odd[k].scalarMul(Base.FE.unwrap(Base.pow(root, k)));
 
             results[k] = a.add(b);
             results[k + n / 2] = a.add(b.neg());
