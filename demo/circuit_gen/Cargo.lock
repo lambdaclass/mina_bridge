@@ -181,6 +181,7 @@ dependencies = [
  "ark-ec",
  "ark-ff",
  "ark-poly",
+ "ark-serialize",
  "kimchi",
  "num-bigint",
  "num-traits",

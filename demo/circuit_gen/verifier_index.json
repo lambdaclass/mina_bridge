@@ -7,43 +7,43 @@
   "sigma_comm": [
     {
       "unshifted": [
-        "49250bcee5684178d4818e4bd78b67d789631fc6d845b7b3eeb24248333bd727"
+        "c15287bf9a0794c64555226a3862bc1aeb39e8aad844581e723b67a802c2d200"
       ],
       "shifted": null
     },
     {
       "unshifted": [
-        "d9c2fc436f3e4f9b1db8d9dced4a94a0a41f388f2fd2c2f81c5d38e629bd15b0"
+        "2a9a2958a6535e5a26afb56c1b3233d7273b7b0da51fb6153b5afdc927fdd52b"
       ],
       "shifted": null
     },
     {
       "unshifted": [
-        "9a3d4ff28e9960e102efb48c3d840dd8a8e605e3cc5ae52d701ec441e23d8fad"
+        "eb6b17b21ec1995e24c59d1e63b55958c4f46a05e448f7c525bcffd5ebf4489d"
       ],
       "shifted": null
     },
     {
       "unshifted": [
-        "d5cd0aef1b77a44983cbf93bace2553c82fa7967e08d9a3df250983af4bf571c"
+        "3ec9eba0c797728d69b500dca9c1d7cdebc3fa2d2d00838e849a6a5dc958698c"
       ],
       "shifted": null
     },
     {
       "unshifted": [
-        "f132bdbdd7114ad10924d662a1ac3f55ddd3b1a40097b9284ae49a5831352613"
+        "2456c4cf016229e3d0c4b83a4fd5682ea1c4be33b0f9235af360f226be9c6d84"
       ],
       "shifted": null
     },
     {
       "unshifted": [
-        "b738ceae8754fb3e5b3a659f2190b917a78ac540936f8efaa4c59c514aad020c"
+        "f77a54c3d9e2d43916fa678ee1f823d94513670560c4178f984967b3c85e410b"
       ],
       "shifted": null
     },
     {
       "unshifted": [
-        "868fdf22636e42b5f8d700653ceecbb53f1a6f39272349a8e47480fd6af72884"
+        "4bd85131af9afef5d44e86e8ee08cb2e79c43079c83cb87b28a89ceb864db61a"
       ],
       "shifted": null
     }
@@ -51,37 +51,19 @@
   "coefficients_comm": [
     {
       "unshifted": [
-        "0a756e8be3ca9b643837d832356c55e86a8186769954998d4e707efe73850d29"
+        "b0b4e48f2e3a036f0bb04d29069d4740a7010700d3db35be4b08cc0adae1f71b"
       ],
       "shifted": null
     },
     {
       "unshifted": [
-        "9d5312e337901087bcc24068b5a6fc77c9ad6f5b94313e67e47ffc9f743505a3"
+        "9baf244fbaad16ce3a6af71f77dc5a05e3c01fa1b2c609a9736e5e6a8c0e5ca1"
       ],
       "shifted": null
     },
     {
       "unshifted": [
-        "2876386cf84de59d4d099db02b0a87ed9dd1a5dbeaa86fd627895d24ef45e2a6"
-      ],
-      "shifted": null
-    },
-    {
-      "unshifted": [
-        "0000000000000000000000000000000000000000000000000000000000000040"
-      ],
-      "shifted": null
-    },
-    {
-      "unshifted": [
-        "e495e7fa74e9ec7d1204c06e86b2b91c1c99d09c0d9668e627fd98c1b4d41b9c"
-      ],
-      "shifted": null
-    },
-    {
-      "unshifted": [
-        "95252386ac7622eb638f567b6db58fbb11a0ec78172eb5b68c34e58650462a15"
+        "2e150d1fa7abbb6545d34bc31452d83d2197d4a216e5dea6fd38baf4cd1f5d29"
       ],
       "shifted": null
     },
@@ -93,19 +75,37 @@
     },
     {
       "unshifted": [
-        "2876386cf84de59d4d099db02b0a87ed9dd1a5dbeaa86fd627895d24ef45e2a6"
+        "3eb7153e5aad8f8bfda559866c3e269f0841d4ae77c0882e918636118db36c0f"
       ],
       "shifted": null
     },
     {
       "unshifted": [
-        "6a19b4571d9692e62c2fe1f2155b43ffd06a2f007615d5760b1c0397fbeb4326"
+        "9d0e1fc9395922509d0a54fe98982d107ca0f5a0bd4e62137b6970cf43d9698a"
       ],
       "shifted": null
     },
     {
       "unshifted": [
-        "9576ca48e10574f75e04dc831f326d0f039e0e51167fde37e812f1d28bf6f401"
+        "0000000000000000000000000000000000000000000000000000000000000040"
+      ],
+      "shifted": null
+    },
+    {
+      "unshifted": [
+        "2e150d1fa7abbb6545d34bc31452d83d2197d4a216e5dea6fd38baf4cd1f5d29"
+      ],
+      "shifted": null
+    },
+    {
+      "unshifted": [
+        "58a006e0ab70efc385b75133d5511bc9b47c5d1d33883adf130637b7b48bed08"
+      ],
+      "shifted": null
+    },
+    {
+      "unshifted": [
+        "3b98501b54683210b6a846e46ddd89a3c1cbf59f23baa4668b1c391a6b50b906"
       ],
       "shifted": null
     },
@@ -142,7 +142,7 @@
   ],
   "generic_comm": {
     "unshifted": [
-      "6d54bd3b9cd2007336aa1fb8802223c949fd350422486b666aafd638809b6e03"
+      "5a7bc54b696d3531c5f1b81640912cae7da9fb756afefd2dec71afe96184d628"
     ],
     "shifted": null
   },

@@ -4,7 +4,6 @@ pragma solidity >=0.4.16 <0.9.0;
 import "../Verifier.sol";
 import "../Commitment.sol";
 import "../BN254.sol";
-import "forge-std/console.sol";
 
 library MsgPk {
     /// @notice deserializes an array of G1Point and also returns the rest of the
@@ -24,8 +23,8 @@ library MsgPk {
 
         // read data
         i += 1;
-        console.logBytes(data[i:i+32]);
-        p = BN254.g1Deserialize(abi.decode(data[i:i + 32], (bytes32)));
+        bytes32 compressed = abi.decode(data[i:i + 32], (bytes32));
+        p = BN254.g1Deserialize(compressed);
 
         // go to next
         i += 32;
@@ -70,12 +69,9 @@ library MsgPk {
                 data,
                 i
             );
-            g[elem] = BN254.g1Deserialize(
-                abi.decode(data[i:i + 32], (bytes32))
-            );
+            g[elem] = p;
             i = new_index;
         }
-        console.log("after g");
 
         (BN254.G1Point memory h, uint256 final_i) = deserializeG1Point(data, i);
         return (g, h, final_i);
