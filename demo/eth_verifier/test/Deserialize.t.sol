@@ -5,7 +5,6 @@ import {Test, console2} from "forge-std/Test.sol";
 import "../src/BN254.sol";
 import "../src/Verifier.sol";
 import "../src/msgpack/Deserialize.sol";
-import "../src/Utils.sol";
 
 contract DeserializeTest is Test {
     // Test to check that the destructuring of the message pack byte array is correct.
@@ -16,12 +15,6 @@ contract DeserializeTest is Test {
 
         bytes
             memory opening_proof_serialized = hex"92c42004082c5fa22d4d2bf78f2aa71269510911c1b414b8bedfe41afb3c7147f99325c42017a3bfd724d88bf23ed3d13155cd09c0a4d1d1d520b869599f00958810100621";
-
-        console.log(
-            Utils.reverseEndianness(
-                0x259C9A9126385A54663D11F284944E91215DF44F4A502100B46BC91CCF373772
-            )
-        );
 
         Kimchi.ProverProof memory proof = MsgPk.deserializeOpeningProof(
             opening_proof_serialized
