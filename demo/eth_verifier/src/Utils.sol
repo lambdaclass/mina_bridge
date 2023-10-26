@@ -1,59 +1,71 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-//
-// Copyright (c) 2022 Espresso Systems (espressosys.com)
-// This file is part of the Configurable Asset Privacy for Ethereum (CAPE) library.
-//
-// This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-// You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity >=0.4.16 <0.9.0;
 
-pragma solidity ^0.8.0;
+import "./BN254.sol";
+import "./Fields.sol";
+
+using { BN254.add, BN254.neg, BN254.scalarMul } for BN254.G1Point;
+using { Base.pow } for Base.FE;
 
 library Utils {
-    function reverseEndianness(uint256 input)
-        internal
-        pure
-        returns (uint256 v)
+    /// @notice implements FFT via the recursive Cooley-Tukey algorithm for BN254.
+    function fft(BN254.G1Point[] memory points, Base.FE root)
+        public
+        view
+        returns (BN254.G1Point[] memory results)
     {
-        v = input;
+        uint256 n = points.length;
+        require(is_power_of_two(n), "fft with size non power of two");
 
-        // swap bytes
-        v =
-            ((v &
-                0xFF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00) >>
-                8) |
-            ((v &
-                0x00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF) <<
-                8);
+        if (n == 1) {
+            return points;
+        }
 
-        // swap 2-byte long pairs
-        v =
-            ((v &
-                0xFFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000) >>
-                16) |
-            ((v &
-                0x0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF) <<
-                16);
+        (
+            BN254.G1Point[] memory odd,
+            BN254.G1Point[] memory even
+        ) = get_odd_even(points);
 
-        // swap 4-byte long pairs
-        v =
-            ((v &
-                0xFFFFFFFF00000000FFFFFFFF00000000FFFFFFFF00000000FFFFFFFF00000000) >>
-                32) |
-            ((v &
-                0x00000000FFFFFFFF00000000FFFFFFFF00000000FFFFFFFF00000000FFFFFFFF) <<
-                32);
+        BN254.G1Point[] memory transf_odd = fft(odd, root);
+        BN254.G1Point[] memory transf_even = fft(even, root);
 
-        // swap 8-byte long pairs
-        v =
-            ((v &
-                0xFFFFFFFFFFFFFFFF0000000000000000FFFFFFFFFFFFFFFF0000000000000000) >>
-                64) |
-            ((v &
-                0x0000000000000000FFFFFFFFFFFFFFFF0000000000000000FFFFFFFFFFFFFFFF) <<
-                64);
+        for (uint k = 0; k < n / 2; k++) {
+            BN254.G1Point memory a = even[k];
+            BN254.G1Point memory b = odd[k].scalarMul(Base.FE.unwrap(Base.pow(root, k)));
 
-        // swap 16-byte long pairs
-        v = (v >> 128) | (v << 128);
+            results[k] = a.add(b);
+            results[k + n / 2] = a.add(b.neg());
+        }
+    }
+
+    /// @notice returns true if n is a power of two.
+    function is_power_of_two(uint256 n) public pure returns (bool) {
+        do {
+            if (n == 1) return true;
+            n /= 2;
+        } while (n % 2 == 0);
+
+        return false;
+    }
+
+    /// @notice returns the odd and even terms of the `points` array.
+    function get_odd_even(BN254.G1Point[] memory points)
+        public
+        pure
+        returns (BN254.G1Point[] memory odd, BN254.G1Point[] memory even)
+    {
+        uint256 n = points.length;
+        require(
+            n % 2 == 0,
+            "can't get odd and even from a non even sized array"
+        );
+
+        odd = new BN254.G1Point[](n / 2);
+        even = new BN254.G1Point[](n / 2);
+
+        for (uint256 i = 0; i < n / 2; i++) {
+            odd[i] = points[2 * i - 1];
+            even[i] = points[2 * i];
+        }
     }
 }

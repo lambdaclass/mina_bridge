@@ -14,7 +14,7 @@
 
 pragma solidity ^0.8.0;
 
-import "./Utils.sol";
+import "./UtilsExternal.sol";
 import "./Fields.sol";
 
 /// @notice Barreto-Naehrig curve over a 254 bit prime field
@@ -306,12 +306,12 @@ library BN254 {
             mask = 0x8000000000000000000000000000000000000000000000000000000000000000;
         }
 
-        return abi.encodePacked(Utils.reverseEndianness(point.x | mask));
+        return abi.encodePacked(UtilsExternal.reverseEndianness(point.x | mask));
     }
 
     function g1Deserialize(bytes32 input) internal view returns (G1Point memory point) {
         uint256 mask = 0x4000000000000000000000000000000000000000000000000000000000000000;
-        uint256 x = Utils.reverseEndianness(uint256(input));
+        uint256 x = UtilsExternal.reverseEndianness(uint256(input));
         uint256 y;
         bool isQuadraticResidue;
         bool isYPositive;
