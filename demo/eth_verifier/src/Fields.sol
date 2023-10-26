@@ -26,6 +26,10 @@ library Base {
         }
     }
 
+    function square(FE self) public pure returns (FE res) {
+        res = mul(self, self);
+    }
+
     function inv(FE self) public view returns (FE) {
         // TODO:
         return FE.wrap(0);
@@ -38,6 +42,38 @@ library Base {
     function sub(FE self, FE other) public pure returns (FE res) {
         assembly {
             res := addmod(self, sub(MODULUS, other), MODULUS)
+        }
+    }
+
+    // Reference: Lambdaworks
+    // https://github.com/lambdaclass/lambdaworks/
+    function pow(FE self, uint exponent) public pure returns (FE result) {
+        if (exponent == 0) {
+            return FE.wrap(1);
+        } else if (exponent == 1) {
+            return self;
+        } else {
+            result = self;
+
+            while (exponent & 1 == 0) {
+                result = square(result);
+                exponent = exponent >> 1;
+            }
+
+            if (exponent == 0) {
+                return result;
+            } else {
+                FE base = result;
+                exponent = exponent >> 1;
+
+                while (exponent != 0) {
+                    base = square(base);
+                    if (exponent & 1 == 1) {
+                        result = mul(result, base);
+                    }
+                    exponent = exponent >> 1;
+                }
+            }
         }
     }
 }
