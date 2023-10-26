@@ -8,7 +8,12 @@ import "../src/msgpack/Deserialize.sol";
 import "../src/Utils.sol";
 
 contract DeserializeTest is Test {
+    // Test to check that the destructuring of the message pack byte array is correct.
+    // If we know that g1Deserialize() is correct, then this asserts that the whole
+    // deserialization is working.
     function test_deserialize_opening_proof() public {
+        // Data was taken from running the circuit_gen crate.
+
         bytes
             memory opening_proof_serialized = hex"92c42004082c5fa22d4d2bf78f2aa71269510911c1b414b8bedfe41afb3c7147f99325c42017a3bfd724d88bf23ed3d13155cd09c0a4d1d1d520b869599f00958810100621";
 
@@ -44,6 +49,9 @@ contract DeserializeTest is Test {
         );
     }
 
+    // Test to check that the destructuring of the message pack byte array is correct.
+    // If we know that g1Deserialize() is correct, then this asserts that the whole
+    // deserialization is working.
     function test_deserialize_urs() public {
         // Data was taken from running the circuit_gen crate.
 
@@ -165,6 +173,8 @@ contract DeserializeTest is Test {
         assertEq(expected_blinding.y, h.y, "blinding y not equal");
     }
 
+    // Reference test to check that g1Deserialize is correct, taking a point from
+    // the circuit_gen crate as reference.
     function test_deserialize_g1point() public {
         BN254.G1Point memory p = BN254.G1Point(
             0x00D2C202A8673B721E5844D8AAE839EB1ABC62386A225545C694079ABF8752C1,
