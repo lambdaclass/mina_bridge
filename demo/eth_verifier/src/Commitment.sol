@@ -122,8 +122,9 @@ function mask_custom(
     return BlindedCommitment(PolyComm(unshifted), blinders);
 }
 
-function calculate_lagrange_basis(URS memory urs, uint domain_size) {
-
+// Reference: Kimchi
+// https://github.com/o1-labs/proof-systems/
+function calculate_lagrange_bases(URS memory urs, uint domain_size) {
         uint urs_size = urs.g.length;
         uint num_unshifteds = (domain_size + urs_size - 1) / urs_size;
         BN254.G1Point[] memory unshifted = new BN254.G1Point[](num_unshifteds);
@@ -143,7 +144,7 @@ function calculate_lagrange_basis(URS memory urs, uint domain_size) {
                 lg[start_offset + j] = urs.g[j];
             }
             // Apply the IFFT
-            domain.ifft_in_place(&mut lg);
+            Utils.ifft(lg);
             <G as AffineCurve>::Projective::batch_normalization(lg.as_mut_slice());
             // Append the 'partial Langrange polynomials' to the vector of unshifted chunks
             unshifted.push(lg)

@@ -76,25 +76,6 @@ library Base {
             }
         }
     }
-
-    /// @notice returns a primitive root of unity of order $2^{order}$.
-    // Reference: Lambdaworks
-    // https://github.com/lambdaclass/lambdaworks/
-    function get_primitive_root_of_unity(
-        uint order
-    ) public pure returns (FE) {
-        FE two_adic_primitive_root_of_unity =
-            FieldElement::new();
-        if (order == 0) {
-            return Ok(FieldElement::one());
-        }
-        if (order > F::TWO_ADICITY) {
-            return Err(FieldError::RootOfUnityError(order));
-        }
-        let log_power = F::TWO_ADICITY - order;
-        let root = (0..log_power).fold(two_adic_primitive_root_of_unity, |acc, _| acc.square());
-        Ok(root)
-    }
 }
 
 /// @notice Implements 256 bit modular arithmetic over the scalar field of bn254.
@@ -105,6 +86,14 @@ library Scalar {
 
     uint256 public constant MODULUS =
         21888242871839275222246405745257275088548364400416034343698204186575808495617;
+
+    uint256 public constant TWO_ADIC_PRIMITIVE_ROOT_OF_UNITY = 
+        11026779196025039675543067535165575398706865421176733435921293210460577938844;
+    uint256 public constant TWO_ADICITY = 28;
+
+    function from(uint n) public pure returns (FE) {
+        return FE.wrap(n % MODULUS);
+    }
 
     function add(
         FE self,
@@ -124,6 +113,10 @@ library Scalar {
         }
     }
 
+    function square(FE self) public pure returns (FE res) {
+        res = mul(self, self);
+    }
+
     function inv(FE self) public view returns (FE) {
         // TODO:
         return FE.wrap(0);
@@ -137,5 +130,61 @@ library Scalar {
         assembly {
             res := addmod(self, sub(MODULUS, other), MODULUS)
         }
+    }
+
+    // Reference: Lambdaworks
+    // https://github.com/lambdaclass/lambdaworks/
+    function pow(FE self, uint exponent) public pure returns (FE result) {
+        if (exponent == 0) {
+            return FE.wrap(1);
+        } else if (exponent == 1) {
+            return self;
+        } else {
+            result = self;
+
+            while (exponent & 1 == 0) {
+                result = square(result);
+                exponent = exponent >> 1;
+            }
+
+            if (exponent == 0) {
+                return result;
+            } else {
+                FE base = result;
+                exponent = exponent >> 1;
+
+                while (exponent != 0) {
+                    base = square(base);
+                    if (exponent & 1 == 1) {
+                        result = mul(result, base);
+                    }
+                    exponent = exponent >> 1;
+                }
+            }
+        }
+    }
+
+    error RootOfUnityError();
+    /// @notice returns a primitive root of unity of order $2^{order}$.
+    // Reference: Lambdaworks
+    // https://github.com/lambdaclass/lambdaworks/
+    function get_primitive_root_of_unity(
+        uint order
+    ) public pure returns (FE) {
+        if (order == 0) {
+            return FE.wrap(1);
+        }
+        if (order > TWO_ADICITY) {
+            revert RootOfUnityError();
+        }
+
+        uint log_power = TWO_ADICITY - order;
+        FE root = from(TWO_ADIC_PRIMITIVE_ROOT_OF_UNITY);
+        for (uint i = 0; i < log_power; i++) {
+            root = square(root);
+        }
+
+        require(FE.unwrap(pow(root, order)) == 1, "not a root of unity");
+        return root;
     }
 }
