@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from "fs";
-import { Field, Group, Scalar } from "o1js";
+import { Group, Scalar } from "o1js";
 import { Verifier } from "./verifier/verifier.js";
 import { exit } from "process";
 
@@ -39,7 +39,6 @@ let keypair = await Verifier.generateKeypair();
 
 console.log("Proving with Ethereum backend...");
 let proofKZG = await Verifier.proveKZG([], public_input, keypair);
-console.dir(proofKZG, { depth: null });
 
 console.log("Proving with Mina backend...");
 let proof = await Verifier.prove([], public_input, keypair);
@@ -51,13 +50,8 @@ if (!isValid) {
     exit();
 }
 
-console.log("Writing proof into file...");
-
-// See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt#use_within_json
-const replacer = (_key: string, value: any) =>
-    typeof value === "bigint" ? value.toString() : value;
-
-writeFileSync("../proof.json", JSON.stringify(proof, replacer));
+console.log("Writing KZG proof into file...");
+writeFileSync("../proof.mpk", proofKZG);
 
 // ----------------------------------------------------
 console.log('Shutting down O1JS...');
