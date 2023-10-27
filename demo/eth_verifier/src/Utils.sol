@@ -111,4 +111,48 @@ library Utils {
     function min(uint a, uint b) public pure returns (uint) {
        return a < b ? a : b;
     }
+
+    /**
+    * Extended euclidean algorithm. Returns [gcd, Bezout_a]
+    * so gcd = a*Bezout_a + b*Bezout_b.
+    * source: https://www.extendedeuclideanalgorithm.com/code
+    */
+    function xgcd(
+        uint a,
+        uint b
+    ) public pure returns (uint s1, uint t1) {
+        uint r1 = a;
+        uint r2 = b;
+        s1 = 1;
+        t1 = 0;
+        uint s2 = 0;
+        uint t2 = 1;
+
+        uint n = 0;
+        while (r2 > 0) {
+            uint q = r1 / r2;
+            r1 = r1 > q*r2 ? r1 - q*r2 : q*r2 - r1; // abs
+            s1 = s1 + q*s2;
+
+            // swap s1, s2
+            uint temp = s1;
+            s1 = s2;
+            s2 = temp;
+
+            t1 = t1 + q*t2;
+
+            // swap t1, t2
+            temp = t1;
+            t1 = t2;
+            t2 = temp;
+
+            n += 1;
+        }
+
+        if (n % 2 > 0) {
+            s1 = b - s1;
+        } else {
+            t1 = a - t1;
+        }
+    }
 }
