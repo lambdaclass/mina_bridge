@@ -3,13 +3,17 @@ pragma solidity >=0.4.16 <0.9.0;
 
 import "./BN254.sol";
 import "./Fields.sol";
+import "forge-std/console.sol";
 
 using { BN254.add, BN254.neg, BN254.scalarMul } for BN254.G1Point;
-using { Base.pow } for Base.FE;
+using { Scalar.pow, Scalar.inv } for Scalar.FE;
 
 library Utils {
-    /// @notice implements FFT via the recursive Cooley-Tukey algorithm for BN254.
-    function cooley_tukey(BN254.G1Point[] memory points, Scalar.FE root)
+    /// @notice implements iterative FFT via the Cooley-Tukey algorithm for BN254.
+    /// @notice needs a final bit reversing permutation of the output.
+    // Reference: Lambdaworks
+    // https://github.com/lambdaclass/lambdaworks/
+    function nr_2radix_fft(BN254.G1Point[] memory points, Scalar.FE[] memory twiddles)
         public
         view
         returns (BN254.G1Point[] memory results)
@@ -21,27 +25,63 @@ library Utils {
             return points;
         }
 
-        (
-            BN254.G1Point[] memory odd,
-            BN254.G1Point[] memory even
-        ) = get_odd_even(points);
+        // divide input in groups, starting with 1, duplicating the number of groups in each stage.
+        uint group_count = 1;
+        uint group_size = points.length;
 
-        BN254.G1Point[] memory transf_odd = cooley_tukey(odd, root);
-        BN254.G1Point[] memory transf_even = cooley_tukey(even, root);
+        // for each group, there'll be group_size / 2 butterflies.
+        // a butterfly is the atomic operation of a FFT, e.g: (a, b) = (a + wb, a - wb).
+        // The 0.5 factor is what gives FFT its performance, it recursively halves the problem size
+        // (group size).
 
-        for (uint k = 0; k < n / 2; k++) {
-            BN254.G1Point memory a = transf_even[k];
-            BN254.G1Point memory b = transf_odd[k].scalarMul(Scalar.FE.unwrap(Scalar.pow(root, k)));
+        results = points;
 
-            results[k] = a.add(b);
-            results[k + n / 2] = a.add(b.neg());
+        while (group_count < input.len()) {
+            for (uint group = 0; group < group_count; group++) {
+                uint first_in_group = group * group_size;
+                uint first_in_next_group = first_in_group + group_size / 2;
+
+                uint w = twiddles[group]; // a twiddle factor is used per group
+
+                for (uint i = first_in_group; i < first_in_next_group; i++) {
+                    BN254.G1Point wi = results[i + group_size / 2].scalarMul(w);
+
+                    BN254.G1Point y0 = results[i].add(wi);
+                    BN254.G1Point y1 = results[i].add(wi.neg());
+
+                    results[i] = y0;
+                    results[i + group_size / 2] = y1;
+                }
+            }
+            group_count *= 2;
+            group_size /= 2;
+        }
+    }
+
+    function get_twiddles(uint order) public view returns (Scalar.FE[] memory twiddles) {
+        Scalar.FE root_inv = Scalar.get_primitive_root_of_unity(order).inv();
+
+        for (uint i = 0; i < 1 << (order - 1); i++) {
+            twiddles[i] = root_inv.pow(i);
+        }
+    }
+
+    /// @notice permutes the elements in bit-reverse order.
+    function bit_reverse(BN254.G1Point[] memory points) public pure returns (BN254.G1Point[] memory twiddles){
+        twiddles = points;
+        for (uint i = 0; i < points.length; i++) {
+            uint bit_revese_index = ;
+            if (bit_reverse_index > i) {
+                BN254.G1Point temp = twiddles[i];
+                twiddles[i] = twiddles(bit_revese_index);
+                twiddles[bit_revese_index] = temp;
+            }
         }
     }
 
     /// @notice runs inverse FFT for BN254.
     function ifft(BN254.G1Point[] memory points) public view returns (BN254.G1Point[] memory results) {
         (uint size, uint order) = next_power_of_two(points.length);
-        Scalar.FE root = Scalar.get_primitive_root_of_unity(order);
 
         if (size > points.length) {
             // zero padding
@@ -52,7 +92,7 @@ library Utils {
             points = new_points;
         }
 
-        return cooley_tukey(points, Scalar.inv(root));
+        return nr_2radix_fft(points, get_twiddles(order));
     }
 
     /// @notice returns true if n is a power of two.
