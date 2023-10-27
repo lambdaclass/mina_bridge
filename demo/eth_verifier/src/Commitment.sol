@@ -124,10 +124,10 @@ function mask_custom(
 
 // Reference: Kimchi
 // https://github.com/o1-labs/proof-systems/
-function calculate_lagrange_bases(URS memory urs, uint domain_size) {
+function calculate_lagrange_bases(URS storage urs, uint domain_size) view {
         uint urs_size = urs.g.length;
         uint num_unshifteds = (domain_size + urs_size - 1) / urs_size;
-        BN254.G1Point[] memory unshifted = new BN254.G1Point[](num_unshifteds);
+        BN254.G1Point[][] memory unshifted = new BN254.G1Point[][](num_unshifteds);
 
         // For each chunk
         for (uint i = 0; i < num_unshifteds; i++) {
@@ -139,14 +139,13 @@ function calculate_lagrange_bases(URS memory urs, uint domain_size) {
 
             // Overwrite the terms corresponding to that chunk with the SRS curve points
             uint start_offset = i * urs_size;
-            uint num_terms = Utils.min((i + 1) * srs_size, domain_size) - start_offset;
+            uint num_terms = Utils.min((i + 1) * urs_size, domain_size) - start_offset;
             for (uint j = 0; j < num_terms; j++) {
                 lg[start_offset + j] = urs.g[j];
             }
             // Apply the IFFT
-            Utils.ifft(lg);
-            <G as AffineCurve>::Projective::batch_normalization(lg.as_mut_slice());
+            BN254.G1Point[] memory lg_fft = Utils.ifft(lg);
             // Append the 'partial Langrange polynomials' to the vector of unshifted chunks
-            unshifted.push(lg)
+            unshifted[i] = lg_fft;
         }
 }
