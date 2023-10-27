@@ -112,11 +112,9 @@ library Utils {
        return a < b ? a : b;
     }
 
-    /**
-    * Extended euclidean algorithm. Returns [gcd, Bezout_a]
-    * so gcd = a*Bezout_a + b*Bezout_b.
-    * source: https://www.extendedeuclideanalgorithm.com/code
-    */
+    /// @notice Extended euclidean algorithm. Returns [gcd, Bezout_a]
+    /// @notice so gcd = a*Bezout_a + b*Bezout_b.
+    /// @notice source: https://www.extendedeuclideanalgorithm.com/code
     function xgcd(
         uint a,
         uint b

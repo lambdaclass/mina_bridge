@@ -4,7 +4,7 @@ pragma solidity >=0.4.16 <0.9.0;
 import "./Fields.sol";
 import "./BN254.sol";
 import {VerifierIndex} from "./VerifierIndex.sol";
-import {PolyComm, polycomm_msm, mask_custom} from "./Commitment.sol";
+import "./Commitment.sol";
 
 // import "forge-std/console.sol";
 import {console} from "forge-std/Test.sol";
@@ -43,6 +43,23 @@ library Kimchi {
 
 contract KimchiVerifier {
     VerifierIndex verifier_index;
+
+    constructor(
+        BN254.G1Point[] memory g,
+        BN254.G1Point memory h,
+        uint256 public_len,
+        uint256 domain_size,
+        uint256 max_poly_size
+    ) {
+        for (uint i = 0; i < g.length; i++) {
+            verifier_index.urs.g[i] = g[i];
+        }
+        verifier_index.urs.h = h;
+        calculate_lagrange_bases(g, h, domain_size, verifier_index.urs.lagrange_bases);
+        verifier_index.public_len = public_len;
+        verifier_index.domain_size = domain_size;
+        verifier_index.max_poly_size = max_poly_size;
+    }
 
     // 1) deserialize
     // 2) staticcall to precompile of pairing check
@@ -124,7 +141,7 @@ contract KimchiVerifier {
         if (public_inputs.length == 0) {
             BN254.G1Point[] memory blindings = new BN254.G1Point[](chunk_size);
             for (uint256 i = 0; i < chunk_size; i++) {
-                blindings[i] = verifier_index.blinding_commitment;
+                blindings[i] = verifier_index.urs.h;
             }
             public_comm = PolyComm(blindings);
         } else {

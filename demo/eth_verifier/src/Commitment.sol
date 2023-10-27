@@ -124,8 +124,13 @@ function mask_custom(
 
 // Reference: Kimchi
 // https://github.com/o1-labs/proof-systems/
-function calculate_lagrange_bases(URS storage urs, uint domain_size) view {
-        uint urs_size = urs.g.length;
+function calculate_lagrange_bases(
+    BN254.G1Point[] memory g,
+    BN254.G1Point memory h,
+    uint domain_size,
+    mapping(uint256 => PolyComm[]) storage lagrange_bases
+) {
+        uint urs_size = g.length;
         uint num_unshifteds = (domain_size + urs_size - 1) / urs_size;
         BN254.G1Point[][] memory unshifted = new BN254.G1Point[][](num_unshifteds);
 
@@ -141,11 +146,19 @@ function calculate_lagrange_bases(URS storage urs, uint domain_size) view {
             uint start_offset = i * urs_size;
             uint num_terms = Utils.min((i + 1) * urs_size, domain_size) - start_offset;
             for (uint j = 0; j < num_terms; j++) {
-                lg[start_offset + j] = urs.g[j];
+                lg[start_offset + j] = g[j];
             }
             // Apply the IFFT
             BN254.G1Point[] memory lg_fft = Utils.ifft(lg);
             // Append the 'partial Langrange polynomials' to the vector of unshifted chunks
             unshifted[i] = lg_fft;
+        }
+
+        PolyComm[] storage bases = lagrange_bases[domain_size];
+
+        for (uint i = 0; i < domain_size; i++) {
+            for (uint j = 0; j < unshifted.length; j++) {
+                bases[i].unshifted.push(unshifted[j][i]);
+            }
         }
 }

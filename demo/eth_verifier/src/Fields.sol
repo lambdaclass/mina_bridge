@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
+import "./Utils.sol";
+
 /// @notice Implements 256 bit modular arithmetic over the base field of bn254.
 library Base {
     type FE is uint256;
