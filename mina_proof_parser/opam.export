@@ -1,0 +1,4646 @@
+extra-files: [
+  [
+    "md5=026b31e1df290373198373d5aaa26e42"
+    "bGliOlsKICAiTUVUQS5zZXEiIHsiTUVUQSJ9Cl0K"
+  ]
+  [
+    "md5=3cddbf72164c29d4e50e077a92a37c6c"
+    "ZGlmZiBhL2NvbmZpZ3VyZSBiL2NvbmZpZ3VyZQotLS0gYS9jb25maWd1cmUKKysrIGIvY29uZmlndXJlCkBAIC0yOTQsNyArMjk0LDcgQEAKICAgICAjIElmIGZpbmRsaWIgaGFzIGJlZW4gY29uZmlndXJlZCAtc2l0ZWxpYiAkKG9jYW1sYyAtd2hlcmUpIHRoZW4gdGhlcmUncwogICAgICMgbm90aGluZyB0byBkbywgYnV0IG90aGVyd2lzZSB3ZSBuZWVkIHRvIHB1dCBPQ2FtbCdzIFN0YW5kYXJkIExpYnJhcnkKICAgICAjIGludG8gdGhlIHBhdGggc2V0dGluZy4KLSAgICBpZiBbICEgLWUgIiR7b2NhbWxfc2l0ZWxpYn0vc3RkbGliL01FVEEiIF07IHRoZW4KKyAgICBpZiBbICEgLWUgIiR7b2NhbWxfc2l0ZWxpYn0vc3RkbGliLmNtaSIgXTsgdGhlbgogICAgICAgICBvY2FtbHBhdGg9IiR7b2NhbWxfY29yZV9zdGRsaWJ9JHtwYXRoX3NlcH0ke29jYW1scGF0aH0iCiAgICAgZmkKIGZpCg=="
+  ]
+  [
+    "md5=3e969b841df1f51ca448e6e6295cb451"
+    "c2hhcmVfcm9vdDogWyJjb25maWcuY2FjaGUiIHsib2NhbWwvY29uZmlnLmNhY2hlIn1dCg=="
+  ]
+  [
+    "md5=8e50c5e2517d3463b3aad649748cafd7"
+    "c2hhcmU6IFsiZ2VuX29jYW1sX2NvbmZpZy5tbCJdCg=="
+  ]
+  [
+    "md5=a4b41e3236593d8271295b84b0969172"
+    "bGV0ICgpID0KICBsZXQgb2NhbWxfdmVyc2lvbiA9CiAgICBsZXQgdiA9IFN5cy5vY2FtbF92ZXJzaW9uIGluCiAgICBsZXQgbCA9IFN0cmluZy5sZW5ndGggdiBpbgogICAgbGV0IHBsdXMgPSB0cnkgU3RyaW5nLmluZGV4IHYgJysnIHdpdGggTm90X2ZvdW5kIC0+IGwgaW4KICAgICgqIEludHJvZHVjZWQgaW4gNC4xMS4wOyB1c2VkIGZyb20gNC4xMi4wICopCiAgICBsZXQgdGlsZGUgPSB0cnkgU3RyaW5nLmluZGV4IHYgJ34nIHdpdGggTm90X2ZvdW5kIC0+IGwgaW4KICAgIFN0cmluZy5zdWIgdiAwIChtaW4gKG1pbiBwbHVzIHRpbGRlKSBsKQogIGluCiAgaWYgb2NhbWxfdmVyc2lvbiA8PiBTeXMuYXJndi4oMSkgdGhlbgogICAgKFByaW50Zi5lcHJpbnRmCiAgICAgICAiT0NhbWwgdmVyc2lvbiBtaXNtYXRjaDogJSVzLCBleHBlY3RlZCAlcyIKICAgICAgIG9jYW1sX3ZlcnNpb24gU3lzLmFyZ3YuKDEpOwogICAgIGV4aXQgMSkKICBlbHNlCiAgbGV0IG9jID0gb3Blbl9vdXQgKFN5cy5hcmd2LigyKSBeICIuY29uZmlnIikgaW4KICBsZXQgZXhlID0gIi5leGUiIGluCiAgbGV0IChvY2FtbCwgc3VmZml4KSA9CiAgICBsZXQgcyA9IFN5cy5leGVjdXRhYmxlX25hbWUgaW4KICAgIGlmIEZpbGVuYW1lLmNoZWNrX3N1ZmZpeCBzIGV4ZSB0aGVuCiAgICAgIChGaWxlbmFtZS5jaG9wX3N1ZmZpeCBzIGV4ZSwgZXhlKQogICAgZWxzZQogICAgICAocywgIiIpCiAgaW4KICBsZXQgb2NhbWxjID0gb2NhbWxeImMiXnN1ZmZpeCBpbgogIGxldCBsaWJkaXIgPQogICAgaWYgU3lzLmNvbW1hbmQgKG9jYW1sY14iIC13aGVyZSA+IHdoZXJlIikgPSAwIHRoZW4KICAgICAgKCogTXVzdCBiZSBvcGVuZWQgaW4gdGV4dCBtb2RlIGZvciBXaW5kb3dzICopCiAgICAgIGxldCBpYyA9IG9wZW5faW4gIndoZXJlIiBpbgogICAgICBsZXQgciA9IGlucHV0X2xpbmUgaWMgaW4KICAgICAgY2xvc2VfaW4gaWM7IHIKICAgIGVsc2UKICAgICAgZmFpbHdpdGggIkJhZCByZXR1cm4gZnJvbSAnb2NhbWxjIC13aGVyZSciCiAgaW4KICBsZXQgc3R1YnNkaXIgPQogICAgbGV0IGljID0gb3Blbl9pbiAoRmlsZW5hbWUuY29uY2F0IGxpYmRpciAibGQuY29uZiIpIGluCiAgICBsZXQgcmVjIHIgYWNjID0gdHJ5IHIgKGlucHV0X2xpbmUgaWM6OmFjYykgd2l0aCBFbmRfb2ZfZmlsZSAtPiBhY2MgaW4KICAgIGxldCBsaW5lcyA9IExpc3QucmV2IChyIFtdKSBpbgogICAgY2xvc2VfaW4gaWM7CiAgICBTdHJpbmcuY29uY2F0ICI6IiBsaW5lcwogIGluCiAgbGV0IHAgZm10ID0gUHJpbnRmLmZwcmludGYgb2MgKGZtdCBeXiAiXG4iKSBpbgogIHAgIm9wYW0tdmVyc2lvbjogXCIyLjBcIiI7CiAgcCAidmFyaWFibGVzIHsiOwogIHAgIiAgbmF0aXZlOiAlJWIiCiAgICAoU3lzLmZpbGVfZXhpc3RzIChvY2FtbF4ib3B0Il5zdWZmaXgpKTsKICBwICIgIG5hdGl2ZS10b29sczogJSViIgogICAgKFN5cy5maWxlX2V4aXN0cyAob2NhbWxjXiIub3B0Il5zdWZmaXgpKTsKICBwICIgIG5hdGl2ZS1keW5saW5rOiAlJWIiCiAgICAoU3lzLmZpbGVfZXhpc3RzIChGaWxlbmFtZS5jb25jYXQgbGliZGlyICJkeW5saW5rLmNteGEiKSk7CiAgcCAiICBzdHVic2RpcjogJSVTIgogICAgc3R1YnNkaXI7CiAgcCAiICBwcmVpbnN0YWxsZWQ6ICV7b2NhbWwtc3lzdGVtOmluc3RhbGxlZH0lIjsKICBwICIgIGNvbXBpbGVyOiBcIiV7b2NhbWwtc3lzdGVtOmluc3RhbGxlZD9zeXN0ZW06fSUle29jYW1sLWJhc2UtY29tcGlsZXI6dmVyc2lvbn0lJXtvY2FtbC12YXJpYW50czp2ZXJzaW9ufSUle29jYW1sLW9wdGlvbi0zMmJpdDppbnN0YWxsZWQ/KzMyYml0On0lJXtvY2FtbC1vcHRpb24tYWZsOmluc3RhbGxlZD8rYWZsOn0lJXtvY2FtbC1vcHRpb24tYnl0ZWNvZGUtb25seTppbnN0YWxsZWQ/K2J5dGVjb2RlLW9ubHk6fSUle29jYW1sLW9wdGlvbi1kZWZhdWx0LXVuc2FmZS1zdHJpbmc6aW5zdGFsbGVkPytkZWZhdWx0LXVuc2FmZS1zdHJpbmc6fSUle29jYW1sLW9wdGlvbi1mcDppbnN0YWxsZWQ/K2ZwOn0lJXtvY2FtbC1vcHRpb24tZmxhbWJkYTppbnN0YWxsZWQ/K2ZsYW1iZGE6fSUle29jYW1sLW9wdGlvbi1tdXNsOmluc3RhbGxlZD8rbXVzbDp9JSV7b2NhbWwtb3B0aW9uLW5ucDppbnN0YWxsZWQ/K25ucDp9JSV7b2NhbWwtb3B0aW9uLW5vLWZsYXQtZmxvYXQtYXJyYXk6aW5zdGFsbGVkPytuby1mbGF0LWZsb2F0LWFycmF5On0lJXtvY2FtbC1vcHRpb24tc3BhY2V0aW1lOmluc3RhbGxlZD8rc3BhY2V0aW1lOn0lJXtvY2FtbC1vcHRpb24tc3RhdGljOmluc3RhbGxlZD8rc3RhdGljOn0lXCIiOwogIHAgIn0iOwogIGNsb3NlX291dCBvYwo="
+  ]
+  [
+    "md5=a734be402679b0ccf7c8aa60fc18bf9a"
+    "KCogTGlnaHR3ZWlnaHQgdGhyZWFkIGxpYnJhcnkgZm9yIE9iamVjdGl2ZSBDYW1sCiAqIGh0dHA6Ly93d3cub2NzaWdlbi5vcmcvbHd0CiAqIFByb2dyYW0gZGlzY292ZXIKICogQ29weXJpZ2h0IChDKSAyMDEwIErDqXLDqW1pZSBEaW1pbm8KICoKICogVGhpcyBwcm9ncmFtIGlzIGZyZWUgc29mdHdhcmU7IHlvdSBjYW4gcmVkaXN0cmlidXRlIGl0IGFuZC9vciBtb2RpZnkKICogaXQgdW5kZXIgdGhlIHRlcm1zIG9mIHRoZSBHTlUgTGVzc2VyIEdlbmVyYWwgUHVibGljIExpY2Vuc2UgYXMKICogcHVibGlzaGVkIGJ5IHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24sIHdpdGggbGlua2luZyBleGNlcHRpb25zOwogKiBlaXRoZXIgdmVyc2lvbiAyLjEgb2YgdGhlIExpY2Vuc2UsIG9yIChhdCB5b3VyIG9wdGlvbikgYW55IGxhdGVyCiAqIHZlcnNpb24uIFNlZSBDT1BZSU5HIGZpbGUgZm9yIGRldGFpbHMuCiAqCiAqIFRoaXMgcHJvZ3JhbSBpcyBkaXN0cmlidXRlZCBpbiB0aGUgaG9wZSB0aGF0IGl0IHdpbGwgYmUgdXNlZnVsLCBidXQKICogV0lUSE9VVCBBTlkgV0FSUkFOVFk7IHdpdGhvdXQgZXZlbiB0aGUgaW1wbGllZCB3YXJyYW50eSBvZgogKiBNRVJDSEFOVEFCSUxJVFkgb3IgRklUTkVTUyBGT1IgQSBQQVJUSUNVTEFSIFBVUlBPU0UuICBTZWUgdGhlIEdOVQogKiBMZXNzZXIgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSBmb3IgbW9yZSBkZXRhaWxzLgogKgogKiBZb3Ugc2hvdWxkIGhhdmUgcmVjZWl2ZWQgYSBjb3B5IG9mIHRoZSBHTlUgTGVzc2VyIEdlbmVyYWwgUHVibGljCiAqIExpY2Vuc2UgYWxvbmcgd2l0aCB0aGlzIHByb2dyYW07IGlmIG5vdCwgd3JpdGUgdG8gdGhlIEZyZWUgU29mdHdhcmUKICogRm91bmRhdGlvbiwgSW5jLiwgNTkgVGVtcGxlIFBsYWNlIC0gU3VpdGUgMzMwLCBCb3N0b24sIE1BCiAqIDAyMTExLTEzMDcsIFVTQS4KICopCgooKiBEaXNjb3ZlciBhdmFpbGFibGUgZmVhdHVyZXMgKikKCmxldCBjdXRfdGFpbCBsID0gTGlzdC5yZXYgKExpc3QudGwgKExpc3QucmV2IGwpKQoKbGV0IHN0cmluZ19zcGxpdCBzZXAgc291cmNlID0KICBsZXQgY29weV9wYXJ0IGluZGV4IG9mZnNldCA9CiAgICBTdHJpbmcuc3ViIHNvdXJjZSBpbmRleCAob2Zmc2V0IC0gaW5kZXgpCiAgaW4KICBsZXQgbCA9IFN0cmluZy5sZW5ndGggc291cmNlIGluCiAgbGV0IHJlYyBsb29wIHByZXYgY3VycmVudCBhY2MgPQogICAgaWYgY3VycmVudCA+PSBsIHRoZW4KICAgICAgTGlzdC5yZXYgYWNjCiAgICBlbHNlCiAgICAgIG1hdGNoIChzb3VyY2UuW2N1cnJlbnRdID0gc2VwLCBjdXJyZW50ID0gcHJldiwgY3VycmVudCA9IGwgLSAxKSB3aXRoCiAgICAgIHwgKHRydWUsIHRydWUsIF8pIC0+IGxvb3AgKGN1cnJlbnQgKyAxKSAoY3VycmVudCArIDEpIGFjYwogICAgICB8ICh0cnVlLCBfLCBfKSAtPiBsb29wIChjdXJyZW50ICsgMSkgKGN1cnJlbnQgKyAxKSAoKGNvcHlfcGFydCBwcmV2IGN1cnJlbnQpOjphY2MpCiAgICAgIHwgKGZhbHNlLCBfLCB0cnVlKSAtPiBsb29wIChjdXJyZW50ICsgMSkgKGN1cnJlbnQgKyAxKSAoKGNvcHlfcGFydCBwcmV2IChjdXJyZW50ICsgMSkpOjphY2MpCiAgICAgIHwgXyAtPiBsb29wIHByZXYgKGN1cnJlbnQgKyAxKSBhY2MKICBpbiBsb29wIDAgMCBbXQoKbGV0IHVuaXEgbHN0ID0KICBsZXQgdW5pcXVlX3NldCA9IEhhc2h0YmwuY3JlYXRlIChMaXN0Lmxlbmd0aCBsc3QpIGluCiAgTGlzdC5pdGVyIChmdW4geCAtPiBIYXNodGJsLnJlcGxhY2UgdW5pcXVlX3NldCB4ICgpKSBsc3Q7CiAgSGFzaHRibC5mb2xkIChmdW4geCAoKSB4cyAtPiB4IDo6IHhzKSB1bmlxdWVfc2V0IFtdCgpsZXQgZ2V0X3BhdGhzIGVudl9uYW1lID0KICB0cnkKICAgIGxldCBwYXRocyA9IFN5cy5nZXRlbnYgZW52X25hbWUgaW4KICAgIGxldCBkaXJzID0gc3RyaW5nX3NwbGl0ICc6JyBwYXRocyBpbgogICAgTGlzdC5tYXAgKGZ1biBkaXIgLT4KICAgICAgbGV0IGNvbXBvbmVudHMgPSBzdHJpbmdfc3BsaXQgJy8nIGRpciBpbgogICAgICAiLyIgXiAoU3RyaW5nLmNvbmNhdCAiLyIgKGN1dF90YWlsIGNvbXBvbmVudHMpKQogICAgKSBkaXJzCiAgd2l0aCBOb3RfZm91bmQgLT4gW10KCmxldCBlbnZfcGF0aHMgPSBMaXN0LmFwcGVuZCAoZ2V0X3BhdGhzICJMSUJSQVJZX1BBVEgiKSAoZ2V0X3BhdGhzICJDX0lOQ0xVREVfUEFUSCIpCgooKiBLZWVwIHRoYXQgaW4gc3luYyB3aXRoIHRoZSBsaXN0IGluIG15b2NhbWxidWlsZC5tbCAqKQpsZXQgc2VhcmNoX3BhdGhzID0gdW5pcSAoTGlzdC5hcHBlbmQgWwogICIvdXNyIjsKICAiL3Vzci9sb2NhbCI7CiAgIi9vcHQiOwogICIvb3B0L2xvY2FsIjsKICAiL29wdC9ob21lYnJldyI7CiAgIi9zdyI7CiAgIi9taW5ndyI7XSBlbnZfcGF0aHMpCgpvcGVuIFByaW50ZgoKKCogKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tKwogICB8IFRlc3QgY29kZXMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8CiAgICstLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSsgKikKCmxldCBjYW1sX2NvZGUgPSAiCmV4dGVybmFsIHRlc3QgOiB1bml0IC0+IHVuaXQgPSBcImx3dF90ZXN0XCIKbGV0ICgpID0gdGVzdCAoKQoiCgoKbGV0IGxpYmV2X2NvZGUgPSAiCiNpbmNsdWRlIDxjYW1sL21sdmFsdWVzLmg+CiNpbmNsdWRlIDxldi5oPgoKQ0FNTHByaW0gdmFsdWUgbHd0X3Rlc3QoKQp7CiAgZXZfZGVmYXVsdF9sb29wKDApOwogIHJldHVybiBWYWxfdW5pdDsKfQoiCigqICstLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSsKICAgfCBDb21waWxhdGlvbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfAogICArLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0rICopCgpsZXQgb2NhbWxjID0gcmVmICJvY2FtbGMiCmxldCBleHRfb2JqID0gcmVmICIubyIKbGV0IGV4ZWNfbmFtZSA9IHJlZiAiYS5vdXQiCgpsZXQgbG9nX2ZpbGUgPSByZWYgIiIKbGV0IGNhbWxfZmlsZSA9IHJlZiAiIgoKKCogU2VhcmNoIGZvciBhIGhlYWRlciBmaWxlIGluIHN0YW5kYXJkIGRpcmVjdG9yaWVzLiAqKQpsZXQgc2VhcmNoX2hlYWRlciBoZWFkZXIgPQogIGxldCByZWMgbG9vcCA9IGZ1bmN0aW9uCiAgICB8IFtdIC0+CiAgICAgICAgTm9uZQogICAgfCBkaXIgOjogZGlycyAtPgogICAgICAgIGlmIFN5cy5maWxlX2V4aXN0cyAoZGlyIF4gIi9pbmNsdWRlLyIgXiBoZWFkZXIpIHRoZW4KICAgICAgICAgIFNvbWUgZGlyCiAgICAgICAgZWxzZQogICAgICAgICAgbG9vcCBkaXJzCiAgaW4KICBsb29wIHNlYXJjaF9wYXRocwoKbGV0IGNfYXJncyA9CiAgbGV0IGZsYWdzIHBhdGggPSBQcmludGYuc3ByaW50ZiAiLWNjb3B0IC1JJXMvaW5jbHVkZSAtY2NvcHQgLUwlcy9saWIiIHBhdGggcGF0aCBpbgogIG1hdGNoIHNlYXJjaF9oZWFkZXIgImV2LmgiIHdpdGgKICAgIHwgTm9uZSAtPiAiIgogICAgfCBTb21lIHBhdGggLT4gZmxhZ3MgcGF0aAoKbGV0IGNvbXBpbGUgY19hcmdzIGFyZ3Mgc3R1Yl9maWxlID0KICBsZXQgY21kID0gc3ByaW50ZiAiJXMgLWN1c3RvbSAlcyAlcyAlcyAlcyA+ICVzIDI+JjEiCiAgICAhb2NhbWxjCiAgICBjX2FyZ3MKICAgIChGaWxlbmFtZS5xdW90ZSBzdHViX2ZpbGUpCiAgICBhcmdzCiAgICAoRmlsZW5hbWUucXVvdGUgIWNhbWxfZmlsZSkKICAgIChGaWxlbmFtZS5xdW90ZSAhbG9nX2ZpbGUpIGluCiAgU3lzLmNvbW1hbmQgY21kID0gMAoKbGV0IHNhZmVfcmVtb3ZlIGZpbGVfbmFtZSA9CiAgdHJ5CiAgICBTeXMucmVtb3ZlIGZpbGVfbmFtZQogIHdpdGggZXhuIC0+CiAgICAoKQoKbGV0IHRlc3RfY29kZSBhcmdzIHN0dWJfY29kZSA9CiAgbGV0IHN0dWJfZmlsZSwgb2MgPSBGaWxlbmFtZS5vcGVuX3RlbXBfZmlsZSAibHd0X3N0dWIiICIuYyIgaW4KICBsZXQgY2xlYW51cCAoKSA9CiAgICBzYWZlX3JlbW92ZSBzdHViX2ZpbGU7CiAgICBzYWZlX3JlbW92ZSAoRmlsZW5hbWUuY2hvcF9leHRlbnNpb24gKEZpbGVuYW1lLmJhc2VuYW1lIHN0dWJfZmlsZSkgXiAhZXh0X29iaikKICBpbgogIHRyeQogICAgb3V0cHV0X3N0cmluZyBvYyBzdHViX2NvZGU7CiAgICBmbHVzaCBvYzsKICAgIGNsb3NlX291dCBvYzsKICAgIGxldCByZXN1bHQgPSBjb21waWxlICIiIGFyZ3Mgc3R1Yl9maWxlIHx8IGNvbXBpbGUgY19hcmdzIGFyZ3Mgc3R1Yl9maWxlIGluCiAgICBjbGVhbnVwICgpOwogICAgcmVzdWx0CiAgd2l0aCBleG4gLT4KICAgICh0cnkgY2xvc2Vfb3V0IG9jIHdpdGggXyAtPiAoKSk7CiAgICBjbGVhbnVwICgpOwogICAgcmFpc2UgZXhuCgpsZXQgY29uZmlnID0gb3Blbl9vdXQgImx3dF9jb25maWcuaCIKbGV0IGNvbmZpZ19tbCA9IG9wZW5fb3V0ICJsd3RfY29uZmlnLm1sIgoKbGV0IHRlc3RfZmVhdHVyZSA/KGRvX2NoZWNrID0gdHJ1ZSkgbmFtZSBtYWNybyA/KGFyZ3M9IiIpIGNvZGUgPQogIGlmIGRvX2NoZWNrIHRoZW4gYmVnaW4KICAgIHByaW50ZiAidGVzdGluZyBmb3IgJXM6JSEiIG5hbWU7CiAgICBpZiB0ZXN0X2NvZGUgYXJncyBjb2RlIHRoZW4gYmVnaW4KICAgICAgZnByaW50ZiBjb25maWcgIiNkZWZpbmUgJXNcbiIgbWFjcm87CiAgICAgIGZwcmludGYgY29uZmlnX21sICIjbGV0ICVzID0gdHJ1ZVxuIiBtYWNybzsKICAgICAgcHJpbnRmICIgJXMgYXZhaWxhYmxlXG4lISIgKFN0cmluZy5tYWtlICgzNCAtIFN0cmluZy5sZW5ndGggbmFtZSkgJy4nKTsKICAgICAgdHJ1ZQogICAgZW5kIGVsc2UgYmVnaW4KICAgICAgZnByaW50ZiBjb25maWcgIi8vI2RlZmluZSAlc1xuIiBtYWNybzsKICAgICAgZnByaW50ZiBjb25maWdfbWwgIiNsZXQgJXMgPSBmYWxzZVxuIiBtYWNybzsKICAgICAgcHJpbnRmICIgJXMgdW5hdmFpbGFibGVcbiUhIiAoU3RyaW5nLm1ha2UgKDM0IC0gU3RyaW5nLmxlbmd0aCBuYW1lKSAnLicpOwogICAgICBmYWxzZQogICAgZW5kCiAgZW5kIGVsc2UgYmVnaW4KICAgIHByaW50ZiAibm90IGNoZWNraW5nIGZvciAlc1xuJSEiIG5hbWU7CiAgICBmcHJpbnRmIGNvbmZpZyAiLy8jZGVmaW5lICVzXG4iIG1hY3JvOwogICAgZnByaW50ZiBjb25maWdfbWwgIiNsZXQgJXMgPSBmYWxzZVxuIiBtYWNybzsKICAgIHRydWUKICBlbmQKCigqICstLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSsKICAgfCBFbnRyeSBwb2ludCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfAogICArLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0rICopCgpsZXQgKCkgPQogIGxldCBhcmdzID0gWwogICAgIi1vY2FtbGMiLCBBcmcuU2V0X3N0cmluZyBvY2FtbGMsICI8cGF0aD4gb2NhbWxjIjsKICAgICItZXh0LW9iaiIsIEFyZy5TZXRfc3RyaW5nIGV4dF9vYmosICI8ZXh0PiBDIG9iamVjdCBmaWxlcyBleHRlbnNpb24iOwogICAgIi1leGVjLW5hbWUiLCBBcmcuU2V0X3N0cmluZyBleGVjX25hbWUsICI8bmFtZT4gbmFtZSBvZiB0aGUgZXhlY3V0YWJsZSBwcm9kdWNlZCBieSBvY2FtbGMiOwogIF0gaW4KICBBcmcucGFyc2UgYXJncyBpZ25vcmUgImNoZWNrIGZvciBleHRlcm5hbCBDIGxpYnJhcmllcyBhbmQgYXZhaWxhYmxlIGZlYXR1cmVzXG5vcHRpb25zIGFyZToiOwoKICAoKiBQdXQgdGhlIGNhbWwgY29kZSBpbnRvIGEgdGVtcG9yYXJ5IGZpbGUuICopCiAgbGV0IGZpbGUsIG9jID0gRmlsZW5hbWUub3Blbl90ZW1wX2ZpbGUgImx3dF9jYW1sIiAiLm1sIiBpbgogIGNhbWxfZmlsZSA6PSBmaWxlOwogIG91dHB1dF9zdHJpbmcgb2MgY2FtbF9jb2RlOwogIGNsb3NlX291dCBvYzsKCiAgbG9nX2ZpbGUgOj0gRmlsZW5hbWUudGVtcF9maWxlICJsd3Rfb3V0cHV0IiAiLmxvZyI7CgogICgqIENsZWFudXAgdGhpbmdzIG9uIGV4aXQuICopCiAgYXRfZXhpdCAoZnVuICgpIC0+CiAgICAgICAgICAgICAodHJ5IGNsb3NlX291dCBjb25maWcgd2l0aCBfIC0+ICgpKTsKICAgICAgICAgICAgICh0cnkgY2xvc2Vfb3V0IGNvbmZpZ19tbCB3aXRoIF8gLT4gKCkpOwogICAgICAgICAgICAgc2FmZV9yZW1vdmUgIWxvZ19maWxlOwogICAgICAgICAgICAgc2FmZV9yZW1vdmUgIWV4ZWNfbmFtZTsKICAgICAgICAgICAgIHNhZmVfcmVtb3ZlICFjYW1sX2ZpbGU7CiAgICAgICAgICAgICBzYWZlX3JlbW92ZSAoRmlsZW5hbWUuY2hvcF9leHRlbnNpb24gIWNhbWxfZmlsZSBeICIuY21pIik7CiAgICAgICAgICAgICBzYWZlX3JlbW92ZSAoRmlsZW5hbWUuY2hvcF9leHRlbnNpb24gIWNhbWxfZmlsZSBeICIuY21vIikpOwoKICBsZXQgbWlzc2luZyA9IFtdIGluCiAgbGV0IG1pc3NpbmcgPSBpZiB0ZXN0X2ZlYXR1cmUgImxpYmV2IiAiSEFWRV9MSUJFViIgfmFyZ3M6Ii1jY2xpYiAtbGV2IiBsaWJldl9jb2RlIHRoZW4gbWlzc2luZyBlbHNlICJsaWJldiIgOjogbWlzc2luZyBpbgoKICBpZiBtaXNzaW5nIDw+IFtdIHRoZW4gYmVnaW4KICAgIHByaW50ZiAiCiAgICAgIFRoZSBmb2xsb3dpbmcgcmVjcXVpcmVkIEMgbGlicmFyaWVzIGFyZSBtaXNzaW5nOiAlcy4KUGxlYXNlIGluc3RhbGwgdGhlbSBhbmQgcmV0cnkuIElmIHRoZXkgYXJlIGluc3RhbGxlZCBpbiBhIG5vbi1zdGFuZGFyZCBsb2NhdGlvbiwgc2V0IHRoZSBlbnZpcm9ubWVudCB2YXJpYWJsZXMgQ19JTkNMVURFX1BBVEggYW5kIExJQlJBUllfUEFUSCBhY2NvcmRpbmdseSBhbmQgcmV0cnkuCgpGb3IgZXhhbXBsZSwgaWYgdGhleSBhcmUgaW5zdGFsbGVkIGluIC9vcHQvbG9jYWwsIHlvdSBjYW4gdHlwZToKCmV4cG9ydCBDX0lOQ0xVREVfUEFUSD0vb3B0L2xvY2FsL2luY2x1ZGUKZXhwb3J0IExJQlJBUllfUEFUSD0vb3B0L2xvY2FsL2xpYgoKVG8gY29tcGlsZSB3aXRob3V0IGxpYmV2IHN1cHBvcnQsIHVzZSAuL2NvbmZpZ3VyZSAtLWRpc2FibGUtbGliZXYgLi4uCiIgKFN0cmluZy5jb25jYXQgIiwgIiBtaXNzaW5nKTsKICAgIGV4aXQgMQogIGVuZDsKCigqCiAgaWdub3JlICh0ZXN0X2ZlYXR1cmUgImV2ZW50ZmQiICJIQVZFX0VWRU5URkQiIGV2ZW50ZmRfY29kZSk7CiAgaWdub3JlICh0ZXN0X2ZlYXR1cmUgImZkIHBhc3NpbmciICJIQVZFX0ZEX1BBU1NJTkciIGZkX3Bhc3NpbmdfY29kZSk7CiAgaWdub3JlICh0ZXN0X2ZlYXR1cmUgInNjaGVkX2dldGNwdSIgIkhBVkVfR0VUQ1BVIiBnZXRjcHVfY29kZSk7CiAgaWdub3JlICh0ZXN0X2ZlYXR1cmUgImFmZmluaXR5IGdldHRpbmcvc2V0dGluZyIgIkhBVkVfQUZGSU5JVFkiIGFmZmluaXR5X2NvZGUpOwogIGlnbm9yZSAodGVzdF9mZWF0dXJlICJjcmVkZW50aWFscyBnZXR0aW5nIiAiSEFWRV9HRVRfQ1JFREVOVElBTFMiIGdldF9jcmVkZW50aWFsc19jb2RlKTsKICBpZ25vcmUgKHRlc3RfZmVhdHVyZSAiZmRhdGFzeW5jIiAiSEFWRV9GREFUQVNZTkMiIGZkYXRhc3luY19jb2RlKQoqKQo="
+  ]
+  [
+    "md5=b33c8a1a6c7ed797816ce27df4855107"
+    "bmFtZT0ic2VxIgp2ZXJzaW9uPSJbZGlzdHJpYnV0ZWQgd2l0aCBPQ2FtbCA0LjA3IG9yIGFib3ZlXSIKZGVzY3JpcHRpb249ImR1bW15IGJhY2t3YXJkLWNvbXBhdGliaWxpdHkgcGFja2FnZSBmb3IgaXRlcmF0b3JzIgpyZXF1aXJlcz0iIgo="
+  ]
+  [
+    "md5=f37b5eb73ebeb177dff1cd8bb2f38c4e"
+    "IyEvYmluL3NoCgpvY2FtbCBkaXNjb3Zlci5tbAo="
+  ]
+  [
+    "md5=f5db8e7d51e159bc85f0d44cc13f9dbd"
+    "IyEvYmluL3NoIC1leAoKIyBjaGVjayB0aGUgb3BlbnNzbCBpbnN0YWxsYXRpb24KIyBhbmQgc3ltbGluayB0aGUgaG9tZWJyZXcgcGtnLWNvbmZpZyBmaWxlcyBmb3Igb3BlbnNzbCB0byB0aGUgb3BhbSBsb2NhbCBwa2djb25maWcgZGlyZWN0b3J5CgpicmV3X3BrZ19jb25maWc9JChicmV3IC0tcHJlZml4IG9wZW5zc2wpL2xpYi9wa2djb25maWcKCmNhc2UgIiQxIiBpbgogIGNoZWNrKQogICAgaWYgdGVzdCAiJCMiICE9IDE7IHRoZW4KICAgICAgZWNobyAiVXNhZ2U6ICQwIGNoZWNrIgogICAgICBleGl0IDEKICAgIGZpCiAgICBleHBvcnQgUEtHX0NPTkZJR19QQVRIPSIkYnJld19wa2dfY29uZmlnOiRQS0dfQ09ORklHX1BBVEgiCiAgICBwa2ctY29uZmlnIC0tcHJpbnQtZXJyb3JzIC0tZXhpc3RzIG9wZW5zc2wKICAgIDs7CiAgaW5zdGFsbCkKICAgIGlmIHRlc3QgIiQjIiAhPSAyOyB0aGVuCiAgICAgIGVjaG8gIlVzYWdlOiAkMCBpbnN0YWxsIDxsaWJkaXI+IgogICAgICBleGl0IDEKICAgIGZpCiAgICBmb3IgZnBhdGggaW4gIiRicmV3X3BrZ19jb25maWciLyoucGM7IGRvCiAgICAgIHRlc3QgLWUgIiRmcGF0aCIgfHwgYnJlYWsKICAgICAgZm5hbWU9JChiYXNlbmFtZSAiJGZwYXRoIikKICAgICAgdGRpcj0iJDIvcGtnY29uZmlnIgogICAgICBta2RpciAtcCAiJHRkaXIiCiAgICAgIGxuIC1zICIkZnBhdGgiICIkdGRpci8kZm5hbWUiCiAgICBkb25lCiAgICA7OwogICopCiAgICBlY2hvICJVc2FnZTogJDAgPGNoZWNrfGluc3RhbGw+IgogICAgZXhpdCAxCiAgICA7Owplc2FjCg=="
+  ]
+]
+opam-version: "2.0"
+compiler: ["ocaml-base-compiler.4.14.0"]
+roots: [
+  "dream.1.0.0~alpha5"
+  "ocaml-base-compiler.4.14.0"
+  "ocaml-lsp-server.1.16.2"
+  "ocamlformat.0.26.0"
+  "odoc.2.2.1"
+  "user-setup.0.7"
+]
+installed: [
+  "angstrom.0.15.0"
+  "astring.0.8.5"
+  "base.v0.16.3"
+  "base-bigarray.base"
+  "base-bytes.base"
+  "base-threads.base"
+  "base-unix.base"
+  "base64.3.5.1"
+  "bigarray-compat.1.1.0"
+  "bigarray-overlap.0.2.1"
+  "bigstringaf.0.9.1"
+  "camlp-streams.5.0.1"
+  "caqti.1.9.0"
+  "caqti-lwt.1.9.0"
+  "chrome-trace.3.10.0"
+  "cmdliner.1.2.0"
+  "conf-libev.4-12"
+  "conf-libssl.4"
+  "conf-pkg-config.3"
+  "cppo.1.6.9"
+  "csexp.1.5.2"
+  "cstruct.6.2.0"
+  "digestif.1.1.4"
+  "dream.1.0.0~alpha5"
+  "dream-httpaf.1.0.0~alpha2"
+  "dream-pure.1.0.0~alpha2"
+  "dune.3.10.0"
+  "dune-build-info.3.10.0"
+  "dune-configurator.3.10.0"
+  "dune-rpc.3.10.0"
+  "duration.0.2.1"
+  "dyn.3.10.0"
+  "either.1.0.0"
+  "eqaf.0.9"
+  "faraday.0.8.2"
+  "faraday-lwt.0.8.2"
+  "faraday-lwt-unix.0.8.2"
+  "fiber.3.7.0"
+  "fix.20230505"
+  "fmt.0.9.0"
+  "fpath.0.7.3"
+  "graphql.0.14.0"
+  "graphql-lwt.0.14.0"
+  "graphql_parser.0.14.0"
+  "hmap.0.8.1"
+  "ke.0.6"
+  "logs.0.7.0"
+  "lwt.5.7.0"
+  "lwt_ppx.2.1.0"
+  "lwt_ssl.1.2.0"
+  "magic-mime.1.3.0"
+  "menhir.20230608"
+  "menhirLib.20230608"
+  "menhirSdk.20230608"
+  "merlin-lib.4.9-414"
+  "mirage-clock.4.2.0"
+  "mirage-crypto.0.11.1"
+  "mirage-crypto-rng.0.11.1"
+  "mirage-crypto-rng-lwt.0.11.1"
+  "mtime.2.0.0"
+  "multipart_form.0.5.0"
+  "multipart_form-lwt.0.5.0"
+  "ocaml.4.14.0"
+  "ocaml-base-compiler.4.14.0"
+  "ocaml-compiler-libs.v0.12.4"
+  "ocaml-config.2"
+  "ocaml-lsp-server.1.16.2"
+  "ocaml-options-vanilla.1"
+  "ocaml-syntax-shims.1.0.0"
+  "ocaml-version.3.6.1"
+  "ocamlbuild.0.14.2"
+  "ocamlc-loc.3.10.0"
+  "ocamlfind.1.9.6"
+  "ocamlformat.0.26.0"
+  "ocamlformat-lib.0.26.0"
+  "ocamlformat-rpc-lib.0.26.0"
+  "ocp-indent.1.8.1"
+  "ocplib-endian.1.2"
+  "odoc.2.2.1"
+  "odoc-parser.2.0.0"
+  "ordering.3.10.0"
+  "pecu.0.6"
+  "pp.1.1.2"
+  "ppx_derivers.1.2.1"
+  "ppx_yojson_conv_lib.v0.16.0"
+  "ppxlib.0.30.0"
+  "prettym.0.0.3"
+  "psq.0.2.1"
+  "ptime.1.1.0"
+  "re.1.10.4"
+  "result.1.5"
+  "rresult.0.7.0"
+  "seq.base"
+  "sexplib0.v0.16.0"
+  "spawn.v0.15.1"
+  "ssl.0.7.0"
+  "stdio.v0.16.0"
+  "stdlib-shims.0.3.0"
+  "stdune.3.10.0"
+  "stringext.1.6.0"
+  "topkg.1.0.7"
+  "tyxml.4.5.0"
+  "unstrctrd.0.3"
+  "uri.4.2.0"
+  "user-setup.0.7"
+  "uucp.15.0.0"
+  "uuseg.15.0.0"
+  "uutf.1.0.3"
+  "xdg.3.10.0"
+  "yojson.2.1.0"
+]
+package "angstrom" {
+  opam-version: "2.0"
+  version: "0.15.0"
+  synopsis: "Parser combinators built for speed and memory-efficiency"
+  description: """\
+Angstrom is a parser-combinator library that makes it easy to write efficient,
+expressive, and reusable parsers suitable for high-performance applications. It
+exposes monadic and applicative interfaces for composition, and supports
+incremental input through buffered and unbuffered interfaces. Both interfaces
+give the user total control over the blocking behavior of their application,
+with the unbuffered interface enabling zero-copy IO. Parsers are backtracking by
+default and support unbounded lookahead."""
+  maintainer: "Spiros Eliopoulos <spiros@inhabitedtype.com>"
+  authors: "Spiros Eliopoulos <spiros@inhabitedtype.com>"
+  license: "BSD-3-clause"
+  homepage: "https://github.com/inhabitedtype/angstrom"
+  bug-reports: "https://github.com/inhabitedtype/angstrom/issues"
+  depends: [
+    "ocaml" {>= "4.04.0"}
+    "dune" {>= "1.8"}
+    "alcotest" {with-test & >= "0.8.1"}
+    "bigstringaf"
+    "result"
+    "ppx_let" {with-test & >= "0.14.0"}
+    "ocaml-syntax-shims" {build}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ]
+  dev-repo: "git+https://github.com/inhabitedtype/angstrom.git"
+  url {
+    src: "https://github.com/inhabitedtype/angstrom/archive/0.15.0.tar.gz"
+    checksum: "md5=5104768c404ea92fd0a53a5b0f75cd50"
+  }
+}
+package "astring" {
+  opam-version: "2.0"
+  version: "0.8.5"
+  synopsis: "Alternative String module for OCaml"
+  description: """\
+Astring exposes an alternative `String` module for OCaml. This module
+tries to balance minimality and expressiveness for basic, index-free,
+string processing and provides types and functions for substrings,
+string sets and string maps.
+
+Remaining compatible with the OCaml `String` module is a non-goal. The
+`String` module exposed by Astring has exception safe functions,
+removes deprecated and rarely used functions, alters some signatures
+and names, adds a few missing functions and fully exploits OCaml's
+newfound string immutability.
+
+Astring depends only on the OCaml standard library. It is distributed
+under the ISC license."""
+  maintainer: "Daniel Bünzli <daniel.buenzl i@erratique.ch>"
+  authors: "The astring programmers"
+  license: "ISC"
+  tags: ["string" "org:erratique"]
+  homepage: "https://erratique.ch/software/astring"
+  doc: "https://erratique.ch/software/astring/doc"
+  bug-reports: "https://github.com/dbuenzli/astring/issues"
+  depends: [
+    "ocaml" {>= "4.05.0"}
+    "ocamlfind" {build}
+    "ocamlbuild" {build}
+    "topkg" {build}
+  ]
+  build: ["ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%"]
+  dev-repo: "git+http://erratique.ch/repos/astring.git"
+  url {
+    src: "https://erratique.ch/software/astring/releases/astring-0.8.5.tbz"
+    checksum: "md5=e148907c24157d1df43bec89b58b3ec8"
+  }
+}
+package "base" {
+  opam-version: "2.0"
+  version: "v0.16.3"
+  synopsis: "Full standard library replacement for OCaml"
+  description: """\
+Full standard library replacement for OCaml
+
+Base is a complete and portable alternative to the OCaml standard
+library. It provides all standard functionalities one would expect
+from a language standard library. It uses consistent conventions
+across all of its module.
+
+Base aims to be usable in any context. As a result system dependent
+features such as I/O are not offered by Base. They are instead
+provided by companion libraries such as stdio:
+
+  https://github.com/janestreet/stdio"""
+  maintainer: "Jane Street developers"
+  authors: "Jane Street Group, LLC"
+  license: "MIT"
+  homepage: "https://github.com/janestreet/base"
+  doc: "https://ocaml.janestreet.com/ocaml-core/latest/doc/base/index.html"
+  bug-reports: "https://github.com/janestreet/base/issues"
+  depends: [
+    "ocaml" {>= "4.14.0"}
+    "sexplib0" {>= "v0.16" & < "v0.17"}
+    "dune" {>= "2.0.0"}
+    "dune-configurator"
+  ]
+  build: ["dune" "build" "-p" name "-j" jobs]
+  dev-repo: "git+https://github.com/janestreet/base.git"
+  url {
+    src:
+      "https://github.com/janestreet/base/archive/refs/tags/v0.16.3.tar.gz"
+    checksum: [
+      "md5=04572fc23a4651604cfcab83f720cb4c"
+      "sha512=69380ed392faf4495459f97f70a10a6959fce71d2e6ba093472fc272141646307fd7872407de855dfa48ef0435f6587eae5aa50f4a67eac40a9e1946d0c3c070"
+    ]
+  }
+}
+package "base-bigarray" {
+  opam-version: "2.0"
+  version: "base"
+  synopsis: ""
+  description: "Bigarray library distributed with the OCaml compiler"
+  maintainer: "https://github.com/ocaml/opam-repository/issues"
+}
+package "base-bytes" {
+  opam-version: "2.0"
+  version: "base"
+  synopsis: "Bytes library distributed with the OCaml compiler"
+  maintainer: " "
+  authors: " "
+  homepage: " "
+  depends: [
+    "ocaml" {>= "4.02.0"}
+    "ocamlfind" {>= "1.5.3"}
+  ]
+}
+package "base-threads" {
+  opam-version: "2.0"
+  version: "base"
+  synopsis: ""
+  description: "Threads library distributed with the OCaml compiler"
+  maintainer: "https://github.com/ocaml/opam-repository/issues"
+}
+package "base-unix" {
+  opam-version: "2.0"
+  version: "base"
+  synopsis: ""
+  description: "Unix library distributed with the OCaml compiler"
+  maintainer: "https://github.com/ocaml/opam-repository/issues"
+}
+package "base64" {
+  opam-version: "2.0"
+  version: "3.5.1"
+  synopsis: "Base64 encoding for OCaml"
+  description: """\
+Base64 is a group of similar binary-to-text encoding schemes that represent
+binary data in an ASCII string format by translating it into a radix-64
+representation.  It is specified in RFC 4648."""
+  maintainer: "mirageos-devel@lists.xenproject.org"
+  authors: [
+    "Thomas Gazagnaire"
+    "Anil Madhavapeddy"
+    "Calascibetta Romain"
+    "Peter Zotov"
+  ]
+  license: "ISC"
+  homepage: "https://github.com/mirage/ocaml-base64"
+  doc: "https://mirage.github.io/ocaml-base64/"
+  bug-reports: "https://github.com/mirage/ocaml-base64/issues"
+  depends: [
+    "ocaml" {>= "4.03.0"}
+    "dune" {>= "2.3"}
+    "fmt" {with-test & >= "0.8.7"}
+    "bos" {with-test}
+    "rresult" {with-test}
+    "alcotest" {with-test}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ]
+  dev-repo: "git+https://github.com/mirage/ocaml-base64.git"
+  url {
+    src:
+      "https://github.com/mirage/ocaml-base64/releases/download/v3.5.1/base64-3.5.1.tbz"
+    checksum: [
+      "sha256=d8fedaa59bd12feae7acc08b5928dd478aac523f4ca8d240470d2500651c65ed"
+      "sha512=278bd2029800d90ed88ff59b9de723013e645523556a1667b64178d6b5058a7d6da91efffef3589c35569b5fa10ddee74c93f5a3d156b9146c8af5b7fe44aeaf"
+    ]
+  }
+  x-commit-hash: "084346f14ed1e6706d733402dd6ff65b0dc4f718"
+}
+package "bigarray-compat" {
+  opam-version: "2.0"
+  version: "1.1.0"
+  synopsis: "Compatibility library to use Stdlib.Bigarray when possible"
+  maintainer: "Lucas Pluvinage <lucas.pluvinage@gmail.com>"
+  authors: "Lucas Pluvinage <lucas.pluvinage@gmail.com>"
+  license: "ISC"
+  homepage: "https://github.com/mirage/bigarray-compat"
+  bug-reports: "https://github.com/mirage/bigarray-compat/issues"
+  depends: [
+    "ocaml" {>= "4.02.3"}
+    "dune" {>= "1.0"}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["dune" "build" "-p" name "-j" jobs]
+  ]
+  dev-repo: "git+https://github.com/mirage/bigarray-compat.git"
+  url {
+    src:
+      "https://github.com/mirage/bigarray-compat/releases/download/v1.1.0/bigarray-compat-1.1.0.tbz"
+    checksum: [
+      "sha256=434469a48d5c84e80d621b13d95eb067f8138c1650a1fd5ae6009a19b93718d5"
+      "sha512=7be283fd957ee168ce1e62835d22114da405e4b7da9619b4f2030a832d45ca210a0c8f1d1c57c92e224f3512308a8a0f0923b94f44b6f582acbe0e7728d179d4"
+    ]
+  }
+  x-commit-hash: "2ea842ba4ab2cfee7b711f7ad927917f3179a6f9"
+}
+package "bigarray-overlap" {
+  opam-version: "2.0"
+  version: "0.2.1"
+  synopsis: "Bigarray.overlap"
+  description:
+    "A minimal library to know that 2 bigarray share physically the same memory or not."
+  maintainer: "Romain Calascibetta <romain.calascibetta@gmail.com>"
+  authors: "Romain Calascibetta <romain.calascibetta@gmail.com>"
+  license: "MIT"
+  homepage: "https://github.com/dinosaure/overlap"
+  doc: "https://dinosaure.github.io/overlap/"
+  bug-reports: "https://github.com/dinosaure/overlap/issues"
+  depends: [
+    "ocaml" {>= "4.08.0"}
+    "dune" {>= "2.6"}
+    "alcotest" {with-test}
+    "astring" {with-test}
+    "fpath" {with-test}
+    "bos" {with-test}
+    "ocamlfind" {with-test}
+    "conf-pkg-config" {build}
+  ]
+  depopts: ["ocaml-freestanding" "mirage-xen-posix" "js_of_ocaml-compiler"]
+  conflicts: [
+    "mirage-xen-posix" {< "3.1.0"}
+    "ocaml-freestanding" {< "0.4.3"}
+  ]
+  build: [
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ]
+  install: [
+    ["dune" "install" "-p" name] {with-test}
+    ["./test/test_runes.ml"] {with-test}
+  ]
+  dev-repo: "git+https://github.com/dinosaure/overlap.git"
+  url {
+    src:
+      "https://github.com/dinosaure/overlap/releases/download/v0.2.1/bigarray-overlap-0.2.1.tbz"
+    checksum: [
+      "sha256=2f520ac470054e335883eba9254bf28b6676ddb57753cfb58b22cf84ae1a66e0"
+      "sha512=223f15f815cd944cf2e9955ed9e3cf5608a9db36103e9bb017c2fe452dfb319908228b419f416f6239b8562208027068b7c44e8fb4be6c6a7858ecba540d5439"
+    ]
+  }
+  x-commit-hash: "ebdd14f8c399ffab0a111bb5a62a0f9aff72bf85"
+}
+package "bigstringaf" {
+  opam-version: "2.0"
+  version: "0.9.1"
+  synopsis: "Bigstring intrinsics and fast blits based on memcpy/memmove"
+  description: """\
+Bigstring intrinsics and fast blits based on memcpy/memmove
+
+The OCaml compiler has a bunch of intrinsics for Bigstrings, but they're not
+widely-known, sometimes misused, and so programs that use Bigstrings are slower
+than they have to be. And even if a library got that part right and exposed the
+intrinsics properly, the compiler doesn't have any fast blits between
+Bigstrings and other string-like types.
+
+So here they are. Go crazy."""
+  maintainer: "Spiros Eliopoulos <spiros@inhabitedtype.com>"
+  authors: "Spiros Eliopoulos <spiros@inhabitedtype.com>"
+  license: "BSD-3-clause"
+  homepage: "https://github.com/inhabitedtype/bigstringaf"
+  bug-reports: "https://github.com/inhabitedtype/bigstringaf/issues"
+  depends: [
+    "dune" {>= "3.0"}
+    "dune-configurator" {>= "3.0"}
+    "alcotest" {with-test}
+    "ocaml" {>= "4.08.0"}
+  ]
+  conflicts: [
+    "mirage-xen" {< "6.0.0"}
+    "ocaml-freestanding"
+    "js_of_ocaml" {< "3.5.0"}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    [
+      "dune"
+      "build"
+      "-p"
+      name
+      "-j"
+      jobs
+      "@install"
+      "@runtest" {with-test}
+      "@doc" {with-doc}
+    ]
+  ]
+  dev-repo: "git+https://github.com/inhabitedtype/bigstringaf.git"
+  url {
+    src: "https://github.com/inhabitedtype/bigstringaf/archive/0.9.1.tar.gz"
+    checksum: "md5=909fdc277cf03096a35b565325d5314a"
+  }
+}
+package "camlp-streams" {
+  opam-version: "2.0"
+  version: "5.0.1"
+  synopsis: "The Stream and Genlex libraries for use with Camlp4 and Camlp5"
+  description: """\
+This package provides two library modules:
+- Stream: imperative streams, with in-place update and memoization
+  of the latest element produced.
+- Genlex: a small parameterized lexical analyzer producing streams
+  of tokens from streams of characters.
+
+The two modules are designed for use with Camlp4 and Camlp5:
+- The stream patterns and stream expressions of Camlp4/Camlp5 consume
+  and produce data of type 'a Stream.t.
+- The Genlex tokenizer can be used as a simple lexical analyzer for
+  Camlp4/Camlp5-generated parsers.
+
+The Stream module can also be used by hand-written recursive-descent
+parsers, but is not very convenient for this purpose.
+
+The Stream and Genlex modules have been part of the OCaml standard library
+for a long time, and have been distributed as part of the core OCaml system.
+They will be removed from the OCaml standard library at some future point,
+but will be maintained and distributed separately in this camlpstreams package."""
+  maintainer: [
+    "Florian Angeletti <florian.angeletti@inria.fr>"
+    "Xavier Leroy <xavier.leroy@college-de-france.fr>"
+  ]
+  authors: ["Daniel de Rauglaudre" "Xavier Leroy"]
+  license: "LGPL-2.1-only WITH OCaml-LGPL-linking-exception"
+  homepage: "https://github.com/ocaml/camlp-streams"
+  bug-reports: "https://github.com/ocaml/camlp-streams/issues"
+  depends: [
+    "dune" {>= "2.7"}
+    "ocaml" {>= "4.02.3"}
+    "odoc" {with-doc}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    [
+      "dune"
+      "build"
+      "-p"
+      name
+      "-j"
+      jobs
+      "@install"
+      "@runtest" {with-test}
+      "@doc" {with-doc}
+    ]
+  ]
+  dev-repo: "git+https://github.com/ocaml/camlp-streams.git"
+  url {
+    src: "https://github.com/ocaml/camlp-streams/archive/v5.0.1.tar.gz"
+    checksum: [
+      "md5=afc874b25f7a1f13e8f5cfc1182b51a7"
+      "sha512=2efa8dd4a636217c8d49bac1e4e7e5558fc2f45cfea66514140a59fd99dd08d61fb9f1e17804997ff648b71b13820a5d4a1eb70fed9d848aa2abd6e41f853c86"
+    ]
+  }
+}
+package "caqti" {
+  opam-version: "2.0"
+  version: "1.9.0"
+  synopsis: "Unified interface to relational database libraries"
+  description: """\
+Caqti provides a monadic cooperative-threaded OCaml connector API for
+relational databases.
+
+The purpose of Caqti is further to help make applications independent of a
+particular database system. This is achieved by defining a common signature,
+which is implemented by the database drivers. Connection parameters are
+specified as an URI, which is typically provided at run-time. Caqti then
+loads a driver which can handle the URI, and provides a first-class module
+which implements the driver API and additional convenience functionality.
+
+Caqti does not make assumptions about the structure of the query language,
+and only provides the type information needed at the edges of communication
+between the OCaml code and the database; i.e. for encoding parameters and
+decoding returned tuples. It is hoped that this agnostic choice makes it a
+suitable target for higher level interfaces and code generators."""
+  maintainer: "Petter A. Urkedal <paurkedal@gmail.com>"
+  authors: [
+    "Petter A. Urkedal <paurkedal@gmail.com>"
+    "Nathan Rebours <nathan@cryptosense.com>"
+  ]
+  license: "LGPL-3.0-or-later WITH LGPL-3.0-linking-exception"
+  homepage: "https://github.com/paurkedal/ocaml-caqti/"
+  doc: "https://paurkedal.github.io/ocaml-caqti/index.html"
+  bug-reports: "https://github.com/paurkedal/ocaml-caqti/issues"
+  depends: [
+    "alcotest" {with-test & >= "1.5.0"}
+    "angstrom" {>= "0.14.0"}
+    "bigstringaf"
+    "cmdliner" {with-test & >= "1.1.0"}
+    "cppo" {build & >= "1.1.0"}
+    "dune" {>= "2.0"}
+    "logs"
+    "ocaml" {>= "4.04.0"}
+    "odoc" {with-doc}
+    "ptime"
+    "re" {with-test}
+    "uri" {>= "1.9.0"}
+  ]
+  build: [
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+    ["dune" "build" "@doc" "-p" name "-j" jobs] {with-doc}
+  ]
+  dev-repo: "git+https://github.com/paurkedal/ocaml-caqti.git"
+  url {
+    src:
+      "https://github.com/paurkedal/ocaml-caqti/releases/download/v1.9.0/caqti-v1.9.0.tbz"
+    checksum: [
+      "sha256=e1f580848faf3a54f23174067f2c75f77f6a2fe50ca8bc923428d0e1841192c5"
+      "sha512=7a11edfcfbbe4855347b066e222cf6bf46d1afedcd4978661b9a2b3931921faa1768a6bc24031fd3afa84537fe2adc8b139399deb77120461bee8fb394d68e82"
+    ]
+  }
+  x-commit-hash: "55ab7a2851694f08c62cbb6438c681ebb565636d"
+}
+package "caqti-lwt" {
+  opam-version: "2.0"
+  version: "1.9.0"
+  synopsis: "Lwt support for Caqti"
+  maintainer: "Petter A. Urkedal <paurkedal@gmail.com>"
+  authors: "Petter A. Urkedal <paurkedal@gmail.com>"
+  license: "LGPL-3.0-or-later WITH LGPL-3.0-linking-exception"
+  homepage: "https://github.com/paurkedal/ocaml-caqti/"
+  doc: "https://paurkedal.github.io/ocaml-caqti/index.html"
+  bug-reports: "https://github.com/paurkedal/ocaml-caqti/issues"
+  depends: [
+    "alcotest" {with-test & >= "1.5.0"}
+    "alcotest-lwt" {with-test & >= "1.5.0"}
+    "caqti" {>= "1.9.0" & < "1.10.0~"}
+    "caqti-dynload" {with-test & >= "1.0.0" & < "2.0.0~"}
+    "caqti-driver-sqlite3" {with-test & >= "1.0.0" & < "2.0.0~"}
+    "cmdliner" {with-test & >= "1.1.0"}
+    "dune" {>= "2.0"}
+    "logs"
+    "lwt" {>= "3.2.0"}
+    "ocaml"
+    "odoc" {with-doc}
+  ]
+  build: [
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+    ["dune" "build" "@doc" "-p" name "-j" jobs] {with-doc}
+  ]
+  dev-repo: "git+https://github.com/paurkedal/ocaml-caqti.git"
+  url {
+    src:
+      "https://github.com/paurkedal/ocaml-caqti/releases/download/v1.9.0/caqti-v1.9.0.tbz"
+    checksum: [
+      "sha256=e1f580848faf3a54f23174067f2c75f77f6a2fe50ca8bc923428d0e1841192c5"
+      "sha512=7a11edfcfbbe4855347b066e222cf6bf46d1afedcd4978661b9a2b3931921faa1768a6bc24031fd3afa84537fe2adc8b139399deb77120461bee8fb394d68e82"
+    ]
+  }
+  x-commit-hash: "55ab7a2851694f08c62cbb6438c681ebb565636d"
+}
+package "chrome-trace" {
+  opam-version: "2.0"
+  version: "3.10.0"
+  synopsis: "Chrome trace event generation library"
+  description:
+    "This library offers no backwards compatibility guarantees. Use at your own risk."
+  maintainer: "Jane Street Group, LLC <opensource@janestreet.com>"
+  authors: "Jane Street Group, LLC <opensource@janestreet.com>"
+  license: "MIT"
+  homepage: "https://github.com/ocaml/dune"
+  doc: "https://dune.readthedocs.io/"
+  bug-reports: "https://github.com/ocaml/dune/issues"
+  depends: [
+    "dune" {>= "3.5"}
+    "ocaml" {>= "4.08.0"}
+    "odoc" {with-doc}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["rm" "-rf" "vendor/csexp"]
+    ["rm" "-rf" "vendor/pp"]
+    ["dune" "build" "-p" name "-j" jobs "@install" "@doc" {with-doc}]
+  ]
+  dev-repo: "git+https://github.com/ocaml/dune.git"
+  url {
+    src:
+      "https://github.com/ocaml/dune/releases/download/3.10.0/dune-3.10.0.tbz"
+    checksum: [
+      "sha256=9ff03384a98a8df79852cc674f0b4738ba8aec17029b6e2eeb514f895e710355"
+      "sha512=8133cdcc5499a6bf21cd65b4fc8b12445ae39366731006773fcd3b348c553a8d89d004db161c655aa167a2a3653b7919d32b27f29217106ef762bd01b43afc76"
+    ]
+  }
+  x-commit-hash: "fc382520272012638088848d7f3dd1ef6687a284"
+}
+package "cmdliner" {
+  opam-version: "2.0"
+  version: "1.2.0"
+  synopsis: "Declarative definition of command line interfaces for OCaml"
+  description: """\
+Cmdliner allows the declarative definition of command line interfaces
+for OCaml.
+
+It provides a simple and compositional mechanism to convert command
+line arguments to OCaml values and pass them to your functions. The
+module automatically handles syntax errors, help messages and UNIX man
+page generation. It supports programs with single or multiple commands
+and respects most of the [POSIX][1] and [GNU][2] conventions.
+
+Cmdliner has no dependencies and is distributed under the ISC license.
+
+[1]: http://pubs.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap12.html
+[2]: http://www.gnu.org/software/libc/manual/html_node/Argument-Syntax.html
+
+Home page: http://erratique.ch/software/cmdliner"""
+  maintainer: "Daniel Bünzli <daniel.buenzl i@erratique.ch>"
+  authors: "The cmdliner programmers"
+  license: "ISC"
+  tags: ["cli" "system" "declarative" "org:erratique"]
+  homepage: "https://erratique.ch/software/cmdliner"
+  doc: "https://erratique.ch/software/cmdliner/doc"
+  bug-reports: "https://github.com/dbuenzli/cmdliner/issues"
+  depends: [
+    "ocaml" {>= "4.08.0"}
+  ]
+  build: [make "all" "PREFIX=%{prefix}%"]
+  install: [
+    [make "install" "LIBDIR=%{_:lib}%" "DOCDIR=%{_:doc}%"]
+    [make "install-doc" "LIBDIR=%{_:lib}%" "DOCDIR=%{_:doc}%"]
+  ]
+  dev-repo: "git+https://erratique.ch/repos/cmdliner.git"
+  url {
+    src: "https://erratique.ch/software/cmdliner/releases/cmdliner-1.2.0.tbz"
+    checksum:
+      "sha512=6fcd6a59a6fbc6986b1aecdc3e4ce7a0dc43c65a16b427d6caa5504b10b51384f6b0bc703af646b09f5f1caeb6827b37d4480ce350ca8006204c850785f2810b"
+  }
+}
+package "conf-libev" {
+  opam-version: "2.0"
+  version: "4-12"
+  synopsis: "High-performance event loop/event model with lots of features"
+  description: """\
+Libev is modelled (very loosely) after libevent and the Event perl
+module, but is faster, scales better and is more correct, and also more
+featureful. And also smaller. Yay."""
+  maintainer: "https://github.com/ocaml/opam-repository/issues"
+  authors: "Marc Lehmann"
+  license: "BSD-2-Clause"
+  homepage: "http://software.schmorp.de/pkg/libev.html"
+  bug-reports: "https://github.com/ocaml/opam-repository/issues"
+  depends: [
+    "ocaml" {>= "3.11.0"}
+  ]
+  flags: conf
+  build: ["sh" "./build.sh"]
+  depexts: [
+    ["libev-dev"] {os-family = "debian"}
+    ["libev-dev"] {os-family = "ubuntu"}
+    ["libev"] {os = "macos" & os-distribution = "homebrew"}
+    ["libev-dev"] {os-family = "alpine"}
+    ["libev"] {os-family = "arch"}
+    ["libev-devel"] {os-distribution = "fedora"}
+    ["libev-devel"] {os-distribution = "rhel"}
+    ["libev-devel"] {os-distribution = "centos"}
+    ["libev-devel"] {os-distribution = "ol" & os-version >= "8"}
+    ["libev-devel"] {os-family = "suse" | os-family = "opensuse"}
+    ["libev"] {os = "freebsd"}
+    ["libev"] {os = "openbsd"}
+    ["libev"] {os-distribution = "nixos"}
+  ]
+  extra-files: [
+    ["discover.ml" "md5=a734be402679b0ccf7c8aa60fc18bf9a"]
+    ["build.sh" "md5=f37b5eb73ebeb177dff1cd8bb2f38c4e"]
+  ]
+}
+package "conf-libssl" {
+  opam-version: "2.0"
+  version: "4"
+  synopsis:
+    "Virtual package relying on an OpenSSL library system installation"
+  description:
+    "This package can only install if the OpenSSL library is installed on the system."
+  maintainer: "David Sheets <sheets@alum.mit.edu>"
+  authors: "The OpenSSL Project"
+  license: "Apache-1.0"
+  homepage: "https://www.openssl.org/"
+  bug-reports: "https://github.com/ocaml/opam-repository/issues"
+  depends: [
+    "conf-pkg-config" {build}
+  ]
+  flags: conf
+  build: [
+    ["pkg-config" "--print-errors" "--exists" "openssl"]
+      {os != "freebsd" & os != "openbsd" & os != "netbsd" &
+       os-distribution != "homebrew"}
+    ["sh" "-ex" "./homebrew.sh" "check"] {os-distribution = "homebrew"}
+  ]
+  install:
+    ["sh" "-ex" "./homebrew.sh" "install" lib] {os-distribution = "homebrew"}
+  build-env: HOMEBREW_NO_AUTO_UPDATE = "1"
+  depexts: [
+    ["libssl-dev"] {os-family = "debian"}
+    ["libssl-dev"] {os-family = "ubuntu"}
+    ["openssl-devel"] {os-distribution = "centos"}
+    ["openssl-devel"] {os-distribution = "ol"}
+    ["openssl-devel"] {os-distribution = "fedora"}
+    ["libopenssl-devel"] {os-family = "suse" | os-family = "opensuse"}
+    ["openssl-dev"] {os-family = "alpine"}
+    ["openssl"] {os-family = "arch"}
+    ["openssl"] {os-distribution = "homebrew"}
+    ["openssl"] {os-distribution = "macports"}
+    ["openssl"] {os-distribution = "nixos"}
+    ["openssl"] {os = "win32" & os-distribution = "cygwinports"}
+  ]
+  extra-files: ["homebrew.sh" "md5=f5db8e7d51e159bc85f0d44cc13f9dbd"]
+}
+package "conf-pkg-config" {
+  opam-version: "2.0"
+  version: "3"
+  synopsis:
+    "Check if pkg-config is installed and create an opam switch local pkgconfig folder"
+  description: """\
+This package can only install if the pkg-config package is installed
+on the system."""
+  maintainer: "unixjunkie@sdf.org"
+  authors: "Francois Berenger"
+  license: "GPL-1.0-or-later"
+  homepage: "http://www.freedesktop.org/wiki/Software/pkg-config/"
+  bug-reports: "https://github.com/ocaml/opam-repository/issues"
+  flags: conf
+  build: ["pkg-config" "--help"] {os != "openbsd"}
+  depexts: [
+    ["pkg-config"] {os-family = "debian"}
+    ["pkgconf"] {os-distribution = "arch"}
+    ["pkgconf-pkg-config"] {os-distribution = "fedora"}
+    ["pkgconfig"] {os-distribution = "centos" & os-version <= "7"}
+    ["pkgconf-pkg-config"] {os-distribution = "mageia"}
+    ["pkgconfig"] {os-distribution = "rhel" & os-version <= "7"}
+    ["pkgconfig"] {os-distribution = "ol" & os-version <= "7"}
+    ["pkgconf"] {os-distribution = "alpine"}
+    ["pkgconfig"] {os-distribution = "nixos"}
+    ["pkg-config"] {os = "macos" & os-distribution = "homebrew"}
+    ["pkgconfig"] {os = "macos" & os-distribution = "macports"}
+    ["pkgconf"] {os = "freebsd"}
+    ["pkgconf-pkg-config"] {os-distribution = "rhel" & os-version >= "8"}
+    ["pkgconf-pkg-config"] {os-distribution = "centos" & os-version >= "8"}
+    ["pkgconf-pkg-config"] {os-distribution = "ol" & os-version >= "8"}
+    ["system:pkgconf"] {os = "win32" & os-distribution = "cygwinports"}
+  ]
+}
+package "cppo" {
+  opam-version: "2.0"
+  version: "1.6.9"
+  synopsis: "Code preprocessor like cpp for OCaml"
+  description: """\
+Cppo is an equivalent of the C preprocessor for OCaml programs.
+It allows the definition of simple macros and file inclusion.
+
+Cppo is:
+
+* more OCaml-friendly than cpp
+* easy to learn without consulting a manual
+* reasonably fast
+* simple to install and to maintain"""
+  maintainer: [
+    "Martin Jambon <martin@mjambon.com>" "Yishuai Li <yishuai@upenn.edu>"
+  ]
+  authors: "Martin Jambon"
+  license: "BSD-3-Clause"
+  homepage: "https://github.com/ocaml-community/cppo"
+  doc: "https://ocaml-community.github.io/cppo"
+  bug-reports: "https://github.com/ocaml-community/cppo/issues"
+  depends: [
+    "ocaml" {>= "4.02.3"}
+    "dune" {>= "1.10"}
+    "base-unix"
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+    ["dune" "build" "-p" name "@doc"] {with-doc}
+  ]
+  dev-repo: "git+https://github.com/ocaml-community/cppo.git"
+  url {
+    src: "https://github.com/ocaml-community/cppo/archive/v1.6.9.tar.gz"
+    checksum: [
+      "md5=d23ffe85ac7dc8f0afd1ddf622770d09"
+      "sha512=26ff5a7b7f38c460661974b23ca190f0feae3a99f1974e0fd12ccf08745bd7d91b7bc168c70a5385b837bfff9530e0e4e41cf269f23dd8cf16ca658008244b44"
+    ]
+  }
+}
+package "csexp" {
+  opam-version: "2.0"
+  version: "1.5.2"
+  synopsis: "Parsing and printing of S-expressions in Canonical form"
+  description: """\
+This library provides minimal support for Canonical S-expressions
+[1]. Canonical S-expressions are a binary encoding of S-expressions
+that is super simple and well suited for communication between
+programs.
+
+This library only provides a few helpers for simple applications. If
+you need more advanced support, such as parsing from more fancy input
+sources, you should consider copying the code of this library given
+how simple parsing S-expressions in canonical form is.
+
+To avoid a dependency on a particular S-expression library, the only
+module of this library is parameterised by the type of S-expressions.
+
+[1] https://en.wikipedia.org/wiki/Canonical_S-expressions"""
+  maintainer: "Jeremie Dimino <jeremie@dimino.org>"
+  authors: [
+    "Quentin Hocquet <mefyl@gruntech.org>"
+    "Jane Street Group, LLC <opensource@janestreet.com>"
+    "Jeremie Dimino <jeremie@dimino.org>"
+  ]
+  license: "MIT"
+  homepage: "https://github.com/ocaml-dune/csexp"
+  doc: "https://ocaml-dune.github.io/csexp/"
+  bug-reports: "https://github.com/ocaml-dune/csexp/issues"
+  depends: [
+    "dune" {>= "3.4"}
+    "ocaml" {>= "4.03.0"}
+    "odoc" {with-doc}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["dune" "build" "-p" name "-j" jobs "@install" "@doc" {with-doc}]
+  ]
+  dev-repo: "git+https://github.com/ocaml-dune/csexp.git"
+  url {
+    src:
+      "https://github.com/ocaml-dune/csexp/releases/download/1.5.2/csexp-1.5.2.tbz"
+    checksum: [
+      "sha256=1a14dd04bb4379a41990248550628c77913a9c07f3c35c1370b6960e697787ff"
+      "sha512=be281018bcfc20d4db14894ef51c4b836d6338d2fdfe22e63d46f405f8dea7349e16f1c0ecd65f73d4c85a2a80e618cdbb8c9dafcbb9f229f04f1adca5b1973c"
+    ]
+  }
+  x-commit-hash: "e6c4768e10c61bcb04d09748744dad55602149c6"
+}
+package "cstruct" {
+  opam-version: "2.0"
+  version: "6.2.0"
+  synopsis: "Access C-like structures directly from OCaml"
+  description: """\
+Cstruct is a library and syntax extension to make it easier to access C-like
+structures directly from OCaml.  It supports both reading and writing to these
+structures, and they are accessed via the `Bigarray` module."""
+  maintainer: "anil@recoil.org"
+  authors: [
+    "Anil Madhavapeddy"
+    "Richard Mortier"
+    "Thomas Gazagnaire"
+    "Pierre Chambart"
+    "David Kaloper"
+    "Jeremy Yallop"
+    "David Scott"
+    "Mindy Preston"
+    "Thomas Leonard"
+    "Anton Kochkov"
+    "Etienne Millon"
+  ]
+  license: "ISC"
+  tags: ["org:mirage" "org:ocamllabs"]
+  homepage: "https://github.com/mirage/ocaml-cstruct"
+  doc: "https://mirage.github.io/ocaml-cstruct/"
+  bug-reports: "https://github.com/mirage/ocaml-cstruct/issues"
+  depends: [
+    "ocaml" {>= "4.08.0"}
+    "dune" {>= "2.0.0"}
+    "alcotest" {with-test}
+    "fmt" {>= "0.8.9"}
+    "crowbar" {with-test}
+  ]
+  conflicts: [
+    "js_of_ocaml" {< "3.5.0"}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ]
+  dev-repo: "git+https://github.com/mirage/ocaml-cstruct.git"
+  url {
+    src:
+      "https://github.com/mirage/ocaml-cstruct/releases/download/v6.2.0/cstruct-6.2.0.tbz"
+    checksum: [
+      "sha256=9a78073392580e8349148fa3ab4b1b2e989dc9d30d07401b04c96b7c60f03e62"
+      "sha512=8d33fe6b3707a3994d0225cd33cadde0bb2ca834ef01096e3df33a08e4a8c6d02ebccddf558a73988b8a5595b65fdc10de61efbf872c6c9e55c719c7e19c463d"
+    ]
+  }
+  x-commit-hash: "8c7c94a038aae72dc89c994551c9d2c690895607"
+}
+package "digestif" {
+  opam-version: "2.0"
+  version: "1.1.4"
+  synopsis: "Hashes implementations (SHA*, RIPEMD160, BLAKE2* and MD5)"
+  description: """\
+Digestif is a toolbox to provide hashes implementations in C and OCaml.
+
+It uses the linking trick and user can decide at the end to use the C implementation or the OCaml implementation.
+
+We provides implementation of:
+ * MD5
+ * SHA1
+ * SHA224
+ * SHA256
+ * SHA384
+ * SHA512
+ * BLAKE2B
+ * BLAKE2S
+ * RIPEMD160"""
+  maintainer: [
+    "Eyyüb Sari <eyyub.sari@epitech.eu>"
+    "Romain Calascibetta <romain.calascibetta@gmail.com>"
+  ]
+  authors: [
+    "Eyyüb Sari <eyyub.sari@epitech.eu>"
+    "Romain Calascibetta <romain.calascibetta@gmail.com>"
+  ]
+  license: "MIT"
+  homepage: "https://github.com/mirage/digestif"
+  doc: "https://mirage.github.io/digestif/"
+  bug-reports: "https://github.com/mirage/digestif/issues"
+  depends: [
+    "ocaml" {>= "4.08.0"}
+    "dune" {>= "2.6.0"}
+    "eqaf"
+    "fmt" {with-test}
+    "alcotest" {with-test}
+    "bos" {with-test}
+    "astring" {with-test}
+    "fpath" {with-test}
+    "rresult" {with-test}
+    "ocamlfind" {with-test}
+  ]
+  conflicts: [
+    "mirage-xen" {< "6.0.0"}
+    "ocaml-freestanding"
+  ]
+  build: [
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ]
+  install: [
+    ["dune" "install" "-p" name] {with-test}
+    ["ocaml" "./test/test_runes.ml"] {with-test}
+  ]
+  dev-repo: "git+https://github.com/mirage/digestif.git"
+  url {
+    src:
+      "https://github.com/mirage/digestif/releases/download/v1.1.4/digestif-1.1.4.tbz"
+    checksum: [
+      "sha256=c3793e720f0da8054f6286c545c821a7febe882e7f4e5497ec89b15a353511e1"
+      "sha512=a4014f65a3be370761833fd98f3916d0a64ada6f99ac016890f5ae98ec75a941836a5a1e145ae36372aeb6b48c66a0ad9907a4318bfc8dc0c237840edba1aef4"
+    ]
+  }
+  x-commit-hash: "92160895c308d0d5b722afd4811882f7850277d2"
+}
+package "dream" {
+  opam-version: "2.0"
+  version: "1.0.0~alpha5"
+  synopsis: "Tidy, feature-complete Web framework"
+  description: """\
+Dream is a feature-complete Web framework with a simple programming
+model and no boilerplate. It provides only two data types, request and
+response.
+
+Almost everything else is either a built-in OCaml type, or an
+abbreviation for a bare function. For example, a Web app, known in
+Dream as a handler, is just an ordinary function from requests to
+responses. And a middleware is then just a function from handlers to
+handlers.
+
+Within this model, Dream adds:
+
+- Session management with pluggable back ends.
+- A fully composable router.
+- Support for HTTP/1.1, HTTP/2, and HTTPS.
+- WebSockets.
+- GraphQL, including subscriptions and a built-in GraphiQL editor.
+- SQL connection pool helpers.
+- Server-side HTML templates.
+- Automatic secure handling of cookies and forms.
+- Unified, internationalization-friendly error handling.
+- A neat log, and OCaml runtime configuration.
+- Helpers for Web formats, such as Base64url, and a modern cipher.
+
+Because of the simple programming model, everything is optional and
+composable. It is trivailly possible to strip Dream down to just a
+bare driver of the various HTTP protocols.
+
+Dream is presented as a single module, whose API is documented on one
+page. In addition, Dream comes with a large number of examples.
+Security topics are introduced throughout, wherever they are
+applicable."""
+  maintainer: "Anton Bachin <antonbachin@yahoo.com>"
+  authors: "Anton Bachin <antonbachin@yahoo.com>"
+  license: "MIT"
+  tags: [
+    "http" "web" "framework" "websocket" "graphql" "server" "http2" "tls"
+  ]
+  homepage: "https://github.com/aantron/dream"
+  doc: "https://aantron.github.io/dream"
+  bug-reports: "https://github.com/aantron/dream/issues"
+  depends: [
+    "base-unix"
+    "bigarray-compat"
+    "camlp-streams"
+    "caqti" {>= "1.8.0"}
+    "caqti-lwt"
+    "conf-libev" {os != "win32"}
+    "cstruct" {>= "6.0.0"}
+    "dream-httpaf" {>= "1.0.0~alpha2"}
+    "dream-pure" {>= "1.0.0~alpha2"}
+    "dune" {>= "2.7.0"}
+    "fmt" {>= "0.8.7"}
+    "graphql_parser"
+    "graphql-lwt"
+    "lwt"
+    "lwt_ppx" {>= "1.2.2"}
+    "lwt_ssl"
+    "logs" {>= "0.5.0"}
+    "magic-mime"
+    "mirage-clock" {>= "3.0.0"}
+    "mirage-crypto" {>= "0.8.1"}
+    "mirage-crypto-rng"
+    "mirage-crypto-rng-lwt"
+    "multipart_form" {>= "0.4.0"}
+    "multipart_form-lwt"
+    "ocaml" {>= "4.08.0"}
+    "ptime" {>= "0.8.1"}
+    "ssl" {>= "0.5.8"}
+    "uri" {>= "4.2.0"}
+    "yojson"
+    "alcotest" {with-test}
+    "bisect_ppx" {with-test & >= "2.5.0"}
+    "caqti-driver-postgresql" {with-test}
+    "caqti-driver-sqlite3" {with-test}
+    "crunch" {with-test}
+    "js_of_ocaml" {with-test}
+    "js_of_ocaml-ppx" {with-test}
+    "lambdasoup" {with-test}
+    "ppx_expect" {with-test & >= "v0.15.0"}
+    "ppx_yojson_conv" {with-test}
+    "reason" {with-test}
+    "tyxml" {with-test & >= "4.5.0"}
+  ]
+  build: ["dune" "build" "-p" name "-j" jobs]
+  dev-repo: "git+https://github.com/aantron/dream.git"
+  url {
+    src:
+      "https://github.com/aantron/dream/releases/download/1.0.0-alpha5/dream-1.0.0-alpha5.tar.gz"
+    checksum: "md5=de6f6908ae899c9e85f2c751a0263932"
+  }
+}
+package "dream-httpaf" {
+  opam-version: "2.0"
+  version: "1.0.0~alpha2"
+  synopsis:
+    "Internal: shared http/af stack for Dream (server) and Hyper (client)"
+  description: "This package does not have a stable API."
+  maintainer: "Anton Bachin <antonbachin@yahoo.com>"
+  authors: "Anton Bachin <antonbachin@yahoo.com>"
+  license: "MIT"
+  homepage: "https://github.com/aantron/dream"
+  doc: "https://aantron.github.io/dream"
+  bug-reports: "https://github.com/aantron/dream/issues"
+  depends: [
+    "dream-pure"
+    "dune" {>= "2.7.0"}
+    "lwt"
+    "lwt_ppx" {>= "1.2.2"}
+    "lwt_ssl"
+    "ocaml" {>= "4.08.0"}
+    "ssl" {>= "0.5.8"}
+    "angstrom" {>= "0.14.0"}
+    "base64" {>= "3.0.0"}
+    "bigstringaf" {>= "0.5.0"}
+    "digestif" {>= "0.7.2"}
+    "faraday" {>= "0.6.1"}
+    "faraday-lwt-unix"
+    "ke" {>= "0.5"}
+    "lwt_ssl" {>= "1.2.0"}
+    "psq"
+    "result"
+  ]
+  build: ["dune" "build" "-p" name "-j" jobs]
+  dev-repo: "git+https://github.com/aantron/dream.git"
+  url {
+    src:
+      "https://github.com/aantron/dream/releases/download/1.0.0-alpha5/dream-1.0.0-alpha5.tar.gz"
+    checksum: "md5=de6f6908ae899c9e85f2c751a0263932"
+  }
+}
+package "dream-pure" {
+  opam-version: "2.0"
+  version: "1.0.0~alpha2"
+  synopsis:
+    "Internal: shared HTTP types for Dream (server) and Hyper (client)"
+  description: "This package does not have a stable API."
+  maintainer: "Anton Bachin <antonbachin@yahoo.com>"
+  authors: "Anton Bachin <antonbachin@yahoo.com>"
+  license: "MIT"
+  homepage: "https://github.com/aantron/dream"
+  doc: "https://aantron.github.io/dream"
+  bug-reports: "https://github.com/aantron/dream/issues"
+  depends: [
+    "base64" {>= "3.1.0"}
+    "bigstringaf" {>= "0.5.0"}
+    "dune" {>= "2.7.0"}
+    "hmap"
+    "lwt"
+    "lwt_ppx" {>= "1.2.2"}
+    "ocaml" {>= "4.08.0"}
+    "ptime" {>= "0.8.1"}
+    "uri" {>= "4.2.0"}
+    "alcotest" {with-test}
+    "bisect_ppx" {with-test & >= "2.5.0"}
+    "ppx_expect" {with-test}
+    "ppx_yojson_conv" {with-test}
+  ]
+  build: ["dune" "build" "-p" name "-j" jobs]
+  dev-repo: "git+https://github.com/aantron/dream.git"
+  url {
+    src:
+      "https://github.com/aantron/dream/releases/download/1.0.0-alpha4/dream-1.0.0-alpha4.tar.gz"
+    checksum: "md5=20aaa93b13c210324e9dcceeba3c3b21"
+  }
+}
+package "dune" {
+  opam-version: "2.0"
+  version: "3.10.0"
+  synopsis: "Fast, portable, and opinionated build system"
+  description: """\
+dune is a build system that was designed to simplify the release of
+Jane Street packages. It reads metadata from "dune" files following a
+very simple s-expression syntax.
+
+dune is fast, has very low-overhead, and supports parallel builds on
+all platforms. It has no system dependencies; all you need to build
+dune or packages using dune is OCaml. You don't need make or bash
+as long as the packages themselves don't use bash explicitly.
+
+dune supports multi-package development by simply dropping multiple
+repositories into the same directory.
+
+It also supports multi-context builds, such as building against
+several opam roots/switches simultaneously. This helps maintaining
+packages across several versions of OCaml and gives cross-compilation
+for free."""
+  maintainer: "Jane Street Group, LLC <opensource@janestreet.com>"
+  authors: "Jane Street Group, LLC <opensource@janestreet.com>"
+  license: "MIT"
+  homepage: "https://github.com/ocaml/dune"
+  doc: "https://dune.readthedocs.io/"
+  bug-reports: "https://github.com/ocaml/dune/issues"
+  depends: [
+    ("ocaml" {>= "4.08"} |
+     ("ocaml" {>= "4.02" & < "4.08~~"} & "ocamlfind-secondary"))
+    "base-unix"
+    "base-threads"
+  ]
+  conflicts: [
+    "merlin" {< "3.4.0"}
+    "ocaml-lsp-server" {< "1.3.0"}
+    "dune-configurator" {< "2.3.0"}
+    "odoc" {< "2.0.1"}
+    "dune-release" {< "1.3.0"}
+    "js_of_ocaml-compiler" {< "3.6.0"}
+    "jbuilder" {= "transition"}
+  ]
+  build: [
+    ["ocaml" "boot/bootstrap.ml" "-j" jobs]
+    [
+      "./_boot/dune.exe"
+      "build"
+      "dune.install"
+      "--release"
+      "--profile"
+      "dune-bootstrap"
+      "-j"
+      jobs
+    ]
+  ]
+  dev-repo: "git+https://github.com/ocaml/dune.git"
+  url {
+    src:
+      "https://github.com/ocaml/dune/releases/download/3.10.0/dune-3.10.0.tbz"
+    checksum: [
+      "sha256=9ff03384a98a8df79852cc674f0b4738ba8aec17029b6e2eeb514f895e710355"
+      "sha512=8133cdcc5499a6bf21cd65b4fc8b12445ae39366731006773fcd3b348c553a8d89d004db161c655aa167a2a3653b7919d32b27f29217106ef762bd01b43afc76"
+    ]
+  }
+  x-commit-hash: "fc382520272012638088848d7f3dd1ef6687a284"
+}
+package "dune-build-info" {
+  opam-version: "2.0"
+  version: "3.10.0"
+  synopsis: "Embed build information inside executable"
+  description: """\
+The build-info library allows to access information about how the
+executable was built, such as the version of the project at which it
+was built or the list of statically linked libraries with their
+versions.  It supports reporting the version from the version control
+system during development to get an precise reference of when the
+executable was built."""
+  maintainer: "Jane Street Group, LLC <opensource@janestreet.com>"
+  authors: "Jane Street Group, LLC <opensource@janestreet.com>"
+  license: "MIT"
+  homepage: "https://github.com/ocaml/dune"
+  doc: "https://dune.readthedocs.io/"
+  bug-reports: "https://github.com/ocaml/dune/issues"
+  depends: [
+    "dune" {>= "3.5"}
+    "ocaml" {>= "4.08"}
+    "odoc" {with-doc}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["rm" "-rf" "vendor/csexp"]
+    ["rm" "-rf" "vendor/pp"]
+    ["dune" "build" "-p" name "-j" jobs "@install" "@doc" {with-doc}]
+  ]
+  dev-repo: "git+https://github.com/ocaml/dune.git"
+  url {
+    src:
+      "https://github.com/ocaml/dune/releases/download/3.10.0/dune-3.10.0.tbz"
+    checksum: [
+      "sha256=9ff03384a98a8df79852cc674f0b4738ba8aec17029b6e2eeb514f895e710355"
+      "sha512=8133cdcc5499a6bf21cd65b4fc8b12445ae39366731006773fcd3b348c553a8d89d004db161c655aa167a2a3653b7919d32b27f29217106ef762bd01b43afc76"
+    ]
+  }
+  x-commit-hash: "fc382520272012638088848d7f3dd1ef6687a284"
+}
+package "dune-configurator" {
+  opam-version: "2.0"
+  version: "3.10.0"
+  synopsis: "Helper library for gathering system configuration"
+  description: """\
+dune-configurator is a small library that helps writing OCaml scripts that
+test features available on the system, in order to generate config.h
+files for instance.
+Among other things, dune-configurator allows one to:
+- test if a C program compiles
+- query pkg-config
+- import #define from OCaml header files
+- generate config.h file"""
+  maintainer: "Jane Street Group, LLC <opensource@janestreet.com>"
+  authors: "Jane Street Group, LLC <opensource@janestreet.com>"
+  license: "MIT"
+  homepage: "https://github.com/ocaml/dune"
+  doc: "https://dune.readthedocs.io/"
+  bug-reports: "https://github.com/ocaml/dune/issues"
+  depends: [
+    "dune" {>= "3.5"}
+    "ocaml" {>= "4.04.0"}
+    "base-unix"
+    "csexp" {>= "1.5.0"}
+    "odoc" {with-doc}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["rm" "-rf" "vendor/csexp"]
+    ["rm" "-rf" "vendor/pp"]
+    ["dune" "build" "-p" name "-j" jobs "@install" "@doc" {with-doc}]
+  ]
+  dev-repo: "git+https://github.com/ocaml/dune.git"
+  url {
+    src:
+      "https://github.com/ocaml/dune/releases/download/3.10.0/dune-3.10.0.tbz"
+    checksum: [
+      "sha256=9ff03384a98a8df79852cc674f0b4738ba8aec17029b6e2eeb514f895e710355"
+      "sha512=8133cdcc5499a6bf21cd65b4fc8b12445ae39366731006773fcd3b348c553a8d89d004db161c655aa167a2a3653b7919d32b27f29217106ef762bd01b43afc76"
+    ]
+  }
+  x-commit-hash: "fc382520272012638088848d7f3dd1ef6687a284"
+}
+package "dune-rpc" {
+  opam-version: "2.0"
+  version: "3.10.0"
+  synopsis: "Communicate with dune using rpc"
+  description: "Library to connect and control a running dune instance"
+  maintainer: "Jane Street Group, LLC <opensource@janestreet.com>"
+  authors: "Jane Street Group, LLC <opensource@janestreet.com>"
+  license: "MIT"
+  homepage: "https://github.com/ocaml/dune"
+  doc: "https://dune.readthedocs.io/"
+  bug-reports: "https://github.com/ocaml/dune/issues"
+  depends: [
+    "dune" {>= "3.5"}
+    "csexp"
+    "ordering"
+    "dyn"
+    "xdg"
+    "stdune" {= version}
+    "pp" {>= "1.1.0"}
+    "odoc" {with-doc}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["rm" "-rf" "vendor/csexp"]
+    ["rm" "-rf" "vendor/pp"]
+    ["dune" "build" "-p" name "-j" jobs "@install" "@doc" {with-doc}]
+  ]
+  dev-repo: "git+https://github.com/ocaml/dune.git"
+  url {
+    src:
+      "https://github.com/ocaml/dune/releases/download/3.10.0/dune-3.10.0.tbz"
+    checksum: [
+      "sha256=9ff03384a98a8df79852cc674f0b4738ba8aec17029b6e2eeb514f895e710355"
+      "sha512=8133cdcc5499a6bf21cd65b4fc8b12445ae39366731006773fcd3b348c553a8d89d004db161c655aa167a2a3653b7919d32b27f29217106ef762bd01b43afc76"
+    ]
+  }
+  x-commit-hash: "fc382520272012638088848d7f3dd1ef6687a284"
+}
+package "duration" {
+  opam-version: "2.0"
+  version: "0.2.1"
+  synopsis: "Conversions to various time units"
+  description: """\
+A duration is represented in nanoseconds as an unsigned 64 bit integer.  This
+has a range of up to 584 years.  Functions provided check the input and raise
+on negative or out of bound input."""
+  maintainer: "Hannes Mehnert <hannes@mehnert.org>"
+  authors: "Hannes Mehnert <hannes@mehnert.org>"
+  license: "ISC"
+  homepage: "https://github.com/hannesm/duration"
+  doc: "https://hannesm.github.io/duration/doc"
+  bug-reports: "https://github.com/hannesm/duration/issues"
+  depends: [
+    "ocaml" {>= "4.04.2"}
+    "dune" {>= "1.0"}
+    "alcotest" {with-test & >= "0.8.1"}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ]
+  dev-repo: "git+https://github.com/hannesm/duration.git"
+  url {
+    src:
+      "https://github.com/hannesm/duration/releases/download/v0.2.1/duration-0.2.1.tbz"
+    checksum: [
+      "sha256=c738c1f38cfb99820c121cd3ddf819de4b2228f0d50eacbd1cc3ce99e7c71e2b"
+      "sha512=0de9e15c7d6188872ddd9994f08616c4a1822e4ac92724efa2c312fbb2fc44cd7cbe4b36bcf66a8451d510c1fc95de481760afbcacb8f83e183262595dcf5f0c"
+    ]
+  }
+  x-commit-hash: "6abe42ebe585a96f79eb91045911b9a73c1db19e"
+}
+package "dyn" {
+  opam-version: "2.0"
+  version: "3.10.0"
+  synopsis: "Dynamic type"
+  description: "Dynamic type"
+  maintainer: "Jane Street Group, LLC <opensource@janestreet.com>"
+  authors: "Jane Street Group, LLC <opensource@janestreet.com>"
+  license: "MIT"
+  homepage: "https://github.com/ocaml/dune"
+  doc: "https://dune.readthedocs.io/"
+  bug-reports: "https://github.com/ocaml/dune/issues"
+  depends: [
+    "dune" {>= "3.5"}
+    "ocaml" {>= "4.08.0"}
+    "ordering" {= version}
+    "pp" {>= "1.1.0"}
+    "odoc" {with-doc}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["rm" "-rf" "vendor/csexp"]
+    ["rm" "-rf" "vendor/pp"]
+    ["dune" "build" "-p" name "-j" jobs "@install" "@doc" {with-doc}]
+  ]
+  dev-repo: "git+https://github.com/ocaml/dune.git"
+  url {
+    src:
+      "https://github.com/ocaml/dune/releases/download/3.10.0/dune-3.10.0.tbz"
+    checksum: [
+      "sha256=9ff03384a98a8df79852cc674f0b4738ba8aec17029b6e2eeb514f895e710355"
+      "sha512=8133cdcc5499a6bf21cd65b4fc8b12445ae39366731006773fcd3b348c553a8d89d004db161c655aa167a2a3653b7919d32b27f29217106ef762bd01b43afc76"
+    ]
+  }
+  x-commit-hash: "fc382520272012638088848d7f3dd1ef6687a284"
+}
+package "either" {
+  opam-version: "2.0"
+  version: "1.0.0"
+  synopsis: "Compatibility Either module"
+  description: """\
+Projects that want to use the Either module defined in OCaml 4.12.0 while
+staying compatible with older versions of OCaml should use this library
+instead."""
+  maintainer: "Craig Ferguson <me@craigfe.io>"
+  authors: "Craig Ferguson <me@craigfe.io>"
+  license: "MIT"
+  homepage: "https://github.com/mirage/either"
+  doc: "https://mirage.github.io/either"
+  bug-reports: "https://github.com/mirage/either/issues"
+  depends: [
+    "dune" {>= "2.0"}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    [
+      "dune"
+      "build"
+      "-p"
+      name
+      "-j"
+      jobs
+      "@install"
+      "@runtest" {with-test}
+      "@doc" {with-doc}
+    ]
+  ]
+  dev-repo: "git+https://github.com/mirage/either.git"
+  url {
+    src:
+      "https://github.com/mirage/either/releases/download/1.0.0/either-1.0.0.tbz"
+    checksum: [
+      "sha256=bf674de3312dee7b7215f07df1e8a96eb3d679164b8a918cdd95b8d97e505884"
+      "sha512=147854c09f897dd028b18a9f19acea8666107aaa7b1aab3c92f568af531364f57298edcaf3897d74246d3857d52e9bfb7ad0fc39220d988d9f14694ca1d5e9ed"
+    ]
+  }
+  x-commit-hash: "a270ceac58e3e5bed6fe7e8bfb7132b14ee9c322"
+}
+package "eqaf" {
+  opam-version: "2.0"
+  version: "0.9"
+  synopsis: "Constant-time equal function on string"
+  description:
+    "This package provides an equal function on string in constant-time to avoid timing-attack with crypto stuff."
+  maintainer: "Romain Calascibetta <romain.calascibetta@gmail.com>"
+  authors: "Romain Calascibetta <romain.calascibetta@gmail.com>"
+  license: "MIT"
+  homepage: "https://github.com/mirage/eqaf"
+  doc: "https://mirage.github.io/eqaf/"
+  bug-reports: "https://github.com/mirage/eqaf/issues"
+  depends: [
+    "ocaml" {>= "4.07.0"}
+    "dune" {>= "2.0"}
+    "cstruct" {>= "1.1.0"}
+    "base64" {with-test}
+    "alcotest" {with-test}
+    "crowbar" {with-test}
+    "fmt" {with-test & >= "0.8.7"}
+    "bechamel" {with-test}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" "1" "--no-buffer" "--verbose"]
+      {with-test}
+  ]
+  dev-repo: "git+https://github.com/mirage/eqaf.git"
+  url {
+    src: "https://github.com/mirage/eqaf/releases/download/v0.9/eqaf-0.9.tbz"
+    checksum: [
+      "sha256=ec0e28a946ac6817f95d5854f05a9961ae3a8408bb610e79cfad01b9b255dfe0"
+      "sha512=4df7fd3ea35156953a172c1a021aab05b8b122ee8d3cfdb34f96edb1b5133d1fe2721b90cb64287841d770b16c2ffe70559c66e90f8d61a92b73857da22548c4"
+    ]
+  }
+  x-commit-hash: "e878ed56e40ca05c851a0e3297ab00ab76b10e0e"
+}
+package "faraday" {
+  opam-version: "2.0"
+  version: "0.8.2"
+  synopsis: "A library for writing fast and memory-efficient serializers"
+  description: """\
+Faraday is a library for writing fast and memory-efficient serializers. Its
+core type and related operation gives the user fine-grained control over
+copying and allocation behavior while serializing user-defined types, and
+presents the output in a form that makes it possible to use vectorized write
+operations, such as the writev system call, or any other platform or
+application-specific output APIs."""
+  maintainer: "Spiros Eliopoulos <spiros@inhabitedtype.com>"
+  authors: "Spiros Eliopoulos <spiros@inhabitedtype.com>"
+  license: "BSD-3-clause"
+  homepage: "https://github.com/inhabitedtype/faraday"
+  bug-reports: "https://github.com/inhabitedtype/faraday/issues"
+  depends: [
+    "ocaml" {>= "4.03.0"}
+    "dune" {>= "1.11"}
+    "alcotest" {with-test & >= "0.4.1"}
+    "bigstringaf"
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ]
+  dev-repo: "git+https://github.com/inhabitedtype/faraday.git"
+  url {
+    src: "https://github.com/inhabitedtype/faraday/archive/0.8.2.tar.gz"
+    checksum: "md5=307dccc4ea67ff0eeff394701d05bbe7"
+  }
+}
+package "faraday-lwt" {
+  opam-version: "2.0"
+  version: "0.8.2"
+  synopsis: "Lwt support for Faraday"
+  maintainer: "Spiros Eliopoulos <spiros@inhabitedtype.com>"
+  authors: "Spiros Eliopoulos <spiros@inhabitedtype.com>"
+  license: "BSD-3-clause"
+  homepage: "https://github.com/inhabitedtype/faraday"
+  bug-reports: "https://github.com/inhabitedtype/faraday/issues"
+  depends: [
+    "ocaml" {>= "4.03.0"}
+    "dune" {>= "1.11"}
+    "faraday" {>= "0.5.0"}
+    "lwt"
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ]
+  dev-repo: "git+https://github.com/inhabitedtype/faraday.git"
+  url {
+    src: "https://github.com/inhabitedtype/faraday/archive/0.8.2.tar.gz"
+    checksum: "md5=307dccc4ea67ff0eeff394701d05bbe7"
+  }
+}
+package "faraday-lwt-unix" {
+  opam-version: "2.0"
+  version: "0.8.2"
+  synopsis: "Lwt_unix support for Faraday"
+  maintainer: "Spiros Eliopoulos <spiros@inhabitedtype.com>"
+  authors: "Spiros Eliopoulos <spiros@inhabitedtype.com>"
+  license: "BSD-3-clause"
+  homepage: "https://github.com/inhabitedtype/faraday"
+  bug-reports: "https://github.com/inhabitedtype/faraday/issues"
+  depends: [
+    "ocaml" {>= "4.03.0"}
+    "dune" {>= "1.11"}
+    "faraday-lwt"
+    "lwt" {>= "2.7.0"}
+    "base-unix"
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ]
+  dev-repo: "git+https://github.com/inhabitedtype/faraday.git"
+  url {
+    src: "https://github.com/inhabitedtype/faraday/archive/0.8.2.tar.gz"
+    checksum: "md5=307dccc4ea67ff0eeff394701d05bbe7"
+  }
+}
+package "fiber" {
+  opam-version: "2.0"
+  version: "3.7.0"
+  synopsis: "Dune's monadic structured concurrency library"
+  maintainer: "Jane Street Group, LLC <opensource@janestreet.com>"
+  authors: "Jane Street Group, LLC <opensource@janestreet.com>"
+  license: "MIT"
+  homepage: "https://github.com/ocaml-dune/fiber"
+  bug-reports: "https://github.com/ocaml-dune/fiber/issues"
+  depends: [
+    "dune" {>= "3.6"}
+    "ocaml" {>= "4.08"}
+    "ppx_expect" {with-test}
+    "dyn"
+    "stdune"
+    "odoc" {with-doc}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    [
+      "dune"
+      "build"
+      "-p"
+      name
+      "-j"
+      jobs
+      "@install"
+      "@runtest" {with-test & ocaml:version >= "4.13"}
+      "@doc" {with-doc}
+    ]
+  ]
+  dev-repo: "git+https://github.com/ocaml-dune/fiber.git"
+  url {
+    src:
+      "https://github.com/ocaml-dune/fiber/releases/download/3.7.0/fiber-lwt-3.7.0.tbz"
+    checksum: [
+      "sha256=8648a15ae93fe6942999ce36887429a3913b62829c4714e520cc0e7a1c3b9682"
+      "sha512=348b28b28ffd87de035e90753f677658e8ad58421caf3ac086e4c0bbab8508fa5fe2f55d137c425afaf790ebcf45291e16d70eac5cb766b6d9786f042b58b19b"
+    ]
+  }
+  x-commit-hash: "dd66893a530759da26b66bd1c8939fd77f369afb"
+}
+package "fix" {
+  opam-version: "2.0"
+  version: "20230505"
+  synopsis:
+    "Algorithmic building blocks for memoization, recursion, and more"
+  maintainer: "francois.pottier@inria.fr"
+  authors: "François Pottier <francois.pottier@inria.fr>"
+  license: "LGPL-2.0-only"
+  homepage: "https://gitlab.inria.fr/fpottier/fix"
+  bug-reports: "francois.pottier@inria.fr"
+  depends: [
+    "ocaml" {>= "4.03"}
+    "dune" {>= "1.3"}
+  ]
+  build: ["dune" "build" "-p" name "-j" jobs]
+  dev-repo: "git+https://gitlab.inria.fr/fpottier/fix.git"
+  url {
+    src:
+      "https://gitlab.inria.fr/fpottier/fix/-/archive/20230505/archive.tar.gz"
+    checksum: [
+      "md5=2a4afa633128c5010677222f7b3c9451"
+      "sha512=30d446ba6c19aef78b52d9831eb26f8f6ac10e88bd1eff36d16fbbfb32278b2637e31e63a160aec4abbbfdb1e7612ed25d68c936f4cbf2073e51d713ff3a8adf"
+    ]
+  }
+}
+package "fmt" {
+  opam-version: "2.0"
+  version: "0.9.0"
+  synopsis: "OCaml Format pretty-printer combinators"
+  description: """\
+Fmt exposes combinators to devise `Format` pretty-printing functions.
+
+Fmt depends only on the OCaml standard library. The optional `Fmt_tty`
+library that allows to setup formatters for terminal color output
+depends on the Unix library. The optional `Fmt_cli` library that
+provides command line support for Fmt depends on [`Cmdliner`][cmdliner].
+
+Fmt is distributed under the ISC license.
+
+[cmdliner]: http://erratique.ch/software/cmdliner
+
+Home page: http://erratique.ch/software/fmt"""
+  maintainer: "Daniel Bünzli <daniel.buenzl i@erratique.ch>"
+  authors: "The fmt programmers"
+  license: "ISC"
+  tags: ["string" "format" "pretty-print" "org:erratique"]
+  homepage: "https://erratique.ch/software/fmt"
+  doc: "https://erratique.ch/software/fmt/doc/"
+  bug-reports: "https://github.com/dbuenzli/fmt/issues"
+  depends: [
+    "ocaml" {>= "4.08.0"}
+    "ocamlfind" {build}
+    "ocamlbuild" {build}
+    "topkg" {build & >= "1.0.3"}
+  ]
+  depopts: ["base-unix" "cmdliner"]
+  conflicts: [
+    "cmdliner" {< "0.9.8"}
+  ]
+  build: [
+    "ocaml"
+    "pkg/pkg.ml"
+    "build"
+    "--dev-pkg"
+    "%{dev}%"
+    "--with-base-unix"
+    "%{base-unix:installed}%"
+    "--with-cmdliner"
+    "%{cmdliner:installed}%"
+  ]
+  dev-repo: "git+https://erratique.ch/repos/fmt.git"
+  url {
+    src: "https://erratique.ch/software/fmt/releases/fmt-0.9.0.tbz"
+    checksum:
+      "sha512=66cf4b8bb92232a091dfda5e94d1c178486a358cdc34b1eec516d48ea5acb6209c0dfcb416f0c516c50ddbddb3c94549a45e4a6d5c5fd1c81d3374dec823a83b"
+  }
+}
+package "fpath" {
+  opam-version: "2.0"
+  version: "0.7.3"
+  synopsis: "File system paths for OCaml"
+  description: """\
+Fpath is an OCaml module for handling file system paths with POSIX or
+Windows conventions. Fpath processes paths without accessing the file
+system and is independent from any system library.
+
+Fpath depends on [Astring][astring] and is distributed under the ISC
+license.
+
+[astring]: http://erratique.ch/software/astring"""
+  maintainer: "Daniel Bünzli <daniel.buenzl i@erratique.ch>"
+  authors: "The fpath programmers"
+  license: "ISC"
+  tags: ["file" "system" "path" "org:erratique"]
+  homepage: "https://erratique.ch/software/fpath"
+  doc: "https://erratique.ch/software/fpath/doc"
+  bug-reports: "https://github.com/dbuenzli/fpath/issues"
+  depends: [
+    "ocaml" {>= "4.03.0"}
+    "ocamlfind" {build}
+    "ocamlbuild" {build}
+    "topkg" {build & >= "0.9.0"}
+    "astring"
+  ]
+  build: [
+    "ocaml"
+    "pkg/pkg.ml"
+    "build"
+    "--dev-pkg=true" {dev}
+  ]
+  dev-repo: "git+https://erratique.ch/repos/fpath.git"
+  url {
+    src: "https://erratique.ch/software/fpath/releases/fpath-0.7.3.tbz"
+    checksum: "md5=0740b530e8fed5b0adc5eee8463cfc2f"
+  }
+}
+package "graphql" {
+  opam-version: "2.0"
+  version: "0.14.0"
+  synopsis: "Build GraphQL schemas and execute queries against them"
+  description: """\
+`graphql` is a package for creating GraphQL servers. Current feature set includes:
+
+- Type-safe schema design
+- GraphQL parser in pure OCaml using [angstrom](https://github.com/inhabitedtype/angstrom) (April 2016 RFC draft)
+- Query execution
+- Introspection of schemas
+- Arguments for fields
+- Allows variables in queries
+- Subscriptions
+
+Supporting packages:
+
+- Use `graphql-lwt` for Lwt support.
+- Use `graphql-async` for Async support.
+- Use `graphql-cohttp` to run a GraphQL server with `cohttp`."""
+  maintainer: "Andreas Garnaes <andreas.garnaes@gmail.com>"
+  authors: "Andreas Garnaes <andreas.garnaes@gmail.com>"
+  license: "MIT"
+  homepage: "https://github.com/andreas/ocaml-graphql-server"
+  doc: "https://andreas.github.io/ocaml-graphql-server/"
+  bug-reports: "https://github.com/andreas/ocaml-graphql-server/issues"
+  depends: [
+    "ocaml" {>= "4.08.0"}
+    "dune" {>= "1.11"}
+    "graphql_parser" {>= "0.9.0"}
+    "yojson" {>= "1.6.0"}
+    "rresult" {>= "0.3.0"}
+    "seq"
+    "alcotest" {with-test}
+  ]
+  build: [
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ]
+  dev-repo: "git+https://github.com/andreas/ocaml-graphql-server.git"
+  url {
+    src:
+      "https://github.com/andreas/ocaml-graphql-server/releases/download/0.14.0/graphql-0.14.0.tbz"
+    checksum: [
+      "sha256=bf8bf5b9e17e355ecbbd82158a769fe2b138e746753fd3a23008ada3afcd1c06"
+      "sha512=1d303d9ab67faecea8081f007b3696e36033aa65eba0854f50067b4d667d9a9ad185ad949371790a03509cb31bf6356b75c58f3066da9c35d82e620df5780185"
+    ]
+  }
+  x-commit-hash: "79e01a09d08b0de3b3fff8195e19f7d8ab566498"
+}
+package "graphql-lwt" {
+  opam-version: "2.0"
+  version: "0.14.0"
+  synopsis: "Build GraphQL schemas with Lwt support"
+  description:
+    "`graphql-lwt` adds support for Lwt to `graphql`, so you can use Lwt in your GraphQL schema resolver functions."
+  maintainer: "Andreas Garnaes <andreas.garnaes@gmail.com>"
+  authors: "Andreas Garnaes <andreas.garnaes@gmail.com>"
+  license: "MIT"
+  homepage: "https://github.com/andreas/ocaml-graphql-server"
+  doc: "https://andreas.github.io/ocaml-graphql-server/"
+  bug-reports: "https://github.com/andreas/ocaml-graphql-server/issues"
+  depends: [
+    "ocaml" {>= "4.08.0"}
+    "dune" {>= "1.11"}
+    "graphql" {>= "0.13.0"}
+    "alcotest" {with-test}
+    "yojson" {with-test & >= "1.6.0"}
+    "lwt"
+  ]
+  build: [
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ]
+  dev-repo: "git+https://github.com/andreas/ocaml-graphql-server.git"
+  url {
+    src:
+      "https://github.com/andreas/ocaml-graphql-server/releases/download/0.14.0/graphql-0.14.0.tbz"
+    checksum: [
+      "sha256=bf8bf5b9e17e355ecbbd82158a769fe2b138e746753fd3a23008ada3afcd1c06"
+      "sha512=1d303d9ab67faecea8081f007b3696e36033aa65eba0854f50067b4d667d9a9ad185ad949371790a03509cb31bf6356b75c58f3066da9c35d82e620df5780185"
+    ]
+  }
+  x-commit-hash: "79e01a09d08b0de3b3fff8195e19f7d8ab566498"
+}
+package "graphql_parser" {
+  opam-version: "2.0"
+  version: "0.14.0"
+  synopsis: "Library for parsing GraphQL queries"
+  maintainer: "Andreas Garnaes <andreas.garnaes@gmail.com>"
+  authors: "Andreas Garnaes <andreas.garnaes@gmail.com>"
+  license: "MIT"
+  homepage: "https://github.com/andreas/ocaml-graphql-server"
+  doc: "https://andreas.github.io/ocaml-graphql-server/"
+  bug-reports: "https://github.com/andreas/ocaml-graphql-server/issues"
+  depends: [
+    "ocaml" {>= "4.08.0"}
+    "dune" {>= "1.11"}
+    "menhir" {build & >= "20180523"}
+    "alcotest" {with-test & >= "0.8.1"}
+    "fmt" {>= "0.8.7"}
+    "re" {>= "1.6.0"}
+  ]
+  build: [
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ]
+  dev-repo: "git+https://github.com/andreas/ocaml-graphql-server.git"
+  url {
+    src:
+      "https://github.com/andreas/ocaml-graphql-server/releases/download/0.14.0/graphql-0.14.0.tbz"
+    checksum: [
+      "sha256=bf8bf5b9e17e355ecbbd82158a769fe2b138e746753fd3a23008ada3afcd1c06"
+      "sha512=1d303d9ab67faecea8081f007b3696e36033aa65eba0854f50067b4d667d9a9ad185ad949371790a03509cb31bf6356b75c58f3066da9c35d82e620df5780185"
+    ]
+  }
+  x-commit-hash: "79e01a09d08b0de3b3fff8195e19f7d8ab566498"
+}
+package "hmap" {
+  opam-version: "2.0"
+  version: "0.8.1"
+  synopsis: "Heterogeneous value maps for OCaml"
+  description: """\
+Hmap provides heterogeneous value maps for OCaml. These maps bind keys
+to values with arbitrary types. Keys witness the type of the value
+they are bound to which allows to add and lookup bindings in a type
+safe manner.
+
+Hmap has no dependency and is distributed under the ISC license."""
+  maintainer: "Daniel Bünzli <daniel.buenzl i@erratique.ch>"
+  authors: "Daniel Bünzli <daniel.buenzl i@erratique.ch>"
+  license: "ISC"
+  tags: ["data-structure" "org:erratique"]
+  homepage: "http://erratique.ch/software/hmap"
+  doc: "http://erratique.ch/software/hmap/doc"
+  bug-reports: "http://github.com/dbuenzli/hmap/issues"
+  depends: [
+    "ocaml" {>= "4.02.0"}
+    "ocamlfind" {build}
+    "ocamlbuild" {build}
+    "topkg" {build}
+  ]
+  build: ["ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%"]
+  dev-repo: "git+http://erratique.ch/repos/hmap.git"
+  url {
+    src: "http://erratique.ch/software/hmap/releases/hmap-0.8.1.tbz"
+    checksum: "md5=04169252265a11d852e1547445177196"
+  }
+}
+package "ke" {
+  opam-version: "2.0"
+  version: "0.6"
+  synopsis: "Queue implementation"
+  description:
+    "Queue implementation in OCaml (functional and imperative queue)"
+  maintainer: "Romain Calascibetta <romain.calascibetta@gmail.com>"
+  authors: "Romain Calascibetta <romain.calascibetta@gmail.com>"
+  license: "MIT"
+  homepage: "https://github.com/mirage/ke"
+  doc: "https://mirage.github.io/ke/"
+  bug-reports: "https://github.com/mirage/ke/issues"
+  depends: [
+    "ocaml" {>= "4.08.0"}
+    "dune" {>= "2.0"}
+    "fmt" {>= "0.8.7"}
+    "alcotest" {with-test}
+    "bigstringaf" {with-test}
+    "bechamel" {with-test}
+    "bechamel-notty" {with-test}
+    "bechamel-perf" {with-test}
+    "ocplib-json-typed" {with-test}
+    "core_bench" {with-test & >= "v0.15"}
+    "lwt" {with-test}
+    "crowbar" {with-test}
+    "rresult" {with-test}
+    "jsonm" {with-test}
+    "psq" {with-test}
+    "cmdliner" {>= "1.1.0" & with-test}
+  ]
+  build: ["dune" "build" "-p" name "-j" jobs]
+  run-test: ["dune" "runtest" "-p" name "-j" jobs]
+  dev-repo: "git+https://github.com/mirage/ke.git"
+  url {
+    src: "https://github.com/mirage/ke/releases/download/v0.6/ke-0.6.tbz"
+    checksum: [
+      "sha256=61217207e2200b04b17759736610ff9208269a647f854cb5ae72cdac0d672305"
+      "sha512=be277780a7a6c9109068b6c8d54fa88c35180802ff86951516a32a6b7c0335fd6584753d1c670e02632b3956c09ae31bfec70e3dd5ea94697e9e032ba3b9248b"
+    ]
+  }
+  x-commit-hash: "7678aee5921580378f543a11101b2b0118f2cf6c"
+}
+package "logs" {
+  opam-version: "2.0"
+  version: "0.7.0"
+  synopsis: "Logging infrastructure for OCaml"
+  description: """\
+Logs provides a logging infrastructure for OCaml. Logging is performed
+on sources whose reporting level can be set independently. Log message
+report is decoupled from logging and is handled by a reporter.
+
+A few optional log reporters are distributed with the base library and
+the API easily allows to implement your own.
+
+`Logs` has no dependencies. The optional `Logs_fmt` reporter on OCaml
+formatters depends on [Fmt][fmt].  The optional `Logs_browser`
+reporter that reports to the web browser console depends on
+[js_of_ocaml][jsoo]. The optional `Logs_cli` library that provides
+command line support for controlling Logs depends on
+[`Cmdliner`][cmdliner]. The optional `Logs_lwt` library that provides
+Lwt logging functions depends on [`Lwt`][lwt]
+
+Logs and its reporters are distributed under the ISC license.
+
+[fmt]: http://erratique.ch/software/fmt
+[jsoo]: http://ocsigen.org/js_of_ocaml/
+[cmdliner]: http://erratique.ch/software/cmdliner
+[lwt]: http://ocsigen.org/lwt/"""
+  maintainer: "Daniel Bünzli <daniel.buenzl i@erratique.ch>"
+  authors: "The logs programmers"
+  license: "ISC"
+  tags: ["log" "system" "org:erratique"]
+  homepage: "https://erratique.ch/software/logs"
+  doc: "https://erratique.ch/software/logs/doc"
+  bug-reports: "https://github.com/dbuenzli/logs/issues"
+  depends: [
+    "ocaml" {>= "4.03.0"}
+    "ocamlfind" {build}
+    "ocamlbuild" {build}
+    "topkg" {build}
+    "mtime" {with-test}
+  ]
+  depopts: ["js_of_ocaml" "fmt" "cmdliner" "lwt" "base-threads"]
+  conflicts: [
+    "cmdliner" {< "0.9.8"}
+    "js_of_ocaml" {< "3.3.0"}
+  ]
+  build: [
+    "ocaml"
+    "pkg/pkg.ml"
+    "build"
+    "--pinned"
+    "%{pinned}%"
+    "--with-js_of_ocaml"
+    "%{js_of_ocaml:installed}%"
+    "--with-fmt"
+    "%{fmt:installed}%"
+    "--with-cmdliner"
+    "%{cmdliner:installed}%"
+    "--with-lwt"
+    "%{lwt:installed}%"
+    "--with-base-threads"
+    "%{base-threads:installed}%"
+  ]
+  dev-repo: "git+https://erratique.ch/repos/logs.git"
+  url {
+    src: "https://erratique.ch/software/logs/releases/logs-0.7.0.tbz"
+    checksum: "md5=2bf021ca13331775e33cf34ab60246f7"
+  }
+}
+package "lwt" {
+  opam-version: "2.0"
+  version: "5.7.0"
+  synopsis: "Promises and event-driven I/O"
+  description: """\
+A promise is a value that may become determined in the future.
+
+Lwt provides typed, composable promises. Promises that are resolved by I/O are
+resolved by Lwt in parallel.
+
+Meanwhile, OCaml code, including code creating and waiting on promises, runs in
+a single thread by default. This reduces the need for locks or other
+synchronization primitives. Code can be run in parallel on an opt-in basis."""
+  maintainer: [
+    "Raphaël Proust <code@bnwr.net>" "Anton Bachin <antonbachin@yahoo.com>"
+  ]
+  authors: ["Jérôme Vouillon" "Jérémie Dimino"]
+  license: "MIT"
+  homepage: "https://github.com/ocsigen/lwt"
+  doc: "https://ocsigen.org/lwt"
+  bug-reports: "https://github.com/ocsigen/lwt/issues"
+  depends: [
+    "cppo" {build & >= "1.1.0"}
+    "dune" {>= "1.8.0"}
+    "dune-configurator"
+    "ocaml" {>= "4.08"}
+    "ocplib-endian"
+    "ocamlfind" {dev & >= "1.7.3-1"}
+  ]
+  depopts: ["base-threads" "base-unix" "conf-libev"]
+  build: [
+    [
+      "dune"
+      "exec"
+      "-p"
+      name
+      "src/unix/config/discover.exe"
+      "--"
+      "--save"
+      "--use-libev"
+      "%{conf-libev:installed}%"
+    ]
+    ["dune" "build" "-p" name "-j" jobs]
+  ]
+  dev-repo: "git+https://github.com/ocsigen/lwt.git"
+  url {
+    src: "https://github.com/ocsigen/lwt/archive/refs/tags/5.7.0.tar.gz"
+    checksum: [
+      "md5=737039d29d45b2d2b35db6931c8d75c6"
+      "sha512=42e629920783428673b99c9d7a639237c9e6b35079b5d907bc67e7ea506acf9edadc48cec580bdcfd2410ed9412bf5e6bcc8b09de2fa7d35ce1490973d05ddd1"
+    ]
+  }
+}
+package "lwt_ppx" {
+  opam-version: "2.0"
+  version: "2.1.0"
+  synopsis:
+    "PPX syntax for Lwt, providing something similar to async/await from JavaScript"
+  maintainer: "Anton Bachin <antonbachin@yahoo.com>"
+  authors: "Gabriel Radanne"
+  license: "MIT"
+  homepage: "https://github.com/ocsigen/lwt"
+  doc: "https://ocsigen.org/lwt/dev/api/Ppx_lwt"
+  bug-reports: "https://github.com/ocsigen/lwt/issues"
+  depends: [
+    "dune" {>= "1.8.0"}
+    "lwt"
+    "ocaml" {>= "4.08"}
+    "ppxlib" {>= "0.16.0"}
+  ]
+  build: ["dune" "build" "-p" name "-j" jobs]
+  dev-repo: "git+https://github.com/ocsigen/lwt.git"
+  url {
+    src: "https://github.com/ocsigen/lwt/archive/5.6.0.tar.gz"
+    checksum: [
+      "md5=e63979ee40a80d5b9e9e5545f33323b4"
+      "sha512=d616389bc9e0da11f25843ab7541ac2d40c9543700a89455f14115b339bbe58cef2b8acf0ae97fd54e15a4cb93149cfe1ebfda301aa93933045f76b7d9344160"
+    ]
+  }
+}
+package "lwt_ssl" {
+  opam-version: "2.0"
+  version: "1.2.0"
+  synopsis: "OpenSSL binding with concurrent I/O"
+  maintainer: "Anton Bachin <antonbachin@yahoo.com>"
+  authors: ["Jérôme Vouillon" "Jérémie Dimino"]
+  license: "LGPL with OpenSSL linking exception"
+  homepage: "https://github.com/ocsigen/lwt_ssl"
+  doc: "https://github.com/ocsigen/lwt_ssl/blob/master/src/lwt_ssl.mli"
+  bug-reports: "https://github.com/ocsigen/lwt_ssl/issues"
+  depends: [
+    "base-unix"
+    "dune"
+    "lwt" {>= "3.0.0"}
+    "ocaml"
+    "ssl" {>= "0.5.13"}
+  ]
+  build: ["dune" "build" "-p" name "-j" jobs]
+  dev-repo: "git+https://github.com/ocsigen/lwt_ssl.git"
+  url {
+    src:
+      "https://github.com/ocsigen/lwt_ssl/releases/download/1.2.0/lwt_ssl-1.2.0.tbz"
+    checksum: [
+      "sha256=b3020ad27aecf377e1c3f2740a08b36dcbba991f843066511357410548889a77"
+      "sha512=cf2ef7d4db26e40c044e743ce85849a10eb57c916cbd7d6291bf4458291689098293bfb4cd7f1023f3ae8bc8e9a68cb2c7470669501a9b44695659405a75aa00"
+    ]
+  }
+  x-commit-hash: "d9ea0ab93da68f0d13ed710cc16f80983923f9ba"
+}
+package "magic-mime" {
+  opam-version: "2.0"
+  version: "1.3.0"
+  synopsis: "Map filenames to common MIME types"
+  description: """\
+This library contains a database of MIME types that maps filename extensions
+into MIME types suitable for use in many Internet protocols such as HTTP or
+e-mail.  It is generated from the `mime.types` file found in Unix systems, but
+has no dependency on a filesystem since it includes the contents of the
+database as an ML datastructure.
+
+For example, here's how to lookup MIME types in the [utop] REPL:
+
+    #require "magic-mime";;
+    Magic_mime.lookup "/foo/bar.txt";;
+    - : bytes = "text/plain"
+    Magic_mime.lookup "bar.css";;
+    - : bytes = "text/css\""""
+  maintainer: "Anil Madhavapeddy <anil@recoil.org>"
+  authors: ["Anil Madhavapeddy" "Maxence Guesdon"]
+  license: "ISC"
+  homepage: "https://github.com/mirage/ocaml-magic-mime"
+  doc: "https://mirage.github.io/ocaml-magic-mime/"
+  bug-reports: "https://github.com/mirage/ocaml-magic-mime/issues"
+  depends: [
+    "ocaml" {>= "4.03.0"}
+    "dune"
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["dune" "build" "-p" name "-j" jobs]
+  ]
+  dev-repo: "git+https://github.com/mirage/ocaml-magic-mime.git"
+  url {
+    src:
+      "https://github.com/mirage/ocaml-magic-mime/releases/download/v1.3.0/magic-mime-1.3.0.tbz"
+    checksum: [
+      "sha256=d835948a288d7efd9c49e1958b9f54260769ff4a0eb1f0829541876622f7cd9c"
+      "sha512=15da02dcd044805401454cca25cf4b564ffcf1cd929f7422fd43c7911e3c20f6e456bd49be4c1916b706104a1f4acc5bb06c7e52bf6b8cc8895c519a0a0ac051"
+    ]
+  }
+  x-commit-hash: "afcac590cbe6e970ba3048b643fb923e97a9a3c1"
+}
+package "menhir" {
+  opam-version: "2.0"
+  version: "20230608"
+  synopsis: "An LR(1) parser generator"
+  maintainer: "francois.pottier@inria.fr"
+  authors: [
+    "François Pottier <francois.pottier@inria.fr>"
+    "Yann Régis-Gianas <yrg@pps.univ-paris-diderot.fr>"
+  ]
+  license: "GPL-2.0-only"
+  homepage: "http://gitlab.inria.fr/fpottier/menhir"
+  bug-reports: "https://gitlab.inria.fr/fpottier/menhir/-/issues"
+  depends: [
+    "ocaml" {>= "4.03.0"}
+    "dune" {>= "2.8.0"}
+    "menhirLib" {= version}
+    "menhirSdk" {= version}
+  ]
+  build: ["dune" "build" "-p" name "-j" jobs]
+  dev-repo: "git+https://gitlab.inria.fr/fpottier/menhir.git"
+  url {
+    src:
+      "https://gitlab.inria.fr/fpottier/menhir/-/archive/20230608/archive.tar.gz"
+    checksum: [
+      "md5=8ff26b1e3685c472b7b3aba2fe938a43"
+      "sha512=334b9dcb1283a28b8547082a89536b1d439ff588290b8eaecdf4802c5f74dbc8d16ad6fc6c0820036183518d83e2cc273a75787a8b41137424c8e7ee82e2b50a"
+    ]
+  }
+}
+package "menhirLib" {
+  opam-version: "2.0"
+  version: "20230608"
+  synopsis: "Runtime support library for parsers generated by Menhir"
+  maintainer: "francois.pottier@inria.fr"
+  authors: [
+    "François Pottier <francois.pottier@inria.fr>"
+    "Yann Régis-Gianas <yrg@pps.univ-paris-diderot.fr>"
+  ]
+  license: "LGPL-2.0-only with OCaml-LGPL-linking-exception"
+  homepage: "http://gitlab.inria.fr/fpottier/menhir"
+  bug-reports: "https://gitlab.inria.fr/fpottier/menhir/-/issues"
+  depends: [
+    "ocaml" {>= "4.03.0"}
+    "dune" {>= "2.8.0"}
+  ]
+  conflicts: [
+    "menhir" {!= version}
+  ]
+  build: ["dune" "build" "-p" name "-j" jobs]
+  dev-repo: "git+https://gitlab.inria.fr/fpottier/menhir.git"
+  url {
+    src:
+      "https://gitlab.inria.fr/fpottier/menhir/-/archive/20230608/archive.tar.gz"
+    checksum: [
+      "md5=8ff26b1e3685c472b7b3aba2fe938a43"
+      "sha512=334b9dcb1283a28b8547082a89536b1d439ff588290b8eaecdf4802c5f74dbc8d16ad6fc6c0820036183518d83e2cc273a75787a8b41137424c8e7ee82e2b50a"
+    ]
+  }
+}
+package "menhirSdk" {
+  opam-version: "2.0"
+  version: "20230608"
+  synopsis: "Compile-time library for auxiliary tools related to Menhir"
+  maintainer: "francois.pottier@inria.fr"
+  authors: [
+    "François Pottier <francois.pottier@inria.fr>"
+    "Yann Régis-Gianas <yrg@pps.univ-paris-diderot.fr>"
+  ]
+  license: "LGPL-2.0-only with OCaml-LGPL-linking-exception"
+  homepage: "http://gitlab.inria.fr/fpottier/menhir"
+  bug-reports: "https://gitlab.inria.fr/fpottier/menhir/-/issues"
+  depends: [
+    "ocaml" {>= "4.03.0"}
+    "dune" {>= "2.8.0"}
+  ]
+  conflicts: [
+    "menhir" {!= version}
+  ]
+  build: ["dune" "build" "-p" name "-j" jobs]
+  dev-repo: "git+https://gitlab.inria.fr/fpottier/menhir.git"
+  url {
+    src:
+      "https://gitlab.inria.fr/fpottier/menhir/-/archive/20230608/archive.tar.gz"
+    checksum: [
+      "md5=8ff26b1e3685c472b7b3aba2fe938a43"
+      "sha512=334b9dcb1283a28b8547082a89536b1d439ff588290b8eaecdf4802c5f74dbc8d16ad6fc6c0820036183518d83e2cc273a75787a8b41137424c8e7ee82e2b50a"
+    ]
+  }
+}
+package "merlin-lib" {
+  opam-version: "2.0"
+  version: "4.9-414"
+  synopsis: "Merlin's libraries"
+  description: """\
+These libraries provides access to low-level compiler interfaces and the
+  standard higher-level merlin protocol. The library is provided as-is, is not
+  thoroughly documented, and its public API might break with any new release."""
+  maintainer: "defree@gmail.com"
+  authors: "The Merlin team"
+  license: "MIT"
+  homepage: "https://github.com/ocaml/merlin"
+  bug-reports: "https://github.com/ocaml/merlin/issues"
+  depends: [
+    "ocaml" {>= "4.14" & < "4.15"}
+    "dune" {>= "2.9.0"}
+    "csexp" {>= "1.5.1"}
+    "menhir" {dev & >= "20201216"}
+    "menhirLib" {dev & >= "20201216"}
+    "menhirSdk" {dev & >= "20201216"}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["dune" "build" "-p" name "-j" jobs]
+  ]
+  dev-repo: "git+https://github.com/ocaml/merlin.git"
+  url {
+    src:
+      "https://github.com/ocaml/merlin/releases/download/v4.9-414/merlin-4.9-414.tbz"
+    checksum: [
+      "sha256=e23fc47813591269ff9d27c820988e520a662c89dd0af7ea652b21517499cbfd"
+      "sha512=2199f963368597d10cc197e41ebb883f6a166018c9da3fe259c354550df41b713781003598a2fe5956b0a4ae96f8c07ba33831d3cf6f9d494b731944f87e491e"
+    ]
+  }
+  x-commit-hash: "df75a4550704c113ac29505fd68ef9b7893d4bf5"
+}
+package "mirage-clock" {
+  opam-version: "2.0"
+  version: "4.2.0"
+  synopsis: "Libraries and module types for portable clocks"
+  description: """\
+This library implements portable support for an operating system timesource
+that is compatible with the [MirageOS](https://mirage.io) library interfaces
+found in: <https://github.com/mirage/mirage>
+
+It implements an `MCLOCK` module that represents a monotonic timesource
+since an arbitrary point, and `PCLOCK` which counts time since the Unix
+epoch."""
+  maintainer: "anil@recoil.org"
+  authors: ["Anil Madhavapeddy" "Daniel C. Bünzli" "Matthew Gray"]
+  license: "ISC"
+  tags: "org:mirage"
+  homepage: "https://github.com/mirage/mirage-clock"
+  doc: "https://mirage.github.io/mirage-clock/"
+  bug-reports: "https://github.com/mirage/mirage-clock/issues"
+  depends: [
+    "ocaml" {>= "4.08.0"}
+    "dune" {>= "2.8"}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["dune" "build" "-p" name "-j" jobs]
+  ]
+  dev-repo: "git+https://github.com/mirage/mirage-clock.git"
+  url {
+    src:
+      "https://github.com/mirage/mirage-clock/releases/download/v4.2.0/mirage-clock-4.2.0.tbz"
+    checksum: [
+      "sha256=fa17d15d5be23c79ba741f5f7cb88ed7112de16a4410cea81c71b98086889847"
+      "sha512=05a359dc8400d4ca200ff255dbd030acd33d2c4acb5020838f772c02cdb5f243f3dbafbc43a8cd51e6b5923a140f84c9e7ea25b2c0fa277bb68b996190d36e3b"
+    ]
+  }
+  x-commit-hash: "f457572bfedb9586c8bf9eaa9ece7e53677856e3"
+}
+package "mirage-crypto" {
+  opam-version: "2.0"
+  version: "0.11.1"
+  synopsis: "Simple symmetric cryptography for the modern age"
+  description: """\
+Mirage-crypto provides symmetric ciphers (DES, AES, RC4, ChaCha20/Poly1305), and
+hashes (MD5, SHA-1, SHA-2)."""
+  maintainer: "Hannes Mehnert <hannes@mehnert.org>"
+  authors: [
+    "David Kaloper <dk505@cam.ac.uk>" "Hannes Mehnert <hannes@mehnert.org>"
+  ]
+  license: "ISC"
+  homepage: "https://github.com/mirage/mirage-crypto"
+  doc: "https://mirage.github.io/mirage-crypto/doc"
+  bug-reports: "https://github.com/mirage/mirage-crypto/issues"
+  depends: [
+    "ocaml" {>= "4.08.0"}
+    "dune" {>= "2.7"}
+    "dune-configurator" {>= "2.0.0"}
+    "ounit2" {with-test}
+    "cstruct" {>= "6.0.0"}
+    "eqaf" {>= "0.8"}
+  ]
+  conflicts: ["ocaml-freestanding"]
+  build: [
+    ["dune" "subst"] {dev}
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ]
+  dev-repo: "git+https://github.com/mirage/mirage-crypto.git"
+  url {
+    src:
+      "https://github.com/mirage/mirage-crypto/releases/download/v0.11.1/mirage-crypto-0.11.1.tbz"
+    checksum: [
+      "sha256=0cda147b20a92bf70c5c9eb7f55c675d03abc76bbd4b1f0dd9cf7fc38016d29c"
+      "sha512=36e184c950f8ac51283cbcc2ccea84240c9369c3a5b36d8d0253d45a53b979ca97bd779450c79510205a9d257cc5916c42ab217111b4cad62758292648c79bc3"
+    ]
+  }
+  x-commit-hash: "b9033a26b4ebc950d36a7fca7c7669fd344e8e04"
+}
+package "mirage-crypto-rng" {
+  opam-version: "2.0"
+  version: "0.11.1"
+  synopsis: "A cryptographically secure PRNG"
+  description: """\
+Mirage-crypto-rng provides a random number generator interface, and
+implementations: Fortuna, HMAC-DRBG, getrandom/getentropy based (in the unix
+sublibrary)"""
+  maintainer: "Hannes Mehnert <hannes@mehnert.org>"
+  authors: [
+    "David Kaloper <dk505@cam.ac.uk>" "Hannes Mehnert <hannes@mehnert.org>"
+  ]
+  license: "ISC"
+  homepage: "https://github.com/mirage/mirage-crypto"
+  doc: "https://mirage.github.io/mirage-crypto/doc"
+  bug-reports: "https://github.com/mirage/mirage-crypto/issues"
+  depends: [
+    "ocaml" {>= "4.08.0"}
+    "dune" {>= "2.7"}
+    "dune-configurator" {>= "2.0.0"}
+    "duration"
+    "cstruct" {>= "6.0.0"}
+    "logs"
+    "mirage-crypto" {= version}
+    "ounit2" {with-test}
+    "randomconv" {with-test & >= "0.1.3"}
+  ]
+  conflicts: [
+    "mirage-runtime" {< "3.8.0"}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ]
+  dev-repo: "git+https://github.com/mirage/mirage-crypto.git"
+  url {
+    src:
+      "https://github.com/mirage/mirage-crypto/releases/download/v0.11.1/mirage-crypto-0.11.1.tbz"
+    checksum: [
+      "sha256=0cda147b20a92bf70c5c9eb7f55c675d03abc76bbd4b1f0dd9cf7fc38016d29c"
+      "sha512=36e184c950f8ac51283cbcc2ccea84240c9369c3a5b36d8d0253d45a53b979ca97bd779450c79510205a9d257cc5916c42ab217111b4cad62758292648c79bc3"
+    ]
+  }
+  x-commit-hash: "b9033a26b4ebc950d36a7fca7c7669fd344e8e04"
+}
+package "mirage-crypto-rng-lwt" {
+  opam-version: "2.0"
+  version: "0.11.1"
+  synopsis: "A cryptographically secure PRNG"
+  description:
+    "Mirage-crypto-rng-lwt provides entropy collection code for the RNG using Lwt."
+  maintainer: "Hannes Mehnert <hannes@mehnert.org>"
+  authors: [
+    "David Kaloper <dk505@cam.ac.uk>" "Hannes Mehnert <hannes@mehnert.org>"
+  ]
+  license: "ISC"
+  homepage: "https://github.com/mirage/mirage-crypto"
+  doc: "https://mirage.github.io/mirage-crypto/doc"
+  bug-reports: "https://github.com/mirage/mirage-crypto/issues"
+  depends: [
+    "ocaml" {>= "4.08.0"}
+    "dune" {>= "2.7"}
+    "duration"
+    "logs"
+    "mirage-crypto" {= version}
+    "mirage-crypto-rng" {= version}
+    "mtime" {>= "1.0.0"}
+    "lwt" {>= "4.0.0"}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ]
+  dev-repo: "git+https://github.com/mirage/mirage-crypto.git"
+  url {
+    src:
+      "https://github.com/mirage/mirage-crypto/releases/download/v0.11.1/mirage-crypto-0.11.1.tbz"
+    checksum: [
+      "sha256=0cda147b20a92bf70c5c9eb7f55c675d03abc76bbd4b1f0dd9cf7fc38016d29c"
+      "sha512=36e184c950f8ac51283cbcc2ccea84240c9369c3a5b36d8d0253d45a53b979ca97bd779450c79510205a9d257cc5916c42ab217111b4cad62758292648c79bc3"
+    ]
+  }
+  x-commit-hash: "b9033a26b4ebc950d36a7fca7c7669fd344e8e04"
+}
+package "mtime" {
+  opam-version: "2.0"
+  version: "2.0.0"
+  synopsis: "Monotonic wall-clock time for OCaml"
+  description: """\
+Mtime has platform independent support for monotonic wall-clock time
+in pure OCaml. This time increases monotonically and is not subject to
+operating system calendar time adjustments. The library has types to
+represent nanosecond precision timestamps and time spans.
+
+The additional Mtime_clock library provide access to a system
+monotonic clock.
+
+Mtime has a no dependency. Mtime_clock depends on your system library
+or JavaScript runtime system. Mtime and its libraries are distributed
+under the ISC license.
+
+Home page: <http://erratique.ch/software/mtime>"""
+  maintainer: "Daniel Bünzli <daniel.buenzl i@erratique.ch>"
+  authors: "The mtime programmers"
+  license: "ISC"
+  tags: ["time" "monotonic" "system" "org:erratique"]
+  homepage: "https://erratique.ch/software/mtime"
+  doc: "https://erratique.ch/software/mtime/doc/"
+  bug-reports: "https://github.com/dbuenzli/mtime/issues"
+  depends: [
+    "ocaml" {>= "4.08.0"}
+    "ocamlfind" {build}
+    "ocamlbuild" {build & != "0.9.0"}
+    "topkg" {build & >= "1.0.3"}
+  ]
+  build: ["ocaml" "pkg/pkg.ml" "build" "--dev-pkg" "%{dev}%"]
+  dev-repo: "git+https://erratique.ch/repos/mtime.git"
+  url {
+    src: "https://erratique.ch/software/mtime/releases/mtime-2.0.0.tbz"
+    checksum:
+      "sha512=2ebec45218901c08f73420aa3318c506f155b6c0df713e9856682e59d3246696821ea477ce3682af0bf4cafd0491b1d66904f8c0256e2cf831e93a0aea322f04"
+  }
+}
+package "multipart_form" {
+  opam-version: "2.0"
+  version: "0.5.0"
+  synopsis: "Multipart-form: RFC2183, RFC2388 & RFC7578"
+  description: """\
+Implementation of RFC7578 in OCaml
+
+Returning values from forms: multipart/form-data"""
+  maintainer: "Romain Calascibetta <romain.calascibetta@gmail.com>"
+  authors: "Romain Calascibetta <romain.calascibetta@gmail.com>"
+  license: "MIT"
+  homepage: "https://github.com/dinosaure/multipart_form"
+  doc: "https://dinosaure.github.io/multipart_form/"
+  bug-reports: "https://github.com/dinosaure/multipart_form/issues"
+  depends: [
+    "ocaml" {>= "4.08.0"}
+    "dune" {>= "2.0.0"}
+    "angstrom" {>= "0.14.0"}
+    "base64" {>= "3.0.0"}
+    "unstrctrd" {>= "0.2"}
+    "uutf"
+    "pecu" {>= "0.4"}
+    "prettym"
+    "fmt" {>= "0.8.7"}
+    "logs"
+    "ke" {>= "0.6"}
+    "alcotest" {with-test}
+    "rosetta" {with-test}
+    "rresult" {with-test}
+    "bigstringaf" {>= "0.9.0"}
+  ]
+  conflicts: [
+    "result" {< "1.5"}
+  ]
+  build: [
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ]
+  dev-repo: "git+https://github.com/dinosaure/multipart_form.git"
+  url {
+    src:
+      "https://github.com/dinosaure/multipart_form/releases/download/v0.5.0/multipart_form-0.5.0.tbz"
+    checksum: [
+      "sha256=a8a36c1c0e2873ba1b3bd32ccdfb8fb6766e06612e52e36b3077a6a296a88a64"
+      "sha512=f1e95b201e5474687e31bb132ca17ab9799d9957cbc91d0d7fdc160bbcfb2b6f6a77e37fba802c5a41339cb699987667e029672d58096ebfd06fd932b352bd46"
+    ]
+  }
+  x-commit-hash: "f88dcd04dcea0c343914cd6fba199ac717d9175d"
+}
+package "multipart_form-lwt" {
+  opam-version: "2.0"
+  version: "0.5.0"
+  synopsis: "Multipart-form: RFC2183, RFC2388 & RFC7578"
+  description: """\
+Implementation of RFC7578 in OCaml
+
+Returning values from forms: multipart/form-data"""
+  maintainer: "Romain Calascibetta <romain.calascibetta@gmail.com>"
+  authors: "Romain Calascibetta <romain.calascibetta@gmail.com>"
+  license: "MIT"
+  homepage: "https://github.com/dinosaure/multipart_form"
+  doc: "https://dinosaure.github.io/multipart_form/"
+  bug-reports: "https://github.com/dinosaure/multipart_form/issues"
+  depends: [
+    "ocaml" {>= "4.08.0"}
+    "dune" {>= "2.0.0"}
+    "angstrom"
+    "bigstringaf"
+    "ke"
+    "lwt"
+    "multipart_form" {= version}
+    "alcotest-lwt" {with-test}
+    "alcotest" {with-test}
+    "fmt" {with-test}
+    "rosetta" {with-test}
+    "rresult" {with-test}
+    "unstrctrd" {with-test}
+    "logs" {with-test}
+  ]
+  build: [
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ]
+  dev-repo: "git+https://github.com/dinosaure/multipart_form.git"
+  url {
+    src:
+      "https://github.com/dinosaure/multipart_form/releases/download/v0.5.0/multipart_form-0.5.0.tbz"
+    checksum: [
+      "sha256=a8a36c1c0e2873ba1b3bd32ccdfb8fb6766e06612e52e36b3077a6a296a88a64"
+      "sha512=f1e95b201e5474687e31bb132ca17ab9799d9957cbc91d0d7fdc160bbcfb2b6f6a77e37fba802c5a41339cb699987667e029672d58096ebfd06fd932b352bd46"
+    ]
+  }
+  x-commit-hash: "f88dcd04dcea0c343914cd6fba199ac717d9175d"
+}
+package "ocaml" {
+  opam-version: "2.0"
+  version: "4.14.0"
+  synopsis: "The OCaml compiler (virtual package)"
+  description: """\
+This package requires a matching implementation of OCaml,
+and polls it to initialise specific variables like `ocaml:native-dynlink`"""
+  maintainer: "platform@lists.ocaml.org"
+  authors: [
+    "Xavier Leroy"
+    "Damien Doligez"
+    "Alain Frisch"
+    "Jacques Garrigue"
+    "Didier Rémy"
+    "Jérôme Vouillon"
+  ]
+  license: "LGPL-2.1-or-later WITH OCaml-LGPL-linking-exception"
+  homepage: "https://ocaml.org"
+  bug-reports: "https://github.com/ocaml/opam-repository/issues"
+  depends: [
+    "ocaml-config" {>= "2"}
+    "ocaml-base-compiler" {>= "4.14.0~" & < "4.14.1~"} |
+    "ocaml-variants" {>= "4.14.0~" & < "4.14.1~"} |
+    "ocaml-system" {>= "4.14.0" & < "4.14.1~"} |
+    "dkml-base-compiler" {>= "4.14.0~" & < "4.14.1~"}
+  ]
+  flags: conf
+  setenv: [
+    [CAML_LD_LIBRARY_PATH = "%{_:stubsdir}%"]
+    [CAML_LD_LIBRARY_PATH += "%{lib}%/stublibs"]
+    [OCAML_TOPLEVEL_PATH = "%{toplevel}%"]
+  ]
+  build: [
+    "ocaml" "%{ocaml-config:share}%/gen_ocaml_config.ml" _:version _:name
+  ]
+  build-env: CAML_LD_LIBRARY_PATH = ""
+}
+package "ocaml-base-compiler" {
+  opam-version: "2.0"
+  version: "4.14.0"
+  synopsis: "Official release 4.14.0"
+  maintainer: "platform@lists.ocaml.org"
+  authors: "Xavier Leroy and many contributors"
+  license: "LGPL-2.1-or-later WITH OCaml-LGPL-linking-exception"
+  homepage: "https://ocaml.org"
+  bug-reports: "https://github.com/ocaml/opam-repository/issues"
+  depends: [
+    "ocaml" {= "4.14.0" & post}
+    "base-unix" {post}
+    "base-bigarray" {post}
+    "base-threads" {post}
+    "ocaml-options-vanilla" {post}
+  ]
+  conflict-class: "ocaml-core-compiler"
+  flags: compiler
+  setenv: CAML_LD_LIBRARY_PATH = "%{lib}%/stublibs"
+  build: [
+    [
+      "./configure"
+      "--prefix=%{prefix}%"
+      "--docdir=%{doc}%/ocaml"
+      "-C"
+      "CC=cc" {os = "openbsd" | os = "macos"}
+      "ASPP=cc -c" {os = "openbsd" | os = "macos"}
+    ]
+    [make "-j%{jobs}%"]
+  ]
+  install: [make "install"]
+  post-messages: [
+    """\
+A failure in the middle of the build may be caused by build parallelism
+   (enabled by default).
+   Please file a bug report at https://github.com/ocaml/opam-repository/issues"""
+      {failure & jobs > "1"}
+    """\
+You can try installing again including --jobs=1
+   to force a sequential build instead."""
+      {failure & jobs > "1" & opam-version >= "2.0.5"}
+  ]
+  dev-repo: "git+https://github.com/ocaml/ocaml"
+  extra-files: [
+    "ocaml-base-compiler.install" "md5=3e969b841df1f51ca448e6e6295cb451"
+  ]
+  url {
+    src: "https://github.com/ocaml/ocaml/archive/4.14.0.tar.gz"
+    checksum:
+      "sha256=39f44260382f28d1054c5f9d8bf4753cb7ad64027da792f7938344544da155e8"
+  }
+}
+package "ocaml-compiler-libs" {
+  opam-version: "2.0"
+  version: "v0.12.4"
+  synopsis: "OCaml compiler libraries repackaged"
+  description: """\
+This packages exposes the OCaml compiler libraries repackages under
+the toplevel names Ocaml_common, Ocaml_bytecomp, Ocaml_optcomp, ..."""
+  maintainer: "Jane Street developers"
+  authors: "Jane Street Group, LLC"
+  license: "MIT"
+  homepage: "https://github.com/janestreet/ocaml-compiler-libs"
+  bug-reports: "https://github.com/janestreet/ocaml-compiler-libs/issues"
+  depends: [
+    "dune" {>= "2.8"}
+    "ocaml" {>= "4.04.1"}
+    "odoc" {with-doc}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    [
+      "dune"
+      "build"
+      "-p"
+      name
+      "-j"
+      jobs
+      "@install"
+      "@runtest" {with-test}
+      "@doc" {with-doc}
+    ]
+  ]
+  dev-repo: "git+https://github.com/janestreet/ocaml-compiler-libs.git"
+  url {
+    src:
+      "https://github.com/janestreet/ocaml-compiler-libs/releases/download/v0.12.4/ocaml-compiler-libs-v0.12.4.tbz"
+    checksum: [
+      "sha256=4ec9c9ec35cc45c18c7a143761154ef1d7663036a29297f80381f47981a07760"
+      "sha512=978dba8dfa61f98fa24fda7a9c26c2e837081f37d1685fe636dc19cfc3278a940cf01a10293504b185c406706bc1008bc54313d50f023bcdea6d5ac6c0788b35"
+    ]
+  }
+  x-commit-hash: "8cd12f18bb7171c2b67d661868c4271fae528d93"
+}
+package "ocaml-config" {
+  opam-version: "2.0"
+  version: "2"
+  synopsis: "OCaml Switch Configuration"
+  description:
+    "This package is used by the OCaml package to set-up its variables."
+  maintainer: "platform@lists.ocaml.org"
+  authors: [
+    "Louis Gesbert <louis.gesbert@ocamlpro.com>"
+    "David Allsopp <david.allsopp@metastack.com>"
+  ]
+  homepage: "https://opam.ocaml.org/"
+  bug-reports: "https://github.com/ocaml/opam/issues"
+  depends: [
+    "ocaml-base-compiler" {>= "4.12.0~"} | "ocaml-variants" {>= "4.12.0~"} |
+    "ocaml-system" {>= "4.12.0~"}
+  ]
+  substs: "gen_ocaml_config.ml"
+  extra-files: [
+    ["gen_ocaml_config.ml.in" "md5=a4b41e3236593d8271295b84b0969172"]
+    ["ocaml-config.install" "md5=8e50c5e2517d3463b3aad649748cafd7"]
+  ]
+}
+package "ocaml-lsp-server" {
+  opam-version: "2.0"
+  version: "1.16.2"
+  synopsis: "LSP Server for OCaml"
+  description: "An LSP server for OCaml."
+  maintainer: "Rudi Grinberg <me@rgrinberg.com>"
+  authors: [
+    "Andrey Popp <8mayday@gmail.com>"
+    "Rusty Key <iam@stfoo.ru>"
+    "Louis Roché <louis@louisroche.net>"
+    "Oleksiy Golovko <alexei.golovko@gmail.com>"
+    "Rudi Grinberg <me@rgrinberg.com>"
+    "Sacha Ayoun <sachaayoun@gmail.com>"
+    "cannorin <cannorin@gmail.com>"
+    "Ulugbek Abdullaev <ulugbekna@gmail.com>"
+    "Thibaut Mattio <thibaut.mattio@gmail.com>"
+    "Max Lantas <mnxndev@outlook.com>"
+  ]
+  license: "ISC"
+  homepage: "https://github.com/ocaml/ocaml-lsp"
+  bug-reports: "https://github.com/ocaml/ocaml-lsp/issues"
+  depends: [
+    "dune" {>= "3.0"}
+    "yojson"
+    "re" {>= "1.5.0"}
+    "ppx_yojson_conv_lib" {>= "v0.14"}
+    "dune-rpc" {>= "3.4.0"}
+    "chrome-trace" {>= "3.3.0"}
+    "dyn"
+    "stdune"
+    "fiber" {>= "3.1.1" & < "4.0.0"}
+    "xdg"
+    "ordering"
+    "dune-build-info"
+    "spawn"
+    "odoc-parser" {>= "2.0.0"}
+    "ppx_expect" {>= "v0.15.0" & with-test}
+    "ocamlformat" {with-test & = "0.24.1"}
+    "ocamlc-loc" {>= "3.7.0"}
+    "uutf" {>= "1.0.2"}
+    "pp" {>= "1.1.2"}
+    "csexp" {>= "1.5"}
+    "ocamlformat-rpc-lib" {>= "0.21.0"}
+    "odoc" {with-doc}
+    "ocaml" {>= "4.14" & < "5.2"}
+    "merlin-lib" {>= "4.9" & < "5.0"}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["dune" "build" "-j" jobs "ocaml-lsp-server.install" "--release"]
+  ]
+  dev-repo: "git+https://github.com/ocaml/ocaml-lsp.git"
+  url {
+    src:
+      "https://github.com/ocaml/ocaml-lsp/releases/download/1.16.2/lsp-1.16.2.tbz"
+    checksum: [
+      "sha256=1487d5a4e2f2d4f023341058551bdb8ba86c23367b7c5b4fdda3aa7dc02aaec4"
+      "sha512=4a392f6d3deafc6dd37f9603250e736c8d8195ea42c782252386616e8c1562d744e02beee54ec45254cba23efd343ebb33789babb093b0e70122ba86d7e67717"
+    ]
+  }
+  x-commit-hash: "22cefd841bb0b6b9a6fd4fe5befe5eb68d213ce3"
+}
+package "ocaml-options-vanilla" {
+  opam-version: "2.0"
+  version: "1"
+  synopsis: "Ensure that OCaml is compiled with no special options enabled"
+  maintainer: "platform@lists.ocaml.org"
+  depends: [
+    "ocaml-base-compiler" {post} | "ocaml-system" {post} |
+    "ocaml-variants" {post & >= "4.12.0~"}
+  ]
+  conflicts: [
+    "ocaml-option-32bit"
+    "ocaml-option-afl"
+    "ocaml-option-bytecode-only" {arch = "arm64" | arch = "x86_64"}
+    "ocaml-option-default-unsafe-string"
+    "ocaml-option-flambda"
+    "ocaml-option-fp"
+    "ocaml-option-musl"
+    "ocaml-option-no-flat-float-array"
+    "ocaml-option-spacetime"
+    "ocaml-option-static"
+    "ocaml-option-nnp"
+    "ocaml-option-nnpchecker"
+    "ocaml-option-address-sanitizer"
+    "ocaml-option-leak-sanitizer"
+    "ocaml-option-tsan"
+  ]
+  flags: compiler
+}
+package "ocaml-syntax-shims" {
+  opam-version: "2.0"
+  version: "1.0.0"
+  synopsis: "Backport new syntax to older OCaml versions"
+  description: """\
+This packages backports new features of the language to older
+compilers, such as let+."""
+  maintainer: "jeremie@dimino.org"
+  authors: "Jérémie Dimino <jeremie@dimino.org>"
+  license: "MIT"
+  homepage: "https://github.com/ocaml-ppx/ocaml-syntax-shims"
+  doc: "https://ocaml-ppx.github.io/ocaml-syntax-shims/"
+  bug-reports: "https://github.com/ocaml-ppx/ocaml-syntax-shims/issues"
+  depends: [
+    "dune" {>= "2.0"}
+    "ocaml" {>= "4.02.3"}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    [
+      "dune"
+      "build"
+      "-p"
+      name
+      "-j"
+      jobs
+      "@install"
+      "@runtest" {with-test}
+      "@doc" {with-doc}
+    ]
+  ]
+  dev-repo: "git+https://github.com/ocaml-ppx/ocaml-syntax-shims.git"
+  url {
+    src:
+      "https://github.com/ocaml-ppx/ocaml-syntax-shims/releases/download/1.0.0/ocaml-syntax-shims-1.0.0.tbz"
+    checksum: [
+      "sha256=89b2e193e90a0c168b6ec5ddf6fef09033681bdcb64e11913c97440a2722e8c8"
+      "sha512=75c4c6b0bfa1267a8a49a82ba494d08cf0823fc8350863d6d3d4971528cb09e5a2a29e2981d04c75e76ad0f49360b05a432c9efeff9a4fbc1ec6b28960399852"
+    ]
+  }
+}
+package "ocaml-version" {
+  opam-version: "2.0"
+  version: "3.6.1"
+  synopsis: "Manipulate, parse and generate OCaml compiler version strings"
+  description: """\
+This library provides facilities to parse version numbers of the OCaml compiler, and enumerates the various official OCaml releases and configuration variants.
+
+OCaml version numbers are of the form `major.minor.patch+extra`, where the `patch` and `extra` fields are optional.  This library offers the following functionality:
+
+- Functions to parse and serialise OCaml compiler version numbers.
+- Enumeration of official OCaml compiler version releases.
+- Test compiler versions for a particular feature (e.g. the `bytes` type)
+- [opam](https://opam.ocaml.org) compiler switch enumeration.
+
+### Further information
+
+- **Discussion:** Post on <https://discuss.ocaml.org/> with the `ocaml` tag under the Ecosystem category.
+- **Bugs:** <https://github.com/ocurrent/ocaml-version/issues>
+- **Docs:** <http://docs.mirage.io/ocaml-version>"""
+  maintainer: "Anil Madhavapeddy <anil@recoil.org>"
+  authors: "Anil Madhavapeddy <anil@recoil.org>"
+  license: "ISC"
+  tags: "org:ocamllabs"
+  homepage: "https://github.com/ocurrent/ocaml-version"
+  doc: "https://ocurrent.github.io/ocaml-version/doc"
+  bug-reports: "https://github.com/ocurrent/ocaml-version/issues"
+  depends: [
+    "dune" {>= "3.6"}
+    "ocaml" {>= "4.07.0"}
+    "alcotest" {with-test}
+    "odoc" {with-doc}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    [
+      "dune"
+      "build"
+      "-p"
+      name
+      "-j"
+      jobs
+      "@install"
+      "@runtest" {with-test}
+      "@doc" {with-doc}
+    ]
+  ]
+  dev-repo: "git+https://github.com/ocurrent/ocaml-version.git"
+  url {
+    src:
+      "https://github.com/ocurrent/ocaml-version/releases/download/v3.6.1/ocaml-version-3.6.1.tbz"
+    checksum: [
+      "sha256=00a09a5d47a127757cb844f5b540c36c8cc8f2566fe5aca0c6121b476d719d32"
+      "sha512=9768b5916c05cd681b4f17a47c140a482fe2ed97d7ccc9bc1847b682067efbc145c947065d2f5f30bc6bd02f1cc72db4100a397d16b2af99268ff2220bd2e346"
+    ]
+  }
+  x-commit-hash: "cf024966326bfa43611a5b6c6d52e52b883363f4"
+}
+package "ocamlbuild" {
+  opam-version: "2.0"
+  version: "0.14.2"
+  synopsis:
+    "OCamlbuild is a build system with builtin rules to easily build most OCaml projects"
+  maintainer: "Gabriel Scherer <gabriel.scherer@gmail.com>"
+  authors: ["Nicolas Pouillard" "Berke Durak"]
+  license: "LGPL-2.0-or-later WITH OCaml-LGPL-linking-exception"
+  homepage: "https://github.com/ocaml/ocamlbuild/"
+  doc: "https://github.com/ocaml/ocamlbuild/blob/master/manual/manual.adoc"
+  bug-reports: "https://github.com/ocaml/ocamlbuild/issues"
+  depends: [
+    "ocaml" {>= "4.03"}
+  ]
+  conflicts: [
+    "base-ocamlbuild"
+    "ocamlfind" {< "1.6.2"}
+  ]
+  build: [
+    [
+      make
+      "-f"
+      "configure.make"
+      "all"
+      "OCAMLBUILD_PREFIX=%{prefix}%"
+      "OCAMLBUILD_BINDIR=%{bin}%"
+      "OCAMLBUILD_LIBDIR=%{lib}%"
+      "OCAMLBUILD_MANDIR=%{man}%"
+      "OCAML_NATIVE=%{ocaml:native}%"
+      "OCAML_NATIVE_TOOLS=%{ocaml:native}%"
+    ]
+    [make "check-if-preinstalled" "all" "opam-install"]
+  ]
+  dev-repo: "git+https://github.com/ocaml/ocamlbuild.git"
+  url {
+    src:
+      "https://github.com/ocaml/ocamlbuild/archive/refs/tags/0.14.2.tar.gz"
+    checksum: [
+      "md5=2f407fadd57b073155a6aead887d9676"
+      "sha512=f568bf10431a1f701e8bd7554dc662400a0d978411038bbad93d44dceab02874490a8a5886a9b44e017347e7949997f13f5c3752f74e1eb5e273d2beb19a75fd"
+    ]
+  }
+}
+package "ocamlc-loc" {
+  opam-version: "2.0"
+  version: "3.10.0"
+  synopsis: "Parse ocaml compiler output into structured form"
+  description:
+    "This library offers no backwards compatibility guarantees. Use at your own risk."
+  maintainer: "Jane Street Group, LLC <opensource@janestreet.com>"
+  authors: "Jane Street Group, LLC <opensource@janestreet.com>"
+  license: "MIT"
+  homepage: "https://github.com/ocaml/dune"
+  doc: "https://dune.readthedocs.io/"
+  bug-reports: "https://github.com/ocaml/dune/issues"
+  depends: [
+    "dune" {>= "3.5"}
+    "ocaml" {>= "4.08.0"}
+    "dyn" {= version}
+    "odoc" {with-doc}
+  ]
+  conflicts: [
+    "ocaml-lsp-server" {< "1.15.0"}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["rm" "-rf" "vendor/csexp"]
+    ["rm" "-rf" "vendor/pp"]
+    ["dune" "build" "-p" name "-j" jobs "@install" "@doc" {with-doc}]
+  ]
+  dev-repo: "git+https://github.com/ocaml/dune.git"
+  url {
+    src:
+      "https://github.com/ocaml/dune/releases/download/3.10.0/dune-3.10.0.tbz"
+    checksum: [
+      "sha256=9ff03384a98a8df79852cc674f0b4738ba8aec17029b6e2eeb514f895e710355"
+      "sha512=8133cdcc5499a6bf21cd65b4fc8b12445ae39366731006773fcd3b348c553a8d89d004db161c655aa167a2a3653b7919d32b27f29217106ef762bd01b43afc76"
+    ]
+  }
+  x-commit-hash: "fc382520272012638088848d7f3dd1ef6687a284"
+}
+package "ocamlfind" {
+  opam-version: "2.0"
+  version: "1.9.6"
+  synopsis: "A library manager for OCaml"
+  description: """\
+Findlib is a library manager for OCaml. It provides a convention how
+to store libraries, and a file format ("META") to describe the
+properties of libraries. There is also a tool (ocamlfind) for
+interpreting the META files, so that it is very easy to use libraries
+in programs and scripts."""
+  maintainer: "Thomas Gazagnaire <thomas@gazagnaire.org>"
+  authors: "Gerd Stolpmann <gerd@gerd-stolpmann.de>"
+  license: "MIT"
+  homepage: "http://projects.camlcity.org/projects/findlib.html"
+  bug-reports: "https://github.com/ocaml/ocamlfind/issues"
+  depends: [
+    "ocaml" {>= "3.08.0"}
+  ]
+  depopts: ["graphics"]
+  available: os != "win32"
+  build: [
+    [
+      "./configure"
+      "-bindir"
+      bin
+      "-sitelib"
+      lib
+      "-mandir"
+      man
+      "-config"
+      "%{lib}%/findlib.conf"
+      "-no-custom"
+      "-no-camlp4" {!ocaml:preinstalled & ocaml:version >= "4.02.0"}
+      "-no-topfind" {ocaml:preinstalled}
+    ]
+    [make "all"]
+    [make "opt"] {ocaml:native}
+  ]
+  install: [
+    [make "install"]
+    ["install" "-m" "0755" "ocaml-stub" "%{bin}%/ocaml"] {ocaml:preinstalled}
+  ]
+  patches: "0001-Harden-test-for-OCaml-5.patch"
+  dev-repo: "git+https://github.com/ocaml/ocamlfind.git"
+  extra-files: [
+    "0001-Harden-test-for-OCaml-5.patch"
+    "md5=3cddbf72164c29d4e50e077a92a37c6c"
+  ]
+  url {
+    src: "http://download.camlcity.org/download/findlib-1.9.6.tar.gz"
+    checksum: [
+      "md5=96c6ee50a32cca9ca277321262dbec57"
+      "sha512=cfaf1872d6ccda548f07d32cc6b90c3aafe136d2aa6539e03143702171ee0199add55269bba894c77115535dc46a5835901a5d7c75768999e72db503bfd83027"
+    ]
+  }
+}
+package "ocamlformat" {
+  opam-version: "2.0"
+  version: "0.26.0"
+  synopsis: "Auto-formatter for OCaml code"
+  description:
+    "OCamlFormat is a tool to automatically format OCaml code in a uniform style."
+  maintainer: "OCamlFormat Team <ocamlformat-dev@lists.ocaml.org>"
+  authors: "Josh Berdine <jjb@fb.com>"
+  license: ["MIT" "LGPL-2.1-only WITH OCaml-LGPL-linking-exception"]
+  homepage: "https://github.com/ocaml-ppx/ocamlformat"
+  bug-reports: "https://github.com/ocaml-ppx/ocamlformat/issues"
+  depends: [
+    "ocaml" {>= "4.08"}
+    "cmdliner" {with-test = "false" & >= "1.1.0" | with-test & >= "1.2.0"}
+    "dune" {>= "2.8"}
+    "ocamlformat-lib" {= version}
+    "ocamlformat-rpc-lib" {with-test & = version}
+    "re" {>= "1.10.3"}
+    "odoc" {with-doc}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    [
+      "dune"
+      "build"
+      "-p"
+      name
+      "-j"
+      jobs
+      "@install"
+      "@runtest" {with-test}
+      "@doc" {with-doc}
+    ]
+  ]
+  dev-repo: "git+https://github.com/ocaml-ppx/ocamlformat.git"
+  url {
+    src:
+      "https://github.com/ocaml-ppx/ocamlformat/releases/download/0.26.0/ocamlformat-0.26.0.tbz"
+    checksum: [
+      "sha256=031494ab770cef10a8f6aa1cbeb5660e46c3aa6c0cd457b110fec859a75e877d"
+      "sha512=35c0131f04c2c8ceb94f0f400e4b56690405ddebb482aec0c9962163001d9fd5b593455df08b508394949f2740ba28f1714dff9e1f17b618bdec62fd26fae281"
+    ]
+  }
+  x-commit-hash: "fe70498a8982bef951311b37aa8568218ce8801a"
+}
+package "ocamlformat-lib" {
+  opam-version: "2.0"
+  version: "0.26.0"
+  synopsis: "Auto-formatter for OCaml code"
+  description:
+    "OCamlFormat is a tool to automatically format OCaml code in a uniform style."
+  maintainer: "OCamlFormat Team <ocamlformat-dev@lists.ocaml.org>"
+  authors: "Josh Berdine <jjb@fb.com>"
+  license: ["MIT" "LGPL-2.1-only WITH OCaml-LGPL-linking-exception"]
+  homepage: "https://github.com/ocaml-ppx/ocamlformat"
+  bug-reports: "https://github.com/ocaml-ppx/ocamlformat/issues"
+  depends: [
+    "ocaml" {>= "4.08"}
+    "alcotest" {with-test & >= "1.3.0"}
+    "base" {>= "v0.12.0"}
+    "dune" {>= "2.8"}
+    "dune-build-info"
+    "either"
+    "fix"
+    "fpath"
+    "menhir" {>= "20201216"}
+    "menhirLib" {>= "20201216"}
+    "menhirSdk" {>= "20201216"}
+    "ocaml-version" {>= "3.5.0"}
+    "ocamlformat-rpc-lib" {with-test & = version}
+    "ocp-indent" {with-test = "false" & >= "1.8.0" | with-test & >= "1.8.1"}
+    "stdio"
+    "uuseg" {>= "10.0.0"}
+    "uutf" {>= "1.0.1"}
+    "csexp" {>= "1.4.0"}
+    "astring"
+    "result"
+    "camlp-streams"
+    "odoc" {with-doc}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    [
+      "dune"
+      "build"
+      "-p"
+      name
+      "-j"
+      jobs
+      "@install"
+      "@runtest" {with-test}
+      "@doc" {with-doc}
+    ]
+  ]
+  dev-repo: "git+https://github.com/ocaml-ppx/ocamlformat.git"
+  url {
+    src:
+      "https://github.com/ocaml-ppx/ocamlformat/releases/download/0.26.0/ocamlformat-0.26.0.tbz"
+    checksum: [
+      "sha256=031494ab770cef10a8f6aa1cbeb5660e46c3aa6c0cd457b110fec859a75e877d"
+      "sha512=35c0131f04c2c8ceb94f0f400e4b56690405ddebb482aec0c9962163001d9fd5b593455df08b508394949f2740ba28f1714dff9e1f17b618bdec62fd26fae281"
+    ]
+  }
+  x-commit-hash: "fe70498a8982bef951311b37aa8568218ce8801a"
+}
+package "ocamlformat-rpc-lib" {
+  opam-version: "2.0"
+  version: "0.26.0"
+  synopsis: "Auto-formatter for OCaml code (RPC mode)"
+  description:
+    "OCamlFormat is a tool to automatically format OCaml code in a uniform style. This package defines a RPC interface to OCamlFormat"
+  maintainer: "OCamlFormat Team <ocamlformat-dev@lists.ocaml.org>"
+  authors: "Josh Berdine <jjb@fb.com>"
+  license: "MIT"
+  homepage: "https://github.com/ocaml-ppx/ocamlformat"
+  bug-reports: "https://github.com/ocaml-ppx/ocamlformat/issues"
+  depends: [
+    "dune" {>= "2.8"}
+    "ocaml" {>= "4.08"}
+    "csexp" {>= "1.4.0"}
+    "odoc" {with-doc}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    [
+      "dune"
+      "build"
+      "-p"
+      name
+      "-j"
+      jobs
+      "@install"
+      "@runtest" {with-test}
+      "@doc" {with-doc}
+    ]
+  ]
+  dev-repo: "git+https://github.com/ocaml-ppx/ocamlformat.git"
+  url {
+    src:
+      "https://github.com/ocaml-ppx/ocamlformat/releases/download/0.26.0/ocamlformat-0.26.0.tbz"
+    checksum: [
+      "sha256=031494ab770cef10a8f6aa1cbeb5660e46c3aa6c0cd457b110fec859a75e877d"
+      "sha512=35c0131f04c2c8ceb94f0f400e4b56690405ddebb482aec0c9962163001d9fd5b593455df08b508394949f2740ba28f1714dff9e1f17b618bdec62fd26fae281"
+    ]
+  }
+  x-commit-hash: "fe70498a8982bef951311b37aa8568218ce8801a"
+}
+package "ocp-indent" {
+  opam-version: "2.0"
+  version: "1.8.1"
+  synopsis: "A simple tool to indent OCaml programs"
+  description: """\
+Ocp-indent is based on an approximate, tolerant OCaml parser and a simple stack
+machine ; this is much faster and more reliable than using regexps. Presets and
+configuration options available, with the possibility to set them project-wide.
+Supports most common syntax extensions, and extensible for others.
+
+Includes:
+- An indentor program, callable from the command-line or from within editors
+- Bindings for popular editors
+- A library that can be directly used by editor writers, or just for
+  fault-tolerant/approximate parsing."""
+  maintainer: "contact@ocamlpro.com"
+  authors: [
+    "Louis Gesbert <louis.gesbert@ocamlpro.com>"
+    "Thomas Gazagnaire <thomas@gazagnaire.org>"
+    "Jun Furuse"
+  ]
+  license: "LGPL-2.1-only WITH OCaml-LGPL-linking-exception"
+  tags: ["org:ocamlpro" "org:typerex"]
+  homepage: "http://www.typerex.org/ocp-indent.html"
+  bug-reports: "https://github.com/OCamlPro/ocp-indent/issues"
+  depends: [
+    "ocaml"
+    "dune" {>= "1.0"}
+    "cmdliner" {>= "1.0.0"}
+    "ocamlfind"
+    "base-bytes"
+  ]
+  build: ["dune" "build" "-p" name "-j" jobs]
+  run-test: ["dune" "runtest" "-p" name "-j" jobs]
+  post-messages:
+    """\
+This package requires additional configuration for use in editors. Install package 'user-setup', or manually:
+
+* for Emacs, add these lines to ~/.emacs:
+  (add-to-list 'load-path "%{share}%/emacs/site-lisp")
+  (require 'ocp-indent)
+
+* for Vim, add this line to ~/.vimrc:
+  set rtp^="%{share}%/ocp-indent/vim\""""
+      {success & !user-setup:installed}
+  dev-repo: "git+https://github.com/OCamlPro/ocp-indent.git"
+  url {
+    src: "https://github.com/OCamlPro/ocp-indent/archive/1.8.1.tar.gz"
+    checksum: [
+      "md5=70db6649a8c08a682ad63730c9752e31"
+      "sha512=565353de333dd44375366fff75e85a6256c3cd9ff52b3db79803141f975e77cda04dfe32f5e0f2d4c82c59be8f04e9c2bf4d066b113b2cdf267f4c3dcfa401da"
+    ]
+  }
+}
+package "ocplib-endian" {
+  opam-version: "2.0"
+  version: "1.2"
+  synopsis:
+    "Optimised functions to read and write int16/32/64 from strings and bigarrays"
+  description: """\
+The library implements three modules:
+* [EndianString](https://github.com/OCamlPro/ocplib-endian/blob/master/src/endianString.mli) works directly on strings, and provides submodules BigEndian and LittleEndian, with their unsafe counter-parts;
+* [EndianBytes](https://github.com/OCamlPro/ocplib-endian/blob/master/src/endianBytes.mli) works directly on bytes, and provides submodules BigEndian and LittleEndian, with their unsafe counter-parts;
+* [EndianBigstring](https://github.com/OCamlPro/ocplib-endian/blob/master/src/endianBigstring.mli) works on bigstrings (Bigarrays of chars), and provides submodules BigEndian and LittleEndian, with their unsafe counter-parts."""
+  maintainer: "pierre.chambart@ocamlpro.com"
+  authors: "Pierre Chambart"
+  license: "LGPL-2.1-or-later WITH OCaml-LGPL-linking-exception"
+  homepage: "https://github.com/OCamlPro/ocplib-endian"
+  doc: "https://ocamlpro.github.io/ocplib-endian/ocplib-endian/"
+  bug-reports: "https://github.com/OCamlPro/ocplib-endian/issues"
+  depends: [
+    "base-bytes"
+    "ocaml" {>= "4.03.0"}
+    "cppo" {>= "1.1.0" & build}
+    "dune" {>= "1.0"}
+  ]
+  build: [
+    "dune"
+    "build"
+    "-p"
+    name
+    "-j"
+    jobs
+    "@install"
+    "@runtest" {with-test}
+    "@doc" {with-doc}
+  ]
+  dev-repo: "git+https://github.com/OCamlPro/ocplib-endian.git"
+  url {
+    src:
+      "https://github.com/OCamlPro/ocplib-endian/archive/refs/tags/1.2.tar.gz"
+    checksum: [
+      "md5=8d5492eeb7c6815ade72a7415ea30949"
+      "sha512=2e70be5f3d6e377485c60664a0e235c3b9b24a8d6b6a03895d092c6e40d53810bfe1f292ee69e5181ce6daa8a582bfe3d59f3af889f417134f658812be5b8b85"
+    ]
+  }
+}
+package "odoc" {
+  opam-version: "2.0"
+  version: "2.2.1"
+  synopsis: "OCaml documentation generator"
+  description: """\
+Odoc is a documentation generator for OCaml. It reads doc comments,
+delimited with `(** ... *)`, and outputs HTML."""
+  maintainer: "Jon Ludlam <jon@recoil.org>"
+  authors: [
+    "Thomas Refis <trefis@janestreet.com>"
+    "David Sheets <sheets@alum.mit.edu>"
+    "Leo White <leo@lpw25.net>"
+    "Anton Bachin <antonbachin@yahoo.com>"
+    "Jon Ludlam <jon@recoil.org>"
+    "Jules Aguillon <juloo.dsi@gmail.com>"
+    "Lubega Simon <lubegasimon73@gmail.com>"
+  ]
+  license: "ISC"
+  homepage: "http://github.com/ocaml/odoc"
+  doc: "https://ocaml.github.io/odoc/"
+  bug-reports: "https://github.com/ocaml/odoc/issues"
+  depends: [
+    "odoc-parser" {>= "2.0.0"}
+    "astring"
+    "cmdliner" {>= "1.0.0"}
+    "cppo" {build & >= "1.1.0"}
+    "dune" {>= "3.0.2"}
+    "fpath"
+    "ocaml" {>= "4.02.0"}
+    "result"
+    "tyxml" {>= "4.3.0"}
+    "fmt"
+    "ocamlfind" {with-test}
+    "yojson" {< "2.0.0" & with-test}
+    ("ocaml" {< "4.04.1" & with-test} | "sexplib0" {with-test})
+    "conf-jq" {with-test}
+    "ppx_expect" {with-test}
+    "bos" {with-test}
+    "crunch" {with-test}
+    ("ocaml" {< "4.07.0" & with-test} | "bisect_ppx" {with-test & > "2.5.0"})
+    ("ocaml" {< "4.03.0" & with-test} | "mdx" {with-test})
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["dune" "build" "-p" name "-j" jobs]
+  ]
+  dev-repo: "git+https://github.com/ocaml/odoc.git"
+  url {
+    src:
+      "https://github.com/ocaml/odoc/releases/download/2.2.1/odoc-2.2.1.tbz"
+    checksum: [
+      "sha256=1786e53bf0824fe1c7c7b81d2a7d846846a5d11677969e6396361f77a3816803"
+      "sha512=044e37eb3dcc77d9cc8124be558cce77a438723b90225273fb3401d3315c57c8c2f395a48ebd1b6aacc01b00cbfa4bd0be1923d2bd9bd3cc92d0604eadaabc4f"
+    ]
+  }
+  x-commit-hash: "2d8a6776c19ffa995ae285cd1dfc27f2fea3820a"
+}
+package "odoc-parser" {
+  opam-version: "2.0"
+  version: "2.0.0"
+  synopsis: "Parser for ocaml documentation comments"
+  description: """\
+Odoc_parser is a library for parsing the contents of OCaml documentation
+comments, formatted using 'odoc' syntax, an extension of the language
+understood by ocamldoc."""
+  maintainer: "Jon Ludlam <jon@recoil.org>"
+  authors: "Anton Bachin <antonbachin@yahoo.com>"
+  license: "ISC"
+  homepage: "https://github.com/ocaml-doc/odoc-parser"
+  doc: "https://ocaml-doc.github.io/odoc-parser/"
+  bug-reports: "https://github.com/ocaml-doc/odoc-parser/issues"
+  depends: [
+    "dune" {>= "2.8"}
+    "ocaml" {>= "4.02.0"}
+    "astring"
+    "result"
+    "camlp-streams"
+    "ppx_expect" {with-test}
+    ("ocaml" {< "4.04.1" & with-test} | "sexplib0" {with-test})
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["dune" "build" "-p" name "-j" jobs "@install" "@runtest" {with-test}]
+  ]
+  dev-repo: "git+https://github.com/ocaml-doc/odoc-parser.git"
+  url {
+    src:
+      "https://github.com/ocaml-doc/odoc-parser/releases/download/2.0.0/odoc-parser-2.0.0.tbz"
+    checksum: [
+      "sha256=407919fbb0eb95761d6fc6ec6777628d94aa1907343bdca678b1880bafb33922"
+      "sha512=d2bffa3e9f30471045682e390dcee7a2c1caf3831bca4bd57c16939e782c2e23434e6f1c9887580a1804800b3629ef4c4311a9d418fca5a939f324650d54006e"
+    ]
+  }
+  x-commit-hash: "ebfd3b9489e44187da2c67d79a32b6fc1e92bda4"
+}
+package "ordering" {
+  opam-version: "2.0"
+  version: "3.10.0"
+  synopsis: "Element ordering"
+  description: "Element ordering"
+  maintainer: "Jane Street Group, LLC <opensource@janestreet.com>"
+  authors: "Jane Street Group, LLC <opensource@janestreet.com>"
+  license: "MIT"
+  homepage: "https://github.com/ocaml/dune"
+  doc: "https://dune.readthedocs.io/"
+  bug-reports: "https://github.com/ocaml/dune/issues"
+  depends: [
+    "dune" {>= "3.5"}
+    "ocaml" {>= "4.08.0"}
+    "odoc" {with-doc}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["rm" "-rf" "vendor/csexp"]
+    ["rm" "-rf" "vendor/pp"]
+    ["dune" "build" "-p" name "-j" jobs "@install" "@doc" {with-doc}]
+  ]
+  dev-repo: "git+https://github.com/ocaml/dune.git"
+  url {
+    src:
+      "https://github.com/ocaml/dune/releases/download/3.10.0/dune-3.10.0.tbz"
+    checksum: [
+      "sha256=9ff03384a98a8df79852cc674f0b4738ba8aec17029b6e2eeb514f895e710355"
+      "sha512=8133cdcc5499a6bf21cd65b4fc8b12445ae39366731006773fcd3b348c553a8d89d004db161c655aa167a2a3653b7919d32b27f29217106ef762bd01b43afc76"
+    ]
+  }
+  x-commit-hash: "fc382520272012638088848d7f3dd1ef6687a284"
+}
+package "pecu" {
+  opam-version: "2.0"
+  version: "0.6"
+  synopsis: "Encoder/Decoder of Quoted-Printable (RFC2045 & RFC2047)"
+  description: """\
+A non-blocking encoder/decoder of Quoted-Printable according to
+RFC2045 and RFC2047 (about encoded-word). Useful to translate contents of emails."""
+  maintainer: "Romain Calascibetta <romain.calascibetta@gmail.com>"
+  authors: "Romain Calascibetta <romain.calascibetta@gmail.com>"
+  license: "MIT"
+  homepage: "https://github.com/mirage/pecu"
+  doc: "https://mirage.github.io/pecu/"
+  bug-reports: "https://github.com/mirage/pecu/issues"
+  depends: [
+    "ocaml" {>= "4.03.0"}
+    "dune" {>= "1.4"}
+    "fmt" {with-test}
+    "alcotest" {with-test}
+    "crowbar" {with-test}
+    "astring" {with-test}
+  ]
+  build: [
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ]
+  dev-repo: "git+https://github.com/mirage/pecu.git"
+  url {
+    src:
+      "https://github.com/mirage/pecu/releases/download/v0.6/pecu-v0.6.tbz"
+    checksum: [
+      "sha256=a9d2b7da444c83b20f879f6c3b7fc911d08ac1e6245ad7105437504f9394e5c7"
+      "sha512=8cae31da1fcb8b684a949846b1668131de244fbb89faf7421761da208f87092523a9e184e91a04c26739e6793501307b30ed255d540dcb268b171b7a56b56e24"
+    ]
+  }
+  x-commit-hash: "295862d499e63ef77b8fdeb08e951e6e6bdcbc42"
+}
+package "pp" {
+  opam-version: "2.0"
+  version: "1.1.2"
+  synopsis: "Pretty-printing library"
+  description: """\
+This library provides a lean alternative to the Format [1] module of
+the OCaml standard library. It aims to make it easy for users to do
+the right thing. If you have tried Format before but find its API
+complicated and difficult to use, then Pp might be a good choice for
+you.
+
+Pp uses the same concepts of boxes and break hints, and the final
+rendering is done to formatter from the Format module. However it
+defines its own algebra which some might find easier to work with and
+reason about. No previous knowledge is required to start using this
+library, however the various guides for the Format module such as this
+one [2] should be applicable to Pp as well.
+
+[1]: https://caml.inria.fr/pub/docs/manual-ocaml/libref/Format.html
+[2]: http://caml.inria.fr/resources/doc/guides/format.en.html"""
+  maintainer: "Jeremie Dimino <jeremie@dimino.org>"
+  authors: ["Jane Street Group, LLC" "Jeremie Dimino <jeremie@dimino.org>"]
+  license: "MIT"
+  homepage: "https://github.com/ocaml-dune/pp"
+  doc: "https://ocaml-dune.github.io/pp/"
+  bug-reports: "https://github.com/ocaml-dune/pp/issues"
+  depends: [
+    "dune" {>= "2.0"}
+    "ocaml" {>= "4.08.0"}
+    "ppx_expect" {with-test}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    [
+      "dune"
+      "build"
+      "-p"
+      name
+      "-j"
+      jobs
+      "@install"
+      "@runtest" {with-test}
+      "@doc" {with-doc}
+    ]
+  ]
+  dev-repo: "git+https://github.com/ocaml-dune/pp.git"
+  url {
+    src:
+      "https://github.com/ocaml-dune/pp/releases/download/1.1.2/pp-1.1.2.tbz"
+    checksum: [
+      "sha256=e4a4e98d96b1bb76950fcd6da4e938c86d989df4d7e48f02f7a44595f5af1d56"
+      "sha512=58f78b083483006b40814be9aac33c895349eb1c6427d2762b4d760192613401262478bd5deff909763517560b06af7bf013c6a6f87d549aafa77b26345303f2"
+    ]
+  }
+  x-commit-hash: "395b95c89cfe2c6d538dad9d56721b6a7278d46c"
+}
+package "ppx_derivers" {
+  opam-version: "2.0"
+  version: "1.2.1"
+  synopsis: "Shared [@@deriving] plugin registry"
+  description: """\
+Ppx_derivers is a tiny package whose sole purpose is to allow
+ppx_deriving and ppx_type_conv to inter-operate gracefully when linked
+as part of the same ocaml-migrate-parsetree driver."""
+  maintainer: "jeremie@dimino.org"
+  authors: "Jérémie Dimino"
+  license: "BSD-3-Clause"
+  homepage: "https://github.com/ocaml-ppx/ppx_derivers"
+  bug-reports: "https://github.com/ocaml-ppx/ppx_derivers/issues"
+  depends: ["ocaml" "dune"]
+  build: ["dune" "build" "-p" name "-j" jobs]
+  dev-repo: "git+https://github.com/ocaml-ppx/ppx_derivers.git"
+  url {
+    src: "https://github.com/ocaml-ppx/ppx_derivers/archive/1.2.1.tar.gz"
+    checksum: "md5=5dc2bf130c1db3c731fe0fffc5648b41"
+  }
+}
+package "ppx_yojson_conv_lib" {
+  opam-version: "2.0"
+  version: "v0.16.0"
+  synopsis: "Runtime lib for ppx_yojson_conv"
+  description: "Part of the Jane Street's PPX rewriters collection."
+  maintainer: "Jane Street developers"
+  authors: "Jane Street Group, LLC"
+  license: "MIT"
+  homepage: "https://github.com/janestreet/ppx_yojson_conv_lib"
+  doc:
+    "https://ocaml.janestreet.com/ocaml-core/latest/doc/ppx_yojson_conv_lib/index.html"
+  bug-reports: "https://github.com/janestreet/ppx_yojson_conv_lib/issues"
+  depends: [
+    "ocaml" {>= "4.14.0"}
+    "dune" {>= "2.0.0"}
+    "yojson" {>= "1.7.0"}
+  ]
+  build: ["dune" "build" "-p" name "-j" jobs]
+  dev-repo: "git+https://github.com/janestreet/ppx_yojson_conv_lib.git"
+  url {
+    src:
+      "https://ocaml.janestreet.com/ocaml-core/v0.16/files/ppx_yojson_conv_lib-v0.16.0.tar.gz"
+    checksum:
+      "sha256=557c43c88d365b4cbb514d809f1eecc54d7b9976b0669bc55b02169e6c86ec7d"
+  }
+}
+package "ppxlib" {
+  opam-version: "2.0"
+  version: "0.30.0"
+  synopsis: "Standard infrastructure for ppx rewriters"
+  description: """\
+Ppxlib is the standard infrastructure for ppx rewriters
+and other programs that manipulate the in-memory representation of
+OCaml programs, a.k.a the "Parsetree".
+
+It also comes bundled with two ppx rewriters that are commonly used to
+write tools that manipulate and/or generate Parsetree values;
+`ppxlib.metaquot` which allows to construct Parsetree values using the
+OCaml syntax directly and `ppxlib.traverse` which provides various
+ways of automatically traversing values of a given type, in particular
+allowing to inject a complex structured value into generated code."""
+  maintainer: "opensource@janestreet.com"
+  authors: "Jane Street Group, LLC <opensource@janestreet.com>"
+  license: "MIT"
+  homepage: "https://github.com/ocaml-ppx/ppxlib"
+  doc: "https://ocaml-ppx.github.io/ppxlib/"
+  bug-reports: "https://github.com/ocaml-ppx/ppxlib/issues"
+  depends: [
+    "dune" {>= "2.7"}
+    "ocaml" {>= "4.04.1" & < "5.2.0" & != "5.1.0~alpha1"}
+    "ocaml-compiler-libs" {>= "v0.11.0"}
+    "ppx_derivers" {>= "1.0"}
+    "sexplib0" {>= "v0.12"}
+    "sexplib0" {with-test & >= "v0.15"}
+    "stdlib-shims"
+    "ocamlfind" {with-test}
+    "re" {with-test & >= "1.9.0"}
+    "cinaps" {with-test & >= "v0.12.1"}
+    "odoc" {with-doc}
+  ]
+  conflicts: [
+    "ocaml-migrate-parsetree" {< "2.0.0"}
+    "base-effects"
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    [
+      "dune"
+      "build"
+      "-p"
+      name
+      "-j"
+      jobs
+      "@install"
+      "@runtest" {with-test}
+      "@doc" {with-doc}
+    ]
+  ]
+  dev-repo: "git+https://github.com/ocaml-ppx/ppxlib.git"
+  url {
+    src:
+      "https://github.com/ocaml-ppx/ppxlib/releases/download/0.30.0/ppxlib-0.30.0.tbz"
+    checksum: [
+      "sha256=dd4a63bde9d29b49810e04d7653937c932f177a941ca0e1982b6ad53ac442110"
+      "sha512=0a8c4fa894aaf445cb93213eaa32afb2772235da44aa28c917aba237731a44d5c2687bd960fca49bff62bbe0f9b3fdd9c15730313b429214ae281069f862ffdc"
+    ]
+  }
+  x-commit-hash: "f0496c9ce731dcffbd26e208b0596627607a496b"
+}
+package "prettym" {
+  opam-version: "2.0"
+  version: "0.0.3"
+  synopsis: "An memory-bounded encoder according to RFC 822"
+  description:
+    "A best effort memory-bounded encoder to respect the 80 column limitation"
+  maintainer: "Romain Calascibetta <romain.calascibetta@gmail.com>"
+  authors: "Romain Calascibetta <romain.calascibetta@gmail.com>"
+  license: "MIT"
+  homepage: "https://github.com/dinosaure/prettym"
+  doc: "https://dinosaure.github.io/prettym/"
+  bug-reports: "https://github.com/dinosaure/prettym/issues"
+  depends: [
+    "ocaml" {>= "4.08.0"}
+    "dune" {>= "2.8"}
+    "bigarray-overlap"
+    "fmt" {>= "0.8.7"}
+    "ke" {>= "0.4"}
+    "bigstringaf" {>= "0.2"}
+    "ptime" {with-test}
+    "alcotest" {with-test}
+    "jsonm" {with-test}
+    "base64" {with-test}
+  ]
+  build: [
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ]
+  dev-repo: "git+https://github.com/dinosaure/prettym.git"
+  url {
+    src:
+      "https://github.com/dinosaure/prettym/releases/download/0.0.3/prettym-0.0.3.tbz"
+    checksum: [
+      "sha256=9170f1a11ade7f4d98a584a5be52bb6b91415f971c6e75894331b46b18b98f09"
+      "sha512=ccb5985daedfb6cae74192090644e81c525df3e0653bb06492f836ca4291275d3ce75079237574200ecab8dacf62304521592d4baebbe4b0d17277b5e200c6a8"
+    ]
+  }
+  x-commit-hash: "a22c4d46c11e2c4c0605ff7151b957785c795593"
+}
+package "psq" {
+  opam-version: "2.0"
+  version: "0.2.1"
+  synopsis: "Functional Priority Search Queues"
+  description: """\
+Typical applications are searches, schedulers and caches. If you ever scratched
+your head because that A* didn't look quite right, a PSQ is what you needed."""
+  maintainer: "David Kaloper Meršinjak <dk505@cam.ac.uk>"
+  authors: "David Kaloper Meršinjak <dk505@cam.ac.uk>"
+  license: "ISC"
+  homepage: "https://github.com/pqwy/psq"
+  doc: "https://pqwy.github.io/psq/doc"
+  bug-reports: "https://github.com/pqwy/psq/issues"
+  depends: [
+    "ocaml" {>= "4.03.0"}
+    "dune" {>= "1.7"}
+    "seq"
+    "qcheck-core" {with-test}
+    "qcheck-alcotest" {with-test}
+    "alcotest" {with-test}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name] {with-test & ocaml:version >= "4.07.0"}
+  ]
+  dev-repo: "git+https://github.com/pqwy/psq.git"
+  url {
+    src: "https://github.com/pqwy/psq/releases/download/v0.2.1/psq-0.2.1.tbz"
+    checksum: [
+      "sha256=42005f533eabe74b1799ee32b8905654cd66a22bed4af2bd266b28d8462cd344"
+      "sha512=8a8dfe20dc77e1cf38a7b1a7fc76f815c71a4ffe04627151b855feaba8f1ae742594739d1b7a45580b5b24a2cd99b58516f6b5c8d858aa314201f4a6422101ee"
+    ]
+  }
+  x-commit-hash: "b2eb86165712da210bcffec385bb7e031e54045e"
+}
+package "ptime" {
+  opam-version: "2.0"
+  version: "1.1.0"
+  synopsis: "POSIX time for OCaml"
+  description: """\
+Ptime has platform independent POSIX time support in pure OCaml. It
+provides a type to represent a well-defined range of POSIX timestamps
+with picosecond precision, conversion with date-time values,
+conversion with [RFC 3339 timestamps][rfc3339] and pretty printing to
+a human-readable, locale-independent representation.
+
+The additional Ptime_clock library provides access to a system POSIX
+clock and to the system's current time zone offset.
+
+Ptime is not a calendar library.
+
+Ptime has no dependency. Ptime_clock depends on your system library or
+JavaScript runtime system. Ptime and its libraries are distributed
+under the ISC license.
+
+[rfc3339]: http://tools.ietf.org/html/rfc3339
+
+Home page: <http://erratique.ch/software/ptime>"""
+  maintainer: "Daniel Bünzli <daniel.buenzl i@erratique.ch>"
+  authors: "The ptime programmers"
+  license: "ISC"
+  tags: ["time" "posix" "system" "org:erratique"]
+  homepage: "https://erratique.ch/software/ptime"
+  doc: "https://erratique.ch/software/ptime/doc/"
+  bug-reports: "https://github.com/dbuenzli/ptime/issues"
+  depends: [
+    "ocaml" {>= "4.08.0"}
+    "ocamlfind" {build}
+    "ocamlbuild" {build & != "0.9.0"}
+    "topkg" {build & >= "1.0.3"}
+  ]
+  build: ["ocaml" "pkg/pkg.ml" "build" "--dev-pkg" "%{dev}%"]
+  dev-repo: "git+https://erratique.ch/repos/ptime.git"
+  url {
+    src: "https://erratique.ch/software/ptime/releases/ptime-1.1.0.tbz"
+    checksum:
+      "sha512=309b8383f61b58840e58a82802ec8fbc61b7cc95a4590d38ad427e484cbaaf66f03fa8e6484b5b6855468a87e745aed103bf6f1041ec05062230a9fa5fb86cc6"
+  }
+}
+package "re" {
+  opam-version: "2.0"
+  version: "1.10.4"
+  synopsis: "RE is a regular expression library for OCaml"
+  description: """\
+Pure OCaml regular expressions with:
+* Perl-style regular expressions (module Re.Perl)
+* Posix extended regular expressions (module Re.Posix)
+* Emacs-style regular expressions (module Re.Emacs)
+* Shell-style file globbing (module Re.Glob)
+* Compatibility layer for OCaml's built-in Str module (module Re.Str)"""
+  maintainer: "rudi.grinberg@gmail.com"
+  authors: [
+    "Jerome Vouillon"
+    "Thomas Gazagnaire"
+    "Anil Madhavapeddy"
+    "Rudi Grinberg"
+    "Gabriel Radanne"
+  ]
+  license: "LGPL-2.0-or-later WITH OCaml-LGPL-linking-exception"
+  homepage: "https://github.com/ocaml/ocaml-re"
+  bug-reports: "https://github.com/ocaml/ocaml-re/issues"
+  depends: [
+    "ocaml" {>= "4.03"}
+    "dune" {>= "2.0"}
+    "ounit" {with-test}
+    "seq"
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ]
+  dev-repo: "git+https://github.com/ocaml/ocaml-re.git"
+  url {
+    src:
+      "https://github.com/ocaml/ocaml-re/releases/download/1.10.4/re-1.10.4.tbz"
+    checksum: [
+      "sha256=83eb3e4300aa9b1dc7820749010f4362ea83524742130524d78c20ce99ca747c"
+      "sha512=92b05cf92c389fa8c753f2acca837b15dd05a4a2e8e2bec7a269d2e14c35b1a786d394258376648f80b4b99250ba1900cfe68230b8385aeac153149d9ce56099"
+    ]
+  }
+  x-commit-hash: "e9a4cecb8294c1839db18b1d0c30e755ec85ed5e"
+}
+package "result" {
+  opam-version: "2.0"
+  version: "1.5"
+  synopsis: "Compatibility Result module"
+  description: """\
+Projects that want to use the new result type defined in OCaml >= 4.03
+while staying compatible with older version of OCaml should use the
+Result module defined in this library."""
+  maintainer: "Jane Street developers"
+  authors: "Jane Street Group, LLC"
+  license: "BSD-3-Clause"
+  homepage: "https://github.com/janestreet/result"
+  bug-reports: "https://github.com/janestreet/result/issues"
+  depends: [
+    "ocaml"
+    "dune" {>= "1.0"}
+  ]
+  build: ["dune" "build" "-p" name "-j" jobs]
+  dev-repo: "git+https://github.com/janestreet/result.git"
+  url {
+    src:
+      "https://github.com/janestreet/result/releases/download/1.5/result-1.5.tbz"
+    checksum: "md5=1b82dec78849680b49ae9a8a365b831b"
+  }
+}
+package "rresult" {
+  opam-version: "2.0"
+  version: "0.7.0"
+  synopsis: "Result value combinators for OCaml"
+  description: """\
+Rresult is an OCaml module for handling computation results and errors
+in an explicit and declarative manner, without resorting to
+exceptions. It defines combinators to operate on the `result` type
+available from OCaml 4.03 in the standard library.
+
+OCaml 4.08 provides the `Stdlib.Result` module which you should prefer
+to Rresult.
+
+Rresult is distributed under the ISC license.
+
+Home page: http://erratique.ch/software/rresult  
+Contact: Daniel Bünzli `<daniel.buenzl i@erratique.ch>`"""
+  maintainer: "Daniel Bünzli <daniel.buenzl i@erratique.ch>"
+  authors: "The rresult programmers"
+  license: "ISC"
+  tags: ["result" "error" "org:erratique"]
+  homepage: "https://erratique.ch/software/rresult"
+  doc: "https://erratique.ch/software/rresult/doc/Rresult"
+  bug-reports: "https://github.com/dbuenzli/rresult/issues"
+  depends: [
+    "ocaml" {>= "4.08.0"}
+    "ocamlfind" {build}
+    "ocamlbuild" {build}
+    "topkg" {build & >= "1.0.3"}
+  ]
+  build: ["ocaml" "pkg/pkg.ml" "build" "--dev-pkg" "%{dev}%"]
+  dev-repo: "git+https://erratique.ch/repos/rresult.git"
+  url {
+    src: "https://erratique.ch/software/rresult/releases/rresult-0.7.0.tbz"
+    checksum:
+      "sha512=f1bb631c986996388e9686d49d5ae4d8aaf14034f6865c62a88fb58c48ce19ad2eb785327d69ca27c032f835984e0bd2efd969b415438628a31f3e84ec4551d3"
+  }
+}
+package "seq" {
+  opam-version: "2.0"
+  version: "base"
+  synopsis:
+    "Compatibility package for OCaml's standard iterator type starting from 4.07."
+  maintainer: " "
+  authors: " "
+  homepage: " "
+  bug-reports: "https://caml.inria.fr/mantis/main_page.php"
+  depends: [
+    "ocaml" {>= "4.07.0"}
+  ]
+  dev-repo: "git+https://github.com/ocaml/ocaml.git"
+  extra-files: [
+    ["seq.install" "md5=026b31e1df290373198373d5aaa26e42"]
+    ["META.seq" "md5=b33c8a1a6c7ed797816ce27df4855107"]
+  ]
+}
+package "sexplib0" {
+  opam-version: "2.0"
+  version: "v0.16.0"
+  synopsis:
+    "Library containing the definition of S-expressions and some base converters"
+  description: """\
+Part of Jane Street's Core library
+The Core suite of libraries is an industrial strength alternative to
+OCaml's standard library that was developed by Jane Street, the
+largest industrial user of OCaml."""
+  maintainer: "Jane Street developers"
+  authors: "Jane Street Group, LLC"
+  license: "MIT"
+  homepage: "https://github.com/janestreet/sexplib0"
+  doc:
+    "https://ocaml.janestreet.com/ocaml-core/latest/doc/sexplib0/index.html"
+  bug-reports: "https://github.com/janestreet/sexplib0/issues"
+  depends: [
+    "ocaml" {>= "4.08.0"}
+    "dune" {>= "2.0.0"}
+  ]
+  build: ["dune" "build" "-p" name "-j" jobs]
+  dev-repo: "git+https://github.com/janestreet/sexplib0.git"
+  url {
+    src:
+      "https://ocaml.janestreet.com/ocaml-core/v0.16/files/sexplib0-v0.16.0.tar.gz"
+    checksum:
+      "sha256=86dba26468194512f789f2fb709063515a9cb4e5c4461c021c239a369590701d"
+  }
+}
+package "spawn" {
+  opam-version: "2.0"
+  version: "v0.15.1"
+  synopsis: "Spawning sub-processes"
+  description: """\
+Spawn is a small library exposing only one functionality: spawning sub-process.
+
+It has three main goals:
+
+1. provide missing features of Unix.create_process such as providing a
+working directory
+
+2. provide better errors when a system call fails in the
+sub-process. For instance if a command is not found, you get a proper
+[Unix.Unix_error] exception
+
+3. improve performance by using vfork when available. It is often
+claimed that nowadays fork is as fast as vfork, however in practice
+fork takes time proportional to the process memory while vfork is
+constant time. In application using a lot of memory, vfork can be
+thousands of times faster than fork."""
+  maintainer: "Jane Street developers"
+  authors: "Jane Street Group, LLC"
+  license: "MIT"
+  homepage: "https://github.com/janestreet/spawn"
+  doc: "https://janestreet.github.io/spawn/"
+  bug-reports: "https://github.com/janestreet/spawn/issues"
+  depends: [
+    "dune" {>= "2.8"}
+    "ppx_expect" {with-test}
+    "ocaml" {>= "4.05"}
+    "odoc" {with-doc}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    [
+      "dune"
+      "build"
+      "-p"
+      name
+      "-j"
+      jobs
+      "@install"
+      "@runtest" {with-test}
+      "@doc" {with-doc}
+    ]
+  ]
+  dev-repo: "git+https://github.com/janestreet/spawn.git"
+  url {
+    src: "https://github.com/janestreet/spawn/archive/v0.15.1.tar.gz"
+    checksum: [
+      "sha256=9afdee314fab6c3fcd689ab6eb5608d6b78078e6dede3953a47debde06c19d50"
+      "sha512=efdb31d5ec5ea36d0bc80224d4ee04e46ce3428d1662870e6cebece92bc313d6eebee378802c0c059dd6e0cafea515308c31b7dfaf04a098eb4566583c1e9ed4"
+    ]
+  }
+  x-commit-hash: "13d279ebfa8c40d4bafe18cddfdff0de54b4eaff"
+}
+package "ssl" {
+  opam-version: "2.0"
+  version: "0.7.0"
+  synopsis: "Bindings for OpenSSL"
+  maintainer: "Antonio Monteiro <anmonteiro@gmail.com>"
+  authors: "Samuel Mimram <samuel.mimram@ens-lyon.org>"
+  license: "LGPL-2.1-only WITH OCaml-LGPL-linking-exception"
+  homepage: "https://github.com/savonet/ocaml-ssl"
+  bug-reports: "https://github.com/savonet/ocaml-ssl/issues"
+  depends: [
+    "dune" {>= "2.7"}
+    "ocaml" {>= "4.03.0"}
+    "dune-configurator"
+    "conf-libssl"
+    "alcotest" {with-test}
+    "bisect_ppx" {dev & >= "2.5.0"}
+    "odoc" {with-doc}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    [
+      "dune"
+      "build"
+      "-p"
+      name
+      "-j"
+      jobs
+      "@install"
+      "@runtest" {with-test & ocaml:version >= "4.08.0"}
+      "@doc" {with-doc}
+    ]
+  ]
+  dev-repo: "git+https://github.com/savonet/ocaml-ssl.git"
+  url {
+    src:
+      "https://github.com/savonet/ocaml-ssl/archive/refs/tags/v0.7.0.tar.gz"
+    checksum: [
+      "md5=0ced13c2beef2135cd9d3a3743ea0e37"
+      "sha512=969c4d64828449a49bdef26ca5f8faa72d2fe2a2304ccbf589a3ff097c2bf8ae9eb83ae1c90216f6b4d6f359e462ea47e0106a7386e26848d14910138fcb07f8"
+    ]
+  }
+}
+package "stdio" {
+  opam-version: "2.0"
+  version: "v0.16.0"
+  synopsis: "Standard IO library for OCaml"
+  description: """\
+Stdio implements simple input/output functionalities for OCaml.
+
+It re-exports the input/output functions of the OCaml standard
+libraries using a more consistent API."""
+  maintainer: "Jane Street developers"
+  authors: "Jane Street Group, LLC"
+  license: "MIT"
+  homepage: "https://github.com/janestreet/stdio"
+  doc: "https://ocaml.janestreet.com/ocaml-core/latest/doc/stdio/index.html"
+  bug-reports: "https://github.com/janestreet/stdio/issues"
+  depends: [
+    "ocaml" {>= "4.14.0"}
+    "base" {>= "v0.16" & < "v0.17"}
+    "dune" {>= "2.0.0"}
+  ]
+  build: ["dune" "build" "-p" name "-j" jobs]
+  dev-repo: "git+https://github.com/janestreet/stdio.git"
+  url {
+    src:
+      "https://ocaml.janestreet.com/ocaml-core/v0.16/files/stdio-v0.16.0.tar.gz"
+    checksum:
+      "sha256=61f0b75950614ac5378c6ec0d822cce6463402d919d5810b736fc46522b3a73e"
+  }
+}
+package "stdlib-shims" {
+  opam-version: "2.0"
+  version: "0.3.0"
+  synopsis: "Backport some of the new stdlib features to older compiler"
+  description: """\
+Backport some of the new stdlib features to older compiler,
+such as the Stdlib module.
+
+This allows projects that require compatibility with older compiler to
+use these new features in their code."""
+  maintainer: "The stdlib-shims programmers"
+  authors: "The stdlib-shims programmers"
+  license: "LGPL-2.1-only WITH OCaml-LGPL-linking-exception"
+  tags: ["stdlib" "compatibility" "org:ocaml"]
+  homepage: "https://github.com/ocaml/stdlib-shims"
+  doc: "https://ocaml.github.io/stdlib-shims/"
+  bug-reports: "https://github.com/ocaml/stdlib-shims/issues"
+  depends: [
+    "dune"
+    "ocaml" {>= "4.02.3"}
+  ]
+  build: ["dune" "build" "-p" name "-j" jobs]
+  dev-repo: "git+https://github.com/ocaml/stdlib-shims.git"
+  url {
+    src:
+      "https://github.com/ocaml/stdlib-shims/releases/download/0.3.0/stdlib-shims-0.3.0.tbz"
+    checksum: [
+      "sha256=babf72d3917b86f707885f0c5528e36c63fccb698f4b46cf2bab5c7ccdd6d84a"
+      "sha512=1151d7edc8923516e9a36995a3f8938d323aaade759ad349ed15d6d8501db61ffbe63277e97c4d86149cf371306ac23df0f581ec7e02611f58335126e1870980"
+    ]
+  }
+  x-commit-hash: "fb6815e5d745f07fd567c11671149de6ef2e74c8"
+}
+package "stdune" {
+  opam-version: "2.0"
+  version: "3.10.0"
+  synopsis: "Dune's unstable standard library"
+  description:
+    "This library offers no backwards compatibility guarantees. Use at your own risk."
+  maintainer: "Jane Street Group, LLC <opensource@janestreet.com>"
+  authors: "Jane Street Group, LLC <opensource@janestreet.com>"
+  license: "MIT"
+  homepage: "https://github.com/ocaml/dune"
+  doc: "https://dune.readthedocs.io/"
+  bug-reports: "https://github.com/ocaml/dune/issues"
+  depends: [
+    "dune" {>= "3.5"}
+    "ocaml" {>= "4.08.0"}
+    "base-unix"
+    "dyn" {= version}
+    "ordering" {= version}
+    "pp" {>= "1.1.0"}
+    "csexp" {>= "1.5.0"}
+    "odoc" {with-doc}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["rm" "-rf" "vendor/csexp"]
+    ["rm" "-rf" "vendor/pp"]
+    ["dune" "build" "-p" name "-j" jobs "@install" "@doc" {with-doc}]
+  ]
+  dev-repo: "git+https://github.com/ocaml/dune.git"
+  url {
+    src:
+      "https://github.com/ocaml/dune/releases/download/3.10.0/dune-3.10.0.tbz"
+    checksum: [
+      "sha256=9ff03384a98a8df79852cc674f0b4738ba8aec17029b6e2eeb514f895e710355"
+      "sha512=8133cdcc5499a6bf21cd65b4fc8b12445ae39366731006773fcd3b348c553a8d89d004db161c655aa167a2a3653b7919d32b27f29217106ef762bd01b43afc76"
+    ]
+  }
+  x-commit-hash: "fc382520272012638088848d7f3dd1ef6687a284"
+}
+package "stringext" {
+  opam-version: "2.0"
+  version: "1.6.0"
+  synopsis: "Extra string functions for OCaml"
+  description: """\
+Extra string functions for OCaml. Mainly splitting. All functions are in the
+Stringext module."""
+  maintainer: "rudi.grinberg@gmail.com"
+  authors: "Rudi Grinberg"
+  license: "MIT"
+  homepage: "https://github.com/rgrinberg/stringext"
+  bug-reports: "https://github.com/rgrinberg/stringext/issues"
+  depends: [
+    "ocaml" {>= "4.02.3"}
+    "dune" {>= "1.0"}
+    "ounit" {with-test}
+    "qtest" {with-test & >= "2.2"}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ]
+  dev-repo: "git+https://github.com/rgrinberg/stringext.git"
+  url {
+    src:
+      "https://github.com/rgrinberg/stringext/releases/download/1.6.0/stringext-1.6.0.tbz"
+    checksum: [
+      "sha256=db41f5d52e9eab17615f110b899dfeb27dd7e7f89cd35ae43827c5119db206ea"
+      "sha512=d8ebe40f42b598a9bd99f1ef4b00ba93458385a4accd121af66a0bf3b3f8d7135f576740adf1a43081dd409977c2219fd4bdbb5b3d1308890d301d553ed49900"
+    ]
+  }
+}
+package "topkg" {
+  opam-version: "2.0"
+  version: "1.0.7"
+  synopsis: "The transitory OCaml software packager"
+  description: """\
+Topkg is a packager for distributing OCaml software. It provides an
+API to describe the files a package installs in a given build
+configuration and to specify information about the package's
+distribution, creation and publication procedures.
+
+The optional topkg-care package provides the `topkg` command line tool
+which helps with various aspects of a package's life cycle: creating
+and linting a distribution, releasing it on the WWW, publish its
+documentation, add it to the OCaml opam repository, etc.
+
+Topkg is distributed under the ISC license and has **no**
+dependencies. This is what your packages will need as a *build*
+dependency.
+
+Topkg-care is distributed under the ISC license it depends on
+[fmt][fmt], [logs][logs], [bos][bos], [cmdliner][cmdliner],
+[webbrowser][webbrowser] and `opam-format`.
+
+[fmt]: http://erratique.ch/software/fmt
+[logs]: http://erratique.ch/software/logs
+[bos]: http://erratique.ch/software/bos
+[cmdliner]: http://erratique.ch/software/cmdliner
+[webbrowser]: http://erratique.ch/software/webbrowser
+
+Home page: http://erratique.ch/software/topkg"""
+  maintainer: "Daniel Bünzli <daniel.buenzl i@erratique.ch>"
+  authors: "The topkg programmers"
+  license: "ISC"
+  tags: ["packaging" "ocamlbuild" "org:erratique"]
+  homepage: "https://erratique.ch/software/topkg"
+  doc: "https://erratique.ch/software/topkg/doc"
+  bug-reports: "https://github.com/dbuenzli/topkg/issues"
+  depends: [
+    "ocaml" {>= "4.05.0"}
+    "ocamlfind" {build & >= "1.6.1"}
+    "ocamlbuild"
+  ]
+  build: [
+    "ocaml" "pkg/pkg.ml" "build" "--pkg-name" name "--dev-pkg" "%{dev}%"
+  ]
+  dev-repo: "git+https://erratique.ch/repos/topkg.git"
+  url {
+    src: "https://erratique.ch/software/topkg/releases/topkg-1.0.7.tbz"
+    checksum:
+      "sha512=09e59f1759bf4db8471f02d0aefd8db602b44932a291c05c312b1423796e7a15d1598d3c62a0cec7f083eff8e410fac09363533dc4bd2120914bb9664efea535"
+  }
+}
+package "tyxml" {
+  opam-version: "2.0"
+  version: "4.5.0"
+  synopsis: "A library for building correct HTML and SVG documents"
+  description:
+    "TyXML provides a set of convenient combinators that uses the OCaml type system to ensure the validity of the generated documents. TyXML can be used with any representation of HTML and SVG: the textual one, provided directly by this package, or DOM trees (`js_of_ocaml-tyxml`) virtual DOM (`virtual-dom`) and reactive or replicated trees (`eliom`). You can also create your own representation and use it to instantiate a new set of combinators."
+  maintainer: "dev@ocsigen.org"
+  authors: "The ocsigen team"
+  license: "LGPL-2.1-only WITH OCaml-LGPL-linking-exception"
+  homepage: "https://github.com/ocsigen/tyxml"
+  doc: "https://ocsigen.org/tyxml/latest/manual/intro"
+  bug-reports: "https://github.com/ocsigen/tyxml/issues"
+  depends: [
+    "dune" {>= "2.0"}
+    "ocaml" {>= "4.02"}
+    "alcotest" {with-test}
+    "re" {>= "1.5.0"}
+    "seq"
+    "uutf" {>= "1.0.0"}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    [
+      "dune"
+      "build"
+      "-p"
+      name
+      "-j"
+      jobs
+      "@install"
+      "@runtest" {with-test}
+      "@doc" {with-doc}
+    ]
+  ]
+  dev-repo: "git+https://github.com/ocsigen/tyxml.git"
+  url {
+    src:
+      "https://github.com/ocsigen/tyxml/releases/download/4.5.0/tyxml-4.5.0.tbz"
+    checksum: [
+      "sha256=c69accef5df4dd89d38f6aa0baad01e8fda4e9e98bb7dad61bec1452c5716068"
+      "sha512=772535441b09c393d53c27152e65f404a0a541aa0cea1bda899a8d751ab64d1729237e583618c3ff33d75e3865d53503d1ea413c6bbc8c68c413347efd1709b3"
+    ]
+  }
+  x-commit-hash: "ef431a4bceaefb2d9248e79092e6c1a1a9420095"
+}
+package "unstrctrd" {
+  opam-version: "2.0"
+  version: "0.3"
+  synopsis: "Unstructured parser"
+  description: "Fast and compliant Unstructured parser according RFC 822"
+  maintainer: "Romain Calascibetta <romain.calascibetta@gmail.com>"
+  authors: "Romain Calascibetta <romain.calascibetta@gmail.com>"
+  license: "MIT"
+  homepage: "https://github.com/dinosaure/unstrctrd"
+  doc: "https://dinosaure.github.io/unstrctrd/"
+  bug-reports: "https://github.com/dinosaure/unstrctrd/issues"
+  depends: [
+    "ocaml" {>= "4.07.0"}
+    "dune" {>= "2.0"}
+    "uutf"
+    "angstrom" {>= "0.14.0"}
+    "rresult" {with-test}
+    "alcotest" {with-test}
+    "ke" {with-test}
+    "bigstringaf" {with-test}
+    "hxd" {with-test & >= "0.3.1"}
+    "fmt" {with-test & >= "0.8.7"}
+    "crowbar" {>= "0.2" & with-test}
+  ]
+  build: ["dune" "build" "-p" name "-j" jobs]
+  run-test: ["dune" "runtest" "-p" name "-j" jobs]
+  dev-repo: "git+https://github.com/dinosaure/unstrctrd.git"
+  url {
+    src:
+      "https://github.com/dinosaure/unstrctrd/releases/download/v0.3/unstrctrd-v0.3.tbz"
+    checksum: [
+      "sha256=7355b1e9a6b977608641c88f9f136fff309ef64e174818c7ccadc8a2a78ded5b"
+      "sha512=ea2289a331b08523ffcd135e03a4e9fbbc27b46496a1b7dbdd95a0dad57f83cc9b59393ff9a14e557952ad466a2608e60801365993cb22ec79c4650831b620ab"
+    ]
+  }
+  x-commit-hash: "92bb3ea3073ed6dbd4c9b75670a41b7781f5c1d4"
+}
+package "uri" {
+  opam-version: "2.0"
+  version: "4.2.0"
+  synopsis: "An RFC3986 URI/URL parsing library"
+  description: """\
+This is an OCaml implementation of the [RFC3986](http://tools.ietf.org/html/rfc3986) specification
+for parsing URI or URLs."""
+  maintainer: "anil@recoil.org"
+  authors: ["Anil Madhavapeddy" "David Sheets" "Rudi Grinberg"]
+  license: "ISC"
+  tags: ["url" "uri" "org:mirage" "org:xapi-project"]
+  homepage: "https://github.com/mirage/ocaml-uri"
+  doc: "https://mirage.github.io/ocaml-uri/"
+  bug-reports: "https://github.com/mirage/ocaml-uri/issues"
+  depends: [
+    "ocaml" {>= "4.04.0"}
+    "dune" {>= "1.2.0"}
+    "ounit" {with-test & >= "1.0.2"}
+    "ppx_sexp_conv" {with-test & >= "v0.9.0"}
+    "stringext" {>= "1.4.0"}
+    "angstrom" {>= "0.14.0"}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["dune" "build" "-p" name "-j" jobs]
+    ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ]
+  dev-repo: "git+https://github.com/mirage/ocaml-uri.git"
+  url {
+    src:
+      "https://github.com/mirage/ocaml-uri/releases/download/v4.2.0/uri-v4.2.0.tbz"
+    checksum: [
+      "sha256=c5c013d940dbb6731ea2ee75c2bf991d3435149c3f3659ec2e55476f5473f16b"
+      "sha512=119e39bf53db9e94383a4e3a3df492b60b2db097266b3a8660de431ad85bc87997718305972fd2abbfb529973475ce6b210ba5e34d12e85a5dabbb0e24130aa1"
+    ]
+  }
+  x-commit-hash: "0ff3efbbc235bef5a7d67cc01bc1dadbe2e859b9"
+}
+package "user-setup" {
+  opam-version: "2.0"
+  version: "0.7"
+  synopsis:
+    "Helper for the configuration of editors for the use of OCaml tools"
+  description: """\
+This tool knows about several editors, and several OCaml editing tools existing
+as opam packages. It automates the configuration of these editors, providing
+base templates when appropriate, and suitably installing the editing tools in
+the editor's configuration.
+
+For example, it will configure your emacs or Vim to indent OCaml files using
+[ocp-indent](http://www.typerex.org/ocp-indent.html) if you have that installed.
+
+Opam-user-setup is designed to be suitable both to beginners not wanting to be
+bothered with configuration files, and to people who manage them carefully.
+
+It's customisable and reversible."""
+  maintainer: "Louis Gesbert <louis.gesbert@ocamlpro.com>"
+  authors: "Louis Gesbert <louis.gesbert@ocamlpro.com>"
+  license: "ISC"
+  tags: "org:ocamlpro"
+  homepage: "https://github.com/OCamlPro/opam-user-setup"
+  bug-reports: "https://github.com/OCamlPro/opam-user-setup/issues"
+  depends: [
+    "ocaml" {>= "3.12.1"}
+    "ocamlfind" {build}
+    "ocamlbuild" {build}
+    "cmdliner"
+    "re"
+  ]
+  depopts: ["tuareg" "merlin" "ocp-indent" "ocp-index"]
+  flags: plugin
+  build: make
+  post-messages:
+    "To setup or update your editors, run 'opam user-setup install'."
+      {success}
+  dev-repo: "git+https://github.com/OCamlPro/opam-user-setup.git"
+  url {
+    src: "https://github.com/OCamlPro/opam-user-setup/archive/0.7.tar.gz"
+    checksum: "md5=ef0fedc240cd6b852ebc143d4115edaf"
+  }
+}
+package "uucp" {
+  opam-version: "2.0"
+  version: "15.0.0"
+  synopsis: "Unicode character properties for OCaml"
+  description: """\
+Uucp is an OCaml library providing efficient access to a selection of
+character properties of the [Unicode character database][1].
+
+Uucp is independent from any Unicode text data structure and has no
+dependencies. It is distributed under the ISC license.
+
+[1]: http://www.unicode.org/reports/tr44/
+
+Home page: http://erratique.ch/software/uucp"""
+  maintainer: "Daniel Bünzli <daniel.buenzl i@erratique.ch>"
+  authors: "The uucp programmers"
+  license: "ISC"
+  tags: ["unicode" "text" "character" "org:erratique"]
+  homepage: "https://erratique.ch/software/uucp"
+  doc: "https://erratique.ch/software/uucp/doc/"
+  bug-reports: "https://github.com/dbuenzli/uucp/issues"
+  depends: [
+    "ocaml" {>= "4.03.0"}
+    "ocamlfind" {build}
+    "ocamlbuild" {build}
+    "topkg" {build & >= "1.0.3"}
+    "uucd" {with-test}
+    "uunf" {with-test}
+    "uutf" {with-test}
+  ]
+  depopts: ["uutf" "uunf" "cmdliner"]
+  conflicts: [
+    "uutf" {< "1.0.1"}
+    "cmdliner" {< "1.1.0"}
+  ]
+  build: [
+    "ocaml"
+    "pkg/pkg.ml"
+    "build"
+    "--dev-pkg"
+    "%{dev}%"
+    "--with-uutf"
+    "%{uutf:installed}%"
+    "--with-uunf"
+    "%{uunf:installed}%"
+    "--with-cmdliner"
+    "%{cmdliner:installed}%"
+  ]
+  post-messages:
+    "If the build fails with \"ocamlopt.opt got signal and exited\", issue 'ulimit -s unlimited' and retry."
+      {failure & (arch = "ppc64" | arch = "arm64")}
+  dev-repo: "git+https://erratique.ch/repos/uucp.git"
+  url {
+    src: "https://erratique.ch/software/uucp/releases/uucp-15.0.0.tbz"
+    checksum:
+      "sha512=ee4acff5666961766321e85e287fb9d5b8d50533319f22bf6f4eceb943242df2d0e0f4e775c4a140f68ca142837938eaa5926e22362215a3365ffe7f8768923b"
+  }
+}
+package "uuseg" {
+  opam-version: "2.0"
+  version: "15.0.0"
+  synopsis: "Unicode text segmentation for OCaml"
+  description: """\
+Uuseg is an OCaml library for segmenting Unicode text. It implements
+the locale independent [Unicode text segmentation algorithms][1] to
+detect grapheme cluster, word and sentence boundaries and the
+[Unicode line breaking algorithm][2] to detect line break
+opportunities.
+
+The library is independent from any IO mechanism or Unicode text data
+structure and it can process text without a complete in-memory
+representation.
+
+Uuseg depends on [Uucp](http://erratique.ch/software/uucp) and
+optionally on [Uutf](http://erratique.ch/software/uutf) for support on
+OCaml UTF-X encoded strings. It is distributed under the ISC license.
+
+[1]: http://www.unicode.org/reports/tr29/
+[2]: http://www.unicode.org/reports/tr14/
+
+Homepage: http://erratique.ch/software/uuseg"""
+  maintainer: "Daniel Bünzli <daniel.buenzl i@erratique.ch>"
+  authors: "The uuseg programmers"
+  license: "ISC"
+  tags: ["unicode" "text" "segmentation" "org:erratique"]
+  homepage: "https://erratique.ch/software/uuseg"
+  doc: "https://erratique.ch/software/uuseg/doc/"
+  bug-reports: "https://github.com/dbuenzli/uuseg/issues"
+  depends: [
+    "ocaml" {>= "4.03.0"}
+    "ocamlfind" {build}
+    "ocamlbuild" {build}
+    "topkg" {build & >= "1.0.3"}
+    "uucp" {>= "15.0.0" & < "16.0.0"}
+  ]
+  depopts: ["uutf" "cmdliner"]
+  conflicts: [
+    "uutf" {< "1.0.0"}
+    "cmdliner" {< "1.1.0"}
+  ]
+  build: [
+    "ocaml"
+    "pkg/pkg.ml"
+    "build"
+    "--dev-pkg"
+    "%{dev}%"
+    "--with-uutf"
+    "%{uutf:installed}%"
+    "--with-cmdliner"
+    "%{cmdliner:installed}%"
+  ]
+  dev-repo: "git+https://erratique.ch/repos/uuseg.git"
+  url {
+    src: "https://erratique.ch/software/uuseg/releases/uuseg-15.0.0.tbz"
+    checksum:
+      "sha512=37ea83b582dd779a026cfae11f08f5d67ef79fce65a2cf03f2a9aabc7eb5de60c8e812524fa7531e4ff6e22a3b18228e3438a0143ce43be95f23237cc283576f"
+  }
+}
+package "uutf" {
+  opam-version: "2.0"
+  version: "1.0.3"
+  synopsis: "Non-blocking streaming Unicode codec for OCaml"
+  description: """\
+Uutf is a non-blocking streaming codec to decode and encode the UTF-8,
+UTF-16, UTF-16LE and UTF-16BE encoding schemes. It can efficiently
+work character by character without blocking on IO. Decoders perform
+character position tracking and support newline normalization.
+
+Functions are also provided to fold over the characters of UTF encoded
+OCaml string values and to directly encode characters in OCaml
+Buffer.t values. **Note** that since OCaml 4.14, that functionality
+can be found in the Stdlib and you are encouraged to migrate to it.
+
+Uutf has no dependency and is distributed under the ISC license.
+
+Home page: http://erratique.ch/software/uutf  
+Contact: Daniel Bünzli `<daniel.buenzl i@erratique.ch>`"""
+  maintainer: "Daniel Bünzli <daniel.buenzl i@erratique.ch>"
+  authors: "The uutf programmers"
+  license: "ISC"
+  tags: ["unicode" "text" "utf-8" "utf-16" "codec" "org:erratique"]
+  homepage: "https://erratique.ch/software/uutf"
+  doc: "https://erratique.ch/software/uutf/doc/"
+  bug-reports: "https://github.com/dbuenzli/uutf/issues"
+  depends: [
+    "ocaml" {>= "4.03.0"}
+    "ocamlfind" {build}
+    "ocamlbuild" {build}
+    "topkg" {build & >= "1.0.3"}
+  ]
+  depopts: ["cmdliner"]
+  conflicts: [
+    "cmdliner" {< "0.9.8"}
+  ]
+  build: [
+    "ocaml"
+    "pkg/pkg.ml"
+    "build"
+    "--dev-pkg"
+    "%{dev}%"
+    "--with-cmdliner"
+    "%{cmdliner:installed}%"
+  ]
+  dev-repo: "git+https://erratique.ch/repos/uutf.git"
+  url {
+    src: "https://erratique.ch/software/uutf/releases/uutf-1.0.3.tbz"
+    checksum:
+      "sha512=50cc4486021da46fb08156e9daec0d57b4ca469b07309c508d5a9a41e9dbcf1f32dec2ed7be027326544453dcaf9c2534919395fd826dc7768efc6cc4bfcc9f8"
+  }
+}
+package "xdg" {
+  opam-version: "2.0"
+  version: "3.10.0"
+  synopsis: "XDG Base Directory Specification"
+  description:
+    "https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html"
+  maintainer: "Jane Street Group, LLC <opensource@janestreet.com>"
+  authors: "Jane Street Group, LLC <opensource@janestreet.com>"
+  license: "MIT"
+  homepage: "https://github.com/ocaml/dune"
+  doc: "https://dune.readthedocs.io/"
+  bug-reports: "https://github.com/ocaml/dune/issues"
+  depends: [
+    "dune" {>= "3.5"}
+    "ocaml" {>= "4.08"}
+    "odoc" {with-doc}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    ["rm" "-rf" "vendor/csexp"]
+    ["rm" "-rf" "vendor/pp"]
+    ["dune" "build" "-p" name "-j" jobs "@install" "@doc" {with-doc}]
+  ]
+  dev-repo: "git+https://github.com/ocaml/dune.git"
+  url {
+    src:
+      "https://github.com/ocaml/dune/releases/download/3.10.0/dune-3.10.0.tbz"
+    checksum: [
+      "sha256=9ff03384a98a8df79852cc674f0b4738ba8aec17029b6e2eeb514f895e710355"
+      "sha512=8133cdcc5499a6bf21cd65b4fc8b12445ae39366731006773fcd3b348c553a8d89d004db161c655aa167a2a3653b7919d32b27f29217106ef762bd01b43afc76"
+    ]
+  }
+  x-commit-hash: "fc382520272012638088848d7f3dd1ef6687a284"
+}
+package "yojson" {
+  opam-version: "2.0"
+  version: "2.1.0"
+  synopsis:
+    "Yojson is an optimized parsing and printing library for the JSON format"
+  description: """\
+Yojson is an optimized parsing and printing library for the JSON format.
+
+ydump is a pretty-printing command-line program provided with the
+yojson package."""
+  maintainer: [
+    "paul-elliot@tarides.com" "nathan@tarides.com" "marek@tarides.com"
+  ]
+  authors: "Martin Jambon"
+  license: "BSD-3-Clause"
+  homepage: "https://github.com/ocaml-community/yojson"
+  doc: "https://ocaml-community.github.io/yojson"
+  bug-reports: "https://github.com/ocaml-community/yojson/issues"
+  depends: [
+    "dune" {>= "2.7"}
+    "ocaml" {>= "4.02.3"}
+    "cppo" {build}
+    "alcotest" {with-test & >= "0.8.5"}
+    "seq" {>= "0.2.2"}
+    "odoc" {with-doc}
+  ]
+  build: [
+    ["dune" "subst"] {dev}
+    [
+      "dune"
+      "build"
+      "-p"
+      name
+      "-j"
+      jobs
+      "@install"
+      "@runtest" {with-test}
+      "@doc" {with-doc}
+    ]
+  ]
+  dev-repo: "git+https://github.com/ocaml-community/yojson.git"
+  url {
+    src:
+      "https://github.com/ocaml-community/yojson/releases/download/2.1.0/yojson-2.1.0.tbz"
+    checksum: [
+      "sha256=9fcb1ff2db58ab259f9228796b0ada4794eae97177b1833371380c4e4f90b15d"
+      "sha512=31ab8580e0e4e8a05459fbec2fb9424a3df4cf5aef6df21fc577dbe3d32e81103a632c6a511c4dcf1f51819e88b38d2ce7d6888545bc3f359e69e070f8d2e69c"
+    ]
+  }
+  x-commit-hash: "42fa0887cb870bdbd1751d98cd23f99d6b29751d"
+}
