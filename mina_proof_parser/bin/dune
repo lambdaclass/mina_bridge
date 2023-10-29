@@ -1,0 +1,4 @@
+(executable
+ (public_name mina_proof_parser)
+ (name main)
+ (libraries mina_proof_parser dream mina_block))

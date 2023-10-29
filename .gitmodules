@@ -2,3 +2,6 @@
 	path = verifier_circuit/o1js
 	url = https://github.com/lambdaclass/o1js.git
 	branch = kzg_prover
+[submodule "mina_proof_parser/mina"]
+	path = mina_proof_parser/mina
+	url = https://github.com/MinaProtocol/mina.git
