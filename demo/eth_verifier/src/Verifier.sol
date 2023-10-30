@@ -55,7 +55,9 @@ contract KimchiVerifier {
             verifier_index.urs.g.push(g[i]);
         }
         verifier_index.urs.h = h;
+        console.log("before");
         calculate_lagrange_bases(g, h, domain_size, verifier_index.urs.lagrange_bases);
+        console.log("after");
         verifier_index.public_len = public_len;
         verifier_index.domain_size = domain_size;
         verifier_index.max_poly_size = max_poly_size;
