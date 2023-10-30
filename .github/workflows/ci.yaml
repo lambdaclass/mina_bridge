@@ -54,3 +54,19 @@ jobs:
 
       - name: Run integration test
         run: make
+
+  demo_eth_verifier:
+    name: Test demo's Solidity verifier
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./demo/eth_verifier
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Run tests
+        run: make test

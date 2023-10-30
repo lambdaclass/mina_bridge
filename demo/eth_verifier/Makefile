@@ -1,7 +1,11 @@
-.PHONY: all proof
+.PHONY: test setup
 
-all: proof
-	solc --bin verifier.sol
+setup:
+	curl -L https://foundry.paradigm.xyz | bash
+	foundryup
+
+test:
+	forge test -vv
 
 proof:
 	cd circuit_gen && cargo run
