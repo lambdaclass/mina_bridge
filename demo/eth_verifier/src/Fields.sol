@@ -88,7 +88,7 @@ library Scalar {
         21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
     uint256 public constant TWO_ADIC_PRIMITIVE_ROOT_OF_UNITY = 
-        11026779196025039675543067535165575398706865421176733435921293210460577938844;
+        19103219067921713944291392827692070036145651957329286315305642004821462161904;
     uint256 public constant TWO_ADICITY = 28;
 
     function from(uint n) public pure returns (FE) {
@@ -172,7 +172,7 @@ library Scalar {
     // https://github.com/lambdaclass/lambdaworks/
     function get_primitive_root_of_unity(
         uint order
-    ) public pure returns (FE) {
+    ) public view returns (FE) {
         if (order == 0) {
             return FE.wrap(1);
         }
@@ -186,13 +186,14 @@ library Scalar {
             root = square(root);
         }
 
-        require(FE.unwrap(pow(root, order)) == 1, "not a root of unity");
+        require(FE.unwrap(pow(root, 1 << order)) == 1, "not a root of unity");
         return root;
     }
 }
 
-library Aux {
+import "forge-std/console.sol";
 
+library Aux {
     /// @notice Extended euclidean algorithm. Returns [gcd, Bezout_a]
     /// @notice so gcd = a*Bezout_a + b*Bezout_b.
     /// @notice source: https://www.extendedeuclideanalgorithm.com/code
