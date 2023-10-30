@@ -1,3 +1,4 @@
 [submodule "verifier_circuit/o1js"]
 	path = verifier_circuit/o1js
-	url = https://github.com/o1-labs/o1js.git
+	url = https://github.com/lambdaclass/o1js.git
+	branch = kzg_prover
