@@ -15,7 +15,7 @@ export class Addition extends SmartContract {
         this.num.set(Field(0));
     }
 
-    // generates a zk proof that proves 
+    // generates a zk proof
     @method update(operand: Field) {
         // reads the value from the blockchain
         const currentState = this.num.get();
