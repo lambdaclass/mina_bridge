@@ -120,7 +120,6 @@ library Utils {
         for (uint i = 1; i < 256; i *= 2) {
             res |= res >> i;
         }
-<<<<<<< HEAD
         res = res + 1;
         order = trailing_zeros(res);
     }
