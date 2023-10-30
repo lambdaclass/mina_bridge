@@ -191,8 +191,6 @@ library Scalar {
     }
 }
 
-import "forge-std/console.sol";
-
 library Aux {
     /// @notice Extended euclidean algorithm. Returns [gcd, Bezout_a]
     /// @notice so gcd = a*Bezout_a + b*Bezout_b.

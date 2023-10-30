@@ -11,3 +11,7 @@ coverage
 
 # Never commit keys to Git!
 keys
+
+proof.txt
+inputs.json
+steps.json

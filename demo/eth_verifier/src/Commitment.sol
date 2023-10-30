@@ -149,7 +149,6 @@ function calculate_lagrange_bases(
                 lg[start_offset + j] = g[j];
             }
             // Apply the IFFT
-            console.log("ifft");
             BN254.G1Point[] memory lg_fft = Utils.ifft(lg);
             // Append the 'partial Langrange polynomials' to the vector of unshifted chunks
             unshifted[i] = lg_fft;

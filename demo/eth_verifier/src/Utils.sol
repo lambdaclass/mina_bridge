@@ -89,7 +89,6 @@ library Utils {
     /// @notice runs inverse FFT for BN254.
     function ifft(BN254.G1Point[] memory points) public view returns (BN254.G1Point[] memory results) {
         (uint size, uint order) = next_power_of_two(points.length);
-        console.log(size, order);
 
         if (size > points.length) {
             // zero padding
@@ -121,6 +120,7 @@ library Utils {
         for (uint i = 1; i < 256; i *= 2) {
             res |= res >> i;
         }
+<<<<<<< HEAD
         res = res + 1;
         order = trailing_zeros(res);
     }
