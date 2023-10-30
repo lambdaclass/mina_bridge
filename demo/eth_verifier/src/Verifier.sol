@@ -52,7 +52,7 @@ contract KimchiVerifier {
         uint256 max_poly_size
     ) {
         for (uint i = 0; i < g.length; i++) {
-            verifier_index.urs.g[i] = g[i];
+            verifier_index.urs.g.push(g[i]);
         }
         verifier_index.urs.h = h;
         calculate_lagrange_bases(g, h, domain_size, verifier_index.urs.lagrange_bases);
