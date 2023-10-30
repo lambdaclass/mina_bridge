@@ -172,7 +172,7 @@ library Scalar {
     // https://github.com/lambdaclass/lambdaworks/
     function get_primitive_root_of_unity(
         uint order
-    ) public view returns (FE) {
+    ) public view returns (FE root) {
         if (order == 0) {
             return FE.wrap(1);
         }
@@ -187,7 +187,6 @@ library Scalar {
         }
 
         require(FE.unwrap(pow(root, 1 << order)) == 1, "not a root of unity");
-        return root;
     }
 }
 
@@ -210,10 +209,16 @@ library Aux {
         while (r2 > 0) {
             uint q = r1 / r2;
             r1 = r1 > q*r2 ? r1 - q*r2 : q*r2 - r1; // abs
+
+            // swap r1, r2
+            uint temp = r1;
+            r1 = r2;
+            r2 = temp;
+
             s1 = s1 + q*s2;
 
             // swap s1, s2
-            uint temp = s1;
+            temp = s1;
             s1 = s2;
             s2 = temp;
 
