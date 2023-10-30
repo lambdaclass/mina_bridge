@@ -6,8 +6,7 @@ import {URS} from "./Commitment.sol";
 
 struct VerifierIndex {
     URS urs;
-    uint public_len;
-    uint domain_size;
-    uint max_poly_size;
-    BN254.G1Point blinding_commitment;
+    uint256 public_len;
+    uint256 domain_size;
+    uint256 max_poly_size;
 }

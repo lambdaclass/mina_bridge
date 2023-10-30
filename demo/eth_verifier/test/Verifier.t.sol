@@ -2,22 +2,13 @@
 pragma solidity ^0.8.13;
 
 import {Test, console2} from "forge-std/Test.sol";
-import {KimchiVerifier} from "../src/Verifier.sol";
-import "../src/BN254.sol";
+import "forge-std/console.sol";
+import {KimchiVerifier, Kimchi} from "../src/Verifier.sol";
+import {BN254} from "../src/BN254.sol";
 import "../src/Fields.sol";
+import "../src/msgpack/Deserialize.sol";
 
 contract CounterTest is Test {
-    KimchiVerifier public verifier;
-
-    function setUp() public {
-        verifier = new KimchiVerifier();
-    }
-
-    function test_Verify() public {
-        uint256[] memory serializedProof = new uint256[](1);
-        assertEq(verifier.verify(serializedProof), true);
-    }
-
     function test_BN254_add_scale() public {
         BN254.G1Point memory g = BN254.P1();
 
@@ -28,9 +19,79 @@ contract CounterTest is Test {
         assertEq(g_plus_g.y, two_g.y, "g + g should equal 2g");
     }
 
-    function test_PartialVerify() public {
-        Scalar.FE[] memory public_inputs = new Scalar.FE[](0);
-        verifier.set_verifier_index_for_testing();
-        verifier.partial_verify(public_inputs);
-    }
+    /*
+[
+    0x92,
+    0x91,
+    0xc4,
+    0x20,
+    0x1,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x91,
+    0xc4,
+    0x20,
+    0x1,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+    0x0,
+]
+ */
 }

@@ -2,7 +2,8 @@
 pragma solidity >=0.4.16 <0.9.0;
 
 import "./BN254.sol";
-import {Scalar} from "./Fields.sol";
+import "./Fields.sol";
+import "./Utils.sol";
 
 using { BN254.add, BN254.scale_scalar } for BN254.G1Point;
 
@@ -119,4 +120,45 @@ function mask_custom(
     }
 
     return BlindedCommitment(PolyComm(unshifted), blinders);
+}
+
+// Reference: Kimchi
+// https://github.com/o1-labs/proof-systems/
+function calculate_lagrange_bases(
+    BN254.G1Point[] memory g,
+    BN254.G1Point memory h,
+    uint domain_size,
+    mapping(uint256 => PolyComm[]) storage lagrange_bases
+) {
+        uint urs_size = g.length;
+        uint num_unshifteds = (domain_size + urs_size - 1) / urs_size;
+        BN254.G1Point[][] memory unshifted = new BN254.G1Point[][](num_unshifteds);
+
+        // For each chunk
+        for (uint i = 0; i < num_unshifteds; i++) {
+            // Initialize the vector with zero curve points
+            BN254.G1Point[] memory lg = new BN254.G1Point[](domain_size);
+            for (uint j = 0; j < lg.length; j++) {
+                lg[j] = BN254.point_at_inf();
+            }
+
+            // Overwrite the terms corresponding to that chunk with the SRS curve points
+            uint start_offset = i * urs_size;
+            uint num_terms = Utils.min((i + 1) * urs_size, domain_size) - start_offset;
+            for (uint j = 0; j < num_terms; j++) {
+                lg[start_offset + j] = g[j];
+            }
+            // Apply the IFFT
+            BN254.G1Point[] memory lg_fft = Utils.ifft(lg);
+            // Append the 'partial Langrange polynomials' to the vector of unshifted chunks
+            unshifted[i] = lg_fft;
+        }
+
+        PolyComm[] storage bases = lagrange_bases[domain_size];
+
+        for (uint i = 0; i < domain_size; i++) {
+            for (uint j = 0; j < unshifted.length; j++) {
+                bases[i].unshifted.push(unshifted[j][i]);
+            }
+        }
 }
