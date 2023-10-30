@@ -68,15 +68,31 @@ fn main() {
     )
     .unwrap();
 
+    let verifier_index = prover_index.verifier_index();
+
     // Serialize into JSON file
-    fs::write(
-        "proof.json",
-        serde_json::to_string_pretty(&proof).unwrap(),
-    )
-    .unwrap();
+    fs::write("proof.json", serde_json::to_string_pretty(&proof).unwrap()).unwrap();
     fs::write(
         "verifier_index.json",
-        serde_json::to_string_pretty(&prover_index.verifier_index()).unwrap(),
+        serde_json::to_string_pretty(&verifier_index).unwrap(),
     )
     .unwrap();
+
+    // Serialize OpeningProof into JSON and MessagePack
+    fs::write(
+        "opening_proof.json",
+        serde_json::to_string_pretty(&proof.proof).unwrap(),
+    )
+    .unwrap();
+    fs::write(
+        "opening_proof.mpk",
+        rmp_serde::to_vec(&proof.proof).unwrap(),
+    )
+    .unwrap();
+
+    let srs = (**verifier_index.srs()).clone();
+
+    // Serialize URS into JSON and MessagePack
+    fs::write("urs.json", serde_json::to_vec(&srs.full_srs).unwrap()).unwrap();
+    fs::write("urs.mpk", rmp_serde::to_vec(&srs.full_srs).unwrap()).unwrap();
 }

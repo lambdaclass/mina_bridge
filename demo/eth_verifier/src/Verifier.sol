@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
-import {Scalar} from "./Fields.sol";
-import {BN254} from "./BN254.sol";
+import "./Fields.sol";
+import "./BN254.sol";
 import {VerifierIndex} from "./VerifierIndex.sol";
-import {PolyComm, polycomm_msm, mask_custom} from "./Commitment.sol";
+import "./Commitment.sol";
 
 // import "forge-std/console.sol";
 import {console} from "forge-std/Test.sol";
@@ -15,59 +15,6 @@ using {Scalar.neg} for Scalar.FE;
 library Kimchi {
     struct Proof {
         uint256 data;
-    }
-
-    function deserializeOpeningProof(
-        uint8[69] calldata serialized_proof
-    ) public view returns (ProverProof memory proof) {
-        uint256 i = 0;
-        uint8 firstbyte = serialized_proof[i];
-        // first byte is 0x92, indicating this is a map with 2 elements
-        require(firstbyte == 0x92, "first byte is not 0x92");
-
-        // read lenght of the data
-        i += 1;
-        require(serialized_proof[i] == 0xC4, "second byte is not 0xC4");
-
-        // next byte is the length of the data in one byte
-        i += 1;
-        require(serialized_proof[i] == 0x20, "size of element is not 32 bytes");
-
-        // read data
-        i += 1;
-        uint256 data_quotient = 0;
-        for (uint256 j = 0; j < 32; j++) {
-            data_quotient =
-                data_quotient +
-                uint256(serialized_proof[j + i]) *
-                (2 ** (8 * (31 - j)));
-        }
-
-        proof.opening_proof_quotient = BN254.g1Deserialize(
-            bytes32(data_quotient)
-        );
-
-        // read blinding
-        i += 32;
-        // read length of the data
-        require(serialized_proof[i] == 0xC4, "second byte is not 0xC4");
-
-        // next byte is the length of the data in one byte
-        i += 1;
-        require(serialized_proof[i] == 0x20, "size of element is not 32 bytes");
-
-        // read data
-        i += 1;
-        uint256 data_blinding = 0;
-        for (uint256 j = 0; j < 32; j++) {
-            data_blinding =
-                data_blinding +
-                uint256(serialized_proof[j + i]) *
-                (2 ** (8 * (31 - j)));
-        }
-
-        proof.opening_proof_blinding = data_blinding;
-        return proof;
     }
 
     struct ProofInput {
@@ -96,6 +43,23 @@ library Kimchi {
 
 contract KimchiVerifier {
     VerifierIndex verifier_index;
+
+    constructor(
+        BN254.G1Point[] memory g,
+        BN254.G1Point memory h,
+        uint256 public_len,
+        uint256 domain_size,
+        uint256 max_poly_size
+    ) {
+        for (uint i = 0; i < g.length; i++) {
+            verifier_index.urs.g[i] = g[i];
+        }
+        verifier_index.urs.h = h;
+        calculate_lagrange_bases(g, h, domain_size, verifier_index.urs.lagrange_bases);
+        verifier_index.public_len = public_len;
+        verifier_index.domain_size = domain_size;
+        verifier_index.max_poly_size = max_poly_size;
+    }
 
     // 1) deserialize
     // 2) staticcall to precompile of pairing check
@@ -177,7 +141,7 @@ contract KimchiVerifier {
         if (public_inputs.length == 0) {
             BN254.G1Point[] memory blindings = new BN254.G1Point[](chunk_size);
             for (uint256 i = 0; i < chunk_size; i++) {
-                blindings[i] = verifier_index.blinding_commitment;
+                blindings[i] = verifier_index.urs.h;
             }
             public_comm = PolyComm(blindings);
         } else {
