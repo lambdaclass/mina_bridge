@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
-import "./Utils.sol";
-
 /// @notice Implements 256 bit modular arithmetic over the base field of bn254.
 library Base {
     type FE is uint256;
@@ -120,7 +118,7 @@ library Scalar {
     }
 
     function inv(FE self) public pure returns (FE) {
-        (uint gcd, uint inverse) = Utils.xgcd(FE.unwrap(self), MODULUS);
+        (uint gcd, uint inverse) = Aux.xgcd(FE.unwrap(self), MODULUS);
         require(gcd == 1);
 
         return FE.wrap(inverse);
@@ -190,5 +188,50 @@ library Scalar {
 
         require(FE.unwrap(pow(root, order)) == 1, "not a root of unity");
         return root;
+    }
+}
+
+library Aux {
+
+    /// @notice Extended euclidean algorithm. Returns [gcd, Bezout_a]
+    /// @notice so gcd = a*Bezout_a + b*Bezout_b.
+    /// @notice source: https://www.extendedeuclideanalgorithm.com/code
+    function xgcd(
+        uint a,
+        uint b
+    ) public pure returns (uint s1, uint t1) {
+        uint r1 = a;
+        uint r2 = b;
+        s1 = 1;
+        t1 = 0;
+        uint s2 = 0;
+        uint t2 = 1;
+
+        uint n = 0;
+        while (r2 > 0) {
+            uint q = r1 / r2;
+            r1 = r1 > q*r2 ? r1 - q*r2 : q*r2 - r1; // abs
+            s1 = s1 + q*s2;
+
+            // swap s1, s2
+            uint temp = s1;
+            s1 = s2;
+            s2 = temp;
+
+            t1 = t1 + q*t2;
+
+            // swap t1, t2
+            temp = t1;
+            t1 = t2;
+            t2 = temp;
+
+            n += 1;
+        }
+
+        if (n % 2 > 0) {
+            s1 = b - s1;
+        } else {
+            t1 = a - t1;
+        }
     }
 }
