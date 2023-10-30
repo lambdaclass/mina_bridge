@@ -3,6 +3,7 @@ pragma solidity >=0.4.16 <0.9.0;
 
 import "./BN254.sol";
 import "./Fields.sol";
+import "./UtilsExternal.sol";
 import "forge-std/console.sol";
 
 using { BN254.add, BN254.neg, BN254.scalarMul } for BN254.G1Point;
@@ -36,18 +37,18 @@ library Utils {
 
         results = points;
 
-        while (group_count < input.len()) {
+        while (group_count < points.length) {
             for (uint group = 0; group < group_count; group++) {
                 uint first_in_group = group * group_size;
                 uint first_in_next_group = first_in_group + group_size / 2;
 
-                uint w = twiddles[group]; // a twiddle factor is used per group
+                uint w = Scalar.FE.unwrap(twiddles[group]); // a twiddle factor is used per group
 
                 for (uint i = first_in_group; i < first_in_next_group; i++) {
-                    BN254.G1Point wi = results[i + group_size / 2].scalarMul(w);
+                    BN254.G1Point memory wi = results[i + group_size / 2].scalarMul(w);
 
-                    BN254.G1Point y0 = results[i].add(wi);
-                    BN254.G1Point y1 = results[i].add(wi.neg());
+                    BN254.G1Point memory y0 = results[i].add(wi);
+                    BN254.G1Point memory y1 = results[i].add(wi.neg());
 
                     results[i] = y0;
                     results[i + group_size / 2] = y1;
@@ -67,16 +68,22 @@ library Utils {
     }
 
     /// @notice permutes the elements in bit-reverse order.
-    function bit_reverse(BN254.G1Point[] memory points) public pure returns (BN254.G1Point[] memory twiddles){
-        twiddles = points;
+    function bit_reverse_permut(BN254.G1Point[] memory points) public pure returns (BN254.G1Point[] memory result){
+        result = points;
         for (uint i = 0; i < points.length; i++) {
-            uint bit_revese_index = ;
+            uint bit_reverse_index = bit_reverse(i, points.length);
             if (bit_reverse_index > i) {
-                BN254.G1Point temp = twiddles[i];
-                twiddles[i] = twiddles(bit_revese_index);
-                twiddles[bit_revese_index] = temp;
+                BN254.G1Point memory temp = result[i];
+                result[i] = result[bit_reverse_index];
+                result[bit_reverse_index] = temp;
             }
         }
+    }
+
+    /// @notice reverses the `log2(size)` first bits of `i`
+    function bit_reverse(uint i, uint size) public pure returns (uint) {
+        if (size == 1) return i;
+        return UtilsExternal.reverseEndianness(i) >> (256 - log2(size));
     }
 
     /// @notice runs inverse FFT for BN254.
@@ -92,7 +99,8 @@ library Utils {
             points = new_points;
         }
 
-        return nr_2radix_fft(points, get_twiddles(order));
+        BN254.G1Point[] memory unordered_res = nr_2radix_fft(points, get_twiddles(order));
+        return bit_reverse_permut(unordered_res);
     }
 
     /// @notice returns true if n is a power of two.

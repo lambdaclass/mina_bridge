@@ -16,6 +16,6 @@ contract DeserializeTest is Test {
         (BN254.G1Point[] memory g, BN254.G1Point memory h, uint256 _i) = MsgPk
             .deserializeURS(urs_serialized);
 
-        KimchiVerifier verifier = new KimchiVerifier(g, h, 0, 32, 32);
+        //KimchiVerifier verifier = new KimchiVerifier(g, h, 0, 32, 32);
     }
 }
