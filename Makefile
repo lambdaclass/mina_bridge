@@ -12,3 +12,5 @@ run:
 	@echo "Proving verifier circuit..."
 	@cd verifier_circuit && npm i && make
 	@echo "Done!"
+	@echo "Verifying proof..."
+	@cd demo/eth_verifier && make setup
