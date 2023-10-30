@@ -49,7 +49,7 @@ This is subject to change.
 
 This repository is composed of the following components:
 
-### Demo
+### Demo (WIP)
 
 This is a minimized version of the project, in which a user can submit a [o1js](https://github.com/o1-labs/o1js) circuit, generate a [Kimchi](https://github.com/o1-labs/proof-systems/tree/master/kimchi) KZG proof of it and verify it in an Ethereum smart contract. The bridge project will work the same way, with the difference that the submitted circuit will execute the verification of a Mina state proof.
 
