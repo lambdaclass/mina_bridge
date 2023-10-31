@@ -12,7 +12,7 @@ error MSMInvalidLengths();
 struct URS {
     BN254.G1Point[] g;
     BN254.G1Point h;
-    mapping(uint256 => PolyComm[]) lagrange_bases;
+    mapping(uint256 => PolyCommFlat) lagrange_bases_unshifted;
 }
 
 struct PolyComm {
@@ -20,6 +20,29 @@ struct PolyComm {
     //BN254G1Point shifted;
     // WARN: The previous field is optional but in Solidity we can't have that.
     // for our test circuit (circuit_gen/) it's not necessary
+}
+
+struct PolyCommFlat {
+    BN254.G1Point[] unshifteds;
+    uint[] unshifted_sizes;
+}
+
+function poly_comm_unflat(PolyCommFlat memory com) pure returns (PolyComm[] memory res) {
+    // FIXME: assumes that every unshifted is the same length
+
+    res = new PolyComm[](com.unshifteds.length / com.unshifted_sizes[0]); 
+    uint index = 0;
+    for (uint i = 0; i < com.unshifted_sizes.length; i++) {
+        uint n = com.unshifted_sizes[i];
+        BN254.G1Point[] memory unshifted = new BN254.G1Point[](n);
+
+        for (uint j = 0; j < n; j++) {
+            unshifted[j] = com.unshifteds[index];
+            index += 1;
+        }
+
+        res[i] = PolyComm(unshifted);
+    }
 }
 
 // @notice Executes multi-scalar multiplication between scalars `elm` and commitments `com`.
@@ -128,7 +151,7 @@ function calculate_lagrange_bases(
     BN254.G1Point[] memory g,
     BN254.G1Point memory h,
     uint domain_size,
-    mapping(uint256 => PolyComm[]) storage lagrange_bases
+    mapping(uint256 => PolyCommFlat) storage lagrange_bases_unshifted
 ) {
         uint urs_size = g.length;
         uint num_unshifteds = (domain_size + urs_size - 1) / urs_size;
@@ -154,11 +177,11 @@ function calculate_lagrange_bases(
             unshifted[i] = lg_fft;
         }
 
-        PolyComm[] storage bases = lagrange_bases[domain_size];
+        PolyCommFlat storage bases_unshifted = lagrange_bases_unshifted[domain_size];
 
         for (uint i = 0; i < domain_size; i++) {
             for (uint j = 0; j < unshifted.length; j++) {
-                bases[i].unshifted.push(unshifted[j][i]);
+                bases_unshifted.unshifteds.push(unshifted[j][i]);
             }
         }
 }
