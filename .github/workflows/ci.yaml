@@ -53,7 +53,7 @@ jobs:
         os:
           - ubuntu-latest
         ocaml-compiler:
-          - "5.1"
+          - "4.14"
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -64,6 +64,9 @@ jobs:
         uses: ocaml/setup-ocaml@v2
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
+
+      - name: Install sodium
+        run: apt-get install libsodium-dev
 
       - name: Run integration test
         run: make
