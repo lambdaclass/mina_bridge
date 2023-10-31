@@ -106,7 +106,7 @@ library Utils {
     /// @notice returns true if n is a power of two.
     function is_power_of_two(uint256 n) public pure returns (bool) {
         do {
-            if (n == 1) return true;
+            if (n == 2) return true;
             n /= 2;
         } while (n % 2 == 0);
 
