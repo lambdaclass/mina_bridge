@@ -3,10 +3,10 @@ pragma solidity ^0.8.13;
 
 import {Test, console2} from "forge-std/Test.sol";
 import "forge-std/console.sol";
-import {KimchiVerifier, Kimchi} from "../src/Verifier.sol";
-import {BN254} from "../src/BN254.sol";
-import "../src/Fields.sol";
-import "../src/msgpack/Deserialize.sol";
+import "../src/Verifier.sol";
+import "../lib/BN254.sol";
+import "../lib/Fields.sol";
+import "../lib/msgpack/Deserialize.sol";
 
 contract CounterTest is Test {
     function test_BN254_add_scale() public {

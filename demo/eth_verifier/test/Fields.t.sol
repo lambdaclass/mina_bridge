@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {Test } from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
-import {Scalar, Base} from "../src/Fields.sol";
+import {Scalar, Base} from "../lib/Fields.sol";
 
 using { Base.add, Base.mul, Base.inv } for Base.FE;
 using { Scalar.add, Scalar.mul, Scalar.inv } for Scalar.FE;
