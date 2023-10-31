@@ -117,9 +117,9 @@ library Scalar {
         res = mul(self, self);
     }
 
-    function inv(FE self) public pure returns (FE) {
-        (uint gcd, uint inverse) = Aux.xgcd(FE.unwrap(self), MODULUS);
-        require(gcd == 1);
+    function inv(FE self) public view returns (FE) {
+        (uint inverse, uint gcd) = Aux.xgcd(FE.unwrap(self), MODULUS);
+        require(gcd == 1, "gcd not 1");
 
         return FE.wrap(inverse);
     }
@@ -197,45 +197,45 @@ library Aux {
     function xgcd(
         uint a,
         uint b
-    ) public pure returns (uint s1, uint t1) {
-        uint r1 = a;
-        uint r2 = b;
-        s1 = 1;
-        t1 = 0;
-        uint s2 = 0;
-        uint t2 = 1;
+    ) public pure returns (uint s0, uint t0) {
+        uint r0 = a;
+        uint r1 = b;
+        s0 = 1;
+        uint s1 = 0;
+        t0 = 0;
+        uint t1 = 1;
 
         uint n = 0;
-        while (r2 > 0) {
-            uint q = r1 / r2;
-            r1 = r1 > q*r2 ? r1 - q*r2 : q*r2 - r1; // abs
+        while (r1 > 0) {
+            uint q = r0 / r1;
+            r0 = r0 > q*r1 ? r0 - q*r1 : q*r1 - r0; // abs
 
-            // swap r1, r2
-            uint temp = r1;
-            r1 = r2;
-            r2 = temp;
+            // swap r0, r1
+            uint temp = r0;
+            r0 = r1;
+            r1 = temp;
 
-            s1 = s1 + q*s2;
+            s0 = s0 + q*s1;
 
-            // swap s1, s2
-            temp = s1;
-            s1 = s2;
-            s2 = temp;
+            // swap s0, s1
+            temp = s0;
+            s0 = s1;
+            s1 = temp;
 
-            t1 = t1 + q*t2;
+            t0 = t0 + q*t1;
 
-            // swap t1, t2
-            temp = t1;
-            t1 = t2;
-            t2 = temp;
+            // swap t0, t1
+            temp = t0;
+            t0 = t1;
+            t1 = temp;
 
-            n += 1;
+            n++;
         }
 
-        if (n % 2 > 0) {
-            s1 = b - s1;
+        if (n % 2 != 0) {
+            s0 = b - s0;
         } else {
-            t1 = a - t1;
+            t0 = a - t0;
         }
     }
 }
