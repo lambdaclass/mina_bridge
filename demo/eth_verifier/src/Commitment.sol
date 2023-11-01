@@ -24,23 +24,19 @@ struct PolyComm {
 
 struct PolyCommFlat {
     BN254.G1Point[] unshifteds;
-    uint[] unshifted_sizes;
+    uint unshifted_length;
 }
 
 function poly_comm_unflat(PolyCommFlat memory com) pure returns (PolyComm[] memory res) {
     // FIXME: assumes that every unshifted is the same length
 
-    res = new PolyComm[](com.unshifteds.length / com.unshifted_sizes[0]); 
-    uint index = 0;
-    for (uint i = 0; i < com.unshifted_sizes.length; i++) {
-        uint n = com.unshifted_sizes[i];
+    res = new PolyComm[](com.unshifteds.length / com.unshifted_length); 
+    for (uint i = 0; i < res.length; i++) {
+        uint n = com.unshifted_length;
         BN254.G1Point[] memory unshifted = new BN254.G1Point[](n);
-
         for (uint j = 0; j < n; j++) {
-            unshifted[j] = com.unshifteds[index];
-            index += 1;
+            unshifted[j] = com.unshifteds[j + i*n];
         }
-
         res[i] = PolyComm(unshifted);
     }
 }
@@ -178,6 +174,7 @@ function calculate_lagrange_bases(
         }
 
         PolyCommFlat storage bases_unshifted = lagrange_bases_unshifted[domain_size];
+        bases_unshifted.unshifted_length = unshifted.length;
 
         for (uint i = 0; i < domain_size; i++) {
             for (uint j = 0; j < unshifted.length; j++) {

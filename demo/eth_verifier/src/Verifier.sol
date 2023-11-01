@@ -55,9 +55,7 @@ contract KimchiVerifier {
             verifier_index.urs.g.push(g[i]);
         }
         verifier_index.urs.h = h;
-        console.log("before");
         calculate_lagrange_bases(g, h, domain_size, verifier_index.urs.lagrange_bases_unshifted);
-        console.log("after");
         verifier_index.public_len = public_len;
         verifier_index.domain_size = domain_size;
         verifier_index.max_poly_size = max_poly_size;
@@ -134,8 +132,8 @@ contract KimchiVerifier {
         PolyCommFlat memory lgr_comm_flat = verifier_index.urs.lagrange_bases_unshifted[
             verifier_index.domain_size
         ];
-        PolyComm[] memory lgr_comm = poly_comm_unflat(lgr_comm_flat);
         PolyComm[] memory comm = new PolyComm[](verifier_index.public_len);
+        PolyComm[] memory lgr_comm = poly_comm_unflat(lgr_comm_flat);
         // INFO: can use unchecked on for loops to save gas
         for (uint256 i = 0; i < verifier_index.public_len; i++) {
             comm[i] = lgr_comm[i];
