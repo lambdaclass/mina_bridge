@@ -66,7 +66,7 @@ jobs:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
 
       - name: Install sodium
-        run: apt-get install libsodium-dev
+        run: sudo apt-get install libsodium-dev
 
       - name: Run integration test
         run: make
