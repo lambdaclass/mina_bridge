@@ -4,6 +4,7 @@ pragma solidity >=0.4.16 <0.9.0;
 import "../Verifier.sol";
 import "../Commitment.sol";
 import "../BN254.sol";
+import "../Evaluations.sol";
 
 library MsgPk {
     /// @notice deserializes an array of G1Point and also returns the rest of the
@@ -122,5 +123,42 @@ library MsgPk {
 
         proof.opening_proof_blinding = data_blinding;
         return proof;
+    }
+
+    function deserializeScalar(
+        bytes calldata data,
+        uint256 i
+    ) public pure returns (Scalar.FE scalar, uint256 final_i) {
+        // read length of the data
+        require(data[i] == 0xC4, "not a stream of bin8 (bytes)");
+
+        // next byte is the length of the stream in one byte
+        i += 1;
+        require(data[i] == 0x20, "size of element is not 32 bytes");
+
+        // read data
+        i += 1;
+        uint256 inner = abi.decode(data[i:i + 32], (uint256));
+        scalar = Scalar.from(inner);
+
+        // go to next
+        i += 32;
+
+        final_i = i;
+    }
+
+    function deserializePointEval(
+        bytes calldata data,
+        uint256 i
+    ) public pure returns (PointEvaluation memory eval, uint256 final_i) {
+        require(data[i] == 0x92, "not a fix array of two elements");
+
+        i += 1;
+        (Scalar.FE zeta, uint i0) = deserializeScalar(data, i);
+        i = i0;
+        (Scalar.FE zeta_omega, uint i1) = deserializeScalar(data, i);
+        i = i1;
+
+        eval = PointEvaluation(zeta, zeta_omega);
     }
 }
