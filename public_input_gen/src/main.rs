@@ -1,37 +1,18 @@
-use std::{array, fs};
+use std::fs;
 
 use ark_ec::short_weierstrass_jacobian::GroupAffine;
 use ark_ec::{AffineCurve, ProjectiveCurve};
 use ark_ff::{BigInteger256, PrimeField};
-use kimchi::groupmap::GroupMap;
-use kimchi::mina_curves::pasta::{Fq, Pallas, PallasParameters};
+use kimchi::mina_curves::pasta::{Fp, Fq, Pallas, PallasParameters};
 use kimchi::o1_utils::{math, FieldHelpers};
-use kimchi::poly_commitment::evaluation_proof::OpeningProof;
 use kimchi::poly_commitment::srs::SRS;
 use kimchi::precomputed_srs;
-use kimchi::{
-    circuits::{
-        gate::CircuitGate,
-        polynomials::generic::testing::{create_circuit, fill_in_witness},
-        wires::COLUMNS,
-    },
-    mina_poseidon::{
-        constants::PlonkSpongeConstantsKimchi,
-        sponge::{DefaultFqSponge, DefaultFrSponge},
-    },
-    poly_commitment::commitment::CommitmentCurve,
-    proof::ProverProof,
-    prover_index::testing::new_index_for_test_with_lookups,
-};
 use num_traits::identities::Zero;
 use num_traits::One;
 use serde::Serialize;
+use state_proof::{OpeningProof, StateProof};
 
-pub mod bn254;
-
-type SpongeParams = PlonkSpongeConstantsKimchi;
-type BaseSponge = DefaultFqSponge<PallasParameters, SpongeParams>;
-type ScalarSponge = DefaultFrSponge<Fq, SpongeParams>;
+mod state_proof;
 
 #[derive(Serialize)]
 struct Inputs {
@@ -41,17 +22,16 @@ struct Inputs {
 }
 
 fn main() {
-    let gates = create_circuit(0, 0);
-
-    // create witness
-    let mut witness: [Vec<Fq>; COLUMNS] = array::from_fn(|_| vec![Fq::zero(); gates.len()]);
-    fill_in_witness(0, &mut witness, &[]);
+    let state_proof: StateProof = match fs::read_to_string("proof.json") {
+        Ok(state_proof_file) => serde_json::from_str(&state_proof_file).unwrap(),
+        Err(_) => StateProof::default(),
+    };
 
     let srs: SRS<Pallas> = precomputed_srs::get_srs();
     write_srs_into_file(&srs);
 
     // create and verify proof based on the witness
-    prove_and_verify(&srs, gates, witness);
+    prove_and_verify(&srs, state_proof.proof.openings.proof);
 }
 
 fn write_srs_into_file(srs: &SRS<Pallas>) {
@@ -73,41 +53,26 @@ fn write_srs_into_file(srs: &SRS<Pallas>) {
     fs::write("../verifier_circuit/test/srs.json", srs_json).unwrap();
 }
 
-fn prove_and_verify(srs: &SRS<Pallas>, gates: Vec<CircuitGate<Fq>>, witness: [Vec<Fq>; COLUMNS]) {
-    println!("Generating dummy proof...");
-    let prover =
-        new_index_for_test_with_lookups::<Pallas>(gates, 0, 0, vec![], Some(vec![]), false);
-    let public_inputs = vec![];
-
-    prover.verify(&witness, &public_inputs).unwrap();
-
-    // add the proof to the batch
-    let group_map = <Pallas as CommitmentCurve>::Map::setup();
-
-    let proof = ProverProof::create_recursive::<BaseSponge, ScalarSponge>(
-        &group_map,
-        witness,
-        &[],
-        &prover,
-        vec![],
-        None,
-    )
-    .map_err(|e| e.to_string())
-    .unwrap();
-
+fn prove_and_verify(srs: &SRS<Pallas>, opening: OpeningProof) {
     // verify the proof (propagate any errors)
     println!("Verifying dummy proof...");
-    let opening = proof.proof;
-    let value_to_compare = compute_msm_for_verification(srs, &opening);
+
+    let sg_point = Pallas::new(
+        Fp::from_hex(&opening.sg.0[2..]).unwrap(),
+        Fp::from_hex(&opening.sg.1[2..]).unwrap(),
+        false,
+    );
+    let z1_felt = Fq::from_hex(&opening.z_1[2..]).unwrap();
+    let value_to_compare = compute_msm_for_verification(srs, &sg_point, &z1_felt);
 
     fs::write(
         "../verifier_circuit/src/inputs.json",
         serde_json::to_string(&Inputs {
             sg: [
-                opening.sg.x.to_biguint().to_string(),
-                opening.sg.y.to_biguint().to_string(),
+                sg_point.x.to_biguint().to_string(),
+                sg_point.y.to_biguint().to_string(),
             ],
-            z1: opening.z1.to_biguint().to_string(),
+            z1: z1_felt.to_biguint().to_string(),
             expected: [
                 value_to_compare.x.to_biguint().to_string(),
                 value_to_compare.y.to_biguint().to_string(),
@@ -120,7 +85,8 @@ fn prove_and_verify(srs: &SRS<Pallas>, gates: Vec<CircuitGate<Fq>>, witness: [Ve
 
 fn compute_msm_for_verification(
     srs: &SRS<Pallas>,
-    proof: &OpeningProof<Pallas>,
+    sg: &Pallas,
+    z1: &Fq,
 ) -> GroupAffine<PallasParameters> {
     let rand_base_i = Fq::one();
     let sg_rand_base_i = Fq::one();
@@ -135,8 +101,8 @@ fn compute_msm_for_verification(
     points.extend(vec![Pallas::zero(); padding]);
     let mut scalars = vec![Fq::zero(); padded_length + 1];
 
-    points.push(proof.sg);
-    scalars.push(neg_rand_base_i * proof.z1 - sg_rand_base_i);
+    points.push(*sg);
+    scalars.push(neg_rand_base_i * z1 - sg_rand_base_i);
 
     let s = vec![Fq::one(); srs.g.len()];
     let terms: Vec<_> = s.iter().map(|s_i| sg_rand_base_i * s_i).collect();
