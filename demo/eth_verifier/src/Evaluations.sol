@@ -3,7 +3,7 @@ pragma solidity >=0.4.16 <0.9.0;
 
 import "./Fields.sol";
 
-struct PointEvaluation {
+struct PointEvaluations {
     /// evaluation at the challenge point zeta
     Scalar.FE zeta;
     /// Evaluation at `zeta . omega`, the product of the challenge point and the group generator

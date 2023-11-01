@@ -2,14 +2,16 @@
 pragma solidity >=0.4.16 <0.9.0;
 
 import "./Fields.sol";
+import "./VerifierIndex.sol";
+import "./Evaluations.sol";
 
 library Oracles {
     using { to_field_with_length, to_field } for ScalarChallenge;
-    using { Scalar.add, Scalar.mul, Scalar.neg, Scalar.double } for Scalar.FE;
+    using { Scalar.add, Scalar.mul, Scalar.neg, Scalar.double, Scalar.pow } for Scalar.FE;
 
     uint64 internal constant CHALLENGE_LENGTH_IN_LIMBS = 2;
 
-    function fiat_shamir() public view {
+    function fiat_shamir(VerifierIndex storage index) public view {
         // WARN: We'll skip the use of a sponge and generate challenges from pseudo-random numbers
         Scalar.FE endo_coeff = Scalar.from(0); // FIXME: not zero
 
@@ -26,6 +28,24 @@ library Oracles {
         ScalarChallenge memory zeta_chal = scalar_chal();
         // Derive alpha using the endomorphism
         Scalar.FE zeta = zeta_chal.to_field(endo_coeff);
+
+        // often used values
+        Scalar.FE zeta1 = zeta.pow(index.domain_size);
+        Scalar.FE zetaw = zeta.mul(index.domain_gen);
+        Scalar.FE[] memory evaluation_points = new Scalar.FE[](2);
+        evaluation_points[0] = zeta;
+        evaluation_points[1] = zetaw;
+
+        PointEvaluations memory powers_of_eval_points_for_chunks = PointEvaluations(
+            zeta.pow(index.max_poly_size),
+            zetaw.pow(index.max_poly_size)
+        );
+
+        //~ 20. Compute evaluations for the previous recursion challenges.
+
+        // retrieve ranges for the powers of alphas
+        // let all_alphas = index.powers_of_alpha;
+        // all_alphas.instantiate(alpha);
     }
 
     /// @notice creates a challenge frm hashing the current block timestamp.

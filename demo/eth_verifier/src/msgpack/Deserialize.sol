@@ -147,10 +147,10 @@ library MsgPk {
         final_i = i;
     }
 
-    function deserializePointEval(
+    function deserializePointEvals(
         bytes calldata data,
         uint256 i
-    ) public pure returns (PointEvaluation memory eval, uint256 final_i) {
+    ) public pure returns (PointEvaluations memory eval, uint256 final_i) {
         require(data[i] == 0x92, "not a fix array of two elements");
 
         i += 1;
@@ -159,6 +159,6 @@ library MsgPk {
         (Scalar.FE zeta_omega, uint i1) = deserializeScalar(data, i);
         i = i1;
 
-        eval = PointEvaluation(zeta, zeta_omega);
+        eval = PointEvaluations(zeta, zeta_omega);
     }
 }
