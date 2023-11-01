@@ -87,9 +87,7 @@ library Oracles {
         return (limbs_lsb[limb] >> j) & 1;
     }
 
-    /**
-    * Decomposes `n` into 64 bit limbs, less significant first
-    */
+    /// @notice Decomposes `n` into 64 bit limbs, less significant first
      function get_limbs_64(uint256 n) internal pure returns (uint64[] memory limbs) {
         uint len = 256 / 64;
         uint128 mask_64 = (1 << 64) - 1;
@@ -103,9 +101,7 @@ library Oracles {
         return limbs;
     }
 
-    /**
-    * Recomposes 64-bit `limbs` into a bigint, less significant first
-    */
+    /// @notice Recomposes 64-bit `limbs` into a bigint, less significant first
     function from_limbs_64(uint64[] memory limbs) internal pure returns (uint256 n_rebuilt) {
         n_rebuilt = 0;
         for (uint i = 0; i < limbs.length; i++) {
