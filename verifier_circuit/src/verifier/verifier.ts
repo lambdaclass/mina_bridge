@@ -7,6 +7,8 @@ import { Sponge } from './sponge.js';
 import { Alphas } from '../alphas.js';
 import { Polynomial } from '../polynomial.js';
 import { Linearization, PolishToken } from '../prover/expr.js';
+import { ForeignScalar } from '../foreign_fields/foreign_scalar.js';
+import { ForeignGroup } from '../foreign_fields/foreign_group.js';
 
 let steps: bigint[][];
 try {
@@ -131,7 +133,7 @@ export class Verifier extends Circuit {
     static readonly PERMUTATION_CONSTRAINTS: number = 3;
 
     @circuitMain
-    static main(@public_ sg: Group, @public_ sg_scalar: Scalar, @public_ expected: Group) {
+    static main(@public_ sg: ForeignGroup, @public_ sg_scalar: ForeignScalar, @public_ expected: ForeignGroup) {
         let nonzero_length = g.length;
         let max_rounds = Math.ceil(Math.log2(nonzero_length));
         let padded_length = Math.pow(2, max_rounds);
@@ -141,9 +143,9 @@ export class Verifier extends Circuit {
         points = points.concat(g);
         points = points.concat(Array(padding).fill(Group.zero));
 
-        let scalars = [Scalar.from(0)];
+        let scalars = [ForeignScalar.from(0)];
         //TODO: Add challenges and s polynomial (in that case, using Scalars we could run out of memory)
-        scalars = scalars.concat(Array(padded_length).fill(Scalar.from(1)));
+        scalars = scalars.concat(Array(padded_length).fill(ForeignScalar.from(1)));
         assert(points.length == scalars.length, "The number of points is not the same as the number of scalars");
 
         points.push(sg);
@@ -153,8 +155,8 @@ export class Verifier extends Circuit {
     }
 
     // Naive algorithm
-    static msm(points: Group[], scalars: Scalar[]) {
-        let result = Group.zero;
+    static msm(points: ForeignGroup[], scalars: ForeignScalar[]) {
+        let result = ForeignGroup.zero();
 
         for (let i = 0; i < points.length; i++) {
             let point = points[i];

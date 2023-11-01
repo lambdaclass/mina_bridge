@@ -38,7 +38,7 @@ let public_input = [sg, sg_scalar, expected];
 let keypair = await Verifier.generateKeypair();
 
 console.log("Proving with Ethereum backend...");
-let proofKZG = await Verifier.proveKZG([], public_input, keypair);
+// let proofKZG = await Verifier.proveKZG([], public_input, keypair);
 
 console.log("Proving with Mina backend...");
 let proof = await Verifier.prove([], public_input, keypair);
@@ -51,7 +51,7 @@ if (!isValid) {
 }
 
 console.log("Writing KZG proof into file...");
-writeFileSync("../proof.mpk", proofKZG);
+// writeFileSync("../proof.mpk", proofKZG);
 
 // ----------------------------------------------------
 console.log('Shutting down O1JS...');
