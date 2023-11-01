@@ -62,7 +62,9 @@ library Utils {
     function get_twiddles(uint order) public view returns (Scalar.FE[] memory twiddles) {
         Scalar.FE root_inv = Scalar.get_primitive_root_of_unity(order).inv();
 
-        for (uint i = 0; i < 1 << (order - 1); i++) {
+        uint size = 1 << (order - 1);
+        twiddles = new Scalar.FE[](size);
+        for (uint i = 0; i < size; i++) {
             twiddles[i] = root_inv.pow(i);
         }
     }
@@ -83,7 +85,7 @@ library Utils {
     /// @notice reverses the `log2(size)` first bits of `i`
     function bit_reverse(uint i, uint size) public pure returns (uint) {
         if (size == 1) return i;
-        return UtilsExternal.reverseEndianness(i) >> (256 - log2(size));
+        return UtilsExternal.reverseEndianness(i) >> (256 - max_log2(size));
     }
 
     /// @notice runs inverse FFT for BN254.
@@ -106,32 +108,36 @@ library Utils {
     /// @notice returns true if n is a power of two.
     function is_power_of_two(uint256 n) public pure returns (bool) {
         do {
-            if (n == 1) return true;
+            if (n == 2) return true;
             n /= 2;
         } while (n % 2 == 0);
 
         return false;
     }
 
-    /// @notice returns the binary logarithm of n.
-    function log2(uint256 n) public pure returns (uint256 res) {
+    /// @notice returns the next power of two of n, or n if it's already a pow of two,
+    // and the order.
+    function next_power_of_two(uint256 n) public pure returns (uint res, uint order) {
         res = n - 1;
         for (uint i = 1; i < 256; i *= 2) {
             res |= res >> i;
         }
+        res = res + 1;
+        order = trailing_zeros(res);
     }
 
-    /// @notice returns the next power of two of n, or n if it's already a pow of two,
-    // and the order.
-    function next_power_of_two(uint256 n) public pure returns (uint256 res, uint256 pow) {
-        if (is_power_of_two(n)) {
-            return (n, log2(n));
+    /// @notice returns the trailing zeros of n.
+    function trailing_zeros(uint256 n) public pure returns (uint i) {
+        i = 0;
+        while (n & 1 == 0) {
+            n >>= 1;
+            i++;
         }
-        pow = log2(n) + 1;
-        res = 1 << pow;
+    }
 
-        require(is_power_of_two(res));
-        require(res > n);
+    /// @notice returns the log2 of the next power of two of n.
+    function max_log2(uint256 n) public pure returns (uint log) {
+        (uint _res, uint log) = next_power_of_two(n);
     }
 
     /// @notice returns the odd and even terms of the `points` array.

@@ -77,6 +77,7 @@ library Base {
         }
     }
 }
+import "forge-std/console.sol";
 
 /// @notice Implements 256 bit modular arithmetic over the scalar field of bn254.
 library Scalar {
@@ -88,7 +89,7 @@ library Scalar {
         21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
     uint256 public constant TWO_ADIC_PRIMITIVE_ROOT_OF_UNITY = 
-        11026779196025039675543067535165575398706865421176733435921293210460577938844;
+        19103219067921713944291392827692070036145651957329286315305642004821462161904;
     uint256 public constant TWO_ADICITY = 28;
 
     function from(uint n) public pure returns (FE) {
@@ -117,9 +118,9 @@ library Scalar {
         res = mul(self, self);
     }
 
-    function inv(FE self) public pure returns (FE) {
-        (uint gcd, uint inverse) = Aux.xgcd(FE.unwrap(self), MODULUS);
-        require(gcd == 1);
+    function inv(FE self) public view returns (FE) {
+        (uint inverse, uint gcd) = Aux.xgcd(FE.unwrap(self), MODULUS);
+        require(gcd == 1, "gcd not 1");
 
         return FE.wrap(inverse);
     }
@@ -172,7 +173,7 @@ library Scalar {
     // https://github.com/lambdaclass/lambdaworks/
     function get_primitive_root_of_unity(
         uint order
-    ) public pure returns (FE) {
+    ) public view returns (FE root) {
         if (order == 0) {
             return FE.wrap(1);
         }
@@ -186,52 +187,56 @@ library Scalar {
             root = square(root);
         }
 
-        require(FE.unwrap(pow(root, order)) == 1, "not a root of unity");
-        return root;
+        require(FE.unwrap(pow(root, 1 << order)) == 1, "not a root of unity");
     }
 }
 
 library Aux {
-
     /// @notice Extended euclidean algorithm. Returns [gcd, Bezout_a]
     /// @notice so gcd = a*Bezout_a + b*Bezout_b.
     /// @notice source: https://www.extendedeuclideanalgorithm.com/code
     function xgcd(
         uint a,
         uint b
-    ) public pure returns (uint s1, uint t1) {
-        uint r1 = a;
-        uint r2 = b;
-        s1 = 1;
-        t1 = 0;
-        uint s2 = 0;
-        uint t2 = 1;
+    ) public pure returns (uint s0, uint t0) {
+        uint r0 = a;
+        uint r1 = b;
+        s0 = 1;
+        uint s1 = 0;
+        t0 = 0;
+        uint t1 = 1;
 
         uint n = 0;
-        while (r2 > 0) {
-            uint q = r1 / r2;
-            r1 = r1 > q*r2 ? r1 - q*r2 : q*r2 - r1; // abs
-            s1 = s1 + q*s2;
+        while (r1 > 0) {
+            uint q = r0 / r1;
+            r0 = r0 > q*r1 ? r0 - q*r1 : q*r1 - r0; // abs
 
-            // swap s1, s2
-            uint temp = s1;
-            s1 = s2;
-            s2 = temp;
+            // swap r0, r1
+            uint temp = r0;
+            r0 = r1;
+            r1 = temp;
 
-            t1 = t1 + q*t2;
+            s0 = s0 + q*s1;
 
-            // swap t1, t2
-            temp = t1;
-            t1 = t2;
-            t2 = temp;
+            // swap s0, s1
+            temp = s0;
+            s0 = s1;
+            s1 = temp;
 
-            n += 1;
+            t0 = t0 + q*t1;
+
+            // swap t0, t1
+            temp = t0;
+            t0 = t1;
+            t1 = temp;
+
+            n++;
         }
 
-        if (n % 2 > 0) {
-            s1 = b - s1;
+        if (n % 2 != 0) {
+            s0 = b - s0;
         } else {
-            t1 = a - t1;
+            t0 = a - t0;
         }
     }
 }
