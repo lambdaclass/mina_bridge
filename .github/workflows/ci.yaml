@@ -65,8 +65,8 @@ jobs:
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
 
-      - name: Install sodium
-        run: sudo apt-get install libsodium-dev
+      - name: Install Mina dependencies
+        run: sudo apt-get install libsodium-dev capnproto
 
       - name: Run integration test
         run: make
