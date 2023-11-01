@@ -14,8 +14,9 @@ git checkout proof_to_json
 git submodule update --init --recursive
 opam init -n
 opam switch import opam.export
+eval $(opam env)
 sh scripts/pin-external-packages.sh
 make build
 cd src/lib/proof_parser
 dune build
-dune exec ./proof_parser.exe > ../../../../../verifier_circuit/src/proof.json
+dune exec ./proof_parser.exe > ../../../../../public_input_gen/src/proof.json
