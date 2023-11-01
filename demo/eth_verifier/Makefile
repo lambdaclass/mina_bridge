@@ -9,3 +9,9 @@ test:
 
 proof:
 	cd circuit_gen && cargo run
+
+run_node:
+	anvil --host 0.0.0.0
+
+deploy_verifier:
+	forge script script/Deploy.s.sol:Deploy --broadcast --rpc-url http://localhost:8545

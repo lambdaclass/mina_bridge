@@ -41,13 +41,13 @@ library Kimchi {
 contract KimchiVerifier {
     VerifierIndex verifier_index;
 
-    constructor(
+    function setup(
         BN254.G1Point[] memory g,
         BN254.G1Point memory h,
         uint256 public_len,
         uint256 domain_size,
         uint256 max_poly_size
-    ) {
+    ) public {
         for (uint i = 0; i < g.length; i++) {
             verifier_index.urs.g[i] = g[i];
         }
