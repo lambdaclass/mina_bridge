@@ -13,7 +13,7 @@ run:
 	@cd verifier_circuit && npm i && make
 	@echo "Done!"
 	@echo "Verifying proof..."
-	@cd demo/eth_verifier && make setup
+	@cd demo/eth_verifier
 	@anvil &
 	@cd demo/eth_verifier && \
 		forge create \
