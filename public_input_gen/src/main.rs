@@ -22,8 +22,10 @@ struct Inputs {
 }
 
 fn main() {
-    let state_proof_file = fs::read_to_string("proof.json").unwrap();
-    let state_proof: StateProof = serde_json::from_str(&state_proof_file).unwrap();
+    let state_proof: StateProof = match fs::read_to_string("proof.json") {
+        Ok(state_proof_file) => serde_json::from_str(&state_proof_file).unwrap(),
+        Err(_) => StateProof::default(),
+    };
 
     let srs: SRS<Pallas> = precomputed_srs::get_srs();
     write_srs_into_file(&srs);
