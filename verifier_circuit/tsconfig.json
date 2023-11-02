@@ -24,6 +24,9 @@
     "resolveJsonModule": true
   },
   "include": [
-    "./src"
+    "./src/main.ts",
+    "./src/foreign_fields/",
+    "./src/SRS.ts",
+    "./src/verifier/verifier.ts",
   ]
 }

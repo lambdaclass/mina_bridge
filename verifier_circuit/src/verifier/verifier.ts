@@ -9,6 +9,7 @@ import { Polynomial } from '../polynomial.js';
 import { Linearization, PolishToken } from '../prover/expr.js';
 import { ForeignScalar } from '../foreign_fields/foreign_scalar.js';
 import { ForeignGroup } from '../foreign_fields/foreign_group.js';
+import { ForeignField } from '../foreign_fields/foreign_field.js';
 
 let steps: bigint[][];
 try {
@@ -18,6 +19,10 @@ try {
 }
 
 let { g, h } = SRS.createFromJSON();
+
+// TODO: we are slicing G because we are implementing the foreign EC operations in o1js
+// This is too slow, so we are using less elements.
+g = g.slice(0, 4);
 
 /**
 * Will contain information necessary for executing a verification
@@ -133,7 +138,8 @@ export class Verifier extends Circuit {
     static readonly PERMUTATION_CONSTRAINTS: number = 3;
 
     @circuitMain
-    static main(@public_ sg: ForeignGroup, @public_ sg_scalar: ForeignScalar, @public_ expected: ForeignGroup) {
+    static main(@public_ sg_x: ForeignField, @public_ sg_y: ForeignField, @public_ sg_scalar: ForeignScalar, @public_ expected_x: ForeignField, @public_ expected_y: ForeignField) {
+        let sg = new ForeignGroup(sg_x, sg_y);
         let nonzero_length = g.length;
         let max_rounds = Math.ceil(Math.log2(nonzero_length));
         let padded_length = Math.pow(2, max_rounds);
@@ -141,7 +147,7 @@ export class Verifier extends Circuit {
 
         let points = [h];
         points = points.concat(g);
-        points = points.concat(Array(padding).fill(Group.zero));
+        points = points.concat(Array(padding).fill(ForeignGroup.zero()));
 
         let scalars = [ForeignScalar.from(0)];
         //TODO: Add challenges and s polynomial (in that case, using Scalars we could run out of memory)
@@ -151,7 +157,11 @@ export class Verifier extends Circuit {
         points.push(sg);
         scalars.push(sg_scalar);
 
-        Verifier.msm(points, scalars).assertEquals(expected);
+        let actual = Verifier.msm(points, scalars);
+        let expected = new ForeignGroup(expected_x, expected_y);
+        console.log("actual", actual.x, actual.y);
+        console.log("expected", expected.x, expected.y);
+        actual.assertEquals(expected);
     }
 
     // Naive algorithm
@@ -159,6 +169,7 @@ export class Verifier extends Circuit {
         let result = ForeignGroup.zero();
 
         for (let i = 0; i < points.length; i++) {
+            console.log(i);
             let point = points[i];
             let scalar = scalars[i];
             let scaled = point.scale(scalar);

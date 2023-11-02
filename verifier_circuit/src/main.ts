@@ -1,7 +1,10 @@
 import { readFileSync, writeFileSync } from "fs";
-import { Group, Scalar } from "o1js";
+import { Field, Group, Scalar } from "o1js";
 import { Verifier } from "./verifier/verifier.js";
 import { exit } from "process";
+import { ForeignGroup } from "./foreign_fields/foreign_group.js";
+import { ForeignField } from "./foreign_fields/foreign_field.js";
+import { ForeignScalar } from "./foreign_fields/foreign_scalar.js";
 
 let inputs: { sg: bigint[], z1: bigint, expected: bigint[] };
 try {
@@ -29,11 +32,25 @@ console.log('O1JS loaded');
 console.log("Generating keypair...");
 
 // Convert JSON inputs to O1JS inputs so that we can pass them to the circuit
-let sg = new Group({ x: inputs.sg[0], y: inputs.sg[1] });
-let expected = new Group({ x: inputs.expected[0], y: inputs.expected[1] });
-let z1 = Scalar.from(inputs.z1);
-let sg_scalar = z1.neg().sub(Scalar.from(1));
-let public_input = [sg, sg_scalar, expected];
+let sg_x = ForeignField.from(inputs.sg[0]);
+let sg_y = ForeignField.from(inputs.sg[1]);
+let expected_x = ForeignField.from(inputs.expected[0])
+let expected_y = ForeignField.from(inputs.expected[1]);
+let z1 = ForeignScalar.from(inputs.z1);
+let sg_scalar = z1.neg().sub(ForeignScalar.from(1));
+let public_input = [sg_x, sg_y, sg_scalar, expected_x, expected_y];
+
+let generator = new ForeignGroup(new ForeignField(Group.generator.x.toBigInt()), new ForeignField(Group.generator.y.toBigInt()));
+console.log("ADD");
+let native_add = Group({ x: inputs.sg[0], y: inputs.sg[1] }).add(Group.generator);
+let foreign_add = new ForeignGroup(sg_x, sg_y).add(new ForeignGroup(generator.x, generator.y));
+console.log("native", native_add.x.toBigInt(), native_add.y.toBigInt());
+console.log("foreign", foreign_add.x.toBigInt(), foreign_add.y.toBigInt());
+console.log("SCALE");
+let native_scale = Group({ x: inputs.sg[0], y: inputs.sg[1] }).scale(inputs.z1);
+let foreign_scale = new ForeignGroup(sg_x, sg_y).scale(z1);
+console.log("native", native_scale.x.toBigInt(), native_scale.y.toBigInt());
+console.log("foreign", foreign_scale.x.toBigInt(), foreign_scale.y.toBigInt());
 
 let keypair = await Verifier.generateKeypair();
 
