@@ -129,7 +129,7 @@ library Oracles {
         uint128 mask_64 = (1 << 64) - 1;
 
         limbs = new uint64[](len);
-        for (uint i = 0; i <= len; i++) {
+        for (uint i = 0; i < len; i++) {
             limbs[i] = uint64(n & mask_64);
             n >>= 64;
         }
