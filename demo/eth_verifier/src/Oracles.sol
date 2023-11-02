@@ -4,14 +4,16 @@ pragma solidity >=0.4.16 <0.9.0;
 import "./Fields.sol";
 import "./VerifierIndex.sol";
 import "./Evaluations.sol";
+import "./Alphas.sol";
 
 library Oracles {
     using { to_field_with_length, to_field } for ScalarChallenge;
     using { Scalar.add, Scalar.mul, Scalar.neg, Scalar.double, Scalar.pow } for Scalar.FE;
+    using { AlphasLib.instantiate } for Alphas;
 
     uint64 internal constant CHALLENGE_LENGTH_IN_LIMBS = 2;
 
-    function fiat_shamir(VerifierIndex storage index) public view {
+    function fiat_shamir(VerifierIndex storage index) public {
         // WARN: We'll skip the use of a sponge and generate challenges from pseudo-random numbers
         Scalar.FE endo_coeff = Scalar.from(0); // FIXME: not zero
 
@@ -41,12 +43,12 @@ library Oracles {
             zetaw.pow(index.max_poly_size)
         );
 
-        //~ 20. Compute evaluations for the previous recursion challenges.
+        //~ 20. Compute evaluations for the previous recursion challenges. SKIP
 
         // retrieve ranges for the powers of alphas
-        // let all_alphas = index.powers_of_alpha;
-        // all_alphas.instantiate(alpha);
-        
+        Alphas storage all_alphas = index.powers_of_alpha;
+        all_alphas.instantiate(alpha);
+
         // evaluations of the public input
         // if they are not present in the proof:
             //~ 21. Evaluate the negated public polynomial (if present) at $\zeta$ and $\zeta\omega$.
