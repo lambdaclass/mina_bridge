@@ -6,6 +6,7 @@ import "./BN254.sol";
 import {VerifierIndex} from "./VerifierIndex.sol";
 import "./Commitment.sol";
 import "./Oracles.sol";
+import "./Proof.sol";
 
 // import "forge-std/console.sol";
 import {console} from "forge-std/Test.sol";
@@ -44,6 +45,7 @@ library Kimchi {
 
 contract KimchiVerifier {
     VerifierIndex verifier_index;
+    ProverProof proof;
 
     constructor(
         BN254.G1Point[] memory g,
@@ -60,6 +62,8 @@ contract KimchiVerifier {
         verifier_index.public_len = public_len;
         verifier_index.domain_size = domain_size;
         verifier_index.max_poly_size = max_poly_size;
+
+        // TODO: deserialize proof
     }
 
     // 1) deserialize

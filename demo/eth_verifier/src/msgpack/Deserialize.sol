@@ -5,6 +5,7 @@ import "../Verifier.sol";
 import "../Commitment.sol";
 import "../BN254.sol";
 import "../Evaluations.sol";
+import "../Proof.sol";
 
 library MsgPk {
     /// @notice deserializes an array of G1Point and also returns the rest of the
@@ -160,5 +161,14 @@ library MsgPk {
         i = i1;
 
         eval = PointEvaluations(zeta, zeta_omega);
+    }
+
+    function deserializeProverProof(
+        bytes calldata data,
+        uint256 i
+    ) public pure returns (PointEvaluations memory eval, uint256 final_i) {
+        require(data[i] == 0x92, "not a fix array of two elements");
+
+        i += 1;
     }
 }

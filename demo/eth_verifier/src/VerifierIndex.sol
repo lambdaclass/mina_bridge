@@ -5,6 +5,7 @@ import {BN254} from "./BN254.sol";
 import {URS} from "./Commitment.sol";
 import "./Fields.sol";
 import "./Alphas.sol";
+import "./Evaluations.sol";
 
 struct VerifierIndex {
     uint256 public_len;

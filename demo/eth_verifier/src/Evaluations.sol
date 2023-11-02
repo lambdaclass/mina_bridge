@@ -9,3 +9,10 @@ struct PointEvaluations {
     /// Evaluation at `zeta . omega`, the product of the challenge point and the group generator
     Scalar.FE zeta_omega;
 }
+
+struct PointEvaluationsArray {
+    /// evaluation at the challenge point zeta
+    Scalar.FE[] zeta;
+    /// Evaluation at `zeta . omega`, the product of the challenge point and the group generator
+    Scalar.FE[] zeta_omega;
+}
