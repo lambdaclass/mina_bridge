@@ -6,6 +6,7 @@ import "../lib/BN254.sol";
 import "../src/Verifier.sol";
 import "../lib/msgpack/Deserialize.sol";
 import "../lib/Commitment.sol";
+import "../lib/Fields.sol";
 
 contract DeserializeTest is Test {
     function test_partial_verify() public {
@@ -16,6 +17,8 @@ contract DeserializeTest is Test {
         (BN254.G1Point[] memory g, BN254.G1Point memory h, uint256 _i) = MsgPk
             .deserializeURS(urs_serialized);
 
-        //KimchiVerifier verifier = new KimchiVerifier(g, h, 0, 32, 32);
+        KimchiVerifier verifier = new KimchiVerifier();
+        verifier.setup(g, h, 0, 32, 32);
+        verifier.partial_verify(new Scalar.FE[](0));
     }
 }

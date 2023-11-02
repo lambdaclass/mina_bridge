@@ -49,10 +49,10 @@ contract KimchiVerifier {
         uint256 max_poly_size
     ) public {
         for (uint i = 0; i < g.length; i++) {
-            verifier_index.urs.g[i] = g[i];
+            verifier_index.urs.g.push(g[i]);
         }
         verifier_index.urs.h = h;
-        calculate_lagrange_bases(g, h, domain_size, verifier_index.urs.lagrange_bases);
+        calculate_lagrange_bases(g, h, domain_size, verifier_index.urs.lagrange_bases_unshifted);
         verifier_index.public_len = public_len;
         verifier_index.domain_size = domain_size;
         verifier_index.max_poly_size = max_poly_size;
@@ -126,10 +126,11 @@ contract KimchiVerifier {
         if (public_inputs.length != verifier_index.public_len) {
             revert IncorrectPublicInputLength();
         }
-        PolyComm[] memory lgr_comm = verifier_index.urs.lagrange_bases[
+        PolyCommFlat memory lgr_comm_flat = verifier_index.urs.lagrange_bases_unshifted[
             verifier_index.domain_size
         ];
         PolyComm[] memory comm = new PolyComm[](verifier_index.public_len);
+        PolyComm[] memory lgr_comm = poly_comm_unflat(lgr_comm_flat);
         // INFO: can use unchecked on for loops to save gas
         for (uint256 i = 0; i < verifier_index.public_len; i++) {
             comm[i] = lgr_comm[i];
