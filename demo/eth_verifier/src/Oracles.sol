@@ -46,6 +46,20 @@ library Oracles {
         // retrieve ranges for the powers of alphas
         // let all_alphas = index.powers_of_alpha;
         // all_alphas.instantiate(alpha);
+        
+        // evaluations of the public input
+        // if they are not present in the proof:
+            //~ 21. Evaluate the negated public polynomial (if present) at $\zeta$ and $\zeta\omega$.
+        //
+
+        // -squeeze challenges-
+
+        //~ 28. Create a list of all polynomials that have an evaluation proof.
+
+        //~ 29. Compute the evaluation of $ft(\zeta)$.
+
+        // evaluate final polynomial (PolishToken)
+        // combined inner prod
     }
 
     /// @notice creates a challenge frm hashing the current block timestamp.
