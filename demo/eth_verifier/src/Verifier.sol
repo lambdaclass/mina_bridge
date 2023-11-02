@@ -5,6 +5,7 @@ import "./Fields.sol";
 import "./BN254.sol";
 import {VerifierIndex} from "./VerifierIndex.sol";
 import "./Commitment.sol";
+import "./Oracles.sol";
 
 // import "forge-std/console.sol";
 import {console} from "forge-std/Test.sol";
@@ -120,7 +121,7 @@ contract KimchiVerifier {
     */
     error IncorrectPublicInputLength();
 
-    function partial_verify(Scalar.FE[] memory public_inputs) public view {
+    function partial_verify(Scalar.FE[] memory public_inputs) public {
         uint256 chunk_size = verifier_index.domain_size <
             verifier_index.max_poly_size
             ? 1
@@ -163,6 +164,8 @@ contract KimchiVerifier {
                 blinders
             ).commitment;
         }
+
+        Oracles.fiat_shamir(verifier_index);
     }
 
     /* TODO WIP
