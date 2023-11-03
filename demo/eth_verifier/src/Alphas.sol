@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
-import "./Fields.sol";
+import "../lib/Fields.sol";
 
-using { Scalar.mul } for Scalar.FE;
+using {Scalar.mul} for Scalar.FE;
 
 /// This type can be used to create a mapping between powers of alpha and constraint types.
 /// See `default()` to create one (not implemented yet),
@@ -59,7 +59,6 @@ enum ArgumentType {
     GateForeignFieldMul,
     GateXor16,
     GateRot64,
-
     // Permutation
     Permutation
 

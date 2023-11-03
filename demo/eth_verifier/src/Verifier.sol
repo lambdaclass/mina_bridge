@@ -54,7 +54,7 @@ contract KimchiVerifier {
         uint256 domain_size,
         uint256 max_poly_size,
         ProofEvaluations memory evals
-    ) {
+    ) public {
         for (uint i = 0; i < g.length; i++) {
             verifier_index.urs.g.push(g[i]);
         }
