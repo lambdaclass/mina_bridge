@@ -8,8 +8,9 @@ import "../lib/Commitment.sol";
 import "../lib/Oracles.sol";
 import "../lib/Proof.sol";
 import "../lib/State.sol";
-import {VerifierIndex} from "../lib/VerifierIndex.sol";
+import "../lib/VerifierIndex.sol";
 import "../lib/Commitment.sol";
+import "../lib/msgpack/Deserialize.sol";
 
 using {BN254.neg} for BN254.G1Point;
 using {Scalar.neg} for Scalar.FE;
@@ -74,65 +75,35 @@ contract KimchiVerifier {
         proof.evals = evals;
     }
 
-    // 1) deserialize
-    // 2) staticcall to precompile of pairing check
+    function verify_state(
+        bytes calldata state_serialized,
+        bytes calldata proof_serialized
+    ) public returns (bool) {
+        // 1. Deserialize proof and setup
 
-    function verify(
-        uint256[] memory serializedProof
-    ) public view returns (bool) {
-        bool success;
+        // For now, proof consists in the concatenation of the URS and public
+        // evals bytes.
+        (BN254.G1Point[] memory g, BN254.G1Point memory h, uint256 i0) = MsgPk
+            .deserializeURS(proof_serialized);
+        (ProofEvaluations memory evals, uint256 _i1) = MsgPk
+            .deserializeProofEvaluations(proof_serialized, i0);
 
-        /* NOTE: this is an example of the use of the precompile
-        assembly {
-            let freeMemPointer := 0x40
-            success := staticcall(
-                gas(),
-                0x8,
-                add(freeMemPointer, 28),
-                add(freeMemPointer, 0x40),
-                0x00,
-                0x00
-            )
+        setup(g, h, 0, 32, 32, evals); // dummy values used for args
+
+        // 2. Verify
+        partial_verify(new Scalar.FE[](0));
+        bool success = true;
+
+        // 3. If success, deserialize and store state
+        if (success) {
+            bytes memory state = state_serialized; // deser
+            store_state(state);
         }
-        */
 
-        //require(success);
-        /*
-        This is a list of steps needed for verification, we need to determine which
-        ones can be skipped or simplified.
-
-        Partial verification:
-            1. Check the length of evaluations insde the proof.
-            2. Commit to the negated public input poly
-            3. Fiat-Shamir (MAY SKIP OR VASTLY SIMPLIFY)
-            4. Combined chunk polynomials evaluations
-            5. Commitment to linearized polynomial f
-            6. Chunked commitment of ft
-            7. List poly commitments for final verification
-
-        Final verification:
-            1. Combine commitments, compute final poly commitment (MSM)
-            2. Combine evals
-            3. Commit divisor and eval polynomials
-            4. Compute numerator commitment
-            5. Compute scaled quotient
-            6. Check numerator == scaled_quotient
-        */
-        return true;
+        return success;
     }
 
-    /*
-        Partial verification:
-            1. Check the length of evaluations insde the proof. SKIPPED
-            2. Commit to the negated public input poly
-            3. Fiat-Shamir (MAY SKIP OR VASTLY SIMPLIFY)
-            4. Combined chunk polynomials evaluations
-            5. Commitment to linearized polynomial f
-            6. Chunked commitment of ft
-            7. List poly commitments for final verification
-    */
     error IncorrectPublicInputLength();
-
     function partial_verify(Scalar.FE[] memory public_inputs) public {
         uint256 chunk_size = verifier_index.domain_size <
             verifier_index.max_poly_size
@@ -180,6 +151,28 @@ contract KimchiVerifier {
         Oracles.fiat_shamir(verifier_index);
     }
 
+    /*
+    This is a list of steps needed for verification, we need to determine which
+    ones can be skipped or simplified.
+
+    Partial verification:
+        1. Check the length of evaluations insde the proof.
+        2. Commit to the negated public input poly
+        3. Fiat-Shamir (MAY SKIP OR VASTLY SIMPLIFY)
+        4. Combined chunk polynomials evaluations
+        5. Commitment to linearized polynomial f
+        6. Chunked commitment of ft
+        7. List poly commitments for final verification
+
+    Final verification:
+        1. Combine commitments, compute final poly commitment (MSM)
+        2. Combine evals
+        3. Commit divisor and eval polynomials
+        4. Compute numerator commitment
+        5. Compute scaled quotient
+        6. Check numerator == scaled_quotient
+    */
+
     /* TODO WIP
     function deserialize_proof(
         uint256[] calldata public_inputs,
@@ -193,12 +186,12 @@ contract KimchiVerifier {
     }
 
     /// @notice store a mina state
-    function store(bytes calldata data) public {
+    function store_state(bytes memory data) public {
         state.data = data;
     }
 
     /// @notice retrieve a mina state
-    function retrieve() public view returns (bytes memory) {
+    function retrieve_state() public view returns (bytes memory) {
         // serialize in a useful format (MessagePack)
         return state.data;
     }
