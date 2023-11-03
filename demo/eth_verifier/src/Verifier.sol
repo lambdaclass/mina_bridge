@@ -1,16 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
-import "./Fields.sol";
-import "./BN254.sol";
-import {VerifierIndex} from "./VerifierIndex.sol";
-import "./Commitment.sol";
-import "./Oracles.sol";
-import "./Proof.sol";
-import "./State.sol";
-
-// import "forge-std/console.sol";
-import {console} from "forge-std/Test.sol";
+import "../lib/Fields.sol";
+import "../lib/BN254.sol";
+import "../lib/VerifierIndex.sol";
+import "../lib/Commitment.sol";
+import "../lib/Proof.sol";
+import "../lib/State.sol";
+import "../lib/Oracles.sol";
 
 using {BN254.neg} for BN254.G1Point;
 using {Scalar.neg} for Scalar.FE;
@@ -50,14 +47,14 @@ contract KimchiVerifier {
 
     State state;
 
-    constructor(
+    function setup(
         BN254.G1Point[] memory g,
         BN254.G1Point memory h,
         uint256 public_len,
         uint256 domain_size,
         uint256 max_poly_size,
         ProofEvaluations memory evals
-    ) {
+    ) public {
         for (uint i = 0; i < g.length; i++) {
             verifier_index.urs.g.push(g[i]);
         }

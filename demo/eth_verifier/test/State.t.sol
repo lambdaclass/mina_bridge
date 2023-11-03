@@ -3,7 +3,7 @@ pragma solidity >=0.4.16 <0.9.0;
 
 import {Test, console2} from "forge-std/Test.sol";
 import "../src/Verifier.sol";
-import "../src/msgpack/Deserialize.sol";
+import "../lib/msgpack/Deserialize.sol";
 
 contract StateTest is Test {
     KimchiVerifier verifier;
@@ -21,7 +21,8 @@ contract StateTest is Test {
             evals_serialized, 0
         );
 
-        verifier = new KimchiVerifier(g, h, 0, 32, 32, evals);
+        verifier = new KimchiVerifier();
+        verifier.setup(g, h, 0, 32, 32, evals);
     }
 
     function test_store_retrieve() public {

@@ -1,88 +1,90 @@
 name: CI
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: ["*"]
+    push:
+        branches: [main]
+    pull_request:
+        branches: ["*"]
 
 jobs:
-  public_input_gen:
-    name: Public input generation
-    uses: ./.github/workflows/rust_ci.yaml
-    with:
-      directory: public_input_gen
-
-  verifier_circuit_tests:
-    name: Verifying circuit Rust tests
-    uses: ./.github/workflows/rust_ci.yaml
-    with:
-      directory: verifier_circuit_tests
-
-  verifier_circuit:
-    name: Build and test EVM bridge
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./verifier_circuit
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v4
-
-      - name: Install node
-        uses: actions/setup-node@v3
+    public_input_gen:
+        name: Public input generation
+        uses: ./.github/workflows/rust_ci.yaml
         with:
-          node-version: latest
+            directory: public_input_gen
 
-      - name: Setup o1js submodule
-        run: git submodule update --init --recursive
-
-      - name: Set up dependencies
-        run: npm ci
-
-      - name: Run npm build
-        run: npm run build
-
-      - name: Run npm test
-        run: npm run test
-
-  integration:
-    name: Integration test
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - ubuntu-latest
-        ocaml-compiler:
-          - "4.14.0"
-
-    runs-on: ${{ matrix.os }}
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v4
-      
-      - name: Set-up OCaml ${{ matrix.ocaml-compiler }}
-        uses: ocaml/setup-ocaml@v2
+    verifier_circuit_tests:
+        name: Verifying circuit Rust tests
+        uses: ./.github/workflows/rust_ci.yaml
         with:
-          ocaml-compiler: ${{ matrix.ocaml-compiler }}
+            directory: verifier_circuit_tests
 
-      - name: Install Mina dependencies
-        run: sudo apt-get install libsodium-dev capnproto
+    verifier_circuit:
+        name: Build and test EVM bridge
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./verifier_circuit
+        steps:
+            - name: Checkout sources
+              uses: actions/checkout@v4
 
-      - name: Run integration test
-        run: make
+            - name: Install node
+              uses: actions/setup-node@v3
+              with:
+                  node-version: latest
 
-  demo_eth_verifier:
-    name: Test demo's Solidity verifier
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./demo/eth_verifier
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v4
+            - name: Setup o1js submodule
+              run: git submodule update --init --recursive
 
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
+            - name: Set up dependencies
+              run: npm ci
 
-      - name: Run tests
-        run: make test
+            - name: Run npm build
+              run: npm run build
+
+            - name: Run npm test
+              run: npm run test
+
+    integration:
+        name: Integration test
+        strategy:
+            fail-fast: false
+            matrix:
+                os:
+                    - ubuntu-latest
+                ocaml-compiler:
+                    - "4.14.0"
+        runs-on: ${{ matrix.os }}
+        steps:
+            - name: Checkout sources
+              uses: actions/checkout@v4
+
+            - name: Set-up OCaml ${{ matrix.ocaml-compiler }}
+              uses: ocaml/setup-ocaml@v2
+              with:
+                  ocaml-compiler: ${{ matrix.ocaml-compiler }}
+
+            - name: Install Foundry
+              uses: foundry-rs/foundry-toolchain@v1
+
+            - name: Install Mina dependencies
+              run: sudo apt-get install libsodium-dev capnproto
+
+            - name: Run integration test
+              run: make
+
+    demo_eth_verifier:
+        name: Test demo's Solidity verifier
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./demo/eth_verifier
+        steps:
+            - name: Checkout sources
+              uses: actions/checkout@v4
+
+            - name: Install Foundry
+              uses: foundry-rs/foundry-toolchain@v1
+
+            - name: Run tests
+              run: make test

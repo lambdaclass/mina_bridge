@@ -2,11 +2,11 @@
 pragma solidity >=0.4.16 <0.9.0;
 
 import {Test, console2} from "forge-std/Test.sol";
-import "../src/BN254.sol";
+import "../lib/BN254.sol";
 import "../src/Verifier.sol";
-import "../src/msgpack/Deserialize.sol";
-import "../src/Commitment.sol";
-import "../src/Fields.sol";
+import "../lib/msgpack/Deserialize.sol";
+import "../lib/Commitment.sol";
+import "../lib/Fields.sol";
 
 contract DeserializeTest is Test {
     function test_partial_verify() public {
@@ -23,7 +23,8 @@ contract DeserializeTest is Test {
             evals_serialized, 0
         );
 
-        KimchiVerifier verifier = new KimchiVerifier(g, h, 0, 32, 32, evals);
+        KimchiVerifier verifier = new KimchiVerifier();
+        verifier.setup(g, h, 0, 32, 32, evals);
         verifier.partial_verify(new Scalar.FE[](0));
     }
 }
