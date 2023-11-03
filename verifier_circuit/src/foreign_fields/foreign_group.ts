@@ -91,7 +91,7 @@ export class ForeignGroup {
     }
 
     scale(s: ForeignScalar) {
-        let coefficient = s.toBits();
+        let coefficient = s.toBits().reverse();
         let current = new ForeignGroup(this.x, this.y);
         let result = ForeignGroup.zero();
 

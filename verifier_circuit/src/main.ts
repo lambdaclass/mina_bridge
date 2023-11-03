@@ -40,18 +40,6 @@ let z1 = ForeignScalar.from(inputs.z1);
 let sg_scalar = z1.neg().sub(ForeignScalar.from(1));
 let public_input = [sg_x, sg_y, sg_scalar, expected_x, expected_y];
 
-let generator = new ForeignGroup(new ForeignField(Group.generator.x.toBigInt()), new ForeignField(Group.generator.y.toBigInt()));
-console.log("ADD");
-let native_add = Group({ x: inputs.sg[0], y: inputs.sg[1] }).add(Group.generator);
-let foreign_add = new ForeignGroup(sg_x, sg_y).add(new ForeignGroup(generator.x, generator.y));
-console.log("native", native_add.x.toBigInt(), native_add.y.toBigInt());
-console.log("foreign", foreign_add.x.toBigInt(), foreign_add.y.toBigInt());
-console.log("SCALE");
-let native_scale = Group({ x: inputs.sg[0], y: inputs.sg[1] }).scale(inputs.z1);
-let foreign_scale = new ForeignGroup(sg_x, sg_y).scale(z1);
-console.log("native", native_scale.x.toBigInt(), native_scale.y.toBigInt());
-console.log("foreign", foreign_scale.x.toBigInt(), foreign_scale.y.toBigInt());
-
 let keypair = await Verifier.generateKeypair();
 
 console.log("Proving with Ethereum backend...");
