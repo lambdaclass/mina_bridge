@@ -5,6 +5,8 @@ import "./Fields.sol";
 import "./BN254.sol";
 import {VerifierIndex} from "./VerifierIndex.sol";
 import "./Commitment.sol";
+import "./Oracles.sol";
+import "./Proof.sol";
 
 // import "forge-std/console.sol";
 import {console} from "forge-std/Test.sol";
@@ -43,13 +45,15 @@ library Kimchi {
 
 contract KimchiVerifier {
     VerifierIndex verifier_index;
+    ProverProof proof;
 
     constructor(
         BN254.G1Point[] memory g,
         BN254.G1Point memory h,
         uint256 public_len,
         uint256 domain_size,
-        uint256 max_poly_size
+        uint256 max_poly_size,
+        ProofEvaluations memory evals
     ) {
         for (uint i = 0; i < g.length; i++) {
             verifier_index.urs.g.push(g[i]);
@@ -59,6 +63,8 @@ contract KimchiVerifier {
         verifier_index.public_len = public_len;
         verifier_index.domain_size = domain_size;
         verifier_index.max_poly_size = max_poly_size;
+
+        proof.evals = evals;
     }
 
     // 1) deserialize
@@ -120,7 +126,7 @@ contract KimchiVerifier {
     */
     error IncorrectPublicInputLength();
 
-    function partial_verify(Scalar.FE[] memory public_inputs) public view {
+    function partial_verify(Scalar.FE[] memory public_inputs) public {
         uint256 chunk_size = verifier_index.domain_size <
             verifier_index.max_poly_size
             ? 1
@@ -163,6 +169,8 @@ contract KimchiVerifier {
                 blinders
             ).commitment;
         }
+
+        Oracles.fiat_shamir(verifier_index);
     }
 
     /* TODO WIP

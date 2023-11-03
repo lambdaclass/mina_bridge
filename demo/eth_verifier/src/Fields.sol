@@ -114,6 +114,10 @@ library Scalar {
         }
     }
 
+    function double(FE self) public pure returns (FE res) {
+        res = mul(self, FE.wrap(2));
+    }
+
     function square(FE self) public pure returns (FE res) {
         res = mul(self, self);
     }
