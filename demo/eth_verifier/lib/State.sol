@@ -1,0 +1,3 @@
+struct State {
+    bytes data;
+}

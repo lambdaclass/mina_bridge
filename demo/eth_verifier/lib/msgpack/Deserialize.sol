@@ -4,8 +4,8 @@ pragma solidity >=0.4.16 <0.9.0;
 import {Kimchi} from "../../src/Verifier.sol";
 import "../Commitment.sol";
 import "../BN254.sol";
-import "../../src/Evaluations.sol";
-import "../../src/Proof.sol";
+import "../Evaluations.sol";
+import "../Proof.sol";
 
 library MsgPk {
     /// @notice deserializes an array of G1Point and also returns the rest of the
