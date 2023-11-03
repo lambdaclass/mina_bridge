@@ -8,6 +8,11 @@ import "../lib/Commitment.sol";
 import "../lib/Oracles.sol";
 import "../lib/Proof.sol";
 import "../lib/State.sol";
+import {VerifierIndex} from "../lib/VerifierIndex.sol";
+import "../lib/Commitment.sol";
+
+import "./Oracles.sol";
+import "./Proof.sol";
 
 using {BN254.neg} for BN254.G1Point;
 using {Scalar.neg} for Scalar.FE;

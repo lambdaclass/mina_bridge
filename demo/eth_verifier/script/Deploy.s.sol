@@ -2,9 +2,8 @@
 pragma solidity ^0.8.13;
 
 import {Script, console2} from "forge-std/Script.sol";
-import "forge-std/console.sol";
-
 import {KimchiVerifier} from "../src/Verifier.sol";
+import "forge-std/console.sol";
 
 contract Deploy is Script {
     function run() public {

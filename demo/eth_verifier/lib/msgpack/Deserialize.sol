@@ -4,8 +4,8 @@ pragma solidity >=0.4.16 <0.9.0;
 import {Kimchi} from "../../src/Verifier.sol";
 import "../Commitment.sol";
 import "../BN254.sol";
-import "../Evaluations.sol";
-import "../Proof.sol";
+import "../../src/Evaluations.sol";
+import "../../src/Proof.sol";
 
 library MsgPk {
     /// @notice deserializes an array of G1Point and also returns the rest of the
@@ -168,10 +168,10 @@ library MsgPk {
         uint256 i
     ) public pure returns (ProofEvaluations memory evals, uint256 final_i) {
         // WARN: This works because the test circuit evaluations have one elem per array.
-        (PointEvaluations memory evals_non_array, uint _i) = deserializePointEvals(
-            data,
-            i
-        );
+        (
+            PointEvaluations memory evals_non_array,
+            uint _i
+        ) = deserializePointEvals(data, i);
 
         Scalar.FE[] memory zeta = new Scalar.FE[](1);
         Scalar.FE[] memory zeta_omega = new Scalar.FE[](1);
