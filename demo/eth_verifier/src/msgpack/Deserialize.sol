@@ -176,7 +176,7 @@ library MsgPk {
         Scalar.FE[] memory zeta = new Scalar.FE[](1);
         Scalar.FE[] memory zeta_omega = new Scalar.FE[](1);
         zeta[0] = evals_non_array.zeta;
-        zeta[1] = evals_non_array.zeta_omega;
+        zeta_omega[0] = evals_non_array.zeta_omega;
 
         PointEvaluationsArray memory _public_evals = PointEvaluationsArray(
             zeta,
