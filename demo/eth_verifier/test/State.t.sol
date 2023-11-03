@@ -27,8 +27,7 @@ contract StateTest is Test {
 
     function test_store_retrieve() public {
         bytes memory data = hex"42";
-        verifier.store(data);
-        
-        assertEq(verifier.retrieve(), data);
+        verifier.store_state(data);
+        assertEq(verifier.retrieve_state(), data);
     }
 }
