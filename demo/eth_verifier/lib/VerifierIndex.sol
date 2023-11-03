@@ -4,8 +4,8 @@ pragma solidity >=0.4.16 <0.9.0;
 import {BN254} from "./BN254.sol";
 import {URS} from "./Commitment.sol";
 import "./Fields.sol";
-import "../src/Alphas.sol";
-import "../src/Evaluations.sol";
+import "./Alphas.sol";
+import "./Evaluations.sol";
 
 struct VerifierIndex {
     uint256 public_len;
