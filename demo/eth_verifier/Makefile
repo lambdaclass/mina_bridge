@@ -5,7 +5,7 @@ setup:
 	foundryup
 
 test:
-	forge test -vv
+	forge test -vv --via-ir
 
 proof:
 	cd circuit_gen && cargo run

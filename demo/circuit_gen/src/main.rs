@@ -95,4 +95,16 @@ fn main() {
     // Serialize URS into JSON and MessagePack
     fs::write("urs.json", serde_json::to_vec(&srs.full_srs).unwrap()).unwrap();
     fs::write("urs.mpk", rmp_serde::to_vec(&srs.full_srs).unwrap()).unwrap();
+
+    // Serialize public evals into JSON and MessagePack
+    fs::write(
+        "public_evals.json",
+        serde_json::to_vec(&proof.evals.public).unwrap(),
+    )
+    .unwrap();
+    fs::write(
+        "public_evals.mpk",
+        rmp_serde::to_vec(&proof.evals.public).unwrap(),
+    )
+    .unwrap();
 }
