@@ -1,15 +1,21 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
-import "./Fields.sol";
-import "./VerifierIndex.sol";
+import "../lib/Fields.sol";
+import "../lib/VerifierIndex.sol";
 import "./Evaluations.sol";
 import "./Alphas.sol";
 
 library Oracles {
-    using { to_field_with_length, to_field } for ScalarChallenge;
-    using { Scalar.add, Scalar.mul, Scalar.neg, Scalar.double, Scalar.pow } for Scalar.FE;
-    using { AlphasLib.instantiate } for Alphas;
+    using {to_field_with_length, to_field} for ScalarChallenge;
+    using {
+        Scalar.add,
+        Scalar.mul,
+        Scalar.neg,
+        Scalar.double,
+        Scalar.pow
+    } for Scalar.FE;
+    using {AlphasLib.instantiate} for Alphas;
 
     uint64 internal constant CHALLENGE_LENGTH_IN_LIMBS = 2;
 
@@ -38,10 +44,11 @@ library Oracles {
         evaluation_points[0] = zeta;
         evaluation_points[1] = zetaw;
 
-        PointEvaluations memory powers_of_eval_points_for_chunks = PointEvaluations(
-            zeta.pow(index.max_poly_size),
-            zetaw.pow(index.max_poly_size)
-        );
+        PointEvaluations
+            memory powers_of_eval_points_for_chunks = PointEvaluations(
+                zeta.pow(index.max_poly_size),
+                zetaw.pow(index.max_poly_size)
+            );
 
         //~ 20. Compute evaluations for the previous recursion challenges. SKIP
 
@@ -51,7 +58,7 @@ library Oracles {
 
         // evaluations of the public input
         // if they are not present in the proof:
-            //~ 21. Evaluate the negated public polynomial (if present) at $\zeta$ and $\zeta\omega$.
+        //~ 21. Evaluate the negated public polynomial (if present) at $\zeta$ and $\zeta\omega$.
         //
 
         // -squeeze challenges-
@@ -117,14 +124,19 @@ library Oracles {
         return self.to_field_with_length(length_in_bits, endo_coeff);
     }
 
-    function get_bit(uint64[] memory limbs_lsb, uint64 i) internal pure returns (uint64) {
+    function get_bit(
+        uint64[] memory limbs_lsb,
+        uint64 i
+    ) internal pure returns (uint64) {
         uint64 limb = i / 64;
         uint64 j = i % 64;
         return (limbs_lsb[limb] >> j) & 1;
     }
 
     /// @notice Decomposes `n` into 64 bit limbs, less significant first
-     function get_limbs_64(uint256 n) internal pure returns (uint64[] memory limbs) {
+    function get_limbs_64(
+        uint256 n
+    ) internal pure returns (uint64[] memory limbs) {
         uint len = 256 / 64;
         uint128 mask_64 = (1 << 64) - 1;
 
@@ -138,10 +150,12 @@ library Oracles {
     }
 
     /// @notice Recomposes 64-bit `limbs` into a bigint, less significant first
-    function from_limbs_64(uint64[] memory limbs) internal pure returns (uint256 n_rebuilt) {
+    function from_limbs_64(
+        uint64[] memory limbs
+    ) internal pure returns (uint256 n_rebuilt) {
         n_rebuilt = 0;
         for (uint i = 0; i < limbs.length; i++) {
-            n_rebuilt += limbs[i] << 64*i;
+            n_rebuilt += limbs[i] << (64 * i);
         }
     }
 }

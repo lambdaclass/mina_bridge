@@ -2,11 +2,11 @@
 pragma solidity >=0.4.16 <0.9.0;
 
 import {Test, console2} from "forge-std/Test.sol";
-import "../src/BN254.sol";
+import "../lib/BN254.sol";
 import "../src/Verifier.sol";
-import "../src/msgpack/Deserialize.sol";
-import "../src/Commitment.sol";
-import "../src/Fields.sol";
+import "../lib/msgpack/Deserialize.sol";
+import "../lib/Commitment.sol";
+import "../lib/Fields.sol";
 
 contract DeserializeTest is Test {
     function test_partial_verify() public {
@@ -17,13 +17,13 @@ contract DeserializeTest is Test {
         bytes
             memory evals_serialized = hex"9291c420000000000000000000000000000000000000000000000000000000000000000091c42000000000000000000000000000000000000000000000000000000000000000000a";
 
+        KimchiVerifier verifier = new KimchiVerifier();
         (BN254.G1Point[] memory g, BN254.G1Point memory h, uint256 _i0) = MsgPk
             .deserializeURS(urs_serialized);
-        (ProofEvaluations memory evals, uint256 _i1) = MsgPk.deserializeProofEvaluations(
-            evals_serialized, 0
-        );
+        (ProofEvaluations memory evals, uint256 _i1) = MsgPk
+            .deserializeProofEvaluations(evals_serialized, 0);
 
-        KimchiVerifier verifier = new KimchiVerifier(g, h, 0, 32, 32, evals);
+        verifier.setup(g, h, 0, 32, 32, evals);
         verifier.partial_verify(new Scalar.FE[](0));
     }
 }

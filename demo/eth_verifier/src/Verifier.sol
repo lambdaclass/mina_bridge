@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
-import "./Fields.sol";
-import "./BN254.sol";
-import {VerifierIndex} from "./VerifierIndex.sol";
-import "./Commitment.sol";
-import "./Oracles.sol";
-import "./Proof.sol";
+import "../lib/Fields.sol";
+import "../lib/BN254.sol";
+import {VerifierIndex} from "../lib/VerifierIndex.sol";
+import "../lib/Commitment.sol";
 
 // import "forge-std/console.sol";
 import {console} from "forge-std/Test.sol";
+import "./Oracles.sol";
+import "./Proof.sol";
 
 using {BN254.neg} for BN254.G1Point;
 using {Scalar.neg} for Scalar.FE;
@@ -47,19 +47,24 @@ contract KimchiVerifier {
     VerifierIndex verifier_index;
     ProverProof proof;
 
-    constructor(
+    function setup(
         BN254.G1Point[] memory g,
         BN254.G1Point memory h,
         uint256 public_len,
         uint256 domain_size,
         uint256 max_poly_size,
         ProofEvaluations memory evals
-    ) {
+    ) public {
         for (uint i = 0; i < g.length; i++) {
             verifier_index.urs.g.push(g[i]);
         }
         verifier_index.urs.h = h;
-        calculate_lagrange_bases(g, h, domain_size, verifier_index.urs.lagrange_bases_unshifted);
+        calculate_lagrange_bases(
+            g,
+            h,
+            domain_size,
+            verifier_index.urs.lagrange_bases_unshifted
+        );
         verifier_index.public_len = public_len;
         verifier_index.domain_size = domain_size;
         verifier_index.max_poly_size = max_poly_size;
@@ -135,9 +140,9 @@ contract KimchiVerifier {
         if (public_inputs.length != verifier_index.public_len) {
             revert IncorrectPublicInputLength();
         }
-        PolyCommFlat memory lgr_comm_flat = verifier_index.urs.lagrange_bases_unshifted[
-            verifier_index.domain_size
-        ];
+        PolyCommFlat memory lgr_comm_flat = verifier_index
+            .urs
+            .lagrange_bases_unshifted[verifier_index.domain_size];
         PolyComm[] memory comm = new PolyComm[](verifier_index.public_len);
         PolyComm[] memory lgr_comm = poly_comm_unflat(lgr_comm_flat);
         // INFO: can use unchecked on for loops to save gas
