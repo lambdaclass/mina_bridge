@@ -17,6 +17,8 @@ try {
     steps = [];
 }
 
+let { h } = SRS.createFromJSON();
+
 /**
 * Will contain information necessary for executing a verification
 */
@@ -131,9 +133,9 @@ export class Verifier extends Circuit {
     static readonly PERMUTATION_CONSTRAINTS: number = 3;
 
     @circuitMain
-    static main(@public_ sg_x: ForeignField, @public_ sg_y: ForeignField, @public_ sg_scalar: ForeignScalar, @public_ expected_x: ForeignField, @public_ expected_y: ForeignField) {
+    static main(@public_ sg_x: ForeignField, @public_ sg_y: ForeignField, @public_ expected_x: ForeignField, @public_ expected_y: ForeignField) {
         let sg = new ForeignGroup(sg_x, sg_y);
-        let actual = sg.scale(sg_scalar);
+        let actual = sg.add(h);
         let expected = new ForeignGroup(expected_x, expected_y);
         actual.assertEquals(expected);
     }

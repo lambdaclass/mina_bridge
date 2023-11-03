@@ -90,20 +90,6 @@ export class ForeignGroup {
         );
     }
 
-    scale(s: ForeignScalar) {
-        let coefficient = s.toBits().reverse();
-        let current = new ForeignGroup(this.x, this.y);
-        let result = ForeignGroup.zero();
-
-        while (coefficient.length > 0) {
-            result = Provable.if(coefficient[coefficient.length - 1], ForeignGroup, result.add(current), result);
-            current = current.add(current);
-            coefficient.pop();
-        }
-
-        return result;
-    }
-
     static sizeInFields() {
         return ForeignField.sizeInFields() * 2;
     }

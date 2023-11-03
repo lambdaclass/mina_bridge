@@ -1,10 +1,10 @@
 use std::fs;
 
 use ark_ec::short_weierstrass_jacobian::GroupAffine;
-use ark_ec::{AffineCurve, ProjectiveCurve};
 use kimchi::mina_curves::pasta::{Fp, Fq, Pallas, PallasParameters};
 use kimchi::o1_utils::FieldHelpers;
-use num_traits::One;
+use kimchi::poly_commitment::srs::SRS;
+use kimchi::precomputed_srs;
 use serde::Serialize;
 use state_proof::{OpeningProof, StateProof};
 
@@ -23,11 +23,33 @@ fn main() {
         Err(_) => StateProof::default(),
     };
 
+    let srs: SRS<Pallas> = precomputed_srs::get_srs();
+    write_srs_into_file(&srs);
+
     // create and verify proof based on the witness
-    prove_and_verify(state_proof.proof.openings.proof);
+    prove_and_verify(&srs, state_proof.proof.openings.proof);
 }
 
-fn prove_and_verify(opening: OpeningProof) {
+fn write_srs_into_file(srs: &SRS<Pallas>) {
+    println!("Writing SRS into file...");
+    let mut g = srs
+        .g
+        .iter()
+        .map(|g_i| format!("[\"{}\",\"{}\"],", g_i.x.to_biguint(), g_i.y.to_biguint()))
+        .collect::<Vec<_>>()
+        .concat();
+    // Removes last comma
+    g.pop();
+    let h = format!(
+        "[\"{}\",\"{}\"]",
+        srs.h.x.to_biguint(),
+        srs.h.y.to_biguint()
+    );
+    let srs_json = format!("{{\"g\":[{}],\"h\":{}}}", g, h);
+    fs::write("../verifier_circuit/test/srs.json", srs_json).unwrap();
+}
+
+fn prove_and_verify(srs: &SRS<Pallas>, opening: OpeningProof) {
     // verify the proof (propagate any errors)
     println!("Verifying dummy proof...");
 
@@ -37,7 +59,7 @@ fn prove_and_verify(opening: OpeningProof) {
         false,
     );
     let z1_felt = Fq::from_hex(&opening.z_1[2..]).unwrap();
-    let value_to_compare = compute_verification(&sg_point, &z1_felt);
+    let value_to_compare = compute_verification(srs, &sg_point);
 
     fs::write(
         "../verifier_circuit/src/inputs.json",
@@ -57,10 +79,6 @@ fn prove_and_verify(opening: OpeningProof) {
     .unwrap();
 }
 
-fn compute_verification(sg: &Pallas, z1: &Fq) -> GroupAffine<PallasParameters> {
-    let rand_base_i = Fq::one();
-    let sg_rand_base_i = Fq::one();
-    let neg_rand_base_i = -rand_base_i;
-
-    sg.mul(neg_rand_base_i * z1 - sg_rand_base_i).into_affine()
+fn compute_verification(srs: &SRS<Pallas>, sg: &Pallas) -> GroupAffine<PallasParameters> {
+    *sg + srs.h
 }

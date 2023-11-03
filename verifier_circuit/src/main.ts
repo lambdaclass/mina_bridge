@@ -36,9 +36,7 @@ let sg_x = ForeignField.from(inputs.sg[0]);
 let sg_y = ForeignField.from(inputs.sg[1]);
 let expected_x = ForeignField.from(inputs.expected[0])
 let expected_y = ForeignField.from(inputs.expected[1]);
-let z1 = ForeignScalar.from(inputs.z1);
-let sg_scalar = z1.neg().sub(ForeignScalar.from(1));
-let public_input = [sg_x, sg_y, sg_scalar, expected_x, expected_y];
+let public_input = [sg_x, sg_y, expected_x, expected_y];
 
 let keypair = await Verifier.generateKeypair();
 
