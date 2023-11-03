@@ -15,4 +15,4 @@ run_node:
 
 deploy_verifier:
 	PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 \
-	forge script script/Deploy.s.sol:Deploy --broadcast --rpc-url http://localhost:8545
+	forge script script/Deploy.s.sol:Deploy --via-ir --broadcast --rpc-url http://localhost:8545
