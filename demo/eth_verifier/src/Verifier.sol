@@ -195,7 +195,7 @@ contract KimchiVerifier {
         state.data = data;
     }
 
-    /// @notice store a mina state
+    /// @notice retrieve a mina state
     function retrieve() public view returns (bytes memory) {
         // serialize in a useful format (MessagePack)
         return state.data;
