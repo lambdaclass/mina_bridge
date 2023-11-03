@@ -73,6 +73,7 @@ library MsgPk {
         }
 
         (BN254.G1Point memory h, uint256 final_i) = deserializeG1Point(data, i);
+        final_i += 1;
         return (g, h, final_i);
     }
 
