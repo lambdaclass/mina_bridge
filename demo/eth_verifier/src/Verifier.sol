@@ -3,13 +3,11 @@ pragma solidity >=0.4.16 <0.9.0;
 
 import "../lib/Fields.sol";
 import "../lib/BN254.sol";
-import {VerifierIndex} from "../lib/VerifierIndex.sol";
+import "../lib/VerifierIndex.sol";
 import "../lib/Commitment.sol";
-
-// import "forge-std/console.sol";
-import {console} from "forge-std/Test.sol";
-import "./Oracles.sol";
-import "./Proof.sol";
+import "../lib/Oracles.sol";
+import "../lib/Proof.sol";
+import "../lib/State.sol";
 
 using {BN254.neg} for BN254.G1Point;
 using {Scalar.neg} for Scalar.FE;
@@ -47,6 +45,8 @@ contract KimchiVerifier {
     VerifierIndex verifier_index;
     ProverProof proof;
 
+    State state;
+
     function setup(
         BN254.G1Point[] memory g,
         BN254.G1Point memory h,
@@ -54,7 +54,7 @@ contract KimchiVerifier {
         uint256 domain_size,
         uint256 max_poly_size,
         ProofEvaluations memory evals
-    ) {
+    ) public {
         for (uint i = 0; i < g.length; i++) {
             verifier_index.urs.g.push(g[i]);
         }
@@ -188,5 +188,16 @@ contract KimchiVerifier {
     /// @notice This is used exclusively in `test_PartialVerify()`.
     function set_verifier_index_for_testing() public {
         verifier_index.max_poly_size = 1;
+    }
+
+    /// @notice store a mina state
+    function store(bytes calldata data) public {
+        state.data = data;
+    }
+
+    /// @notice store a mina state
+    function retrieve() public view returns (bytes memory) {
+        // serialize in a useful format (MessagePack)
+        return state.data;
     }
 }
