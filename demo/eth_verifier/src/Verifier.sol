@@ -52,7 +52,8 @@ contract KimchiVerifier {
         BN254.G1Point memory h,
         uint256 public_len,
         uint256 domain_size,
-        uint256 max_poly_size
+        uint256 max_poly_size,
+        ProofEvaluations memory evals
     ) {
         for (uint i = 0; i < g.length; i++) {
             verifier_index.urs.g.push(g[i]);
@@ -63,7 +64,7 @@ contract KimchiVerifier {
         verifier_index.domain_size = domain_size;
         verifier_index.max_poly_size = max_poly_size;
 
-        // TODO: deserialize proof
+        proof.evals = evals;
     }
 
     // 1) deserialize
