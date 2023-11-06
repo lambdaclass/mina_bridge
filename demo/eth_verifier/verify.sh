@@ -13,5 +13,8 @@ PROOF=$(cat proof.mpk)
 success=$(cast call $CONTRACT_ADDR 'verify_state(bytes calldata, bytes calldata)' $STATE $PROOF)
 asd=$(cast call $CONTRACT_ADDR 'store_state(bytes calldata)' $STATE)
 if [ $success == "0x0000000000000000000000000000000000000000000000000000000000000001" ]; then
-    echo "Successfully verified state. You can now run any of retrieve_state_X()."
+    echo "Successfully verified state. You can now run any of retrieve_state_X():"
+    echo "cast call <CONTRACT_ADDR> 'retrieve_state_creator()'"
+    echo "cast call <CONTRACT_ADDR> 'retrieve_state_hash()'"
+    echo "cast call <CONTRACT_ADDR> 'retrieve_state_height()'"
 fi

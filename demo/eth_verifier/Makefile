@@ -21,11 +21,6 @@ query:
 	cd ../state_serializer/ && cargo build --release
 	./query.sh | xargs -0 ../state_serializer/target/release/state_serializer > state.mpk
 
-retrieve:
-	cast call ${CONTRACT_ADDR} 'retrieve_state_creator()'
-	cast call ${CONTRACT_ADDR} 'retrieve_state_hash()'
-	cast call ${CONTRACT_ADDR} 'retrieve_state_height()'
-
 run_verifier_script:
 	PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 \
 	forge script script/Deploy.s.sol:DeployIntegrated --via-ir --broadcast --rpc-url http://localhost:8545

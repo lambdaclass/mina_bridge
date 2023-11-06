@@ -120,9 +120,9 @@ You can then run the verifier by calling the `verify_state()` function using `ca
 ```
 then you can get State data from the contract storage:
 ```bash
-cast call $CONTRACT_ADDR 'retrieve_state_creator()'
-cast call $CONTRACT_ADDR 'retrieve_state_hash()'
-cast call $CONTRACT_ADDR 'retrieve_state_height()'
+cast call <CONTRACT_ADDR> 'retrieve_state_creator()'
+cast call <CONTRACT_ADDR> 'retrieve_state_hash()'
+cast call <CONTRACT_ADDR> 'retrieve_state_height()'
 ```
 or by running:
 ```bash
