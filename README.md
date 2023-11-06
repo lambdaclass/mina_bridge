@@ -24,6 +24,11 @@ This project introduces the proof generation, posting and verification of the va
 
 `mina_bridge` is in an early stage of development, currently it misses elemental features and correct functionality is not guaranteed.
 
+### Elliptic Curve operations
+
+The algorithms for multiplication of points of an elliptic curve that we implemented using the building blocks present in `o1js` are very slow 🐢.
+So we need to implement the bindings to use the native Ocaml libraries for the elliptic curve operations called in o1js. At the time of this text is written, we are still working on this 🚧.
+
 ## Architecture
 
 This is subject to change.
@@ -54,6 +59,7 @@ This repository is composed of the following components:
 This is a minimized version of the project, in which a user can submit a [o1js](https://github.com/o1-labs/o1js) circuit, generate a [Kimchi](https://github.com/o1-labs/proof-systems/tree/master/kimchi) KZG proof of it and verify it in an Ethereum smart contract. The bridge project will work the same way, with the difference that the submitted circuit will execute the verification of a Mina state proof.
 
 #### Flowgraph
+
 ```mermaid
 flowchart TB
     U((User))-->|Submits a provable o1js program/circuit| P(Kimchi KZG Prover)
@@ -82,15 +88,19 @@ and can later be deployed into the chain.
 #### Running
 
 Go into `demo/` and run:
+
 ```bash
 make
 ```
+
 this will take a o1js program, generate a proof of it, serialize it into JSON and send it into the solidity verifier.
 
 You can generate a test proof for the verifier by going to `demo/eth_verifier/` and running:
+
 ```bash
 make proof
 ```
+
 which does this by executing a Rust binary.
 
 ### Verifier circuit
@@ -100,19 +110,24 @@ A proof of the circuit will be constructed in subsequent modules for validating 
 
 The code is written entirely in Typescript using the [o1js](https://github.com/o1-labs/o1js) library and is heavily based on [Kimchi](https://github.com/o1-labs/proof-systems/tree/master/kimchi)'s original verifier implementation.
 
-#### Running
+#### Running Verfier circuit
+
 On `verifier_circuit/` run:
+
 ```sh
 make
 ```
+
 This will create the constraint system of the verification of a proof with fixed values.
 This will also clone the Monorepo version of Mina so that the bridge uses o1js from there.
 
 #### Testing
+
 ```bash
 npm run test
 npm run testw # watch mod
 ```
+
 will execute Jest unit and integration tests of the module.
 
 #### Structure
@@ -137,15 +152,19 @@ main polynomial of the circuit.
 Contains a Rust crate with Kimchi as a dependency, and runs some components of it generating data for feeding and comparing tests inside the verifier circuit.
 
 For executing the main integration flow, do:
+
 ```bash
 cargo run
 ```
+
 this will run the verification of a test circuit defined in Kimchi and will export some JSON data into `verifier_circuit/src/test`.
 
 For executing unit tests, do:
+
 ```bash
 cargo test -- --nocapture
 ```
+
 this will execute some unit tests and output results that can be used as reference value in analogous reference tests inside the verifier circuit.
 
 ## Other components
@@ -157,6 +176,7 @@ this will execute some unit tests and output results that can be used as referen
 ## Usage
 
 On root folder run:
+
 ```sh
 make
 ```
@@ -166,7 +186,6 @@ This will:
 - Generate the test proof and the expected value of the MSM that will be done in the verification (in the completed version, this value would be the point at infinity). These values will be used as public inputs for the verifier circuit.
 - Run the verifier circuit using the test proof as input.
 - Generate the proof of the verification and write it into a JSON file.
-
 
 ## Kimchi proving system
 
@@ -283,10 +302,10 @@ __S0__ is the initial statement, __U__ is the Update algorithm, the __Pi__ are t
 
 ![Figure 2](/img/pickles_step_02.png)
 
-On top of each **Pi** proof, we run a **Fast** verifier. With the **Pi** proof and the cumulative Statement from the previous step, the **U** algorithm is applied and a new updated Statement is created. This *new updated Statement* is the input of the Slow part of the Verifier, but we don't run the Slow Verifier until we reach the end of the whole round.
+On top of each __Pi__ proof, we run a __Fast__ verifier. With the __Pi__ proof and the cumulative Statement from the previous step, the __U__ algorithm is applied and a new updated Statement is created. This _new updated Statement_ is the input of the Slow part of the Verifier, but we don't run the Slow Verifier until we reach the end of the whole round.
 
 ---
-Execution of **Verifier Slow** (which is very slow) can be <ins>deferred</ins> in sequences, and the V slow current always accumulates to the previous statement. This implicitly 'runs Vs on S1' as well.
+Execution of __Verifier Slow__ (which is very slow) can be <ins>deferred</ins> in sequences, and the V slow current always accumulates to the previous statement. This implicitly 'runs Vs on S1' as well.
 
 ---
 
@@ -312,14 +331,13 @@ Everything inside the large red square in the following figure has already been 
 
 ---
 
-Let's now see how the Verifier Fast is 
-divided.
+Let's now see how the Verifier Fast is divided.
 
 ![Figure 7](/img/pickles_step_07.png)
 
-**Vf** corresponds to field operations in a field ***F***, and **Vg** corresponds to group operations in a group ***G***.
+__Vf__ corresponds to field operations in a field __F__, and __Vg__ corresponds to group operations in a group __G__.
 
 ![Figure 8](/img/pickles_step_08.png)
 
-The proof **Pi** is divided into 2 parts, one corresponding to group operations ***G***, and it exposes, as a public input to the circuit, the part of the proof that is necessary to execute ***Vf***.
+The proof __Pi__ is divided into 2 parts, one corresponding to group operations __G__, and it exposes, as a public input to the circuit, the part of the proof that is necessary to execute __Vf__.
 
