@@ -29,11 +29,6 @@ jobs:
             - name: Checkout sources
               uses: actions/checkout@v4
 
-            - name: Install node
-              uses: actions/setup-node@v3
-              with:
-                  node-version: latest
-
             - name: Setup o1js submodule
               run: git submodule update --init --recursive
 
