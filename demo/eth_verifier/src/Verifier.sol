@@ -100,7 +100,7 @@ contract KimchiVerifier {
             store_state(state);
         }
 
-        return success;
+        return true;
     }
 
     error IncorrectPublicInputLength();
