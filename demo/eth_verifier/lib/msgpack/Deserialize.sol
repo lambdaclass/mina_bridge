@@ -218,7 +218,7 @@ library MsgPk {
         // next byte is the length of the stream in one byte
         size = uint8(data[i]);
         i += 1;
-        string memory hash_str = abi.decode(data[i:i + size], (string));
+        string memory hash_str = string(data[i:i + size]);
         uint hash = Utils.str_to_uint(hash_str);
         i += size;
 
@@ -226,7 +226,7 @@ library MsgPk {
         require((data[i] >> 4) == 0x0a, "not a fixstr");
         size = uint8(data[i]) & 0x0f;
         i += 1;
-        string memory height_str = abi.decode(data[i:i + size], (string));
+        string memory height_str = string(data[i:i + size]);
         uint block_height = Utils.str_to_uint(height_str);
         i += size;
 
