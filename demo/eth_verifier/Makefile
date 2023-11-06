@@ -18,7 +18,8 @@ deploy_verifier:
 	forge script script/Deploy.s.sol:Deploy --via-ir --broadcast --rpc-url http://localhost:8545
 
 query:
-	./query.sh | xargs -0 ./state_serializer > state.mpk
+	cd ../state_serializer/ && cargo build --release
+	./query.sh | xargs -0 ../state_serializer/target/release/state_serializer > state.mpk
 
 retrieve:
 	cast call ${CONTRACT_ADDR} 'retrieve_state_creator()'
