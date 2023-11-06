@@ -1,9 +1,9 @@
 #!/bin/bash
 
-export CONTRACT_ADDR=0x67d269191c92Caf3cD7723F116c85e6E9bf55933 # replace this after deploying
+export CONTRACT_ADDR=0x0 # replace this after deploying
 
 if [ $CONTRACT_ADDR == "0x0" ]; then
-    echo "Please edit this script and set you contract address."
+    echo "Please edit this script and set your contract address."
     exit 1
 fi
 
