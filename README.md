@@ -73,7 +73,7 @@ To-Do!
 
 ##### Ethereum smart contract verifier
 
-`demo/eth_verifier/` holds the demo's Mina state verifier in solidity, implemented using Foundry. The contract exposes an API for retrieving zk-verified data from the last Mina state.
+`demo/eth_verifier/` holds the demo's Mina state verifier in solidity, implemented using [Foundry](https://book.getfoundry.sh/). The contract exposes an API for retrieving zk-verified data from the last Mina state.
 
 Install dependencies by running:
 ```bash
