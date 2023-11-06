@@ -1,18 +1,21 @@
 name: CI
 on:
     push:
-        branches: [main]
-    pull_request:
-        branches: ["*"]
+        branches: #[main]
+            - mina-ci
+    #pull_request:
+    #    branches: ["*"]
 
 jobs:
     public_input_gen:
+        runs-on: debian-12
         name: Public input generation
         uses: ./.github/workflows/rust_ci.yaml
         with:
             directory: public_input_gen
 
     verifier_circuit_tests:
+        runs-on: debian-12
         name: Verifying circuit Rust tests
         uses: ./.github/workflows/rust_ci.yaml
         with:
@@ -20,7 +23,7 @@ jobs:
 
     verifier_circuit:
         name: Build and test EVM bridge
-        runs-on: ubuntu-latest
+        runs-on: debian-12
         defaults:
             run:
                 working-directory: ./verifier_circuit
@@ -51,7 +54,7 @@ jobs:
             fail-fast: false
             matrix:
                 os:
-                    - ubuntu-latest
+                    - debian-12
                 ocaml-compiler:
                     - "4.14.0"
         runs-on: ${{ matrix.os }}
@@ -75,7 +78,7 @@ jobs:
 
     demo_eth_verifier:
         name: Test demo's Solidity verifier
-        runs-on: ubuntu-latest
+        runs-on: debian-12
         defaults:
             run:
                 working-directory: ./demo/eth_verifier
