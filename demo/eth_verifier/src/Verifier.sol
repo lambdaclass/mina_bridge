@@ -48,7 +48,7 @@ contract KimchiVerifier {
     VerifierIndex verifier_index;
     ProverProof proof;
 
-    State state;
+    State internal state;
 
     function setup(
         BN254.G1Point[] memory g,
@@ -187,12 +187,12 @@ contract KimchiVerifier {
 
     /// @notice store a mina state
     function store_state(bytes memory data) public {
-        state.data = data;
+        //state.data = data;
     }
 
     /// @notice retrieve a mina state
     function retrieve_state() public view returns (bytes memory) {
         // serialize in a useful format (MessagePack)
-        return state.data;
+        return hex"00";
     }
 }
