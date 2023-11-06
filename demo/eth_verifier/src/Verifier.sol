@@ -104,6 +104,7 @@ contract KimchiVerifier {
     }
 
     error IncorrectPublicInputLength();
+
     function partial_verify(Scalar.FE[] memory public_inputs) public {
         uint256 chunk_size = verifier_index.domain_size <
             verifier_index.max_poly_size
@@ -187,12 +188,21 @@ contract KimchiVerifier {
 
     /// @notice store a mina state
     function store_state(bytes memory data) public {
-        //state.data = data;
+        state = MsgPk.deserializeState(data, 0);
     }
 
-    /// @notice retrieve a mina state
-    function retrieve_state() public view returns (bytes memory) {
-        // serialize in a useful format (MessagePack)
-        return hex"00";
+    /// @notice retrieves the base58 encoded creator's public key
+    function retrieve_state_creator() public view returns (string memory) {
+        return state.creator;
+    }
+
+    /// @notice retrieves the hash of the state after this block
+    function retrieve_state_hash() public view returns (uint) {
+        return state.hash;
+    }
+
+    /// @notice retrieves the block height
+    function retrieve_state_height() public view returns (uint) {
+        return state.block_height;
     }
 }

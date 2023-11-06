@@ -17,17 +17,20 @@ contract StateTest is Test {
 
         (BN254.G1Point[] memory g, BN254.G1Point memory h, uint256 _i0) = MsgPk
             .deserializeURS(urs_serialized);
-        (ProofEvaluations memory evals, uint256 _i1) = MsgPk.deserializeProofEvaluations(
-            evals_serialized, 0
-        );
+        (ProofEvaluations memory evals, uint256 _i1) = MsgPk
+            .deserializeProofEvaluations(evals_serialized, 0);
 
         verifier = new KimchiVerifier();
         verifier.setup(g, h, 0, 32, 32, evals);
     }
 
     function test_store_retrieve() public {
-        bytes memory data = hex"42";
-        verifier.store_state(data);
-        assertEq(verifier.retrieve_state(), data);
+        bytes
+            memory state_serialized = hex"93d937423632716a3238374c3162775039586775555262785735636e65545244384b6465347678336662655a434e784e78794d7a586473594c50d94b353238373731323331373633313534353334393439333639393138373535393036313938343735383336323633353931373132333136363738373232363934373434363136323434343035a6333033323130";
+        verifier.store_state(state_serialized);
+            require(false, "asdas");
+        assertEq(verifier.retrieve_state_creator(), "B62qj287L1bwP9XguURbxW5cneTRD8Kde4vx3fbeZCNxNxyMzXdsYLP");
+        assertEq(verifier.retrieve_state_hash(), 528771231763154534949369918755906198475836263591712316678722694744616244405);
+        assertEq(verifier.retrieve_state_height(), 303210);
     }
 }
