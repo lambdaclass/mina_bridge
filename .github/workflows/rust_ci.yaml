@@ -13,26 +13,13 @@ on:
 jobs:
   check:
     name: Check, fmt, clippy, test and run
-    runs-on: ubuntu-latest
+    runs-on: debian-12
     defaults:
       run:
         working-directory: ./${{inputs.directory}}
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
-
-      - name: Install rust stable toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
-
-      - name: Install nextest
-        uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-nextest
-
-      - name: Set up cargo cache
-        uses: Swatinem/rust-cache@v2
 
       - name: Run cargo check
         run: cargo check --workspace

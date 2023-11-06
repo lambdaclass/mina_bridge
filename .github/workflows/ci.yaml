@@ -1,9 +1,10 @@
 name: CI
 on:
     push:
-        branches: [main]
-    pull_request:
-        branches: ["*"]
+        branches: #[main]
+            - mina-ci
+    #pull_request:
+    #    branches: ["*"]
 
 jobs:
     public_input_gen:
@@ -20,7 +21,7 @@ jobs:
 
     verifier_circuit:
         name: Build and test EVM bridge
-        runs-on: ubuntu-latest
+        runs-on: debian-12
         defaults:
             run:
                 working-directory: ./verifier_circuit
@@ -51,7 +52,7 @@ jobs:
             fail-fast: false
             matrix:
                 os:
-                    - ubuntu-latest
+                    - debian-12
                 ocaml-compiler:
                     - "4.14.0"
         runs-on: ${{ matrix.os }}
@@ -59,23 +60,12 @@ jobs:
             - name: Checkout sources
               uses: actions/checkout@v4
 
-            - name: Set-up OCaml ${{ matrix.ocaml-compiler }}
-              uses: ocaml/setup-ocaml@v2
-              with:
-                  ocaml-compiler: ${{ matrix.ocaml-compiler }}
-
-            - name: Install Foundry
-              uses: foundry-rs/foundry-toolchain@v1
-
-            - name: Install Mina dependencies
-              run: sudo apt-get install libsodium-dev capnproto
-
             - name: Run integration test
               run: make
 
     demo_eth_verifier:
         name: Test demo's Solidity verifier
-        runs-on: ubuntu-latest
+        runs-on: debian-12
         defaults:
             run:
                 working-directory: ./demo/eth_verifier
