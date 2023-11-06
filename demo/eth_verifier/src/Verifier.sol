@@ -96,11 +96,10 @@ contract KimchiVerifier {
 
         // 3. If success, deserialize and store state
         if (success) {
-            bytes memory state = state_serialized; // deser
-            store_state(state);
+            store_state(state_serialized);
         }
 
-        return true;
+        return success;
     }
 
     error IncorrectPublicInputLength();
