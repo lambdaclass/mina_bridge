@@ -8,14 +8,12 @@ on:
 
 jobs:
     public_input_gen:
-        runs-on: debian-12
         name: Public input generation
         uses: ./.github/workflows/rust_ci.yaml
         with:
             directory: public_input_gen
 
     verifier_circuit_tests:
-        runs-on: debian-12
         name: Verifying circuit Rust tests
         uses: ./.github/workflows/rust_ci.yaml
         with:
