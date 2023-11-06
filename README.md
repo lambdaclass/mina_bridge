@@ -114,9 +114,9 @@ make query
 ```
 building a KZG proof of the state is still WIP, so you can find a `proof.mpk` containing only the data needed for running the current verifier, which is also WIP.
 
-You can then run the verifier by calling the `verify_state()` function using `cast`. For this we provided a utility script `verify.sh` **which you need to edit to input the verifier contract address**, run it with:
+You can then run the verifier by calling the `verify_state()` function using `cast`. For this we provided a utility script `verify.sh`, run it with:
 ```bash
-make verify
+./verify.sh <ADDRESS>
 ```
 then you can get State data from the contract storage:
 ```bash

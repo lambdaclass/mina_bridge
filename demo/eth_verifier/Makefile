@@ -20,9 +20,6 @@ deploy_verifier:
 query:
 	./query.sh | xargs -0 ./state_serializer > state.mpk
 
-verify:
-	./verify.sh
-
 retrieve:
 	cast call ${CONTRACT_ADDR} 'retrieve_state_creator()'
 	cast call ${CONTRACT_ADDR} 'retrieve_state_hash()'
