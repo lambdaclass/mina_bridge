@@ -8,6 +8,57 @@ import "../Evaluations.sol";
 import "../Proof.sol";
 
 library MsgPk {
+    struct Stream {
+        bytes data;
+        uint curr_index;
+    }
+
+    struct StreamMap {
+        string[] keys;
+        Stream[] values;
+    }
+
+    function from_data(bytes calldata data) public pure returns (Stream memory) {
+        return Stream(data, 0);
+    }
+
+    function next(Stream memory self) public pure returns (bytes1 b) {
+        b = self.data[self.curr_index];
+        self.curr_index += 1;
+    }
+
+    function next_n(
+        Stream memory self,
+        uint n
+    ) public pure returns (bytes memory consumed) {
+        consumed = new bytes(n);
+        for (uint i = 1; i <= n; i++) {
+            consumed[i] = self.data[self.curr_index + i];
+        }
+        self.curr_index += n;
+    }
+
+    function deser_fixstr(Stream memory self) public pure returns (string memory) {
+        bytes1 first = next(self);
+        require(first >> 5 == 0x05, "not a fixstr");
+        uint n = uint256(uint8(first & 0x1F)); // low nibble + lsb of high nibble
+
+        return string(next_n(self, n));
+    }
+
+    function deser_fixmap(Stream memory self) public pure returns (StreamMap memory map) {
+        bytes1 first = next(self);
+        require(first >> 4 == 0x08, "not a fixmap");
+        uint n = uint256(uint8(first & 0x0F)); // low nibble
+
+        map = StreamMap(new string[](n), new Stream[](n));
+
+        for (uint i = 0; i < n; i++) {
+            map.keys[i] = deser_fixstr(self);
+            //map.values[i] = self.deser_fixstr();
+        }
+    }
+
     /// @notice deserializes an array of G1Point and also returns the rest of the
     // data, excluding the consumed bytes. `i` is the index that we start to read
     // the data from.
