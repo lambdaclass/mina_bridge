@@ -8,7 +8,7 @@ test:
 	forge test -vv --via-ir
 
 proof:
-	cd circuit_gen && cargo run
+	cargo run --manifest-path ../circuit_gen/Cargo.toml --release
 
 run_node:
 	anvil --host 0.0.0.0
@@ -18,7 +18,7 @@ deploy_verifier:
 	forge script script/Deploy.s.sol:Deploy --via-ir --broadcast --rpc-url http://localhost:8545
 
 query:
-	cd ../state_serializer/ && cargo build --release
+	cargo build --manifest-path ../state_serializer/Cargo.toml --release
 	./query.sh | xargs -0 ../state_serializer/target/release/state_serializer > state.mpk
 
 run_verifier_script:
