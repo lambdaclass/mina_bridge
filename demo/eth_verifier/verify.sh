@@ -6,9 +6,9 @@ export PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f
 STATE=$(cat state.mpk)
 PROOF=$(cat proof.mpk)
 
-ENCODED_CALLDATA=$(cast calldata 'verify_state(bytes, bytes)' $STATE $PROOF)
+# ENCODED_CALLDATA=$(cast calldata 'verify_state(bytes, bytes)' $STATE $PROOF)
 
-cast send $CONTRACT_ADDR $ENCODED_CALLDATA --private-key $PRIVATE_KEY 1> /dev/null
+cast send $CONTRACT_ADDR 'verify_state(bytes, bytes)' $STATE $PROOF --private-key $PRIVATE_KEY 1> /dev/null
 echo "Verification transaction sent. Checking if it succeeded..."
 
 if [ $(cast call $CONTRACT_ADDR "is_state_available()(bool)") == "true" ]; then

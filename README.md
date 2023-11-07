@@ -80,7 +80,7 @@ Install dependencies by running:
 make setup
 ```
 
-## Local usage and deployment
+###### Local usage and deployment
 The contract can be deployed in an Anvil local node.
 
 Start the local chain with:
@@ -120,21 +120,26 @@ You can then run the verifier by calling the `verify_state()` function using `ca
 ```
 then you can get State data from the contract storage:
 ```bash
-cast call <CONTRACT_ADDR> 'retrieve_state_creator()'
-cast call <CONTRACT_ADDR> 'retrieve_state_hash()'
-cast call <CONTRACT_ADDR> 'retrieve_state_height()'
-```
-or by running:
-```bash
-make retrieve
-```
-
-## Testing
+cast call <CONTRACT_ADDR> 'retrieve_state_creator()(string)'
+cast call <CONTRACT_ADDR> 'retrieve_state_hash()(uint256)'
+cast call <CONTRACT_ADDR> 'retrieve_state_height(uint256)'
+````
+###### Testing
 
 Just run:
 ```bash
 make test
 ```
+###### Notes related to cast usage
+
+- For invoking non-view functions in the contract, it's needed to publish a transaction via `cast send`. Getter functions can be invoked with `cast call`.
+- Some commands may require you to encode the calldata before sending. In this case you can use `cast calldata`.
+
+For more information on Ethereum transactions and encoding you can visit the following resources:
+
+- [ABI Specification](https://docs.soliditylang.org/en/develop/abi-spec.html)
+- [A Step-by-Step Guide to Generating Raw Ethereum Transactions](https://medium.com/@LucasJennings/a-step-by-step-guide-to-generating-raw-ethereum-transactions-c3292ad36ab4)
+- [Transaction Calldata Demystified - A Guide to Understanding Transaction Calldata on Ethereum](https://www.quicknode.com/guides/ethereum-development/transactions/ethereum-transaction-calldata)
 
 #### Running
 
