@@ -54,6 +54,8 @@ library MsgPk {
         bytes1 prefix = curr(self);
         if (prefix >> 5 == 0x05) {
             return abi.encode(deser_fixstr(self));
+        } else if (prefix == 0xC4) {
+            return abi.encode(deser_bin8(self));
         } else if (prefix >> 4 == 0x08) {
             return abi.encode(deser_fixmap(self));
         } else {
@@ -67,6 +69,16 @@ library MsgPk {
         uint n = uint256(uint8(first & 0x1F)); // low nibble + lsb of high nibble
 
         return string(next_n(self, n));
+    }
+
+    function deser_bin8(Stream memory self) public pure returns (bytes memory) {
+        require(next(self) == 0xC4, "not a stream of bin8 (bytes)");
+
+        // next byte is the length of the stream in one byte
+        uint n = uint256(uint8(next(self)));
+
+        // read data
+        return next_n(self, n);
     }
 
     function deser_fixarr(Stream memory self) public pure returns (EncodedArray memory arr) {
@@ -93,6 +105,10 @@ library MsgPk {
             map.values[i] = trim_encode(self);
         }
     }
+
+
+    //  !!! FUNCTIONS BELOW ARE DEPRECATED !!!
+
 
     /// @notice deserializes an array of G1Point and also returns the rest of the
     // data, excluding the consumed bytes. `i` is the index that we start to read
