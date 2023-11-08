@@ -13,18 +13,28 @@ library MsgPk {
         uint curr_index;
     }
 
-    struct StreamMap {
+    struct EncodedArray {
+        bytes[] values;
+    }
+
+    struct EncodedMap {
         string[] keys;
-        Stream[] values;
+        bytes[] values;
     }
 
     function from_data(bytes calldata data) public pure returns (Stream memory) {
         return Stream(data, 0);
     }
 
+    /// @notice returns current byte and advances index.
     function next(Stream memory self) public pure returns (bytes1 b) {
         b = self.data[self.curr_index];
         self.curr_index += 1;
+    }
+
+    /// @notice returns current byte without advancing index.
+    function curr(Stream memory self) public pure returns (bytes1) {
+        return self.data[self.curr_index];
     }
 
     function next_n(
@@ -38,6 +48,19 @@ library MsgPk {
         self.curr_index += n;
     }
 
+    error NonImplementedType();
+    /// @notice deserializes the next type and returns the encoded data.
+    function trim_encode(Stream memory self) public pure returns (bytes memory) {
+        bytes1 prefix = curr(self);
+        if (prefix >> 5 == 0x05) {
+            return abi.encode(deser_fixstr(self));
+        } else if (prefix >> 4 == 0x08) {
+            return abi.encode(deser_fixmap(self));
+        } else {
+            revert NonImplementedType();
+        }
+    }
+
     function deser_fixstr(Stream memory self) public pure returns (string memory) {
         bytes1 first = next(self);
         require(first >> 5 == 0x05, "not a fixstr");
@@ -46,16 +69,28 @@ library MsgPk {
         return string(next_n(self, n));
     }
 
-    function deser_fixmap(Stream memory self) public pure returns (StreamMap memory map) {
+    function deser_fixarr(Stream memory self) public pure returns (EncodedArray memory arr) {
+        bytes1 first = next(self);
+        require(first >> 4 == 0x09, "not a fixarr");
+        uint n = uint256(uint8(first & 0x0F)); // low nibble
+
+        arr = EncodedArray(new bytes[](n));
+
+        for (uint i = 0; i < n; i++) {
+            arr.values[i] = trim_encode(self);
+        }
+    }
+
+    function deser_fixmap(Stream memory self) public pure returns (EncodedMap memory map) {
         bytes1 first = next(self);
         require(first >> 4 == 0x08, "not a fixmap");
         uint n = uint256(uint8(first & 0x0F)); // low nibble
 
-        map = StreamMap(new string[](n), new Stream[](n));
+        map = EncodedMap(new string[](n), new bytes[](n));
 
         for (uint i = 0; i < n; i++) {
             map.keys[i] = deser_fixstr(self);
-            //map.values[i] = self.deser_fixstr();
+            map.values[i] = trim_encode(self);
         }
     }
 
