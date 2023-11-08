@@ -60,7 +60,7 @@ jobs:
 
     demo_eth_verifier:
         name: Test demo's Solidity verifier
-        runs-on: debian-12
+        runs-on: ubuntu-22.04
         defaults:
             run:
                 working-directory: ./demo/eth_verifier
