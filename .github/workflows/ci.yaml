@@ -32,9 +32,6 @@ jobs:
             - name: Setup o1js submodule
               run: git submodule update --init --recursive
 
-            - name: Install deps
-              run: npm install
-
             - name: Set up dependencies
               run: npm ci
 
