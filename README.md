@@ -73,6 +73,20 @@ flowchart TB
     end
 ```
 
+## Verifier
+The arguments are the verifier_index, proof and public inputs and the output is a "batch evaluation proof".
+The steps are the following:
+Check the length of evaluations inside the proof.
+Commit to the negated public input polynomial.
+Run the Fiat-Shamir heuristic.
+Combine the chunked polynomials' evaluations.
+Compute the commitment to the linearized polynomial $f$ by adding all constraints, in commitment form or evaluation if not present.
+
+
+
+
+
+
 ##### Kimchi KZG prover
 
 To-Do!
