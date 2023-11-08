@@ -4,6 +4,7 @@
 //! This crate is based on `verifier_circuit_tests/` and the Kimchi test
 //! "test_generic_gate_pairing".
 
+use std::ops::Neg;
 use std::{array, fs};
 
 use ark_bn254::Fr as ScalarField;
@@ -221,12 +222,13 @@ fn pairing_proof_test() {
     let numerator_commitment = { poly_commitment - eval_commitment - blinding_commitment };
     let generator = G2::prime_subgroup_generator();
 
+    println!("numerator:");
     println!("{}", numerator_commitment);
-    println!("");
+    println!("generator:");
     println!("{}", generator);
-    println!("");
-    println!("{}", pairing_proof.quotient);
-    println!("");
+    println!("quotient:");
+    println!("{}", pairing_proof.quotient.neg());
+    println!("divisor:");
     println!("{}", divisor_commitment);
 
     let res = pairing_proof.verify(&srs, &evaluations, polyscale, &evaluation_points);
