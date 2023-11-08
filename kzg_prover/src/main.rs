@@ -1,13 +1,14 @@
 use ark_ec::short_weierstrass_jacobian::GroupAffine;
 use ark_poly::{
-    univariate::DenseOrSparsePolynomial, univariate::DensePolynomial, Polynomial,
+    univariate::DenseOrSparsePolynomial, univariate::DensePolynomial, Evaluations, Polynomial,
     Radix2EvaluationDomain, UVPolynomial,
 };
 use ark_std::{rand, UniformRand};
 use kimchi::circuits::{
     constraints::{selector_polynomial, ConstraintSystem},
     domains::EvaluationDomains,
-    gate::{CircuitGate, GateType}, polynomials::generic::testing::create_circuit,
+    gate::{CircuitGate, GateType},
+    polynomials::generic::testing::create_circuit,
 };
 use num_traits::{One, Zero};
 use poly_commitment::{
@@ -32,7 +33,6 @@ fn main() {
 
     let disable_gates_checks = false;
 
-    // Foreign field addition constraint selector polynomial
     let foreign_field_add_selector8 = selector_polynomial(
         GateType::ForeignFieldAdd,
         &gates,
@@ -45,6 +45,24 @@ fn main() {
         .build()
         .unwrap();
 
+    let generic_selector =
+        Evaluations::<ark_bn254::Fr, Radix2EvaluationDomain<ark_bn254::Fr>>::from_vec_and_domain(
+            cs.gates
+                .iter()
+                .map(|gate| {
+                    if matches!(gate.typ, GateType::Generic) {
+                        ark_bn254::Fr::one()
+                    } else {
+                        ark_bn254::Fr::zero()
+                    }
+                })
+                .collect(),
+            cs.domain.d1,
+        )
+        .interpolate();
+
+    let generic_selector4 = generic_selector.evaluate_over_domain_by_ref(cs.domain.d4);
+
     let x = ark_bn254::Fr::rand(rng);
     let srs = PairingSRS::create(x, cs.domain.d1.size as usize);
 
@@ -55,13 +73,25 @@ fn main() {
         shifted: None,
     };
 
+    let fixed_hiding = |d1_size: usize| PolyComm {
+        unshifted: vec![ark_bn254::Fr::one(); d1_size],
+        shifted: None,
+    };
+
     const NUM_CHUNKS: usize = 1;
 
-    let polynomials = vec![(
-        evaluations_form(&foreign_field_add_selector8),
-        None,
-        non_hiding(NUM_CHUNKS),
-    )];
+    let polynomials = vec![
+        (
+            evaluations_form(&foreign_field_add_selector8),
+            None,
+            non_hiding(NUM_CHUNKS),
+        ),
+        (
+            evaluations_form(&generic_selector4),
+            None,
+            fixed_hiding(NUM_CHUNKS),
+        ),
+    ];
 
     // Dummy values
     let zeta = ark_bn254::Fr::rand(rng);
@@ -69,7 +99,8 @@ fn main() {
     let zeta_omega = zeta * omega;
     let v = ark_bn254::Fr::rand(rng);
 
-    create_proof_quotient(&srs, &polynomials, &[zeta, zeta_omega], v);
+    let quotient = create_proof_quotient(&srs, &polynomials, &[zeta, zeta_omega], v).unwrap();
+    println!("{:?}", quotient);
 }
 
 fn create_proof_quotient(
