@@ -19,79 +19,35 @@ contract CounterTest is Test {
         assertEq(g_plus_g.y, two_g.y, "g + g should equal 2g");
     }
 
-    /*
-[
-    0x92,
-    0x91,
-    0xc4,
-    0x20,
-    0x1,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x91,
-    0xc4,
-    0x20,
-    0x1,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-    0x0,
-]
- */
+    function test_pairing_check() public {
+        BN254.G1Point memory quotient = BN254.G1Point(
+            0x137B386B60C0B1EACD825BB5D7F8F9A75311C21BEB8A78AD4B1B917429DEB83C,
+            0x081677AECD36470CE9D97D4F7927F35B8D12315EF38A6E7D013866250B59CE89
+        );
+        BN254.G2Point memory divisor_commitment = BN254.G2Point(
+            0x1800DEEF121F1E76426A00665E5C4479674322D4F75EDADD46DEBD5CD992F6ED,
+            0x198E9393920D483A7260BFB731FB5D25F1AA493335A9E71297E485B7AEF312C2,
+            0x12C85EA5DB8C6DEB4AAB71808DCB408FE3D1E7690C43D37B4CE6CC0166FA7DAA,
+            0x090689D0585FF075EC9E99AD690C3395BC4B313370B38EF355ACDADCD122975B
+        );
+        BN254.G1Point memory numerator_commitment = BN254.G1Point(
+            0x2C5318092D9CFD60953C21CEC7596C081C244651BAB13D833D32C99471386632,
+            0x210219F378F891309413105B7430127C65C644B7AB1208F4659B6FA40D8298C8
+        );
+        BN254.G2Point memory g2_generator = BN254.G2Point(
+            0x083C4DA5D257B99D25229FCF3B3885BB6D56FE821E8174C6F8F2B6671517F68B,
+            0x1607206363F7EA00E0CE50C0B1DA51BAFE0B76CDCDDBAD364B0A4095CD589A19,
+            0x003B6053211EE23338A695E2CFEFB1CE44D5458D0FB783A40F87C6D5C8AD90BE,
+            0x2692D3B51BB5602EEB3B9834B616E57FEE7283D7EA28F22E4263D78D90DB80A5
+        );
+
+        assert(
+            BN254.pairingProd2(
+                quotient,
+                divisor_commitment,
+                numerator_commitment,
+                g2_generator
+            )
+        );
+    }
 }

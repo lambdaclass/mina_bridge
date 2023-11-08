@@ -103,22 +103,6 @@ contract KimchiVerifier {
         return success;
     }
 
-    error FailedPairingPrecompileCall();
-    function pairing_check(
-        BN254.G1Point memory quotient,
-        BN254.G1Point memory divisor_commitment
-    ) public returns (bool) {
-        (bool success, bytes memory output) = address(8).staticcall(
-            abi.encode(quotient, divisor_commitment)
-        );
-
-        if (success) {
-            return output[0] != 0;
-        } else {
-            revert FailedPairingPrecompileCall();
-        }
-    }
-
     error IncorrectPublicInputLength();
 
     function partial_verify(Scalar.FE[] memory public_inputs) public {
