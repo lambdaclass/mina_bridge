@@ -21,7 +21,7 @@ jobs:
 
     verifier_circuit:
         name: Build and test EVM bridge
-        runs-on: debian-12
+        runs-on: ubuntu-22.04
         defaults:
             run:
                 working-directory: ./verifier_circuit
@@ -47,7 +47,7 @@ jobs:
             fail-fast: false
             matrix:
                 os:
-                    - debian-12
+                    - ubuntu-22.04
                 ocaml-compiler:
                     - "4.14.0"
         runs-on: ${{ matrix.os }}
