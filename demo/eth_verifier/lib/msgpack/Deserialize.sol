@@ -22,7 +22,7 @@ library MsgPk {
     {
         numerator = abi.decode(data[:64], (BN254.G1Point));
         quotient = abi.decode(data[64:128], (BN254.G1Point));
-        divisor = abi.decode(data[128:], (BN254.G2Point));
+        divisor = abi.decode(data[128:256], (BN254.G2Point));
     }
 
     /// @notice deserializes an array of G1Point and also returns the rest of the
