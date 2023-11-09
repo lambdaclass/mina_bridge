@@ -33,7 +33,7 @@ git remote add o1labs git@github.com:MinaProtocol/mina.git
 git checkout proof_to_json
 git submodule update --init --recursive
 opam init -y --disable-sandboxing
-opam switch import opam.export
+opam switch -y import opam.export
 eval $(opam env)
 sh scripts/pin-external-packages.sh
 make build
