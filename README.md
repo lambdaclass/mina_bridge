@@ -24,6 +24,11 @@ This project introduces the proof generation, posting and verification of the va
 
 `mina_bridge` is in an early stage of development, currently it misses elemental features and correct functionality is not guaranteed.
 
+### Elliptic Curve operations
+
+The algorithms for multiplication of points of an elliptic curve that we implemented using the building blocks present in `o1js` are very slow 🐢.
+So we need to implement the bindings to use the native Ocaml libraries for the elliptic curve operations called in o1js. At the time of this text is written, we are still working on this 🚧.
+
 ## Architecture
 
 This is subject to change.
@@ -54,6 +59,7 @@ This repository is composed of the following components:
 This is a minimized version of the project, in which a user can submit a [o1js](https://github.com/o1-labs/o1js) circuit, generate a [Kimchi](https://github.com/o1-labs/proof-systems/tree/master/kimchi) KZG proof of it and verify it in an Ethereum smart contract. The bridge project will work the same way, with the difference that the submitted circuit will execute the verification of a Mina state proof.
 
 #### Flowgraph
+
 ```mermaid
 flowchart TB
     U((User))-->|Submits a provable o1js program/circuit| P(Kimchi KZG Prover)
@@ -72,25 +78,91 @@ flowchart TB
 To-Do!
 
 ##### Ethereum smart contract verifier
-This is a solidity program contained in `eth_verifier` which will:
 
-1. Take as input a JSON file containing the needed proof info. For now a test proof is being generated from a test circuit with `test_circuit/`.
-2. Run a stripped-out version of the verification of the submitted proof.
+`demo/eth_verifier/` holds the demo's Mina state verifier in solidity, implemented using [Foundry](https://book.getfoundry.sh/). The contract exposes an API for retrieving zk-verified data from the last Mina state.
 
-and can later be deployed into the chain.
+Install dependencies by running:
+```bash
+make setup
+```
+
+###### Local usage and deployment
+The contract can be deployed in an Anvil local node.
+
+Start the local chain with:
+```bash
+make run_node
+```
+then deploy the contract:
+```bash
+make deploy_verifier
+```
+after deployment Anvil will return a list of deployed contracts, as it will also deploy needed libraries for the verifier:
+```bash
+...
+
+##### anvil-hardhat
+✅  [Success]Hash: 0x312036beb087e610e6ba100a1ef0653c31c28db4a924aee13e6550a4181a31ed
+Contract Address: 0x67d269191c92Caf3cD7723F116c85e6E9bf55933
+Block: 17
+Paid: 0.005753394722296 ETH (1825720 gas * 3.1513018 gwei)
+
+
+Transactions saved to: eth_verifier/broadcast/Deploy.s.sol/31337/run-latest.json
+
+Sensitive values saved to: eth_verifier/cache/Deploy.s.sol/31337/run-latest.json
+```
+the last contract deployed is the verifier, **save its address as we'll use it in a later step**.
+
+You can query data from the last Mina state and serialize it into MessagePack, needed for calling the contract:
+```bash
+make query
+```
+building a KZG proof of the state is still WIP, so you can find a `proof.mpk` containing only the data needed for running the current verifier, which is also WIP.
+
+You can then run the verifier by calling the `verify_state()` function using `cast`. For this we provided a utility script `verify.sh`, run it with:
+```bash
+./verify.sh <ADDRESS>
+```
+then you can get State data from the contract storage:
+```bash
+cast call <CONTRACT_ADDR> 'retrieve_state_creator()(string)'
+cast call <CONTRACT_ADDR> 'retrieve_state_hash()(uint256)'
+cast call <CONTRACT_ADDR> 'retrieve_state_height(uint256)'
+````
+###### Testing
+
+Just run:
+```bash
+make test
+```
+###### Notes related to cast usage
+
+- For invoking non-view functions in the contract, it's needed to publish a transaction via `cast send`. Getter functions can be invoked with `cast call`.
+- Some commands may require you to encode the calldata before sending. In this case you can use `cast calldata`.
+
+For more information on Ethereum transactions and encoding you can visit the following resources:
+
+- [ABI Specification](https://docs.soliditylang.org/en/develop/abi-spec.html)
+- [A Step-by-Step Guide to Generating Raw Ethereum Transactions](https://medium.com/@LucasJennings/a-step-by-step-guide-to-generating-raw-ethereum-transactions-c3292ad36ab4)
+- [Transaction Calldata Demystified - A Guide to Understanding Transaction Calldata on Ethereum](https://www.quicknode.com/guides/ethereum-development/transactions/ethereum-transaction-calldata)
 
 #### Running
 
 Go into `demo/` and run:
+
 ```bash
 make
 ```
+
 this will take a o1js program, generate a proof of it, serialize it into JSON and send it into the solidity verifier.
 
 You can generate a test proof for the verifier by going to `demo/eth_verifier/` and running:
+
 ```bash
 make proof
 ```
+
 which does this by executing a Rust binary.
 
 ### Verifier circuit
@@ -100,19 +172,24 @@ A proof of the circuit will be constructed in subsequent modules for validating 
 
 The code is written entirely in Typescript using the [o1js](https://github.com/o1-labs/o1js) library and is heavily based on [Kimchi](https://github.com/o1-labs/proof-systems/tree/master/kimchi)'s original verifier implementation.
 
-#### Running
+#### Running Verfier circuit
+
 On `verifier_circuit/` run:
+
 ```sh
 make
 ```
+
 This will create the constraint system of the verification of a proof with fixed values.
 This will also clone the Monorepo version of Mina so that the bridge uses o1js from there.
 
 #### Testing
+
 ```bash
 npm run test
 npm run testw # watch mod
 ```
+
 will execute Jest unit and integration tests of the module.
 
 #### Structure
@@ -137,15 +214,19 @@ main polynomial of the circuit.
 Contains a Rust crate with Kimchi as a dependency, and runs some components of it generating data for feeding and comparing tests inside the verifier circuit.
 
 For executing the main integration flow, do:
+
 ```bash
 cargo run
 ```
+
 this will run the verification of a test circuit defined in Kimchi and will export some JSON data into `verifier_circuit/src/test`.
 
 For executing unit tests, do:
+
 ```bash
 cargo test -- --nocapture
 ```
+
 this will execute some unit tests and output results that can be used as reference value in analogous reference tests inside the verifier circuit.
 
 ## Other components
@@ -157,6 +238,7 @@ this will execute some unit tests and output results that can be used as referen
 ## Usage
 
 On root folder run:
+
 ```sh
 make
 ```
@@ -166,7 +248,6 @@ This will:
 - Generate the test proof and the expected value of the MSM that will be done in the verification (in the completed version, this value would be the point at infinity). These values will be used as public inputs for the verifier circuit.
 - Run the verifier circuit using the test proof as input.
 - Generate the proof of the verification and write it into a JSON file.
-
 
 ## Kimchi proving system
 
@@ -283,10 +364,10 @@ __S0__ is the initial statement, __U__ is the Update algorithm, the __Pi__ are t
 
 ![Figure 2](/img/pickles_step_02.png)
 
-On top of each **Pi** proof, we run a **Fast** verifier. With the **Pi** proof and the cumulative Statement from the previous step, the **U** algorithm is applied and a new updated Statement is created. This *new updated Statement* is the input of the Slow part of the Verifier, but we don't run the Slow Verifier until we reach the end of the whole round.
+On top of each __Pi__ proof, we run a __Fast__ verifier. With the __Pi__ proof and the cumulative Statement from the previous step, the __U__ algorithm is applied and a new updated Statement is created. This _new updated Statement_ is the input of the Slow part of the Verifier, but we don't run the Slow Verifier until we reach the end of the whole round.
 
 ---
-Execution of **Verifier Slow** (which is very slow) can be <ins>deferred</ins> in sequences, and the V slow current always accumulates to the previous statement. This implicitly 'runs Vs on S1' as well.
+Execution of __Verifier Slow__ (which is very slow) can be <ins>deferred</ins> in sequences, and the V slow current always accumulates to the previous statement. This implicitly 'runs Vs on S1' as well.
 
 ---
 
@@ -312,14 +393,13 @@ Everything inside the large red square in the following figure has already been 
 
 ---
 
-Let's now see how the Verifier Fast is 
-divided.
+Let's now see how the Verifier Fast is divided.
 
 ![Figure 7](/img/pickles_step_07.png)
 
-**Vf** corresponds to field operations in a field ***F***, and **Vg** corresponds to group operations in a group ***G***.
+__Vf__ corresponds to field operations in a field __F__, and __Vg__ corresponds to group operations in a group __G__.
 
 ![Figure 8](/img/pickles_step_08.png)
 
-The proof **Pi** is divided into 2 parts, one corresponding to group operations ***G***, and it exposes, as a public input to the circuit, the part of the proof that is necessary to execute ***Vf***.
+The proof __Pi__ is divided into 2 parts, one corresponding to group operations __G__, and it exposes, as a public input to the circuit, the part of the proof that is necessary to execute __Vf__.
 

@@ -2,9 +2,9 @@
 pragma solidity ^0.8.13;
 
 import {Test, console2} from "forge-std/Test.sol";
-import "../src/BN254.sol";
+import "../lib/BN254.sol";
 import "../src/Verifier.sol";
-import "../src/msgpack/Deserialize.sol";
+import "../lib/msgpack/Deserialize.sol";
 
 contract DeserializeTest is Test {
     // Test to check that the destructuring of the message pack byte array is correct.
