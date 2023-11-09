@@ -48,7 +48,8 @@ contract KimchiVerifier {
     VerifierIndex verifier_index;
     ProverProof proof;
 
-    State state;
+    State internal state;
+    bool state_available;
 
     function setup(
         BN254.G1Point[] memory g,
@@ -96,8 +97,8 @@ contract KimchiVerifier {
 
         // 3. If success, deserialize and store state
         if (success) {
-            bytes memory state = state_serialized; // deser
-            store_state(state);
+            store_state(state_serialized);
+            state_available = true;
         }
 
         return success;
@@ -187,13 +188,37 @@ contract KimchiVerifier {
     }
 
     /// @notice store a mina state
-    function store_state(bytes memory data) public {
-        state.data = data;
+    function store_state(bytes memory data) internal {
+        state = MsgPk.deserializeState(data, 0);
     }
 
-    /// @notice retrieve a mina state
-    function retrieve_state() public view returns (bytes memory) {
-        // serialize in a useful format (MessagePack)
-        return state.data;
+    /// @notice check if state is available
+    function is_state_available() public view returns (bool) {
+        return state_available;
+    }
+
+    error UnavailableState();
+    /// @notice retrieves the base58 encoded creator's public key
+    function retrieve_state_creator() public view returns (string memory) {
+        if (!state_available) {
+            revert UnavailableState();
+        }
+        return state.creator;
+    }
+
+    /// @notice retrieves the hash of the state after this block
+    function retrieve_state_hash() public view returns (uint) {
+        if (!state_available) {
+            revert UnavailableState();
+        }
+        return state.hash;
+    }
+
+    /// @notice retrieves the block height
+    function retrieve_state_height() public view returns (uint) {
+        if (!state_available) {
+            revert UnavailableState();
+        }
+        return state.block_height;
     }
 }

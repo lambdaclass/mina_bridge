@@ -78,12 +78,74 @@ flowchart TB
 To-Do!
 
 ##### Ethereum smart contract verifier
-This is a solidity program contained in `eth_verifier` which will:
 
-1. Take as input a JSON file containing the needed proof info. For now a test proof is being generated from a test circuit with `test_circuit/`.
-2. Run a stripped-out version of the verification of the submitted proof.
+`demo/eth_verifier/` holds the demo's Mina state verifier in solidity, implemented using [Foundry](https://book.getfoundry.sh/). The contract exposes an API for retrieving zk-verified data from the last Mina state.
 
-and can later be deployed into the chain.
+Install dependencies by running:
+```bash
+make setup
+```
+
+###### Local usage and deployment
+The contract can be deployed in an Anvil local node.
+
+Start the local chain with:
+```bash
+make run_node
+```
+then deploy the contract:
+```bash
+make deploy_verifier
+```
+after deployment Anvil will return a list of deployed contracts, as it will also deploy needed libraries for the verifier:
+```bash
+...
+
+##### anvil-hardhat
+✅  [Success]Hash: 0x312036beb087e610e6ba100a1ef0653c31c28db4a924aee13e6550a4181a31ed
+Contract Address: 0x67d269191c92Caf3cD7723F116c85e6E9bf55933
+Block: 17
+Paid: 0.005753394722296 ETH (1825720 gas * 3.1513018 gwei)
+
+
+Transactions saved to: eth_verifier/broadcast/Deploy.s.sol/31337/run-latest.json
+
+Sensitive values saved to: eth_verifier/cache/Deploy.s.sol/31337/run-latest.json
+```
+the last contract deployed is the verifier, **save its address as we'll use it in a later step**.
+
+You can query data from the last Mina state and serialize it into MessagePack, needed for calling the contract:
+```bash
+make query
+```
+building a KZG proof of the state is still WIP, so you can find a `proof.mpk` containing only the data needed for running the current verifier, which is also WIP.
+
+You can then run the verifier by calling the `verify_state()` function using `cast`. For this we provided a utility script `verify.sh`, run it with:
+```bash
+./verify.sh <ADDRESS>
+```
+then you can get State data from the contract storage:
+```bash
+cast call <CONTRACT_ADDR> 'retrieve_state_creator()(string)'
+cast call <CONTRACT_ADDR> 'retrieve_state_hash()(uint256)'
+cast call <CONTRACT_ADDR> 'retrieve_state_height(uint256)'
+````
+###### Testing
+
+Just run:
+```bash
+make test
+```
+###### Notes related to cast usage
+
+- For invoking non-view functions in the contract, it's needed to publish a transaction via `cast send`. Getter functions can be invoked with `cast call`.
+- Some commands may require you to encode the calldata before sending. In this case you can use `cast calldata`.
+
+For more information on Ethereum transactions and encoding you can visit the following resources:
+
+- [ABI Specification](https://docs.soliditylang.org/en/develop/abi-spec.html)
+- [A Step-by-Step Guide to Generating Raw Ethereum Transactions](https://medium.com/@LucasJennings/a-step-by-step-guide-to-generating-raw-ethereum-transactions-c3292ad36ab4)
+- [Transaction Calldata Demystified - A Guide to Understanding Transaction Calldata on Ethereum](https://www.quicknode.com/guides/ethereum-development/transactions/ethereum-transaction-calldata)
 
 #### Running
 
