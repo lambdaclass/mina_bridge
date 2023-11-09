@@ -1,11 +1,24 @@
-curl -d '{"query": "{
-  bestChain(maxLength: 1) {
-                protocolStateProof {
-      base64
+#!/bin/sh
+
+fetchproof() {
+  curl -d '{"query": "{
+    bestChain(maxLength: 1) {
+                  protocolStateProof {
+        base64
+      }
     }
-  }
-}"}' -H 'Content-Type: application/json' http://5.9.57.89:3085/graphql | sed -e 's@{\"data\":{\"bestChain":\[{\"protocolStateProof\":{\"base64\":\"@@' \
-	| sed -e 's@\(.*\)\"}}]}}@\1====@' | fold -w 4 | sed '$ d' | tr -d '\n' > proof.txt
+  }"}' -H 'Content-Type: application/json' http://5.9.57.89:3085/graphql
+}
+
+PROOF=$(fetchproof)
+
+if [ $? -eq 0 ]
+then
+  echo $PROOF | sed -e 's@{\"data\":{\"bestChain":\[{\"protocolStateProof\":{\"base64\":\"@@' \
+    | sed -e 's@\(.*\)\"}}]}}@\1====@' | fold -w 4 | sed '$ d' | tr -d '\n' > proof.txt
+else
+  echo "Couldn't connect to Mina node. Using old proof file."
+fi
 
 git clone https://github.com/lambdaclass/mina.git mina_1_4_0
 cd mina_1_4_0
