@@ -86,6 +86,8 @@ contract KimchiVerifier {
         // represent the numerator, quotient and divisor polynomial
         // commitments (G1 and G2 points).
 
+        // BEWARE: quotient must be negated.
+
         (
             BN254.G1Point memory numerator,
             BN254.G1Point memory quotient,
