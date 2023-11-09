@@ -1,4 +1,3 @@
-import assert from 'assert';
 import { readFileSync } from 'fs';
 import { circuitMain, Circuit, Group, Scalar, public_, Field } from 'o1js';
 import { PolyComm } from '../poly_commitment/commitment.js';
@@ -7,6 +6,9 @@ import { Sponge } from './sponge.js';
 import { Alphas } from '../alphas.js';
 import { Polynomial } from '../polynomial.js';
 import { Linearization, PolishToken } from '../prover/expr.js';
+import { ForeignScalar } from '../foreign_fields/foreign_scalar.js';
+import { ForeignGroup } from '../foreign_fields/foreign_group.js';
+import { ForeignField } from '../foreign_fields/foreign_field.js';
 
 let steps: bigint[][];
 try {
@@ -15,7 +17,7 @@ try {
     steps = [];
 }
 
-let { g, h } = SRS.createFromJSON();
+let { h } = SRS.createFromJSON();
 
 /**
 * Will contain information necessary for executing a verification
@@ -131,59 +133,10 @@ export class Verifier extends Circuit {
     static readonly PERMUTATION_CONSTRAINTS: number = 3;
 
     @circuitMain
-    static main(@public_ sg: Group, @public_ sg_scalar: Scalar, @public_ expected: Group) {
-        let nonzero_length = g.length;
-        let max_rounds = Math.ceil(Math.log2(nonzero_length));
-        let padded_length = Math.pow(2, max_rounds);
-        let padding = padded_length - nonzero_length;
-
-        let points = [h];
-        points = points.concat(g);
-        points = points.concat(Array(padding).fill(Group.zero));
-
-        let scalars = [Scalar.from(0)];
-        //TODO: Add challenges and s polynomial (in that case, using Scalars we could run out of memory)
-        scalars = scalars.concat(Array(padded_length).fill(Scalar.from(1)));
-        assert(points.length == scalars.length, "The number of points is not the same as the number of scalars");
-
-        points.push(sg);
-        scalars.push(sg_scalar);
-
-        Verifier.msm(points, scalars).assertEquals(expected);
-    }
-
-    // Naive algorithm
-    static msm(points: Group[], scalars: Scalar[]) {
-        let result = Group.zero;
-
-        for (let i = 0; i < points.length; i++) {
-            let point = points[i];
-            let scalar = scalars[i];
-            let scaled = point.scale(scalar);
-            result = result.add(scaled);
-        }
-
-        return result;
-    }
-
-    // Naive algorithm (used for debugging)
-    static msmDebug(points: Group[], scalars: Scalar[]) {
-        let result = Group.zero;
-
-        if (steps.length === 0) {
-            console.log("Steps file not found, skipping MSM check");
-        }
-
-        for (let i = 0; i < points.length; i++) {
-            let point = points[i];
-            let scalar = scalars[i];
-            result = result.add(point.scale(scalar));
-
-            if (steps.length > 0 && (result.x.toBigInt() != steps[i][0] || result.y.toBigInt() != steps[i][1])) {
-                console.log("Result differs at step", i);
-            }
-        }
-
-        return result;
+    static main(@public_ sg_x: ForeignField, @public_ sg_y: ForeignField, @public_ expected_x: ForeignField, @public_ expected_y: ForeignField) {
+        let sg = new ForeignGroup(sg_x, sg_y);
+        let actual = sg.add(h);
+        let expected = new ForeignGroup(expected_x, expected_y);
+        actual.assertEquals(expected);
     }
 }

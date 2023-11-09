@@ -9,8 +9,11 @@ run:
 	@echo "Generating public input for verifier circuit..."
 	@cd public_input_gen && cargo r --release
 	@echo "Done!"
-	@echo "Proving verifier circuit..."
+	@echo "Creating circuit gates..."
 	@cd verifier_circuit && npm i && make
+	@echo "Done!"
+	@echo "Creating KZG proof..."
+	@cd kzg_prover && cargo r --release
 	@echo "Done!"
 	@echo "Verifying proof..."
 	@cd demo/eth_verifier
@@ -23,3 +26,4 @@ run:
 			--broadcast \
 			script/Deploy.s.sol:Deploy && \
 	@pkill anvil
+	@echo "Done!"

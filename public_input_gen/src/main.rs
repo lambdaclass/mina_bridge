@@ -1,14 +1,10 @@
 use std::fs;
 
 use ark_ec::short_weierstrass_jacobian::GroupAffine;
-use ark_ec::{AffineCurve, ProjectiveCurve};
-use ark_ff::{BigInteger256, PrimeField};
 use kimchi::mina_curves::pasta::{Fp, Fq, Pallas, PallasParameters};
-use kimchi::o1_utils::{math, FieldHelpers};
+use kimchi::o1_utils::FieldHelpers;
 use kimchi::poly_commitment::srs::SRS;
 use kimchi::precomputed_srs;
-use num_traits::identities::Zero;
-use num_traits::One;
 use serde::Serialize;
 use state_proof::{OpeningProof, StateProof};
 
@@ -63,7 +59,7 @@ fn prove_and_verify(srs: &SRS<Pallas>, opening: OpeningProof) {
         false,
     );
     let z1_felt = Fq::from_hex(&opening.z_1[2..]).unwrap();
-    let value_to_compare = compute_msm_for_verification(srs, &sg_point, &z1_felt);
+    let value_to_compare = compute_verification(srs, &sg_point);
 
     fs::write(
         "../verifier_circuit/src/inputs.json",
@@ -83,68 +79,6 @@ fn prove_and_verify(srs: &SRS<Pallas>, opening: OpeningProof) {
     .unwrap();
 }
 
-fn compute_msm_for_verification(
-    srs: &SRS<Pallas>,
-    sg: &Pallas,
-    z1: &Fq,
-) -> GroupAffine<PallasParameters> {
-    let rand_base_i = Fq::one();
-    let sg_rand_base_i = Fq::one();
-    let neg_rand_base_i = -rand_base_i;
-
-    let nonzero_length = srs.g.len();
-    let max_rounds = math::ceil_log2(nonzero_length);
-    let padded_length = 1 << max_rounds;
-    let padding = padded_length - nonzero_length;
-    let mut points = vec![srs.h];
-    points.extend(srs.g.clone());
-    points.extend(vec![Pallas::zero(); padding]);
-    let mut scalars = vec![Fq::zero(); padded_length + 1];
-
-    points.push(*sg);
-    scalars.push(neg_rand_base_i * z1 - sg_rand_base_i);
-
-    let s = vec![Fq::one(); srs.g.len()];
-    let terms: Vec<_> = s.iter().map(|s_i| sg_rand_base_i * s_i).collect();
-    scalars
-        .iter_mut()
-        .skip(1)
-        .zip(terms)
-        .for_each(|(scalar, term)| {
-            *scalar += term;
-        });
-    println!("Number of scalars: {}", scalars.len());
-
-    // verify the equation
-    let scalars: Vec<_> = scalars.iter().map(|x| x.into_repr()).collect();
-    // VariableBaseMSM::multi_scalar_mul(&points, &scalars)
-    naive_msm(&points, &scalars)
-}
-
-fn naive_msm(points: &[Pallas], scalars: &[BigInteger256]) -> Pallas {
-    let mut steps = vec![];
-    let mut result = Pallas::zero();
-
-    for i in 0..points.len() {
-        result += &points[i].mul(scalars[i]).into_affine();
-        steps.push(result);
-    }
-    fs::write(
-        "../verifier_circuit/src/steps.json",
-        serde_json::to_string(
-            &steps
-                .iter()
-                .map(|step| {
-                    [
-                        step.x.to_biguint().to_string(),
-                        step.y.to_biguint().to_string(),
-                    ]
-                })
-                .collect::<Vec<_>>(),
-        )
-        .unwrap(),
-    )
-    .unwrap();
-
-    result
+fn compute_verification(srs: &SRS<Pallas>, sg: &Pallas) -> GroupAffine<PallasParameters> {
+    *sg + srs.h
 }
