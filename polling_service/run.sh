@@ -14,8 +14,17 @@ PROOF=$(fetchproof)
 
 if [ $? -eq 0 ]
 then
-  echo $PROOF | sed -e 's@{\"data\":{\"bestChain":\[{\"protocolStateProof\":{\"base64\":\"@@' \
-    | sed -e 's@\(.*\)\"}}]}}@\1====@' | fold -w 4 | sed '$ d' | tr -d '\n' > proof.txt
+  echo $PROOF | grep 'errors'
+
+  if [ $? -eq 0 ]
+  then
+    >&2 echo "Warning: Mina node is not synced. Using old proof file."
+  else
+    echo $PROOF | sed -e 's@{\"data\":{\"bestChain":\[{\"protocolStateProof\":{\"base64\":\"@@' \
+      | sed -e 's@\(.*\)\"}}]}}@\1====@' | fold -w 4 | sed '$ d' | tr -d '\n' > proof.txt
+    echo "State proof fetched from Mina node successfully!"
+  fi
+
 else
   >&2 echo "Warning: Couldn't connect to Mina node. Using old proof file."
 fi
