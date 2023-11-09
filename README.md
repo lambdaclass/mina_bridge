@@ -73,9 +73,20 @@ flowchart TB
     end
 ```
 
-##### Kimchi KZG prover
+## Verifier
+The arguments are the *verifier_index*, *proof* and *public inputs* .The output is a "batch evaluation proof".
 
-To-Do!
+The steps are the following:
+- Check the length of evaluations inside the proof.
+- Commit to the negated public input polynomial.
+- Run the Fiat-Shamir heuristic  ([non-interaction with fiat-shamir](https://o1-labs.github.io/proof-systems/plonk/fiat_shamir.html?highlight=fiat%20shamir#non-interaction-with-fiat-shamir)).
+- Combine the chunked polynomials' evaluations.
+- Compute the commitment to the linearized polynomial $f$ by adding all constraints, in commitment form or evaluation if not present.
+- Compute the (chuncked) commitment of $ft$ [see Maller’s optimization](https://o1-labs.github.io/proof-systems/plonk/maller.html) .
+- List the polynomial commitments, and their associated evaluations, that are associated to the aggregated evaluation proof in the proof.
+
+----------------------
+
 
 ##### Ethereum smart contract verifier
 
@@ -248,6 +259,12 @@ This will:
 - Generate the test proof and the expected value of the MSM that will be done in the verification (in the completed version, this value would be the point at infinity). These values will be used as public inputs for the verifier circuit.
 - Run the verifier circuit using the test proof as input.
 - Generate the proof of the verification and write it into a JSON file.
+
+
+
+##### Kimchi KZG prover
+
+To-Do!
 
 ## Kimchi proving system
 
