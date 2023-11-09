@@ -165,4 +165,19 @@ library Utils {
     function min(uint a, uint b) public pure returns (uint) {
        return a < b ? a : b;
     }
+
+    /// @notice converts an ASCII string into a uint.
+    error InvalidStringToUint();
+    function str_to_uint(string memory s) public pure returns (uint res) {
+        bytes memory b = bytes(s);
+        res = 0;
+        for (uint i = 0; i < b.length; i++) {
+            if (b[i] >= 0x30 && b[i] <= 0x39) {
+                res *= 10;
+                res += uint8(b[i]) - 0x30;
+            } else {
+                revert InvalidStringToUint();
+            }
+        }
+    }
 }

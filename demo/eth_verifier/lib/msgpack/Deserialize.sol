@@ -6,6 +6,9 @@ import "../Commitment.sol";
 import "../BN254.sol";
 import "../Evaluations.sol";
 import "../Proof.sol";
+import "../State.sol";
+import "../Utils.sol";
+import {console} from "forge-std/console.sol";
 
 library MsgPk {
     /// @notice deserializes an array of G1Point and also returns the rest of the
@@ -190,5 +193,43 @@ library MsgPk {
         public_evals[0] = _public_evals;
         evals = ProofEvaluations(public_evals);
         final_i = _i;
+    }
+
+    function deserializeState(
+        bytes calldata data,
+        uint256 i
+    ) public view returns (State memory) {
+        require(data[i] == 0x93, "not a fix array of three elements");
+        i += 1;
+
+        // Creator public key:
+        require(data[i] == 0xd9, "not a str 8");
+        i += 1;
+        // next byte is the length of the stream in one byte
+        uint8 size = uint8(data[i]);
+        i += 1;
+        console.log(size);
+        string memory creator = string(data[i:i + size]);
+        i += size;
+
+        // State hash:
+        require(data[i] == 0xd9, "not a str 8");
+        i += 1;
+        // next byte is the length of the stream in one byte
+        size = uint8(data[i]);
+        i += 1;
+        string memory hash_str = string(data[i:i + size]);
+        uint hash = Utils.str_to_uint(hash_str);
+        i += size;
+
+        // Block height:
+        require((data[i] >> 4) == 0x0a, "not a fixstr");
+        size = uint8(data[i]) & 0x0f;
+        i += 1;
+        string memory height_str = string(data[i:i + size]);
+        uint block_height = Utils.str_to_uint(height_str);
+        i += size;
+
+        return State(creator, hash, block_height);
     }
 }
