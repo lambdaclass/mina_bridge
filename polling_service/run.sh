@@ -17,7 +17,7 @@ then
   echo $PROOF | sed -e 's@{\"data\":{\"bestChain":\[{\"protocolStateProof\":{\"base64\":\"@@' \
     | sed -e 's@\(.*\)\"}}]}}@\1====@' | fold -w 4 | sed '$ d' | tr -d '\n' > proof.txt
 else
-  echo "Warning: Couldn't connect to Mina node. Using old proof file."
+ >&2 echo "Warning: Couldn't connect to Mina node. Using old proof file."
 fi
 
 git clone https://github.com/lambdaclass/mina.git mina_1_4_0
