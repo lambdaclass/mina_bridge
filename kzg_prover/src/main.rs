@@ -1,7 +1,10 @@
-use std::ops::Neg;
+mod snarky_gate;
+
+use std::{fs, ops::Neg};
 
 use ark_ec::{
     msm::VariableBaseMSM, short_weierstrass_jacobian::GroupAffine, AffineCurve, PairingEngine,
+    ProjectiveCurve,
 };
 use ark_ff::PrimeField;
 use ark_poly::{
@@ -12,11 +15,14 @@ use ark_std::{
     rand::{self, rngs::StdRng, SeedableRng},
     UniformRand,
 };
-use kimchi::circuits::{
-    constraints::ConstraintSystem,
-    domains::EvaluationDomains,
-    gate::{CircuitGate, GateType},
-    polynomials::generic::testing::create_circuit,
+use kimchi::{
+    circuits::{
+        constraints::ConstraintSystem,
+        domains::EvaluationDomains,
+        gate::{CircuitGate, GateType},
+        polynomials::generic::testing::create_circuit,
+    },
+    o1_utils::FieldHelpers,
 };
 use num_traits::{One, Zero};
 use poly_commitment::{
@@ -26,6 +32,7 @@ use poly_commitment::{
     srs::SRS,
     PolyComm, SRS as _,
 };
+use snarky_gate::SnarkyGate;
 
 type PolynomialsToCombine<'a> = &'a [(
     DensePolynomialOrEvaluations<'a, ark_bn254::Fr, Radix2EvaluationDomain<ark_bn254::Fr>>,
@@ -36,14 +43,14 @@ type PolynomialsToCombine<'a> = &'a [(
 fn main() {
     let rng = &mut StdRng::from_seed([0u8; 32]);
 
-    let gates: Vec<CircuitGate<ark_bn254::Fr>> = create_circuit(0, 0);
+    let gates = read_gates_file();
 
     let cs = ConstraintSystem::<ark_bn254::Fr>::create(gates)
         .build()
         .unwrap();
 
     const ZK_ROWS: usize = 3;
-    let domain_size = gates.len() + ZK_ROWS;
+    let domain_size = cs.gates.len() + ZK_ROWS;
     let domain = EvaluationDomains::create(domain_size).unwrap();
 
     let n = domain.d1.size as usize;
@@ -115,7 +122,8 @@ fn main() {
         .verifier_srs
         .commit_non_hiding(&divisor_polynomial(&evaluation_points), 1, None)
         .unshifted[0];
-    let numerator_commitment = { poly_commitment - eval_commitment - blinding_commitment };
+    let numerator_commitment =
+        (poly_commitment - eval_commitment - blinding_commitment).into_affine();
     let generator = ark_bn254::G2Affine::prime_subgroup_generator();
 
     println!("numerator:");
@@ -128,9 +136,19 @@ fn main() {
     println!("{}", divisor_commitment);
 
     println!(
-        "valid: {:?}",
+        "Is KZG proof valid?: {:?}",
         pairing_proof.verify(&srs, &evaluations, polyscale, &evaluation_points)
     );
+}
+
+fn read_gates_file() -> Vec<CircuitGate<ark_ff::Fp256<ark_bn254::FrParameters>>> {
+    let gates_json = fs::read_to_string("gates.json").unwrap();
+    let snarky_gates: Vec<SnarkyGate> = serde_json::from_str(&gates_json).unwrap();
+
+    snarky_gates
+        .iter()
+        .map(|gate| gate.clone().into())
+        .collect()
 }
 
 fn create_poly_commitment(
