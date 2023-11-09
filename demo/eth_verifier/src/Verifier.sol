@@ -82,18 +82,24 @@ contract KimchiVerifier {
     ) public returns (bool) {
         // 1. Deserialize proof and setup
 
-        // For now, proof consists in the concatenation of the URS and public
-        // evals bytes.
-        (BN254.G1Point[] memory g, BN254.G1Point memory h, uint256 i0) = MsgPk
-            .deserializeURS(proof_serialized);
-        (ProofEvaluations memory evals, uint256 _i1) = MsgPk
-            .deserializeProofEvaluations(proof_serialized, i0);
+        // For now, proof consists in the concatenation of the bytes that
+        // represent the numerator, quotient and divisor polynomial
+        // commitments (G1 and G2 points).
 
-        setup(g, h, 0, 32, 32, evals); // dummy values used for args
+        // BEWARE: quotient must be negated.
 
-        // 2. Verify
-        partial_verify(new Scalar.FE[](0));
-        bool success = true;
+        (
+            BN254.G1Point memory numerator,
+            BN254.G1Point memory quotient,
+            BN254.G2Point memory divisor
+        ) = MsgPk.deserializeFinalCommitments(proof_serialized);
+
+        bool success = BN254.pairingProd2(
+            numerator,
+            BN254.P2(),
+            quotient,
+            divisor
+        );
 
         // 3. If success, deserialize and store state
         if (success) {
@@ -198,6 +204,7 @@ contract KimchiVerifier {
     }
 
     error UnavailableState();
+
     /// @notice retrieves the base58 encoded creator's public key
     function retrieve_state_creator() public view returns (string memory) {
         if (!state_available) {

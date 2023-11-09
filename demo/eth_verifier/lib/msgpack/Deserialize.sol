@@ -112,7 +112,19 @@ library MsgPk {
 
     //  !!! FUNCTIONS BELOW ARE DEPRECATED !!!
 
-
+    function deserializeFinalCommitments(bytes calldata data)
+        public
+        view
+        returns (
+            BN254.G1Point memory numerator,
+            BN254.G1Point memory quotient,
+            BN254.G2Point memory divisor
+        )
+    {
+        numerator = abi.decode(data[:64], (BN254.G1Point));
+        quotient = abi.decode(data[64:128], (BN254.G1Point));
+        divisor = abi.decode(data[128:256], (BN254.G2Point));
+    }
     /// @notice deserializes an array of G1Point and also returns the rest of the
     // data, excluding the consumed bytes. `i` is the index that we start to read
     // the data from.
