@@ -2,6 +2,7 @@ mod snarky_gate;
 
 use std::{fs, ops::Neg};
 
+use ark_bn254::{G1Affine, G2Affine};
 use ark_ec::{
     msm::VariableBaseMSM, short_weierstrass_jacobian::GroupAffine, AffineCurve, PairingEngine,
     ProjectiveCurve,
@@ -11,10 +12,12 @@ use ark_poly::{
     univariate::DenseOrSparsePolynomial, univariate::DensePolynomial, EvaluationDomain,
     Evaluations, Polynomial, Radix2EvaluationDomain, UVPolynomial,
 };
+use ark_serialize::{CanonicalSerialize, SerializationError};
 use ark_std::{
     rand::{self, rngs::StdRng, SeedableRng},
     UniformRand,
 };
+use hex;
 use kimchi::{
     circuits::{
         constraints::ConstraintSystem,
@@ -124,21 +127,41 @@ fn main() {
         .unshifted[0];
     let numerator_commitment =
         (poly_commitment - eval_commitment - blinding_commitment).into_affine();
-    let generator = ark_bn254::G2Affine::prime_subgroup_generator();
 
-    println!("numerator:");
-    println!("{}", numerator_commitment);
-    println!("generator:");
-    println!("{}", generator);
-    println!("quotient:");
-    println!("{}", pairing_proof.quotient.neg());
-    println!("divisor:");
-    println!("{}", divisor_commitment);
+    let numerator_serialized = serialize_g1point_for_verifier(numerator_commitment).unwrap();
+    let quotient_serialized = serialize_g1point_for_verifier(pairing_proof.quotient.neg()).unwrap();
+    let divisor_serialized = serialize_g2point_for_verifier(divisor_commitment).unwrap();
+
+    let mut points_serialized = numerator_serialized.clone();
+    points_serialized.extend(quotient_serialized);
+    points_serialized.extend(divisor_serialized);
+
+    fs::write(
+        "../demo/eth_verifier/proof.mpk",
+        hex::encode(points_serialized),
+    )
+    .unwrap();
 
     println!(
         "Is KZG proof valid?: {:?}",
         pairing_proof.verify(&srs, &evaluations, polyscale, &evaluation_points)
     );
+}
+
+fn serialize_g1point_for_verifier(point: G1Affine) -> Result<Vec<u8>, SerializationError> {
+    let mut point_serialized = vec![];
+    point.serialize_uncompressed(&mut point_serialized)?;
+    point_serialized[..32].reverse();
+    point_serialized[32..].reverse();
+    Ok(point_serialized)
+}
+
+fn serialize_g2point_for_verifier(point: G2Affine) -> Result<Vec<u8>, SerializationError> {
+    let mut point_serialized = vec![];
+    point.serialize_uncompressed(&mut point_serialized)?;
+    point_serialized[..64].reverse();
+    point_serialized[64..].reverse();
+    Ok(point_serialized)
 }
 
 fn read_gates_file() -> Vec<CircuitGate<ark_ff::Fp256<ark_bn254::FrParameters>>> {
