@@ -48,10 +48,10 @@ jobs:
             - name: Checkout sources
               uses: actions/checkout@v4
 
-            - name: Set-up OCaml ${{ matrix.ocaml-compiler }}
+            - name: Set-up OCaml 4.14.0
               uses: ocaml/setup-ocaml@v2
               with:
-                  ocaml-compiler: ${{ matrix.ocaml-compiler }}
+                  ocaml-compiler: 4.14.0
 
             - name: Install Foundry
               uses: foundry-rs/foundry-toolchain@v1
