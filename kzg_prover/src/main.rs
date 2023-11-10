@@ -137,7 +137,7 @@ fn main() {
     points_serialized.extend(divisor_serialized);
 
     fs::write(
-        "../demo/eth_verifier/proof.mpk",
+        "../eth_verifier/proof.mpk",
         hex::encode(points_serialized),
     )
     .unwrap();
