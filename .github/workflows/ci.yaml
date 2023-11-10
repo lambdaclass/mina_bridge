@@ -43,17 +43,21 @@ jobs:
 
     integration:
         name: Integration test
-        strategy:
-            fail-fast: false
-            matrix:
-                os:
-                    - ubuntu-22.04
-                ocaml-compiler:
-                    - "4.14.0"
-        runs-on: ${{ matrix.os }}
+        runs-on: ubuntu-22.04
         steps:
             - name: Checkout sources
               uses: actions/checkout@v4
+
+            - name: Set-up OCaml ${{ matrix.ocaml-compiler }}
+              uses: ocaml/setup-ocaml@v2
+              with:
+                  ocaml-compiler: ${{ matrix.ocaml-compiler }}
+
+            - name: Install Foundry
+              uses: foundry-rs/foundry-toolchain@v1
+
+            - name: Install Mina dependencies
+              run: sudo apt-get install libsodium-dev capnproto
 
             - name: Run integration test
               run: make
