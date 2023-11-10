@@ -16,5 +16,5 @@ run:
 	@cd kzg_prover && cargo r --release
 	@echo "Done!"
 	@echo "Verifying proof..."
-	@cd demo/eth_verifier && sh run.sh
+	@cd eth_verifier && sh run.sh
 	@echo "Done!"

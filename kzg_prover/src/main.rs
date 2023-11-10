@@ -138,7 +138,7 @@ fn main() {
 
     fs::write(
         "../eth_verifier/proof.mpk",
-        hex::encode(points_serialized),
+        points_serialized,
     )
     .unwrap();
 
