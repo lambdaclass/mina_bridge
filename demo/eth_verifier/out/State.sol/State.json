@@ -1,0 +1,135 @@
+{
+  "abi": [],
+  "bytecode": {
+    "object": "0x",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "linkReferences": {}
+  },
+  "ast": {
+    "absolutePath": "lib/State.sol",
+    "id": 2818,
+    "exportedSymbols": {
+      "State": [
+        2817
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "36:285:7",
+    "nodes": [
+      {
+        "id": 2807,
+        "nodeType": "PragmaDirective",
+        "src": "36:32:7",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          ">=",
+          "0.4",
+          ".16",
+          "<",
+          "0.9",
+          ".0"
+        ]
+      },
+      {
+        "id": 2817,
+        "nodeType": "StructDefinition",
+        "src": "70:250:7",
+        "nodes": [],
+        "canonicalName": "State",
+        "members": [
+          {
+            "constant": false,
+            "id": 2810,
+            "mutability": "mutable",
+            "name": "creator",
+            "nameLocation": "170:7:7",
+            "nodeType": "VariableDeclaration",
+            "scope": 2817,
+            "src": "163:14:7",
+            "stateVariable": false,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_string_storage_ptr",
+              "typeString": "string"
+            },
+            "typeName": {
+              "id": 2809,
+              "name": "string",
+              "nodeType": "ElementaryTypeName",
+              "src": "163:6:7",
+              "typeDescriptions": {
+                "typeIdentifier": "t_string_storage_ptr",
+                "typeString": "string"
+              }
+            },
+            "visibility": "internal"
+          },
+          {
+            "constant": false,
+            "id": 2813,
+            "mutability": "mutable",
+            "name": "hash",
+            "nameLocation": "235:4:7",
+            "nodeType": "VariableDeclaration",
+            "scope": 2817,
+            "src": "227:12:7",
+            "stateVariable": false,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 2812,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "227:7:7",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "visibility": "internal"
+          },
+          {
+            "constant": false,
+            "id": 2816,
+            "mutability": "mutable",
+            "name": "block_height",
+            "nameLocation": "305:12:7",
+            "nodeType": "VariableDeclaration",
+            "scope": 2817,
+            "src": "297:20:7",
+            "stateVariable": false,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 2815,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "297:7:7",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "visibility": "internal"
+          }
+        ],
+        "name": "State",
+        "nameLocation": "77:5:7",
+        "scope": 2818,
+        "visibility": "public"
+      }
+    ],
+    "license": "GPL-3.0"
+  },
+  "id": 7
+}

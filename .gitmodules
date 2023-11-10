@@ -2,10 +2,10 @@
 	path = verifier_circuit/o1js
 	url = https://github.com/lambdaclass/o1js.git
 	branch = wasm_kzg_prover
-[submodule "eth_verifier/lib/forge-std"]
-	path = eth_verifier/lib/forge-std
-	url = https://github.com/foundry-rs/forge-std
 [submodule "kzg_prover/proof-systems"]
 	path = kzg_prover/proof-systems
 	url = https://github.com/lambdaclass/proof-systems.git
 	branch = wasm_kzg_prover
+[submodule "demo/eth_verifier/lib/forge-std"]
+	path = eth_verifier/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std

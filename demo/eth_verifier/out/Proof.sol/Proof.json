@@ -1,0 +1,184 @@
+{
+  "abi": [],
+  "bytecode": {
+    "object": "0x",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "linkReferences": {}
+  },
+  "ast": {
+    "absolutePath": "lib/Proof.sol",
+    "id": 2806,
+    "exportedSymbols": {
+      "Aux": [
+        2279
+      ],
+      "Base": [
+        1781
+      ],
+      "PointEvaluations": [
+        1564
+      ],
+      "PointEvaluationsArray": [
+        1575
+      ],
+      "ProofEvaluations": [
+        2805
+      ],
+      "ProverProof": [
+        2800
+      ],
+      "Scalar": [
+        2132
+      ],
+      "console": [
+        25693
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "36:235:6",
+    "nodes": [
+      {
+        "id": 2795,
+        "nodeType": "PragmaDirective",
+        "src": "36:32:6",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          ">=",
+          "0.4",
+          ".16",
+          "<",
+          "0.9",
+          ".0"
+        ]
+      },
+      {
+        "id": 2796,
+        "nodeType": "ImportDirective",
+        "src": "70:27:6",
+        "nodes": [],
+        "absolutePath": "lib/Evaluations.sol",
+        "file": "./Evaluations.sol",
+        "nameLocation": "-1:-1:-1",
+        "scope": 2806,
+        "sourceUnit": 1576,
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "id": 2800,
+        "nodeType": "StructDefinition",
+        "src": "99:50:6",
+        "nodes": [],
+        "canonicalName": "ProverProof",
+        "members": [
+          {
+            "constant": false,
+            "id": 2799,
+            "mutability": "mutable",
+            "name": "evals",
+            "nameLocation": "141:5:6",
+            "nodeType": "VariableDeclaration",
+            "scope": 2800,
+            "src": "124:22:6",
+            "stateVariable": false,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_struct$_ProofEvaluations_$2805_storage_ptr",
+              "typeString": "struct ProofEvaluations"
+            },
+            "typeName": {
+              "id": 2798,
+              "nodeType": "UserDefinedTypeName",
+              "pathNode": {
+                "id": 2797,
+                "name": "ProofEvaluations",
+                "nameLocations": [
+                  "124:16:6"
+                ],
+                "nodeType": "IdentifierPath",
+                "referencedDeclaration": 2805,
+                "src": "124:16:6"
+              },
+              "referencedDeclaration": 2805,
+              "src": "124:16:6",
+              "typeDescriptions": {
+                "typeIdentifier": "t_struct$_ProofEvaluations_$2805_storage_ptr",
+                "typeString": "struct ProofEvaluations"
+              }
+            },
+            "visibility": "internal"
+          }
+        ],
+        "name": "ProverProof",
+        "nameLocation": "106:11:6",
+        "scope": 2806,
+        "visibility": "public"
+      },
+      {
+        "id": 2805,
+        "nodeType": "StructDefinition",
+        "src": "151:119:6",
+        "nodes": [],
+        "canonicalName": "ProofEvaluations",
+        "members": [
+          {
+            "constant": false,
+            "id": 2804,
+            "mutability": "mutable",
+            "name": "public_evals",
+            "nameLocation": "255:12:6",
+            "nodeType": "VariableDeclaration",
+            "scope": 2805,
+            "src": "231:36:6",
+            "stateVariable": false,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_array$_t_struct$_PointEvaluationsArray_$1575_storage_$dyn_storage_ptr",
+              "typeString": "struct PointEvaluationsArray[]"
+            },
+            "typeName": {
+              "baseType": {
+                "id": 2802,
+                "nodeType": "UserDefinedTypeName",
+                "pathNode": {
+                  "id": 2801,
+                  "name": "PointEvaluationsArray",
+                  "nameLocations": [
+                    "231:21:6"
+                  ],
+                  "nodeType": "IdentifierPath",
+                  "referencedDeclaration": 1575,
+                  "src": "231:21:6"
+                },
+                "referencedDeclaration": 1575,
+                "src": "231:21:6",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_struct$_PointEvaluationsArray_$1575_storage_ptr",
+                  "typeString": "struct PointEvaluationsArray"
+                }
+              },
+              "id": 2803,
+              "nodeType": "ArrayTypeName",
+              "src": "231:23:6",
+              "typeDescriptions": {
+                "typeIdentifier": "t_array$_t_struct$_PointEvaluationsArray_$1575_storage_$dyn_storage_ptr",
+                "typeString": "struct PointEvaluationsArray[]"
+              }
+            },
+            "visibility": "internal"
+          }
+        ],
+        "name": "ProofEvaluations",
+        "nameLocation": "158:16:6",
+        "scope": 2806,
+        "visibility": "public"
+      }
+    ],
+    "license": "GPL-3.0"
+  },
+  "id": 6
+}
