@@ -3,7 +3,15 @@
 fetchproof() {
   curl -d '{"query": "{
     bestChain(maxLength: 1) {
-                  protocolStateProof {
+      creator
+      stateHashField
+      protocolState {
+        consensusState {
+          blockHeight
+        }
+      }
+
+      protocolStateProof {
         base64
       }
     }
