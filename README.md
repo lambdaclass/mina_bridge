@@ -50,11 +50,26 @@ This is subject to change.
         B3-->|Proof request| S
 ```
 
+## Usage
+
+On root folder run:
+
+```sh
+make
+```
+
+This will:
+
+- Invoke the polling service and query the last Mina chain state and a Pasta+IPA proof, then send both to the `public_input_gen/` crate.
+- This crate will compute needed data (SRS, public inputs) for feeding the state profo into an o1js verifier circuit.
+- The circuit will verify the proof and output the gate system to a KZG prover.
+- The KZG prover will generate another proof (BN254+KZG) of this verification. This makes it suitable to verify in an Ethereum smart contract. The final proof including the embedded state will be sent to the Solidity verifier.
+- The verifier will be deployed in Anvil (a local test blockchain) and a bash script will send a transaction with the state+proof data for running the final verification. If successful, the contract will store the state data and will expose an API for the user to retrieve it, knowing that this data was zk-verified.
+
+
 ## Components of this Repo
 
 This repository is composed of the following components:
-
-### Verifier
 
 ### Verifier circuit
 
@@ -135,7 +150,7 @@ this will execute some unit tests and output results that can be used as referen
 
 ### Ethereum smart contract verifier
 
-`eth_verifier/` holds the demo's Mina state verifier in solidity, implemented using [Foundry](https://book.getfoundry.sh/). The contract exposes an API for retrieving zk-verified data from the last Mina state.
+`eth_verifier/` holds the Mina state verifier in solidity, implemented using [Foundry](https://book.getfoundry.sh/). The contract exposes an API for retrieving zk-verified data from the last Mina state.
 
 Install dependencies by running:
 ```bash
@@ -174,7 +189,7 @@ You can query data from the last Mina state and serialize it into MessagePack, n
 ```bash
 make query
 ```
-building a KZG proof of the state is still WIP, so you can find a `proof.mpk` containing only the data needed for running the current verifier, which is also WIP.
+if you ran the entire project flow you will find a `proof.mpk` containing only the data needed for running the current verifier, which is WIP.
 
 You can then run the verifier by calling the `verify_state()` function using `cast`. For this we provided a utility script `verify.sh`, run it with:
 ```bash
@@ -208,22 +223,6 @@ For more information on Ethereum transactions and encoding you can visit the fol
 - `public_input_gen/`: Rust code for generating a Mina state proof. This proof is used in the `verifier_circuit`.
 - `srs/`: Contains tests SRSs for Pallas and Vesta curves.
 - `test_prover/`: Typescript code using `o1js` library. This is a test prover for the Kimchi proof system. It's a PoC and will be removed in the near future.
-
-## Usage
-
-On root folder run:
-
-```sh
-make
-```
-
-This will:
-
-- Invoke the polling service and query the last Mina chain state and a Pasta+IPA proof, then send both to the `public_input_gen/` crate.
-- This crate will compute needed data (SRS, public inputs) for feeding the state profo into an o1js verifier circuit.
-- The circuit will verify the proof and output the gate system to a KZG prover.
-- The KZG prover will generate another proof (BN254+KZG) of this verification. This makes it suitable to verify in an Ethereum smart contract. The final proof including the embedded state will be sent to the Solidity verifier.
-- The verifier will be deployed in Anvil (a local test blockchain) and a bash script will send a transaction with the state+proof data for running the final verification. If successful, the contract will store the state data and will expose an API for the user to retrieve it, knowing that this data was zk-verified.
 
 ## Kimchi proving system
 
