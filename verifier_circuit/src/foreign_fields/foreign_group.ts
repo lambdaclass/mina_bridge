@@ -39,7 +39,7 @@ export class ForeignGroup {
     }
 
     add(g: ForeignGroup) {
-        // TODO: Make provable and use foreign EC constraints
+        // TODO: Use foreign EC constraints
 
         const { x: x1, y: y1 } = this;
         const { x: x2, y: y2 } = g;
