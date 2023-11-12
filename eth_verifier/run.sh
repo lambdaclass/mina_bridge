@@ -8,5 +8,5 @@ forge script \
     --via-ir \
     --rpc-url http://127.0.0.1:8545 \
     --broadcast \
-    script/Deploy.s.sol:Deploy
+    script/Deploy.s.sol:DeployAndVerify
 pkill anvil || true
