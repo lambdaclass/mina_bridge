@@ -48,11 +48,12 @@ jobs:
             - name: Checkout sources
               uses: actions/checkout@v4
 
-            - name: echo path
-              run: echo $PATH
-
             - name: Run integration test
-              run: make
+              run: | 
+                PATH=/root/.cargo/bin:/.opam/default/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/.foundry/bin
+                echo $PATH
+                echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+                make
 
     demo_eth_verifier:
         name: Test demo's Solidity verifier
