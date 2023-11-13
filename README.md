@@ -13,8 +13,10 @@ Verify the generated proof using the verifier contract.
 
 ### Usage
 
+First, start Docker daemon. Then, run:
+
 ```sh
-docker image -t debian_ocaml .
+docker build -t debian_ocaml .
 docker run -it --rm -v .:/app debian_ocaml bash
 ```
 
