@@ -48,11 +48,8 @@ jobs:
             - name: Checkout sources
               uses: actions/checkout@v4
 
-            - name: Install Foundry
-              uses: foundry-rs/foundry-toolchain@v1
-
-            - name: Install Mina dependencies
-              run: sudo apt-get install libsodium-dev capnproto
+            - name: echo path
+              run: echo $PATH
 
             - name: Run integration test
               run: make
