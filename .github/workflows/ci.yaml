@@ -50,7 +50,7 @@ jobs:
 
             - name: Run integration test
               run: |
-                export GOPATH="/usr/bin/go"
+                export GOPATH="/root/go"
                 make
 
     demo_eth_verifier:
