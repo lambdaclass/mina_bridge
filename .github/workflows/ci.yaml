@@ -78,7 +78,7 @@ jobs:
         runs-on: ubuntu-latest
         defaults:
             run:
-                working-directory: ./demo/eth_verifier
+                working-directory: ./eth_verifier
         steps:
             - name: Checkout sources
               uses: actions/checkout@v4

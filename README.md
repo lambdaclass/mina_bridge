@@ -50,131 +50,26 @@ This is subject to change.
         B3-->|Proof request| S
 ```
 
-## Components of this Repo
+## Usage
 
-This repository is composed of the following components:
+On root folder run:
 
-### Demo (WIP)
-
-This is a minimized version of the project, in which a user can submit a [o1js](https://github.com/o1-labs/o1js) circuit, generate a [Kimchi](https://github.com/o1-labs/proof-systems/tree/master/kimchi) KZG proof of it and verify it in an Ethereum smart contract. The bridge project will work the same way, with the difference that the submitted circuit will execute the verification of a Mina state proof.
-
-#### Flowgraph
-
-```mermaid
-flowchart TB
-    U((User))-->|Submits a provable o1js program/circuit| P(Kimchi KZG Prover)
-    -->|Kimchi+KZG+bn254 proof| V(Ethereum smart contract verifier)
-    -->|Deploy| B2
-
-    subgraph EB["EVM Chain"]
-		direction LR
-		B1["Block 1"] --> B2["Block 2"] 
-        --> B3["Block 3"]
-    end
-```
-
-## Verifier
-The arguments are the *verifier_index*, *proof* and *public inputs* .The output is a "batch evaluation proof".
-
-The steps are the following:
-- Check the length of evaluations inside the proof.
-- Commit to the negated public input polynomial.
-- Run the Fiat-Shamir heuristic  ([non-interaction with fiat-shamir](https://o1-labs.github.io/proof-systems/plonk/fiat_shamir.html?highlight=fiat%20shamir#non-interaction-with-fiat-shamir)).
-- Combine the chunked polynomials' evaluations.
-- Compute the commitment to the linearized polynomial $f$ by adding all constraints, in commitment form or evaluation if not present.
-- Compute the (chuncked) commitment of $ft$ [see Maller’s optimization](https://o1-labs.github.io/proof-systems/plonk/maller.html) .
-- List the polynomial commitments, and their associated evaluations, that are associated to the aggregated evaluation proof in the proof.
-
-----------------------
-
-
-##### Ethereum smart contract verifier
-
-`demo/eth_verifier/` holds the demo's Mina state verifier in solidity, implemented using [Foundry](https://book.getfoundry.sh/). The contract exposes an API for retrieving zk-verified data from the last Mina state.
-
-Install dependencies by running:
-```bash
-make setup
-```
-
-###### Local usage and deployment
-The contract can be deployed in an Anvil local node.
-
-Start the local chain with:
-```bash
-make run_node
-```
-then deploy the contract:
-```bash
-make deploy_verifier
-```
-after deployment Anvil will return a list of deployed contracts, as it will also deploy needed libraries for the verifier:
-```bash
-...
-
-##### anvil-hardhat
-✅  [Success]Hash: 0x312036beb087e610e6ba100a1ef0653c31c28db4a924aee13e6550a4181a31ed
-Contract Address: 0x67d269191c92Caf3cD7723F116c85e6E9bf55933
-Block: 17
-Paid: 0.005753394722296 ETH (1825720 gas * 3.1513018 gwei)
-
-
-Transactions saved to: eth_verifier/broadcast/Deploy.s.sol/31337/run-latest.json
-
-Sensitive values saved to: eth_verifier/cache/Deploy.s.sol/31337/run-latest.json
-```
-the last contract deployed is the verifier, **save its address as we'll use it in a later step**.
-
-You can query data from the last Mina state and serialize it into MessagePack, needed for calling the contract:
-```bash
-make query
-```
-building a KZG proof of the state is still WIP, so you can find a `proof.mpk` containing only the data needed for running the current verifier, which is also WIP.
-
-You can then run the verifier by calling the `verify_state()` function using `cast`. For this we provided a utility script `verify.sh`, run it with:
-```bash
-./verify.sh <ADDRESS>
-```
-then you can get State data from the contract storage:
-```bash
-cast call <CONTRACT_ADDR> 'retrieve_state_creator()(string)'
-cast call <CONTRACT_ADDR> 'retrieve_state_hash()(uint256)'
-cast call <CONTRACT_ADDR> 'retrieve_state_height(uint256)'
-````
-###### Testing
-
-Just run:
-```bash
-make test
-```
-###### Notes related to cast usage
-
-- For invoking non-view functions in the contract, it's needed to publish a transaction via `cast send`. Getter functions can be invoked with `cast call`.
-- Some commands may require you to encode the calldata before sending. In this case you can use `cast calldata`.
-
-For more information on Ethereum transactions and encoding you can visit the following resources:
-
-- [ABI Specification](https://docs.soliditylang.org/en/develop/abi-spec.html)
-- [A Step-by-Step Guide to Generating Raw Ethereum Transactions](https://medium.com/@LucasJennings/a-step-by-step-guide-to-generating-raw-ethereum-transactions-c3292ad36ab4)
-- [Transaction Calldata Demystified - A Guide to Understanding Transaction Calldata on Ethereum](https://www.quicknode.com/guides/ethereum-development/transactions/ethereum-transaction-calldata)
-
-#### Running
-
-Go into `demo/` and run:
-
-```bash
+```sh
 make
 ```
 
-this will take a o1js program, generate a proof of it, serialize it into JSON and send it into the solidity verifier.
+This will:
 
-You can generate a test proof for the verifier by going to `demo/eth_verifier/` and running:
+- Invoke the polling service and query the last Mina chain state and a Pasta+IPA proof, then send both to the `public_input_gen/` crate.
+- This crate will compute needed data (SRS, public inputs) for feeding the state profo into an o1js verifier circuit.
+- The circuit will verify the proof and output the gate system to a KZG prover.
+- The KZG prover will generate another proof (BN254+KZG) of this verification. This makes it suitable to verify in an Ethereum smart contract. The final proof including the embedded state will be sent to the Solidity verifier.
+- The verifier will be deployed in Anvil (a local test blockchain) and a bash script will send a transaction with the state+proof data for running the final verification. If successful, the contract will store the state data and will expose an API for the user to retrieve it, knowing that this data was zk-verified.
 
-```bash
-make proof
-```
 
-which does this by executing a Rust binary.
+## Components of this Repo
+
+This repository is composed of the following components:
 
 ### Verifier circuit
 
@@ -183,7 +78,7 @@ A proof of the circuit will be constructed in subsequent modules for validating 
 
 The code is written entirely in Typescript using the [o1js](https://github.com/o1-labs/o1js) library and is heavily based on [Kimchi](https://github.com/o1-labs/proof-systems/tree/master/kimchi)'s original verifier implementation.
 
-#### Running Verfier circuit
+#### Running
 
 On `verifier_circuit/` run:
 
@@ -220,6 +115,19 @@ will execute Jest unit and integration tests of the module.
 main polynomial of the circuit.
 - `main.ts` is the main entrypoint of the module.
 
+#### Batch verification
+
+The arguments are the *verifier_index*, *proof* and *public inputs*. The output is a "batch evaluation proof".
+
+The steps are the following:
+- Check the length of evaluations inside the proof.
+- Commit to the negated public input polynomial.
+- Run the Fiat-Shamir heuristic  ([non-interaction with fiat-shamir](https://o1-labs.github.io/proof-systems/plonk/fiat_shamir.html?highlight=fiat%20shamir#non-interaction-with-fiat-shamir)).
+- Combine the chunked polynomials' evaluations.
+- Compute the commitment to the linearized polynomial $f$ by adding all constraints, in commitment form or evaluation if not present.
+- Compute the (chuncked) commitment of $ft$ [see Maller’s optimization](https://o1-labs.github.io/proof-systems/plonk/maller.html) .
+- List the polynomial commitments, and their associated evaluations, that are associated to the aggregated evaluation proof in the proof.
+
 ### Verifier circuit tests
 
 Contains a Rust crate with Kimchi as a dependency, and runs some components of it generating data for feeding and comparing tests inside the verifier circuit.
@@ -240,31 +148,81 @@ cargo test -- --nocapture
 
 this will execute some unit tests and output results that can be used as reference value in analogous reference tests inside the verifier circuit.
 
+### Ethereum smart contract verifier
+
+`eth_verifier/` holds the Mina state verifier in solidity, implemented using [Foundry](https://book.getfoundry.sh/). The contract exposes an API for retrieving zk-verified data from the last Mina state.
+
+Install dependencies by running:
+```bash
+make setup
+```
+
+#### Local usage and deployment
+The contract can be deployed in an Anvil local node.
+
+Start the local chain with:
+```bash
+make run_node
+```
+then deploy the contract:
+```bash
+make deploy_verifier
+```
+after deployment Anvil will return a list of deployed contracts, as it will also deploy needed libraries for the verifier:
+```bash
+...
+
+##### anvil-hardhat
+✅  [Success]Hash: 0x312036beb087e610e6ba100a1ef0653c31c28db4a924aee13e6550a4181a31ed
+Contract Address: 0x67d269191c92Caf3cD7723F116c85e6E9bf55933
+Block: 17
+Paid: 0.005753394722296 ETH (1825720 gas * 3.1513018 gwei)
+
+
+Transactions saved to: eth_verifier/broadcast/Deploy.s.sol/31337/run-latest.json
+
+Sensitive values saved to: eth_verifier/cache/Deploy.s.sol/31337/run-latest.json
+```
+the last contract deployed is the verifier, **save its address as we'll use it in a later step**.
+
+You can query data from the last Mina state and serialize it into MessagePack, needed for calling the contract:
+```bash
+make query
+```
+if you ran the entire project flow you will find a `proof.mpk` containing only the data needed for running the current verifier, which is WIP.
+
+You can then run the verifier by calling the `verify_state()` function using `cast`. For this we provided a utility script `verify.sh`, run it with:
+```bash
+./verify.sh <ADDRESS>
+```
+then you can get State data from the contract storage:
+```bash
+cast call <CONTRACT_ADDR> 'retrieve_state_creator()(string)'
+cast call <CONTRACT_ADDR> 'retrieve_state_hash()(uint256)'
+cast call <CONTRACT_ADDR> 'retrieve_state_height(uint256)'
+````
+#### Testing
+
+Just run:
+```bash
+make test
+```
+#### Notes related to cast usage
+
+- For invoking non-view functions in the contract, it's needed to publish a transaction via `cast send`. Getter functions can be invoked with `cast call`.
+- Some commands may require you to encode the calldata before sending. In this case you can use `cast calldata`.
+
+For more information on Ethereum transactions and encoding you can visit the following resources:
+
+- [ABI Specification](https://docs.soliditylang.org/en/develop/abi-spec.html)
+- [A Step-by-Step Guide to Generating Raw Ethereum Transactions](https://medium.com/@LucasJennings/a-step-by-step-guide-to-generating-raw-ethereum-transactions-c3292ad36ab4)
+- [Transaction Calldata Demystified - A Guide to Understanding Transaction Calldata on Ethereum](https://www.quicknode.com/guides/ethereum-development/transactions/ethereum-transaction-calldata)
+
 ## Other components
-- `kzg_prover`: Rust code for generating a KZG proof. This proof is used in the `verifier_circuit`.
+- `kzg_prover`: Rust code for generating a KZG proof. This proof is used in the `eth_verifier`.
 - `public_input_gen/`: Rust code for generating a Mina state proof. This proof is used in the `verifier_circuit`.
 - `srs/`: Contains tests SRSs for Pallas and Vesta curves.
 - `test_prover/`: Typescript code using `o1js` library. This is a test prover for the Kimchi proof system. It's a PoC and will be removed in the near future.
-
-## Usage
-
-On root folder run:
-
-```sh
-make
-```
-
-This will:
-
-- Generate the test proof and the expected value of the MSM that will be done in the verification (in the completed version, this value would be the point at infinity). These values will be used as public inputs for the verifier circuit.
-- Run the verifier circuit using the test proof as input.
-- Generate the proof of the verification and write it into a JSON file.
-
-
-
-##### Kimchi KZG prover
-
-To-Do!
 
 ## Kimchi proving system
 
