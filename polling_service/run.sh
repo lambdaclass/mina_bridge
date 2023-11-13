@@ -1,6 +1,6 @@
 #!/bin/sh
 
-fetchproof() {
+fetch() {
   curl -d '{"query": "{
     bestChain(maxLength: 1) {
       creator
@@ -18,7 +18,7 @@ fetchproof() {
   }"}' -H 'Content-Type: application/json' http://5.9.57.89:3085/graphql
 }
 
-PROOF=$(fetchproof)
+DATA=$(fetch)
 
 if [ $? -eq 0 ]
 then
@@ -28,8 +28,7 @@ then
   then
     >&2 echo "Warning: Mina node is not synced. Using old proof file."
   else
-    echo $PROOF | sed -e 's@{\"data\":{\"bestChain":\[{\"protocolStateProof\":{\"base64\":\"@@' \
-      | sed -e 's@\(.*\)\"}}]}}@\1====@' | fold -w 4 | sed '$ d' | tr -d '\n' > proof.txt
+    cargo run --manifest-path polling_service/parser/Cargo.toml --release -- $DATA
     echo "State proof fetched from Mina node successfully!"
   fi
 
