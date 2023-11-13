@@ -28,7 +28,7 @@ then
   then
     >&2 echo "Warning: Mina node is not synced. Using old proof file."
   else
-    cargo run --manifest-path polling_service/parser/Cargo.toml --release -- $DATA
+    cargo run --manifest-path parser/Cargo.toml --release -- $DATA
     echo "State proof fetched from Mina node successfully!"
   fi
 

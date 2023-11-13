@@ -16,8 +16,8 @@ fn main() {
 
     let state = parse_and_serialize_state(query);
     let proof = parse_proof(query);
-    fs::write("eth_verifier/state.mpk", state).unwrap();
-    fs::write("polling_service/proof.txt", proof).unwrap();
+    fs::write("../eth_verifier/state.mpk", state).unwrap();
+    fs::write("proof.txt", proof).unwrap();
 }
 
 fn parse_and_serialize_state(query: &Value) -> Vec<u8> {
