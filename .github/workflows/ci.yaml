@@ -49,10 +49,8 @@ jobs:
               uses: actions/checkout@v4
 
             - name: Run integration test
-              run: | 
-                PATH=/root/.cargo/bin:/.opam/default/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/.foundry/bin
-                echo $PATH
-                echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+              run: |
+                export GOPATH="/usr/bin/go"
                 make
 
     demo_eth_verifier:
