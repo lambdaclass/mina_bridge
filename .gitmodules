@@ -9,3 +9,7 @@
 [submodule "demo/eth_verifier/lib/forge-std"]
 	path = eth_verifier/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "polling_service/mina_1_4_0"]
+	path = polling_service/mina_1_4_0
+	url = https://github.com/lambdaclass/mina.git
+	branch = proof_to_json
