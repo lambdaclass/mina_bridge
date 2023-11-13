@@ -11,6 +11,13 @@
 Implement a circuit for `Fibonacci(x)` and generate a Kimchi + KZG proof of that computation.
 Verify the generated proof using the verifier contract.
 
+### Usage
+
+```sh
+docker image -t debian_ocaml .
+docker run -it --rm -v .:/app debian_ocaml bash
+```
+
 ## About
 
 This project introduces the proof generation, posting and verification of the validity of [Mina](https://minaprotocol.com/) states into a EVM chain, which will serve as a foundation for token bridging.
