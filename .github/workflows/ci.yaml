@@ -1,10 +1,10 @@
 name: CI
 on:
     push:
-        branches: #[main]
-            - mina-ci
-    #pull_request:
-    #    branches: ["*"]
+        branches:
+            - main
+    pull_request:
+        branches: ["*"]
 
 jobs:
     public_input_gen:
