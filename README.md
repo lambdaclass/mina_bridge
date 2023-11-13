@@ -17,7 +17,7 @@ First, start Docker daemon. Then, run:
 
 ```sh
 docker build -t debian_ocaml .
-docker run -it --rm -v .:/app debian_ocaml bash
+docker run -it --rm -v $PWD:/app debian_ocaml bash
 ```
 
 ## About
