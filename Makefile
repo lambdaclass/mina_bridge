@@ -18,3 +18,11 @@ run:
 	@echo "Verifying proof..."
 	@cd eth_verifier && sh run.sh
 	@echo "Done!"
+
+prove_and_verify:
+	@echo "Creating KZG proof..."
+	@cd kzg_prover && cargo r --release
+	@echo "Done!"
+	@echo "Verifying proof..."
+	@cd eth_verifier && sh run.sh
+	@echo "Done!"

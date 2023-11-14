@@ -76,13 +76,17 @@ import { Field, createForeignField, Provable } from 'o1js';
 
 class PastaForeignField extends createForeignField(Field.ORDER) { };
 
-let { gates } = Provable.constraintSystem(() => {
+// This function is a test circuit to check that everything works correctly.
+// Replace this function with your Fibonacci circuit.
+function runCircuit() {
     let x = Provable.witness(PastaForeignField, () => PastaForeignField.from(2));
     let y = Provable.witness(PastaForeignField, () => PastaForeignField.from(3));
     let x_plus_y = Provable.witness(PastaForeignField, () => PastaForeignField.from(5));
 
     x.add(y).assertEquals(x_plus_y);
-})
+}
+
+let { gates } = Provable.constraintSystem(runCircuit);
 
 console.dir(gates, { depth: null });
 ```
@@ -152,8 +156,59 @@ npm i --save-dev @types/node
 At the end of `src/index.ts`, write the following:
 
 ```js
-
+writeFileSync('../mina_bridge/kzg_prover/gates.json', JSON.stringify(gates));
 ```
+
+To call `writeFileSync`, we need to import the `fs` module. Do it at the beginning of `src/index.ts`:
+
+```js
+import { writeFileSync } from 'fs';
+```
+
+Now, `index.ts` should be like this:
+
+```js
+import { writeFileSync } from 'fs';
+import { Field, createForeignField, Provable } from 'o1js';
+
+class PastaForeignField extends createForeignField(Field.ORDER) { };
+
+// This function is a test circuit to check that everything works correctly.
+// Replace this function with your Fibonacci circuit.
+function runCircuit() {
+    let x = Provable.witness(PastaForeignField, () => PastaForeignField.from(2));
+    let y = Provable.witness(PastaForeignField, () => PastaForeignField.from(3));
+    let x_plus_y = Provable.witness(PastaForeignField, () => PastaForeignField.from(5));
+
+    x.add(y).assertEquals(x_plus_y);
+}
+
+let { gates } = Provable.constraintSystem(runCircuit);
+
+console.dir(gates, { depth: null });
+
+writeFileSync('../mina_bridge/kzg_prover/gates.json', JSON.stringify(gates));
+```
+
+Build the o1js project and run it:
+
+```sh
+npm run build
+node build/src/index.js
+```
+
+Now, there should be a `gates.json` file in the KZG prover (if you are in the o1js project root directory, the KZG prover directory should be in `../mina_bridge`).
+
+### Prove a circuit and verify it in Ethereum
+
+Once we have `gates.json` generated in the KZG prover directory, we can prove the Fibonacci circuit and verify it in a Ethereum smart contract.
+To do that, go to the `mina_bridge` root directory and run:
+
+```sh
+make prove_and_verify
+```
+
+
 
 ## About
 
