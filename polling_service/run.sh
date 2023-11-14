@@ -29,6 +29,7 @@ else
   >&2 echo "Warning: Couldn't connect to Mina node. Using old proof file."
 fi
 
+git clone https://github.com/lambdaclass/mina.git mina_1_4_0
 cd mina_1_4_0
 git remote add o1labs git@github.com:MinaProtocol/mina.git
 git checkout proof_to_json
