@@ -51,7 +51,7 @@ jobs:
             - name: Run integration test
               run: |
                 export HOME="/root/"
-                export PATH="/root/.foundry/bin:/root/.cargo/bin:$PATH"
+                export PATH="/.foundry/bin:/root/.cargo/bin:$PATH"
                 export GOPATH="/root/go"
                 make
 
