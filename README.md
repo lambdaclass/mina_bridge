@@ -33,21 +33,14 @@ Create a new o1js project there (in this example, the o1js project will be calle
 zk project fibonacci --ui none
 ```
 
-In the new o1js project, open `package.json` and find these lines:
+Go to the new o1js project we created and run:
 
-```js
-"peerDependencies": {
-    "o1js": "0.14.*"
-}
+```sh
+npm uninstall o1js
+npm i --save-dev o1js ../mina_bridge/verifier_circuit/o1js
 ```
 
-And change them to:
-
-```js
-"peerDependencies": {
-    "o1js": "file:../mina_bridge/verifier_circuit/o1js"
-}
-```
+This should make our o1js project point to the o1js submodule in `mina_bridge`.
 
 Install the o1js project dependencies:
 
@@ -130,6 +123,19 @@ We show only two gates for simplicity:
 ```
 
 Now that we have our o1js project set, we can start building our circuit!
+
+### How to 'feed' the KZG prover
+
+Once we have our circuit, we need to prove it.
+To do that, we need to send the circuit gates to the KZG prover.
+The prover reads circuit gates from a JSON file stored in a specific path.
+So, we need to write the circuit gates in a JSON file in the corresponding path.
+
+At the end of `src/index.ts`, write the following:
+
+```js
+
+```
 
 ## About
 
