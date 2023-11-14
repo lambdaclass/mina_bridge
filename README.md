@@ -147,7 +147,7 @@ To do that, we need to send the circuit gates to the KZG prover.
 The prover reads circuit gates from a JSON file stored in a specific path.
 So, we need to write the circuit gates in a JSON file in the corresponding path.
 
-To write files in TypeScript we need to install another package. Run:
+To write files in TypeScript we need to install another package. In the o1js project (`fibonacci` in this example), run:
 
 ```sh
 npm i --save-dev @types/node
