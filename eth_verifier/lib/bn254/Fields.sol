@@ -8,6 +8,14 @@ library Base {
     uint256 public constant MODULUS =
         21888242871839275222246405745257275088696311157297823662689037894645226208583;
 
+    function zero() public pure returns (FE) {
+        return FE.wrap(0);
+    }
+
+    function from(uint n) public pure returns (FE) {
+        return FE.wrap(n % MODULUS);
+    }
+
     function add(
         FE self,
         FE other
@@ -27,12 +35,16 @@ library Base {
     }
 
     function square(FE self) public pure returns (FE res) {
-        res = mul(self, self);
+        assembly {
+            res := mulmod(self, self, MODULUS) // mulmod has arbitrary precision
+        }
     }
 
     function inv(FE self) public view returns (FE) {
-        // TODO:
-        return FE.wrap(0);
+        (uint inverse, uint gcd) = Aux.xgcd(FE.unwrap(self), MODULUS);
+        require(gcd == 1, "gcd not 1");
+
+        return FE.wrap(inverse);
     }
 
     function neg(FE self) public pure returns (FE) {
@@ -90,6 +102,10 @@ library Scalar {
     uint256 public constant TWO_ADIC_PRIMITIVE_ROOT_OF_UNITY = 
         19103219067921713944291392827692070036145651957329286315305642004821462161904;
     uint256 public constant TWO_ADICITY = 28;
+
+    function zero() public pure returns (FE) {
+        return FE.wrap(0);
+    }
 
     function from(uint n) public pure returns (FE) {
         return FE.wrap(n % MODULUS);
