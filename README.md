@@ -216,7 +216,7 @@ This should:
 
 If the `make` command execution succeeds, Then congratulations! We have verified the proof of a o1js circuit in Ethereum.
 
-Remember to build the Fibonacci circuit and verify its proof instead of using the example circuit mentioned above.
+Just one last thing: Remember to build the Fibonacci circuit and verify its proof instead of using the example circuit mentioned above!
 
 ## About
 
