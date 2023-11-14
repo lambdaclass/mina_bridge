@@ -26,14 +26,26 @@ npm install
 npm run build
 ```
 
-Go back to the directory where you cloned `mina_bridge`.
+Go back to the directory where we cloned `mina_bridge`.
 Create a new o1js project there (in this example, the o1js project will be called `fibonacci`):
 
 ```sh
 zk project fibonacci --ui none
 ```
 
-Go to the new o1js project we created and run:
+We should have the following file hierarchy:
+
+```
+root
+|- fibonacci
+|- mina_bridge
+   |- verifier_circuit
+      |- o1js
+```
+
+Note that the new o1js project we created should be in the same directory than `mina_bridge`.
+
+Go to the new o1js project (`fibonacci` in this example) and run:
 
 ```sh
 npm uninstall o1js
@@ -130,6 +142,12 @@ Once we have our circuit, we need to prove it.
 To do that, we need to send the circuit gates to the KZG prover.
 The prover reads circuit gates from a JSON file stored in a specific path.
 So, we need to write the circuit gates in a JSON file in the corresponding path.
+
+To write files in TypeScript we need to install another package. Run:
+
+```sh
+npm i --save-dev @types/node
+```
 
 At the end of `src/index.ts`, write the following:
 
