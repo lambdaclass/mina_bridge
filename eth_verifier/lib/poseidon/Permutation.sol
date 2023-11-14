@@ -30,4 +30,19 @@ library Poseidon {
             state[2].mul(mds[2][2])
         );
     }
+
+    function apply_round(
+        uint round,
+        Base.FE[3] memory state
+    ) public view returns (Base.FE[3] memory new_state) {
+        state[0] = sbox(state[0]);
+        state[1] = sbox(state[1]);
+        state[2] = sbox(state[2]);
+
+        state = apply_mds(state)
+
+        state[0] = state[0].add(round_constants[round][0]);
+        state[1] = state[1].add(round_constants[round][1]);
+        state[2] = state[2].add(round_constants[round][2]);
+    }
 }
