@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
-import "../lib/Fields.sol";
-import "../lib/BN254.sol";
+import "../lib/bn254/Fields.sol";
+import "../lib/bn254/BN254.sol";
 import "../lib/VerifierIndex.sol";
 import "../lib/Commitment.sol";
 import "../lib/Oracles.sol";
