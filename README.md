@@ -202,7 +202,7 @@ Now, there should be a `gates.json` file in the KZG prover (if you are in the o1
 ### Prove a circuit and verify it in Ethereum
 
 Once we have `gates.json` generated in the KZG prover directory, we can prove the Fibonacci circuit and verify it in a Ethereum smart contract.
-To do that, go to the `mina_bridge` root directory and run:
+To do that, go to `mina_bridge` and run:
 
 ```sh
 make prove_and_verify
