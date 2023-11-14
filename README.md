@@ -11,14 +11,125 @@
 Implement a circuit for `Fibonacci(x)` and generate a Kimchi + KZG proof of that computation.
 Verify the generated proof using the verifier contract.
 
-### Usage
+### How to start
 
-First, start Docker daemon. Then, run:
+Clone the `mina_bridge` repo with its submodules and its branch set to `workshop`:
 
 ```sh
-docker build -t debian_ocaml .
-docker run -it --rm -v $PWD:/app debian_ocaml bash
+git clone https://github.com/lambdaclass/mina_bridge.git --recursive -b workshop
 ```
+
+Go to `mina_bridge/verifier_circuit/o1js` and build the submodule:
+
+```sh
+npm install
+npm run build
+```
+
+Go back to the directory where you cloned `mina_bridge`.
+Create a new o1js project there (in this example, the o1js project will be called `fibonacci`):
+
+```sh
+zk project fibonacci --ui none
+```
+
+In the new o1js project, open `package.json` and find these lines:
+
+```js
+"peerDependencies": {
+    "o1js": "0.14.*"
+}
+```
+
+And change them to:
+
+```js
+"peerDependencies": {
+    "o1js": "file:../mina_bridge/verifier_circuit/o1js"
+}
+```
+
+Install the o1js project dependencies:
+
+```sh
+npm install
+```
+
+Now it's time to check that everything works correctly.
+In your o1js project, go to `src/index.ts`. It should contain the following lines:
+
+```js
+import { Add } from './Add.js';
+
+export { Add };
+```
+
+Remove all of them and replace them with the following:
+
+```js
+import { Field, createForeignField, Provable } from 'o1js';
+
+class PastaForeignField extends createForeignField(Field.ORDER) { };
+
+let { gates } = Provable.constraintSystem(() => {
+    let x = Provable.witness(PastaForeignField, () => PastaForeignField.from(2));
+    let y = Provable.witness(PastaForeignField, () => PastaForeignField.from(3));
+    let x_plus_y = Provable.witness(PastaForeignField, () => PastaForeignField.from(5));
+
+    x.add(y).assertEquals(x_plus_y);
+})
+
+console.dir(gates, { depth: null });
+```
+
+Build the project and run it:
+
+```sh
+npm run build
+node build/src/index.js
+```
+
+This should print an array of gates like this.
+We show only two gates for simplicity:
+
+```js
+[
+  {
+    type: 'ForeignFieldAdd',
+    wires: [
+      { row: 19, col: 0 },
+      { row: 19, col: 1 },
+      { row: 19, col: 2 },
+      { row: 0, col: 4 },
+      { row: 2, col: 3 },
+      { row: 7, col: 5 },
+      { row: 2, col: 0 }
+    ],
+    coeffs: [
+      '93054740644568405314109441',
+      '147213319177',
+      '302231454903657293676544',
+      '1'
+    ]
+  },
+  {
+    type: 'Zero',
+    wires: [
+      { row: 3, col: 0 },
+      { row: 4, col: 0 },
+      { row: 5, col: 0 },
+      { row: 1, col: 3 },
+      { row: 1, col: 4 },
+      { row: 1, col: 5 },
+      { row: 1, col: 6 }
+    ],
+    coeffs: []
+  },
+  ...
+]
+```
+
+Now that we have our o1js project set, we can start building our circuit!
 
 ## About
 
