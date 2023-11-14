@@ -13,7 +13,7 @@ Verify the generated proof using the verifier contract.
 
 ### How to start
 
-Clone the `mina_bridge` repo with its submodules and its branch set to `workshop`:
+If you don't have the `mina_bridge` repo yet, clone it with its submodules and its branch set to `workshop`:
 
 ```sh
 git clone https://github.com/lambdaclass/mina_bridge.git --recursive -b workshop
