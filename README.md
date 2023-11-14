@@ -208,7 +208,14 @@ To do that, go to the `mina_bridge` root directory and run:
 make prove_and_verify
 ```
 
+This should:
+- Prove the Fibonacci circuit we just created
+- Start a local Ethereum node
+- Deploy a verifier Ethereum contract in the local node
+- Verify the proof of the Fibonacci circuit using the verifier Ethereum contract
 
+If the `make` command execution succeeds, Then congratulations! We have verified the proof of a o1js circuit in Ethereum.
+Also, this means that you overcome the Workshop Challenge, so nice job!
 
 ## About
 
