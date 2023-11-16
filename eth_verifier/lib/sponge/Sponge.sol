@@ -78,28 +78,24 @@ library KeccakSponge {
     function challenge_base(
         Sponge storage self
     ) external pure returns (Base.FE chal) {
-        uint256 integer = abi.decode(squeeze(self, 16), (uint256));
-        chal = Base.from(integer);
+        chal = Base.from_bytes_be(squeeze(self, 16));
     }
 
     function challenge_scalar(
         Sponge storage self
     ) external pure returns (Scalar.FE chal) {
-        uint256 integer = abi.decode(squeeze(self, 16), (uint256));
-        chal = Scalar.from(integer);
+        chal = Scalar.from_bytes_be(squeeze(self, 16));
     }
 
     function digest_base(
         Sponge storage self
     ) external pure returns (Base.FE digest) {
-        uint256 integer = abi.decode(squeeze(self, 32), (uint256));
-        digest = Base.from(integer);
+        digest = Base.from_bytes_be(squeeze(self, 32));
     }
 
     function digest_scalar(
         Sponge storage self
     ) external pure returns (Scalar.FE digest) {
-        uint256 integer = abi.decode(squeeze(self, 32), (uint256));
-        digest = Scalar.from(integer);
+        digest = Scalar.from_bytes_be(squeeze(self, 32));
     }
 }

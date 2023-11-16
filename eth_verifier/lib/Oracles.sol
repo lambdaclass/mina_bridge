@@ -68,6 +68,7 @@ library Oracles {
         scalar_sponge.reinit();
         scalar_sponge.absorb_scalar(base_sponge.digest_scalar());
 
+
         // often used values
         Scalar.FE zeta1 = zeta.pow(index.domain_size);
         Scalar.FE zetaw = zeta.mul(index.domain_gen);

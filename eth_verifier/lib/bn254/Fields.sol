@@ -16,6 +16,15 @@ library Base {
         return FE.wrap(n % MODULUS);
     }
 
+    function from_bytes_be(bytes memory b) public pure returns (FE) {
+        uint256 integer = 0;
+        for (uint i = 0; i < 32; i++) {
+            integer <<= 8;
+            integer += uint8(b[i]);
+        }
+        return FE.wrap(integer % MODULUS);
+    }
+
     function add(
         FE self,
         FE other
@@ -109,6 +118,18 @@ library Scalar {
 
     function from(uint n) public pure returns (FE) {
         return FE.wrap(n % MODULUS);
+    }
+
+    function from_bytes_be(bytes memory b) public pure returns (FE) {
+        uint256 integer = 0;
+        uint count = b.length <= 32 ? b.length : 32;
+
+        for (uint i = 0; i < count; i++) {
+            integer <<= 8;
+            integer += uint8(b[i]);
+        }
+        integer <<= (32 - count) * 8;
+        return FE.wrap(integer % MODULUS);
     }
 
     function add(
