@@ -9,4 +9,6 @@ forge script \
     --rpc-url http://127.0.0.1:8545 \
     --broadcast \
     script/Deploy.s.sol:DeployAndVerify
-pkill anvil || true
+
+echo "After interacting with your contract, don't forget to kill the Anvil process:"
+echo "    pkill anvil"

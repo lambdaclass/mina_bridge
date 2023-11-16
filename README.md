@@ -158,15 +158,17 @@ make setup
 ```
 
 #### Local usage and deployment
-The contract can be deployed in an Anvil local node.
+The contract will be deployed and verification should execute after running the whole project workflow (executing `make` in the root) to query, parse and serialize the last Mina state data and proof.
+
+To make this manually, you can follow the next steps. Files `proof.mpk` and `state.mpk` should be present in `eth_verifier/` for this.
 
 Start the local chain with:
 ```bash
 make run_node
 ```
-then deploy the contract:
+and then deploy and verify the data:
 ```bash
-make deploy_verifier
+make deploy_and_verify
 ```
 after deployment Anvil will return a list of deployed contracts, as it will also deploy needed libraries for the verifier:
 ```bash
@@ -183,24 +185,16 @@ Transactions saved to: eth_verifier/broadcast/Deploy.s.sol/31337/run-latest.json
 
 Sensitive values saved to: eth_verifier/cache/Deploy.s.sol/31337/run-latest.json
 ```
-the last contract deployed is the verifier, **save its address as we'll use it in a later step**.
-
-You can query data from the last Mina state and serialize it into MessagePack, needed for calling the contract:
+the last contract deployed is the verifier, its address can be used for interacting with the contract. Check if verification was successful by running:
 ```bash
-make query
+cast call <CONTRACT_ADDR> 'is_state_available()(bool)'
 ```
-if you ran the entire project flow you will find a `proof.mpk` containing only the data needed for running the current verifier, which is WIP.
-
-You can then run the verifier by calling the `verify_state()` function using `cast`. For this we provided a utility script `verify.sh`, run it with:
-```bash
-./verify.sh <ADDRESS>
-```
-then you can get State data from the contract storage:
+if `true`, then you can get State data from the contract storage:
 ```bash
 cast call <CONTRACT_ADDR> 'retrieve_state_creator()(string)'
 cast call <CONTRACT_ADDR> 'retrieve_state_hash()(uint256)'
 cast call <CONTRACT_ADDR> 'retrieve_state_height(uint256)'
-````
+```
 #### Testing
 
 Just run:

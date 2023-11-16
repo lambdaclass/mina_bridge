@@ -57,6 +57,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "parser"
+version = "0.1.0"
+dependencies = [
+ "hex",
+ "num-bigint",
+ "rmp-serde",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "paste"
 version = "1.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -137,17 +148,6 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
-]
-
-[[package]]
-name = "state_serializer"
-version = "0.1.0"
-dependencies = [
- "hex",
- "num-bigint",
- "rmp-serde",
- "serde",
- "serde_json",
 ]
 
 [[package]]
