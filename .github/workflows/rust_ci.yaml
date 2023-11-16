@@ -13,7 +13,7 @@ on:
 jobs:
   check:
     name: Check, fmt, clippy, test and run
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: ./${{inputs.directory}}
@@ -21,31 +21,18 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v4
 
-      - name: Install rust stable toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
-
-      - name: Install nextest
-        uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-nextest
-
-      - name: Set up cargo cache
-        uses: Swatinem/rust-cache@v2
-
       - name: Run cargo check
-        run: cargo check --workspace
+        run: /root/.cargo/bin/cargo check --workspace
 
       - name: Run rustfmt
-        run: cargo fmt --all --check
+        run: /root/.cargo/bin/cargo fmt --all --check
 
       - name: Run clippy
-        run: cargo clippy --workspace --all-targets -- -D warnings
+        run: /root/.cargo/bin/cargo clippy --workspace --all-targets -- -D warnings
 
       - name: Run nextest
-        run: cargo nextest run --workspace --all-targets --no-fail-fast
+        run: /root/.cargo/bin/cargo nextest run --workspace --all-targets --no-fail-fast
 
       - name: Run binary
         if: ${{ !inputs.skip_run }}
-        run: cargo run
+        run: /root/.cargo/bin/cargo run

@@ -1,7 +1,8 @@
 name: CI
 on:
     push:
-        branches: [main]
+        branches:
+            - main
     pull_request:
         branches: ["*"]
 
@@ -20,18 +21,13 @@ jobs:
 
     verifier_circuit:
         name: Build and test EVM bridge
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-22.04
         defaults:
             run:
                 working-directory: ./verifier_circuit
         steps:
             - name: Checkout sources
               uses: actions/checkout@v4
-
-            - name: Install node
-              uses: actions/setup-node@v3
-              with:
-                  node-version: latest
 
             - name: Setup o1js submodule
               run: git submodule update --init --recursive
@@ -47,35 +43,21 @@ jobs:
 
     integration:
         name: Integration test
-        strategy:
-            fail-fast: false
-            matrix:
-                os:
-                    - ubuntu-latest
-                ocaml-compiler:
-                    - "4.14.0"
-        runs-on: ${{ matrix.os }}
+        runs-on: ubuntu-22.04
         steps:
             - name: Checkout sources
               uses: actions/checkout@v4
 
-            - name: Set-up OCaml ${{ matrix.ocaml-compiler }}
-              uses: ocaml/setup-ocaml@v2
-              with:
-                  ocaml-compiler: ${{ matrix.ocaml-compiler }}
-
-            - name: Install Foundry
-              uses: foundry-rs/foundry-toolchain@v1
-
-            - name: Install Mina dependencies
-              run: sudo apt-get install libsodium-dev capnproto
-
             - name: Run integration test
-              run: make
+              run: |
+                export HOME="/root/"
+                export PATH="/.foundry/bin:/root/.cargo/bin:$PATH"
+                export GOPATH="/root/go"
+                make
 
     demo_eth_verifier:
         name: Test demo's Solidity verifier
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-22.04
         defaults:
             run:
                 working-directory: ./eth_verifier
@@ -83,8 +65,9 @@ jobs:
             - name: Checkout sources
               uses: actions/checkout@v4
 
-            - name: Install Foundry
-              uses: foundry-rs/foundry-toolchain@v1
-
             - name: Run tests
-              run: make test
+              run: |
+                export HOME="/root/"
+                export PATH="/.foundry/bin:/root/.cargo/bin:$PATH"
+                export GOPATH="/root/go"
+                make test

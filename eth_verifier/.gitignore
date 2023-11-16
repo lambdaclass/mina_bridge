@@ -14,3 +14,4 @@ docs/
 .env
 
 ./proof.mpk
+./state.mpk
