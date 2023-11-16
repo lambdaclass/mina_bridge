@@ -48,6 +48,9 @@ contract KimchiVerifier {
     VerifierIndex verifier_index;
     ProverProof proof;
 
+    Sponge base_sponge;
+    Sponge scalar_sponge;
+
     State internal state;
     bool state_available;
 
@@ -156,7 +159,7 @@ contract KimchiVerifier {
             ).commitment;
         }
 
-        Oracles.fiat_shamir(verifier_index);
+        Oracles.fiat_shamir(verifier_index, public_comm, base_sponge, scalar_sponge);
     }
 
     /*

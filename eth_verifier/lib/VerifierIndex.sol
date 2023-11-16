@@ -15,3 +15,8 @@ struct VerifierIndex {
     Scalar.FE domain_gen;
     Alphas powers_of_alpha;
 }
+
+function verifier_digest(VerifierIndex storage index) returns (Base.FE) {
+    // FIXME: todo!
+    return Base.from(42);
+}

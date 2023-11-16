@@ -5,6 +5,8 @@ import "./bn254/Fields.sol";
 import "./VerifierIndex.sol";
 import "./Evaluations.sol";
 import "./Alphas.sol";
+import "./sponge/Sponge.sol";
+import "./Commitment.sol";
 
 library Oracles {
     using {to_field_with_length, to_field} for ScalarChallenge;
@@ -16,26 +18,55 @@ library Oracles {
         Scalar.pow
     } for Scalar.FE;
     using {AlphasLib.instantiate} for Alphas;
+    using {
+        KeccakSponge.reinit,
+        KeccakSponge.absorb_base,
+        KeccakSponge.absorb_scalar,
+        KeccakSponge.absorb_commitment,
+        KeccakSponge.challenge_base,
+        KeccakSponge.challenge_scalar,
+        KeccakSponge.digest_base,
+        KeccakSponge.digest_scalar
+    } for Sponge;
 
     uint64 internal constant CHALLENGE_LENGTH_IN_LIMBS = 2;
 
-    function fiat_shamir(VerifierIndex storage index) public {
-        // WARN: We'll skip the use of a sponge and generate challenges from pseudo-random numbers
+    function fiat_shamir(
+        VerifierIndex storage index,
+        PolyComm memory public_comm,
+        Sponge storage base_sponge,
+        Sponge storage scalar_sponge
+    ) public {
         Scalar.FE endo_coeff = Scalar.from(0); // FIXME: not zero
 
+        base_sponge.reinit();
+
+        base_sponge.absorb_base(verifier_digest(index));
+        base_sponge.absorb_commitment(public_comm);
+
+        // TODO: absorb the commitments to the registers / witness columns
+        // TODO: lookups
+
         // Sample beta and gamma from the sponge
-        Scalar.FE beta = challenge();
-        Scalar.FE gamma = challenge();
+        Scalar.FE beta = base_sponge.challenge_scalar();
+        Scalar.FE gamma = base_sponge.challenge_scalar();
 
         // Sample alpha prime
-        ScalarChallenge memory alpha_chal = scalar_chal();
+        ScalarChallenge memory alpha_chal = ScalarChallenge(base_sponge.challenge_scalar());
         // Derive alpha using the endomorphism
         Scalar.FE alpha = alpha_chal.to_field(endo_coeff);
 
+        // TODO: enforce length of the $t$ commitment
+
+        // TODO: absorb commitment to the quotient poly
+
         // Sample alpha prime
-        ScalarChallenge memory zeta_chal = scalar_chal();
+        ScalarChallenge memory zeta_chal = ScalarChallenge(base_sponge.challenge_scalar());
         // Derive alpha using the endomorphism
         Scalar.FE zeta = zeta_chal.to_field(endo_coeff);
+
+        scalar_sponge.reinit();
+        scalar_sponge.absorb_scalar(base_sponge.digest_scalar());
 
         // often used values
         Scalar.FE zeta1 = zeta.pow(index.domain_size);
@@ -69,18 +100,6 @@ library Oracles {
 
         // evaluate final polynomial (PolishToken)
         // combined inner prod
-    }
-
-    /// @notice creates a challenge frm hashing the current block timestamp.
-    /// @notice this function is only going to be used for the demo and never in
-    /// @notice a serious environment. DO NOT use this in any other case.
-    function challenge() internal view returns (Scalar.FE) {
-        Scalar.from(uint256(keccak256(abi.encode(block.timestamp))));
-    }
-
-    /// @notice creates a `ScaharChallenge` using `challenge()`.
-    function scalar_chal() internal view returns (ScalarChallenge memory) {
-        return ScalarChallenge(challenge());
     }
 
     struct ScalarChallenge {

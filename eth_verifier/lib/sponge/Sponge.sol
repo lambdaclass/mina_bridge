@@ -3,6 +3,7 @@ pragma solidity >=0.4.16 <0.9.0;
 
 import "../bn254/Fields.sol";
 import "../bn254/BN254.sol";
+import "../Commitment.sol";
 
 struct Sponge {
     bytes state;
@@ -11,8 +12,8 @@ struct Sponge {
 library KeccakSponge {
     // Basic methods
 
-    function init() external pure returns (Sponge memory) {
-        return Sponge(new bytes(0));
+    function reinit(Sponge storage self) external {
+        self.state = new bytes(0);
     }
 
     function absorb(Sponge storage self, bytes memory b) external {
@@ -59,6 +60,16 @@ library KeccakSponge {
         BN254.G1Point memory point
     ) external {
         bytes memory b = abi.encode(point);
+        for (uint i = 0; i < b.length; i++) {
+            self.state.push(b[i]);
+        }
+    }
+
+    function absorb_commitment(
+        Sponge storage self,
+        PolyComm memory comm
+    ) external {
+        bytes memory b = abi.encode(comm);
         for (uint i = 0; i < b.length; i++) {
             self.state.push(b[i]);
         }
