@@ -12,9 +12,11 @@ import "./Proof.sol";
 library Oracles {
     using {to_field_with_length, to_field} for ScalarChallenge;
     using {
-        Scalar.add,
-        Scalar.mul,
         Scalar.neg,
+        Scalar.add,
+        Scalar.sub,
+        Scalar.mul,
+        Scalar.inv,
         Scalar.double,
         Scalar.pow
     } for Scalar.FE;
@@ -95,16 +97,16 @@ library Oracles {
 
         // evaluations of the public input
 
-        Scalar.FE[2][] public_evals;
-        if (proof.is_public_evals_set) {
-            public_evals = [proof.evals.zeta, proof.evals.zeta_omega];
+        Scalar.FE[][2] memory public_evals;
+        if (proof.evals.is_public_evals_set) {
+            public_evals = [proof.evals.public_evals.zeta, proof.evals.public_evals.zeta_omega];
         } else if (chunk_size > 1) {
             // FIXME: error missing public input evaluation
         } else if (is_public_input_set) {
             // compute Lagrange base evaluation denominators
 
-            Scalar.FE[] w = new Scalar.FE[](public_input.length);
-            Scalar.FE[] zeta_minus_x = new Scalar.FE[](public_input.length*2);
+            Scalar.FE[] memory w = new Scalar.FE[](public_input.length);
+            Scalar.FE[] memory zeta_minus_x = new Scalar.FE[](public_input.length*2);
             for (uint i = 0; i < public_input.length; i++) {
                 Scalar.FE w_i = index.domain_gen.pow(i);
                 w[i] = w_i;
@@ -114,7 +116,7 @@ library Oracles {
 
             // evaluate the negated public polynomial (if present) at $\zeta$ and $\zeta\omega$.
             if (public_input.length == 0) {
-                Scalar.FE[] zero = new Scalar.FE[](1);
+                Scalar.FE[] memory zero = new Scalar.FE[](1);
                 zero[0] = Scalar.zero();
                 public_evals = [zero, zero];
             } else {
@@ -139,10 +141,14 @@ library Oracles {
                     pe_zetaOmega = pe_zetaOmega.add(l.neg().mul(p).mul(w_i));
                 }
                 pe_zetaOmega = pe_zetaOmega
-                    .mul(zetaw.pow(n).sub(Scalar.from(1)))
+                    .mul(zetaw.pow(index.domain_size).sub(Scalar.from(1)))
                     .mul(size_inv);
 
-                public_evals = [[pe_zeta], [pe_zetaOmega]];
+                Scalar.FE[] memory pe_zeta_arr = new Scalar.FE[](1);
+                Scalar.FE[] memory pe_zetaOmega_arr = new Scalar.FE[](1);
+                pe_zeta_arr[0] = pe_zeta;
+                pe_zetaOmega_arr[0] = pe_zetaOmega;
+                public_evals = [pe_zeta_arr, pe_zetaOmega_arr];
             }
         } else {
             // FIXME: error missing public input evaluation
