@@ -2,11 +2,11 @@
 pragma solidity >=0.4.16 <0.9.0;
 
 import {Test, console2} from "forge-std/Test.sol";
-import "../lib/BN254.sol";
+import "../lib/bn254/Fields.sol";
+import "../lib/bn254/BN254.sol";
 import "../src/Verifier.sol";
 import "../lib/msgpack/Deserialize.sol";
 import "../lib/Commitment.sol";
-import "../lib/Fields.sol";
 
 contract DeserializeTest is Test {
     function test_partial_verify() public {

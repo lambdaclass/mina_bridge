@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
-import "./BN254.sol";
-import "./Fields.sol";
+import "./bn254/BN254.sol";
+import "./bn254/Fields.sol";
 import "./Utils.sol";
 
 using { BN254.add, BN254.scale_scalar } for BN254.G1Point;

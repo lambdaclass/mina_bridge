@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
-import "../lib/Fields.sol";
-import "../lib/BN254.sol";
+import "../lib/bn254/Fields.sol";
+import "../lib/bn254/BN254.sol";
 import "../lib/VerifierIndex.sol";
 import "../lib/Commitment.sol";
 import "../lib/Oracles.sol";
@@ -47,6 +47,9 @@ library Kimchi {
 contract KimchiVerifier {
     VerifierIndex verifier_index;
     ProverProof proof;
+
+    Sponge base_sponge;
+    Sponge scalar_sponge;
 
     State internal state;
     bool state_available;
@@ -156,7 +159,7 @@ contract KimchiVerifier {
             ).commitment;
         }
 
-        Oracles.fiat_shamir(verifier_index);
+        Oracles.fiat_shamir(verifier_index, public_comm, base_sponge, scalar_sponge);
     }
 
     /*

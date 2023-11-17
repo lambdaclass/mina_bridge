@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
-import "./BN254.sol";
-import "./Fields.sol";
+import "./bn254/BN254.sol";
+import "./bn254/Fields.sol";
 import "./UtilsExternal.sol";
 import "forge-std/console.sol";
 

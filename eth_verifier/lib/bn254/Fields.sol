@@ -8,6 +8,23 @@ library Base {
     uint256 public constant MODULUS =
         21888242871839275222246405745257275088696311157297823662689037894645226208583;
 
+    function zero() public pure returns (FE) {
+        return FE.wrap(0);
+    }
+
+    function from(uint n) public pure returns (FE) {
+        return FE.wrap(n % MODULUS);
+    }
+
+    function from_bytes_be(bytes memory b) public pure returns (FE) {
+        uint256 integer = 0;
+        for (uint i = 0; i < 32; i++) {
+            integer <<= 8;
+            integer += uint8(b[i]);
+        }
+        return FE.wrap(integer % MODULUS);
+    }
+
     function add(
         FE self,
         FE other
@@ -27,12 +44,16 @@ library Base {
     }
 
     function square(FE self) public pure returns (FE res) {
-        res = mul(self, self);
+        assembly {
+            res := mulmod(self, self, MODULUS) // mulmod has arbitrary precision
+        }
     }
 
     function inv(FE self) public view returns (FE) {
-        // TODO:
-        return FE.wrap(0);
+        (uint inverse, uint gcd) = Aux.xgcd(FE.unwrap(self), MODULUS);
+        require(gcd == 1, "gcd not 1");
+
+        return FE.wrap(inverse);
     }
 
     function neg(FE self) public pure returns (FE) {
@@ -77,7 +98,6 @@ library Base {
         }
     }
 }
-import "forge-std/console.sol";
 
 /// @notice Implements 256 bit modular arithmetic over the scalar field of bn254.
 library Scalar {
@@ -92,8 +112,24 @@ library Scalar {
         19103219067921713944291392827692070036145651957329286315305642004821462161904;
     uint256 public constant TWO_ADICITY = 28;
 
+    function zero() public pure returns (FE) {
+        return FE.wrap(0);
+    }
+
     function from(uint n) public pure returns (FE) {
         return FE.wrap(n % MODULUS);
+    }
+
+    function from_bytes_be(bytes memory b) public pure returns (FE) {
+        uint256 integer = 0;
+        uint count = b.length <= 32 ? b.length : 32;
+
+        for (uint i = 0; i < count; i++) {
+            integer <<= 8;
+            integer += uint8(b[i]);
+        }
+        integer <<= (32 - count) * 8;
+        return FE.wrap(integer % MODULUS);
     }
 
     function add(

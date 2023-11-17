@@ -3,7 +3,7 @@ pragma solidity >=0.4.16 <0.9.0;
 
 import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
-import {BN254} from "../lib/BN254.sol";
+import {BN254} from "../lib/bn254/BN254.sol";
 
 contract DeserializeTest is Test {
     function test_deserialize() public {

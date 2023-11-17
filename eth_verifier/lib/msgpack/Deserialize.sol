@@ -3,12 +3,11 @@ pragma solidity >=0.4.16 <0.9.0;
 
 import {Kimchi} from "../../src/Verifier.sol";
 import "../Commitment.sol";
-import "../BN254.sol";
+import "../bn254/BN254.sol";
 import "../Evaluations.sol";
 import "../Proof.sol";
 import "../State.sol";
 import "../Utils.sol";
-import {console} from "forge-std/console.sol";
 
 library MsgPk {
     struct Stream {
