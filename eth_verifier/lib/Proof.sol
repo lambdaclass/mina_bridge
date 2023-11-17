@@ -8,6 +8,6 @@ struct ProverProof {
 }
 
 struct ProofEvaluations {
-    // array of length 1 serves as optional field
-    PointEvaluationsArray[] public_evals;
+    PointEvaluationsArray public_evals;
+    bool is_public_evals_set; // public_evals is optional
 }
