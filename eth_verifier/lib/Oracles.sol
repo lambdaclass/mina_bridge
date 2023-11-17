@@ -25,6 +25,7 @@ library Oracles {
         KeccakSponge.reinit,
         KeccakSponge.absorb_base,
         KeccakSponge.absorb_scalar,
+        KeccakSponge.absorb_scalar_multiple,
         KeccakSponge.absorb_commitment,
         KeccakSponge.challenge_base,
         KeccakSponge.challenge_scalar,
@@ -155,6 +156,10 @@ library Oracles {
         }
 
         // TODO: absorb the unique evaluation of ft
+
+        // absorb the public evals
+        scalar_sponge.absorb_scalar_multiple(public_evals[0]);
+        scalar_sponge.absorb_scalar_multiple(public_evals[1]);
 
         // -squeeze challenges-
 

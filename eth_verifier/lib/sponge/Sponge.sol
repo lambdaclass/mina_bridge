@@ -4,6 +4,7 @@ pragma solidity >=0.4.16 <0.9.0;
 import "../bn254/Fields.sol";
 import "../bn254/BN254.sol";
 import "../Commitment.sol";
+import "../Evaluations.sol";
 
 struct Sponge {
     bytes state;
@@ -55,6 +56,13 @@ library KeccakSponge {
         }
     }
 
+    function absorb_scalar_multiple(Sponge storage self, Scalar.FE[] memory elems) external {
+        bytes memory b = abi.encode(elems);
+        for (uint i = 0; i < b.length; i++) {
+            self.state.push(b[i]);
+        }
+    }
+
     function absorb_g(
         Sponge storage self,
         BN254.G1Point memory point
@@ -70,6 +78,13 @@ library KeccakSponge {
         PolyComm memory comm
     ) external {
         bytes memory b = abi.encode(comm);
+        for (uint i = 0; i < b.length; i++) {
+            self.state.push(b[i]);
+        }
+    }
+
+    function absorb_evaluations(Sponge storage self, PointEvaluationsArray memory evals) external {
+        bytes memory b = abi.encode(evals);
         for (uint i = 0; i < b.length; i++) {
             self.state.push(b[i]);
         }
