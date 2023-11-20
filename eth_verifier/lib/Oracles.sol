@@ -27,11 +27,13 @@ library Oracles {
         KeccakSponge.absorb_scalar,
         KeccakSponge.absorb_scalar_multiple,
         KeccakSponge.absorb_commitment,
+        KeccakSponge.absorb_evaluations,
         KeccakSponge.challenge_base,
         KeccakSponge.challenge_scalar,
         KeccakSponge.digest_base,
         KeccakSponge.digest_scalar
     } for Sponge;
+    using {combine_evals} for ProofEvaluationsArray;
 
     uint64 internal constant CHALLENGE_LENGTH_IN_LIMBS = 2;
 
@@ -160,6 +162,15 @@ library Oracles {
         // absorb the public evals
         scalar_sponge.absorb_scalar_multiple(public_evals[0]);
         scalar_sponge.absorb_scalar_multiple(public_evals[1]);
+        scalar_sponge.absorb_evaluations(proof.evals);
+
+        ScalarChallenge memory v_chal = ScalarChallenge(scalar_sponge.challenge_scalar());
+        Scalar.FE v = v_chal.to_field(endo_coeff);
+
+        ScalarChallenge memory u_chal = ScalarChallenge(scalar_sponge.challenge_scalar());
+        Scalar.FE u = u_chal.to_field(endo_coeff);
+
+        proof.evals.combine_evals(powers_of_eval_points_for_chunks);
 
         // -squeeze challenges-
 

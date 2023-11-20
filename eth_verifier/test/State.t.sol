@@ -17,8 +17,8 @@ contract StateTest is Test {
 
         (BN254.G1Point[] memory g, BN254.G1Point memory h, uint256 _i0) = MsgPk
             .deserializeURS(urs_serialized);
-        (ProofEvaluations memory evals, uint256 _i1) = MsgPk
-            .deserializeProofEvaluations(evals_serialized, 0);
+        (ProofEvaluationsArray memory evals, uint256 _i1) = MsgPk
+            .deserializeProofEvaluationsArray(evals_serialized, 0);
 
         verifier = new KimchiVerifier();
         verifier.setup(g, h, 0, 32, 32, evals);
