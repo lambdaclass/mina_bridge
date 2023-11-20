@@ -170,11 +170,7 @@ library Oracles {
         ScalarChallenge memory u_chal = ScalarChallenge(scalar_sponge.challenge_scalar());
         Scalar.FE u = u_chal.to_field(endo_coeff);
 
-        proof.evals.combine_evals(powers_of_eval_points_for_chunks);
-
-        // -squeeze challenges-
-
-        //~ 28. Create a list of all polynomials that have an evaluation proof.
+        ProofEvaluations memory evals = proof.evals.combine_evals(powers_of_eval_points_for_chunks);
 
         //~ 29. Compute the evaluation of $ft(\zeta)$.
 
