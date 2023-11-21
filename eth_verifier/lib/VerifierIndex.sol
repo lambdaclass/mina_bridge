@@ -8,12 +8,18 @@ import "./Alphas.sol";
 import "./Evaluations.sol";
 
 struct VerifierIndex {
+    // number of public inputs
     uint256 public_len;
+    // maximal size of polynomial section
     uint256 max_poly_size;
     URS urs;
+    // domain
     uint256 domain_size;
     Scalar.FE domain_gen;
+    /// The mapping between powers of alpha and constraints
     Alphas powers_of_alpha;
+    // wire shift coordinates
+    Scalar.FE[7] shift;  // TODO: use Consants.PERMUTS
 }
 
 function verifier_digest(VerifierIndex storage index) returns (Base.FE) {

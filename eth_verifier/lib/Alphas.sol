@@ -39,7 +39,11 @@ library AlphasLib {
     }
 
     /// @notice retrieves the powers of alpha, upperbounded by `num`
-    function get_alphas(Alphas storage self, ArgumentType ty, uint num) external view returns (Scalar.FE[] memory pows) {
+    function get_alphas(Alphas storage self, ArgumentType ty, uint num)
+        external
+        view
+        returns (Scalar.FE[] memory pows) 
+    {
         if (ty == ArgumentType.GateZero ||
             ty == ArgumentType.GateGeneric ||
             ty == ArgumentType.GatePoseidon ||
