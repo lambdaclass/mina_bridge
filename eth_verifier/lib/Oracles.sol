@@ -175,9 +175,7 @@ library Oracles {
         ProofEvaluations memory evals = proof.evals.combine_evals(powers_of_eval_points_for_chunks);
 
         // compute the evaluation of $ft(\zeta)$.
-        Scalar.FE ft_eval0;
-        // FIXME: evaluate permutation vanishing poly in zeta
-        Scalar.FE permutation_vanishing_poly = Scalar.from(1);
+        Scalar.FE permutation_vanishing_poly = Scalar.from(1); // FIXME: evaluate poly in zeta
         Scalar.FE zeta1m1 = zeta1.sub(Scalar.from(1));
 
         uint permutation_constraints = 3;
@@ -192,10 +190,10 @@ library Oracles {
             .mul(alpha0)
             .mul(permutation_vanishing_poly);
 
-        for (uint i = 0; i < permuts - 1; i++) {
-            Scalar.FE w = evals.w[i];
-            Scalar.FE s = evals.s[i];
-            ft_eval0 = init.mul(beta.mul(s.zeta).add(w.zeta).add(gamma));
+        for (uint i = 0; i < Constants.PERMUTS - 1; i++) {
+            PointEvaluations memory w = evals.w[i];
+            PointEvaluations memory s = evals.s[i];
+            ft_eval0 = ft_eval0.mul(beta.mul(s.zeta).add(w.zeta).add(gamma));
         }
 
         ft_eval0 = ft_eval0.sub(
@@ -205,8 +203,8 @@ library Oracles {
         ));
 
         Scalar.FE ev = alpha0.mul(permutation_vanishing_poly).mul(evals.z.zeta);
-        for (uint i = 0; i < permuts; i++) {
-            Scalar.FE w = evals.w[i];
+        for (uint i = 0; i < Constants.PERMUTS; i++) {
+            PointEvaluations memory w = evals.w[i];
             Scalar.FE s = index.shift[i];
 
             ev = ev.mul(gamma.add(beta.mul(zeta).mul(s)).add(w.zeta));
@@ -221,8 +219,10 @@ library Oracles {
 
         ft_eval0 = ft_eval0.add(numerator.mul(denominator));
 
-        // evaluate final polynomial (PolishToken)
-        // combined inner prod
+        // TODO: evaluate final polynomial (PolishToken)
+
+        // TODO: evaluations of all columns
+        Scalar.FE combined_inner_prod = combined_inner_product(evaluation_points, v, u, es, index.max_poly_size);
     }
 
     struct ScalarChallenge {

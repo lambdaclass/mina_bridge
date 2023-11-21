@@ -182,3 +182,46 @@ function calculate_lagrange_bases(
             }
         }
 }
+
+// Computes the linearization of the evaluations of a (potentially split) polynomial.
+// Each given `poly` is associated to a matrix where the rows represent the number of evaluated points,
+// and the columns represent potential segments (if a polynomial was split in several parts).
+// Note that if one of the polynomial comes specified with a degree bound,
+// the evaluation for the last segment is potentially shifted to meet the proof.
+function combined_inner_product(
+    Scalar.FE[] memory evaluation_points,
+    Scalar.FE polyscale,
+    Scalar.FE evalscale,
+    Scalar.FE[][][] poly_matrices,
+    //uint[] poly_shifted, // TODO: not necessary for fiat-shamir
+    uint srs_length
+) pure returns (Scalar.FE res) {
+    res = Scalar.zero();
+    Scalar.FE xi_i = Scalar.from(1);
+
+    require(poly_matrices.length == poly_shifted.length);
+    for (uint i = 0; i < poly_matrices.length; i++) {
+        Scalar.FE[][] memory evals = poly_matrices[i];
+        uint shifted = poly_shifted[i];
+
+        if (evals[0].length == 0) {
+            continue;
+        }
+
+        uint rows = evals.length;
+        uint columns = evals.length[0];
+        for (uint col = 0; col < columns; col++) {
+            Scalar.FE[] eval = new Scalar[](rows); // column that stores the segment
+
+            for (uint j = 0; j < rows; j++) {
+                eval[j] = evals[col + j*columns];
+            }
+            Scalar.FE term = Polynomial.build_and_eval(eval, evalscale);
+
+            res = res.add(xi_i.mul(term));
+            xi_i = xi_i.mul(polyscale);
+        }
+
+        // TODO: shifted
+    }
+}
