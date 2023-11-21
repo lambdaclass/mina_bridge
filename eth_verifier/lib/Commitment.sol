@@ -192,7 +192,7 @@ function combined_inner_product(
     Scalar.FE[] memory evaluation_points,
     Scalar.FE polyscale,
     Scalar.FE evalscale,
-    Scalar.FE[][][] poly_matrices,
+    Scalar.FE[] memory flat_poly_matrices, // this is 3-dim; an array of matrices
     //uint[] poly_shifted, // TODO: not necessary for fiat-shamir
     uint srs_length
 ) pure returns (Scalar.FE res) {
@@ -204,12 +204,12 @@ function combined_inner_product(
         Scalar.FE[][] memory evals = poly_matrices[i];
         uint shifted = poly_shifted[i];
 
-        if (evals[0].length == 0) {
+        if (evals[i].length == 0) {
             continue;
         }
 
         uint rows = evals.length;
-        uint columns = evals.length[0];
+        uint columns = evals.length;
         for (uint col = 0; col < columns; col++) {
             Scalar.FE[] eval = new Scalar[](rows); // column that stores the segment
 
@@ -224,4 +224,11 @@ function combined_inner_product(
 
         // TODO: shifted
     }
+}
+
+struct PolyMatrices {
+    Scalar.FE[] flat_data;
+    uint length;
+    uint[] rows; // per matrix
+    uint[] cols; // per matrix
 }

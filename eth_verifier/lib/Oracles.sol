@@ -221,6 +221,17 @@ library Oracles {
 
         // TODO: evaluate final polynomial (PolishToken)
 
+        uint es_length = 0;
+        es_length += public_evals[0].length;
+        es_length += public_evals[1].length;
+        es_length += [ft_eval0].length;
+
+        uint matrix_count = 3;
+
+
+        Scalar.FE[] es_data = new Scalar.FE[](es_length);
+        PolyMatrices memory es = PolyMatrices(es_data, matrix_count)
+        es[0] = public_evals;
         // TODO: evaluations of all columns
         Scalar.FE combined_inner_prod = combined_inner_product(evaluation_points, v, u, es, index.max_poly_size);
     }
