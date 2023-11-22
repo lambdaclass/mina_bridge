@@ -7,13 +7,16 @@ import "./Evaluations.sol";
 import "./Alphas.sol";
 import "./sponge/Sponge.sol";
 import "./Commitment.sol";
+import "./Proof.sol";
 
 library Oracles {
     using {to_field_with_length, to_field} for ScalarChallenge;
     using {
-        Scalar.add,
-        Scalar.mul,
         Scalar.neg,
+        Scalar.add,
+        Scalar.sub,
+        Scalar.mul,
+        Scalar.inv,
         Scalar.double,
         Scalar.pow
     } for Scalar.FE;
@@ -22,21 +25,30 @@ library Oracles {
         KeccakSponge.reinit,
         KeccakSponge.absorb_base,
         KeccakSponge.absorb_scalar,
+        KeccakSponge.absorb_scalar_multiple,
         KeccakSponge.absorb_commitment,
+        KeccakSponge.absorb_evaluations,
         KeccakSponge.challenge_base,
         KeccakSponge.challenge_scalar,
         KeccakSponge.digest_base,
         KeccakSponge.digest_scalar
     } for Sponge;
+    using {combine_evals} for ProofEvaluationsArray;
 
     uint64 internal constant CHALLENGE_LENGTH_IN_LIMBS = 2;
 
     function fiat_shamir(
+        ProverProof memory proof,
         VerifierIndex storage index,
         PolyComm memory public_comm,
+        Scalar.FE[] memory public_input,
+        bool is_public_input_set,
         Sponge storage base_sponge,
         Sponge storage scalar_sponge
     ) public {
+        uint chunk_size = index.domain_size < index.max_poly_size ?
+            1 : index.domain_size / index.max_poly_size;
+
         Scalar.FE endo_coeff = Scalar.from(0); // FIXME: not zero
 
         base_sponge.reinit();
@@ -68,34 +80,97 @@ library Oracles {
         scalar_sponge.reinit();
         scalar_sponge.absorb_scalar(base_sponge.digest_scalar());
 
-
         // often used values
         Scalar.FE zeta1 = zeta.pow(index.domain_size);
         Scalar.FE zetaw = zeta.mul(index.domain_gen);
         Scalar.FE[] memory evaluation_points = new Scalar.FE[](2);
         evaluation_points[0] = zeta;
         evaluation_points[1] = zetaw;
-
         PointEvaluations
             memory powers_of_eval_points_for_chunks = PointEvaluations(
                 zeta.pow(index.max_poly_size),
                 zetaw.pow(index.max_poly_size)
             );
 
-        //~ 20. Compute evaluations for the previous recursion challenges. SKIP
+        // TODO: Compute evaluations for the previous recursion challenges
 
         // retrieve ranges for the powers of alphas
         Alphas storage all_alphas = index.powers_of_alpha;
         all_alphas.instantiate(alpha);
 
         // evaluations of the public input
-        // if they are not present in the proof:
-        //~ 21. Evaluate the negated public polynomial (if present) at $\zeta$ and $\zeta\omega$.
-        //
 
-        // -squeeze challenges-
+        Scalar.FE[][2] memory public_evals;
+        if (proof.evals.is_public_evals_set) {
+            public_evals = [proof.evals.public_evals.zeta, proof.evals.public_evals.zeta_omega];
+        } else if (chunk_size > 1) {
+            // FIXME: error missing public input evaluation
+        } else if (is_public_input_set) {
+            // compute Lagrange base evaluation denominators
 
-        //~ 28. Create a list of all polynomials that have an evaluation proof.
+            Scalar.FE[] memory w = new Scalar.FE[](public_input.length);
+            Scalar.FE[] memory zeta_minus_x = new Scalar.FE[](public_input.length*2);
+            for (uint i = 0; i < public_input.length; i++) {
+                Scalar.FE w_i = index.domain_gen.pow(i);
+                w[i] = w_i;
+                zeta_minus_x[i] = zeta.sub(w_i).inv();
+                zeta_minus_x[i + public_input.length] = zetaw.sub(w_i).inv();
+            }
+
+            // evaluate the negated public polynomial (if present) at $\zeta$ and $\zeta\omega$.
+            if (public_input.length == 0) {
+                Scalar.FE[] memory zero = new Scalar.FE[](1);
+                zero[0] = Scalar.zero();
+                public_evals = [zero, zero];
+            } else {
+                Scalar.FE pe_zeta = Scalar.zero();
+                for (uint i = 0; i < public_input.length; i++) {
+                    Scalar.FE p = public_input[i];
+                    Scalar.FE l = zeta_minus_x[i];
+                    Scalar.FE w_i = w[i];
+
+                    pe_zeta = pe_zeta.add(l.neg().mul(p).mul(w_i));
+                }
+
+                Scalar.FE size_inv = Scalar.from(index.domain_size).inv();
+                pe_zeta = pe_zeta.mul(zeta1.sub(Scalar.from(1))).mul(size_inv);
+
+                Scalar.FE pe_zetaOmega = Scalar.zero();
+                for (uint i = 0; i < public_input.length; i++) {
+                    Scalar.FE p = public_input[i];
+                    Scalar.FE l = zeta_minus_x[i + public_input.length];
+                    Scalar.FE w_i = w[i];
+
+                    pe_zetaOmega = pe_zetaOmega.add(l.neg().mul(p).mul(w_i));
+                }
+                pe_zetaOmega = pe_zetaOmega
+                    .mul(zetaw.pow(index.domain_size).sub(Scalar.from(1)))
+                    .mul(size_inv);
+
+                Scalar.FE[] memory pe_zeta_arr = new Scalar.FE[](1);
+                Scalar.FE[] memory pe_zetaOmega_arr = new Scalar.FE[](1);
+                pe_zeta_arr[0] = pe_zeta;
+                pe_zetaOmega_arr[0] = pe_zetaOmega;
+                public_evals = [pe_zeta_arr, pe_zetaOmega_arr];
+            }
+        } else {
+            // FIXME: error missing public input evaluation
+        }
+
+        // TODO: absorb the unique evaluation of ft
+
+        // absorb the public evals
+        scalar_sponge.absorb_scalar_multiple(public_evals[0]);
+        scalar_sponge.absorb_scalar_multiple(public_evals[1]);
+        scalar_sponge.absorb_evaluations(proof.evals);
+
+        ScalarChallenge memory v_chal = ScalarChallenge(scalar_sponge.challenge_scalar());
+        Scalar.FE v = v_chal.to_field(endo_coeff);
+
+        ScalarChallenge memory u_chal = ScalarChallenge(scalar_sponge.challenge_scalar());
+        Scalar.FE u = u_chal.to_field(endo_coeff);
+
+        ProofEvaluations memory evals = proof.evals.combine_evals(powers_of_eval_points_for_chunks);
 
         //~ 29. Compute the evaluation of $ft(\zeta)$.
 

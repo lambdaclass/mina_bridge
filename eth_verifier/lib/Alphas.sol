@@ -37,6 +37,42 @@ library AlphasLib {
             self.alphas.push(last_power);
         }
     }
+
+    /// @notice retrieves the powers of alpha, upperbounded by `num`
+    function get_alphas(Alphas storage self, ArgumentType ty, uint num) external view returns (Scalar.FE[] memory pows) {
+        if (ty == ArgumentType.GateZero ||
+            ty == ArgumentType.GateGeneric ||
+            ty == ArgumentType.GatePoseidon ||
+            ty == ArgumentType.GateCompleteAdd ||
+            ty == ArgumentType.GateVarBaseMul ||
+            ty == ArgumentType.GateEndoMul ||
+            ty == ArgumentType.GateEndoMulScalar ||
+            ty == ArgumentType.GateLookup ||
+            ty == ArgumentType.GateCairoClaim ||
+            ty == ArgumentType.GateCairoInstruction ||
+            ty == ArgumentType.GateCairoFlags ||
+            ty == ArgumentType.GateCairoTransition ||
+            ty == ArgumentType.GateRangeCheck0 ||
+            ty == ArgumentType.GateRangeCheck1 ||
+            ty == ArgumentType.GateForeignFieldAdd ||
+            ty == ArgumentType.GateForeignFieldMul ||
+            ty == ArgumentType.GateXor16 ||
+            ty == ArgumentType.GateRot64)
+        {
+            ty = ArgumentType.GateZero;
+        }
+
+        uint[2] memory range = self.map[ty];
+        if (num > range[1]) {
+            // FIXME: panic! asked for num alphas but there aren't as many.
+        }
+
+        for (uint i = 0; i < num; i++) {
+            pows[i] = self.alphas[range[0]+i];
+        }
+        // INFO: in kimchi this returns a "MustConsumeIterator", which warns you if
+        // not consumed entirely.
+    }
 }
 
 enum ArgumentType {

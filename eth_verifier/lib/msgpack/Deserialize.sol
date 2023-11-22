@@ -280,10 +280,10 @@ library MsgPk {
         final_i = i;
     }
 
-    function deserializeProofEvaluations(
+    function deserializeProofEvaluationsArray(
         bytes calldata data,
         uint256 i
-    ) public pure returns (ProofEvaluations memory evals, uint256 final_i) {
+    ) public pure returns (ProofEvaluationsArray memory evals, uint256 final_i) {
         // WARN: This works because the test circuit evaluations have one elem per array.
         (
             PointEvaluations memory evals_non_array,
@@ -295,16 +295,13 @@ library MsgPk {
         zeta[0] = evals_non_array.zeta;
         zeta_omega[0] = evals_non_array.zeta_omega;
 
-        PointEvaluationsArray memory _public_evals = PointEvaluationsArray(
+        PointEvaluationsArray memory public_evals = PointEvaluationsArray(
             zeta,
             zeta_omega
         );
 
         // array needed to simulate an optional param
-        PointEvaluationsArray[]
-            memory public_evals = new PointEvaluationsArray[](1);
-        public_evals[0] = _public_evals;
-        evals = ProofEvaluations(public_evals);
+        evals = ProofEvaluationsArray(public_evals, true);
         final_i = _i;
     }
 

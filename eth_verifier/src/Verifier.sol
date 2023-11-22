@@ -60,7 +60,7 @@ contract KimchiVerifier {
         uint256 public_len,
         uint256 domain_size,
         uint256 max_poly_size,
-        ProofEvaluations memory evals
+        ProofEvaluationsArray memory evals
     ) public {
         for (uint i = 0; i < g.length; i++) {
             verifier_index.urs.g.push(g[i]);
@@ -159,7 +159,7 @@ contract KimchiVerifier {
             ).commitment;
         }
 
-        Oracles.fiat_shamir(verifier_index, public_comm, base_sponge, scalar_sponge);
+        Oracles.fiat_shamir(proof, verifier_index, public_comm, public_inputs, true, base_sponge, scalar_sponge);
     }
 
     /*
