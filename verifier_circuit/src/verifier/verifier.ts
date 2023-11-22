@@ -135,6 +135,7 @@ export class Verifier extends Circuit {
     @circuitMain
     static main(@public_ sg_x: ForeignField, @public_ sg_y: ForeignField, @public_ expected_x: ForeignField, @public_ expected_y: ForeignField) {
         let sg = new ForeignGroup(sg_x, sg_y);
+        console.dir(sg, { depth: null });
         let actual = sg.add(h);
         let expected = new ForeignGroup(expected_x, expected_y);
         actual.assertEquals(expected);

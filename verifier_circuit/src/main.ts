@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from "fs";
-import { Provable } from "o1js";
+import { ForeignGroup, Provable } from "o1js";
 import { Verifier } from "./verifier/verifier.js";
 import { ForeignField } from "./foreign_fields/foreign_field.js";
 
@@ -30,6 +30,17 @@ let sg_x = ForeignField.from(inputs.sg[0]);
 let sg_y = ForeignField.from(inputs.sg[1]);
 let expected_x = ForeignField.from(inputs.expected[0])
 let expected_y = ForeignField.from(inputs.expected[1]);
+
+ForeignGroup.curve = [
+    "0", // a
+    "5", // b
+    "28948022309329048855892746252171976963363056481941560715954676764349967630337", // modulus
+    "1", // gen_x
+    "12418654782883325593414442427049395787963493412651469444558597405572177144507", // gen_y
+    "28948022309329048855892746252171976963363056481941647379679742748393362948097" // order
+];
+let sg = new ForeignGroup(sg_x, sg_y);
+console.dir(sg, { depth: null });
 
 console.log("Writing circuit into file...");
 let { gates } = Provable.constraintSystem(() => Verifier.main(sg_x, sg_y, expected_x, expected_y));
