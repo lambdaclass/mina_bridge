@@ -4,8 +4,18 @@ pragma solidity >=0.4.16 <0.9.0;
 import "./bn254/BN254.sol";
 import "./bn254/Fields.sol";
 import "./Utils.sol";
+import "./Polynomial.sol";
 
 using { BN254.add, BN254.scale_scalar } for BN254.G1Point;
+using {
+    Scalar.neg,
+    Scalar.add,
+    Scalar.sub,
+    Scalar.mul,
+    Scalar.inv,
+    Scalar.double,
+    Scalar.pow
+} for Scalar.FE;
 
 error MSMInvalidLengths();
 
@@ -192,7 +202,7 @@ function combined_inner_product(
     Scalar.FE[] memory evaluation_points,
     Scalar.FE polyscale,
     Scalar.FE evalscale,
-    PolyMatrices[] memory polys,
+    PolyMatrices memory polys,
     //uint[] poly_shifted, // TODO: not necessary for fiat-shamir
     uint srs_length
 ) pure returns (Scalar.FE res) {
@@ -204,15 +214,15 @@ function combined_inner_product(
         uint cols = polys.cols[i];
         uint rows = polys.rows[i];
 
-        if (cols[i].length == 0) {
+        if (cols == 0) {
             continue;
         }
 
         for (uint col = 0; col < cols; col++) {
-            Scalar.FE[] eval = new Scalar[](rows); // column that stores the segment
+            Scalar.FE[] memory eval = new Scalar.FE[](rows); // column that stores the segment
 
             for (uint j = 0; j < rows; j++) {
-                eval[j] = evals[polys.starts[i] + col*rows + j];
+                eval[j] = polys.data[polys.starts[i] + col*rows + j];
             }
             Scalar.FE term = Polynomial.build_and_eval(eval, evalscale);
 
@@ -225,7 +235,7 @@ function combined_inner_product(
 }
 
 struct PolyMatrices {
-    Scalar.FE[] flat_data;
+    Scalar.FE[] data;
     uint length;
     uint[] rows; // row count per matrix
     uint[] cols; // col count per matrix
