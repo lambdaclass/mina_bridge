@@ -2,6 +2,7 @@
 pragma solidity >=0.4.16 <0.9.0;
 
 import "./bn254/Fields.sol";
+import "forge-std/console.sol";
 
 using {Scalar.mul} for Scalar.FE;
 
@@ -38,6 +39,7 @@ library AlphasLib {
         }
     }
 
+    error NotEnoughPowersOfAlpha();
     /// @notice retrieves the powers of alpha, upperbounded by `num`
     function get_alphas(Alphas storage self, ArgumentType ty, uint num)
         external
@@ -68,6 +70,7 @@ library AlphasLib {
 
         uint[2] memory range = self.map[ty];
         if (num > range[1]) {
+            revert NotEnoughPowersOfAlpha();
             // FIXME: panic! asked for num alphas but there aren't as many.
         }
 

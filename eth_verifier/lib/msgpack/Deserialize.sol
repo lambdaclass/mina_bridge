@@ -355,7 +355,6 @@ library MsgPk {
         // next byte is the length of the stream in one byte
         uint8 size = uint8(data[i]);
         i += 1;
-        console.log(size);
         string memory creator = string(data[i:i + size]);
         i += size;
 
