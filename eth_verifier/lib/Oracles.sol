@@ -221,18 +221,47 @@ library Oracles {
 
         // TODO: evaluate final polynomial (PolishToken)
 
-        uint es_length = 0;
-        es_length += public_evals[0].length;
-        es_length += public_evals[1].length;
-        es_length += [ft_eval0].length;
+        uint matrix_count = 2;
+        uint total_length = 0;
+        uint[] rows = new uint[](matrix_count);
+        uint[] cols = new uint[](matrix_count);
 
-        uint matrix_count = 3;
+        // public evals
+        rows[0] = public_evals.length;
+        cols[0] = public_evals[0].length;
+        total_length += public_evals[0].length;
+        total_length += public_evals[1].length;
 
+        // ft evals
+        total_length += [[ft_eval0]].length;
+        rows[1] = [[ft_eval0]].length;
+        cols[2] = [[ft_eval0]][0].length;
 
+        // save the data in a flat array in a column-major so there's no neeed
+        // to transpose each matrix later.
         Scalar.FE[] es_data = new Scalar.FE[](es_length);
-        PolyMatrices memory es = PolyMatrices(es_data, matrix_count)
-        es[0] = public_evals;
-        // TODO: evaluations of all columns
+        uint[] starts = new uint[](matrix_count);
+        uint index = 0;
+
+        starts[0] = index;
+        for (uint i = 0; i < rows[0] * cols[0]; i++) {
+            uint col = i % cols[0];
+            uint row = i / cols[0];
+            es_data[i] = public_evals[col][row];
+            index++;
+        }
+
+        starts[1] = index;
+        for (uint i = 0; i < rows[1] * cols[1]; i++) {
+            uint col = i % cols[0];
+            uint row = i / cols[0];
+            es_data[i] = [[ft_eval0]][col][row]; // TODO: ft_eval1;
+            index++;
+        }
+
+        PolyMatrices memory es = PolyMatrices(es_data, matrix_count, rows, cols);
+        // TODO: add evaluations of all columns
+
         Scalar.FE combined_inner_prod = combined_inner_product(evaluation_points, v, u, es, index.max_poly_size);
     }
 

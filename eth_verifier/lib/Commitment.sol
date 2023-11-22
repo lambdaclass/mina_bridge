@@ -192,29 +192,27 @@ function combined_inner_product(
     Scalar.FE[] memory evaluation_points,
     Scalar.FE polyscale,
     Scalar.FE evalscale,
-    Scalar.FE[] memory flat_poly_matrices, // this is 3-dim; an array of matrices
+    PolyMatrices[] memory polys,
     //uint[] poly_shifted, // TODO: not necessary for fiat-shamir
     uint srs_length
 ) pure returns (Scalar.FE res) {
     res = Scalar.zero();
     Scalar.FE xi_i = Scalar.from(1);
 
-    require(poly_matrices.length == poly_shifted.length);
-    for (uint i = 0; i < poly_matrices.length; i++) {
-        Scalar.FE[][] memory evals = poly_matrices[i];
-        uint shifted = poly_shifted[i];
+    //require(poly_matrices.length == poly_shifted.length);
+    for (uint i = 0; i < polys.length; i++) {
+        uint cols = polys.cols[i];
+        uint rows = polys.rows[i];
 
-        if (evals[i].length == 0) {
+        if (cols[i].length == 0) {
             continue;
         }
 
-        uint rows = evals.length;
-        uint columns = evals.length;
-        for (uint col = 0; col < columns; col++) {
+        for (uint col = 0; col < cols; col++) {
             Scalar.FE[] eval = new Scalar[](rows); // column that stores the segment
 
             for (uint j = 0; j < rows; j++) {
-                eval[j] = evals[col + j*columns];
+                eval[j] = evals[polys.starts[i] + col*rows + j];
             }
             Scalar.FE term = Polynomial.build_and_eval(eval, evalscale);
 
@@ -229,6 +227,7 @@ function combined_inner_product(
 struct PolyMatrices {
     Scalar.FE[] flat_data;
     uint length;
-    uint[] rows; // per matrix
-    uint[] cols; // per matrix
+    uint[] rows; // row count per matrix
+    uint[] cols; // col count per matrix
+    uint[] starts; // index at which every matrix starts
 }
