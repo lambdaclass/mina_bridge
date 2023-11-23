@@ -1,6 +1,6 @@
 mod snarky_gate;
 
-use std::{fs, ops::Neg};
+use std::{fs, ops::Neg, sync::Arc};
 
 use ark_bn254::{G1Affine, G2Affine};
 use ark_ec::{
@@ -25,14 +25,16 @@ use kimchi::{
         gate::{CircuitGate, GateType},
         polynomials::generic::testing::create_circuit,
     },
+    curve::KimchiCurve,
     o1_utils::FieldHelpers,
+    prover_index::{self, ProverIndex},
 };
 use num_traits::{One, Zero};
 use poly_commitment::{
     commitment::{combine_commitments, combine_evaluations, Evaluation},
-    evaluation_proof::{combine_polys, DensePolynomialOrEvaluations},
+    evaluation_proof::{combine_polys, DensePolynomialOrEvaluations, OpeningProof},
     pairing_proof::{PairingProof, PairingSRS},
-    srs::SRS,
+    srs::{endos, SRS},
     PolyComm, SRS as _,
 };
 use snarky_gate::SnarkyGate;
@@ -61,7 +63,7 @@ fn main() {
 
     let srs = create_srs(x, n, domain);
 
-    let polynomials = create_selector_dense_polynomials(cs, domain);
+    let polynomials = create_selector_dense_polynomials(cs.clone(), domain);
 
     let comms: Vec<_> = polynomials
         .iter()
@@ -136,9 +138,15 @@ fn main() {
     points_serialized.extend(quotient_serialized);
     points_serialized.extend(divisor_serialized);
 
+    fs::write("../eth_verifier/proof.mpk", points_serialized).unwrap();
+
+    type G1 = GroupAffine<ark_bn254::g1::Parameters>;
+    let endo_q = G1::endos().1;
+    let prover_index =
+        ProverIndex::<G1, OpeningProof<G1>>::create(cs, endo_q, Arc::new(srs.clone().full_srs));
     fs::write(
-        "../eth_verifier/proof.mpk",
-        points_serialized,
+        "../eth_verifier/verifier_index.mpk",
+        rmp_serde::to_vec(&prover_index.verifier_index()).unwrap(),
     )
     .unwrap();
 
