@@ -1,13 +1,11 @@
 import { readFileSync } from 'fs';
-import { circuitMain, Circuit, Group, Scalar, public_, Field } from 'o1js';
+import { circuitMain, Circuit, Group, Scalar, public_, Field, ForeignGroup } from 'o1js';
 import { PolyComm } from '../poly_commitment/commitment.js';
 import { SRS } from '../SRS.js';
 import { Sponge } from './sponge.js';
 import { Alphas } from '../alphas.js';
 import { Polynomial } from '../polynomial.js';
 import { Linearization, PolishToken } from '../prover/expr.js';
-import { ForeignScalar } from '../foreign_fields/foreign_scalar.js';
-import { ForeignGroup } from '../foreign_fields/foreign_group.js';
 import { ForeignField } from '../foreign_fields/foreign_field.js';
 
 let steps: bigint[][];
@@ -23,7 +21,7 @@ let { h } = SRS.createFromJSON();
 * Will contain information necessary for executing a verification
 */
 export class VerifierIndex {
-    srs: SRS
+    srs: SRS<ForeignField>
     domain_size: number
     domain_gen: Scalar
     /** number of public inputs */
@@ -133,11 +131,11 @@ export class Verifier extends Circuit {
     static readonly PERMUTATION_CONSTRAINTS: number = 3;
 
     @circuitMain
-    static main(@public_ sg_x: ForeignField, @public_ sg_y: ForeignField, @public_ expected_x: ForeignField, @public_ expected_y: ForeignField) {
-        let sg = new ForeignGroup(sg_x, sg_y);
+    static main(@public_ sg: ForeignGroup<ForeignField>, @public_ expected: ForeignGroup<ForeignField>) {
         console.dir(sg, { depth: null });
         let actual = sg.add(h);
-        let expected = new ForeignGroup(expected_x, expected_y);
+        console.log("expected.x class name", expected.x.constructor.name);
+        console.log("is expected.x instance of ForeignField", expected.x instanceof ForeignField);
         actual.assertEquals(expected);
     }
 }

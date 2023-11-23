@@ -42,8 +42,11 @@ ForeignGroup.curve = [
 let sg = new ForeignGroup(sg_x, sg_y);
 console.dir(sg, { depth: null });
 
+let expected = new ForeignGroup(expected_x, expected_y);
+console.dir(expected, { depth: null });
+
 console.log("Writing circuit into file...");
-let { gates } = Provable.constraintSystem(() => Verifier.main(sg_x, sg_y, expected_x, expected_y));
+let { gates } = Provable.constraintSystem(() => Verifier.main(sg, expected));
 writeFileSync("../kzg_prover/gates.json", JSON.stringify(gates));
 
 // ----------------------------------------------------

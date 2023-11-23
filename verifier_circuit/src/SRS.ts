@@ -1,9 +1,7 @@
-import lagrange_bases_json from "../test/lagrange_bases.json" assert { type: "json" };
-import { Field, Group, Scalar } from "o1js";
-import { BlindedCommitment, PolyComm } from "./poly_commitment/commitment.js";
+import { PolyComm } from "./poly_commitment/commitment.js";
 import { readFileSync } from "fs";
-import { ForeignGroup } from "./foreign_fields/foreign_group.js";
 import { ForeignField } from "./foreign_fields/foreign_field.js";
+import { ForeignGroup } from "o1js";
 
 let srs_json;
 try {
@@ -36,16 +34,16 @@ interface LagrangeBaseJSON {
     }[]
 }
 
-export class SRS {
+export class SRS<F extends ForeignField> {
     /// The vector of group elements for committing to polynomials in coefficient form
-    g: ForeignGroup[];
+    g: ForeignGroup<ForeignField>[];
     /// A group element used for blinding commitments
-    h: ForeignGroup;
+    h: ForeignGroup<ForeignField>;
     /// Commitments to Lagrange bases, per domain size
-    lagrangeBases: Map<number, PolyComm<ForeignGroup>[]>
+    lagrangeBases: Map<number, PolyComm<ForeignGroup<ForeignField>>[]>
 
     static createFromJSON() {
-        let g: ForeignGroup[] = g_json.map((g_i_json) => this.#createGroupFromJSON(g_i_json));
+        let g: ForeignGroup<ForeignField>[] = g_json.map((g_i_json) => this.#createGroupFromJSON(g_i_json));
         let h = this.#createGroupFromJSON(h_json);
         return new SRS(g, h);
     }
@@ -65,7 +63,7 @@ export class SRS {
     //     return new Map<number, PolyComm<ForeignGroup>[]>([[32, lagrange_bases]]);
     // }
 
-    constructor(g: ForeignGroup[], h: ForeignGroup) {
+    constructor(g: ForeignGroup<ForeignField>[], h: ForeignGroup<ForeignField>) {
         this.g = g;
         this.h = h;
         // this.lagrangeBases = SRS.#createLagrangeBasesFromJSON(lagrange_bases_json);
