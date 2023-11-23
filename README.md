@@ -20,7 +20,7 @@ This project introduces the proof generation, posting and verification of the va
 4. Browser utility for smart contract users: Mina address is provided as an input. State is looked up against Mina and then shared as a Mina state lookup-merkle-proof wrapped inside an efficient proof system.
 5. A solidity contract utility that smart contract developers or users can execute on an EVM chain to feed in a Mina state lookup proof that will check the state lookup against the latest posted Mina state proof to verify that this Mina state is valid.
 
-## Disclaimer
+## ⚠️ Disclaimer
 
 `mina_bridge` is in an early stage of development, currently it misses elemental features and correct functionality is not guaranteed.
 
