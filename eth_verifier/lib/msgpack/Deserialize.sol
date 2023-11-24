@@ -215,6 +215,10 @@ library MsgPk {
             find_value(map, "max_poly_size"),
             (uint256)
         );
+        index.public_len = abi.decode(
+            find_value(map, "public"),
+            (uint256)
+        );
     }
 
     function find_value(EncodedMap memory self, string memory key)

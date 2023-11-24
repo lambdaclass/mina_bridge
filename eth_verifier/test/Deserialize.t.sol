@@ -191,6 +191,7 @@ contract DeserializeTest is Test {
             index
         );
 
+        assertEq(index.public_len, 0);
         assertEq(index.max_poly_size, 16384);
     }
 }
