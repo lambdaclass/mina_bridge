@@ -9,6 +9,7 @@ import "../Proof.sol";
 import "../State.sol";
 import "../Utils.sol";
 import "../VerifierIndex.sol";
+import "forge-std/console.sol";
 
 library MsgPk {
     struct Stream {
@@ -167,10 +168,17 @@ library MsgPk {
         require(first >> 2 == 0x33, "not a uint");
         // 110011XX are uints of 8,16,32,64 bits.
 
-        // WARN: this function casts negative ints into uints.
-
-        uint256 int_bytes = 1 << uint8(first & 0x03); // mask with 11b
-        return uint256(bytes32(next_n(self, int_bytes)));
+        uint256 byte_count = 1 << uint8(first & 0x03); // mask with 11b
+        bytes memory b = next_n(self, byte_count);
+        if (byte_count == 1) {
+            return uint8(bytes1(b));
+        } else if (byte_count == 2) {
+            return uint16(bytes2(b));
+        } else if (byte_count == 3) {
+            return uint32(bytes4(b));
+        } else if (byte_count == 4) {
+            return uint64(bytes8(b));
+        }
     }
 
     function deser_posfixint(Stream memory self) public view returns (uint256) {
@@ -180,7 +188,11 @@ library MsgPk {
         return uint256(uint8(first));
     }
 
-    function deser_null(Stream memory self) public view returns (string memory) {
+    function deser_null(Stream memory self)
+        public
+        view
+        returns (string memory)
+    {
         bytes1 first = next(self);
         require(first == 0xc0, "not null");
 
@@ -194,10 +206,25 @@ library MsgPk {
         return first == 0xc3; // 0xc3 == true
     }
 
-    function deser_verifier_index(Stream memory self) public view {
+    function deser_verifier_index(
+        Stream memory self,
+        VerifierIndex storage index
+    ) public {
         EncodedMap memory map = deser_map16(self);
+        index.max_poly_size = abi.decode(
+            find_value(map, "max_poly_size"),
+            (uint256)
+        );
     }
 
+    function find_value(EncodedMap memory self, string memory key)
+        public
+        returns (bytes memory)
+    {
+        uint256 i = 0;
+        while (keccak256(bytes(self.keys[i])) != keccak256(bytes(key))) i++;
+        return self.values[i];
+    }
 
     //  !!! FUNCTIONS BELOW ARE DEPRECATED !!!
 
