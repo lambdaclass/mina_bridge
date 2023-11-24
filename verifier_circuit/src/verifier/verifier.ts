@@ -21,7 +21,7 @@ let { h } = SRS.createFromJSON();
 * Will contain information necessary for executing a verification
 */
 export class VerifierIndex {
-    srs: SRS<ForeignField>
+    srs: SRS
     domain_size: number
     domain_gen: Scalar
     /** number of public inputs */
@@ -131,11 +131,8 @@ export class Verifier extends Circuit {
     static readonly PERMUTATION_CONSTRAINTS: number = 3;
 
     @circuitMain
-    static main(@public_ sg: ForeignGroup<ForeignField>, @public_ expected: ForeignGroup<ForeignField>) {
-        console.dir(sg, { depth: null });
+    static main(@public_ sg: ForeignGroup, @public_ expected: ForeignGroup) {
         let actual = sg.add(h);
-        console.log("expected.x class name", expected.x.constructor.name);
-        console.log("is expected.x instance of ForeignField", expected.x instanceof ForeignField);
         actual.assertEquals(expected);
     }
 }
