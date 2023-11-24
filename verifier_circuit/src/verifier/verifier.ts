@@ -1,14 +1,13 @@
 import { readFileSync } from 'fs';
-import { circuitMain, Circuit, Group, Scalar, public_, Field } from 'o1js';
+import { circuitMain, Circuit, Group, Scalar, public_, Field, ForeignGroup } from 'o1js';
 import { PolyComm } from '../poly_commitment/commitment.js';
 import { SRS } from '../SRS.js';
 import { Sponge } from './sponge.js';
 import { Alphas } from '../alphas.js';
 import { Polynomial } from '../polynomial.js';
 import { Linearization, PolishToken } from '../prover/expr.js';
-import { ForeignScalar } from '../foreign_fields/foreign_scalar.js';
-import { ForeignGroup } from '../foreign_fields/foreign_group.js';
 import { ForeignField } from '../foreign_fields/foreign_field.js';
+import { ForeignScalar } from '../foreign_fields/foreign_scalar.js';
 
 let steps: bigint[][];
 try {
@@ -133,10 +132,31 @@ export class Verifier extends Circuit {
     static readonly PERMUTATION_CONSTRAINTS: number = 3;
 
     @circuitMain
-    static main(@public_ sg_x: ForeignField, @public_ sg_y: ForeignField, @public_ expected_x: ForeignField, @public_ expected_y: ForeignField) {
-        let sg = new ForeignGroup(sg_x, sg_y);
-        let actual = sg.add(h);
-        let expected = new ForeignGroup(expected_x, expected_y);
-        actual.assertEquals(expected);
+    static main(@public_ sg: ForeignGroup, @public_ z1: ForeignScalar, @public_ expected: ForeignGroup) {
+        let points = [h];
+        let scalars = [ForeignScalar.from(0)];
+
+        let randBase = ForeignScalar.from(1);
+        let sgRandBase = ForeignScalar.from(1);
+        let negRandBase = randBase.neg();
+
+        points.push(sg);
+        scalars.push(negRandBase.mul(z1).sub(sgRandBase));
+
+        let result = Verifier.naiveMSM(points, scalars);
+
+        result.assertEquals(expected);
+    }
+
+    static naiveMSM(points: ForeignGroup[], scalars: ForeignScalar[]): ForeignGroup {
+        let result = new ForeignGroup(ForeignField.from(0), ForeignField.from(0));
+
+        for (let i = 0; i < points.length; i++) {
+            let point = points[i];
+            let scalar = scalars[i];
+            result = result.add(point.scale(scalar));
+        }
+
+        return result;
     }
 }

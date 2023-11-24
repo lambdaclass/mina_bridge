@@ -1,10 +1,12 @@
 use std::fs;
 
-use ark_ec::short_weierstrass_jacobian::GroupAffine;
+use ark_ec::msm::VariableBaseMSM;
+use ark_ec::short_weierstrass_jacobian::GroupProjective;
 use kimchi::mina_curves::pasta::{Fp, Fq, Pallas, PallasParameters};
 use kimchi::o1_utils::FieldHelpers;
 use kimchi::poly_commitment::srs::SRS;
 use kimchi::precomputed_srs;
+use num_traits::{One, Zero};
 use serde::Serialize;
 use state_proof::{OpeningProof, StateProof};
 
@@ -53,22 +55,19 @@ fn prove_and_verify(srs: &SRS<Pallas>, opening: OpeningProof) {
     // verify the proof (propagate any errors)
     println!("Verifying dummy proof...");
 
-    let sg_point = Pallas::new(
+    let sg = Pallas::new(
         Fp::from_hex(&opening.sg.0[2..]).unwrap(),
         Fp::from_hex(&opening.sg.1[2..]).unwrap(),
         false,
     );
-    let z1_felt = Fq::from_hex(&opening.z_1[2..]).unwrap();
-    let value_to_compare = compute_verification(srs, &sg_point);
+    let z1 = Fq::from_hex(&opening.z_1[2..]).unwrap();
+    let value_to_compare = compute_msm_verification(srs, &sg, &z1);
 
     fs::write(
         "../verifier_circuit/src/inputs.json",
         serde_json::to_string(&Inputs {
-            sg: [
-                sg_point.x.to_biguint().to_string(),
-                sg_point.y.to_biguint().to_string(),
-            ],
-            z1: z1_felt.to_biguint().to_string(),
+            sg: [sg.x.to_biguint().to_string(), sg.y.to_biguint().to_string()],
+            z1: z1.to_biguint().to_string(),
             expected: [
                 value_to_compare.x.to_biguint().to_string(),
                 value_to_compare.y.to_biguint().to_string(),
@@ -79,6 +78,22 @@ fn prove_and_verify(srs: &SRS<Pallas>, opening: OpeningProof) {
     .unwrap();
 }
 
-fn compute_verification(srs: &SRS<Pallas>, sg: &Pallas) -> GroupAffine<PallasParameters> {
-    *sg + srs.h
+fn compute_msm_verification(
+    srs: &SRS<Pallas>,
+    sg: &Pallas,
+    z1: &Fq,
+) -> GroupProjective<PallasParameters> {
+    let mut points = vec![srs.h];
+    let mut scalars = vec![Fq::zero()];
+
+    let rand_base_i = Fq::one();
+    let sg_rand_base_i = Fq::one();
+    let neg_rand_base_i = -rand_base_i;
+
+    points.push(*sg);
+    scalars.push(neg_rand_base_i * z1 - sg_rand_base_i);
+
+    let scalars: Vec<_> = scalars.iter().map(|scalar| scalar.0).collect();
+
+    VariableBaseMSM::multi_scalar_mul(&points, &scalars)
 }

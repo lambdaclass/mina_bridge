@@ -1,9 +1,7 @@
-import lagrange_bases_json from "../test/lagrange_bases.json" assert { type: "json" };
-import { Field, Group, Scalar } from "o1js";
-import { BlindedCommitment, PolyComm } from "./poly_commitment/commitment.js";
+import { PolyComm } from "./poly_commitment/commitment.js";
 import { readFileSync } from "fs";
-import { ForeignGroup } from "./foreign_fields/foreign_group.js";
 import { ForeignField } from "./foreign_fields/foreign_field.js";
+import { ForeignGroup } from "o1js";
 
 let srs_json;
 try {
