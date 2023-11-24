@@ -8,6 +8,7 @@ import "../Evaluations.sol";
 import "../Proof.sol";
 import "../State.sol";
 import "../Utils.sol";
+import "../VerifierIndex.sol";
 
 library MsgPk {
     struct Stream {
@@ -33,34 +34,34 @@ library MsgPk {
     }
 
     /// @notice returns current byte and advances index.
-    function next(Stream memory self) public pure returns (bytes1 b) {
+    function next(Stream memory self) public view returns (bytes1 b) {
         b = self.data[self.curr_index];
         self.curr_index += 1;
     }
 
     /// @notice returns current byte without advancing index.
-    function curr(Stream memory self) public pure returns (bytes1) {
+    function curr(Stream memory self) public view returns (bytes1) {
         return self.data[self.curr_index];
     }
 
     function next_n(Stream memory self, uint256 n)
         public
-        pure
+        view
         returns (bytes memory consumed)
     {
         consumed = new bytes(n);
-        for (uint256 i = 1; i <= n; i++) {
+        for (uint256 i = 0; i < n; i++) {
             consumed[i] = self.data[self.curr_index + i];
         }
         self.curr_index += n;
     }
 
-    error NonImplementedType();
+    error NotImplementedType(bytes1 prefix);
 
     /// @notice deserializes the next type and returns the encoded data.
     function trim_encode(Stream memory self)
         public
-        pure
+        view
         returns (bytes memory)
     {
         bytes1 prefix = curr(self);
@@ -71,13 +72,13 @@ library MsgPk {
         } else if (prefix >> 4 == 0x08) {
             return abi.encode(deser_fixmap(self));
         } else {
-            revert NonImplementedType();
+            revert NotImplementedType(prefix);
         }
     }
 
     function deser_fixstr(Stream memory self)
         public
-        pure
+        view
         returns (string memory)
     {
         bytes1 first = next(self);
@@ -87,7 +88,7 @@ library MsgPk {
         return string(next_n(self, n));
     }
 
-    function deser_bin8(Stream memory self) public pure returns (bytes memory) {
+    function deser_bin8(Stream memory self) public view returns (bytes memory) {
         require(next(self) == 0xC4, "not a stream of bin8 (bytes)");
 
         // next byte is the length of the stream in one byte
@@ -99,7 +100,7 @@ library MsgPk {
 
     function deser_fixarr(Stream memory self)
         public
-        pure
+        view
         returns (EncodedArray memory arr)
     {
         bytes1 first = next(self);
@@ -115,7 +116,7 @@ library MsgPk {
 
     function deser_fixmap(Stream memory self)
         public
-        pure
+        view
         returns (EncodedMap memory map)
     {
         bytes1 first = next(self);
@@ -128,6 +129,33 @@ library MsgPk {
             map.keys[i] = deser_fixstr(self);
             map.values[i] = trim_encode(self);
         }
+    }
+
+    function deser_map16(Stream memory self)
+        public
+        view
+        returns (EncodedMap memory map)
+    {
+        bytes1 first = next(self);
+        console.log(uint8(first));
+        require(first == 0xde, "not a map16");
+        // size is next two bytes:
+
+        uint16 n = uint16(bytes2(next_n(self, 2)));
+
+        map = EncodedMap(new string[](n), new bytes[](n));
+
+        for (uint16 i = 0; i < n; i++) {
+            map.keys[i] = deser_fixstr(self);
+            map.values[i] = trim_encode(self);
+        }
+    }
+
+    function deser_verifier_index(Stream memory self)
+        public
+        view
+    {
+        EncodedMap memory map = deser_map16(self);
     }
 
     //  !!! FUNCTIONS BELOW ARE DEPRECATED !!!

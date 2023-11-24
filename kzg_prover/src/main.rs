@@ -61,7 +61,7 @@ fn main() {
     let n = domain.d1.size as usize;
     let x = ark_bn254::Fr::rand(rng);
 
-    let srs = create_srs(x, n, domain);
+    let mut srs = create_srs(x, n, domain);
 
     let polynomials = create_selector_dense_polynomials(cs.clone(), domain);
 
@@ -142,11 +142,13 @@ fn main() {
 
     type G1 = GroupAffine<ark_bn254::g1::Parameters>;
     let endo_q = G1::endos().1;
+    srs.full_srs.add_lagrange_basis(cs.domain.d1);
     let prover_index =
         ProverIndex::<G1, OpeningProof<G1>>::create(cs, endo_q, Arc::new(srs.clone().full_srs));
+    let verifier_index = prover_index.verifier_index();
     fs::write(
         "../eth_verifier/verifier_index.mpk",
-        rmp_serde::to_vec(&prover_index.verifier_index()).unwrap(),
+        rmp_serde::to_vec(&verifier_index).unwrap(),
     )
     .unwrap();
 
