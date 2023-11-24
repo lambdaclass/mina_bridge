@@ -1,4 +1,4 @@
-import { Field, Group, Poseidon, Scalar } from "o1js"
+import { Field, ForeignGroup, Group, Poseidon, Scalar } from "o1js"
 import { PolyComm } from "../poly_commitment/commitment";
 import { PointEvaluations, ProofEvaluations } from "../prover/prover";
 
@@ -28,12 +28,12 @@ export class Sponge {
         return this.#internalSponge.squeeze();
     }
 
-    absorbGroup(g: Group) {
-        this.#internalSponge.absorb(g.x);
-        this.#internalSponge.absorb(g.y);
+    absorbGroup(g: ForeignGroup) {
+        this.#internalSponge.absorb(Field(g.x.toBigInt()));
+        this.#internalSponge.absorb(Field(g.y.toBigInt()));
     }
 
-    absorbGroups(gs: Group[]) {
+    absorbGroups(gs: ForeignGroup[]) {
         gs.forEach(this.absorbGroup.bind(this));
         // bind is necessary for avoiding context loss
     }
@@ -53,7 +53,7 @@ export class Sponge {
             const bits = BigInt(s_bigint.toString(2).length);
 
             const low = Field(s_bigint & 1n); // LSB
-            const high = Field((s_bigint >> 1n) & ((1n << (bits-1n)) - 1n)); // remaining bits
+            const high = Field((s_bigint >> 1n) & ((1n << (bits - 1n)) - 1n)); // remaining bits
             // WARN: be careful when s_bigint is negative, because >> is the "sign-propagating
             // left shift" operator, so if the number is negative, it'll add 1s instead of 0s.
             // >>>, the "zero-fill left shift" operator should be used instead, but it isnt
@@ -70,7 +70,7 @@ export class Sponge {
         s.forEach(this.absorbScalar.bind(this));
     }
 
-    absorbCommitment(commitment: PolyComm<Group>) {
+    absorbCommitment(commitment: PolyComm<ForeignGroup>) {
         this.absorbGroups(commitment.unshifted);
         if (commitment.shifted) this.absorbGroup(commitment.shifted);
     }
@@ -99,7 +99,7 @@ export class Sponge {
         // optional:
         if (public_input) points.push(public_input);
         //if (lookup) points.push(lookup); // FIXME: ignoring lookups
-        
+
         points.forEach((p) => {
             this.absorbScalars.bind(this)(p.zeta);
             this.absorbScalars.bind(this)(p.zetaOmega);

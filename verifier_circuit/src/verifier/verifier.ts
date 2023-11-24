@@ -33,21 +33,21 @@ export class VerifierIndex {
     zk_rows: number
 
     /** permutation commitments */
-    sigma_comm: PolyComm<Group>[] // size PERMUTS
-    coefficients_comm: PolyComm<Group>[] // size COLUMNS
-    generic_comm: PolyComm<Group>
+    sigma_comm: PolyComm<ForeignGroup>[] // size PERMUTS
+    coefficients_comm: PolyComm<ForeignGroup>[] // size COLUMNS
+    generic_comm: PolyComm<ForeignGroup>
 
     /** poseidon constraint selector polynomial commitments */
-    psm_comm: PolyComm<Group>
+    psm_comm: PolyComm<ForeignGroup>
 
     /** EC addition selector polynomial commitment */
-    complete_add_comm: PolyComm<Group>
+    complete_add_comm: PolyComm<ForeignGroup>
     /** EC variable base scalar multiplication selector polynomial commitment */
-    mul_comm: PolyComm<Group>
+    mul_comm: PolyComm<ForeignGroup>
     /** endoscalar multiplication selector polynomial commitment */
-    emul_comm: PolyComm<Group>
+    emul_comm: PolyComm<ForeignGroup>
     /** endoscalar multiplication scalar computation selector polynomial commitment */
-    endomul_scalar_comm: PolyComm<Group>
+    endomul_scalar_comm: PolyComm<ForeignGroup>
 
     /** The mapping between powers of alpha and constraints */
     powers_of_alpha: Alphas
@@ -68,14 +68,14 @@ export class VerifierIndex {
         max_poly_size: number,
         zk_rows: number,
         public_size: number,
-        sigma_comm: PolyComm<Group>[],
-        coefficients_comm: PolyComm<Group>[],
-        generic_comm: PolyComm<Group>,
-        psm_comm: PolyComm<Group>,
-        complete_add_comm: PolyComm<Group>,
-        mul_comm: PolyComm<Group>,
-        emul_comm: PolyComm<Group>,
-        endomul_scalar_comm: PolyComm<Group>,
+        sigma_comm: PolyComm<ForeignGroup>[],
+        coefficients_comm: PolyComm<ForeignGroup>[],
+        generic_comm: PolyComm<ForeignGroup>,
+        psm_comm: PolyComm<ForeignGroup>,
+        complete_add_comm: PolyComm<ForeignGroup>,
+        mul_comm: PolyComm<ForeignGroup>,
+        emul_comm: PolyComm<ForeignGroup>,
+        endomul_scalar_comm: PolyComm<ForeignGroup>,
         powers_of_alpha: Alphas,
         shift: Scalar[],
         permutation_vanishing_polynomial_m: Polynomial,

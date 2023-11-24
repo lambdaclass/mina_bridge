@@ -7,6 +7,7 @@ import { Column, PolishToken } from "../prover/expr.js";
 import { GateType } from "../circuits/gate.js";
 import { powScalar } from "../util/scalar.js";
 import { range } from "../util/misc.js";
+import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 
 export class Context {
     verifier_index: VerifierIndex
@@ -49,7 +50,7 @@ export class Batch extends Verifier {
      *
      * essentially will partial verify proofs so they can be batched verified later.
     */
-    static toBatch(verifier_index: VerifierIndex, proof: ProverProof, public_input: Scalar[]) {
+    static toBatch(verifier_index: VerifierIndex, proof: ProverProof, public_input: ForeignScalar[]) {
         //~ 1. Check the length of evaluations inside the proof.
         this.#check_proof_evals_len(proof)
 
@@ -61,7 +62,7 @@ export class Batch extends Verifier {
         let public_comm = verifier_index
             .srs
             .maskCustom(non_hiding_public_comm,
-                new PolyComm([Scalar.from(1)], undefined))?.commitment!;
+                new PolyComm([ForeignScalar.from(1)], undefined))?.commitment!;
 
         //~ 3. Run the Fiat-Shamir heuristic.
         const {

@@ -1,5 +1,5 @@
 import { Polynomial } from "../polynomial.js"
-import { Field, Group, Scalar } from "o1js"
+import { Field, ForeignGroup, Group, Scalar } from "o1js"
 import { PolyComm, bPoly, bPolyCoefficients, OpeningProof } from "../poly_commitment/commitment";
 import { getLimbs64 } from "../util/bigint";
 import { Sponge } from "../verifier/sponge";
@@ -10,6 +10,7 @@ import { Alphas } from "../alphas.js";
 import { Column, PolishToken } from "./expr.js";
 import { deserHexScalar } from "../serde/serde_proof.js";
 import { range } from "../util/misc.js";
+import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
@@ -37,7 +38,7 @@ export class ProverProof {
     /**
      * Will run the random oracle argument for removing prover-verifier interaction (Fiat-Shamir transform)
      */
-    oracles(index: VerifierIndex, public_comm: PolyComm<Group>, public_input?: Scalar[]): OraclesResult {
+    oracles(index: VerifierIndex, public_comm: PolyComm<ForeignGroup>, public_input?: ForeignScalar[]): OraclesResult {
         let sponge_test = new Sponge();
         const fields = [Field.from(1), Field.from(2)];
         fields.forEach((f) => {
@@ -634,8 +635,8 @@ export class PointEvaluations<Evals> {
  * Stores the challenges inside a `ProverProof`
  */
 export class RecursionChallenge {
-    chals: Scalar[]
-    comm: PolyComm<Group>
+    chals: ForeignScalar[]
+    comm: PolyComm<ForeignGroup>
 
     evals(
         max_poly_size: number,
