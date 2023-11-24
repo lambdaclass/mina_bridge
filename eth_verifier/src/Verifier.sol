@@ -45,6 +45,8 @@ library Kimchi {
 }
 
 contract KimchiVerifier {
+    using {AlphasLib.register} for Alphas;
+
     VerifierIndex verifier_index;
     ProverProof proof;
 
@@ -75,6 +77,8 @@ contract KimchiVerifier {
         verifier_index.public_len = public_len;
         verifier_index.domain_size = domain_size;
         verifier_index.max_poly_size = max_poly_size;
+        verifier_index.powers_of_alpha.register(ArgumentType.GateZero, 21);
+        verifier_index.powers_of_alpha.register(ArgumentType.Permutation, 3);
 
         proof.evals = evals;
     }

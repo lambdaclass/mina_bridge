@@ -7,6 +7,7 @@ import "../lib/bn254/BN254.sol";
 import "../src/Verifier.sol";
 import "../lib/msgpack/Deserialize.sol";
 import "../lib/Commitment.sol";
+import "../lib/Alphas.sol";
 
 contract DeserializeTest is Test {
     function test_partial_verify() public {
