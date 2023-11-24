@@ -59,7 +59,7 @@ library MsgPk {
     error NotImplementedType(bytes1 prefix);
 
     /// @notice deserializes the next type and returns the encoded data.
-    function trim_encode(Stream memory self)
+    function deser_encode(Stream memory self)
         public
         view
         returns (bytes memory)
@@ -71,6 +71,18 @@ library MsgPk {
             return abi.encode(deser_bin8(self));
         } else if (prefix >> 4 == 0x08) {
             return abi.encode(deser_fixmap(self));
+        } else if (prefix >> 4 == 0x09) {
+            return abi.encode(deser_fixarr(self));
+        } else if (prefix >> 2 == 0x33) {
+            return abi.encode(deser_uint(self));
+        } else if (prefix >> 7 == 0x00) {
+            return abi.encode(deser_posfixint(self));
+        } else if (prefix >> 7 == 0x00) {
+            return abi.encode(deser_posfixint(self));
+        } else if (prefix == 0xc2 || prefix == 0xc3) {
+            return abi.encode(deser_bool(self));
+        } else if (prefix == 0xc0) {
+            return abi.encode(deser_null(self));
         } else {
             revert NotImplementedType(prefix);
         }
@@ -110,7 +122,7 @@ library MsgPk {
         arr = EncodedArray(new bytes[](n));
 
         for (uint256 i = 0; i < n; i++) {
-            arr.values[i] = trim_encode(self);
+            arr.values[i] = deser_encode(self);
         }
     }
 
@@ -127,7 +139,7 @@ library MsgPk {
 
         for (uint256 i = 0; i < n; i++) {
             map.keys[i] = deser_fixstr(self);
-            map.values[i] = trim_encode(self);
+            map.values[i] = deser_encode(self);
         }
     }
 
@@ -137,7 +149,6 @@ library MsgPk {
         returns (EncodedMap memory map)
     {
         bytes1 first = next(self);
-        console.log(uint8(first));
         require(first == 0xde, "not a map16");
         // size is next two bytes:
 
@@ -147,16 +158,46 @@ library MsgPk {
 
         for (uint16 i = 0; i < n; i++) {
             map.keys[i] = deser_fixstr(self);
-            map.values[i] = trim_encode(self);
+            map.values[i] = deser_encode(self);
         }
     }
 
-    function deser_verifier_index(Stream memory self)
-        public
-        view
-    {
+    function deser_uint(Stream memory self) public view returns (uint256) {
+        bytes1 first = next(self);
+        require(first >> 2 == 0x33, "not a uint");
+        // 110011XX are uints of 8,16,32,64 bits.
+
+        // WARN: this function casts negative ints into uints.
+
+        uint256 int_bytes = 1 << uint8(first & 0x03); // mask with 11b
+        return uint256(bytes32(next_n(self, int_bytes)));
+    }
+
+    function deser_posfixint(Stream memory self) public view returns (uint256) {
+        bytes1 first = next(self);
+        require(first >> 7 == 0x00, "not a positive fixint");
+
+        return uint256(uint8(first));
+    }
+
+    function deser_null(Stream memory self) public view returns (string memory) {
+        bytes1 first = next(self);
+        require(first == 0xc0, "not null");
+
+        return "null";
+    }
+
+    function deser_bool(Stream memory self) public view returns (bool) {
+        bytes1 first = next(self);
+        require(first == 0xc2 || first == 0xc3, "not a bool");
+
+        return first == 0xc3; // 0xc3 == true
+    }
+
+    function deser_verifier_index(Stream memory self) public view {
         EncodedMap memory map = deser_map16(self);
     }
+
 
     //  !!! FUNCTIONS BELOW ARE DEPRECATED !!!
 
