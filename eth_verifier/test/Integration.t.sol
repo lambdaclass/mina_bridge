@@ -9,7 +9,7 @@ import "../lib/msgpack/Deserialize.sol";
 import "../lib/Commitment.sol";
 import "../lib/Alphas.sol";
 
-contract DeserializeTest is Test {
+contract Integration is Test {
     function test_partial_verify() public {
         // Data was taken from running the circuit_gen crate.
         bytes

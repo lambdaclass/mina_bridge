@@ -14,7 +14,7 @@ contract FieldsTest is Test {
         Base.FE one = Base.FE.wrap(1);
 
         Base.FE q_plus_one = q.add(one);
-        assertEq(Base.FE.unwrap(q_plus_one), 0, "p == 0 mod p");
+        assertEq(Base.FE.unwrap(q_plus_one), 0, "p != 0 mod p");
     }
 
     function test_add_scalar() public {
@@ -22,6 +22,22 @@ contract FieldsTest is Test {
         Scalar.FE one = Scalar.FE.wrap(1);
 
         Scalar.FE q_plus_one = q.add(one);
-        assertEq(Scalar.FE.unwrap(q_plus_one), 0, "p == 0 mod p");
+        assertEq(Scalar.FE.unwrap(q_plus_one), 0, "p != 0 mod p");
+    }
+
+    function test_inv_base() public {
+        Base.FE a = Base.from(Base.MODULUS - 1);
+        Base.FE b = a.inv();
+
+        Base.FE one = Base.from(1);
+        assertEq(Base.FE.unwrap(a.mul(b)), 1, "a * a.inv() != 1");
+    }
+
+    function test_inv_scalar() public {
+        Scalar.FE a = Scalar.from(42);
+        Scalar.FE b = a.inv();
+
+        Scalar.FE one = Scalar.from(1);
+        assertEq(Scalar.FE.unwrap(a.mul(b)), 1, "a * a.inv() != 1");
     }
 }

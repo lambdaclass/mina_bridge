@@ -236,7 +236,7 @@ library Oracles {
         cols[1] = [[ft_eval0]][0].length;
         total_length += rows[1] * cols[1];
 
-        // save the data in a flat array in a column-major so there's no neeed
+        // save the data in a flat array in a column-major so there's no need
         // to transpose each matrix later.
         Scalar.FE[] memory es_data = new Scalar.FE[](total_length);
         uint[] memory starts = new uint[](matrix_count);
@@ -244,17 +244,17 @@ library Oracles {
 
         starts[0] = curr;
         for (uint i = 0; i < rows[0] * cols[0]; i++) {
-            uint col = i % cols[0];
-            uint row = i / cols[0];
-            es_data[i] = public_evals[col][row];
+            uint col = i / rows[0];
+            uint row = i % rows[0];
+            es_data[i] = public_evals[row][col];
             curr++;
         }
 
         starts[1] = curr;
         for (uint i = 0; i < rows[1] * cols[1]; i++) {
-            uint col = i % cols[0];
-            uint row = i / cols[0];
-            es_data[i] = [[ft_eval0]][col][row]; // TODO: ft_eval1;
+            uint col = i / rows[0];
+            uint row = i % rows[0];
+            es_data[i] = [[ft_eval0]][row][col]; // TODO: ft_eval1;
             curr++;
         }
 

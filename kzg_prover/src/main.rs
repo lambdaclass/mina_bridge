@@ -156,6 +156,7 @@ fn main() {
         "Is KZG proof valid?: {:?}",
         pairing_proof.verify(&srs, &evaluations, polyscale, &evaluation_points)
     );
+    println!("{}", verifier_index.powers_of_alpha);
 }
 
 fn serialize_g1point_for_verifier(point: G1Affine) -> Result<Vec<u8>, SerializationError> {

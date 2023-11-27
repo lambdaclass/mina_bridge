@@ -105,6 +105,7 @@ library AlphasLib {
             // FIXME: panic! asked for num alphas but there aren't as many.
         }
 
+        pows = new Scalar.FE[](num);
         for (uint i = 0; i < num; i++) {
             pows[i] = self.alphas[range[0]+i];
         }
