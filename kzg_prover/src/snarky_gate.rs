@@ -46,6 +46,8 @@ impl Into<CircuitGate<ark_bn254::Fr>> for SnarkyGate {
             GateType::RangeCheck0
         } else if self.r#type == "RangeCheck1" {
             GateType::RangeCheck1
+        } else if self.r#type == "Poseidon" {
+            GateType::Poseidon
         } else {
             panic!("{} is not a valid GateType", self.r#type)
         };
