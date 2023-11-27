@@ -24,7 +24,7 @@ let { h } = SRS.createFromJSON();
 export class VerifierIndex {
     srs: SRS
     domain_size: number
-    domain_gen: Scalar
+    domain_gen: ForeignScalar
     /** number of public inputs */
     public: number
     /** maximal size of polynomial section */
@@ -52,19 +52,19 @@ export class VerifierIndex {
     /** The mapping between powers of alpha and constraints */
     powers_of_alpha: Alphas
     /** Wire coordinate shifts */
-    shift: Scalar[] // of size PERMUTS
+    shift: ForeignScalar[] // of size PERMUTS
     /** Zero knowledge polynomial */
     permutation_vanishing_polynomial_m: Polynomial
     /** Domain offset for zero-knowledge */
-    w: Scalar
+    w: ForeignScalar
     /** Endoscalar coefficient */
-    endo: Scalar
+    endo: ForeignScalar
 
     linearization: Linearization<PolishToken[]>
 
     constructor(
         domain_size: number,
-        domain_gen: Scalar,
+        domain_gen: ForeignScalar,
         max_poly_size: number,
         zk_rows: number,
         public_size: number,
@@ -77,10 +77,10 @@ export class VerifierIndex {
         emul_comm: PolyComm<ForeignGroup>,
         endomul_scalar_comm: PolyComm<ForeignGroup>,
         powers_of_alpha: Alphas,
-        shift: Scalar[],
+        shift: ForeignScalar[],
         permutation_vanishing_polynomial_m: Polynomial,
-        w: Scalar,
-        endo: Scalar,
+        w: ForeignScalar,
+        endo: ForeignScalar,
         linearization: Linearization<PolishToken[]>
     ) {
         this.srs = SRS.createFromJSON();

@@ -2,8 +2,9 @@ import { Group, Proof, Scalar } from "o1js"
 import { OpeningProof, PolyComm } from "../poly_commitment/commitment.js";
 import { LookupEvaluations, PointEvaluations, ProofEvaluations, ProverCommitments, ProverProof, RecursionChallenge } from "../prover/prover.js"
 import { deserPolyComm, PolyCommJSON, deserGroup, GroupJSON } from "./serde_index.js";
+import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 
-type PointEvals = PointEvaluations<Scalar[]>;
+type PointEvals = PointEvaluations<ForeignScalar[]>;
 
 // NOTE: snake_case is necessary to match the JSON schemes.
 interface PointEvalsJSON {
@@ -39,9 +40,9 @@ interface ProverCommitmentsJSON {
 /**
  * Deserializes a scalar from a hex string, prefix doesn't matter
  */
-export function deserHexScalar(str: string): Scalar {
+export function deserHexScalar(str: string): ForeignScalar {
     if (!str.startsWith("0x")) str = "0x" + str;
-    return Scalar.from(str);
+    return ForeignScalar.from(str);
 }
 
 /**

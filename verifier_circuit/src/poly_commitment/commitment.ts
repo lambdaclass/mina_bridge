@@ -1,7 +1,7 @@
 import { ForeignGroup, Group, Scalar } from "o1js";
 import { Sponge } from "../verifier/sponge";
-import { ForeignField } from "../foreign_fields/foreign_field";
-import { ForeignScalar } from "../foreign_fields/foreign_scalar";
+import { ForeignField } from "../foreign_fields/foreign_field.js";
+import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 
 /**
 * A polynomial commitment
@@ -37,7 +37,7 @@ export class PolyComm<A> {
     /**
      * Substract two commitments
      */
-    static sub(lhs: PolyComm<Group>, rhs: PolyComm<Group>): PolyComm<Group> {
+    static sub(lhs: PolyComm<ForeignGroup>, rhs: PolyComm<ForeignGroup>): PolyComm<ForeignGroup> {
         let unshifted = [];
         const n1 = lhs.unshifted.length;
         const n2 = rhs.unshifted.length;
@@ -60,7 +60,7 @@ export class PolyComm<A> {
     /**
      * Scale a commitments
      */
-    static scale(v: PolyComm<Group>, c: Scalar) {
+    static scale(v: PolyComm<ForeignGroup>, c: ForeignScalar) {
         return new PolyComm(v.unshifted.map((u) => u.scale(c)), v.shifted?.scale(c));
     }
 
@@ -126,7 +126,7 @@ export class PolyComm<A> {
         return new PolyComm<ForeignGroup>(unshifted, shifted);
     }
 
-    static chunk_commitment(comm: PolyComm<Group>, zeta_n: Scalar): PolyComm<Group> {
+    static chunk_commitment(comm: PolyComm<ForeignGroup>, zeta_n: ForeignScalar): PolyComm<ForeignGroup> {
         let res = comm.unshifted[comm.unshifted.length - 1];
 
         // use Horner's to compute chunk[0] + z^n chunk[1] + z^2n chunk[2] + ...
@@ -191,15 +191,15 @@ export function bPolyCoefficients(chals: ForeignScalar[]) {
  */
 export class Evaluation {
     /** The commitment of the polynomial being evaluated */
-    commitment: PolyComm<Group>
+    commitment: PolyComm<ForeignGroup>
     /** Contains an evaluation table */
-    evaluations: Scalar[][]
+    evaluations: ForeignScalar[][]
     /** optional degree bound */
     degree_bound?: number
 
     constructor(
-        commitment: PolyComm<Group>,
-        evaluations: Scalar[][],
+        commitment: PolyComm<ForeignGroup>,
+        evaluations: ForeignScalar[][],
         degree_bound?: number
     ) {
         this.commitment = commitment;
@@ -217,9 +217,9 @@ export class AggregatedEvaluationProof {
     /** vector of evaluation points */
     evaluation_points: Scalar[]
     /** scaling factor for evaluation point powers */
-    polyscale: Scalar
+    polyscale: ForeignScalar
     /** scaling factor for polynomials */
-    evalscale: Scalar
+    evalscale: ForeignScalar
     /** batched opening proof */
     opening: OpeningProof
     combined_inner_product: Scalar
@@ -227,9 +227,9 @@ export class AggregatedEvaluationProof {
 
 export class OpeningProof {
     /** vector of rounds of L & R commitments */
-    lr: [Group, Group][]
-    delta: Group
-    z1: Scalar
-    z2: Scalar
-    sg: Group
+    lr: [ForeignGroup, ForeignGroup][]
+    delta: ForeignGroup
+    z1: ForeignScalar
+    z2: ForeignScalar
+    sg: ForeignGroup
 }

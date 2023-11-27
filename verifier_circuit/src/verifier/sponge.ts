@@ -1,6 +1,7 @@
 import { Field, ForeignGroup, Group, Poseidon, Scalar } from "o1js"
 import { PolyComm } from "../poly_commitment/commitment";
 import { PointEvaluations, ProofEvaluations } from "../prover/prover";
+import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 
 /**
  * Wrapper over o1js' poseidon `Sponge` class which extends its functionality.
@@ -39,7 +40,7 @@ export class Sponge {
     }
 
     /** Will do an operation over the scalar to make it suitable for absorbing */
-    absorbScalar(s: Scalar) {
+    absorbScalar(s: ForeignScalar) {
         // this operation was extracted from Kimchi FqSponge's`absorb_fr()`.
         if (Scalar.ORDER < Field.ORDER) {
             const f = Field(s.toBigInt());
@@ -65,7 +66,7 @@ export class Sponge {
         }
     }
 
-    absorbScalars(s: Scalar[]) {
+    absorbScalars(s: ForeignScalar[]) {
         this.lastSqueezed = [];
         s.forEach(this.absorbScalar.bind(this));
     }
@@ -75,7 +76,7 @@ export class Sponge {
         if (commitment.shifted) this.absorbGroup(commitment.shifted);
     }
 
-    absorbEvals(evals: ProofEvaluations<PointEvaluations<Scalar[]>>) {
+    absorbEvals(evals: ProofEvaluations<PointEvaluations<ForeignScalar[]>>) {
         const {
             public_input,
             w,
@@ -133,20 +134,20 @@ export class Sponge {
     /**
     * Calls `squeezeLimbs()` and composes them into a scalar.
     */
-    squeeze(numLimbs: number): Scalar {
+    squeeze(numLimbs: number): ForeignScalar {
         let squeezed = 0n;
         const squeezedLimbs = this.squeezeLimbs(numLimbs);
         for (const i in this.squeezeLimbs(numLimbs)) {
             squeezed += squeezedLimbs[i] << (64n * BigInt(i));
         }
-        return Scalar.from(squeezed);
+        return ForeignScalar.from(squeezed);
     }
 
-    challenge(): Scalar {
+    challenge(): ForeignScalar {
         return this.squeeze(Sponge.CHALLENGE_LENGTH_IN_LIMBS);
     }
 
-    digest(): Scalar {
+    digest(): ForeignScalar {
         const x = this.squeezeField().toBigInt();
         const result = x < Scalar.ORDER ? x : 0;
         // Comment copied from Kimchi's codebase:
@@ -157,6 +158,6 @@ export class Sponge {
         // This would allow the attacker to mess with the result of the aggregated evaluation proof.
         // Previously the attacker's odds were 1/q, now it's (q-p)/q.
         // Since log2(q-p) ~ 86 and log2(q) ~ 254 the odds of a successful attack are negligible.
-        return Scalar.from(result);
+        return ForeignScalar.from(result);
     }
 }
