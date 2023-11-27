@@ -46,6 +46,7 @@ library Kimchi {
 
 contract KimchiVerifier {
     using {AlphasLib.register} for Alphas;
+    using {combine_evals} for ProofEvaluationsArray;
 
     VerifierIndex verifier_index;
     ProverProof proof;
@@ -165,17 +166,18 @@ contract KimchiVerifier {
             ).commitment;
         }
 
-        Oracles.fiat_shamir(proof, verifier_index, public_comm, public_inputs, true, base_sponge, scalar_sponge);
+        Oracles.Result memory oracles_res = Oracles.fiat_shamir(proof, verifier_index, public_comm, public_inputs, true, base_sponge, scalar_sponge);
+
+        proof.evals.combine_evals(oracles_res.powers_of_eval_points_for_chunks);
     }
 
     /*
-    This is a list of steps needed for verification, we need to determine which
-    ones can be skipped or simplified.
+    This is a list of steps needed for verification.
 
     Partial verification:
         1. Check the length of evaluations insde the proof.
         2. Commit to the negated public input poly
-        3. Fiat-Shamir (MAY SKIP OR VASTLY SIMPLIFY)
+        3. Fiat-Shamir (vastly simplify for now)
         4. Combined chunk polynomials evaluations
         5. Commitment to linearized polynomial f
         6. Chunked commitment of ft
