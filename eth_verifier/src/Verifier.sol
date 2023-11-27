@@ -9,7 +9,7 @@ import "../lib/Oracles.sol";
 import "../lib/Proof.sol";
 import "../lib/State.sol";
 import "../lib/VerifierIndex.sol";
-import "../lib/Commitment.sol";
+import "../lib/Constants.sol";
 import "../lib/msgpack/Deserialize.sol";
 
 using {BN254.neg} for BN254.G1Point;
@@ -77,8 +77,10 @@ contract KimchiVerifier {
         verifier_index.public_len = public_len;
         verifier_index.domain_size = domain_size;
         verifier_index.max_poly_size = max_poly_size;
-        verifier_index.powers_of_alpha.register(ArgumentType.GateZero, 21);
-        verifier_index.powers_of_alpha.register(ArgumentType.Permutation, 3);
+
+        // TODO: Investigate about linearization and write a proper function for this
+        verifier_index.powers_of_alpha.register(ArgumentType.GateZero, Constants.VARBASEMUL_CONSTRAINTS);
+        verifier_index.powers_of_alpha.register(ArgumentType.Permutation, Constants.PERMUTATION_CONSTRAINTS);
 
         proof.evals = evals;
     }
