@@ -1,6 +1,6 @@
-import { ArgumentType, ArgumentTypeID, GateType } from "./circuits/gate"
+import { ArgumentType, ArgumentTypeID, GateType } from "./circuits/gate.js"
 import { Scalar } from "o1js"
-import { ForeignScalar } from "./foreign_fields/foreign_scalar"
+import { ForeignScalar } from "./foreign_fields/foreign_scalar.js"
 
 /**
  * This type can be used to create a mapping between powers of alpha and constraint types.

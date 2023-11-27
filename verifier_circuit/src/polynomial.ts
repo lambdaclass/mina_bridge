@@ -1,5 +1,5 @@
 import { Scalar } from "o1js"
-import { ForeignScalar } from "./foreign_fields/foreign_scalar"
+import { ForeignScalar } from "./foreign_fields/foreign_scalar.js"
 
 export class Polynomial {
     coef: Array<ForeignScalar>

@@ -1,7 +1,7 @@
 import { AggregatedEvaluationProof, Evaluation, PolyComm } from "../poly_commitment/commitment.js";
 import { ProverProof, PointEvaluations, ProofEvaluations, Constants } from "../prover/prover.js";
 import { Verifier, VerifierIndex } from "./verifier.js";
-import { ForeignGroup, Group, Scalar } from "o1js";
+import { ForeignGroup } from "o1js";
 import { deserHexScalar } from "../serde/serde_proof.js";
 import { Column, PolishToken } from "../prover/expr.js";
 import { GateType } from "../circuits/gate.js";
@@ -43,7 +43,7 @@ export class Context {
     }
 }
 
-export class Batch extends Verifier {
+export class Batch {
     /**
      * will take verifier_index, proof and public inputs as args.
      * will output a "batch evaluation proof"

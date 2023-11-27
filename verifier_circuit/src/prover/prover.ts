@@ -1,8 +1,8 @@
 import { Polynomial } from "../polynomial.js"
-import { Field, ForeignGroup, Group, Scalar } from "o1js"
-import { PolyComm, bPoly, bPolyCoefficients, OpeningProof } from "../poly_commitment/commitment";
-import { getLimbs64 } from "../util/bigint";
-import { Sponge } from "../verifier/sponge";
+import { Field, ForeignGroup, Group, Provable, Scalar } from "o1js"
+import { PolyComm, bPoly, bPolyCoefficients, OpeningProof } from "../poly_commitment/commitment.js";
+import { getLimbs64 } from "../util/bigint.js";
+import { Sponge } from "../verifier/sponge.js";
 import { Verifier, VerifierIndex } from "../verifier/verifier.js";
 import { invScalar, powScalar } from "../util/scalar.js";
 import { GateType } from "../circuits/gate.js";
@@ -247,7 +247,7 @@ export class ProverProof {
 
         //~ 29. Compute the evaluation of $ft(\zeta)$.
         const zkp = index.permutation_vanishing_polynomial_m.evaluate(zeta);
-        const zeta1m1 = zeta1.sub(Scalar.from(1));
+        const zeta1m1 = zeta1.sub(ForeignScalar.from(1));
 
         let alpha_powers = all_alphas.getAlphas({ kind: "permutation" }, Verifier.PERMUTATION_CONSTRAINTS);
         const alpha0 = alpha_powers[0];
@@ -274,12 +274,11 @@ export class ProverProof {
                 .reduce((acc, curr) => acc.mul(curr), alpha0.mul(zkp).mul(evals.z.zeta))
         );
 
-
         const numerator = (zeta1m1.mul(alpha1).mul((zeta.sub(index.w))))
-            .add(zeta1m1.mul(alpha2).mul(zeta.sub(Scalar.from(1))))
+            .add(zeta1m1.mul(alpha2).mul(zeta.sub(ForeignScalar.from(1))))
             .mul(ForeignScalar.from(1).sub(evals.z.zeta));
 
-        const denominator = invScalar(zeta.sub(index.w).mul(zeta.sub(Scalar.from(1))));
+        const denominator = invScalar(zeta.sub(index.w).mul(zeta.sub(ForeignScalar.from(1))));
         // FIXME: if error when inverting, "negligible probability"
 
         ft_eval0 = ft_eval0.add(numerator.mul(denominator));
@@ -394,8 +393,8 @@ export function combinedInnerProduct(
     evalscale: ForeignScalar,
     polys: [ForeignScalar[][], number | undefined][],
     srs_length: number
-): Scalar {
-    let res = Scalar.from(0);
+): ForeignScalar {
+    let res = ForeignScalar.from(0);
     let xi_i = ForeignScalar.from(1);
 
     for (const [evals_tr, shifted] of polys.filter(([evals_tr, _]) => evals_tr[0].length != 0)) {
@@ -706,29 +705,31 @@ export class ScalarChallenge {
     }
 
     toFieldWithLength(length_in_bits: number, endo_coeff: ForeignScalar): ForeignScalar {
-        const rep = this.chal.toBigInt();
-        const rep_64_limbs = getLimbs64(rep);
+        return Provable.witness(ForeignScalar, () => {
+            const rep = this.chal.toBigInt();
+            const rep_64_limbs = getLimbs64(rep);
 
-        let a = ForeignScalar.from(2);
-        let b = ForeignScalar.from(2);
+            let a = ForeignScalar.from(2);
+            let b = ForeignScalar.from(2);
 
-        const one = ForeignScalar.from(1);
-        const negone = one.neg();
-        for (let i = Math.floor(length_in_bits / 2) - 1; i >= 0; i--) {
-            a = a.add(a);
-            b = b.add(b);
+            const one = ForeignScalar.from(1);
+            const negone = one.neg();
+            for (let i = Math.floor(length_in_bits / 2) - 1; i >= 0; i--) {
+                a = a.add(a);
+                b = b.add(b);
 
-            const r_2i = getBit(rep_64_limbs, 2 * i);
-            const s = r_2i === 0n ? negone : one;
+                const r_2i = getBit(rep_64_limbs, 2 * i);
+                const s = r_2i === 0n ? negone : one;
 
-            if (getBit(rep_64_limbs, 2 * i + 1) === 0n) {
-                b = b.add(s);
-            } else {
-                a = a.add(s);
+                if (getBit(rep_64_limbs, 2 * i + 1) === 0n) {
+                    b = b.add(s);
+                } else {
+                    a = a.add(s);
+                }
             }
-        }
 
-        return a.mul(endo_coeff).add(b);
+            return a.mul(endo_coeff).add(b);
+        });
     }
 
     toField(endo_coeff: ForeignScalar): ForeignScalar {
@@ -792,5 +793,5 @@ export class OraclesResult {
     /** The evaluation f(zeta) - t(zeta) * Z_H(zeta) */
     ft_eval0: ForeignScalar
     /** Used by the OCaml side */
-    combined_inner_product: Scalar
+    combined_inner_product: ForeignScalar
 }

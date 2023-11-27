@@ -1,12 +1,12 @@
 import { ForeignGroup, Group, Scalar } from "o1js"
-import { PolyComm } from "../poly_commitment/commitment"
-import { VerifierIndex } from "../verifier/verifier"
-import { deserHexScalar } from "./serde_proof"
-import { PolishToken, CurrOrNext, Variable, Column, Linearization } from "../prover/expr"
-import { ArgumentType, GateType } from "../circuits/gate"
-import { Polynomial } from "../polynomial"
-import { Alphas } from "../alphas"
-import { ForeignField } from "../foreign_fields/foreign_field"
+import { PolyComm } from "../poly_commitment/commitment.js"
+import { VerifierIndex } from "../verifier/verifier.js"
+import { deserHexScalar } from "./serde_proof.js"
+import { PolishToken, CurrOrNext, Variable, Column, Linearization } from "../prover/expr.js"
+import { ArgumentType, GateType } from "../circuits/gate.js"
+import { Polynomial } from "../polynomial.js"
+import { Alphas } from "../alphas.js"
+import { ForeignField } from "../foreign_fields/foreign_field.js"
 
 export interface PolyCommJSON {
     unshifted: GroupJSON[]

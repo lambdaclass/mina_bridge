@@ -222,7 +222,7 @@ export class AggregatedEvaluationProof {
     evalscale: ForeignScalar
     /** batched opening proof */
     opening: OpeningProof
-    combined_inner_product: Scalar
+    combined_inner_product: ForeignScalar
 }
 
 export class OpeningProof {

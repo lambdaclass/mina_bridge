@@ -8,6 +8,12 @@ import { Polynomial } from '../polynomial.js';
 import { Linearization, PolishToken } from '../prover/expr.js';
 import { ForeignField } from '../foreign_fields/foreign_field.js';
 import { ForeignScalar } from '../foreign_fields/foreign_scalar.js';
+import { Batch } from './batch.js';
+
+import proof_json from "../../test/proof.json" assert { type: "json" };
+import verifier_index_json from "../../test/verifier_index.json" assert { type: "json" };
+import { deserVerifierIndex } from "../serde/serde_index.js";
+import { deserProverProof } from '../serde/serde_proof.js';
 
 let steps: bigint[][];
 try {
@@ -133,6 +139,7 @@ export class Verifier extends Circuit {
 
     @circuitMain
     static main(@public_ sg: ForeignGroup, @public_ z1: ForeignScalar, @public_ expected: ForeignGroup) {
+        Batch.toBatch(deserVerifierIndex(verifier_index_json), deserProverProof(proof_json), []);
         let points = [h];
         let scalars = [ForeignScalar.from(0)];
 

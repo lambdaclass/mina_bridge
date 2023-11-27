@@ -1,8 +1,8 @@
 import { Scalar } from "o1js";
-import { Constants, PointEvaluations, ProofEvaluations } from "./prover";
-import { invScalar, powScalar } from "../util/scalar";
-import { GateType } from "../circuits/gate";
-import { ForeignScalar } from "../foreign_fields/foreign_scalar";
+import { Constants, PointEvaluations, ProofEvaluations } from "./prover.js";
+import { invScalar, powScalar } from "../util/scalar.js";
+import { GateType } from "../circuits/gate.js";
+import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 
 /** A type representing one of the polynomials involved in the PLONK IOP */
 export namespace Column {

@@ -1,3 +1,4 @@
+import { ForeignGroup } from "o1js";
 import { SRS } from "./SRS.js";
 import { ForeignField } from "./foreign_fields/foreign_field.js";
 
