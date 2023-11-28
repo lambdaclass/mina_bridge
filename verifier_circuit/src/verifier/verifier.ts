@@ -139,7 +139,11 @@ export class Verifier extends Circuit {
 
     @circuitMain
     static main(@public_ sg: ForeignGroup, @public_ z1: ForeignScalar, @public_ expected: ForeignGroup) {
-        Batch.toBatch(deserVerifierIndex(verifier_index_json), deserProverProof(proof_json), []);
+        let proverProof = deserProverProof(proof_json);
+        proverProof.proof.sg = sg;
+        proverProof.proof.z1 = z1;
+        let evaluationProof = Batch.toBatch(deserVerifierIndex(verifier_index_json), proverProof, []);
+
         let points = [h];
         let scalars = [ForeignScalar.from(0)];
 
@@ -147,8 +151,8 @@ export class Verifier extends Circuit {
         let sgRandBase = ForeignScalar.from(1);
         let negRandBase = randBase.neg();
 
-        points.push(sg);
-        scalars.push(negRandBase.mul(z1).sub(sgRandBase));
+        points.push(evaluationProof.opening.sg);
+        scalars.push(negRandBase.mul(evaluationProof.opening.z1).sub(sgRandBase));
 
         let result = Verifier.naiveMSM(points, scalars);
 
