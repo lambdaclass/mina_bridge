@@ -13,5 +13,5 @@ docs/
 # Dotenv file
 .env
 
-./proof.mpk
-./state.mpk
+proof.mpk
+state.mpk
