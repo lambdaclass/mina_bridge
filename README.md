@@ -372,3 +372,29 @@ __Vf__ corresponds to field operations in a field __F__, and __Vg__ corresponds 
 
 The proof __Pi__ is divided into 2 parts, one corresponding to group operations __G__, and it exposes, as a public input to the circuit, the part of the proof that is necessary to execute __Vf__.
 
+---
+
+# Consensus
+
+Mina employs [Ouroboros Samasika](https://eprint.iacr.org/2020/352.pdf) as its consensus mechanism, which will be subsequently denoted as Samasika.
+Three essential commitments provided include:
+- High decentralization - Self-bootstrap, uncapped participation and dynamic availability
+- Succinctness - Constant-time synchronization with full-validation and high interoperability
+- Universal composability - Proven security for interacting with other protocols, no slashing required
+
+Joseph Bonneau, Izaak Meckler, Vanishree Rao, and Evan Shapiro collaborated to create Samasika, establishing it as the initial succinct blockchain consensus algorithm.
+
+The complexity of fully verifying the entire blockchain is independent of chain length.
+
+Samasika takes its name from the Sanskrit term, meaning small or succinct.
+
+### Chain selection rules
+
+Samasika uses two consensus rules: one for _short-range forks_ and one for _long-range forks_.
+
+This rule is triggered whenever the fork is such that the adversary has not yet had the opportunity to mutate the block density distribution.
+
+A fork is considered short-range if it took place within the last **m** blocks. The straightforward implementation of this rule involves consistently storing the most recent **m** blocks. Yet, in the context of a succinct blockchain, this is considered not desirable.
+
+
+
