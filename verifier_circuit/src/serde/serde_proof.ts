@@ -46,6 +46,13 @@ export function deserHexScalar(str: string): ForeignScalar {
 }
 
 /**
+ * Deserializes a scalar from a dec string
+ */
+export function deserDecScalar(str: string): ForeignScalar {
+    return ForeignScalar.from(str);
+}
+
+/**
  * Deserializes a scalar point evaluation from JSON
  */
 export function deserPointEval(json: PointEvalsJSON): PointEvals {
@@ -134,8 +141,8 @@ export function deserOpeningProof(json: OpeningProofJSON): OpeningProof {
     return {
         lr: json.lr.map((g) => [deserGroup(g[0]), deserGroup(g[1])]),
         delta: deserGroup(json.delta),
-        z1: deserHexScalar(json.z1),
-        z2: deserHexScalar(json.z2),
+        z1: deserDecScalar(json.z1),
+        z2: deserDecScalar(json.z2),
         sg: deserGroup(json.sg),
     }
 }

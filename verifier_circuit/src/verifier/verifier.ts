@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
 import { circuitMain, Circuit, Group, Scalar, public_, Field, ForeignGroup } from 'o1js';
-import { PolyComm } from '../poly_commitment/commitment.js';
+import { OpeningProof, PolyComm } from '../poly_commitment/commitment.js';
 import { SRS } from '../SRS.js';
 import { Sponge } from './sponge.js';
 import { Alphas } from '../alphas.js';
@@ -138,10 +138,9 @@ export class Verifier extends Circuit {
     static readonly PERMUTATION_CONSTRAINTS: number = 3;
 
     @circuitMain
-    static main(@public_ sg: ForeignGroup, @public_ z1: ForeignScalar, @public_ expected: ForeignGroup) {
+    static main(@public_ openingProof: OpeningProof, @public_ expected: ForeignGroup) {
         let proverProof = deserProverProof(proof_json);
-        proverProof.proof.sg = sg;
-        proverProof.proof.z1 = z1;
+        proverProof.proof = openingProof;
         let evaluationProof = Batch.toBatch(deserVerifierIndex(verifier_index_json), proverProof, []);
 
         let points = [h];
