@@ -7,7 +7,7 @@ use ark_ec::{
     msm::VariableBaseMSM, short_weierstrass_jacobian::GroupAffine, AffineCurve, PairingEngine,
     ProjectiveCurve,
 };
-use ark_ff::PrimeField;
+use ark_ff::{Field, PrimeField};
 use ark_poly::{
     univariate::DenseOrSparsePolynomial, univariate::DensePolynomial, EvaluationDomain,
     Evaluations, Polynomial, Radix2EvaluationDomain, UVPolynomial,
@@ -23,15 +23,17 @@ use kimchi::{
         constraints::ConstraintSystem,
         domains::EvaluationDomains,
         gate::{CircuitGate, GateType},
-        polynomials::generic::testing::create_circuit,
+        wires::*,
     },
     curve::KimchiCurve,
+    groupmap::GroupMap,
     o1_utils::FieldHelpers,
+    proof::ProverProof,
     prover_index::{self, ProverIndex},
 };
 use num_traits::{One, Zero};
 use poly_commitment::{
-    commitment::{combine_commitments, combine_evaluations, Evaluation},
+    commitment::{combine_commitments, combine_evaluations, CommitmentCurve, Evaluation},
     evaluation_proof::{combine_polys, DensePolynomialOrEvaluations, OpeningProof},
     pairing_proof::{PairingProof, PairingSRS},
     srs::{endos, SRS},
@@ -53,6 +55,15 @@ fn main() {
     let cs = ConstraintSystem::<ark_bn254::Fr>::create(gates)
         .build()
         .unwrap();
+
+    println!(
+        "{:#?}",
+        cs.gates
+            .iter()
+            .map(|c| c.typ)
+            .filter(|typ| typ != &GateType::Zero)
+            .collect::<Vec<_>>()
+    );
 
     const ZK_ROWS: usize = 3;
     let domain_size = cs.gates.len() + ZK_ROWS;
@@ -143,9 +154,18 @@ fn main() {
     type G1 = GroupAffine<ark_bn254::g1::Parameters>;
     let endo_q = G1::endos().1;
     srs.full_srs.add_lagrange_basis(cs.domain.d1);
-    let prover_index =
-        ProverIndex::<G1, OpeningProof<G1>>::create(cs, endo_q, Arc::new(srs.clone().full_srs));
+
+    let prover_index = ProverIndex::<G1, OpeningProof<G1>>::create(
+        cs.clone(),
+        endo_q,
+        Arc::new(srs.clone().full_srs),
+    );
     let verifier_index = prover_index.verifier_index();
+
+    let groupmap = <G1 as CommitmentCurve>::Map::setup();
+    let witness = create_fake_witness(&cs);
+    let prover_proof = ProverProof::create(&groupmap, witness, &vec![], &prover_index);
+
     fs::write(
         "../eth_verifier/verifier_index.mpk",
         rmp_serde::to_vec(&verifier_index).unwrap(),
@@ -346,4 +366,61 @@ fn selector_polynomial(
         domain.d1,
     )
     .interpolate()
+}
+
+// Only implements for gate types used by the current o1js circuit's proof.
+fn create_fake_witness(cs: &ConstraintSystem<ark_bn254::Fr>) -> [Vec<ark_bn254::Fr>; COLUMNS] {
+    let mut witness: [Vec<_>; COLUMNS] = Default::default();
+    for gate in cs.gates.iter() {
+        match gate.typ {
+            GateType::Generic => {
+                witness[0].push(-gate.coeffs[4] * gate.coeffs[0].inverse().unwrap());
+                witness[1].push(0.into());
+                witness[2].push(0.into());
+                witness[3].push(-gate.coeffs[8] * gate.coeffs[5].inverse().unwrap());
+                witness[4].push(0.into());
+                witness[5].push(0.into());
+            }
+            GateType::ForeignFieldAdd => {
+                for i in 0..15 {
+                    witness[i].push(0.into());
+                    witness[i].push(0.into());
+                }
+                for i in 0..15 {
+                    witness[i].push(0.into());
+                    witness[i].push(0.into());
+                }
+
+                /*
+                 * We only need to populate the first 3 cols of the next row,
+                 * but because we are pushing and we don't want our next gate
+                 * to have registers in the previous row, we fill everything with 0.
+                 *
+                 * Else we would just do:
+                 * witness[0].push(0.into());
+                 * witness[1].push(0.into());
+                 * witness[2].push(0.into());
+                 */
+            }
+            GateType::RangeCheck0 => {
+                for i in 0..15 {
+                    witness[i].push(0.into());
+                    witness[i].push(0.into());
+                }
+            }
+            GateType::RangeCheck1 => {
+                for i in 0..15 {
+                    witness[i].push(0.into());
+                    witness[i].push(0.into());
+                }
+                for i in 0..15 {
+                    witness[i].push(0.into());
+                    witness[i].push(0.into());
+                }
+            }
+            _ => unreachable!(),
+        }
+    }
+
+    witness
 }
