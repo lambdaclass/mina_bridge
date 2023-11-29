@@ -66,6 +66,29 @@ This will:
 
 This repository is composed of the following components:
 
+### Polling service
+
+This module contains a script to fetch the latest Mina state proof from a Mina node and parse the proof into a JSON a file.
+
+#### Dependencies
+
+You need to have access to a Mina node.
+To run a node, [follow the installation steps](https://github.com/MinaProtocol/mina/releases/tag/1.4.0).
+
+#### Running
+
+On `polling_service` run:
+
+```sh
+./run.sh
+```
+
+This will:
+
+1. Fetch the latest Mina state proof from a Mina node
+1. Clone our [Mina 1.4.0 fork](https://github.com/lambdaclass/mina/tree/proof_to_json)
+1. Use the cloned fork to parse the fetched proof into a JSON file
+
 ### Verifier circuit
 
 This module contains the [o1js](https://github.com/o1-labs/o1js) circuit used for recursively verify Mina state proofs.
