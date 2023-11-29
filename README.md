@@ -45,6 +45,21 @@ This is subject to change.
         B3-->|Proof request| S
 ```
 
+```mermaid
+    flowchart LR
+        mina_node(Mina node)
+        -- (Mina proof,\nVerification key)
+        --> polling_service[Polling service]
+        -- JSON Proof
+        --> verifier_circuit[Verifier circuit]
+        -- Gates
+        --> kzg_prover[KZG prover]
+        -- (KZG proof,\nVerification key)
+        --> eth_verifier[Verifier contract]
+        -- is_valid_proof?
+        --> user(User)
+```
+
 ## Usage
 
 On root folder run:
