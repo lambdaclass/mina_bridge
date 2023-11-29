@@ -1,6 +1,6 @@
 mod snarky_gate;
 
-use std::{fs, ops::Neg, sync::Arc};
+use std::{array, fs, ops::Neg, sync::Arc};
 
 use ark_bn254::{G1Affine, G2Affine};
 use ark_ec::{
@@ -27,6 +27,7 @@ use kimchi::{
     },
     curve::KimchiCurve,
     groupmap::GroupMap,
+    keccak_sponge::{Keccak256FqSponge, Keccak256FrSponge},
     o1_utils::FieldHelpers,
     proof::ProverProof,
     prover_index::{self, ProverIndex},
@@ -46,6 +47,10 @@ type PolynomialsToCombine<'a> = &'a [(
     Option<usize>,
     PolyComm<ark_bn254::Fr>,
 )];
+use itertools::iterate;
+
+type BaseField = ark_bn254::Fq;
+type ScalarField = ark_bn254::Fr;
 
 fn main() {
     let rng = &mut StdRng::from_seed([0u8; 32]);
@@ -164,11 +169,20 @@ fn main() {
 
     let groupmap = <G1 as CommitmentCurve>::Map::setup();
     let witness = create_fake_witness(&cs);
-    let prover_proof = ProverProof::create(&groupmap, witness, &vec![], &prover_index);
+    let prover_proof = ProverProof::create::<
+        Keccak256FqSponge<BaseField, G1, ScalarField>,
+        Keccak256FrSponge<ScalarField>,
+    >(&groupmap, witness, &vec![], &prover_index);
 
     fs::write(
         "../eth_verifier/verifier_index.mpk",
         rmp_serde::to_vec(&verifier_index).unwrap(),
+    )
+    .unwrap();
+
+    fs::write(
+        "../eth_verifier/prover_proof.mpk",
+        rmp_serde::to_vec(&prover_proof.unwrap()).unwrap(),
     )
     .unwrap();
 
@@ -370,17 +384,54 @@ fn selector_polynomial(
 
 // Only implements for gate types used by the current o1js circuit's proof.
 fn create_fake_witness(cs: &ConstraintSystem<ark_bn254::Fr>) -> [Vec<ark_bn254::Fr>; COLUMNS] {
-    let mut witness: [Vec<_>; COLUMNS] = Default::default();
-    for gate in cs.gates.iter() {
+    let non_zero_gates = cs.gates.iter().filter(|g| g.typ != GateType::Zero);
+    let mut witness: [Vec<_>; COLUMNS] =
+        array::from_fn(|_| vec![ScalarField::zero(); non_zero_gates.clone().count()]);
+    // We ignore zero gates as they only serve as padding
+
+    for gate in non_zero_gates {
         match gate.typ {
             GateType::Generic => {
-                witness[0].push(-gate.coeffs[4] * gate.coeffs[0].inverse().unwrap());
-                witness[1].push(0.into());
-                witness[2].push(0.into());
-                witness[3].push(-gate.coeffs[8] * gate.coeffs[5].inverse().unwrap());
-                witness[4].push(0.into());
-                witness[5].push(0.into());
+                let first_non_zero_coeff = gate.coeffs[..4]
+                    .iter()
+                    .enumerate()
+                    .find(|(_, c)| **c != ScalarField::zero());
+
+                if let Some((i_non_zero, coeff)) = first_non_zero_coeff {
+                    println!("first coeff: {}", i_non_zero);
+                    for i in (0..i_non_zero).chain(i_non_zero + 1..5) {
+                        witness[i].push(0.into())
+                    }
+                    witness[i_non_zero].push(-gate.coeffs[4] * coeff.inverse().unwrap());
+                } else {
+                    for i in 0..5 {
+                        witness[i].push(0.into())
+                    }
+                }
+
+                let second_non_zero_coeff = gate.coeffs[5..10]
+                    .iter()
+                    .enumerate()
+                    .map(|(i, c)| (i + 5, c))
+                    .find(|(_, c)| **c != ScalarField::zero());
+
+                if let Some((i_non_zero, coeff)) = second_non_zero_coeff {
+                    println!("second coeff: {}", i_non_zero);
+                    for i in (5..i_non_zero).chain(i_non_zero + 1..10) {
+                        witness[i].push(0.into())
+                    }
+                    witness[i_non_zero].push(-gate.coeffs[9] * coeff.inverse().unwrap());
+                } else {
+                    for i in 5..10 {
+                        witness[i].push(0.into())
+                    }
+                }
+
+                for i in 10..15 {
+                    witness[i].push(0.into())
+                }
             }
+
             GateType::ForeignFieldAdd => {
                 for i in 0..15 {
                     witness[i].push(0.into());
