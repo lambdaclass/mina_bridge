@@ -61,15 +61,6 @@ fn main() {
         .build()
         .unwrap();
 
-    println!(
-        "{:#?}",
-        cs.gates
-            .iter()
-            .map(|c| c.typ)
-            .filter(|typ| typ != &GateType::Zero)
-            .collect::<Vec<_>>()
-    );
-
     const ZK_ROWS: usize = 3;
     let domain_size = cs.gates.len() + ZK_ROWS;
     let domain = EvaluationDomains::create(domain_size).unwrap();
@@ -392,13 +383,21 @@ fn create_fake_witness(cs: &ConstraintSystem<ark_bn254::Fr>) -> [Vec<ark_bn254::
     for gate in non_zero_gates {
         match gate.typ {
             GateType::Generic => {
+                /*
+                 * The idea is that, if we have a generic constraint:
+                 *     l*c0 + r*c1 + o*c2 + (l+r)*c3 + c4 = 0
+                 * and we want a fake witness such that the constraint always gets
+                 * satisfied, then we can set almost every register to 0 but one that
+                 * will be used to cancel the independent term c4.
+                 *
+                 * In particular the generic gate has two constraints of this kind:
+                 */
                 let first_non_zero_coeff = gate.coeffs[..4]
                     .iter()
                     .enumerate()
                     .find(|(_, c)| **c != ScalarField::zero());
 
                 if let Some((i_non_zero, coeff)) = first_non_zero_coeff {
-                    println!("first coeff: {}", i_non_zero);
                     for i in (0..i_non_zero).chain(i_non_zero + 1..5) {
                         witness[i].push(0.into())
                     }
@@ -416,7 +415,6 @@ fn create_fake_witness(cs: &ConstraintSystem<ark_bn254::Fr>) -> [Vec<ark_bn254::
                     .find(|(_, c)| **c != ScalarField::zero());
 
                 if let Some((i_non_zero, coeff)) = second_non_zero_coeff {
-                    println!("second coeff: {}", i_non_zero);
                     for i in (5..i_non_zero).chain(i_non_zero + 1..10) {
                         witness[i].push(0.into())
                     }
