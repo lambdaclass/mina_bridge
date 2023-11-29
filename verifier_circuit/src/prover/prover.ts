@@ -1,8 +1,8 @@
 import { Polynomial } from "../polynomial.js"
-import { Field, Group, Scalar } from "o1js"
-import { PolyComm, bPoly, bPolyCoefficients, OpeningProof } from "../poly_commitment/commitment";
-import { getLimbs64 } from "../util/bigint";
-import { Sponge } from "../verifier/sponge";
+import { Field, ForeignGroup, Group, Provable, Scalar } from "o1js"
+import { PolyComm, bPoly, bPolyCoefficients, OpeningProof } from "../poly_commitment/commitment.js";
+import { getLimbs64 } from "../util/bigint.js";
+import { Sponge } from "../verifier/sponge.js";
 import { Verifier, VerifierIndex } from "../verifier/verifier.js";
 import { invScalar, powScalar } from "../util/scalar.js";
 import { GateType } from "../circuits/gate.js";
@@ -10,21 +10,22 @@ import { Alphas } from "../alphas.js";
 import { Column, PolishToken } from "./expr.js";
 import { deserHexScalar } from "../serde/serde_proof.js";
 import { range } from "../util/misc.js";
+import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
-    evals: ProofEvaluations<PointEvaluations<Scalar[]>>
+    evals: ProofEvaluations<PointEvaluations<ForeignScalar[]>>
     prev_challenges: RecursionChallenge[]
     commitments: ProverCommitments
     /** Required evaluation for Maller's optimization */
-    ft_eval1: Scalar
+    ft_eval1: ForeignScalar
     proof: OpeningProof
 
     constructor(
-        evals: ProofEvaluations<PointEvaluations<Scalar[]>>,
+        evals: ProofEvaluations<PointEvaluations<ForeignScalar[]>>,
         prev_challenges: RecursionChallenge[],
         commitments: ProverCommitments,
-        ft_eval1: Scalar,
+        ft_eval1: ForeignScalar,
         proof: OpeningProof
     ) {
         this.evals = evals;
@@ -37,7 +38,7 @@ export class ProverProof {
     /**
      * Will run the random oracle argument for removing prover-verifier interaction (Fiat-Shamir transform)
      */
-    oracles(index: VerifierIndex, public_comm: PolyComm<Group>, public_input?: Scalar[]): OraclesResult {
+    oracles(index: VerifierIndex, public_comm: PolyComm<ForeignGroup>, public_input?: ForeignScalar[]): OraclesResult {
         let sponge_test = new Sponge();
         const fields = [Field.from(1), Field.from(2)];
         fields.forEach((f) => {
@@ -45,7 +46,7 @@ export class ProverProof {
         });
 
         const n = index.domain_size;
-        const endo_r = Scalar.from("0x397e65a7d7c1ad71aee24b27e308f0a61259527ec1d4752e619d1840af55f1b1");
+        const endo_r = ForeignScalar.from("0x397e65a7d7c1ad71aee24b27e308f0a61259527ec1d4752e619d1840af55f1b1");
         // FIXME: ^ currently hard-coded, refactor this in the future
 
         let chunk_size;
@@ -128,13 +129,13 @@ export class ProverProof {
         let zeta1 = powScalar(zeta, n);
         const zetaw = zeta.mul(index.domain_gen);
         const evaluation_points = [zeta, zetaw];
-        const powers_of_eval_points_for_chunks: PointEvaluations<Scalar> = {
+        const powers_of_eval_points_for_chunks: PointEvaluations<ForeignScalar> = {
             zeta: powScalar(zeta, index.max_poly_size),
             zetaOmega: powScalar(zetaw, index.max_poly_size)
         };
 
         //~ 20. Compute evaluations for the previous recursion challenges.
-        const polys: [PolyComm<Group>, Scalar[][]][] = this.prev_challenges.map((chal) => {
+        const polys: [PolyComm<ForeignGroup>, ForeignScalar[][]][] = this.prev_challenges.map((chal) => {
             const evals = chal.evals(
                 index.max_poly_size,
                 evaluation_points,
@@ -150,14 +151,14 @@ export class ProverProof {
         let all_alphas = index.powers_of_alpha;
         all_alphas.instantiate(alpha);
 
-        let public_evals: Scalar[][] | undefined;
+        let public_evals: ForeignScalar[][] | undefined;
         if (this.evals.public_input) {
             public_evals = [this.evals.public_input.zeta, this.evals.public_input.zetaOmega];
         } else if (chunk_size > 1) {
             // FIXME: missing public input eval error
         } else if (public_input) {
             // compute Lagrange base evaluation denominators
-            let w = [Scalar.from(1)];
+            let w = [ForeignScalar.from(1)];
             for (let i = 0; i < public_input.length; i++) {
                 w.push(powScalar(index.domain_gen, i));
             }
@@ -171,9 +172,9 @@ export class ProverProof {
             //~ 21. Evaluate the negated public polynomial (if present) at $\zeta$ and $\zeta\omega$.
             //  NOTE: this works only in the case when the poly segment size is not smaller than that of the domain.
             if (public_input.length === 0) {
-                public_evals = [[Scalar.from(0)], [Scalar.from(0)]];
+                public_evals = [[ForeignScalar.from(0)], [ForeignScalar.from(0)]];
             } else {
-                let pe_zeta = Scalar.from(0);
+                let pe_zeta = ForeignScalar.from(0);
                 const min_len = Math.min(
                     zeta_minus_x.length,
                     w.length,
@@ -186,10 +187,10 @@ export class ProverProof {
 
                     pe_zeta = pe_zeta.add(l.neg().mul(p).mul(w_i));
                 }
-                const size_inv = invScalar(Scalar.from(index.domain_size));
+                const size_inv = invScalar(ForeignScalar.from(index.domain_size));
                 pe_zeta = pe_zeta.mul(zeta1.sub(Scalar.from(1))).mul(size_inv);
 
-                let pe_zetaOmega = Scalar.from(0);
+                let pe_zetaOmega = ForeignScalar.from(0);
                 const min_lenOmega = Math.min(
                     zeta_minus_x.length - public_input.length,
                     w.length,
@@ -246,7 +247,7 @@ export class ProverProof {
 
         //~ 29. Compute the evaluation of $ft(\zeta)$.
         const zkp = index.permutation_vanishing_polynomial_m.evaluate(zeta);
-        const zeta1m1 = zeta1.sub(Scalar.from(1));
+        const zeta1m1 = zeta1.sub(ForeignScalar.from(1));
 
         let alpha_powers = all_alphas.getAlphas({ kind: "permutation" }, Verifier.PERMUTATION_CONSTRAINTS);
         const alpha0 = alpha_powers[0];
@@ -259,12 +260,12 @@ export class ProverProof {
             .mul(alpha0)
             .mul(zkp);
 
-        let ft_eval0: Scalar = evals.s
+        let ft_eval0: ForeignScalar = evals.s
             .map((s, i) => (beta.mul(s.zeta).add(evals.w[i].zetaOmega).add(gamma)))
             .reduce((acc, curr) => acc.mul(curr), init);
 
         ft_eval0 = ft_eval0.sub(
-            public_evals![0].length === 0 ? Scalar.from(0) : public_evals![0][0]
+            public_evals![0].length === 0 ? ForeignScalar.from(0) : public_evals![0][0]
         );
 
         ft_eval0 = ft_eval0.sub(
@@ -273,12 +274,11 @@ export class ProverProof {
                 .reduce((acc, curr) => acc.mul(curr), alpha0.mul(zkp).mul(evals.z.zeta))
         );
 
-
         const numerator = (zeta1m1.mul(alpha1).mul((zeta.sub(index.w))))
-            .add(zeta1m1.mul(alpha2).mul(zeta.sub(Scalar.from(1))))
-            .mul(Scalar.from(1).sub(evals.z.zeta));
+            .add(zeta1m1.mul(alpha2).mul(zeta.sub(ForeignScalar.from(1))))
+            .mul(ForeignScalar.from(1).sub(evals.z.zeta));
 
-        const denominator = invScalar(zeta.sub(index.w).mul(zeta.sub(Scalar.from(1))));
+        const denominator = invScalar(zeta.sub(index.w).mul(zeta.sub(ForeignScalar.from(1))));
         // FIXME: if error when inverting, "negligible probability"
 
         ft_eval0 = ft_eval0.add(numerator.mul(denominator));
@@ -302,7 +302,7 @@ export class ProverProof {
                 "bd7b2b50cd898d9badcb3d2787a7b98322bb00bc2ddfb6b11efddfc6e992b019"
             ].map(deserHexScalar)
         ];
-        const constants: Constants<Scalar> = {
+        const constants: Constants<ForeignScalar> = {
             alpha,
             beta,
             gamma,
@@ -322,7 +322,7 @@ export class ProverProof {
 
         const ft_eval0_a = [ft_eval0];
         const ft_eval1_a = [this.ft_eval1];
-        let es: [Scalar[][], number | undefined][] = polys.map(([_, e]) => [e, undefined]);
+        let es: [ForeignScalar[][], number | undefined][] = polys.map(([_, e]) => [e, undefined]);
         es.push([public_evals!, undefined]);
         es.push([[ft_eval0_a, ft_eval1_a], undefined]);
 
@@ -388,14 +388,14 @@ export class ProverProof {
 }
 
 export function combinedInnerProduct(
-    evaluation_points: Scalar[],
-    polyscale: Scalar,
-    evalscale: Scalar,
-    polys: [Scalar[][], number | undefined][],
+    evaluation_points: ForeignScalar[],
+    polyscale: ForeignScalar,
+    evalscale: ForeignScalar,
+    polys: [ForeignScalar[][], number | undefined][],
     srs_length: number
-): Scalar {
-    let res = Scalar.from(0);
-    let xi_i = Scalar.from(1);
+): ForeignScalar {
+    let res = ForeignScalar.from(0);
+    let xi_i = ForeignScalar.from(1);
 
     for (const [evals_tr, shifted] of polys.filter(([evals_tr, _]) => evals_tr[0].length != 0)) {
         const evals = [...Array(evals_tr[0].length).keys()]
@@ -408,9 +408,9 @@ export function combinedInnerProduct(
         }
 
         if (shifted) {
-            let last_evals: Scalar[];
+            let last_evals: ForeignScalar[];
             if (shifted >= evals.length * srs_length) {
-                last_evals = Array(evaluation_points.length).fill(Scalar.from(0));
+                last_evals = Array(evaluation_points.length).fill(ForeignScalar.from(0));
             } else {
                 last_evals = evals[evals.length - 1];
             }
@@ -537,25 +537,25 @@ export class ProofEvaluations<Evals> {
     Returns a new PointEvaluations struct with the combined evaluations.
     */
     static combine(
-        evals: ProofEvaluations<PointEvaluations<Scalar[]>>,
-        pt: PointEvaluations<Scalar>
-    ): ProofEvaluations<PointEvaluations<Scalar>> {
+        evals: ProofEvaluations<PointEvaluations<ForeignScalar[]>>,
+        pt: PointEvaluations<ForeignScalar>
+    ): ProofEvaluations<PointEvaluations<ForeignScalar>> {
         return evals.map((orig) => new PointEvaluations(
             Polynomial.buildAndEvaluate(orig.zeta, pt.zeta),
             Polynomial.buildAndEvaluate(orig.zetaOmega, pt.zetaOmega)
         ));
     }
 
-    evaluate_coefficients(point: Scalar): Scalar {
-        let zero = Scalar.from(0);
+    evaluate_coefficients(point: ForeignScalar): ForeignScalar {
+        const zero = ForeignScalar.from(0);
 
-        let coeffs = this.coefficients.map((value) => value as Scalar);
+        let coeffs = this.coefficients.map((value) => value as ForeignScalar);
         let p = new Polynomial(coeffs);
         if (this.coefficients.length == 0) {
             return zero;
         }
         if (point == zero) {
-            return this.coefficients[0] as Scalar;
+            return this.coefficients[0] as ForeignScalar;
         }
         return p.evaluate(point);
     }
@@ -625,21 +625,21 @@ export class PointEvaluations<Evals> {
  * Stores the challenges inside a `ProverProof`
  */
 export class RecursionChallenge {
-    chals: Scalar[]
-    comm: PolyComm<Group>
+    chals: ForeignScalar[]
+    comm: PolyComm<ForeignGroup>
 
     evals(
         max_poly_size: number,
-        evaluation_points: Scalar[],
-        powers_of_eval_points_for_chunks: Scalar[]
-    ): Scalar[][] {
+        evaluation_points: ForeignScalar[],
+        powers_of_eval_points_for_chunks: ForeignScalar[]
+    ): ForeignScalar[][] {
         const chals = this.chals;
         // Comment copied from Kimchi code:
         //
         // No need to check the correctness of poly explicitly. Its correctness is assured by the
         // checking of the inner product argument.
         const b_len = 1 << chals.length;
-        let b: Scalar[] | undefined = undefined;
+        let b: ForeignScalar[] | undefined = undefined;
 
         return [0, 1, 2].map((i) => {
             const full = bPoly(chals, evaluation_points[i])
@@ -647,7 +647,7 @@ export class RecursionChallenge {
                 return [full];
             }
 
-            let betacc = Scalar.from(1);
+            let betacc = ForeignScalar.from(1);
             let diffs: Scalar[] = [];
             for (let j = max_poly_size; j < b_len; j++) {
                 let b_j;
@@ -665,7 +665,7 @@ export class RecursionChallenge {
                 diffs.push(ret);
             }
 
-            const diff = diffs.reduce((x, y) => x.add(y), Scalar.from(0));
+            const diff = diffs.reduce((x, y) => x.add(y), ForeignScalar.from(0));
             return [full.sub(diff.mul(powers_of_eval_points_for_chunks[i])), diff];
         });
     }
@@ -673,11 +673,11 @@ export class RecursionChallenge {
 
 export class ProverCommitments {
     /* Commitments to the witness (execution trace) */
-    wComm: PolyComm<Group>[]
+    wComm: PolyComm<ForeignGroup>[]
     /* Commitment to the permutation */
-    zComm: PolyComm<Group>
+    zComm: PolyComm<ForeignGroup>
     /* Commitment to the quotient polynomial */
-    tComm: PolyComm<Group>
+    tComm: PolyComm<ForeignGroup>
     // TODO: lookup commitment
 }
 
@@ -689,39 +689,41 @@ function getBit(limbs_lsb: bigint[], i: number): bigint {
 }
 
 export class ScalarChallenge {
-    chal: Scalar
+    chal: ForeignScalar
 
-    constructor(chal: Scalar) {
+    constructor(chal: ForeignScalar) {
         this.chal = chal;
     }
 
-    toFieldWithLength(length_in_bits: number, endo_coeff: Scalar): Scalar {
-        const rep = this.chal.toBigInt();
-        const rep_64_limbs = getLimbs64(rep);
+    toFieldWithLength(length_in_bits: number, endo_coeff: ForeignScalar): ForeignScalar {
+        return Provable.witness(ForeignScalar, () => {
+            const rep = this.chal.toBigInt();
+            const rep_64_limbs = getLimbs64(rep);
 
-        let a = Scalar.from(2);
-        let b = Scalar.from(2);
+            let a = ForeignScalar.from(2);
+            let b = ForeignScalar.from(2);
 
-        const one = Scalar.from(1);
-        const negone = one.neg();
-        for (let i = Math.floor(length_in_bits / 2) - 1; i >= 0; i--) {
-            a = a.add(a);
-            b = b.add(b);
+            const one = ForeignScalar.from(1);
+            const negone = one.neg();
+            for (let i = Math.floor(length_in_bits / 2) - 1; i >= 0; i--) {
+                a = a.add(a);
+                b = b.add(b);
 
-            const r_2i = getBit(rep_64_limbs, 2 * i);
-            const s = r_2i === 0n ? negone : one;
+                const r_2i = getBit(rep_64_limbs, 2 * i);
+                const s = r_2i === 0n ? negone : one;
 
-            if (getBit(rep_64_limbs, 2 * i + 1) === 0n) {
-                b = b.add(s);
-            } else {
-                a = a.add(s);
+                if (getBit(rep_64_limbs, 2 * i + 1) === 0n) {
+                    b = b.add(s);
+                } else {
+                    a = a.add(s);
+                }
             }
-        }
 
-        return a.mul(endo_coeff).add(b);
+            return a.mul(endo_coeff).add(b);
+        });
     }
 
-    toField(endo_coeff: Scalar): Scalar {
+    toField(endo_coeff: ForeignScalar): ForeignScalar {
         const length_in_bits = 64 * Sponge.CHALLENGE_LENGTH_IN_LIMBS;
         return this.toFieldWithLength(length_in_bits, endo_coeff);
     }
@@ -749,13 +751,13 @@ export class Constants<F> {
 
 export class RandomOracles {
     //joint_combiner // FIXME: ignoring for now
-    beta: Scalar
-    gamma: Scalar
+    beta: ForeignScalar
+    gamma: ForeignScalar
     alpha_chal: ScalarChallenge
-    alpha: Scalar
-    zeta: Scalar
-    v: Scalar
-    u: Scalar
+    alpha: ForeignScalar
+    zeta: ForeignScalar
+    v: ForeignScalar
+    u: ForeignScalar
     zeta_chal: ScalarChallenge
     v_chal: ScalarChallenge
     u_chal: ScalarChallenge
@@ -766,21 +768,21 @@ export class OraclesResult {
     /** A sponge that acts on the base field of a curve */
     fq_sponge: Sponge
     /** the last evaluation of the Fq-Sponge in this protocol */
-    digest: Scalar
+    digest: ForeignScalar
     /** the challenges produced in the protocol */
     oracles: RandomOracles
     /** the computed powers of alpha */
     all_alphas: Alphas
     /** public polynomial evaluations */
-    public_evals: Scalar[][] // array of size 2 of vecs of scalar
+    public_evals: ForeignScalar[][] // array of size 2 of vecs of scalar
     /** zeta^n and (zeta * omega)^n */
-    powers_of_eval_points_for_chunks: PointEvaluations<Scalar>
+    powers_of_eval_points_for_chunks: PointEvaluations<ForeignScalar>
     /** recursion data */
-    polys: [PolyComm<Group>, Scalar[][]][]
+    polys: [PolyComm<ForeignGroup>, ForeignScalar[][]][]
     /** pre-computed zeta^n */
-    zeta1: Scalar
+    zeta1: ForeignScalar
     /** The evaluation f(zeta) - t(zeta) * Z_H(zeta) */
-    ft_eval0: Scalar
+    ft_eval0: ForeignScalar
     /** Used by the OCaml side */
-    combined_inner_product: Scalar
+    combined_inner_product: ForeignScalar
 }
