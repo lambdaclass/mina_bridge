@@ -60,6 +60,8 @@ This is subject to change.
         --> user(User)
 ```
 
+Note that, in the second diagram, the Verification key taken from the Mina node will be different for each Mina state proof, while the Verification key generated from the Verifier circuit should be always the same.
+
 ## Usage
 
 On root folder run:
