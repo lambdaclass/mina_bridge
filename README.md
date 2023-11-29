@@ -47,17 +47,17 @@ This is subject to change.
 
 ```mermaid
     flowchart LR
-        mina_node(Mina node)
+        MINA(Mina node)
         -- (Mina proof,\nVerification key)
-        --> polling_service[Polling service]
+        --> POLLING[Polling service]
         -- JSON Proof
-        --> verifier_circuit[Verifier circuit]
+        --> CIRCUIT[Verifier circuit]
         -- Gates
-        --> kzg_prover[KZG prover]
+        --> KZG[KZG prover]
         -- (KZG proof,\nVerification key)
-        --> eth_verifier[Verifier contract]
+        --> CONTRACT[Verifier contract]
         -- is_valid_proof?
-        --> user(User)
+        --> U(User)
 ```
 
 Note that, in the second diagram, the Verification key taken from the Mina node will be different for each Mina state proof, while the Verification key generated from the Verifier circuit should be always the same.
