@@ -24,11 +24,6 @@ This project introduces the proof generation, posting and verification of the va
 
 `mina_bridge` is in an early stage of development, currently it misses elemental features and correct functionality is not guaranteed.
 
-### Elliptic Curve operations
-
-The algorithms for multiplication of points of an elliptic curve that we implemented using the building blocks present in `o1js` are very slow 🐢.
-So we need to implement the bindings to use the native Ocaml libraries for the elliptic curve operations called in o1js. At the time of this text is written, we are still working on this 🚧.
-
 ## Architecture
 
 This is subject to change.
