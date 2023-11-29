@@ -45,6 +45,8 @@ This is subject to change.
         B3-->|Proof request| S
 ```
 
+#### Data flow
+
 ```mermaid
     flowchart LR
         MINA(Mina node)
