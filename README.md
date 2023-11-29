@@ -372,3 +372,39 @@ __Vf__ corresponds to field operations in a field __F__, and __Vg__ corresponds 
 
 The proof __Pi__ is divided into 2 parts, one corresponding to group operations __G__, and it exposes, as a public input to the circuit, the part of the proof that is necessary to execute __Vf__.
 
+---
+
+# Consensus
+
+Mina employs [Ouroboros Samasika](https://eprint.iacr.org/2020/352.pdf) as its consensus mechanism, which will be subsequently denoted as Samasika.
+Three essential commitments provided include:
+- High decentralization - Self-bootstrap, uncapped participation and dynamic availability
+- Succinctness - Constant-time synchronization with full-validation and high interoperability
+- Universal composability - Proven security for interacting with other protocols, no slashing required
+
+Joseph Bonneau, Izaak Meckler, Vanishree Rao, and Evan Shapiro collaborated to create Samasika, establishing it as the initial succinct blockchain consensus algorithm.  
+The complexity of fully verifying the entire blockchain is independent of chain length.  
+Samasika takes its name from the Sanskrit term, meaning small or succinct.
+
+### Chain selection rules
+
+Samasika uses two consensus rules: one for _short-range forks_ and one for _long-range forks_.
+
+#### Short-range fork rule
+This rule is triggered whenever the fork is such that the adversary has not yet had the opportunity to mutate the block density distribution.  
+A fork is considered short-range if it took place within the last **m** blocks. The straightforward implementation of this rule involves consistently storing the most recent **m** blocks. Yet, in the context of a succinct blockchain, this is considered not desirable. Mina Samasika follows a methodology that necessitates information about only two blocks, the concept involves a decentralized checkpointing algorithm.
+
+#### Long-range fork rule
+
+When a malicious actor generates an long-range fork, it gradually distorts the leader selection distribution, resulting in a longer adversarial chain. At the start, the dishonest chain will have a reduced density, but eventually, the adversary will work to elevate it. Therefore, the only factor we can depend on is the variation in density in the initial slots after the fork, which is known as the _critical window_.  
+The reasoning is that the critical window of the honest chain is very likely to have a higher density because this chain has the most stake
+
+#### Decentralized checkpointing
+Samasika employs decentralized checkpointing to discern the nature of a fork, categorizing it as either short-range or long-range.
+- **Start checkpoint** - State hash of the first block of the epoch.
+- **Lock checkpoint** - State hash of the last known block in the seed update range of an epoch (not including the current block) 
+
+Remember, a fork is categorized as short-range if either:
+- The fork point of the candidate chains are in the same epoch.
+- The fork point is in the previous epoch with the same ``lock_checkpoint``
+
