@@ -408,3 +408,36 @@ Remember, a fork is categorized as short-range if either:
 - The fork point of the candidate chains are in the same epoch.
 - The fork point is in the previous epoch with the same ``lock_checkpoint``
 
+As Mina prioritizes succinctness, it implies the need to maintain checkpoints for both the current and the previous epoch.
+
+
+
+#### Short-range fork check
+As Mina prioritizes succinctness, it implies the need to maintain checkpoints for both the current and the previous epoch.  
+Keep in mind that short-range forks occur when the fork point occurs after the lock_checkpoint of the previous epoch; otherwise, it qualifies as a long-range fork.  
+The position of the previous epoch is a measurement relative to a block's perspective. In cases where candidate blocks belong to distinct epochs, each will possess distinct current and previous epoch values.  
+Alternatively, if the blocks belong to the same epoch, they will both reference the identical previous epoch. Thus we can simply check whether the blocks have the same lock_checkpoint in their previous epoch data.
+
+#### Sliding window density
+Let describe Mina's succinct sliding window density algorithm used by the long-range fork rule. In detail how windows are represented in blocks and how to compute _minimum window density_
+
+##### Nomenclature
+
+- We say a slot is _filled_ if it contains a valid non-orphaned block.
+- An _w-window_ is a sequential list of slots s1,...,sw of length _w_.
+- A _sub-window_ is a contiguous interval of a _w-window_.
+- The _density_ of an w-window (or sub-window) is the number non-orphan block within it.
+- We use the terms _window_, _density window_, _sliding window_ and _w-window_ synonymously.
+- v is the Length by which the window shifts in slots (shift parameter).  ``slots_per_sub_window``
+- w is the Window length in slots.  ( the sliding window is a _w_-long window that shifts _v_-slots at a time).
+
+The Samasika research paper presents security proofs that determine the secure values for v, w, and sub-windows per window.  
+A sliding window can also be viewed as a collection of _sub-windows_.  
+Rather than storing a window as clusters of slots, Samasika focuses solely on the density of each sub-window.  
+The density of a window is computed as the sum of the densities of its sub-windows.
+
+Given a window ``W`` that is a list of sub-window densities, the window density is: ``density(W) = sum(W)``
+
+##### Window structure
+
+
