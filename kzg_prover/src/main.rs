@@ -1,13 +1,13 @@
 mod snarky_gate;
 
-use std::{array, fs, ops::Neg, sync::Arc};
+use std::{fs, ops::Neg, sync::Arc};
 
 use ark_bn254::{G1Affine, G2Affine};
 use ark_ec::{
     msm::VariableBaseMSM, short_weierstrass_jacobian::GroupAffine, AffineCurve, PairingEngine,
     ProjectiveCurve,
 };
-use ark_ff::{Field, PrimeField};
+use ark_ff::PrimeField;
 use ark_poly::{
     univariate::DenseOrSparsePolynomial, univariate::DensePolynomial, EvaluationDomain,
     Evaluations, Polynomial, Radix2EvaluationDomain, UVPolynomial,
@@ -19,17 +19,19 @@ use ark_std::{
 };
 use hex;
 use kimchi::{
-    circuits::{constraints::ConstraintSystem, domains::EvaluationDomains, gate::*, wires::*},
+    circuits::{
+        constraints::ConstraintSystem,
+        domains::EvaluationDomains,
+        gate::{CircuitGate, GateType},
+        polynomials::generic::testing::create_circuit,
+    },
     curve::KimchiCurve,
-    groupmap::GroupMap,
-    keccak_sponge::{Keccak256FqSponge, Keccak256FrSponge},
     o1_utils::FieldHelpers,
-    proof::ProverProof,
     prover_index::{self, ProverIndex},
 };
 use num_traits::{One, Zero};
 use poly_commitment::{
-    commitment::{combine_commitments, combine_evaluations, CommitmentCurve, Evaluation},
+    commitment::{combine_commitments, combine_evaluations, Evaluation},
     evaluation_proof::{combine_polys, DensePolynomialOrEvaluations, OpeningProof},
     pairing_proof::{PairingProof, PairingSRS},
     srs::{endos, SRS},
@@ -42,11 +44,6 @@ type PolynomialsToCombine<'a> = &'a [(
     Option<usize>,
     PolyComm<ark_bn254::Fr>,
 )];
-use itertools::iterate;
-
-type G1 = GroupAffine<ark_bn254::g1::Parameters>;
-type BaseField = ark_bn254::Fq;
-type ScalarField = ark_bn254::Fr;
 
 fn main() {
     let rng = &mut StdRng::from_seed([0u8; 32]);
@@ -143,32 +140,15 @@ fn main() {
 
     fs::write("../eth_verifier/proof.mpk", points_serialized).unwrap();
 
+    type G1 = GroupAffine<ark_bn254::g1::Parameters>;
     let endo_q = G1::endos().1;
     srs.full_srs.add_lagrange_basis(cs.domain.d1);
-
-    let prover_index = ProverIndex::<G1, OpeningProof<G1>>::create(
-        cs.clone(),
-        endo_q,
-        Arc::new(srs.clone().full_srs),
-    );
+    let prover_index =
+        ProverIndex::<G1, OpeningProof<G1>>::create(cs, endo_q, Arc::new(srs.clone().full_srs));
     let verifier_index = prover_index.verifier_index();
-
-    let groupmap = <G1 as CommitmentCurve>::Map::setup();
-    let witness = create_fake_witness(&cs);
-    let prover_proof = ProverProof::create::<
-        Keccak256FqSponge<BaseField, G1, ScalarField>,
-        Keccak256FrSponge<ScalarField>,
-    >(&groupmap, witness, &vec![], &prover_index);
-
     fs::write(
         "../eth_verifier/verifier_index.mpk",
         rmp_serde::to_vec(&verifier_index).unwrap(),
-    )
-    .unwrap();
-
-    fs::write(
-        "../eth_verifier/prover_proof.mpk",
-        rmp_serde::to_vec(&prover_proof.unwrap()).unwrap(),
     )
     .unwrap();
 
@@ -366,125 +346,4 @@ fn selector_polynomial(
         domain.d1,
     )
     .interpolate()
-}
-
-// Only implements for gate types used by the current o1js circuit's proof.
-fn create_fake_witness(cs: &ConstraintSystem<ark_bn254::Fr>) -> [Vec<ark_bn254::Fr>; COLUMNS] {
-    let non_zero_gates = cs.gates.iter().filter(|g| g.typ != GateType::Zero);
-    let mut witness: [Vec<_>; COLUMNS] =
-        array::from_fn(|_| vec![ScalarField::zero(); non_zero_gates.clone().count()]);
-    // We ignore zero gates as they only serve as padding
-
-    for (row, gate) in non_zero_gates.clone().enumerate() {
-        match gate.typ {
-            GateType::Generic => {
-                /*
-                 * The idea is that, if we have a generic constraint:
-                 *     l*c0 + r*c1 + o*c2 + (l+r)*c3 + c4 = 0
-                 * and we want a fake witness such that the constraint always gets
-                 * satisfied, then we can set almost every register to 0 but one that
-                 * will be used to cancel the independent term c4.
-                 *
-                 * In particular the generic gate has two constraints of this kind:
-                 */
-                let first_non_zero_coeff = gate.coeffs[..4]
-                    .iter()
-                    .enumerate()
-                    .find(|(_, c)| **c != ScalarField::zero());
-
-                if let Some((i_non_zero, coeff)) = first_non_zero_coeff {
-                    for i in (0..i_non_zero).chain(i_non_zero + 1..5) {
-                        witness[i].push(0.into())
-                    }
-                    witness[i_non_zero].push(-gate.coeffs[4] * coeff.inverse().unwrap());
-                } else {
-                    for i in 0..5 {
-                        witness[i].push(0.into())
-                    }
-                }
-
-                let second_non_zero_coeff = gate.coeffs[5..9]
-                    .iter()
-                    .enumerate()
-                    .map(|(i, c)| (i + 5, c))
-                    .find(|(_, c)| **c != ScalarField::zero());
-
-                if let Some((i_non_zero, coeff)) = second_non_zero_coeff {
-                    for i in (5..i_non_zero).chain(i_non_zero + 1..10) {
-                        witness[i].push(0.into())
-                    }
-                    witness[i_non_zero].push(-gate.coeffs[9] * coeff.inverse().unwrap());
-                } else {
-                    for i in 5..10 {
-                        witness[i].push(0.into())
-                    }
-                }
-
-                for i in 10..15 {
-                    witness[i].push(0.into())
-                }
-            }
-
-            GateType::ForeignFieldAdd => {
-                for i in 0..15 {
-                    witness[i].push(0.into());
-                    witness[i].push(0.into());
-                }
-                for i in 0..15 {
-                    witness[i].push(0.into());
-                    witness[i].push(0.into());
-                }
-
-                /*
-                 * We only need to populate the first 3 cols of the next row,
-                 * but because we are pushing and we don't want our next gate
-                 * to have registers in the previous row, we fill everything with 0.
-                 *
-                 * Else we would just do:
-                 * witness[0].push(0.into());
-                 * witness[1].push(0.into());
-                 * witness[2].push(0.into());
-                 */
-            }
-            GateType::RangeCheck0 => {
-                for i in 0..15 {
-                    witness[i].push(0.into());
-                    witness[i].push(0.into());
-                }
-            }
-            GateType::RangeCheck1 => {
-                for i in 0..15 {
-                    witness[i].push(0.into());
-                    witness[i].push(0.into());
-                }
-                for i in 0..15 {
-                    witness[i].push(0.into());
-                    witness[i].push(0.into());
-                }
-            }
-            _ => unreachable!(),
-        }
-    }
-
-    // Satisfy copy constraints:
-    for (row, gate) in non_zero_gates.clone().enumerate() {
-        for col in 0..PERMUTS {
-            let wire = gate.wires[col];
-            witness[col][row] = witness[wire.col][wire.row];
-        }
-
-        gate.verify_witness::<G1>(row, &witness, cs, &[]).unwrap();
-        println!("{}", row);
-        if row == 21 {
-            println!("gate and constraint:");
-            println!("{:?}", gate.coeffs);
-            println!(
-                "{:#?}, {:#?}",
-                witness.len(),
-                witness.clone().map(|w| w.len())
-            );
-            println!("{:#?}", witness.clone().map(|w| w[row]));
-        }
-    }
-    witness
 }
