@@ -3,7 +3,6 @@ import { ForeignGroup, Provable } from "o1js";
 import { Verifier } from "./verifier/verifier.js";
 import { deserOpeningProof } from "./serde/serde_proof.js";
 import { ForeignField } from "./foreign_fields/foreign_field.js";
-import { ForeignScalar } from "./foreign_fields/foreign_scalar.js";
 
 let inputs;
 try {
