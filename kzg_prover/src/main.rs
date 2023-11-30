@@ -61,7 +61,7 @@ type KZGProof = PairingProof<ark_ec::bn::Bn<ark_bn254::Parameters>>;
 
 fn main() {
     generate_verifier_circuit_proof();
-    generate_test_proof();
+    //generate_test_proof();
 }
 
 fn generate_verifier_circuit_proof() {
