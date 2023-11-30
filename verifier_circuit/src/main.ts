@@ -59,10 +59,6 @@ let expected_x = ForeignField.from(inputs.expected.x);
 let expected_y = ForeignField.from(inputs.expected.y);
 let expected = new ForeignGroup(expected_x, expected_y);
 
-let sg = new ForeignGroup(sg_x, sg_y);
-let expected = new ForeignGroup(expected_x, expected_y);
-
-
 console.log("Writing circuit into file...");
 let { gates } = Provable.constraintSystem(() => Verifier.main(openingProof, expected));
 writeFileSync("../kzg_prover/gates.json", JSON.stringify(gates));
