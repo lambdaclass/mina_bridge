@@ -19,12 +19,7 @@ use ark_std::{
 };
 use hex;
 use kimchi::{
-    circuits::{
-        constraints::ConstraintSystem,
-        domains::EvaluationDomains,
-        gate::{CircuitGate, GateType},
-        wires::*,
-    },
+    circuits::{constraints::ConstraintSystem, domains::EvaluationDomains, gate::*, wires::*},
     curve::KimchiCurve,
     groupmap::GroupMap,
     keccak_sponge::{Keccak256FqSponge, Keccak256FrSponge},
@@ -49,6 +44,7 @@ type PolynomialsToCombine<'a> = &'a [(
 )];
 use itertools::iterate;
 
+type G1 = GroupAffine<ark_bn254::g1::Parameters>;
 type BaseField = ark_bn254::Fq;
 type ScalarField = ark_bn254::Fr;
 
@@ -147,7 +143,6 @@ fn main() {
 
     fs::write("../eth_verifier/proof.mpk", points_serialized).unwrap();
 
-    type G1 = GroupAffine<ark_bn254::g1::Parameters>;
     let endo_q = G1::endos().1;
     srs.full_srs.add_lagrange_basis(cs.domain.d1);
 
@@ -380,7 +375,7 @@ fn create_fake_witness(cs: &ConstraintSystem<ark_bn254::Fr>) -> [Vec<ark_bn254::
         array::from_fn(|_| vec![ScalarField::zero(); non_zero_gates.clone().count()]);
     // We ignore zero gates as they only serve as padding
 
-    for gate in non_zero_gates {
+    for (row, gate) in non_zero_gates.clone().enumerate() {
         match gate.typ {
             GateType::Generic => {
                 /*
@@ -408,7 +403,7 @@ fn create_fake_witness(cs: &ConstraintSystem<ark_bn254::Fr>) -> [Vec<ark_bn254::
                     }
                 }
 
-                let second_non_zero_coeff = gate.coeffs[5..10]
+                let second_non_zero_coeff = gate.coeffs[5..9]
                     .iter()
                     .enumerate()
                     .map(|(i, c)| (i + 5, c))
@@ -471,5 +466,25 @@ fn create_fake_witness(cs: &ConstraintSystem<ark_bn254::Fr>) -> [Vec<ark_bn254::
         }
     }
 
+    // Satisfy copy constraints:
+    for (row, gate) in non_zero_gates.clone().enumerate() {
+        for col in 0..PERMUTS {
+            let wire = gate.wires[col];
+            witness[col][row] = witness[wire.col][wire.row];
+        }
+
+        gate.verify_witness::<G1>(row, &witness, cs, &[]).unwrap();
+        println!("{}", row);
+        if row == 21 {
+            println!("gate and constraint:");
+            println!("{:?}", gate.coeffs);
+            println!(
+                "{:#?}, {:#?}",
+                witness.len(),
+                witness.clone().map(|w| w.len())
+            );
+            println!("{:#?}", witness.clone().map(|w| w[row]));
+        }
+    }
     witness
 }
