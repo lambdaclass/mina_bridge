@@ -440,4 +440,23 @@ Given a window ``W`` that is a list of sub-window densities, the window density 
 
 ##### Window structure
 
+We use the phrase "window at sub-window _s_" to refer to the window _W_ whose most recent global sub-window is _s_.  
+In the Samasika paper the window structure actually consists of the **11 previous sub-window densities**, the **current sub-window density** and the **minimum window density** .A total of _13_ densities.  
+The most recent sub-window may be a previous sub-window or the current sub-window.  
+
+##### Minimum window density
+The **minimum window density** at a given slot is defined as the minimum window density observed over all previous sub-windows and previous windows, all the way back to genesis.  
+When a new block _B_ with parent _P_ is created, the minimum window density is computed like this.  
+``B.min_window_density = min(P.min_window_density, current_window_density)``  
+where ``current_window_density`` is the density of _B's_ projected window
+
+The relative sub-window _i_ of a sub-window _sw_ is its index within the window.
+
+##### Ring-shift
+When we shift a window ``[d0, d1, ..., d10]`` in order to add in a new sub-window ``d11``, we could evict the oldest sub-window d0 by shifting down all of the other sub-windows. Unfortunately, shifting a list in a SNARK circuit is very expensive.  
+It is more efficient (and also equivalent) to just replace the sub-window we wish to evict by overwriting it with the new sub-window, like this:
+ ``sub_window_densities: d11 | d1 | d2 | d3 | d4 | d5 | d6 | d7 | d8 | d9 | d10``
+
+##### Projected window
+
 
