@@ -21,7 +21,7 @@ jobs:
 
     verifier_circuit:
         name: Build and test EVM bridge
-        runs-on: ubuntu-22.04
+        runs-on: ubuntu-selfhosted
         defaults:
             run:
                 working-directory: ./verifier_circuit
@@ -43,7 +43,7 @@ jobs:
 
     integration:
         name: Integration test
-        runs-on: ubuntu-22.04
+        runs-on: ubuntu-selfhosted
         steps:
             - name: Checkout sources
               uses: actions/checkout@v4
@@ -57,7 +57,7 @@ jobs:
 
     demo_eth_verifier:
         name: Test demo's Solidity verifier
-        runs-on: ubuntu-22.04
+        runs-on: ubuntu-selfhosted
         defaults:
             run:
                 working-directory: ./eth_verifier

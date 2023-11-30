@@ -38,6 +38,8 @@ impl Into<CircuitGate<ark_bn254::Fr>> for SnarkyGate {
             GateType::Generic
         } else if self.r#type == "ForeignFieldAdd" {
             GateType::ForeignFieldAdd
+        } else if self.r#type == "ForeignFieldMul" {
+            GateType::ForeignFieldMul
         } else if self.r#type == "Zero" {
             GateType::Zero
         } else if self.r#type == "RangeCheck0" {

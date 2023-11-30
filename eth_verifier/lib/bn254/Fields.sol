@@ -50,7 +50,8 @@ library Base {
     }
 
     function inv(FE self) public view returns (FE) {
-        (uint inverse, uint gcd) = Aux.xgcd(FE.unwrap(self), MODULUS);
+        require(FE.unwrap(self) != 0, "tried to get inverse of 0");
+        (uint gcd, uint inverse) = Aux.xgcd(FE.unwrap(self), MODULUS);
         require(gcd == 1, "gcd not 1");
 
         return FE.wrap(inverse);
@@ -99,6 +100,7 @@ library Base {
     }
 }
 
+import {console} from "forge-std/console.sol";
 /// @notice Implements 256 bit modular arithmetic over the scalar field of bn254.
 library Scalar {
     type FE is uint256;
@@ -159,7 +161,8 @@ library Scalar {
     }
 
     function inv(FE self) public view returns (FE) {
-        (uint inverse, uint gcd) = Aux.xgcd(FE.unwrap(self), MODULUS);
+        require(FE.unwrap(self) != 0, "tried to get inverse of 0");
+        (uint gcd, uint inverse) = Aux.xgcd(FE.unwrap(self), MODULUS);
         require(gcd == 1, "gcd not 1");
 
         return FE.wrap(inverse);
@@ -228,6 +231,7 @@ library Scalar {
         }
 
         require(FE.unwrap(pow(root, 1 << order)) == 1, "not a root of unity");
+        return root;
     }
 }
 
@@ -238,16 +242,16 @@ library Aux {
     function xgcd(
         uint a,
         uint b
-    ) public pure returns (uint s0, uint t0) {
-        uint r0 = a;
+    ) public pure returns (uint r0, uint s0) {
+        r0 = a;
         uint r1 = b;
         s0 = 1;
         uint s1 = 0;
-        t0 = 0;
+        uint t0 = 0;
         uint t1 = 1;
 
         uint n = 0;
-        while (r1 > 0) {
+        while (r1 != 0) {
             uint q = r0 / r1;
             r0 = r0 > q*r1 ? r0 - q*r1 : q*r1 - r0; // abs
 
@@ -270,7 +274,7 @@ library Aux {
             t0 = t1;
             t1 = temp;
 
-            n++;
+            ++n;
         }
 
         if (n % 2 != 0) {

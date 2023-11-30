@@ -60,6 +60,7 @@ library Utils {
     }
 
     function get_twiddles(uint order) public view returns (Scalar.FE[] memory twiddles) {
+        Scalar.FE root = Scalar.get_primitive_root_of_unity(order);
         Scalar.FE root_inv = Scalar.get_primitive_root_of_unity(order).inv();
 
         uint size = 1 << (order - 1);

@@ -499,18 +499,6 @@ export class ProofEvaluations<Evals> {
         return this;
     }
 
-    // TODO: implement this!!!!
-    /*
-    Returns a new PointEvaluations struct with the combined evaluations.
-    */
-    combine_point_evaluations(): PointEvaluations<Evals> {
-        let zeta: Evals = Scalar.from(0) as Evals;
-        let zetaOmega: Evals = Scalar.from(0) as Evals;
-
-        let ret = new PointEvaluations(zeta, zetaOmega);
-        return ret;
-    }
-
     map<Evals2>(f: (e: Evals) => Evals2): ProofEvaluations<Evals2> {
         let {
             w,
@@ -545,6 +533,9 @@ export class ProofEvaluations<Evals> {
         )
     }
 
+    /*
+    Returns a new PointEvaluations struct with the combined evaluations.
+    */
     static combine(
         evals: ProofEvaluations<PointEvaluations<Scalar[]>>,
         pt: PointEvaluations<Scalar>
