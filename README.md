@@ -24,11 +24,6 @@ This project introduces the proof generation, posting and verification of the va
 
 `mina_bridge` is in an early stage of development, currently it misses elemental features and correct functionality is not guaranteed.
 
-### Elliptic Curve operations
-
-The algorithms for multiplication of points of an elliptic curve that we implemented using the building blocks present in `o1js` are very slow 🐢.
-So we need to implement the bindings to use the native Ocaml libraries for the elliptic curve operations called in o1js. At the time of this text is written, we are still working on this 🚧.
-
 ## Architecture
 
 This is subject to change.
@@ -50,6 +45,20 @@ This is subject to change.
         B3-->|Proof request| S
 ```
 
+#### Data flow
+
+```mermaid
+    flowchart LR
+        MINA(Mina node)
+        --> |Mina proof,\nVerification key| POLLING[Polling service]
+        --> |JSON Proof| CIRCUIT[Verifier circuit]
+        --> |Gates| KZG[KZG prover]
+        --> |KZG proof,\nVerification key| CONTRACT[Verifier contract]
+        --> |is_valid_proof?| U(User)
+```
+
+Note that, in the second diagram, the Verification key taken from the Mina node will be different for each Mina state proof, while the Verification key generated from the Verifier circuit should be always the same.
+
 ## Usage
 
 On root folder run:
@@ -61,7 +70,7 @@ make
 This will:
 
 - Invoke the polling service and query the last Mina chain state and a Pasta+IPA proof, then send both to the `public_input_gen/` crate.
-- This crate will compute needed data (SRS, public inputs) for feeding the state profo into an o1js verifier circuit.
+- This crate will compute needed data (SRS, public inputs) for feeding the state proof into an o1js verifier circuit.
 - The circuit will verify the proof and output the gate system to a KZG prover.
 - The KZG prover will generate another proof (BN254+KZG) of this verification. This makes it suitable to verify in an Ethereum smart contract. The final proof including the embedded state will be sent to the Solidity verifier.
 - The verifier will be deployed in Anvil (a local test blockchain) and a bash script will send a transaction with the state+proof data for running the final verification. If successful, the contract will store the state data and will expose an API for the user to retrieve it, knowing that this data was zk-verified.
@@ -70,6 +79,29 @@ This will:
 ## Components of this Repo
 
 This repository is composed of the following components:
+
+### Polling service
+
+This module contains a script to fetch the latest Mina state proof from a Mina node and parse the proof into a JSON a file.
+
+#### Dependencies
+
+You need to have access to a Mina node.
+To run a node, [follow the installation steps](https://github.com/MinaProtocol/mina/releases/tag/1.4.0).
+
+#### Running
+
+On `polling_service` run:
+
+```sh
+./run.sh
+```
+
+This will:
+
+1. Fetch the latest Mina state proof from a Mina node
+1. Clone our [Mina 1.4.0 fork](https://github.com/lambdaclass/mina/tree/proof_to_json)
+1. Use the cloned fork to parse the fetched proof into a JSON file
 
 ### Verifier circuit
 

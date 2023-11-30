@@ -1,7 +1,8 @@
-import { Scalar } from "o1js";
+import { Provable, Scalar } from "o1js";
+import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 
-export function powScalar(f: Scalar, exp: number): Scalar {
-    if (exp === 0) return Scalar.from(1);
+export function powScalar(f: ForeignScalar, exp: number): ForeignScalar {
+    if (exp === 0) return ForeignScalar.from(1);
     else if (exp === 1) return f;
     else {
         let res = f;
@@ -63,11 +64,13 @@ function xgcd(
 }
 
 
-export function invScalar(f: Scalar): Scalar {
-    const [gcd, inv, _] = xgcd(f.toBigInt(), Scalar.ORDER);
-    if (gcd !== 1n) {
-        // FIXME: error
-    }
+export function invScalar(f: ForeignScalar): ForeignScalar {
+    return Provable.witness(ForeignScalar, () => {
+        const [gcd, inv, _] = xgcd(f.toBigInt(), Scalar.ORDER);
+        if (gcd !== 1n) {
+            // FIXME: error
+        }
 
-    return Scalar.from(inv);
+        return ForeignScalar.from(inv);
+    });
 }

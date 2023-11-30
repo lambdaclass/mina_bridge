@@ -13,10 +13,19 @@ use state_proof::{OpeningProof, StateProof};
 mod state_proof;
 
 #[derive(Serialize)]
+struct Point {
+    x: String,
+    y: String,
+}
+
+#[derive(Serialize)]
 struct Inputs {
-    sg: [String; 2],
+    lr: Vec<[Point; 2]>,
     z1: String,
-    expected: [String; 2],
+    z2: String,
+    delta: Point,
+    sg: Point,
+    expected: Point,
 }
 
 fn main() {
@@ -55,23 +64,65 @@ fn prove_and_verify(srs: &SRS<Pallas>, opening: OpeningProof) {
     // verify the proof (propagate any errors)
     println!("Verifying dummy proof...");
 
+    let lr_map = opening.lr.iter().map(|(l_i, r_i)| {
+        [
+            Pallas::new(
+                Fp::from_hex(&l_i.0[2..]).unwrap(),
+                Fp::from_hex(&l_i.1[2..]).unwrap(),
+                false,
+            ),
+            Pallas::new(
+                Fp::from_hex(&r_i.0[2..]).unwrap(),
+                Fp::from_hex(&r_i.1[2..]).unwrap(),
+                false,
+            ),
+        ]
+    });
+    let z1 = Fq::from_hex(&opening.z_1[2..]).unwrap();
+    let z2 = Fq::from_hex(&opening.z_2[2..]).unwrap();
+    let delta = Pallas::new(
+        Fp::from_hex(&opening.delta.0[2..]).unwrap(),
+        Fp::from_hex(&opening.delta.1[2..]).unwrap(),
+        false,
+    );
     let sg = Pallas::new(
         Fp::from_hex(&opening.sg.0[2..]).unwrap(),
         Fp::from_hex(&opening.sg.1[2..]).unwrap(),
         false,
     );
-    let z1 = Fq::from_hex(&opening.z_1[2..]).unwrap();
     let value_to_compare = compute_msm_verification(srs, &sg, &z1);
 
     fs::write(
         "../verifier_circuit/src/inputs.json",
         serde_json::to_string(&Inputs {
-            sg: [sg.x.to_biguint().to_string(), sg.y.to_biguint().to_string()],
+            lr: lr_map
+                .map(|[l_i, r_i]| {
+                    [
+                        Point {
+                            x: l_i.x.to_biguint().to_string(),
+                            y: l_i.y.to_biguint().to_string(),
+                        },
+                        Point {
+                            x: r_i.x.to_biguint().to_string(),
+                            y: r_i.y.to_biguint().to_string(),
+                        },
+                    ]
+                })
+                .collect(),
             z1: z1.to_biguint().to_string(),
-            expected: [
-                value_to_compare.x.to_biguint().to_string(),
-                value_to_compare.y.to_biguint().to_string(),
-            ],
+            z2: z2.to_biguint().to_string(),
+            delta: Point {
+                x: delta.x.to_biguint().to_string(),
+                y: delta.y.to_biguint().to_string(),
+            },
+            sg: Point {
+                x: sg.x.to_biguint().to_string(),
+                y: sg.y.to_biguint().to_string(),
+            },
+            expected: Point {
+                x: value_to_compare.x.to_biguint().to_string(),
+                y: value_to_compare.y.to_biguint().to_string(),
+            },
         })
         .unwrap(),
     )
