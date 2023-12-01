@@ -1,9 +1,9 @@
 import lagrange_bases_json from "../test/lagrange_bases.json" assert { type: "json" };
-import { Field, Group, Scalar } from "o1js";
 import { BlindedCommitment, PolyComm } from "./poly_commitment/commitment.js";
 import { readFileSync } from "fs";
-import { ForeignGroup } from "./foreign_fields/foreign_group.js";
 import { ForeignField } from "./foreign_fields/foreign_field.js";
+import { ForeignGroup } from "o1js";
+import { ForeignScalar } from "./foreign_fields/foreign_scalar.js";
 
 let srs_json;
 try {
@@ -53,34 +53,34 @@ export class SRS {
     static #createGroupFromJSON(group_json: string[]) {
         return new ForeignGroup(ForeignField.from(group_json[0]), ForeignField.from(group_json[1]));
     }
-    // static #createLagrangeBasesFromJSON(json: LagrangeBaseJSON): Map<number, PolyComm<ForeignGroup>[]> {
-    //     let map_unshifted = (unshifted: { x: string, y: string }[]) =>
-    //         unshifted.map(({ x, y }) => this.#createGroupFromJSON([x, y]))
-    //     //let map_shifted = (shifted: { x: string, y: string } | undefined) =>
-    //     //    shifted ? this.#createGroupFromJSON([shifted.x, shifted.y]) : undefined;
-    //     let map_shifted = (_shifted: null) => undefined;
+    static #createLagrangeBasesFromJSON(json: LagrangeBaseJSON): Map<number, PolyComm<ForeignGroup>[]> {
+        let map_unshifted = (unshifted: { x: string, y: string }[]) =>
+            unshifted.map(({ x, y }) => this.#createGroupFromJSON([x, y]))
+        //let map_shifted = (shifted: { x: string, y: string } | undefined) =>
+        //    shifted ? this.#createGroupFromJSON([shifted.x, shifted.y]) : undefined;
+        let map_shifted = (_shifted: null) => undefined;
 
-    //     let lagrange_bases = json[32].map(({ unshifted, shifted }) =>
-    //         new PolyComm<ForeignGroup>(map_unshifted(unshifted), map_shifted(shifted)));
-    //     return new Map<number, PolyComm<ForeignGroup>[]>([[32, lagrange_bases]]);
-    // }
+        let lagrange_bases = json[32].map(({ unshifted, shifted }) =>
+            new PolyComm<ForeignGroup>(map_unshifted(unshifted), map_shifted(shifted)));
+        return new Map<number, PolyComm<ForeignGroup>[]>([[32, lagrange_bases]]);
+    }
 
     constructor(g: ForeignGroup[], h: ForeignGroup) {
         this.g = g;
         this.h = h;
-        // this.lagrangeBases = SRS.#createLagrangeBasesFromJSON(lagrange_bases_json);
+        this.lagrangeBases = SRS.#createLagrangeBasesFromJSON(lagrange_bases_json);
     }
 
-    // /*
-    //  * Turns a non-hiding polynomial commitment into a hidding polynomial commitment. Transforms each given `<a, G>` into `(<a, G> + wH, w)`.
-    // */
-    // maskCustom(com: PolyComm<Group>, blinders: PolyComm<Scalar>): BlindedCommitment<Group, Scalar> | undefined {
-    //     let commitment = com
-    //         .zip(blinders)
-    //         .map(([g, b]) => {
-    //             let g_masked = this.h.scale(b);
-    //             return g_masked.add(g);
-    //         });
-    //     return { commitment: commitment, blinders: blinders }
-    // }
+    /*
+     * Turns a non-hiding polynomial commitment into a hidding polynomial commitment. Transforms each given `<a, G>` into `(<a, G> + wH, w)`.
+    */
+    maskCustom(com: PolyComm<ForeignGroup>, blinders: PolyComm<ForeignScalar>): BlindedCommitment<ForeignGroup, ForeignScalar> | undefined {
+        let commitment = com
+            .zip(blinders)
+            .map(([g, b]) => {
+                let g_masked = this.h.scale(b);
+                return g_masked.add(g);
+            });
+        return { commitment: commitment, blinders: blinders }
+    }
 }

@@ -1,7 +1,7 @@
 [submodule "verifier_circuit/o1js"]
 	path = verifier_circuit/o1js
 	url = https://github.com/lambdaclass/o1js.git
-	branch = wasm_kzg_prover
+	branch = foreign_ec_ops
 [submodule "kzg_prover/proof-systems"]
 	path = kzg_prover/proof-systems
 	url = https://github.com/lambdaclass/proof-systems.git

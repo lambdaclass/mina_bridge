@@ -38,12 +38,16 @@ impl Into<CircuitGate<ark_bn254::Fr>> for SnarkyGate {
             GateType::Generic
         } else if self.r#type == "ForeignFieldAdd" {
             GateType::ForeignFieldAdd
+        } else if self.r#type == "ForeignFieldMul" {
+            GateType::ForeignFieldMul
         } else if self.r#type == "Zero" {
             GateType::Zero
         } else if self.r#type == "RangeCheck0" {
             GateType::RangeCheck0
         } else if self.r#type == "RangeCheck1" {
             GateType::RangeCheck1
+        } else if self.r#type == "Poseidon" {
+            GateType::Poseidon
         } else {
             panic!("{} is not a valid GateType", self.r#type)
         };

@@ -4,20 +4,17 @@ use std::{array, fs, ops::Neg, sync::Arc};
 
 use ark_bn254::{G1Affine, G2Affine};
 use ark_ec::{
-    msm::VariableBaseMSM, short_weierstrass_jacobian::GroupAffine, AffineCurve, PairingEngine,
-    ProjectiveCurve,
+    msm::VariableBaseMSM, short_weierstrass_jacobian::GroupAffine, AffineCurve, ProjectiveCurve,
 };
 use ark_ff::PrimeField;
 use ark_poly::{
-    univariate::DenseOrSparsePolynomial, univariate::DensePolynomial, EvaluationDomain,
-    Evaluations, Polynomial, Radix2EvaluationDomain, UVPolynomial,
+    univariate::DensePolynomial, Evaluations, Polynomial, Radix2EvaluationDomain, UVPolynomial,
 };
 use ark_serialize::{CanonicalSerialize, SerializationError};
 use ark_std::{
-    rand::{self, rngs::StdRng, SeedableRng},
+    rand::{rngs::StdRng, SeedableRng},
     UniformRand,
 };
-use hex;
 use kimchi::{
     circuits::{
         constraints::ConstraintSystem,
@@ -173,6 +170,7 @@ fn generate_verifier_circuit_proof() {
         "Is verifier circuit's KZG proof valid?: {:?}",
         pairing_proof.verify(&srs, &evaluations, polyscale, &evaluation_points)
     );
+    println!("{}", verifier_index.powers_of_alpha);
 }
 
 fn generate_test_proof() {
@@ -280,9 +278,7 @@ fn create_selector_dense_polynomials(
     domain: EvaluationDomains<ark_ff::Fp256<ark_bn254::FrParameters>>,
 ) -> Vec<DensePolynomial<ark_ff::Fp256<ark_bn254::FrParameters>>> {
     let foreign_field_add_selector =
-        selector_polynomial(GateType::ForeignFieldAdd, &cs.gates, &domain, &domain.d8);
-    let foreign_field_add_selector8 =
-        foreign_field_add_selector.evaluate_over_domain_by_ref(domain.d8);
+        selector_polynomial(GateType::ForeignFieldAdd, &cs.gates, &domain);
 
     let generic_selector =
         Evaluations::<ark_bn254::Fr, Radix2EvaluationDomain<ark_bn254::Fr>>::from_vec_and_domain(
@@ -299,8 +295,6 @@ fn create_selector_dense_polynomials(
             cs.domain.d1,
         )
         .interpolate();
-
-    let generic_selector4 = generic_selector.evaluate_over_domain_by_ref(cs.domain.d4);
 
     let polynomials: Vec<_> = vec![foreign_field_add_selector, generic_selector];
     polynomials
@@ -319,43 +313,6 @@ fn create_srs(
         full_srs: srs,
         verifier_srs,
     }
-}
-
-fn create_proof(
-    srs: &PairingSRS<ark_ec::bn::Bn<ark_bn254::Parameters>>,
-    plnms: PolynomialsToCombine, // vector of polynomial with optional degree bound and commitment randomness
-    elm: &[ark_bn254::Fr],       // vector of evaluation points
-    polyscale: ark_bn254::Fr,    // scaling factor for polynoms
-) -> Option<PairingProof<ark_ec::bn::Bn<ark_bn254::Parameters>>> {
-    let (p, blinding_factor) = combine_polys::<
-        GroupAffine<ark_bn254::g1::Parameters>,
-        Radix2EvaluationDomain<ark_bn254::Fr>,
-    >(plnms, polyscale, srs.full_srs.g.len());
-    let evals: Vec<_> = elm.iter().map(|pt| p.evaluate(pt)).collect();
-
-    let quotient_poly = {
-        let eval_polynomial = eval_polynomial(elm, &evals);
-        let divisor_polynomial = divisor_polynomial(elm);
-        let numerator_polynomial = &p - &eval_polynomial;
-        let (quotient, remainder) = DenseOrSparsePolynomial::divide_with_q_and_r(
-            &numerator_polynomial.into(),
-            &divisor_polynomial.into(),
-        )?;
-        if !remainder.is_zero() {
-            return None;
-        }
-        quotient
-    };
-
-    let quotient = srs
-        .full_srs
-        .commit_non_hiding(&quotient_poly, 1, None)
-        .unshifted[0];
-
-    Some(PairingProof {
-        quotient,
-        blinding: blinding_factor,
-    })
 }
 
 /// The polynomial that evaluates to each of `evals` for the respective `elm`s.
@@ -398,7 +355,6 @@ fn selector_polynomial(
     gate_type: GateType,
     gates: &[CircuitGate<ark_bn254::Fr>],
     domain: &EvaluationDomains<ark_bn254::Fr>,
-    target_domain: &Radix2EvaluationDomain<ark_bn254::Fr>,
 ) -> DensePolynomial<ark_bn254::Fr> {
     // Coefficient form
     Evaluations::<_, Radix2EvaluationDomain<_>>::from_vec_and_domain(

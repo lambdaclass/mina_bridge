@@ -1,5 +1,7 @@
-import { Group, Scalar } from "o1js";
+import { ForeignGroup, Group, Scalar } from "o1js";
 import { Sponge } from "../verifier/sponge";
+import { ForeignField } from "../foreign_fields/foreign_field.js";
+import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 
 /**
 * A polynomial commitment
@@ -35,7 +37,7 @@ export class PolyComm<A> {
     /**
      * Substract two commitments
      */
-    static sub(lhs: PolyComm<Group>, rhs: PolyComm<Group>): PolyComm<Group> {
+    static sub(lhs: PolyComm<ForeignGroup>, rhs: PolyComm<ForeignGroup>): PolyComm<ForeignGroup> {
         let unshifted = [];
         const n1 = lhs.unshifted.length;
         const n2 = rhs.unshifted.length;
@@ -58,15 +60,15 @@ export class PolyComm<A> {
     /**
      * Scale a commitments
      */
-    static scale(v: PolyComm<Group>, c: Scalar) {
+    static scale(v: PolyComm<ForeignGroup>, c: ForeignScalar) {
         return new PolyComm(v.unshifted.map((u) => u.scale(c)), v.shifted?.scale(c));
     }
 
     /**
     * Execute a simple multi-scalar multiplication
     */
-    static naiveMSM(points: Group[], scalars: Scalar[]) {
-        let result = Group.zero;
+    static naiveMSM(points: ForeignGroup[], scalars: ForeignScalar[]) {
+        let result = new ForeignGroup(ForeignField.from(0), ForeignField.from(0));
 
         for (let i = 0; i < points.length; i++) {
             let point = points[i];
@@ -81,9 +83,9 @@ export class PolyComm<A> {
     * Executes multi-scalar multiplication between scalars `elm` and commitments `com`.
     * If empty, returns a commitment with the point at infinity.
     */
-    static msm(com: PolyComm<Group>[], elm: Scalar[]): PolyComm<Group> {
+    static msm(com: PolyComm<ForeignGroup>[], elm: ForeignScalar[]): PolyComm<ForeignGroup> {
         if (com.length === 0 || elm.length === 0) {
-            return new PolyComm<Group>([Group.zero]);
+            return new PolyComm<ForeignGroup>([new ForeignGroup(ForeignField.from(0), ForeignField.from(0))]);
         }
 
         if (com.length != elm.length) {
@@ -95,10 +97,10 @@ export class PolyComm<A> {
 
         for (let chunk = 0; chunk < unshifted_len; chunk++) {
             let points_and_scalars = com
-                .map((c, i) => [c, elm[i]] as [PolyComm<Group>, Scalar]) // zip with scalars
+                .map((c, i) => [c, elm[i]] as [PolyComm<ForeignGroup>, ForeignScalar]) // zip with scalars
                 // get rid of scalars that don't have an associated chunk
                 .filter(([c, _]) => c.unshifted.length > chunk)
-                .map(([c, scalar]) => [c.unshifted[chunk], scalar] as [Group, Scalar]);
+                .map(([c, scalar]) => [c.unshifted[chunk], scalar] as [ForeignGroup, ForeignScalar]);
 
             // unzip
             let points = points_and_scalars.map(([c, _]) => c);
@@ -109,9 +111,9 @@ export class PolyComm<A> {
         }
 
         let shifted_pairs = com
-            .map((c, i) => [c.shifted, elm[i]] as [Group | undefined, Scalar]) // zip with scalars
+            .map((c, i) => [c.shifted, elm[i]] as [ForeignGroup | undefined, ForeignScalar]) // zip with scalars
             .filter(([shifted, _]) => shifted != null)
-            .map((zip) => zip as [Group, Scalar]); // zip with scalars
+            .map((zip) => zip as [ForeignGroup, ForeignScalar]); // zip with scalars
 
         let shifted = undefined;
         if (shifted_pairs.length != 0) {
@@ -121,10 +123,10 @@ export class PolyComm<A> {
             shifted = this.naiveMSM(points, scalars);
         }
 
-        return new PolyComm<Group>(unshifted, shifted);
+        return new PolyComm<ForeignGroup>(unshifted, shifted);
     }
 
-    static chunk_commitment(comm: PolyComm<Group>, zeta_n: Scalar): PolyComm<Group> {
+    static chunk_commitment(comm: PolyComm<ForeignGroup>, zeta_n: ForeignScalar): PolyComm<ForeignGroup> {
         let res = comm.unshifted[comm.unshifted.length - 1];
 
         // use Horner's to compute chunk[0] + z^n chunk[1] + z^2n chunk[2] + ...
@@ -148,31 +150,31 @@ export class BlindedCommitment<C, S> {
 /**
  * Returns the product of all elements of `xs`
  */
-export function product(xs: Scalar[]): Scalar {
-    return xs.reduce((acc, x) => acc.mul(x), Scalar.from(1));
+export function product(xs: ForeignScalar[]): ForeignScalar {
+    return xs.reduce((acc, x) => acc.mul(x), ForeignScalar.from(1));
 }
 
 /**
  * Returns (1 + chal[-1] x)(1 + chal[-2] x^2)(1 + chal[-3] x^4) ...
  */
-export function bPoly(chals: Scalar[], x: Scalar): Scalar { 
+export function bPoly(chals: ForeignScalar[], x: ForeignScalar): ForeignScalar {
     const k = chals.length;
 
     let prev_x_squared = x;
     let terms = [];
     for (let i = k - 1; i >= 0; i--) {
-        terms.push(Scalar.from(1).add(chals[i].mul(prev_x_squared)));
+        terms.push(ForeignScalar.from(1).add(chals[i].mul(prev_x_squared)));
         prev_x_squared = prev_x_squared.mul(prev_x_squared);
     }
 
     return product(terms);
 }
 
-export function bPolyCoefficients(chals: Scalar[]) {
+export function bPolyCoefficients(chals: ForeignScalar[]) {
     const rounds = chals.length;
     const s_length = 1 << rounds;
 
-    let s = Array<Scalar>(s_length).fill(Scalar.from(1));
+    let s = Array<ForeignScalar>(s_length).fill(ForeignScalar.from(1));
     let k = 0;
     let pow = 1;
     for (let i = 1; i < s_length; i++) {
@@ -187,18 +189,17 @@ export function bPolyCoefficients(chals: Scalar[]) {
 /**
  * Contains the evaluation of a polynomial commitment at a set of points.
  */
-export class Evaluation
-{
+export class Evaluation {
     /** The commitment of the polynomial being evaluated */
-    commitment: PolyComm<Group>
+    commitment: PolyComm<ForeignGroup>
     /** Contains an evaluation table */
-    evaluations: Scalar[][]
+    evaluations: ForeignScalar[][]
     /** optional degree bound */
     degree_bound?: number
 
     constructor(
-        commitment: PolyComm<Group>,
-        evaluations: Scalar[][],
+        commitment: PolyComm<ForeignGroup>,
+        evaluations: ForeignScalar[][],
         degree_bound?: number
     ) {
         this.commitment = commitment;
@@ -210,26 +211,25 @@ export class Evaluation
 /**
  * Contains the batch evaluation
  */
-export class AggregatedEvaluationProof
-{
+export class AggregatedEvaluationProof {
     sponge: Sponge
     evaluations: Evaluation[]
     /** vector of evaluation points */
     evaluation_points: Scalar[]
     /** scaling factor for evaluation point powers */
-    polyscale: Scalar
+    polyscale: ForeignScalar
     /** scaling factor for polynomials */
-    evalscale: Scalar
+    evalscale: ForeignScalar
     /** batched opening proof */
     opening: OpeningProof
-    combined_inner_product: Scalar
+    combined_inner_product: ForeignScalar
 }
 
 export class OpeningProof {
     /** vector of rounds of L & R commitments */
-    lr: [Group, Group][]
-    delta: Group
-    z1: Scalar
-    z2: Scalar
-    sg: Group
+    lr: [ForeignGroup, ForeignGroup][]
+    delta: ForeignGroup
+    z1: ForeignScalar
+    z2: ForeignScalar
+    sg: ForeignGroup
 }

@@ -1,8 +1,9 @@
 import { Scalar } from "o1js";
 import { invScalar, powScalar } from "./scalar";
+import { ForeignScalar } from "../foreign_fields/foreign_scalar";
 
 test("powScalar", () => {
-    const n = Scalar.from(42);
+    const n = ForeignScalar.from(42);
     const exp = 5;
     const res = Scalar.from(130691232); // from python
 
