@@ -12,6 +12,10 @@ library Base {
         return FE.wrap(0);
     }
 
+    function one() public pure returns (FE) {
+        return FE.wrap(1);
+    }
+
     function from(uint n) public pure returns (FE) {
         return FE.wrap(n % MODULUS);
     }
@@ -116,6 +120,10 @@ library Scalar {
 
     function zero() public pure returns (FE) {
         return FE.wrap(0);
+    }
+
+    function one() public pure returns (FE) {
+        return FE.wrap(1);
     }
 
     function from(uint n) public pure returns (FE) {

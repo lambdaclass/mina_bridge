@@ -275,7 +275,7 @@ library Oracles {
             u_chal
         );
 
-        return Result(oracles, powers_of_eval_points_for_chunks);
+        return Result(oracles, powers_of_eval_points_for_chunks, all_alphas);
     }
 
     struct RandomOracles {
@@ -296,6 +296,7 @@ library Oracles {
         // sponges are stored in storage
         RandomOracles oracles;
         PointEvaluations powers_of_eval_points_for_chunks;
+        Alphas all_alphas;
     }
 
     struct ScalarChallenge {

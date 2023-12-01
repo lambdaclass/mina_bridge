@@ -123,6 +123,8 @@ contract KimchiVerifier {
     error IncorrectPublicInputLength();
 
     function partial_verify(Scalar.FE[] memory public_inputs) public {
+        // Commit to the negated public input polynomial.
+
         uint256 chunk_size = verifier_index.domain_size <
             verifier_index.max_poly_size
             ? 1
@@ -166,9 +168,27 @@ contract KimchiVerifier {
             ).commitment;
         }
 
-        Oracles.Result memory oracles_res = Oracles.fiat_shamir(proof, verifier_index, public_comm, public_inputs, true, base_sponge, scalar_sponge);
+        Oracles.Result memory oracles_res = Oracles.fiat_shamir(
+            proof,
+            verifier_index,
+            public_comm,
+            public_inputs,
+            true,
+            base_sponge,
+            scalar_sponge
+        );
+
+        // Combine the chunked polynomials' evaluations
 
         proof.evals.combine_evals(oracles_res.powers_of_eval_points_for_chunks);
+
+        // Compute the commitment to the linearized polynomial $f$.
+        Polynomial.Dense memory permutation_vanishing_polynomial
+            = Polynomial.vanishes_on_last_n_rows(
+                verifier_index.domain_gen,
+                verifier_index.domain_size,
+                verifier_index.zk_rows
+        );
     }
 
     /*
