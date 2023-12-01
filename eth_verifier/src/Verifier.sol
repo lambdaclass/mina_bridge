@@ -11,9 +11,11 @@ import "../lib/State.sol";
 import "../lib/VerifierIndex.sol";
 import "../lib/Constants.sol";
 import "../lib/msgpack/Deserialize.sol";
+import "../lib/Alphas.sol";
 
 using {BN254.neg} for BN254.G1Point;
 using {Scalar.neg} for Scalar.FE;
+using {AlphasLib.get_alphas} for Alphas;
 
 library Kimchi {
     struct Proof {
@@ -183,12 +185,20 @@ contract KimchiVerifier {
         proof.evals.combine_evals(oracles_res.powers_of_eval_points_for_chunks);
 
         // Compute the commitment to the linearized polynomial $f$.
-        Polynomial.Dense memory permutation_vanishing_polynomial
-            = Polynomial.vanishes_on_last_n_rows(
+        Polynomial.Dense memory permutation_vanishing_polynomial =
+            Polynomial.vanishes_on_last_n_rows(
                 verifier_index.domain_gen,
                 verifier_index.domain_size,
                 verifier_index.zk_rows
         );
+
+        Scalar.FE[] memory alphas =
+            verifier_index.powers_of_alpha.get_alphas(
+                ArgumentType.Permutation,
+                Constants.PERMUTATION_CONSTRAINTS
+        );
+
+        PolyComm[] memory commitments = new PolyComm[](0);
     }
 
     /*

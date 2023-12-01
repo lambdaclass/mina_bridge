@@ -99,6 +99,7 @@ library Oracles {
         // retrieve ranges for the powers of alphas
         Alphas storage all_alphas = index.powers_of_alpha;
         all_alphas.instantiate(alpha);
+        // WARN: all_alphas should be a clone of index.powers_of_alpha.
 
         // evaluations of the public input
 
@@ -275,7 +276,7 @@ library Oracles {
             u_chal
         );
 
-        return Result(oracles, powers_of_eval_points_for_chunks, all_alphas);
+        return Result(oracles, powers_of_eval_points_for_chunks);
     }
 
     struct RandomOracles {
@@ -296,7 +297,6 @@ library Oracles {
         // sponges are stored in storage
         RandomOracles oracles;
         PointEvaluations powers_of_eval_points_for_chunks;
-        Alphas all_alphas;
     }
 
     struct ScalarChallenge {
