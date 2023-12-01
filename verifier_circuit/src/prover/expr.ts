@@ -1,7 +1,8 @@
 import { Scalar } from "o1js";
-import { Constants, PointEvaluations, ProofEvaluations } from "./prover";
-import { invScalar, powScalar } from "../util/scalar";
-import { GateType } from "../circuits/gate";
+import { Constants, PointEvaluations, ProofEvaluations } from "./prover.js";
+import { invScalar, powScalar } from "../util/scalar.js";
+import { GateType } from "../circuits/gate.js";
+import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 
 /** A type representing one of the polynomials involved in the PLONK IOP */
 export namespace Column {
@@ -59,8 +60,8 @@ export class Variable {
         this.row = row;
     }
 
-    evaluate(evals: ProofEvaluations<PointEvaluations<Scalar>>): Scalar {
-        let point_evaluations: PointEvaluations<Scalar> | undefined = undefined;
+    evaluate(evals: ProofEvaluations<PointEvaluations<ForeignScalar>>): ForeignScalar {
+        let point_evaluations: PointEvaluations<ForeignScalar> | undefined = undefined;
         switch (this.col.kind) {
             case "witness": {
                 point_evaluations = evals.w[this.col.index];
@@ -126,7 +127,7 @@ export namespace PolishToken {
     }
     // FIXME: this is lookup related
     //export type JointCombiner = {
-        //kind: "jointcombiner"
+    //kind: "jointcombiner"
     //}
     export type EndoCoefficient = {
         kind: "endocoefficient"
@@ -138,7 +139,7 @@ export namespace PolishToken {
     }
     export type Literal = {
         kind: "literal"
-        lit: Scalar
+        lit: ForeignScalar
     }
     export type Cell = {
         kind: "cell"
@@ -165,7 +166,7 @@ export namespace PolishToken {
     }
     export type UnnormalizedLagrangeBasis = {
         kind: "unnormalizedlagrangebasis"
-        index: number 
+        index: number
     }
     export type Store = {
         kind: "store"
@@ -190,13 +191,13 @@ export namespace PolishToken {
     /** Evaluates a reverse polish notation expression into a field element */
     export function evaluate(
         toks: PolishToken[],
-        pt: Scalar,
-        evals: ProofEvaluations<PointEvaluations<Scalar>>,
-        domain_gen: Scalar,
+        pt: ForeignScalar,
+        evals: ProofEvaluations<PointEvaluations<ForeignScalar>>,
+        domain_gen: ForeignScalar,
         domain_size: number,
-        c: Constants<Scalar>
-    ): Scalar {
-        let stack: Scalar[] = [];
+        c: Constants<ForeignScalar>
+    ): ForeignScalar {
+        let stack: ForeignScalar[] = [];
         let cache = [];
 
         let skip_count = 0;

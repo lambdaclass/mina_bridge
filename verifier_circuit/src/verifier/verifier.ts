@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
 import { circuitMain, Circuit, Group, Scalar, public_, Field, ForeignGroup } from 'o1js';
-import { PolyComm } from '../poly_commitment/commitment.js';
+import { OpeningProof, PolyComm } from '../poly_commitment/commitment.js';
 import { SRS } from '../SRS.js';
 import { Sponge } from './sponge.js';
 import { Alphas } from '../alphas.js';
@@ -12,6 +12,11 @@ import {
     //LookupSelectors,
     LookupInfo
 } from '../lookups/lookups.js';
+import { Batch } from './batch.js';
+import proof_json from "../../test/proof.json" assert { type: "json" };
+import verifier_index_json from "../../test/verifier_index.json" assert { type: "json" };
+import { deserVerifierIndex } from "../serde/serde_index.js";
+import { deserProverProof } from '../serde/serde_proof.js';
 
 let steps: bigint[][];
 try {
@@ -68,7 +73,7 @@ export class LookupVerifierIndex {
 export class VerifierIndex {
     srs: SRS
     domain_size: number
-    domain_gen: Scalar
+    domain_gen: ForeignScalar
     /** number of public inputs */
     public: number
     /** maximal size of polynomial section */
@@ -77,32 +82,32 @@ export class VerifierIndex {
     zk_rows: number
 
     /** permutation commitments */
-    sigma_comm: PolyComm<Group>[] // size PERMUTS
-    coefficients_comm: PolyComm<Group>[] // size COLUMNS
-    generic_comm: PolyComm<Group>
+    sigma_comm: PolyComm<ForeignGroup>[] // size PERMUTS
+    coefficients_comm: PolyComm<ForeignGroup>[] // size COLUMNS
+    generic_comm: PolyComm<ForeignGroup>
 
     /** poseidon constraint selector polynomial commitments */
-    psm_comm: PolyComm<Group>
+    psm_comm: PolyComm<ForeignGroup>
 
     /** EC addition selector polynomial commitment */
-    complete_add_comm: PolyComm<Group>
+    complete_add_comm: PolyComm<ForeignGroup>
     /** EC variable base scalar multiplication selector polynomial commitment */
-    mul_comm: PolyComm<Group>
+    mul_comm: PolyComm<ForeignGroup>
     /** endoscalar multiplication selector polynomial commitment */
-    emul_comm: PolyComm<Group>
+    emul_comm: PolyComm<ForeignGroup>
     /** endoscalar multiplication scalar computation selector polynomial commitment */
-    endomul_scalar_comm: PolyComm<Group>
+    endomul_scalar_comm: PolyComm<ForeignGroup>
 
     /** The mapping between powers of alpha and constraints */
     powers_of_alpha: Alphas
     /** Wire coordinate shifts */
-    shift: Scalar[] // of size PERMUTS
+    shift: ForeignScalar[] // of size PERMUTS
     /** Zero knowledge polynomial */
     permutation_vanishing_polynomial_m: Polynomial
     /** Domain offset for zero-knowledge */
-    w: Scalar
+    w: ForeignScalar
     /** Endoscalar coefficient */
-    endo: Scalar
+    endo: ForeignScalar
 
     // TODO!
     ///pub lookup_index: Option<LookupVerifierIndex<G>>,
@@ -111,23 +116,23 @@ export class VerifierIndex {
 
     constructor(
         domain_size: number,
-        domain_gen: Scalar,
+        domain_gen: ForeignScalar,
         max_poly_size: number,
         zk_rows: number,
         public_size: number,
-        sigma_comm: PolyComm<Group>[],
-        coefficients_comm: PolyComm<Group>[],
-        generic_comm: PolyComm<Group>,
-        psm_comm: PolyComm<Group>,
-        complete_add_comm: PolyComm<Group>,
-        mul_comm: PolyComm<Group>,
-        emul_comm: PolyComm<Group>,
-        endomul_scalar_comm: PolyComm<Group>,
+        sigma_comm: PolyComm<ForeignGroup>[],
+        coefficients_comm: PolyComm<ForeignGroup>[],
+        generic_comm: PolyComm<ForeignGroup>,
+        psm_comm: PolyComm<ForeignGroup>,
+        complete_add_comm: PolyComm<ForeignGroup>,
+        mul_comm: PolyComm<ForeignGroup>,
+        emul_comm: PolyComm<ForeignGroup>,
+        endomul_scalar_comm: PolyComm<ForeignGroup>,
         powers_of_alpha: Alphas,
-        shift: Scalar[],
+        shift: ForeignScalar[],
         permutation_vanishing_polynomial_m: Polynomial,
-        w: Scalar,
-        endo: Scalar,
+        w: ForeignScalar,
+        endo: ForeignScalar,
         linearization: Linearization<PolishToken[]>
     ) {
         this.srs = SRS.createFromJSON();
@@ -179,7 +184,11 @@ export class Verifier extends Circuit {
     static readonly PERMUTATION_CONSTRAINTS: number = 3;
 
     @circuitMain
-    static main(@public_ sg: ForeignGroup, @public_ z1: ForeignScalar, @public_ expected: ForeignGroup) {
+    static main(@public_ openingProof: OpeningProof, @public_ expected: ForeignGroup) {
+        let proverProof = deserProverProof(proof_json);
+        proverProof.proof = openingProof;
+        let evaluationProof = Batch.toBatch(deserVerifierIndex(verifier_index_json), proverProof, []);
+
         let points = [h];
         let scalars = [ForeignScalar.from(0)];
 
@@ -187,8 +196,8 @@ export class Verifier extends Circuit {
         let sgRandBase = ForeignScalar.from(1);
         let negRandBase = randBase.neg();
 
-        points.push(sg);
-        scalars.push(negRandBase.mul(z1).sub(sgRandBase));
+        points.push(evaluationProof.opening.sg);
+        scalars.push(negRandBase.mul(evaluationProof.opening.z1).sub(sgRandBase));
 
         let result = Verifier.naiveMSM(points, scalars);
 

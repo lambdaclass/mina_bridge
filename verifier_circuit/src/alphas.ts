@@ -1,5 +1,6 @@
-import { ArgumentType, ArgumentTypeID, GateType } from "./circuits/gate"
+import { ArgumentType, ArgumentTypeID, GateType } from "./circuits/gate.js"
 import { Scalar } from "o1js"
+import { ForeignScalar } from "./foreign_fields/foreign_scalar.js"
 
 /**
  * This type can be used to create a mapping between powers of alpha and constraint types.
@@ -23,25 +24,25 @@ export class Alphas {
      * The powers of alpha: 1, alpha, alpha^2, ..
      * If not undefined, you can't register new contraints.
     */
-    alphas?: Scalar[]
+    alphas?: ForeignScalar[]
 
     constructor(
         next_power: number,
         mapping: Map<ArgumentTypeID, [number, number]>,
-        alphas?: Scalar[]
+        alphas?: ForeignScalar[]
     ) {
         this.next_power = next_power;
         this.mapping = mapping,
-        this.alphas = alphas;
+            this.alphas = alphas;
     }
 
     /**
      * Instantiates the ranges with an actual field element `alpha`.
      * Once you call this function, you cannot register new constraints.
      */
-    instantiate(alpha: Scalar) {
-        let last_power = Scalar.from(1);
-        let alphas = Array<Scalar>();
+    instantiate(alpha: ForeignScalar) {
+        let last_power = ForeignScalar.from(1);
+        let alphas = Array<ForeignScalar>();
         alphas.push(last_power);
 
         for (let _ = 1; _ < this.next_power; _++) {
@@ -54,7 +55,7 @@ export class Alphas {
     /**
      * Retrieves the powers of alpha, upperbounded by `num`
      */
-    getAlphas(ty: ArgumentType, num: number): Scalar[] {
+    getAlphas(ty: ArgumentType, num: number): ForeignScalar[] {
         if (ty.kind === "gate") {
             ty.type = GateType.Zero;
         }

@@ -1,25 +1,26 @@
 import { AggregatedEvaluationProof, Evaluation, PolyComm } from "../poly_commitment/commitment.js";
 import { ProverProof, PointEvaluations, ProofEvaluations, Constants } from "../prover/prover.js";
 import { Verifier, VerifierIndex } from "./verifier.js";
-import { Group, Scalar } from "o1js";
+import { ForeignGroup } from "o1js";
 import { deserHexScalar } from "../serde/serde_proof.js";
 import { Column, PolishToken } from "../prover/expr.js";
 import { GateType } from "../circuits/gate.js";
 import { powScalar } from "../util/scalar.js";
 import { range } from "../util/misc.js";
+import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 
 export class Context {
     verifier_index: VerifierIndex
     proof: ProverProof
-    public_input: Scalar[]
+    public_input: ForeignScalar[]
 
-    constructor(verifier_index: VerifierIndex, proof: ProverProof, public_input: Scalar[]) {
+    constructor(verifier_index: VerifierIndex, proof: ProverProof, public_input: ForeignScalar[]) {
         this.verifier_index = verifier_index;
         this.proof = proof;
         this.public_input = public_input;
     }
 
-    getColumn(col: Column): PolyComm<Group> | undefined {
+    getColumn(col: Column): PolyComm<ForeignGroup> | undefined {
         switch (col.kind) {
             case "witness": return this.proof.commitments.wComm[col.index];
             case "coefficient": return this.verifier_index.coefficients_comm[col.index];
@@ -42,14 +43,14 @@ export class Context {
     }
 }
 
-export class Batch extends Verifier {
+export class Batch {
     /**
      * will take verifier_index, proof and public inputs as args.
      * will output a "batch evaluation proof"
      *
      * essentially will partial verify proofs so they can be batched verified later.
     */
-    static toBatch(verifier_index: VerifierIndex, proof: ProverProof, public_input: Scalar[]) {
+    static toBatch(verifier_index: VerifierIndex, proof: ProverProof, public_input: ForeignScalar[]) {
         //~ 1. Check the length of evaluations inside the proof.
         this.#check_proof_evals_len(proof)
 
@@ -61,7 +62,7 @@ export class Batch extends Verifier {
         let public_comm = verifier_index
             .srs
             .maskCustom(non_hiding_public_comm,
-                new PolyComm([Scalar.from(1)], undefined))?.commitment!;
+                new PolyComm([ForeignScalar.from(1)], undefined))?.commitment!;
 
         //~ 3. Run the Fiat-Shamir heuristic.
         const {
@@ -96,7 +97,7 @@ export class Batch extends Verifier {
             .mul(oracles.beta)
             .mul(alphas[0])
             .mul(permutation_vanishing_polynomial);
-        let scalars: Scalar[] = [evals.s
+        let scalars: ForeignScalar[] = [evals.s
             .map((s, i) => oracles.gamma.add(oracles.beta.mul(s.zeta)).add(evals.w[i].zeta))
             .reduce((acc, curr) => acc.mul(curr), init)];
 
@@ -120,7 +121,7 @@ export class Batch extends Verifier {
             ].map(deserHexScalar)
         ];
 
-        const constants: Constants<Scalar> = {
+        const constants: Constants<ForeignScalar> = {
             alpha: oracles.alpha,
             beta: oracles.beta,
             gamma: oracles.gamma,
@@ -150,7 +151,7 @@ export class Batch extends Verifier {
             chunked_f_comm,
             PolyComm.scale(
                 chunked_t_comm,
-                zeta_to_domain_size.sub(Scalar.from(1))));
+                zeta_to_domain_size.sub(ForeignScalar.from(1))));
 
         //~ 7. List the polynomial commitments, and their associated evaluations,
         //~    that are associated to the aggregated evaluation proof in the proof:
@@ -210,7 +211,7 @@ export class Batch extends Verifier {
             poseidonSelector
         } = proof.evals;
 
-        const valid_evals_len = (evals: PointEvaluations<Array<Scalar>>): boolean =>
+        const valid_evals_len = (evals: PointEvaluations<Array<ForeignScalar>>): boolean =>
             evals.zeta.length === 1 && evals.zetaOmega.length === 1;
 
         // auxiliary
