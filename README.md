@@ -459,4 +459,28 @@ It is more efficient (and also equivalent) to just replace the sub-window we wis
 
 ##### Projected window
 
+Generating a new block and determining the optimal chain in accordance with the long-range fork rule involve the computation of a projected window.  
+Given a window _W_ and a future global slot _next_, the projected window of _W_ to slot _next_ is a transformation of _W_ into what it would look like if it were positioned at slot _next_.  
+For example, when a new block _B_ is produced with parent block _P_, the height of _B_ will be the height of _P_ plus one, but the global slot of _B_ will depend on how much time has elapsed since _P_ was created.  
+According to the Samasika paper, the window of _B_ must be initialized based on _P's_ window, then shifted because _B_ is ahead of _P_ and finally the value of _B's_ sub-window is incremented to account for _B_ belonging to it.  
+Remember that the calculation of window density, including sub-window s, only occurs when the sub-window is greater than s, after s becomes a previous sub-window. 
+Therefore, if _next_ is **k** sub-windows ahead of _W_ we must shift only **k - 1** times because we must keep the most recent previous sub-window.
+
+Now that we know how much to ring-shift, the next question is what density values to shift in. Remember that when projecting W to global slot next, we said that there are no intermediate blocks. That is, all of the slots and sub-windows are empty between W's current slot and next. Consequently, we must ring-shift in zero densities. The resulting window W is the projected window.
+
+Recall this diagram:
+![](/img/consensus01.png)
+Suppose window W's current sub-window is 11 whose density is d11 and d1 is the oldest sub-window density
+
+Now imagine we want to project W to global slot ``next = 15``. This is ``k = 15 - 11 = 4`` sub-windows ahead of the most recent sub-window. Therefore, we compute ``shift_count = min(max(k - 1, 0), sub_windows_per_window)``  in this case: ``shift_count = min(max(4 - 1, 0), 11) = 3``
+
+Ring-shift in 3 zero densities to obtain the projected window.
+![](/img/consensus02.png)
+
+We can derive some instructive cases from the general rule 
+![](/img/consensus03.png)
+
+##### Genesis window
+
+
 
