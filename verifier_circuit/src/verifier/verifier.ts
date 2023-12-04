@@ -8,8 +8,11 @@ import { Polynomial } from '../polynomial.js';
 import { Linearization, PolishToken } from '../prover/expr.js';
 import { ForeignField } from '../foreign_fields/foreign_field.js';
 import { ForeignScalar } from '../foreign_fields/foreign_scalar.js';
+import {
+    //LookupSelectors,
+    LookupInfo
+} from '../lookups/lookups.js';
 import { Batch } from './batch.js';
-
 import proof_json from "../../test/proof.json" assert { type: "json" };
 import verifier_index_json from "../../test/verifier_index.json" assert { type: "json" };
 import { deserVerifierIndex } from "../serde/serde_index.js";
@@ -23,6 +26,46 @@ try {
 }
 
 let { h } = SRS.createFromJSON();
+
+/*
+#[serde_as]
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct LookupVerifierIndex<G: CommitmentCurve> {
+    pub joint_lookup_used: bool,
+    #[serde(bound = "PolyComm<G>: Serialize + DeserializeOwned")]
+    pub lookup_table: Vec<PolyComm<G>>,
+    #[serde(bound = "PolyComm<G>: Serialize + DeserializeOwned")]
+    pub lookup_selectors: LookupSelectors<PolyComm<G>>,
+
+    /// Table IDs for the lookup values.
+    /// This may be `None` if all lookups originate from table 0.
+    #[serde(bound = "PolyComm<G>: Serialize + DeserializeOwned")]
+    pub table_ids: Option<PolyComm<G>>,
+
+    /// Information about the specific lookups used
+    pub lookup_info: LookupInfo,
+
+    /// An optional selector polynomial for runtime tables
+    #[serde(bound = "PolyComm<G>: Serialize + DeserializeOwned")]
+    pub runtime_tables_selector: Option<PolyComm<G>>,
+}
+*/
+
+export class LookupVerifierIndex {
+    joint_lookup_used: boolean
+    lookup_table: PolyComm<Group>[]
+    // TODO !!! lookup_selectors: LookupSelectors<PolyComm<Group>>
+
+    /// Table IDs for the lookup values.
+    /// This may be `None` if all lookups originate from table 0.
+    table_ids?: PolyComm<Group>
+
+    /// Information about the specific lookups used
+    lookup_info: LookupInfo
+
+    /// An optional selector polynomial for runtime tables
+    runtime_tables_selector?: PolyComm<Group>
+}
 
 /**
 * Will contain information necessary for executing a verification
@@ -65,6 +108,9 @@ export class VerifierIndex {
     w: ForeignScalar
     /** Endoscalar coefficient */
     endo: ForeignScalar
+
+    // TODO!
+    ///pub lookup_index: Option<LookupVerifierIndex<G>>,
 
     linearization: Linearization<PolishToken[]>
 
