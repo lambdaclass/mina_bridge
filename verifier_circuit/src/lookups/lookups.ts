@@ -18,7 +18,9 @@ export class LookupFeatures {
     uses_runtime_tables: boolean
 }
 
-/// Describes the desired lookup configuration.
+/**
+* Describes the desired lookup configuration.
+*/
 export class LookupInfo {
     /// The maximum length of an element of `kinds`. This can be computed from `kinds`.
     max_per_row: number
