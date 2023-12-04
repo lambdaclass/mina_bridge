@@ -1,5 +1,7 @@
 
-/// Flags for each of the hard-coded lookup patterns.
+/**
+* Flags for each of the hard-coded lookup patterns.
+*/
 export class LookupPatterns {
     xor: boolean
     lookup: boolean
