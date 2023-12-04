@@ -689,7 +689,9 @@ export class RecursionChallenge {
     }
 }
 
-/// Commitments linked to the lookup feature
+/**
+* Commitments linked to the lookup feature
+*/
 export class LookupCommitments {
     /// Commitments to the sorted lookup table polynomial (may have chunks)
     sorted: PolyComm<Group>[]
