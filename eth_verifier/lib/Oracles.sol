@@ -47,7 +47,7 @@ library Oracles {
         bool is_public_input_set,
         Sponge storage base_sponge,
         Sponge storage scalar_sponge
-    ) public {
+    ) public returns (Result memory) {
         uint chunk_size = index.domain_size < index.max_poly_size ?
             1 : index.domain_size / index.max_poly_size;
 
@@ -99,6 +99,7 @@ library Oracles {
         // retrieve ranges for the powers of alphas
         Alphas storage all_alphas = index.powers_of_alpha;
         all_alphas.instantiate(alpha);
+        // WARN: all_alphas should be a clone of index.powers_of_alpha.
 
         // evaluations of the public input
 
@@ -262,6 +263,40 @@ library Oracles {
         // TODO: add evaluations of all columns
 
         Scalar.FE combined_inner_prod = combined_inner_product(evaluation_points, v, u, es, index.max_poly_size);
+        RandomOracles memory oracles = RandomOracles(
+            beta,
+            gamma,
+            alpha_chal,
+            alpha,
+            zeta,
+            v,
+            u,
+            alpha_chal,
+            v_chal,
+            u_chal
+        );
+
+        return Result(oracles, powers_of_eval_points_for_chunks);
+    }
+
+    struct RandomOracles {
+        // joint_combiner
+        Scalar.FE beta;
+        Scalar.FE gamma;
+        ScalarChallenge alpha_chal;
+        Scalar.FE alpha;
+        Scalar.FE zeta;
+        Scalar.FE v;
+        Scalar.FE u;
+        ScalarChallenge zeta_chal;
+        ScalarChallenge v_chal;
+        ScalarChallenge u_chal;
+    }
+
+    struct Result {
+        // sponges are stored in storage
+        RandomOracles oracles;
+        PointEvaluations powers_of_eval_points_for_chunks;
     }
 
     struct ScalarChallenge {

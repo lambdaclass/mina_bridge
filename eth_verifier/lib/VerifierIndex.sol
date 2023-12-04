@@ -12,6 +12,8 @@ struct VerifierIndex {
     uint256 public_len;
     // maximal size of polynomial section
     uint256 max_poly_size;
+    // the number of randomized rows to achieve zero knowledge
+    uint256 zk_rows;
     URS urs;
     // domain
     uint256 domain_size;
@@ -22,6 +24,7 @@ struct VerifierIndex {
     Scalar.FE[7] shift;  // TODO: use Consants.PERMUTS
     /// domain offset for zero-knowledge
     Scalar.FE w;
+
 }
 
 function verifier_digest(VerifierIndex storage index) returns (Base.FE) {

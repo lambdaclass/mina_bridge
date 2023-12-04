@@ -9,11 +9,13 @@ import "../lib/Oracles.sol";
 import "../lib/Proof.sol";
 import "../lib/State.sol";
 import "../lib/VerifierIndex.sol";
-import "../lib/Commitment.sol";
+import "../lib/Constants.sol";
 import "../lib/msgpack/Deserialize.sol";
+import "../lib/Alphas.sol";
 
 using {BN254.neg} for BN254.G1Point;
 using {Scalar.neg} for Scalar.FE;
+using {AlphasLib.get_alphas} for Alphas;
 
 library Kimchi {
     struct Proof {
@@ -46,6 +48,7 @@ library Kimchi {
 
 contract KimchiVerifier {
     using {AlphasLib.register} for Alphas;
+    using {combine_evals} for ProofEvaluationsArray;
 
     VerifierIndex verifier_index;
     ProverProof proof;
@@ -79,6 +82,10 @@ contract KimchiVerifier {
         verifier_index.max_poly_size = max_poly_size;
         verifier_index.powers_of_alpha.register(ArgumentType.GateZero, 21);
         verifier_index.powers_of_alpha.register(ArgumentType.Permutation, 3);
+
+        // TODO: Investigate about linearization and write a proper function for this
+        verifier_index.powers_of_alpha.register(ArgumentType.GateZero, Constants.VARBASEMUL_CONSTRAINTS);
+        verifier_index.powers_of_alpha.register(ArgumentType.Permutation, Constants.PERMUTATION_CONSTRAINTS);
 
         proof.evals = evals;
     }
@@ -120,6 +127,8 @@ contract KimchiVerifier {
     error IncorrectPublicInputLength();
 
     function partial_verify(Scalar.FE[] memory public_inputs) public {
+        // Commit to the negated public input polynomial.
+
         uint256 chunk_size = verifier_index.domain_size <
             verifier_index.max_poly_size
             ? 1
@@ -163,17 +172,44 @@ contract KimchiVerifier {
             ).commitment;
         }
 
-        Oracles.fiat_shamir(proof, verifier_index, public_comm, public_inputs, true, base_sponge, scalar_sponge);
+        Oracles.Result memory oracles_res = Oracles.fiat_shamir(
+            proof,
+            verifier_index,
+            public_comm,
+            public_inputs,
+            true,
+            base_sponge,
+            scalar_sponge
+        );
+
+        // Combine the chunked polynomials' evaluations
+
+        proof.evals.combine_evals(oracles_res.powers_of_eval_points_for_chunks);
+
+        // Compute the commitment to the linearized polynomial $f$.
+        Polynomial.Dense memory permutation_vanishing_polynomial =
+            Polynomial.vanishes_on_last_n_rows(
+                verifier_index.domain_gen,
+                verifier_index.domain_size,
+                verifier_index.zk_rows
+        );
+
+        Scalar.FE[] memory alphas =
+            verifier_index.powers_of_alpha.get_alphas(
+                ArgumentType.Permutation,
+                Constants.PERMUTATION_CONSTRAINTS
+        );
+
+        PolyComm[] memory commitments = new PolyComm[](0);
     }
 
     /*
-    This is a list of steps needed for verification, we need to determine which
-    ones can be skipped or simplified.
+    This is a list of steps needed for verification.
 
     Partial verification:
         1. Check the length of evaluations insde the proof.
         2. Commit to the negated public input poly
-        3. Fiat-Shamir (MAY SKIP OR VASTLY SIMPLIFY)
+        3. Fiat-Shamir (vastly simplify for now)
         4. Combined chunk polynomials evaluations
         5. Commitment to linearized polynomial f
         6. Chunked commitment of ft
