@@ -4,6 +4,7 @@ pragma solidity >=0.4.16 <0.9.0;
 import "./Evaluations.sol";
 import "./Polynomial.sol";
 import "./Constants.sol";
+import "./expr/Expr.sol";
 
 struct ProverProof {
     ProofEvaluationsArray evals;
@@ -81,3 +82,13 @@ function combine_evals(
 
     return ProofEvaluations(public_evals, self.is_public_evals_set, w, z, s);
 }
+
+function evaluate_column(ProofEvaluations memory self, Column )
+
+function evaluate_variable(
+    Variable memory self,
+    ProofEvaluations memory evals
+) pure returns (Scalar.FE) {
+
+}
+
