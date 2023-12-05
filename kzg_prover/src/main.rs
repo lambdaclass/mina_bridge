@@ -20,17 +20,21 @@ use kimchi::{
         constraints::ConstraintSystem,
         domains::EvaluationDomains,
         gate::{CircuitGate, GateType},
-        polynomials::generic::testing::{create_circuit, fill_in_witness},
-        wires::COLUMNS,
+        polynomials::{
+            generic::testing::{create_circuit, fill_in_witness},
+            range_check,
+        },
+        wires::{Wire, COLUMNS},
     },
     curve::KimchiCurve,
     groupmap::*,
     keccak_sponge::{Keccak256FqSponge, Keccak256FrSponge},
-    o1_utils::FieldHelpers,
+    o1_utils::{foreign_field::BigUintForeignFieldHelpers, BigUintFieldHelpers, FieldHelpers},
     proof::ProverProof,
     prover_index::{self, ProverIndex},
     verifier::{batch_verify, Context},
 };
+use num::{bigint::RandBigInt, BigUint};
 use num_traits::{One, Zero};
 use poly_commitment::{
     commitment::{combine_commitments, combine_evaluations, CommitmentCurve, Evaluation},
@@ -59,6 +63,64 @@ type KZGProof = PairingProof<ark_ec::bn::Bn<ark_bn254::Parameters>>;
 fn main() {
     generate_verifier_circuit_proof();
     //generate_test_proof();
+    generate_test_proof_ex();
+}
+
+fn generate_test_proof_ex() {
+    let rng = &mut StdRng::from_seed([255u8; 32]);
+
+    // Create range-check gadget
+    let (mut next_row, mut gates) = CircuitGate::<ScalarField>::create_multi_range_check(0);
+
+    // Create witness
+    let witness = range_check::witness::create_multi::<ScalarField>(
+        rng.gen_biguint_range(&BigUint::zero(), &BigUint::two_to_limb())
+            .to_field()
+            .expect("failed to convert to field"),
+        rng.gen_biguint_range(&BigUint::zero(), &BigUint::two_to_limb())
+            .to_field()
+            .expect("failed to convert to field"),
+        rng.gen_biguint_range(&BigUint::zero(), &BigUint::two_to_limb())
+            .to_field()
+            .expect("failed to convert to field"),
+    );
+
+    // Temporary workaround for lookup-table/domain-size issue
+    for _ in 0..(1 << 13) {
+        gates.push(CircuitGate::zero(Wire::for_row(next_row)));
+        next_row += 1;
+    }
+
+    // Create constraint system
+    let cs = ConstraintSystem::<ScalarField>::create(gates)
+        //.lookup(vec![range_check::gadget::lookup_table()])
+        .build()
+        .unwrap();
+
+    let x = ark_bn254::Fr::rand(rng);
+    let srs = Arc::new(create_srs(x, cs.gates.len(), cs.domain));
+
+    let ptr: &mut SRS<G1> = unsafe { &mut *(std::sync::Arc::as_ptr(&srs) as *mut _) };
+    ptr.add_lagrange_basis(cs.domain.d1);
+
+    let (_endo_r, endo_q) = G1::endos();
+    let index = ProverIndex::<G1, KZGProof>::create(cs, *endo_q, srs);
+    let group_map = <G1 as CommitmentCurve>::Map::setup();
+    let proof = ProverProof::create_recursive::<KeccakFqSponge, KeccakFrSponge>(
+        &group_map,
+        witness,
+        &[],
+        &index,
+        vec![],
+        None,
+    )
+    .unwrap();
+
+    fs::write(
+        "../eth_verifier/prover_proof.mpk",
+        rmp_serde::to_vec_named(&proof).unwrap(),
+    )
+    .unwrap();
 }
 
 fn generate_verifier_circuit_proof() {
