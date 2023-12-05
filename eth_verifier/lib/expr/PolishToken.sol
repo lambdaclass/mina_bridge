@@ -3,8 +3,13 @@ pragma solidity >=0.4.16 <0.9.0;
 
 import "../bn254/Fields.sol";
 
-// Variants like Mds, Literal and Cell have data associated to them. We will
-// represent them as `bytes`.
+// PolishToken is a tagged union type, whose variants can hold different data types.
+// In Rust this can be implemented as an enum, in Typescript as a discriminated union.
+//
+// Here we'll use a struct, which will hold the `variant` tag as an enum and the
+// `data` as bytes. The struct will be discriminated over its `variant` and after
+// we can decode the bytes into the corresponding data type.
+
 struct PolishToken {
     PolishTokenVariant variant;
     bytes data;
