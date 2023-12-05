@@ -181,6 +181,187 @@ export class Batch {
             evaluations.push(new Evaluation(context.getColumn(col)!, [eva?.zeta, eva?.zetaOmega]));
         }
 
+        /*
+            //~~ * optional gate commitments
+            .chain(
+                verifier_index
+                    .range_check0_comm
+                    .as_ref()
+                    .map(|_| Column::Index(GateType::RangeCheck0)),
+            )
+            .chain(
+                verifier_index
+                    .range_check1_comm
+                    .as_ref()
+                    .map(|_| Column::Index(GateType::RangeCheck1)),
+            )
+            .chain(
+                verifier_index
+                    .foreign_field_add_comm
+                    .as_ref()
+                    .map(|_| Column::Index(GateType::ForeignFieldAdd)),
+            )
+            .chain(
+                verifier_index
+                    .foreign_field_mul_comm
+                    .as_ref()
+                    .map(|_| Column::Index(GateType::ForeignFieldMul)),
+            )
+            .chain(
+                verifier_index
+                    .xor_comm
+                    .as_ref()
+                    .map(|_| Column::Index(GateType::Xor16)),
+            )
+            .chain(
+                verifier_index
+                    .rot_comm
+                    .as_ref()
+                    .map(|_| Column::Index(GateType::Rot64)),
+            )
+            //~~ * lookup commitments
+            //~
+            .chain(
+                verifier_index
+                    .lookup_index
+                    .as_ref()
+                    .map(|li| {
+                        // add evaluations of sorted polynomials
+                        (0..li.lookup_info.max_per_row + 1)
+                            .map(Column::LookupSorted)
+                            // add evaluations of the aggreg polynomial
+                            .chain([Column::LookupAggreg].into_iter())
+                    })
+                    .into_iter()
+                    .flatten(),
+            ) {
+                let evals = proof
+                    .evals
+                    .get_column(col)
+                    .ok_or(VerifyError::MissingEvaluation(col))?;
+                evaluations.push(Evaluation {
+                    commitment: context
+                        .get_column(col)
+                        .ok_or(VerifyError::MissingCommitment(col))?
+                        .clone(),
+                    evaluations: vec![evals.zeta.clone(), evals.zeta_omega.clone()],
+                    degree_bound: None,
+                });
+            }
+
+            if let Some(li) = &verifier_index.lookup_index {
+                let lookup_comms = proof
+                    .commitments
+                    .lookup
+                    .as_ref()
+                    .ok_or(VerifyError::LookupCommitmentMissing)?;
+
+                let lookup_table = proof
+                    .evals
+                    .lookup_table
+                    .as_ref()
+                    .ok_or(VerifyError::LookupEvalsMissing)?;
+                let runtime_lookup_table = proof.evals.runtime_lookup_table.as_ref();
+
+                // compute table commitment
+                let table_comm = {
+                    let joint_combiner = oracles
+                        .joint_combiner
+                        .expect("joint_combiner should be present if lookups are used");
+                    let table_id_combiner = joint_combiner
+                        .1
+                        .pow([u64::from(li.lookup_info.max_joint_size)]);
+                    let lookup_table: Vec<_> = li.lookup_table.iter().collect();
+                    let runtime = lookup_comms.runtime.as_ref();
+
+                    combine_table(
+                        &lookup_table,
+                        joint_combiner.1,
+                        table_id_combiner,
+                        li.table_ids.as_ref(),
+                        runtime,
+                    )
+                };
+
+                // add evaluation of the table polynomial
+                evaluations.push(Evaluation {
+                    commitment: table_comm,
+                    evaluations: vec![lookup_table.zeta.clone(), lookup_table.zeta_omega.clone()],
+                    degree_bound: None,
+                });
+
+                // add evaluation of the runtime table polynomial
+                if li.runtime_tables_selector.is_some() {
+                    let runtime = lookup_comms
+                        .runtime
+                        .as_ref()
+                        .ok_or(VerifyError::IncorrectRuntimeProof)?;
+                    let runtime_eval = runtime_lookup_table
+                        .as_ref()
+                        .map(|x| x.map_ref(&|x| x.clone()))
+                        .ok_or(VerifyError::IncorrectRuntimeProof)?;
+
+                    evaluations.push(Evaluation {
+                        commitment: runtime.clone(),
+                        evaluations: vec![runtime_eval.zeta, runtime_eval.zeta_omega],
+                        degree_bound: None,
+                    });
+                }
+            }
+
+            for col in verifier_index
+                .lookup_index
+                .as_ref()
+                .map(|li| {
+                    (li.runtime_tables_selector
+                        .as_ref()
+                        .map(|_| Column::LookupRuntimeSelector))
+                    .into_iter()
+                    .chain(
+                        li.lookup_selectors
+                            .xor
+                            .as_ref()
+                            .map(|_| Column::LookupKindIndex(LookupPattern::Xor)),
+                    )
+                    .chain(
+                        li.lookup_selectors
+                            .lookup
+                            .as_ref()
+                            .map(|_| Column::LookupKindIndex(LookupPattern::Lookup)),
+                    )
+                    .chain(
+                        li.lookup_selectors
+                            .range_check
+                            .as_ref()
+                            .map(|_| Column::LookupKindIndex(LookupPattern::RangeCheck)),
+                    )
+                    .chain(
+                        li.lookup_selectors
+                            .ffmul
+                            .as_ref()
+                            .map(|_| Column::LookupKindIndex(LookupPattern::ForeignFieldMul)),
+                    )
+                })
+                .into_iter()
+                .flatten()
+            {
+                let evals = proof
+                    .evals
+                    .get_column(col)
+                    .ok_or(VerifyError::MissingEvaluation(col))?;
+                evaluations.push(Evaluation {
+                    commitment: context
+                        .get_column(col)
+                        .ok_or(VerifyError::MissingCommitment(col))?
+                        .clone(),
+                    evaluations: vec![evals.zeta.clone(), evals.zeta_omega.clone()],
+                    degree_bound: None,
+                });
+            }
+
+        */
+
+
         // prepare for the opening proof verification
         let evaluation_points = [oracles.zeta, oracles.zeta.mul(verifier_index.domain_gen)];
         const agg_proof: AggregatedEvaluationProof = {
