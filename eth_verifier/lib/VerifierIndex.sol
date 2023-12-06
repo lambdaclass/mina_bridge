@@ -13,7 +13,7 @@ struct VerifierIndex {
     // maximal size of polynomial section
     uint256 max_poly_size;
     // the number of randomized rows to achieve zero knowledge
-    uint256 zk_rows;
+    uint64 zk_rows;
     URS urs;
     // domain
     uint256 domain_size;

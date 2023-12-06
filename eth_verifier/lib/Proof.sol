@@ -77,7 +77,7 @@ function combine_evals(
     return ProofEvaluations(public_evals, self.is_public_evals_set, w, z, s);
 }
 
-function evaluate_column(ProofEvaluations memory self, Column col)
+function evaluate_column(ProofEvaluations memory self, Column memory col)
     pure
     returns (PointEvaluations memory)
 {
@@ -92,7 +92,7 @@ function evaluate_column(ProofEvaluations memory self, Column col)
         uint256 i = abi.decode(col.data, (uint256));
         return self.w[i];
     }
-    revert;
+    revert("unhandled column variant");
     // TODO: rest of variants, for this it's necessary to expand ProofEvaluations
 }
 

@@ -7,7 +7,7 @@ import "../bn254/Fields.sol";
 import "../Permutation.sol";
 import "../Proof.sol";
 
-using {Scalar.mul, Scalar.sub, Scalar.pow, Scalar.inv} for Scalar.FE;
+using {Scalar.add, Scalar.mul, Scalar.sub, Scalar.pow, Scalar.inv} for Scalar.FE;
 
 // PolishToken is a tagged union type, whose variants can hold different data types.
 // In Rust this can be implemented as an enum, in Typescript as a discriminated union.
@@ -23,15 +23,15 @@ struct PolishToken {
 
 function evaluate(
     PolishToken[] memory toks,
-    Scalar.FE d_gen,
-    uint d_size,
+    Scalar.FE domain_gen,
+    uint domain_size,
     Scalar.FE pt,
     ProofEvaluations memory evals,
     ExprConstants memory c
-) pure returns (Scalar.FE) {
-    Scalar.FE[] stack = new Scalar.FE[](toks.length);
+) view returns (Scalar.FE) {
+    Scalar.FE[] memory stack = new Scalar.FE[](toks.length);
     uint stack_next = 0; // will keep track of last stack element's index
-    Scalar.FE[] cache = new Scalar.FE[](toks.length);
+    Scalar.FE[] memory cache = new Scalar.FE[](toks.length);
     uint cache_next = 0; // will keep track of last cache element's index
     // WARN: Both arrays allocate the maximum memory the'll ever use, but it's
     // WARN: pretty unlikely they'll need it all.
@@ -45,6 +45,7 @@ function evaluate(
         }
 
         PolishTokenVariant v = toks[i].variant;
+        bytes memory v_data = toks[i].data;
         if (v == PolishTokenVariant.Alpha) {
             stack[stack_next] = c.alpha;
             stack_next += 1;
@@ -71,7 +72,7 @@ function evaluate(
             continue;
         }
         if (v == PolishTokenVariant.Mds) {
-            PolishTokenMds memory pos = abi.decode(v.data, (PolishTokenMds));
+            PolishTokenMds memory pos = abi.decode(v_data, (PolishTokenMds));
             stack[stack_next] = c.mds[pos.row + pos.col]; // FIXME: determine order
             stack_next += 1;
             continue;
@@ -87,11 +88,11 @@ function evaluate(
             continue;
         }
         if (v == PolishTokenVariant.UnnormalizedLagrangeBasis) {
-            PolishTokenUnnormalizedLagrangeBasis i = abi.decode(v.data, (PolishTokenUnnormalizedLagrangeBasis ));
+            RowOffset memory i = abi.decode(v_data, (RowOffset));
 
-            uint offset;
+            int offset;
             if (i.zk_rows) {
-                offset = -(c.zk_rows) + i.offset;
+                offset = i.offset - int(uint(c.zk_rows)); // 64 bit to 256 to signed 256
             } else {
                 offset = i.offset;
             }
@@ -101,7 +102,7 @@ function evaluate(
             continue;
         }
         if (v == PolishTokenVariant.Literal) {
-            PolishTokenLiteral x = abi.decode(v.data, (PolishTokenLiteral));
+            Scalar.FE x = abi.decode(v_data, (Scalar.FE));
             stack[stack_next] = x;
             stack_next += 1;
             continue;
@@ -112,13 +113,13 @@ function evaluate(
             continue;
         }
         if (v == PolishTokenVariant.Cell) {
-            Variable x = abi.decode(v.data, (PolishTokenCell)); // WARN: different types
+            Variable memory x = abi.decode(v_data, (Variable)); // WARN: different types
             stack[stack_next] = evaluate_variable(x, evals);
             stack_next += 1;
             continue;
         }
         if (v == PolishTokenVariant.Pow) {
-            uint n = abi.decode(v.data, (PolishTokenPow)); // WARN: different types
+            uint n = abi.decode(v_data, (uint)); // WARN: different types
             stack[stack_next - 1] = stack[stack_next - 1].pow(n);
             continue;
         }
@@ -166,14 +167,14 @@ function evaluate(
             continue;
         }
         if (v == PolishTokenVariant.Load) {
-            uint i = abi.decode(v.data, (PolishTokenLoad)); // WARN: different types
+            uint i = abi.decode(v_data, (uint)); // WARN: different types
             Scalar.FE x = cache[i];
 
             stack[stack_next] = x;
             stack_next += 1;
             continue;
         }
-        revert;
+        revert("unhandled polish token variant");
         // TODO: SkipIf, SkipIfNot
     }
     require(stack_next == 1);
@@ -208,26 +209,27 @@ struct PolishTokenMds {
     uint row;
     uint col;
 }
-type PolishTokenLiteral is Scalar.FE;
-type PolishTokenCell is Variable;
+// type PolishTokenLiteral is Scalar.FE; // can't do this
+// type PolishTokenCell is Variable; // can't do this
 type PolishTokenDup is uint;
 type PolishTokenPow is uint;
-type PolishTokenUnnormalizedLagrangeBasis is RowOffset;
+// type PolishTokenUnnormalizedLagrangeBasis is RowOffset; // can't do this
 type PolishTokenLoad is uint;
 type PolishTokenSkipIf is uint;
+// TODO: maybe delete these types?
 
 // @notice Compute the ith unnormalized lagrange basis
 function unnormalized_lagrange_basis(
     Scalar.FE domain_gen,
     uint domain_size,
-    uint i,
+    int i,
     Scalar.FE pt
-) pure returns (Scalar.FE) {
+) view returns (Scalar.FE) {
     Scalar.FE omega_i;
     if (i < 0) {
-        omega_i = domain_gen.pow(-i).inv();
+        omega_i = domain_gen.pow(uint(-i)).inv();
     } else {
-        omega_i = domain_gen.pow(i);
+        omega_i = domain_gen.pow(uint(i));
     }
 
     return pt.pow(domain_size).sub(Scalar.one()).mul((pt.sub(omega_i)).inv());

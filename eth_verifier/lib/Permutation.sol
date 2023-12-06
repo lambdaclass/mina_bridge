@@ -18,7 +18,7 @@ function eval_vanishes_on_last_n_rows(
     }
     Scalar.FE term = domain_gen.pow(domain_size - i);
     Scalar.FE acc = x.sub(term);
-    for (uint _ = 0; _ < i - 1; _++) {
+    for (uint _j = 0; _j < i - 1; _j++) {
         term = term.mul(domain_gen);
         acc = acc.mul(x.sub(term));
     }

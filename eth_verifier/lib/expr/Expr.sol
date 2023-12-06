@@ -37,7 +37,7 @@ struct Variable {
 
 struct RowOffset {
     bool zk_rows;
-    uint offset;
+    int offset;
 }
 
 // Variants like LookupPattern and TableWidth have data associated to them.

@@ -11,5 +11,5 @@ struct ExprConstants {
     Scalar.FE joint_combiner;
     Scalar.FE endo_coefficient;
     Scalar.FE[] mds; // the MDS matrix in row/col major // FIXME: determine order
-    uint zk_rows;
+    uint64 zk_rows;
 }

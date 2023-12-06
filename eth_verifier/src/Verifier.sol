@@ -13,6 +13,9 @@ import "../lib/Constants.sol";
 import "../lib/msgpack/Deserialize.sol";
 import "../lib/Alphas.sol";
 import "../lib/Evaluations.sol";
+import "../lib/expr/Expr.sol";
+import "../lib/expr/PolishToken.sol";
+import "../lib/expr/ExprConstants.sol";
 
 using {BN254.neg} for BN254.G1Point;
 using {Scalar.neg, Scalar.mul, Scalar.add} for Scalar.FE;
@@ -211,6 +214,16 @@ contract KimchiVerifier {
             oracles.gamma,
             alphas, // FIXME: change for iterator to take into account previous alphas
             permutation_vanishing_polynomial
+        );
+
+        ExprConstants memory constants = ExprConstants(
+            oracles.alpha,
+            oracles.beta,
+            oracles.gamma,
+            Scalar.from(0), // FIXME: joint_combiner in fiat-shamir
+            Scalar.from(0), // FIXME: endo_coefficient in verifier_index
+            new Scalar.FE[](0), // FIXME: keccak sponge mds
+            verifier_index.zk_rows
         );
     }
 
