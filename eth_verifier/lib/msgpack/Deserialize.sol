@@ -74,6 +74,10 @@ library MsgPk {
             return abi.encode(deser_fixmap(self));
         } else if (prefix >> 4 == 0x09) {
             return abi.encode(deser_fixarr(self));
+        } else if (prefix == 0xde) {
+            return abi.encode(deser_map16(self));
+        } else if (prefix == 0xdc) {
+            return abi.encode(deser_arr16(self));
         } else if (prefix >> 2 == 0x33) {
             return abi.encode(deser_uint(self));
         } else if (prefix >> 7 == 0x00) {
@@ -141,6 +145,24 @@ library MsgPk {
         for (uint256 i = 0; i < n; i++) {
             map.keys[i] = deser_fixstr(self);
             map.values[i] = deser_encode(self);
+        }
+    }
+
+    function deser_arr16(Stream memory self)
+        public
+        view
+        returns (EncodedArray memory arr)
+    {
+        bytes1 first = next(self);
+        require(first == 0xdc, "not an arr16");
+        // size is next two bytes:
+
+        uint16 n = uint16(bytes2(next_n(self, 2)));
+
+        arr = EncodedArray(new bytes[](n));
+
+        for (uint16 i = 0; i < n; i++) {
+            arr.values[i] = deser_encode(self);
         }
     }
 
@@ -218,6 +240,10 @@ library MsgPk {
         index.public_len = abi.decode(
             find_value(map, "public"),
             (uint256)
+        );
+        index.zk_rows = abi.decode(
+            find_value(map, "zk_rows"),
+            (uint64)
         );
     }
 

@@ -24,7 +24,6 @@ struct VerifierIndex {
     Scalar.FE[7] shift;  // TODO: use Consants.PERMUTS
     /// domain offset for zero-knowledge
     Scalar.FE w;
-
 }
 
 function verifier_digest(VerifierIndex storage index) returns (Base.FE) {
