@@ -482,5 +482,17 @@ We can derive some instructive cases from the general rule
 
 ##### Genesis window
 
+Anything related to Genesis windows is not involved in the Mina Bridge.
 
+##### Relative minimum window density
 
+When Mina engages "chain selection" in the long-range fork rule, It doesn't directly employ the minimum window densities found in  in the current and candidate blocks.  
+Rather than that, Mina opts for the relative minimum window density...
+
+Remember that the minimum window density consistently decreases. Consequently, if a peer has been offline for a while and wants to reconnect, their current best chain might exhibit a higher minimum window density compared to the canonical chain candidate.
+Additionally, the long-range fork rule dictates that the peer to choose the chain with the superior minimum density.  
+The calculation of the minimum window density does not take into account the relationship between the current best chain and the canonical chain with respect to time.  
+Within Samasika, time is encapsulated and safeguarded by the notions of slots and the VRF. When computing the minimum window density, it is imperative to factor in these elements as well.  
+The relative minimum window density solves this problem by projecting the joining peer's current block's window to the global slot of the candidate block.  
+
+## Protocol
