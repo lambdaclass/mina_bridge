@@ -1,20 +1,29 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
-enum Column {
-    Placeholder // FIXME:
-    // Witness(usize),
-    // Z,
+struct Column {
+    ColumnVariant variant;
+    bytes data;
+}
+
+enum ColumnVariant {
+    Witness,
+    Z,
+    Index,
+    Coefficient,
+    Permutation
+    // TODO:
     // LookupSorted(usize),
     // LookupAggreg,
     // LookupTable,
     // LookupKindIndex(LookupPattern),
     // LookupRuntimeSelector,
     // LookupRuntimeTable,
-    // Index(GateType),
-    // Coefficient(usize),
-    // Permutation(usize),
 }
+type ColumnWitness is uint;
+//type ColumnIndex is GateType; // can't set an alias for an enum :(
+type ColumnCoefficient is uint;
+type ColumnPermutation is uint;
 
 enum CurrOrNext {
     Curr,
@@ -54,3 +63,25 @@ enum FeatureFlagVariant {
     // TODO: LookupsPerRow(isize)
 }
 type FeatureFlagTableWidth is uint;
+
+enum GateType {
+    // Gate types
+    Zero,
+    Generic,
+    Poseidon,
+    CompleteAdd,
+    VarBaseMul,
+    EndoMul,
+    EndoMulScalar,
+    Lookup,
+    CairoClaim,
+    CairoInstruction,
+    CairoFlags,
+    CairoTransition,
+    RangeCheck0,
+    RangeCheck1,
+    ForeignFieldAdd,
+    ForeignFieldMul,
+    Xor16,
+    Rot64
+}

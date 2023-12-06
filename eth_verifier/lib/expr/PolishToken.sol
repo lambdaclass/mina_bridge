@@ -5,6 +5,7 @@ import "./Expr.sol";
 import "./ExprConstants.sol";
 import "../bn254/Fields.sol";
 import "../Permutation.sol";
+import "../Proof.sol";
 
 using {Scalar.mul, Scalar.sub, Scalar.pow, Scalar.inv} for Scalar.FE;
 
@@ -31,6 +32,7 @@ function evaluate(
     Scalar.FE[] stack = new Scalar.FE[](toks.length);
     uint stack_next = 0; // will keep track of last stack element's index
     Scalar.FE[] cache = new Scalar.FE[](toks.length);
+    uint cache_next = 0; // will keep track of last cache element's index
     // WARN: Both arrays allocate the maximum memory the'll ever use, but it's
     // WARN: pretty unlikely they'll need it all.
 
@@ -110,12 +112,72 @@ function evaluate(
             continue;
         }
         if (v == PolishTokenVariant.Cell) {
-            PolishTokenCell x = abi.decode(v.data, (PolishTokenCell));
-            stack[stack_next] = stack[stack_next - 1];
+            Variable x = abi.decode(v.data, (PolishTokenCell)); // WARN: different types
+            stack[stack_next] = evaluate_variable(x, evals);
             stack_next += 1;
             continue;
         }
+        if (v == PolishTokenVariant.Pow) {
+            uint n = abi.decode(v.data, (PolishTokenPow)); // WARN: different types
+            stack[stack_next - 1] = stack[stack_next - 1].pow(n);
+            continue;
+        }
+        if (v == PolishTokenVariant.Add) {
+            // pop x and y
+            Scalar.FE x = stack[stack_next - 1];
+            stack_next -= 1;
+            Scalar.FE y = stack[stack_next - 1];
+            stack_next -= 1;
+
+            // push result
+            stack[stack_next] = x.add(y);
+            stack_next += 1;
+            continue;
+        }
+        if (v == PolishTokenVariant.Mul) {
+            // pop x and y
+            Scalar.FE x = stack[stack_next - 1];
+            stack_next -= 1;
+            Scalar.FE y = stack[stack_next - 1];
+            stack_next -= 1;
+
+            // push result
+            stack[stack_next] = x.mul(y);
+            stack_next += 1;
+            continue;
+        }
+        if (v == PolishTokenVariant.Sub) {
+            // pop x and y
+            Scalar.FE x = stack[stack_next - 1];
+            stack_next -= 1;
+            Scalar.FE y = stack[stack_next - 1];
+            stack_next -= 1;
+
+            // push result
+            stack[stack_next] = x.sub(y);
+            stack_next += 1;
+            continue;
+        }
+        if (v == PolishTokenVariant.Store) {
+            Scalar.FE x = stack[stack_next - 1];
+
+            cache[cache_next] = x;
+            cache_next += 1;
+            continue;
+        }
+        if (v == PolishTokenVariant.Load) {
+            uint i = abi.decode(v.data, (PolishTokenLoad)); // WARN: different types
+            Scalar.FE x = cache[i];
+
+            stack[stack_next] = x;
+            stack_next += 1;
+            continue;
+        }
+        revert;
+        // TODO: SkipIf, SkipIfNot
     }
+    require(stack_next == 1);
+    return stack[0];
 }
 
 enum PolishTokenVariant {
@@ -149,6 +211,7 @@ struct PolishTokenMds {
 type PolishTokenLiteral is Scalar.FE;
 type PolishTokenCell is Variable;
 type PolishTokenDup is uint;
+type PolishTokenPow is uint;
 type PolishTokenUnnormalizedLagrangeBasis is RowOffset;
 type PolishTokenLoad is uint;
 type PolishTokenSkipIf is uint;
