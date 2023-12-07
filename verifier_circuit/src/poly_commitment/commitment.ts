@@ -186,6 +186,39 @@ export function bPolyCoefficients(chals: ForeignScalar[]) {
     return s;
 }
 
+function combineCommitments(
+    evaluations: Evaluation[],
+    scalars: ForeignScalar[],
+    points: ForeignGroup[],
+    polyscale: ForeignScalar,
+    randBase: ForeignScalar
+): void {
+    let xi_i = ForeignScalar.from(1);
+
+    for (const { commitment, degree_bound, ...rest } of evaluations.filter(
+        (x) => { return !(x.commitment.unshifted.length === 0) }
+    )) {
+        // iterating over the polynomial segments
+        for (const commCh of commitment.unshifted) {
+            scalars.push(randBase.mul(xi_i));
+            points.push(commCh);
+
+            xi_i = xi_i.mul(polyscale);
+        }
+
+        if (degree_bound !== undefined) {
+            const commChShifted = commitment.shifted;
+            if (commChShifted !== undefined && !commChShifted.x.equals(0)) {
+                // polyscale^i sum_j evalscale^j elm_j^{N - m} f(elm_j)
+                scalars.push(randBase.mul(xi_i));
+                points.push(commChShifted);
+
+                xi_i = xi_i.mul(polyscale);
+            }
+        }
+    }
+}
+
 /**
  * Contains the evaluation of a polynomial commitment at a set of points.
  */
