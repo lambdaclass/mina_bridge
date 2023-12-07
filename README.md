@@ -496,3 +496,31 @@ Within Samasika, time is encapsulated and safeguarded by the notions of slots an
 The relative minimum window density solves this problem by projecting the joining peer's current block's window to the global slot of the candidate block.  
 
 ## Protocol
+This section outlines the consensus protocol in terms of events. **Initialize consensus** and **Select chain**. 
+
+In the following description, dot notation is used to refer to the local data members of peers. For example, given peer P, we use P.genesis_block and P.tip, to refer to the genesis block and currently selected chain, respectively.  
+For example, given peer ``P``, we use ``P.genesis_block`` and ``P.tip``, to refer to the genesis block and currently selected chain, respectively.
+
+### Initialize consensus
+Things a peer MUST do to initialize consensus includes are _Load the genesis block_, _Get the tip_, _Bootstrap_ and _Catchup_  
+Bootstrapping consensus requires the ability to synchronize epoch ledgers from the network.  
+All peers MUST have the ability to load both the staking epoch ledger and next epoch ledger from disk and by downloading them. P2P peers MUST also make these ledgers available for other peers.  
+
+### Select chain
+Each time a peer's chains receive an update, the select chain event takes place.  
+A chain is said to be updated anytime a valid block is added or removed from its head. The chain selection algorithm also incorporates certain tiebreak logic.  
+Supplementary tiebreak logic becomes necessary when assessing chains with identical length or equal minimum density.
+
+Let ``P.tip`` refer to the top block of peer ``P``'s current best chain. Assuming an update to either ``P.tip`` or ``P.chains``, ``P`` must update its tip similar to this:
+![](/img/consensus06.png)
+
+The following selectSecureChain algorithm receives the peer's current best chain P.tip and its set of known valid chains P.chains and produces the most secure chain as output.  
+![](/img/consensus07.png)
+
+And the ``selectLongerChain`` algorithm:
+
+
+![](/img/consensus08.png)
+
+
+### Maintaining the k-th predecessor epoch ledger
