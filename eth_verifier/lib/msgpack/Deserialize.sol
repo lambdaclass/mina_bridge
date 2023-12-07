@@ -26,7 +26,7 @@ library MsgPk {
         bytes[] values;
     }
 
-    function from_data(bytes calldata data)
+    function new_stream(bytes calldata data)
         public
         pure
         returns (Stream memory)
@@ -80,8 +80,6 @@ library MsgPk {
             return abi.encode(deser_arr16(self));
         } else if (prefix >> 2 == 0x33) {
             return abi.encode(deser_uint(self));
-        } else if (prefix >> 7 == 0x00) {
-            return abi.encode(deser_posfixint(self));
         } else if (prefix >> 7 == 0x00) {
             return abi.encode(deser_posfixint(self));
         } else if (prefix == 0xc2 || prefix == 0xc3) {
@@ -203,11 +201,11 @@ library MsgPk {
         }
     }
 
-    function deser_posfixint(Stream memory self) public view returns (uint256) {
+    function deser_posfixint(Stream memory self) public view returns (uint8) {
         bytes1 first = next(self);
         require(first >> 7 == 0x00, "not a positive fixint");
 
-        return uint256(uint8(first));
+        return uint8(first);
     }
 
     function deser_null(Stream memory self)
@@ -237,22 +235,44 @@ library MsgPk {
             find_value(map, "max_poly_size"),
             (uint256)
         );
-        index.public_len = abi.decode(
-            find_value(map, "public"),
-            (uint256)
+        index.public_len = abi.decode(find_value(map, "public"), (uint256));
+        index.zk_rows = abi.decode(find_value(map, "zk_rows"), (uint64));
+
+        EncodedMap memory domain_map = abi.decode(
+            find_value(map, "domain"),
+            (EncodedMap)
         );
-        index.zk_rows = abi.decode(
-            find_value(map, "zk_rows"),
-            (uint64)
+        EncodedArray memory data_arr = abi.decode(
+            find_value(domain_map, "data"),
+            (EncodedArray)
         );
+
+        bytes memory domain_b = Utils.flatten_bytes_array_rev(data_arr.values, 32);
+        console.logBytes(domain_b);
+
+        Domain memory domain = abi.decode(domain_b, (Domain));
+
+        console.log(domain.size);
+        console.log(domain.log_size_of_group);
+        console.log(Scalar.FE.unwrap(domain.group_gen));
+
+        //console.logBytes(b);
+        //console.log(b.length);
     }
 
+    error EncodedMapKeyNotFound();
     function find_value(EncodedMap memory self, string memory key)
         public
         returns (bytes memory)
     {
         uint256 i = 0;
-        while (keccak256(bytes(self.keys[i])) != keccak256(bytes(key))) i++;
+        while (
+            i != self.keys.length &&
+            keccak256(bytes(self.keys[i])) != keccak256(bytes(key))
+        ) {
+            i++;
+        }
+        if (i == self.keys.length) revert EncodedMapKeyNotFound();
         return self.values[i];
     }
 

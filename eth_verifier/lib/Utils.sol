@@ -335,4 +335,24 @@ library Utils {
             }
         }
     }
+
+    /// @notice flattens an array of `bytes` (so 2D array of the `byte` type).
+    function flatten_bytes_array(bytes[] memory b, uint bytes_per_element) public pure returns (bytes memory) {
+        uint byte_count = b.length * bytes_per_element;
+        bytes memory flat_b = new bytes(byte_count);
+        for (uint i = 0; i < byte_count; i++) {
+            flat_b[i] = b[i / bytes_per_element][i % bytes_per_element];
+        }
+        return flat_b;
+    }
+
+    /// @notice flattens an array of `bytes` (so 2D array of the `byte` type) and reverses it.
+    function flatten_bytes_array_rev(bytes[] memory b, uint bytes_per_element) public pure returns (bytes memory) {
+        uint byte_count = b.length * bytes_per_element;
+        bytes memory flat_b = new bytes(byte_count);
+        for (uint i = 0; i < byte_count; i++) {
+            flat_b[byte_count - i - 1] = b[i / bytes_per_element][i % bytes_per_element];
+        }
+        return flat_b;
+    }
 }

@@ -30,3 +30,23 @@ function verifier_digest(VerifierIndex storage index) returns (Base.FE) {
     // FIXME: todo!
     return Base.from(42);
 }
+
+/// @notice Defines a domain over which finite field (I)FFTs can be performed. Works
+/// @notice only for fields that have a large multiplicative subgroup of size that is
+/// @notice a power-of-2.
+struct Domain {
+    // Multiplicative generator of the finite field.
+    Scalar.FE generator_inv;
+    // Inverse of the generator of the subgroup.
+    Scalar.FE group_gen_inv;
+    // A generator of the subgroup.
+    Scalar.FE group_gen;
+    // Inverse of the size in the field.
+    Scalar.FE size_inv;
+    // Size of the domain as a field element.
+    Scalar.FE size_as_field_element;
+    // `log_2(self.size)`.
+    uint32 log_size_of_group;
+    // The size of the domain.
+    uint64 size;
+}

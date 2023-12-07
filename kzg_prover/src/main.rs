@@ -116,9 +116,17 @@ fn generate_test_proof_ex() {
     )
     .unwrap();
 
+    println!("{}", index.verifier_index().domain.size);
+    println!("{}", index.verifier_index().domain.log_size_of_group);
+
     fs::write(
         "../eth_verifier/prover_proof.mpk",
         rmp_serde::to_vec_named(&proof).unwrap(),
+    )
+    .unwrap();
+    fs::write(
+        "../eth_verifier/verifier_index.mpk",
+        rmp_serde::to_vec_named(&index.verifier_index()).unwrap(),
     )
     .unwrap();
 }
@@ -232,7 +240,6 @@ fn generate_verifier_circuit_proof() {
         "Is verifier circuit's KZG proof valid?: {:?}",
         pairing_proof.verify(&srs, &evaluations, polyscale, &evaluation_points)
     );
-    println!("{}", verifier_index.powers_of_alpha);
 }
 
 fn generate_test_proof() {
