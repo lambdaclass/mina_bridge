@@ -8,6 +8,7 @@ import "../Evaluations.sol";
 import "../Proof.sol";
 import "../State.sol";
 import "../Utils.sol";
+import "../UtilsExternal.sol";
 import "../VerifierIndex.sol";
 import "forge-std/console.sol";
 
@@ -57,6 +58,24 @@ library MsgPk {
         self.curr_index += n;
     }
 
+    error EncodedMapKeyNotFound();
+
+    function find_value(EncodedMap memory self, string memory key)
+        public
+        pure
+        returns (bytes memory)
+    {
+        uint256 i = 0;
+        while (
+            i != self.keys.length &&
+            keccak256(bytes(self.keys[i])) != keccak256(bytes(key))
+        ) {
+            i++;
+        }
+        if (i == self.keys.length) revert EncodedMapKeyNotFound();
+        return self.values[i];
+    }
+
     error NotImplementedType(bytes1 prefix);
 
     /// @notice deserializes the next type and returns the encoded data.
@@ -66,8 +85,13 @@ library MsgPk {
         returns (bytes memory)
     {
         bytes1 prefix = curr(self);
-        if (prefix >> 5 == 0x05) {
-            return abi.encode(deser_fixstr(self));
+        if (
+            prefix >> 5 == 0x05 ||
+            prefix == 0xd9 ||
+            prefix == 0xda ||
+            prefix == 0xdb
+        ) {
+            return abi.encode(deser_str(self));
         } else if (prefix == 0xC4) {
             return abi.encode(deser_bin8(self));
         } else if (prefix >> 4 == 0x08) {
@@ -91,16 +115,39 @@ library MsgPk {
         }
     }
 
-    function deser_fixstr(Stream memory self)
-        public
-        view
-        returns (string memory)
-    {
+    function deser_str(Stream memory self) public view returns (string memory) {
         bytes1 first = next(self);
-        require(first >> 5 == 0x05, "not a fixstr");
-        uint256 n = uint256(uint8(first & 0x1F)); // low nibble + lsb of high nibble
+        require(
+            first >> 5 == 0x05 ||
+                first == 0xd9 ||
+                first == 0xda ||
+                first == 0xdb,
+            "not a fixstr or strX"
+        );
 
-        return string(next_n(self, n));
+        if (first >> 5 == 0x05) {
+            // fixstr
+            uint256 n = uint256(uint8(first & 0x1F)); // low nibble + lsb of high nibble
+            return string(next_n(self, n));
+        } else {
+            // strX
+
+            // get length of string in bytes `n`
+            uint256 n_byte_count = uint256(uint8(first & 0x03)); // least significant 2 bits
+            bytes memory n_bytes = next_n(self, n_byte_count);
+            uint256 n = 0;
+            if (n_byte_count == 1) {
+                n = uint8(bytes1(n_bytes));
+            } else if (n_byte_count == 2) {
+                n = uint16(bytes2(n_bytes));
+            } else if (n_byte_count == 3) {
+                n = uint32(bytes4(n_bytes));
+            } else {
+                revert("deser_str unexpected length");
+            }
+
+            return string(next_n(self, n));
+        }
     }
 
     function deser_bin8(Stream memory self) public view returns (bytes memory) {
@@ -141,7 +188,7 @@ library MsgPk {
         map = EncodedMap(new string[](n), new bytes[](n));
 
         for (uint256 i = 0; i < n; i++) {
-            map.keys[i] = deser_fixstr(self);
+            map.keys[i] = deser_str(self);
             map.values[i] = deser_encode(self);
         }
     }
@@ -178,7 +225,7 @@ library MsgPk {
         map = EncodedMap(new string[](n), new bytes[](n));
 
         for (uint16 i = 0; i < n; i++) {
-            map.keys[i] = deser_fixstr(self);
+            map.keys[i] = deser_str(self);
             map.values[i] = deser_encode(self);
         }
     }
@@ -229,7 +276,7 @@ library MsgPk {
     function deser_verifier_index(
         Stream memory self,
         VerifierIndex storage index
-    ) public {
+    ) external {
         EncodedMap memory map = deser_map16(self);
         index.max_poly_size = abi.decode(
             find_value(map, "max_poly_size"),
@@ -257,7 +304,9 @@ library MsgPk {
         // this is becasue of Solidity's RLP encoding of every byte.
         // We're interested in removing this padding and flattening all the arrays:
 
-        bytes memory domain_b = Utils.flatten_padded_bytes_array(data_arr.values);
+        bytes memory domain_b = Utils.flatten_padded_bytes_array(
+            data_arr.values
+        );
 
         // The domain info is in a packed, little endian serialization format.
         // So we'll need to manually deserialize the parameters that we're
@@ -265,32 +314,66 @@ library MsgPk {
 
         // domain_size is 64 bit and the first element, so 8 bytes and no offset:
         index.domain_size = 0;
-        for (uint i = 0; i < 8; i++) {
-            index.domain_size += uint(uint8(domain_b[i])) << (i*8);
+        for (uint256 i = 0; i < 8; i++) {
+            index.domain_size += uint256(uint8(domain_b[i])) << (i * 8);
         }
 
         // domain_gen is 256 bit and there're 8+4+32+32=76 bytes before it:
-        uint domain_gen = 0;
-        for (uint i = 0; i < 32; i++) {
-            domain_gen += uint(uint8(domain_b[i + 76])) << (i*8);
+        uint256 domain_gen = 0;
+        for (uint256 i = 0; i < 32; i++) {
+            domain_gen += uint256(uint8(domain_b[i + 76])) << (i * 8);
         }
         index.domain_gen = Scalar.from(domain_gen);
     }
 
-    error EncodedMapKeyNotFound();
-    function find_value(EncodedMap memory self, string memory key)
-        public
-        returns (bytes memory)
+    function deser_prover_proof(Stream memory self, ProverProof storage prover_proof)
+        external
     {
-        uint256 i = 0;
-        while (
-            i != self.keys.length &&
-            keccak256(bytes(self.keys[i])) != keccak256(bytes(key))
-        ) {
-            i++;
-        }
-        if (i == self.keys.length) revert EncodedMapKeyNotFound();
-        return self.values[i];
+        EncodedMap memory map = deser_fixmap(self);
+
+        EncodedMap memory all_evals_map = abi.decode(
+            find_value(map, "evals"),
+            (EncodedMap)
+        );
+
+        PointEvaluations memory public_evals = deser_eval_single(
+            all_evals_map,
+            "public"
+        );
+    }
+
+    function deser_eval_single(
+        EncodedMap memory all_evals_map,
+        string memory name
+    ) public pure returns (PointEvaluations memory) {
+        EncodedMap memory eval_map = abi.decode(
+            find_value(all_evals_map, name),
+            (EncodedMap)
+        );
+
+        EncodedArray memory zeta_arr = abi.decode(
+            find_value(eval_map, "zeta"),
+            (EncodedArray)
+        );
+        EncodedArray memory zeta_omega_arr = abi.decode(
+            find_value(eval_map, "zeta_omega"),
+            (EncodedArray)
+        );
+
+        EncodedMap memory zeta_map = abi.decode(
+            zeta_arr.values[0],
+            (EncodedMap)
+        );
+        EncodedArray memory zeta_data_arr = abi.decode(
+            find_value(zeta_map, "data"),
+            (EncodedArray)
+        );
+        // WARN: test proof has single value evaluations.
+        uint256 zeta_data = uint256(bytes32(zeta_data_arr.values[0]));
+        zeta_data = UtilsExternal.reverseEndianness(zeta_data);
+        Scalar.FE zeta = Scalar.from(zeta_data);
+
+        return PointEvaluations(zeta, zeta);
     }
 
     //  !!! FUNCTIONS BELOW ARE DEPRECATED !!!
