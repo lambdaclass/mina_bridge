@@ -247,17 +247,34 @@ library MsgPk {
             (EncodedArray)
         );
 
-        bytes memory domain_b = Utils.flatten_bytes_array_rev(data_arr.values, 32);
-        console.logBytes(domain_b);
+        // data_arr will hold an array of `bytes` arrays, where each `bytes`
+        // is a 32 sized byte array which represents only one byte, but padded
+        // with 31 zero bytes. e.g:
+        // data_arr[0]: 0x00000000000000000000000000000000000000000000000000000000000000a7
+        // data_arr[1]: 0x0000000000000000000000000000000000000000000000000000000000000040
+        // data_arr[3]: 0x000000000000000000000000000000000000000000000000000000000000002e
+        //
+        // this is becasue of Solidity's RLP encoding of every byte.
+        // We're interested in removing this padding and flattening all the arrays:
 
-        Domain memory domain = abi.decode(domain_b, (Domain));
+        bytes memory domain_b = Utils.flatten_padded_bytes_array(data_arr.values);
 
-        console.log(domain.size);
-        console.log(domain.log_size_of_group);
-        console.log(Scalar.FE.unwrap(domain.group_gen));
+        // The domain info is in a packed, little endian serialization format.
+        // So we'll need to manually deserialize the parameters that we're
+        // interested in:
 
-        //console.logBytes(b);
-        //console.log(b.length);
+        // domain_size is 64 bit and the first element, so 8 bytes and no offset:
+        index.domain_size = 0;
+        for (uint i = 0; i < 8; i++) {
+            index.domain_size += uint(uint8(domain_b[i])) << (i*8);
+        }
+
+        // domain_gen is 256 bit and there're 8+4+32+32=76 bytes before it:
+        uint domain_gen = 0;
+        for (uint i = 0; i < 32; i++) {
+            domain_gen += uint(uint8(domain_b[i + 76])) << (i*8);
+        }
+        index.domain_gen = Scalar.from(domain_gen);
     }
 
     error EncodedMapKeyNotFound();

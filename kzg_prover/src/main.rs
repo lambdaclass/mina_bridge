@@ -116,9 +116,6 @@ fn generate_test_proof_ex() {
     )
     .unwrap();
 
-    println!("{}", index.verifier_index().domain.size);
-    println!("{}", index.verifier_index().domain.log_size_of_group);
-
     fs::write(
         "../eth_verifier/prover_proof.mpk",
         rmp_serde::to_vec_named(&proof).unwrap(),

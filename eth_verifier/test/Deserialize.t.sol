@@ -194,5 +194,10 @@ contract DeserializeTest is Test {
         assertEq(index.public_len, 0);
         assertEq(index.max_poly_size, 16384);
         assertEq(index.zk_rows, 3);
+        assertEq(index.domain_size, 16384);
+        assertEq(
+            Scalar.FE.unwrap(index.domain_gen),
+            20619701001583904760601357484951574588621083236087856586626117568842480512645
+        );
     }
 }
