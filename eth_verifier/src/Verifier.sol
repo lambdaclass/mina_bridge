@@ -65,36 +65,47 @@ contract KimchiVerifier {
     bool state_available;
 
     function setup(
-        BN254.G1Point[] memory g,
-        BN254.G1Point memory h,
-        uint256 public_len,
-        uint64 domain_size,
-        uint256 max_poly_size,
-        ProofEvaluationsArray memory evals
+        bytes memory urs_serialized
     ) public {
-        for (uint i = 0; i < g.length; i++) {
-            verifier_index.urs.g.push(g[i]);
-        }
+        (BN254.G1Point[] memory g, BN254.G1Point memory h, uint256 _i0) = MsgPk
+            .deserializeURS(urs_serialized);
+        verifier_index.urs.g = g;
         verifier_index.urs.h = h;
-        calculate_lagrange_bases(
-            g,
-            h,
-            domain_size,
-            verifier_index.urs.lagrange_bases_unshifted
-        );
-        verifier_index.public_len = public_len;
-        verifier_index.domain_size = domain_size;
-        verifier_index.max_poly_size = max_poly_size;
+
         verifier_index.powers_of_alpha.register(ArgumentType.GateZero, 21);
         verifier_index.powers_of_alpha.register(ArgumentType.Permutation, 3);
 
         // TODO: Investigate about linearization and write a proper function for this
         verifier_index.powers_of_alpha.register(ArgumentType.GateZero, Constants.VARBASEMUL_CONSTRAINTS);
         verifier_index.powers_of_alpha.register(ArgumentType.Permutation, Constants.PERMUTATION_CONSTRAINTS);
-
-        proof.evals = evals;
     }
 
+    function verify_with_index(
+        bytes calldata verifier_index_serialized,
+        bytes calldata prover_proof_serialized
+    ) public returns (bool) {
+        MsgPk.deser_verifier_index(
+            MsgPk.new_stream(verifier_index_serialized),
+            verifier_index
+        );
+        MsgPk.deser_prover_proof(
+            MsgPk.new_stream(prover_proof_serialized),
+            proof
+        );
+
+        calculate_lagrange_bases(
+            verifier_index.urs.g,
+            verifier_index.urs.h,
+            verifier_index.domain_size,
+            verifier_index.urs.lagrange_bases_unshifted
+        );
+
+        partial_verify(new Scalar.FE[](0));
+        return false;
+    }
+
+    /// @notice this is currently deprecated but remains as to not break
+    /// @notice the demo.
     function verify_state(
         bytes calldata state_serialized,
         bytes calldata proof_serialized
