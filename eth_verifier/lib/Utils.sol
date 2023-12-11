@@ -350,15 +350,10 @@ library Utils {
     }
 
     /// @notice uses `flatten_padded_bytes_array()` to flat and remove the padding
-    /// @notice of a `bytes[]` and reinterprets the result as a little-endian uint256.
+    /// @notice of a `bytes[]` and reinterprets the result as a big-endian uint256.
     function padded_bytes_array_to_uint256(bytes[] memory b) public pure returns (uint256 integer) {
         bytes memory data_b = flatten_padded_bytes_array(b);
         require(data_b.length == 32, "not enough bytes in array");
-
-        integer = 0;
-        for (uint256 i = 0; i < 32; i++) {
-            integer += uint256(uint8(data_b[i]));
-            integer <<= 8;
-        }
+        return uint256(bytes32(data_b));
     }
 }

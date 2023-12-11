@@ -13,6 +13,8 @@ import "../VerifierIndex.sol";
 import "forge-std/console.sol";
 
 library MsgPk {
+    using {Scalar.pow} for Scalar.FE;
+
     struct Stream {
         bytes data;
         uint256 curr_index;
@@ -273,24 +275,16 @@ library MsgPk {
         return first == 0xc3; // 0xc3 == true
     }
 
-    function deser_verifier_index(
-        Stream memory self,
-        VerifierIndex storage index
-    ) external {
-        EncodedMap memory map = deser_map16(self);
-        index.max_poly_size = abi.decode(
-            find_value(map, "max_poly_size"),
-            (uint256)
-        );
-        index.public_len = abi.decode(find_value(map, "public"), (uint256));
-        index.zk_rows = abi.decode(find_value(map, "zk_rows"), (uint64));
+    function deser_buffer(EncodedMap memory self)
+        public
+        pure
+        returns (bytes memory data)
+    {
+        bytes memory type_name = abi.decode(find_value(self, "type"), (bytes));
+        require(keccak256(type_name) == keccak256("Buffer"));
 
-        EncodedMap memory domain_map = abi.decode(
-            find_value(map, "domain"),
-            (EncodedMap)
-        );
         EncodedArray memory data_arr = abi.decode(
-            find_value(domain_map, "data"),
+            find_value(self, "data"),
             (EncodedArray)
         );
 
@@ -304,9 +298,43 @@ library MsgPk {
         // this is becasue of Solidity's RLP encoding of every byte.
         // We're interested in removing this padding and flattening all the arrays:
 
-        bytes memory domain_b = Utils.flatten_padded_bytes_array(
-            data_arr.values
+        data = Utils.flatten_padded_bytes_array(data_arr.values);
+    }
+
+    function deser_buffer_to_uint256(EncodedMap memory self)
+        public
+        pure
+        returns (uint256 integer)
+    {
+        bytes memory type_name = abi.decode(find_value(self, "type"), (bytes));
+        require(keccak256(type_name) == keccak256("Buffer"));
+
+        EncodedArray memory data_arr = abi.decode(
+            find_value(self, "data"),
+            (EncodedArray)
         );
+
+        integer = Utils.padded_bytes_array_to_uint256(data_arr.values);
+    }
+
+    function deser_verifier_index(
+        Stream memory self,
+        VerifierIndex storage index
+    ) external {
+        EncodedMap memory map = deser_map16(self);
+        index.public_len = abi.decode(find_value(map, "public"), (uint256));
+        index.max_poly_size = abi.decode(
+            find_value(map, "max_poly_size"),
+            (uint256)
+        );
+        index.zk_rows = abi.decode(find_value(map, "zk_rows"), (uint64));
+
+        EncodedMap memory domain_map = abi.decode(
+            find_value(map, "domain"),
+            (EncodedMap)
+        );
+
+        bytes memory domain_b = deser_buffer(domain_map);
 
         // The domain info is in a packed, little endian serialization format.
         // So we'll need to manually deserialize the parameters that we're
@@ -315,7 +343,7 @@ library MsgPk {
         // domain_size is 64 bit and the first element, so 8 bytes and no offset:
         index.domain_size = 0;
         for (uint256 i = 0; i < 8; i++) {
-            index.domain_size += uint256(uint8(domain_b[i])) << (i * 8);
+            index.domain_size += uint64(uint8(domain_b[i])) << (i * 8);
         }
 
         // domain_gen is 256 bit and there're 8+4+32+32=76 bytes before it:
@@ -324,6 +352,22 @@ library MsgPk {
             domain_gen += uint256(uint8(domain_b[i + 76])) << (i * 8);
         }
         index.domain_gen = Scalar.from(domain_gen);
+
+        // wire shift coordinates
+        EncodedArray memory shift_arr = abi.decode(
+            find_value(map, "shift"),
+            (EncodedArray)
+        );
+        require(shift_arr.values.length == 7, "shift array is not of length 7");
+        for (uint256 i = 0; i < 7; i++) {
+            uint256 inner = deser_buffer_to_uint256(
+                abi.decode(shift_arr.values[i], (EncodedMap))
+            );
+            index.shift[i] = Scalar.from(inner);
+        }
+
+        // domain offset for zero-knowledge
+        index.w = index.domain_gen.pow(index.domain_size - index.zk_rows);
     }
 
     function deser_prover_proof(
@@ -392,21 +436,8 @@ library MsgPk {
                 (EncodedMap)
             );
 
-            EncodedArray memory zeta_data_arr = abi.decode(
-                find_value(zeta_map, "data"),
-                (EncodedArray)
-            );
-            EncodedArray memory zeta_omega_data_arr = abi.decode(
-                find_value(zeta_omega_map, "data"),
-                (EncodedArray)
-            );
-
-            uint256 zeta_inner = Utils.padded_bytes_array_to_uint256(
-                zeta_data_arr.values
-            );
-            uint256 zeta_omega_inner = Utils.padded_bytes_array_to_uint256(
-                zeta_omega_data_arr.values
-            );
+            uint256 zeta_inner = deser_buffer_to_uint256(zeta_map);
+            uint256 zeta_omega_inner = deser_buffer_to_uint256(zeta_omega_map);
 
             zetas[i] = Scalar.from(zeta_inner);
             zeta_omegas[i] = Scalar.from(zeta_omega_inner);
@@ -455,20 +486,9 @@ library MsgPk {
                     (EncodedMap)
                 );
 
-                EncodedArray memory zeta_data_arr = abi.decode(
-                    find_value(zeta_map, "data"),
-                    (EncodedArray)
-                );
-                EncodedArray memory zeta_omega_data_arr = abi.decode(
-                    find_value(zeta_omega_map, "data"),
-                    (EncodedArray)
-                );
-
-                uint256 zeta_inner = Utils.padded_bytes_array_to_uint256(
-                    zeta_data_arr.values
-                );
-                uint256 zeta_omega_inner = Utils.padded_bytes_array_to_uint256(
-                    zeta_omega_data_arr.values
+                uint256 zeta_inner = deser_buffer_to_uint256(zeta_map);
+                uint256 zeta_omega_inner = deser_buffer_to_uint256(
+                    zeta_omega_map
                 );
 
                 zetas[i] = Scalar.from(zeta_inner);
