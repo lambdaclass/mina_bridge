@@ -338,6 +338,25 @@ library MsgPk {
         );
 
         prover_proof.evals.public_evals = deser_evals(all_evals_map, "public");
+        prover_proof.evals.is_public_evals_set = true;
+
+        prover_proof.evals.z = deser_evals(all_evals_map, "z");
+
+        PointEvaluationsArray[] memory w = deser_evals_array(
+            all_evals_map,
+            "w"
+        );
+        for (uint256 i = 0; i < 15; i++) {
+            prover_proof.evals.w[i] = w[i];
+        }
+
+        PointEvaluationsArray[] memory s = deser_evals_array(
+            all_evals_map,
+            "s"
+        );
+        for (uint256 i = 0; i < 6; i++) {
+            prover_proof.evals.w[i] = w[i];
+        }
     }
 
     function deser_evals(EncodedMap memory all_evals_map, string memory name)
@@ -394,6 +413,69 @@ library MsgPk {
         }
 
         return PointEvaluationsArray(zetas, zeta_omegas);
+    }
+
+    function deser_evals_array(
+        EncodedMap memory all_evals_map,
+        string memory name
+    ) public pure returns (PointEvaluationsArray[] memory evals) {
+        EncodedArray memory eval_array = abi.decode(
+            find_value(all_evals_map, name),
+            (EncodedArray)
+        );
+        uint256 length = eval_array.values.length;
+        evals = new PointEvaluationsArray[](length);
+
+        for (uint256 eval = 0; eval < length; eval++) {
+            EncodedMap memory eval_map = abi.decode(
+                eval_array.values[eval],
+                (EncodedMap)
+            );
+
+            EncodedArray memory zeta_arr = abi.decode(
+                find_value(eval_map, "zeta"),
+                (EncodedArray)
+            );
+            EncodedArray memory zeta_omega_arr = abi.decode(
+                find_value(eval_map, "zeta_omega"),
+                (EncodedArray)
+            );
+            require(zeta_arr.values.length == zeta_omega_arr.values.length);
+            uint256 length = zeta_arr.values.length;
+
+            Scalar.FE[] memory zetas = new Scalar.FE[](length);
+            Scalar.FE[] memory zeta_omegas = new Scalar.FE[](length);
+            for (uint256 i = 0; i < zeta_arr.values.length; i++) {
+                EncodedMap memory zeta_map = abi.decode(
+                    zeta_arr.values[i],
+                    (EncodedMap)
+                );
+                EncodedMap memory zeta_omega_map = abi.decode(
+                    zeta_omega_arr.values[i],
+                    (EncodedMap)
+                );
+
+                EncodedArray memory zeta_data_arr = abi.decode(
+                    find_value(zeta_map, "data"),
+                    (EncodedArray)
+                );
+                EncodedArray memory zeta_omega_data_arr = abi.decode(
+                    find_value(zeta_omega_map, "data"),
+                    (EncodedArray)
+                );
+
+                uint256 zeta_inner = Utils.padded_bytes_array_to_uint256(
+                    zeta_data_arr.values
+                );
+                uint256 zeta_omega_inner = Utils.padded_bytes_array_to_uint256(
+                    zeta_omega_data_arr.values
+                );
+
+                zetas[i] = Scalar.from(zeta_inner);
+                zeta_omegas[i] = Scalar.from(zeta_omega_inner);
+            }
+            evals[eval] = PointEvaluationsArray(zetas, zeta_omegas);
+        }
     }
 
     //  !!! FUNCTIONS BELOW ARE DEPRECATED !!!

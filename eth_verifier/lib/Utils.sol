@@ -357,7 +357,8 @@ library Utils {
 
         integer = 0;
         for (uint256 i = 0; i < 32; i++) {
-            integer += uint256(uint8(data_b[i])) << (i * 8);
+            integer += uint256(uint8(data_b[i]));
+            integer <<= 8;
         }
     }
 }

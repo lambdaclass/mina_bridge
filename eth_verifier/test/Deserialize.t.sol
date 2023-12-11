@@ -211,14 +211,10 @@ contract DeserializeTest is Test {
             prover_proof
         );
 
-        console.log(Scalar.FE.unwrap(prover_proof.evals.public_evals.zeta[0]));
-        //assertEq(index.public_len, 0);
-        //assertEq(index.max_poly_size, 16384);
-        //assertEq(index.zk_rows, 3);
-        //assertEq(index.domain_size, 16384);
-        //assertEq(
-        //    Scalar.FE.unwrap(index.domain_gen),
-        //    20619701001583904760601357484951574588621083236087856586626117568842480512645
-        //);
+        assertEq(Scalar.FE.unwrap(prover_proof.evals.public_evals.zeta[0]), 0);
+        assertEq(
+            Scalar.FE.unwrap(prover_proof.evals.z.zeta[0]),
+            1511422324807084075612225175004431441562364525077650304716743095141219510784
+        );
     }
 }

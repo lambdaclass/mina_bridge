@@ -117,6 +117,8 @@ fn generate_test_proof_ex() {
     )
     .unwrap();
 
+    println!("{:#?}", proof.evals.z.zeta);
+
     fs::write(
         "../eth_verifier/prover_proof.mpk",
         rmp_serde::to_vec_named(&proof).unwrap(),
