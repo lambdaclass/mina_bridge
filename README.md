@@ -413,7 +413,6 @@ As Mina prioritizes succinctness, it implies the need to maintain checkpoints fo
 
 
 #### Short-range fork check
-As Mina prioritizes succinctness, it implies the need to maintain checkpoints for both the current and the previous epoch.  
 Keep in mind that short-range forks occur when the fork point occurs after the lock_checkpoint of the previous epoch; otherwise, it qualifies as a long-range fork.  
 The position of the previous epoch is a measurement relative to a block's perspective. In cases where candidate blocks belong to distinct epochs, each will possess distinct current and previous epoch values.  
 Alternatively, if the blocks belong to the same epoch, they will both reference the identical previous epoch. Thus we can simply check whether the blocks have the same lock_checkpoint in their previous epoch data.
