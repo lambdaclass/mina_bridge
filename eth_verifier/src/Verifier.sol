@@ -89,8 +89,14 @@ contract KimchiVerifier {
         verifier_index.powers_of_alpha.register(ArgumentType.Permutation, 3);
 
         // TODO: Investigate about linearization and write a proper function for this
-        verifier_index.powers_of_alpha.register(ArgumentType.GateZero, Constants.VARBASEMUL_CONSTRAINTS);
-        verifier_index.powers_of_alpha.register(ArgumentType.Permutation, Constants.PERMUTATION_CONSTRAINTS);
+        verifier_index.powers_of_alpha.register(
+            ArgumentType.GateZero,
+            Constants.VARBASEMUL_CONSTRAINTS
+        );
+        verifier_index.powers_of_alpha.register(
+            ArgumentType.Permutation,
+            Constants.PERMUTATION_CONSTRAINTS
+        );
 
         proof.evals = evals;
     }
@@ -190,20 +196,22 @@ contract KimchiVerifier {
 
         // Combine the chunked polynomials' evaluations
 
-        ProofEvaluations memory evals = proof.evals.combine_evals(oracles_res.powers_of_eval_points_for_chunks);
+        ProofEvaluations memory evals = proof.evals.combine_evals(
+            oracles_res.powers_of_eval_points_for_chunks
+        );
 
         // Compute the commitment to the linearized polynomial $f$.
-        Scalar.FE permutation_vanishing_polynomial =
-            Polynomial.vanishes_on_last_n_rows(
+        Scalar.FE permutation_vanishing_polynomial = Polynomial
+            .vanishes_on_last_n_rows(
                 verifier_index.domain_gen,
                 verifier_index.domain_size,
                 verifier_index.zk_rows
-        ).evaluate(oracles.zeta);
+            )
+            .evaluate(oracles.zeta);
 
-        Scalar.FE[] memory alphas =
-            verifier_index.powers_of_alpha.get_alphas(
-                ArgumentType.Permutation,
-                Constants.PERMUTATION_CONSTRAINTS
+        Scalar.FE[] memory alphas = verifier_index.powers_of_alpha.get_alphas(
+            ArgumentType.Permutation,
+            Constants.PERMUTATION_CONSTRAINTS
         );
 
         PolyComm[] memory commitments = new PolyComm[](0);
@@ -234,7 +242,10 @@ contract KimchiVerifier {
         Scalar.FE[] memory alphas, // array with the next 3 powers
         Scalar.FE zkp_zeta // TODO: make an AlphaIterator type.
     ) internal pure returns (Scalar.FE res) {
-        require(alphas.length == 3, "not enough powers of alpha for permutation");
+        require(
+            alphas.length == 3,
+            "not enough powers of alpha for permutation"
+        );
         // TODO: alphas should be an iterator
 
         res = e.z.zeta_omega.mul(beta).mul(alphas[0]).mul(zkp_zeta);
@@ -242,6 +253,61 @@ contract KimchiVerifier {
         for (uint i = 0; i < len; i++) {
             res = res.mul(gamma.add(beta.mul(e.s[i].zeta)).add(e.w[i].zeta));
         }
+    }
+
+    function final_verify(Scalar.FE[] memory public_inputs) public {
+        /*
+            Final verification:
+                1. Combine commitments, compute final poly commitment (MSM)
+                2. Combine evals
+                3. Commit divisor and eval polynomials
+                4. Compute numerator commitment
+                5. Compute scaled quotient
+                6. Check numerator == scaled_quotient
+        */
+        /*
+        pub fn verify(
+            &self,
+            srs: &PairingSRS<Pair>,           // SRS
+            evaluations: &Vec<Evaluation<G>>, // commitments to the polynomials
+            polyscale: G::ScalarField,        // scaling factor for polynoms
+            elm: &[G::ScalarField],           // vector of evaluation points
+        ) -> bool {
+            let poly_commitment = {
+                let mut scalars: Vec<F> = Vec::new();
+                let mut points = Vec::new();
+                combine_commitments(
+                    evaluations,
+                    &mut scalars,
+                    &mut points,
+                    polyscale,
+                    F::one(), // TODO: This is inefficient
+                );
+                let scalars: Vec<_> = scalars.iter().map(|x| x.into_repr()).collect();
+
+                VariableBaseMSM::multi_scalar_mul(&points, &scalars)
+            };
+            let evals = combine_evaluations(evaluations, polyscale);
+            let blinding_commitment = srs.full_srs.h.mul(self.blinding);
+            let divisor_commitment = srs
+                .verifier_srs
+                .commit_non_hiding(&divisor_polynomial(elm), 1, None)
+                .unshifted[0];
+            let eval_commitment = srs
+                .full_srs
+                .commit_non_hiding(&eval_polynomial(elm, &evals), 1, None)
+                .unshifted[0]
+                .into_projective();
+            let numerator_commitment = { poly_commitment - eval_commitment - blinding_commitment };
+
+            let numerator = Pair::pairing(
+                numerator_commitment,
+                Pair::G2Affine::prime_subgroup_generator(),
+            );
+            let scaled_quotient = Pair::pairing(self.quotient, divisor_commitment);
+            numerator == scaled_quotient
+        }
+        */
     }
 
     /*
@@ -255,14 +321,6 @@ contract KimchiVerifier {
         5. Commitment to linearized polynomial f
         6. Chunked commitment of ft
         7. List poly commitments for final verification
-
-    Final verification:
-        1. Combine commitments, compute final poly commitment (MSM)
-        2. Combine evals
-        3. Commit divisor and eval polynomials
-        4. Compute numerator commitment
-        5. Compute scaled quotient
-        6. Check numerator == scaled_quotient
     */
 
     /* TODO WIP
