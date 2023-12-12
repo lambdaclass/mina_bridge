@@ -8,6 +8,8 @@ import "./Alphas.sol";
 import "./sponge/Sponge.sol";
 import "./Commitment.sol";
 import "./Proof.sol";
+import "./Polynomial.sol";
+import "./Constants.sol";
 
 library Oracles {
     using {to_field_with_length, to_field} for ScalarChallenge;
@@ -20,7 +22,7 @@ library Oracles {
         Scalar.double,
         Scalar.pow
     } for Scalar.FE;
-    using {AlphasLib.instantiate} for Alphas;
+    using {AlphasLib.instantiate, AlphasLib.get_alphas} for Alphas;
     using {
         KeccakSponge.reinit,
         KeccakSponge.absorb_base,
@@ -45,7 +47,7 @@ library Oracles {
         bool is_public_input_set,
         Sponge storage base_sponge,
         Sponge storage scalar_sponge
-    ) public {
+    ) public returns (Result memory) {
         uint chunk_size = index.domain_size < index.max_poly_size ?
             1 : index.domain_size / index.max_poly_size;
 
@@ -97,6 +99,7 @@ library Oracles {
         // retrieve ranges for the powers of alphas
         Alphas storage all_alphas = index.powers_of_alpha;
         all_alphas.instantiate(alpha);
+        // WARN: all_alphas should be a clone of index.powers_of_alpha.
 
         // evaluations of the public input
 
@@ -172,10 +175,128 @@ library Oracles {
 
         ProofEvaluations memory evals = proof.evals.combine_evals(powers_of_eval_points_for_chunks);
 
-        //~ 29. Compute the evaluation of $ft(\zeta)$.
+        // compute the evaluation of $ft(\zeta)$.
+        Scalar.FE permutation_vanishing_poly = Scalar.from(1); // FIXME: evaluate poly in zeta
+        Scalar.FE zeta1m1 = zeta1.sub(Scalar.from(1));
 
-        // evaluate final polynomial (PolishToken)
-        // combined inner prod
+        uint permutation_constraints = 3;
+        Scalar.FE[] memory alpha_pows = all_alphas.get_alphas(ArgumentType.Permutation, permutation_constraints);
+        Scalar.FE alpha0 = alpha_pows[0];
+        Scalar.FE alpha1 = alpha_pows[1];
+        Scalar.FE alpha2 = alpha_pows[2];
+        // WARN: alpha_powers should be an iterator and alphai = alpha_powers.next(), for i = 0,1,2.
+
+        Scalar.FE ft_eval0 = evals.w[Constants.PERMUTS - 1].zeta.add(gamma)
+            .mul(evals.z.zeta_omega)
+            .mul(alpha0)
+            .mul(permutation_vanishing_poly);
+
+        for (uint i = 0; i < Constants.PERMUTS - 1; i++) {
+            PointEvaluations memory w = evals.w[i];
+            PointEvaluations memory s = evals.s[i];
+            ft_eval0 = ft_eval0.mul(beta.mul(s.zeta).add(w.zeta).add(gamma));
+        }
+
+        ft_eval0 = ft_eval0.sub(
+            Polynomial.build_and_eval(
+                public_evals[0],
+                powers_of_eval_points_for_chunks.zeta
+        ));
+
+        Scalar.FE ev = alpha0.mul(permutation_vanishing_poly).mul(evals.z.zeta);
+        for (uint i = 0; i < Constants.PERMUTS; i++) {
+            PointEvaluations memory w = evals.w[i];
+            Scalar.FE s = index.shift[i];
+
+            ev = ev.mul(gamma.add(beta.mul(zeta).mul(s)).add(w.zeta));
+        }
+        ft_eval0 = ft_eval0.sub(ev);
+
+        Scalar.FE numerator = zeta1m1.mul(alpha1).mul(zeta.sub(index.w))
+            .add(zeta1m1.mul(alpha2).mul(zeta.sub(Scalar.from(1))))
+            .mul(Scalar.from(1).sub(evals.z.zeta));
+
+        Scalar.FE denominator = zeta.sub(index.w).mul(zeta.sub(Scalar.from(1))).inv();
+
+        ft_eval0 = ft_eval0.add(numerator.mul(denominator));
+
+        // TODO: evaluate final polynomial (PolishToken)
+
+        uint matrix_count = 2;
+        uint total_length = 0;
+        uint[] memory rows = new uint[](matrix_count);
+        uint[] memory cols = new uint[](matrix_count);
+
+        // public evals
+        rows[0] = public_evals.length;
+        cols[0] = public_evals[0].length;
+        total_length += rows[0] * cols[0];
+
+        // ft evals
+        rows[1] = [[ft_eval0]].length;
+        cols[1] = [[ft_eval0]][0].length;
+        total_length += rows[1] * cols[1];
+
+        // save the data in a flat array in a column-major so there's no need
+        // to transpose each matrix later.
+        Scalar.FE[] memory es_data = new Scalar.FE[](total_length);
+        uint[] memory starts = new uint[](matrix_count);
+        uint curr = 0;
+
+        starts[0] = curr;
+        for (uint i = 0; i < rows[0] * cols[0]; i++) {
+            uint col = i / rows[0];
+            uint row = i % rows[0];
+            es_data[i] = public_evals[row][col];
+            curr++;
+        }
+
+        starts[1] = curr;
+        for (uint i = 0; i < rows[1] * cols[1]; i++) {
+            uint col = i / rows[0];
+            uint row = i % rows[0];
+            es_data[i] = [[ft_eval0]][row][col]; // TODO: ft_eval1;
+            curr++;
+        }
+
+        PolyMatrices memory es = PolyMatrices(es_data, matrix_count, rows, cols, starts);
+        // TODO: add evaluations of all columns
+
+        Scalar.FE combined_inner_prod = combined_inner_product(evaluation_points, v, u, es, index.max_poly_size);
+        RandomOracles memory oracles = RandomOracles(
+            beta,
+            gamma,
+            alpha_chal,
+            alpha,
+            zeta,
+            v,
+            u,
+            alpha_chal,
+            v_chal,
+            u_chal
+        );
+
+        return Result(oracles, powers_of_eval_points_for_chunks);
+    }
+
+    struct RandomOracles {
+        // joint_combiner
+        Scalar.FE beta;
+        Scalar.FE gamma;
+        ScalarChallenge alpha_chal;
+        Scalar.FE alpha;
+        Scalar.FE zeta;
+        Scalar.FE v;
+        Scalar.FE u;
+        ScalarChallenge zeta_chal;
+        ScalarChallenge v_chal;
+        ScalarChallenge u_chal;
+    }
+
+    struct Result {
+        // sponges are stored in storage
+        RandomOracles oracles;
+        PointEvaluations powers_of_eval_points_for_chunks;
     }
 
     struct ScalarChallenge {

@@ -9,11 +9,18 @@ import "../lib/Oracles.sol";
 import "../lib/Proof.sol";
 import "../lib/State.sol";
 import "../lib/VerifierIndex.sol";
-import "../lib/Commitment.sol";
+import "../lib/Constants.sol";
 import "../lib/msgpack/Deserialize.sol";
+import "../lib/Alphas.sol";
+import "../lib/Evaluations.sol";
+import "../lib/expr/Expr.sol";
+import "../lib/expr/PolishToken.sol";
+import "../lib/expr/ExprConstants.sol";
 
 using {BN254.neg} for BN254.G1Point;
-using {Scalar.neg} for Scalar.FE;
+using {Scalar.neg, Scalar.mul, Scalar.add} for Scalar.FE;
+using {AlphasLib.get_alphas} for Alphas;
+using {Polynomial.evaluate} for Polynomial.Dense;
 
 library Kimchi {
     struct Proof {
@@ -45,6 +52,9 @@ library Kimchi {
 }
 
 contract KimchiVerifier {
+    using {AlphasLib.register} for Alphas;
+    using {combine_evals} for ProofEvaluationsArray;
+
     VerifierIndex verifier_index;
     ProverProof proof;
 
@@ -75,6 +85,12 @@ contract KimchiVerifier {
         verifier_index.public_len = public_len;
         verifier_index.domain_size = domain_size;
         verifier_index.max_poly_size = max_poly_size;
+        verifier_index.powers_of_alpha.register(ArgumentType.GateZero, 21);
+        verifier_index.powers_of_alpha.register(ArgumentType.Permutation, 3);
+
+        // TODO: Investigate about linearization and write a proper function for this
+        verifier_index.powers_of_alpha.register(ArgumentType.GateZero, Constants.VARBASEMUL_CONSTRAINTS);
+        verifier_index.powers_of_alpha.register(ArgumentType.Permutation, Constants.PERMUTATION_CONSTRAINTS);
 
         proof.evals = evals;
     }
@@ -116,6 +132,8 @@ contract KimchiVerifier {
     error IncorrectPublicInputLength();
 
     function partial_verify(Scalar.FE[] memory public_inputs) public {
+        // Commit to the negated public input polynomial.
+
         uint256 chunk_size = verifier_index.domain_size <
             verifier_index.max_poly_size
             ? 1
@@ -159,17 +177,80 @@ contract KimchiVerifier {
             ).commitment;
         }
 
-        Oracles.fiat_shamir(proof, verifier_index, public_comm, public_inputs, true, base_sponge, scalar_sponge);
+        Oracles.Result memory oracles_res = Oracles.fiat_shamir(
+            proof,
+            verifier_index,
+            public_comm,
+            public_inputs,
+            true,
+            base_sponge,
+            scalar_sponge
+        );
+        Oracles.RandomOracles memory oracles = oracles_res.oracles;
+
+        // Combine the chunked polynomials' evaluations
+
+        ProofEvaluations memory evals = proof.evals.combine_evals(oracles_res.powers_of_eval_points_for_chunks);
+
+        // Compute the commitment to the linearized polynomial $f$.
+        Scalar.FE permutation_vanishing_polynomial =
+            Polynomial.vanishes_on_last_n_rows(
+                verifier_index.domain_gen,
+                verifier_index.domain_size,
+                verifier_index.zk_rows
+        ).evaluate(oracles.zeta);
+
+        Scalar.FE[] memory alphas =
+            verifier_index.powers_of_alpha.get_alphas(
+                ArgumentType.Permutation,
+                Constants.PERMUTATION_CONSTRAINTS
+        );
+
+        PolyComm[] memory commitments = new PolyComm[](0);
+        Scalar.FE[] memory scalars = new Scalar.FE[](1);
+        scalars[0] = perm_scalars(
+            evals,
+            oracles.beta,
+            oracles.gamma,
+            alphas, // FIXME: change for iterator to take into account previous alphas
+            permutation_vanishing_polynomial
+        );
+
+        ExprConstants memory constants = ExprConstants(
+            oracles.alpha,
+            oracles.beta,
+            oracles.gamma,
+            Scalar.from(0), // FIXME: joint_combiner in fiat-shamir
+            Scalar.from(0), // FIXME: endo_coefficient in verifier_index
+            new Scalar.FE[](0), // FIXME: keccak sponge mds
+            verifier_index.zk_rows
+        );
+    }
+
+    function perm_scalars(
+        ProofEvaluations memory e,
+        Scalar.FE beta,
+        Scalar.FE gamma,
+        Scalar.FE[] memory alphas, // array with the next 3 powers
+        Scalar.FE zkp_zeta // TODO: make an AlphaIterator type.
+    ) internal pure returns (Scalar.FE res) {
+        require(alphas.length == 3, "not enough powers of alpha for permutation");
+        // TODO: alphas should be an iterator
+
+        res = e.z.zeta_omega.mul(beta).mul(alphas[0]).mul(zkp_zeta);
+        uint len = Utils.min(e.w.length, e.s.length);
+        for (uint i = 0; i < len; i++) {
+            res = res.mul(gamma.add(beta.mul(e.s[i].zeta)).add(e.w[i].zeta));
+        }
     }
 
     /*
-    This is a list of steps needed for verification, we need to determine which
-    ones can be skipped or simplified.
+    This is a list of steps needed for verification.
 
     Partial verification:
         1. Check the length of evaluations insde the proof.
         2. Commit to the negated public input poly
-        3. Fiat-Shamir (MAY SKIP OR VASTLY SIMPLIFY)
+        3. Fiat-Shamir (vastly simplify for now)
         4. Combined chunk polynomials evaluations
         5. Commitment to linearized polynomial f
         6. Chunked commitment of ft

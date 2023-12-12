@@ -2,6 +2,7 @@
 pragma solidity >=0.4.16 <0.9.0;
 
 import "./bn254/Fields.sol";
+import "forge-std/console.sol";
 
 using {Scalar.mul} for Scalar.FE;
 
@@ -26,6 +27,37 @@ struct Alphas {
 }
 
 library AlphasLib {
+    error CantRegisterNewConstraints();
+    function register(Alphas storage self, ArgumentType ty, uint powers) public {
+        if (self.alphas.length != 0) {
+            revert CantRegisterNewConstraints();
+        }
+
+        if (ty == ArgumentType.GateGeneric ||
+            ty == ArgumentType.GatePoseidon ||
+            ty == ArgumentType.GateCompleteAdd ||
+            ty == ArgumentType.GateVarBaseMul ||
+            ty == ArgumentType.GateEndoMul ||
+            ty == ArgumentType.GateEndoMulScalar ||
+            ty == ArgumentType.GateLookup ||
+            ty == ArgumentType.GateCairoClaim ||
+            ty == ArgumentType.GateCairoInstruction ||
+            ty == ArgumentType.GateCairoFlags ||
+            ty == ArgumentType.GateCairoTransition ||
+            ty == ArgumentType.GateRangeCheck0 ||
+            ty == ArgumentType.GateRangeCheck1 ||
+            ty == ArgumentType.GateForeignFieldAdd ||
+            ty == ArgumentType.GateForeignFieldMul ||
+            ty == ArgumentType.GateXor16 ||
+            ty == ArgumentType.GateRot64)
+        {
+            ty = ArgumentType.GateZero;
+        }
+
+        self.map[ty] = [self.next_power, powers];
+        self.next_power += powers;
+    }
+
     /// Instantiates the ranges with an actual field element `alpha`.
     /// Once you call this function, you cannot register new constraints.
     function instantiate(Alphas storage self, Scalar.FE alpha) internal {
@@ -38,8 +70,13 @@ library AlphasLib {
         }
     }
 
+    error NotEnoughPowersOfAlpha();
     /// @notice retrieves the powers of alpha, upperbounded by `num`
-    function get_alphas(Alphas storage self, ArgumentType ty, uint num) external view returns (Scalar.FE[] memory pows) {
+    function get_alphas(Alphas storage self, ArgumentType ty, uint num)
+        external
+        view
+        returns (Scalar.FE[] memory pows) 
+    {
         if (ty == ArgumentType.GateZero ||
             ty == ArgumentType.GateGeneric ||
             ty == ArgumentType.GatePoseidon ||
@@ -64,9 +101,11 @@ library AlphasLib {
 
         uint[2] memory range = self.map[ty];
         if (num > range[1]) {
+            revert NotEnoughPowersOfAlpha();
             // FIXME: panic! asked for num alphas but there aren't as many.
         }
 
+        pows = new Scalar.FE[](num);
         for (uint i = 0; i < num; i++) {
             pows[i] = self.alphas[range[0]+i];
         }

@@ -4,8 +4,18 @@ pragma solidity >=0.4.16 <0.9.0;
 import "./bn254/BN254.sol";
 import "./bn254/Fields.sol";
 import "./Utils.sol";
+import "./Polynomial.sol";
 
 using { BN254.add, BN254.scale_scalar } for BN254.G1Point;
+using {
+    Scalar.neg,
+    Scalar.add,
+    Scalar.sub,
+    Scalar.mul,
+    Scalar.inv,
+    Scalar.double,
+    Scalar.pow
+} for Scalar.FE;
 
 error MSMInvalidLengths();
 
@@ -181,4 +191,53 @@ function calculate_lagrange_bases(
                 bases_unshifted.unshifteds.push(unshifted[j][i]);
             }
         }
+}
+
+// Computes the linearization of the evaluations of a (potentially split) polynomial.
+// Each given `poly` is associated to a matrix where the rows represent the number of evaluated points,
+// and the columns represent potential segments (if a polynomial was split in several parts).
+// Note that if one of the polynomial comes specified with a degree bound,
+// the evaluation for the last segment is potentially shifted to meet the proof.
+function combined_inner_product(
+    Scalar.FE[] memory evaluation_points,
+    Scalar.FE polyscale,
+    Scalar.FE evalscale,
+    PolyMatrices memory polys,
+    //uint[] poly_shifted, // TODO: not necessary for fiat-shamir
+    uint srs_length
+) pure returns (Scalar.FE res) {
+    res = Scalar.zero();
+    Scalar.FE xi_i = Scalar.from(1);
+
+    //require(poly_matrices.length == poly_shifted.length);
+    for (uint i = 0; i < polys.length; i++) {
+        uint cols = polys.cols[i];
+        uint rows = polys.rows[i];
+
+        if (cols == 0) {
+            continue;
+        }
+
+        for (uint col = 0; col < cols; col++) {
+            Scalar.FE[] memory eval = new Scalar.FE[](rows); // column that stores the segment
+
+            for (uint j = 0; j < rows; j++) {
+                eval[j] = polys.data[polys.starts[i] + col*rows + j];
+            }
+            Scalar.FE term = Polynomial.build_and_eval(eval, evalscale);
+
+            res = res.add(xi_i.mul(term));
+            xi_i = xi_i.mul(polyscale);
+        }
+
+        // TODO: shifted
+    }
+}
+
+struct PolyMatrices {
+    Scalar.FE[] data;
+    uint length;
+    uint[] rows; // row count per matrix
+    uint[] cols; // col count per matrix
+    uint[] starts; // index at which every matrix starts
 }

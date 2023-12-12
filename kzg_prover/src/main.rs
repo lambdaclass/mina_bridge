@@ -1,6 +1,6 @@
 mod snarky_gate;
 
-use std::{fs, ops::Neg};
+use std::{array, fs, ops::Neg, sync::Arc};
 
 use ark_bn254::{G1Affine, G2Affine};
 use ark_ec::{
@@ -15,22 +15,115 @@ use ark_std::{
     rand::{rngs::StdRng, SeedableRng},
     UniformRand,
 };
-use kimchi::circuits::{
-    constraints::ConstraintSystem,
-    domains::EvaluationDomains,
-    gate::{CircuitGate, GateType},
+use kimchi::{
+    circuits::{
+        constraints::ConstraintSystem,
+        domains::EvaluationDomains,
+        gate::{CircuitGate, GateType},
+        polynomials::{
+            generic::testing::{create_circuit, fill_in_witness},
+            range_check,
+        },
+        wires::{Wire, COLUMNS},
+    },
+    curve::KimchiCurve,
+    groupmap::*,
+    keccak_sponge::{Keccak256FqSponge, Keccak256FrSponge},
+    o1_utils::{foreign_field::BigUintForeignFieldHelpers, BigUintFieldHelpers, FieldHelpers},
+    proof::ProverProof,
+    prover_index::{self, ProverIndex},
+    verifier::{batch_verify, Context},
 };
+use num::{bigint::RandBigInt, BigUint};
 use num_traits::{One, Zero};
 use poly_commitment::{
-    commitment::{combine_commitments, combine_evaluations, Evaluation},
-    evaluation_proof::DensePolynomialOrEvaluations,
+    commitment::{combine_commitments, combine_evaluations, CommitmentCurve, Evaluation},
+    evaluation_proof::{combine_polys, DensePolynomialOrEvaluations, OpeningProof},
     pairing_proof::{PairingProof, PairingSRS},
-    srs::SRS,
-    SRS as _,
+    srs::{endos, SRS},
+    PolyComm, SRS as _,
 };
 use snarky_gate::SnarkyGate;
 
+type PolynomialsToCombine<'a> = &'a [(
+    DensePolynomialOrEvaluations<'a, ark_bn254::Fr, Radix2EvaluationDomain<ark_bn254::Fr>>,
+    Option<usize>,
+    PolyComm<ark_bn254::Fr>,
+)];
+
+type BaseField = ark_bn254::Fq;
+type ScalarField = ark_bn254::Fr;
+type G1 = GroupAffine<ark_bn254::g1::Parameters>;
+
+type KeccakFqSponge = Keccak256FqSponge<BaseField, G1, ScalarField>;
+type KeccakFrSponge = Keccak256FrSponge<ScalarField>;
+
+type KZGProof = PairingProof<ark_ec::bn::Bn<ark_bn254::Parameters>>;
+
 fn main() {
+    generate_verifier_circuit_proof();
+    //generate_test_proof();
+    generate_test_proof_ex();
+}
+
+fn generate_test_proof_ex() {
+    let rng = &mut StdRng::from_seed([255u8; 32]);
+
+    // Create range-check gadget
+    let (mut next_row, mut gates) = CircuitGate::<ScalarField>::create_multi_range_check(0);
+
+    // Create witness
+    let witness = range_check::witness::create_multi::<ScalarField>(
+        rng.gen_biguint_range(&BigUint::zero(), &BigUint::two_to_limb())
+            .to_field()
+            .expect("failed to convert to field"),
+        rng.gen_biguint_range(&BigUint::zero(), &BigUint::two_to_limb())
+            .to_field()
+            .expect("failed to convert to field"),
+        rng.gen_biguint_range(&BigUint::zero(), &BigUint::two_to_limb())
+            .to_field()
+            .expect("failed to convert to field"),
+    );
+
+    // Temporary workaround for lookup-table/domain-size issue
+    for _ in 0..(1 << 13) {
+        gates.push(CircuitGate::zero(Wire::for_row(next_row)));
+        next_row += 1;
+    }
+
+    // Create constraint system
+    let cs = ConstraintSystem::<ScalarField>::create(gates)
+        //.lookup(vec![range_check::gadget::lookup_table()])
+        .build()
+        .unwrap();
+
+    let x = ark_bn254::Fr::rand(rng);
+    let srs = Arc::new(create_srs(x, cs.gates.len(), cs.domain));
+
+    let ptr: &mut SRS<G1> = unsafe { &mut *(std::sync::Arc::as_ptr(&srs) as *mut _) };
+    ptr.add_lagrange_basis(cs.domain.d1);
+
+    let (_endo_r, endo_q) = G1::endos();
+    let index = ProverIndex::<G1, KZGProof>::create(cs, *endo_q, srs);
+    let group_map = <G1 as CommitmentCurve>::Map::setup();
+    let proof = ProverProof::create_recursive::<KeccakFqSponge, KeccakFrSponge>(
+        &group_map,
+        witness,
+        &[],
+        &index,
+        vec![],
+        None,
+    )
+    .unwrap();
+
+    fs::write(
+        "../eth_verifier/prover_proof.mpk",
+        rmp_serde::to_vec_named(&proof).unwrap(),
+    )
+    .unwrap();
+}
+
+fn generate_verifier_circuit_proof() {
     let rng = &mut StdRng::from_seed([0u8; 32]);
 
     let gates = read_gates_file();
@@ -46,9 +139,9 @@ fn main() {
     let n = domain.d1.size as usize;
     let x = ark_bn254::Fr::rand(rng);
 
-    let srs = create_srs(x, n, domain);
+    let mut srs = create_srs(x, n, domain);
 
-    let polynomials = create_selector_dense_polynomials(cs, domain);
+    let polynomials = create_selector_dense_polynomials(cs.clone(), domain);
 
     let comms: Vec<_> = polynomials
         .iter()
@@ -91,7 +184,7 @@ fn main() {
 
     let polyscale = ark_bn254::Fr::rand(rng);
 
-    let pairing_proof = PairingProof::<ark_ec::bn::Bn<ark_bn254::Parameters>>::create(
+    let pairing_proof = KZGProof::create(
         &srs,
         polynomials_and_blinders.as_slice(),
         &evaluation_points,
@@ -125,10 +218,74 @@ fn main() {
 
     fs::write("../eth_verifier/proof.mpk", points_serialized).unwrap();
 
+    let endo_q = G1::endos().1;
+    srs.full_srs.add_lagrange_basis(cs.domain.d1);
+    let prover_index = ProverIndex::<G1, KZGProof>::create(cs, endo_q, Arc::new(srs.clone()));
+    let verifier_index = prover_index.verifier_index();
+    fs::write(
+        "../eth_verifier/verifier_index.mpk",
+        rmp_serde::to_vec(&verifier_index).unwrap(),
+    )
+    .unwrap();
+
     println!(
-        "Is KZG proof valid?: {:?}",
+        "Is verifier circuit's KZG proof valid?: {:?}",
         pairing_proof.verify(&srs, &evaluations, polyscale, &evaluation_points)
     );
+    println!("{}", verifier_index.powers_of_alpha);
+}
+
+fn generate_test_proof() {
+    let public_input: Vec<ScalarField> = vec![42.into(); 5];
+    let gates = create_circuit::<ScalarField>(0, public_input.len());
+
+    // create witness
+    let mut witness: [Vec<_>; COLUMNS] = array::from_fn(|_| vec![0.into(); gates.len()]);
+    fill_in_witness::<ScalarField>(0, &mut witness, &[]);
+
+    let cs = ConstraintSystem::<ScalarField>::create(gates)
+        .build()
+        .unwrap();
+
+    const ZK_ROWS: usize = 3;
+    let domain_size = cs.gates.len() + ZK_ROWS;
+    let domain = EvaluationDomains::create(domain_size).unwrap();
+
+    let n = domain.d1.size as usize;
+
+    let srs = create_srs(42.into(), n, domain);
+    let endo_q = G1::endos().1;
+    let prover_index =
+        ProverIndex::<G1, PairingProof<ark_ec::bn::Bn<ark_bn254::Parameters>>>::create(
+            cs,
+            endo_q,
+            Arc::new(srs.clone()),
+        );
+
+    let groupmap = <G1 as CommitmentCurve>::Map::setup();
+    let prover_proof = ProverProof::create::<KeccakFqSponge, KeccakFrSponge>(
+        &groupmap,
+        witness,
+        &[],
+        &prover_index,
+    )
+    .unwrap();
+
+    fs::write(
+        "../eth_verifier/verifier_index.mpk",
+        rmp_serde::to_vec(&prover_index.verifier_index()).unwrap(),
+    )
+    .unwrap();
+
+    let context = Context {
+        verifier_index: &prover_index.verifier_index(),
+        proof: &prover_proof,
+        public_input: &public_input,
+    };
+
+    let verified =
+        batch_verify::<G1, KeccakFqSponge, KeccakFrSponge, KZGProof>(&groupmap, &[context]).is_ok();
+    println!("Is test circuit's KZG proof valid?: {:?}", verified);
 }
 
 fn serialize_g1point_for_verifier(point: G1Affine) -> Result<Vec<u8>, SerializationError> {
