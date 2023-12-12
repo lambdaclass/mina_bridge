@@ -12,10 +12,15 @@ import "../lib/VerifierIndex.sol";
 import "../lib/Constants.sol";
 import "../lib/msgpack/Deserialize.sol";
 import "../lib/Alphas.sol";
+import "../lib/Evaluations.sol";
+import "../lib/expr/Expr.sol";
+import "../lib/expr/PolishToken.sol";
+import "../lib/expr/ExprConstants.sol";
 
 using {BN254.neg} for BN254.G1Point;
-using {Scalar.neg} for Scalar.FE;
+using {Scalar.neg, Scalar.mul, Scalar.add} for Scalar.FE;
 using {AlphasLib.get_alphas} for Alphas;
+using {Polynomial.evaluate} for Polynomial.Dense;
 
 library Kimchi {
     struct Proof {
@@ -181,18 +186,19 @@ contract KimchiVerifier {
             base_sponge,
             scalar_sponge
         );
+        Oracles.RandomOracles memory oracles = oracles_res.oracles;
 
         // Combine the chunked polynomials' evaluations
 
-        proof.evals.combine_evals(oracles_res.powers_of_eval_points_for_chunks);
+        ProofEvaluations memory evals = proof.evals.combine_evals(oracles_res.powers_of_eval_points_for_chunks);
 
         // Compute the commitment to the linearized polynomial $f$.
-        Polynomial.Dense memory permutation_vanishing_polynomial =
+        Scalar.FE permutation_vanishing_polynomial =
             Polynomial.vanishes_on_last_n_rows(
                 verifier_index.domain_gen,
                 verifier_index.domain_size,
                 verifier_index.zk_rows
-        );
+        ).evaluate(oracles.zeta);
 
         Scalar.FE[] memory alphas =
             verifier_index.powers_of_alpha.get_alphas(
@@ -201,6 +207,41 @@ contract KimchiVerifier {
         );
 
         PolyComm[] memory commitments = new PolyComm[](0);
+        Scalar.FE[] memory scalars = new Scalar.FE[](1);
+        scalars[0] = perm_scalars(
+            evals,
+            oracles.beta,
+            oracles.gamma,
+            alphas, // FIXME: change for iterator to take into account previous alphas
+            permutation_vanishing_polynomial
+        );
+
+        ExprConstants memory constants = ExprConstants(
+            oracles.alpha,
+            oracles.beta,
+            oracles.gamma,
+            Scalar.from(0), // FIXME: joint_combiner in fiat-shamir
+            Scalar.from(0), // FIXME: endo_coefficient in verifier_index
+            new Scalar.FE[](0), // FIXME: keccak sponge mds
+            verifier_index.zk_rows
+        );
+    }
+
+    function perm_scalars(
+        ProofEvaluations memory e,
+        Scalar.FE beta,
+        Scalar.FE gamma,
+        Scalar.FE[] memory alphas, // array with the next 3 powers
+        Scalar.FE zkp_zeta // TODO: make an AlphaIterator type.
+    ) internal pure returns (Scalar.FE res) {
+        require(alphas.length == 3, "not enough powers of alpha for permutation");
+        // TODO: alphas should be an iterator
+
+        res = e.z.zeta_omega.mul(beta).mul(alphas[0]).mul(zkp_zeta);
+        uint len = Utils.min(e.w.length, e.s.length);
+        for (uint i = 0; i < len; i++) {
+            res = res.mul(gamma.add(beta.mul(e.s[i].zeta)).add(e.w[i].zeta));
+        }
     }
 
     /*
