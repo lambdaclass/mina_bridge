@@ -16,15 +16,14 @@ struct VerifierIndex {
     uint64 zk_rows;
     URS urs;
     // domain
-    uint256 domain_size;
+    uint64 domain_size;
     Scalar.FE domain_gen;
     /// The mapping between powers of alpha and constraints
     Alphas powers_of_alpha;
     // wire shift coordinates
-    Scalar.FE[7] shift;  // TODO: use Consants.PERMUTS
+    Scalar.FE[7] shift; // TODO: use Consants.PERMUTS
     /// domain offset for zero-knowledge
     Scalar.FE w;
-
 }
 
 function verifier_digest(VerifierIndex storage index) returns (Base.FE) {

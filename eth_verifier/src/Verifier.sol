@@ -68,7 +68,7 @@ contract KimchiVerifier {
         BN254.G1Point[] memory g,
         BN254.G1Point memory h,
         uint256 public_len,
-        uint256 domain_size,
+        uint64 domain_size,
         uint256 max_poly_size,
         ProofEvaluationsArray memory evals
     ) public {

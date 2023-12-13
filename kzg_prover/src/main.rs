@@ -105,6 +105,7 @@ fn generate_test_proof_ex() {
 
     let (_endo_r, endo_q) = G1::endos();
     let index = ProverIndex::<G1, KZGProof>::create(cs, *endo_q, srs);
+
     let group_map = <G1 as CommitmentCurve>::Map::setup();
     let proof = ProverProof::create_recursive::<KeccakFqSponge, KeccakFrSponge>(
         &group_map,
@@ -116,9 +117,21 @@ fn generate_test_proof_ex() {
     )
     .unwrap();
 
+    println!("{:#?}", proof.evals.z.zeta);
+
     fs::write(
         "../eth_verifier/prover_proof.mpk",
         rmp_serde::to_vec_named(&proof).unwrap(),
+    )
+    .unwrap();
+    fs::write(
+        "../eth_verifier/verifier_index.mpk",
+        rmp_serde::to_vec_named(&index.verifier_index()).unwrap(),
+    )
+    .unwrap();
+    fs::write(
+        "../eth_verifier/urs.mpk",
+        rmp_serde::to_vec_named(&index.verifier_index().srs().verifier_srs).unwrap(),
     )
     .unwrap();
 }
