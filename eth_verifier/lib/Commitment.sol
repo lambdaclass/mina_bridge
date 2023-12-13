@@ -54,12 +54,12 @@ function poly_comm_unflat(PolyCommFlat memory com) pure returns (PolyComm[] memo
 
 function poly_comm_flat(PolyComm[] memory com) pure returns (PolyCommFlat memory) {
     uint total_length = 0;
-    uint[] unshifted_lengths = new uint[](com.length);
+    uint[] memory unshifted_lengths = new uint[](com.length);
     for (uint i = 0; i < com.length; i++) {
         total_length += com[i].unshifted.length;
         unshifted_lengths[i] = com[i].unshifted.length;
     }
-    BN254.G1Point[] unshifteds = new BN254.G1Point[](total_length);
+    BN254.G1Point[] memory unshifteds = new BN254.G1Point[](total_length);
 
     uint index = 0;
     for (uint i = 0; i < com.length; i++) {
@@ -205,7 +205,11 @@ function calculate_lagrange_bases(
         }
 
         PolyCommFlat storage bases_unshifted = lagrange_bases_unshifted[domain_size];
-        bases_unshifted.unshifted_length = unshifted.length;
+        uint[] memory unshifted_lengths = new uint[](num_unshifteds);
+        for (uint i = 0; i < num_unshifteds; i++) {
+            unshifted_lengths[i] = 0;
+        }
+        bases_unshifted.unshifted_lengths = unshifted_lengths;
 
         for (uint i = 0; i < domain_size; i++) {
             for (uint j = 0; j < unshifted.length; j++) {

@@ -502,7 +502,7 @@ library MsgPk {
         EncodedMap memory map,
         mapping(uint256 => PolyCommFlat) storage lagrange_bases_unshifted,
         uint64 domain_size
-    ) public pure returns (PointEvaluationsArray[] memory evals) {
+    ) public returns (PointEvaluationsArray[] memory evals) {
         for (uint i = 0; i < map.keys.length; i++) {
             EncodedArray memory comms = abi.decode(map.values[i], (EncodedArray));
             PolyComm[] memory polycomms = new PolyComm[](comms.values.length);
@@ -512,7 +512,7 @@ library MsgPk {
                 EncodedArray memory unshifted_arr = abi.decode(find_value(comm, "unshifted"), (EncodedArray));
 
                 uint unshifted_length = unshifted_arr.values.length;
-                BN254.G1Point[] unshifted = new BN254.G1Point[](unshifted_length);
+                BN254.G1Point[] memory unshifted = new BN254.G1Point[](unshifted_length);
                 for (uint k = 0; k < unshifted_length; k++) {
                     EncodedMap memory unshifted_buffer = abi.decode(unshifted_arr.values[k], (EncodedMap));
                     unshifted[k] = BN254.g1Deserialize(bytes32(deser_buffer(unshifted_buffer)));
@@ -520,7 +520,7 @@ library MsgPk {
 
                 polycomms[j] = PolyComm(unshifted);
             }
-            lagrange_bases_unshifted[bytes32(bytes(map.keys[i]))] = poly_comm_flat(polycomms);
+            lagrange_bases_unshifted[uint256(bytes32(bytes(map.keys[i])))] = poly_comm_flat(polycomms);
         }
     }
 
