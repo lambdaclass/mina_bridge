@@ -5,26 +5,17 @@ import {Script, console2} from "forge-std/Script.sol";
 import {KimchiVerifier} from "../src/Verifier.sol";
 import "forge-std/console.sol";
 
-contract Deploy is Script {
-    function run() public {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        vm.startBroadcast(deployerPrivateKey);
-
-        new KimchiVerifier();
-
-        vm.stopBroadcast();
-    }
-}
-
-contract DeployAndVerify is Script {
+contract Verify is Script {
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
         KimchiVerifier verifier = new KimchiVerifier();
 
-        bool success = verifier.verify_state(
-            vm.readFileBinary("state.mpk"),
+        verifier.setup(vm.readFileBinary("urs.mpk"));
+
+        bool success = verifier.verify_with_index(
+            vm.readFileBinary("verifier_index.mpk"),
             vm.readFileBinary("proof.mpk")
         );
         console.log(success);

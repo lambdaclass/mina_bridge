@@ -195,6 +195,9 @@ library Utils {
 
         Scalar.FE[] memory twiddles = bit_reverse_permut(get_twiddles_inv(order));
         BN254.G1Point[] memory unordered_res = nr_2radix_fft(points, twiddles);
+        console.log(twiddles.length);
+        console.log(unordered_res.length);
+        require(false, "adsasdasd");
         return bit_reverse_permut(unordered_res);
     }
 

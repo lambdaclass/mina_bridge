@@ -34,21 +34,42 @@ struct PolyComm {
 
 struct PolyCommFlat {
     BN254.G1Point[] unshifteds;
-    uint unshifted_length;
+    uint[] unshifted_lengths;
 }
 
 function poly_comm_unflat(PolyCommFlat memory com) pure returns (PolyComm[] memory res) {
-    // FIXME: assumes that every unshifted is the same length
-
-    res = new PolyComm[](com.unshifteds.length / com.unshifted_length); 
-    for (uint i = 0; i < res.length; i++) {
-        uint n = com.unshifted_length;
+    uint comm_count = com.unshifted_lengths.length;
+    res = new PolyComm[](comm_count); 
+    uint index = 0;
+    for (uint i = 0; i < comm_count; i++) {
+        uint n = com.unshifted_lengths[i];
         BN254.G1Point[] memory unshifted = new BN254.G1Point[](n);
         for (uint j = 0; j < n; j++) {
-            unshifted[j] = com.unshifteds[j + i*n];
+            unshifted[j] = com.unshifteds[index];
+            index++;
         }
         res[i] = PolyComm(unshifted);
     }
+}
+
+function poly_comm_flat(PolyComm[] memory com) pure returns (PolyCommFlat memory) {
+    uint total_length = 0;
+    uint[] unshifted_lengths = new uint[](com.length);
+    for (uint i = 0; i < com.length; i++) {
+        total_length += com[i].unshifted.length;
+        unshifted_lengths[i] = com[i].unshifted.length;
+    }
+    BN254.G1Point[] unshifteds = new BN254.G1Point[](total_length);
+
+    uint index = 0;
+    for (uint i = 0; i < com.length; i++) {
+        for (uint j = 0; j < com[i].unshifted.length; j++) {
+            unshifteds[index] = com[i].unshifted[j];
+            index++;
+        }
+    }
+
+    return PolyCommFlat(unshifteds, unshifted_lengths);
 }
 
 // @notice Executes multi-scalar multiplication between scalars `elm` and commitments `com`.
