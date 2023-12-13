@@ -22,6 +22,11 @@ error MSMInvalidLengths();
 struct URS {
     BN254.G1Point[] g;
     BN254.G1Point h;
+}
+
+struct PairingURS {
+    URS full_srs;
+    URS verifier_srs;
     mapping(uint256 => PolyCommFlat) lagrange_bases_unshifted;
 }
 

@@ -524,6 +524,21 @@ library MsgPk {
         }
     }
 
+    function deser_pairing_urs(Stream memory self, URS storage urs) public {
+        EncodedMap memory urs_map = deser_fixmap(self);
+
+        EncodedMap memory full_urs = abi.decode(find_value(urs_map, "full_srs"), (EncodedMap));
+        EncodedMap memory verifier_urs = abi.decode(find_value(urs_map, "verifier_srs"), (EncodedMap));
+
+        EncodedArray memory full_urs_g = abi.decode(find_value(full_urs, "g"), (EncodedArray));
+        EncodedMap memory full_urs_h = abi.decode(find_value(full_urs, "h"), (EncodedMap));
+
+        EncodedArray memory verifier_urs_g = abi.decode(find_value(verifier_urs_g, "g"), (EncodedArray));
+        EncodedMap memory verifier_urs_h = abi.decode(find_value(verifier_urs_g, "h"), (EncodedMap));
+
+
+    }
+
     //  !!! FUNCTIONS BELOW ARE DEPRECATED !!!
 
     function deserializeFinalCommitments(bytes calldata data)
