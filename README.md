@@ -404,3 +404,165 @@ __Vf__ corresponds to field operations in a field __F__, and __Vg__ corresponds 
 
 The proof __Pi__ is divided into 2 parts, one corresponding to group operations __G__, and it exposes, as a public input to the circuit, the part of the proof that is necessary to execute __Vf__.
 
+---
+
+# Consensus
+
+Mina employs [Ouroboros Samasika](https://eprint.iacr.org/2020/352.pdf) as its consensus mechanism, which will be subsequently denoted as Samasika.
+Three essential commitments provided include:
+- High decentralization - Self-bootstrap, uncapped participation and dynamic availability
+- Succinctness - Constant-time synchronization with full-validation and high interoperability
+- Universal composability - Proven security for interacting with other protocols, no slashing required
+
+Joseph Bonneau, Izaak Meckler, Vanishree Rao, and Evan Shapiro collaborated to create Samasika, establishing it as the initial succinct blockchain consensus algorithm.  
+The complexity of fully verifying the entire blockchain is independent of chain length.  
+Samasika takes its name from the Sanskrit term, meaning small or succinct.
+
+### Chain selection rules
+
+Samasika uses two consensus rules: one for _short-range forks_ and one for _long-range forks_.
+
+#### Short-range fork rule
+This rule is triggered whenever the fork is such that the adversary has not yet had the opportunity to mutate the block density distribution.  
+A fork is considered short-range if it took place within the last **m** blocks. The straightforward implementation of this rule involves consistently storing the most recent **m** blocks. Yet, in the context of a succinct blockchain, this is considered not desirable. Mina Samasika follows a methodology that necessitates information about only two blocks, the concept involves a decentralized checkpointing algorithm.
+
+#### Long-range fork rule
+
+When a malicious actor generates an long-range fork, it gradually distorts the leader selection distribution, resulting in a longer adversarial chain. At the start, the dishonest chain will have a reduced density, but eventually, the adversary will work to elevate it. Therefore, the only factor we can depend on is the variation in density in the initial slots after the fork, which is known as the _critical window_.  
+The reasoning is that the critical window of the honest chain is very likely to have a higher density because this chain has the most stake
+
+#### Decentralized checkpointing
+Samasika employs decentralized checkpointing to discern the nature of a fork, categorizing it as either short-range or long-range.
+- **Start checkpoint** - State hash of the first block of the epoch.
+- **Lock checkpoint** - State hash of the last known block in the seed update range of an epoch (not including the current block) 
+
+Remember, a fork is categorized as short-range if either:
+- The fork point of the candidate chains are in the same epoch.
+- The fork point is in the previous epoch with the same ``lock_checkpoint``
+
+As Mina prioritizes succinctness, it implies the need to maintain checkpoints for both the current and the previous epoch.
+
+
+
+#### Short-range fork check
+Keep in mind that short-range forks occur when the fork point occurs after the lock_checkpoint of the previous epoch; otherwise, it qualifies as a long-range fork.  
+The position of the previous epoch is a measurement relative to a block's perspective. In cases where candidate blocks belong to distinct epochs, each will possess distinct current and previous epoch values.  
+Alternatively, if the blocks belong to the same epoch, they will both reference the identical previous epoch. Thus we can simply check whether the blocks have the same lock_checkpoint in their previous epoch data.
+
+#### Sliding window density
+Let describe Mina's succinct sliding window density algorithm used by the long-range fork rule. In detail how windows are represented in blocks and how to compute _minimum window density_
+
+##### Nomenclature
+
+- We say a slot is _filled_ if it contains a valid non-orphaned block.
+- An _w-window_ is a sequential list of slots s1,...,sw of length _w_.
+- A _sub-window_ is a contiguous interval of a _w-window_.
+- The _density_ of an w-window (or sub-window) is the number non-orphan block within it.
+- We use the terms _window_, _density window_, _sliding window_ and _w-window_ synonymously.
+- v is the Length by which the window shifts in slots (shift parameter).  ``slots_per_sub_window``
+- w is the Window length in slots.  ( the sliding window is a _w_-long window that shifts _v_-slots at a time).
+
+The Samasika research paper presents security proofs that determine the secure values for v, w, and sub-windows per window.  
+A sliding window can also be viewed as a collection of _sub-windows_.  
+Rather than storing a window as clusters of slots, Samasika focuses solely on the density of each sub-window.  
+The density of a window is computed as the sum of the densities of its sub-windows.
+
+Given a window ``W`` that is a list of sub-window densities, the window density is: ``density(W) = sum(W)``
+
+##### Window structure
+
+We use the phrase "window at sub-window _s_" to refer to the window _W_ whose most recent global sub-window is _s_.  
+In the Samasika paper the window structure actually consists of the **11 previous sub-window densities**, the **current sub-window density** and the **minimum window density** .A total of _13_ densities.  
+The most recent sub-window may be a previous sub-window or the current sub-window.  
+
+##### Minimum window density
+The **minimum window density** at a given slot is defined as the minimum window density observed over all previous sub-windows and previous windows, all the way back to genesis.  
+When a new block _B_ with parent _P_ is created, the minimum window density is computed like this.  
+``B.min_window_density = min(P.min_window_density, current_window_density)``  
+where ``current_window_density`` is the density of _B's_ projected window
+
+The relative sub-window _i_ of a sub-window _sw_ is its index within the window.
+
+##### Ring-shift
+When we shift a window ``[d0, d1, ..., d10]`` in order to add in a new sub-window ``d11``, we could evict the oldest sub-window d0 by shifting down all of the other sub-windows. Unfortunately, shifting a list in a SNARK circuit is very expensive.  
+It is more efficient (and also equivalent) to just replace the sub-window we wish to evict by overwriting it with the new sub-window, like this:
+ ``sub_window_densities: d11 | d1 | d2 | d3 | d4 | d5 | d6 | d7 | d8 | d9 | d10``
+
+##### Projected window
+
+Generating a new block and determining the optimal chain in accordance with the long-range fork rule involve the computation of a projected window.  
+Given a window _W_ and a future global slot _next_, the projected window of _W_ to slot _next_ is a transformation of _W_ into what it would look like if it were positioned at slot _next_.  
+For example, when a new block _B_ is produced with parent block _P_, the height of _B_ will be the height of _P_ plus one, but the global slot of _B_ will depend on how much time has elapsed since _P_ was created.  
+According to the Samasika paper, the window of _B_ must be initialized based on _P's_ window, then shifted because _B_ is ahead of _P_ and finally the value of _B's_ sub-window is incremented to account for _B_ belonging to it.  
+Remember that the calculation of window density, including sub-window s, only occurs when the sub-window is greater than s, after s becomes a previous sub-window. 
+Therefore, if _next_ is **k** sub-windows ahead of _W_ we must shift only **k - 1** times because we must keep the most recent previous sub-window.
+
+Now that we know how much to ring-shift, the next question is what density values to shift in. Remember that when projecting W to global slot next, we said that there are no intermediate blocks. That is, all of the slots and sub-windows are empty between W's current slot and next. Consequently, we must ring-shift in zero densities. The resulting window W is the projected window.
+
+Recall this diagram:
+![](/img/consensus01.png)
+Suppose window W's current sub-window is 11 whose density is d11 and d1 is the oldest sub-window density
+
+Now imagine we want to project W to global slot ``next = 15``. This is ``k = 15 - 11 = 4`` sub-windows ahead of the most recent sub-window. Therefore, we compute ``shift_count = min(max(k - 1, 0), sub_windows_per_window)``  in this case: ``shift_count = min(max(4 - 1, 0), 11) = 3``
+
+Ring-shift in 3 zero densities to obtain the projected window.
+![](/img/consensus02.png)
+
+We can derive some instructive cases from the general rule 
+![](/img/consensus03.png)
+
+##### Genesis window
+
+Anything related to Genesis windows is not involved in the Mina Bridge.
+
+##### Relative minimum window density
+
+When Mina engages "chain selection" in the long-range fork rule, It doesn't directly employ the minimum window densities found in  in the current and candidate blocks.  
+Rather than that, Mina opts for the relative minimum window density...
+
+Remember that the minimum window density consistently decreases. Consequently, if a peer has been offline for a while and wants to reconnect, their current best chain might exhibit a higher minimum window density compared to the canonical chain candidate.
+Additionally, the long-range fork rule dictates that the peer to choose the chain with the superior minimum density.  
+The calculation of the minimum window density does not take into account the relationship between the current best chain and the canonical chain with respect to time.  
+Within Samasika, time is encapsulated and safeguarded by the notions of slots and the VRF. When computing the minimum window density, it is imperative to factor in these elements as well.  
+The relative minimum window density solves this problem by projecting the joining peer's current block's window to the global slot of the candidate block.  
+
+## Protocol
+This section outlines the consensus protocol in terms of events. **Initialize consensus** and **Select chain**. 
+
+In the following description, dot notation is used to refer to the local data members of peers. For example, given peer P, we use P.genesis_block and P.tip, to refer to the genesis block and currently selected chain, respectively.  
+For example, given peer ``P``, we use ``P.genesis_block`` and ``P.tip``, to refer to the genesis block and currently selected chain, respectively.
+
+### Initialize consensus
+Things a peer MUST do to initialize consensus includes are _Load the genesis block_, _Get the tip_, _Bootstrap_ and _Catchup_  
+Bootstrapping consensus requires the ability to synchronize epoch ledgers from the network.  
+All peers MUST have the ability to load both the staking epoch ledger and next epoch ledger from disk and by downloading them. P2P peers MUST also make these ledgers available for other peers.  
+
+### Select chain
+Each time a peer's chains receive an update, the select chain event takes place.  
+A chain is said to be updated anytime a valid block is added or removed from its head. The chain selection algorithm also incorporates certain tiebreak logic.  
+Supplementary tiebreak logic becomes necessary when assessing chains with identical length or equal minimum density.
+
+Let ``P.tip`` refer to the top block of peer ``P``'s current best chain. Assuming an update to either ``P.tip`` or ``P.chains``, ``P`` must update its tip similar to this:
+![](/img/consensus06.png)
+
+The following selectSecureChain algorithm receives the peer's current best chain P.tip and its set of known valid chains P.chains and produces the most secure chain as output.  
+![](/img/consensus07.png)
+
+And the ``selectLongerChain`` algorithm:
+
+
+![](/img/consensus08.png)
+
+
+### Maintaining the k-th predecessor epoch ledger
+The staking and next epoch ledgers MUST be finalized ledgers and can only advance when there is sufficient depth to achieve finality.  
+The staking and next epoch ledgers must be in a finalized state and can progress only when there is enough depth to ensure finality. Peers are required to retain the epoch ledger of the k-th predecessor from the tip, where ``k`` represents the depth of finality.  
+Due to the security prerequisites of Ouroboros, the gap in slots between the staking and next epoch ledgers may be great. Consequently, at any given moment, we essentially have three "pointers": staking ``s``, next ``n``, and finality ``k``.  
+The ``final_ledger`` (epoch ledger of the k-th predecessor from the tip) is updated each time chain selection occurs, i.e., for every new tip block appended.  
+
+### Getting the tip
+For a joining peer to discover the head of the current chain it MUST not only obtain the tip, but also the min(k, tip.height - 1)-th block back from the tip. For the latter the peer MUST check the block's proof of finality.  
+Peers perform the proof of finality check by verifying two zero-knowledge proofs, one for the _tip_ and one for the _root_, and a Merkle proof for the chain of protocol state hashes between them.
+
+
+

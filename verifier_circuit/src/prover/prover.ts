@@ -77,6 +77,24 @@ export class ProverProof {
 
         //~ 6. If lookup is used:
         // WARN: omitted lookup-related for now
+        /*
+        if let Some(l) = &index.lookup_index {
+            let lookup_commits = self
+                .commitments
+                .lookup
+                .as_ref()
+                .ok_or(VerifyError::LookupCommitmentMissing)?;
+
+            // if runtime is used, absorb the commitment
+            if l.runtime_tables_selector.is_some() {
+                let runtime_commit = lookup_commits
+                    .runtime
+                    .as_ref()
+                    .ok_or(VerifyError::IncorrectRuntimeProof)?;
+                absorb_commitment(&mut fq_sponge, runtime_commit);
+            }
+        }
+        */
 
         //~ 7. Sample $\beta$ with the Fq-Sponge.
         const beta = fq_sponge.challenge();
@@ -671,6 +689,18 @@ export class RecursionChallenge {
     }
 }
 
+/**
+* Commitments linked to the lookup feature
+*/
+export class LookupCommitments {
+    /// Commitments to the sorted lookup table polynomial (may have chunks)
+    sorted: PolyComm<Group>[]
+    /// Commitment to the lookup aggregation polynomial
+    aggreg: PolyComm<Group>
+    /// Optional commitment to concatenated runtime tables
+    runtime?: PolyComm<Group>
+}
+
 export class ProverCommitments {
     /* Commitments to the witness (execution trace) */
     wComm: PolyComm<ForeignGroup>[]
@@ -678,7 +708,8 @@ export class ProverCommitments {
     zComm: PolyComm<ForeignGroup>
     /* Commitment to the quotient polynomial */
     tComm: PolyComm<ForeignGroup>
-    // TODO: lookup commitment
+    /// Commitments related to the lookup argument
+    lookup?: LookupCommitments
 }
 
 function getBit(limbs_lsb: bigint[], i: number): bigint {
