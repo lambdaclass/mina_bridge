@@ -11,8 +11,8 @@ contract Verify is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         KimchiVerifier verifier = new KimchiVerifier();
-
-        verifier.setup(vm.readFileBinary("urs.mpk"));
+        bytes memory urs_serialized = vm.readFileBinary("urs.mpk");
+        verifier.setup(urs_serialized);
 
         bool success = verifier.verify_with_index(
             vm.readFileBinary("verifier_index.mpk"),
