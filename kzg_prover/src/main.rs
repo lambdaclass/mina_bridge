@@ -297,59 +297,6 @@ fn generate_test_proof() {
     println!("Is test circuit's KZG proof valid?: {:?}", verified);
 }
 
-fn generate_test_proof() {
-    let public_input: Vec<ScalarField> = vec![42.into(); 5];
-    let gates = create_circuit::<ScalarField>(0, public_input.len());
-
-    // create witness
-    let mut witness: [Vec<_>; COLUMNS] = array::from_fn(|_| vec![0.into(); gates.len()]);
-    fill_in_witness::<ScalarField>(0, &mut witness, &[]);
-
-    let cs = ConstraintSystem::<ScalarField>::create(gates)
-        .build()
-        .unwrap();
-
-    const ZK_ROWS: usize = 3;
-    let domain_size = cs.gates.len() + ZK_ROWS;
-    let domain = EvaluationDomains::create(domain_size).unwrap();
-
-    let n = domain.d1.size as usize;
-
-    let srs = create_srs(42.into(), n, domain);
-    let endo_q = G1::endos().1;
-    let prover_index =
-        ProverIndex::<G1, PairingProof<ark_ec::bn::Bn<ark_bn254::Parameters>>>::create(
-            cs,
-            endo_q,
-            Arc::new(srs.clone()),
-        );
-
-    let groupmap = <G1 as CommitmentCurve>::Map::setup();
-    let prover_proof = ProverProof::create::<KeccakFqSponge, KeccakFrSponge>(
-        &groupmap,
-        witness,
-        &[],
-        &prover_index,
-    )
-    .unwrap();
-
-    fs::write(
-        "../eth_verifier/verifier_index.mpk",
-        rmp_serde::to_vec(&prover_index.verifier_index()).unwrap(),
-    )
-    .unwrap();
-
-    let context = Context {
-        verifier_index: &prover_index.verifier_index(),
-        proof: &prover_proof,
-        public_input: &public_input,
-    };
-
-    let verified =
-        batch_verify::<G1, KeccakFqSponge, KeccakFrSponge, KZGProof>(&groupmap, &[context]).is_ok();
-    println!("Is test circuit's KZG proof valid?: {:?}", verified);
-}
-
 fn serialize_g1point_for_verifier(point: G1Affine) -> Result<Vec<u8>, SerializationError> {
     let mut point_serialized = vec![];
     point.serialize_uncompressed(&mut point_serialized)?;
