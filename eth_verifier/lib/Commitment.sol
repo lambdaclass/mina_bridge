@@ -25,8 +25,8 @@ struct URS {
 }
 
 struct PairingURS {
-    URS full_srs;
-    URS verifier_srs;
+    URS full_urs;
+    URS verifier_urs;
     mapping(uint256 => PolyCommFlat) lagrange_bases_unshifted;
 }
 

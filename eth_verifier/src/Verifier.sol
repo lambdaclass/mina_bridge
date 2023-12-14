@@ -57,6 +57,7 @@ contract KimchiVerifier {
 
     VerifierIndex verifier_index;
     ProverProof proof;
+    PairingURS urs;
 
     Sponge base_sponge;
     Sponge scalar_sponge;
@@ -67,10 +68,7 @@ contract KimchiVerifier {
     function setup(
         bytes memory urs_serialized
     ) public {
-        (BN254.G1Point[] memory g, BN254.G1Point memory h, uint256 _i0) = MsgPk
-            .deserializeURS(urs_serialized);
-        verifier_index.urs.g = g;
-        verifier_index.urs.h = h;
+        MsgPk.deser_pairing_urs(MsgPk.new_stream(urs_serialized), urs);
 
         verifier_index.powers_of_alpha.register(ArgumentType.GateZero, 21);
         verifier_index.powers_of_alpha.register(ArgumentType.Permutation, 3);
@@ -93,14 +91,15 @@ contract KimchiVerifier {
             proof
         );
 
-        calculate_lagrange_bases(
-            verifier_index.urs.g,
-            verifier_index.urs.h,
-            verifier_index.domain_size,
-            verifier_index.urs.lagrange_bases_unshifted
-        );
+        //calculate_lagrange_bases(
+        //    verifier_index.urs.g,
+        //    verifier_index.urs.h,
+        //    verifier_index.domain_size,
+        //    verifier_index.urs.lagrange_bases_unshifted
+        //);
 
         partial_verify(new Scalar.FE[](0));
+        // final_verify();
         return false;
     }
 
@@ -153,8 +152,7 @@ contract KimchiVerifier {
         if (public_inputs.length != verifier_index.public_len) {
             revert IncorrectPublicInputLength();
         }
-        PolyCommFlat memory lgr_comm_flat = verifier_index
-            .urs
+        PolyCommFlat memory lgr_comm_flat = urs
             .lagrange_bases_unshifted[verifier_index.domain_size];
         PolyComm[] memory comm = new PolyComm[](verifier_index.public_len);
         PolyComm[] memory lgr_comm = poly_comm_unflat(lgr_comm_flat);
@@ -166,7 +164,7 @@ contract KimchiVerifier {
         if (public_inputs.length == 0) {
             BN254.G1Point[] memory blindings = new BN254.G1Point[](chunk_size);
             for (uint256 i = 0; i < chunk_size; i++) {
-                blindings[i] = verifier_index.urs.h;
+                blindings[i] = urs.full_urs.h;
             }
             public_comm = PolyComm(blindings);
         } else {
@@ -182,7 +180,7 @@ contract KimchiVerifier {
                 blinders[i] = Scalar.FE.wrap(1);
             }
             public_comm = mask_custom(
-                verifier_index.urs,
+                urs.full_urs,
                 public_comm_tmp,
                 blinders
             ).commitment;

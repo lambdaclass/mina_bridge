@@ -500,9 +500,8 @@ library MsgPk {
 
     function deser_lagrange_bases(
         EncodedMap memory map,
-        mapping(uint256 => PolyCommFlat) storage lagrange_bases_unshifted,
-        uint64 domain_size
-    ) public returns (PointEvaluationsArray[] memory evals) {
+        mapping(uint256 => PolyCommFlat) storage lagrange_bases_unshifted
+    ) public {
         for (uint i = 0; i < map.keys.length; i++) {
             EncodedArray memory comms = abi.decode(map.values[i], (EncodedArray));
             PolyComm[] memory polycomms = new PolyComm[](comms.values.length);
@@ -524,19 +523,47 @@ library MsgPk {
         }
     }
 
-    function deser_pairing_urs(Stream memory self, URS storage urs) public {
+    function deser_pairing_urs(Stream memory self, PairingURS storage urs) public {
+        // full_srs and verifier_srs fields
         EncodedMap memory urs_map = deser_fixmap(self);
 
-        EncodedMap memory full_urs = abi.decode(find_value(urs_map, "full_srs"), (EncodedMap));
-        EncodedMap memory verifier_urs = abi.decode(find_value(urs_map, "verifier_srs"), (EncodedMap));
+        EncodedMap memory full_urs_serialized = abi.decode(find_value(urs_map, "full_srs"), (EncodedMap));
+        EncodedMap memory verifier_urs_serialized = abi.decode(find_value(urs_map, "verifier_srs"), (EncodedMap));
 
-        EncodedArray memory full_urs_g = abi.decode(find_value(full_urs, "g"), (EncodedArray));
-        EncodedMap memory full_urs_h = abi.decode(find_value(full_urs, "h"), (EncodedMap));
+        // get data from g and h fields (g is an array of buffers and h is a buffer)
+        EncodedArray memory full_urs_g_serialized = abi.decode(find_value(full_urs_serialized, "g"), (EncodedArray));
+        EncodedMap memory full_urs_h_serialized = abi.decode(find_value(full_urs_serialized, "h"), (EncodedMap));
 
-        EncodedArray memory verifier_urs_g = abi.decode(find_value(verifier_urs_g, "g"), (EncodedArray));
-        EncodedMap memory verifier_urs_h = abi.decode(find_value(verifier_urs_g, "h"), (EncodedMap));
+        EncodedArray memory verifier_urs_g_serialized = abi.decode(find_value(verifier_urs_serialized, "g"), (EncodedArray));
+        EncodedMap memory verifier_urs_h_serialized = abi.decode(find_value(verifier_urs_serialized, "h"), (EncodedMap));
 
+        // deserialized and save g for both URS
+        uint full_urs_g_length = full_urs_g_serialized.values.length;
+        BN254.G1Point[] memory full_urs_g = new BN254.G1Point[](full_urs_g_length);
+        for (uint i = 0; i < full_urs_g_length; i++) {
+            full_urs_g[i] = BN254.g1Deserialize(bytes32(deser_buffer(abi.decode(full_urs_g_serialized.values[i], (EncodedMap)))));
+        }
 
+        uint verifier_urs_g_length = verifier_urs_g_serialized.values.length;
+        BN254.G1Point[] memory verifier_urs_g = new BN254.G1Point[](verifier_urs_g_length);
+        for (uint i = 0; i < verifier_urs_g_length; i++) {
+            verifier_urs_g[i] = BN254.g1Deserialize(bytes32(deser_buffer(abi.decode(verifier_urs_g_serialized.values[i], (EncodedMap)))));
+        }
+
+        // deserialized and save h for both URS
+        BN254.G1Point memory full_urs_h = BN254.g1Deserialize(bytes32(deser_buffer(full_urs_h_serialized)));
+        BN254.G1Point memory verifier_urs_h = BN254.g1Deserialize(bytes32(deser_buffer(verifier_urs_h_serialized)));
+
+        // store values
+        urs.full_urs.g = full_urs_g;
+        urs.full_urs.h = full_urs_h;
+
+        urs.verifier_urs.g = verifier_urs_g;
+        urs.verifier_urs.h = verifier_urs_h;
+
+        // deserialize and store lagrange bases
+        EncodedMap memory lagrange_b_serialized = abi.decode(find_value(full_urs_serialized, "lagrange_bases"), (EncodedMap));
+        deser_lagrange_bases(lagrange_b_serialized, urs.lagrange_bases_unshifted);
     }
 
     //  !!! FUNCTIONS BELOW ARE DEPRECATED !!!
