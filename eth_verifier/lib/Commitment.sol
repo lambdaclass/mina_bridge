@@ -24,10 +24,38 @@ struct URS {
     BN254.G1Point h;
 }
 
+function create_trusted_setup(Scalar.FE x, uint depth) view returns (URS memory) {
+    Scalar.FE x_pow = Scalar.one();
+    BN254.G1Point[] memory g = new BN254.G1Point[](depth);
+    BN254.G1Point memory h = BN254.P1(); // should be blake2b hash
+
+    for (uint i = 0; i < depth; i++) {
+        g[i] = BN254.P1().scale_scalar(x_pow);
+        x_pow = x_pow.mul(x);
+    }
+
+    return URS(g, h);
+}
+
 struct PairingURS {
     URS full_urs;
     URS verifier_urs;
     mapping(uint256 => PolyCommFlat) lagrange_bases_unshifted;
+}
+
+function random_lagrange_bases(PairingURS storage urs, uint domain_size) {
+    uint n = domain_size;
+
+    uint[] memory u_lengths = new uint[](1);
+    u_lengths[0] = domain_size;
+
+    BN254.G1Point[] memory unshifteds = new BN254.G1Point[](domain_size);
+    for (uint i = 0; i < domain_size; i++) {
+        unshifteds[i] = BN254.P1();
+    }
+
+    PolyCommFlat memory comms = PolyCommFlat(unshifteds, u_lengths);
+    urs.lagrange_bases_unshifted[domain_size] = comms;
 }
 
 struct PolyComm {

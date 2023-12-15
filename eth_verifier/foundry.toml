@@ -2,6 +2,11 @@
 src = "src"
 out = "out"
 libs = ["lib"]
-fs_permissions = [{ access = "read", path = "./proof.mpk"}, { access = "read", path = "./state.mpk"}, { access = "read", path = "./urs.mpk"}]
+fs_permissions = [
+    { access = "read", path = "./proof.mpk"},
+    { access = "read", path = "./state.mpk"},
+    { access = "read", path = "./urs.mpk"},
+    { access = "read", path = "./verifier_index.mpk"}
+]
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

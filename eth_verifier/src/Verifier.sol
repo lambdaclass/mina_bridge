@@ -68,7 +68,12 @@ contract KimchiVerifier {
     function setup(
         bytes memory urs_serialized
     ) public {
-        MsgPk.deser_pairing_urs(MsgPk.new_stream(urs_serialized), urs);
+        //MsgPk.deser_pairing_urs(MsgPk.new_stream(urs_serialized), urs);
+        // URS deserialization is WIP, we'll generate a random one for now:
+        Scalar.FE x = Scalar.from(42);
+        uint max_domain_size = 16384;
+        urs.full_urs = create_trusted_setup(x, max_domain_size);
+        urs.verifier_urs = create_trusted_setup(x, 3);
 
         verifier_index.powers_of_alpha.register(ArgumentType.GateZero, 21);
         verifier_index.powers_of_alpha.register(ArgumentType.Permutation, 3);
