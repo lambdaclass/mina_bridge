@@ -525,9 +525,7 @@ library MsgPk {
 
     function deser_pairing_urs(Stream memory self, PairingURS storage urs) public {
         // full_srs and verifier_srs fields
-        console.log("before");
         EncodedMap memory urs_map = deser_fixmap(self);
-        console.log("after");
 
         EncodedMap memory full_urs_serialized = abi.decode(find_value(urs_map, abi.encode("full_srs")), (EncodedMap));
         EncodedMap memory verifier_urs_serialized = abi.decode(find_value(urs_map, abi.encode("verifier_srs")), (EncodedMap));
