@@ -39,6 +39,7 @@ library Oracles {
 
     uint64 internal constant CHALLENGE_LENGTH_IN_LIMBS = 2;
 
+    // This takes Kimchi's `oracles()` as reference.
     function fiat_shamir(
         ProverProof memory proof,
         VerifierIndex storage index,
@@ -259,7 +260,9 @@ library Oracles {
             curr++;
         }
 
+        // TODO: is this necessary? doc is available in its definition.
         PolyMatrices memory es = PolyMatrices(es_data, matrix_count, rows, cols, starts);
+
         // TODO: add evaluations of all columns
 
         Scalar.FE combined_inner_prod = combined_inner_product(evaluation_points, v, u, es, index.max_poly_size);
