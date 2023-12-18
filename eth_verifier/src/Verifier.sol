@@ -287,19 +287,24 @@ contract KimchiVerifier {
 
                 VariableBaseMSM::multi_scalar_mul(&points, &scalars)
             };
+        */
+        /*
             let evals = combine_evaluations(evaluations, polyscale);
             let blinding_commitment = srs.full_srs.h.mul(self.blinding);
             let divisor_commitment = srs
                 .verifier_srs
                 .commit_non_hiding(&divisor_polynomial(elm), 1, None)
                 .unshifted[0];
+        */
+        /*
             let eval_commitment = srs
                 .full_srs
                 .commit_non_hiding(&eval_polynomial(elm, &evals), 1, None)
                 .unshifted[0]
                 .into_projective();
             let numerator_commitment = { poly_commitment - eval_commitment - blinding_commitment };
-
+        */
+        /*
             let numerator = Pair::pairing(
                 numerator_commitment,
                 Pair::G2Affine::prime_subgroup_generator(),
