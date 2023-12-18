@@ -65,9 +65,7 @@ contract KimchiVerifier {
     State internal state;
     bool state_available;
 
-    function setup(
-        bytes memory urs_serialized
-    ) public {
+    function setup() public {
         //MsgPk.deser_pairing_urs(MsgPk.new_stream(urs_serialized), urs);
         // URS deserialization is WIP, we'll generate a random one for now:
         Scalar.FE x = Scalar.from(42);
