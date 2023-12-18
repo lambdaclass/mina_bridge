@@ -1,6 +1,6 @@
 mod snarky_gate;
 
-use std::{array, fs, ops::Neg, sync::Arc};
+use std::{array, collections::HashMap, fs, ops::Neg, sync::Arc};
 
 use ark_bn254::{G1Affine, G2Affine};
 use ark_ec::{
@@ -98,13 +98,11 @@ fn generate_test_proof_ex() {
         .unwrap();
 
     let x = ark_bn254::Fr::rand(rng);
-    let srs = Arc::new(create_srs(x, cs.gates.len(), cs.domain));
-
-    let ptr: &mut SRS<G1> = unsafe { &mut *(std::sync::Arc::as_ptr(&srs) as *mut _) };
-    ptr.add_lagrange_basis(cs.domain.d1);
+    let mut srs = create_srs(x, cs.gates.len(), cs.domain);
+    srs.full_srs.add_lagrange_basis(cs.domain.d1);
 
     let (_endo_r, endo_q) = G1::endos();
-    let index = ProverIndex::<G1, KZGProof>::create(cs, *endo_q, srs);
+    let index = ProverIndex::<G1, KZGProof>::create(cs, *endo_q, Arc::new(srs.clone()));
 
     let group_map = <G1 as CommitmentCurve>::Map::setup();
     let proof = ProverProof::create_recursive::<KeccakFqSponge, KeccakFrSponge>(
@@ -116,8 +114,6 @@ fn generate_test_proof_ex() {
         None,
     )
     .unwrap();
-
-    println!("{:#?}", proof.evals.z.zeta);
 
     fs::write(
         "../eth_verifier/prover_proof.mpk",
@@ -131,7 +127,7 @@ fn generate_test_proof_ex() {
     .unwrap();
     fs::write(
         "../eth_verifier/urs.mpk",
-        rmp_serde::to_vec_named(&index.verifier_index().srs().verifier_srs).unwrap(),
+        rmp_serde::to_vec_named(&srs).unwrap(),
     )
     .unwrap();
 }
@@ -246,59 +242,6 @@ fn generate_verifier_circuit_proof() {
         pairing_proof.verify(&srs, &evaluations, polyscale, &evaluation_points)
     );
     println!("{}", verifier_index.powers_of_alpha);
-}
-
-fn generate_test_proof() {
-    let public_input: Vec<ScalarField> = vec![42.into(); 5];
-    let gates = create_circuit::<ScalarField>(0, public_input.len());
-
-    // create witness
-    let mut witness: [Vec<_>; COLUMNS] = array::from_fn(|_| vec![0.into(); gates.len()]);
-    fill_in_witness::<ScalarField>(0, &mut witness, &[]);
-
-    let cs = ConstraintSystem::<ScalarField>::create(gates)
-        .build()
-        .unwrap();
-
-    const ZK_ROWS: usize = 3;
-    let domain_size = cs.gates.len() + ZK_ROWS;
-    let domain = EvaluationDomains::create(domain_size).unwrap();
-
-    let n = domain.d1.size as usize;
-
-    let srs = create_srs(42.into(), n, domain);
-    let endo_q = G1::endos().1;
-    let prover_index =
-        ProverIndex::<G1, PairingProof<ark_ec::bn::Bn<ark_bn254::Parameters>>>::create(
-            cs,
-            endo_q,
-            Arc::new(srs.clone()),
-        );
-
-    let groupmap = <G1 as CommitmentCurve>::Map::setup();
-    let prover_proof = ProverProof::create::<KeccakFqSponge, KeccakFrSponge>(
-        &groupmap,
-        witness,
-        &[],
-        &prover_index,
-    )
-    .unwrap();
-
-    fs::write(
-        "../eth_verifier/verifier_index.mpk",
-        rmp_serde::to_vec(&prover_index.verifier_index()).unwrap(),
-    )
-    .unwrap();
-
-    let context = Context {
-        verifier_index: &prover_index.verifier_index(),
-        proof: &prover_proof,
-        public_input: &public_input,
-    };
-
-    let verified =
-        batch_verify::<G1, KeccakFqSponge, KeccakFrSponge, KZGProof>(&groupmap, &[context]).is_ok();
-    println!("Is test circuit's KZG proof valid?: {:?}", verified);
 }
 
 fn generate_test_proof() {
