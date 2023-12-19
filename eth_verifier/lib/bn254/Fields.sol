@@ -29,19 +29,13 @@ library Base {
         return FE.wrap(integer % MODULUS);
     }
 
-    function add(
-        FE self,
-        FE other
-    ) public pure returns (FE res) {
+    function add(FE self, FE other) public pure returns (FE res) {
         assembly {
             res := addmod(self, other, MODULUS) // addmod has arbitrary precision
         }
     }
 
-    function mul(
-        FE self,
-        FE other
-    ) public pure returns (FE res) {
+    function mul(FE self, FE other) public pure returns (FE res) {
         assembly {
             res := mulmod(self, other, MODULUS) // mulmod has arbitrary precision
         }
@@ -105,16 +99,17 @@ library Base {
 }
 
 import {console} from "forge-std/console.sol";
+
 /// @notice Implements 256 bit modular arithmetic over the scalar field of bn254.
 library Scalar {
     type FE is uint256;
 
-    using { add, mul, inv, neg, sub } for FE;
+    using {add, mul, inv, neg, sub} for FE;
 
     uint256 public constant MODULUS =
         21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
-    uint256 public constant TWO_ADIC_PRIMITIVE_ROOT_OF_UNITY = 
+    uint256 public constant TWO_ADIC_PRIMITIVE_ROOT_OF_UNITY =
         19103219067921713944291392827692070036145651957329286315305642004821462161904;
     uint256 public constant TWO_ADICITY = 28;
 
@@ -142,19 +137,13 @@ library Scalar {
         return FE.wrap(integer % MODULUS);
     }
 
-    function add(
-        FE self,
-        FE other
-    ) public pure returns (FE res) {
+    function add(FE self, FE other) public pure returns (FE res) {
         assembly {
             res := addmod(self, other, MODULUS) // addmod has arbitrary precision
         }
     }
 
-    function mul(
-        FE self,
-        FE other
-    ) public pure returns (FE res) {
+    function mul(FE self, FE other) public pure returns (FE res) {
         assembly {
             res := mulmod(self, other, MODULUS) // mulmod has arbitrary precision
         }
@@ -168,7 +157,7 @@ library Scalar {
         res = mul(self, self);
     }
 
-    function inv(FE self) public view returns (FE) {
+    function inv(FE self) public pure returns (FE) {
         require(FE.unwrap(self) != 0, "tried to get inverse of 0");
         (uint gcd, uint inverse) = Aux.xgcd(FE.unwrap(self), MODULUS);
         require(gcd == 1, "gcd not 1");
@@ -219,6 +208,7 @@ library Scalar {
     }
 
     error RootOfUnityError();
+
     /// @notice returns a primitive root of unity of order $2^{order}$.
     // Reference: Lambdaworks
     // https://github.com/lambdaclass/lambdaworks/
@@ -247,10 +237,7 @@ library Aux {
     /// @notice Extended euclidean algorithm. Returns [gcd, Bezout_a]
     /// @notice so gcd = a*Bezout_a + b*Bezout_b.
     /// @notice source: https://www.extendedeuclideanalgorithm.com/code
-    function xgcd(
-        uint a,
-        uint b
-    ) public pure returns (uint r0, uint s0) {
+    function xgcd(uint a, uint b) public pure returns (uint r0, uint s0) {
         r0 = a;
         uint r1 = b;
         s0 = 1;
@@ -261,21 +248,21 @@ library Aux {
         uint n = 0;
         while (r1 != 0) {
             uint q = r0 / r1;
-            r0 = r0 > q*r1 ? r0 - q*r1 : q*r1 - r0; // abs
+            r0 = r0 > q * r1 ? r0 - q * r1 : q * r1 - r0; // abs
 
             // swap r0, r1
             uint temp = r0;
             r0 = r1;
             r1 = temp;
 
-            s0 = s0 + q*s1;
+            s0 = s0 + q * s1;
 
             // swap s0, s1
             temp = s0;
             s0 = s1;
             s1 = temp;
 
-            t0 = t0 + q*t1;
+            t0 = t0 + q * t1;
 
             // swap t0, t1
             temp = t0;

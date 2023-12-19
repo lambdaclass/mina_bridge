@@ -18,7 +18,13 @@ import "../lib/expr/PolishToken.sol";
 import "../lib/expr/ExprConstants.sol";
 
 using {BN254.neg} for BN254.G1Point;
-using {Scalar.neg, Scalar.mul, Scalar.add} for Scalar.FE;
+using {
+    Scalar.neg,
+    Scalar.mul,
+    Scalar.add,
+    Scalar.inv,
+    Scalar.sub
+} for Scalar.FE;
 using {AlphasLib.get_alphas} for Alphas;
 using {Polynomial.evaluate} for Polynomial.Dense;
 
@@ -323,6 +329,45 @@ contract KimchiVerifier {
             numerator == scaled_quotient
         }
         */
+    }
+
+    /// The polynomial that evaluates to each of `evals` for the respective `elm`s.
+    function eval_polynomial(
+        Scalar.FE[] memory elm,
+        Scalar.FE[] memory evals
+    ) public pure returns (Polynomial.Dense memory) {
+        require(elm.length == evals.length, "lengths don't match");
+        require(elm.length == 2, "length must be 2");
+        Scalar.FE zeta = elm[0];
+        Scalar.FE zeta_omega = elm[1];
+        Scalar.FE eval_zeta = evals[0];
+        Scalar.FE eval_zeta_omega = evals[1];
+
+        // The polynomial that evaluates to `p(zeta)` at `zeta` and `p(zeta_omega)` at
+        // `zeta_omega`.
+        // We write `p(x) = a + bx`, which gives
+        // ```text
+        // p(zeta) = a + b * zeta
+        // p(zeta_omega) = a + b * zeta_omega
+        // ```
+        // and so
+        // ```text
+        // b = (p(zeta_omega) - p(zeta)) / (zeta_omega - zeta)
+        // a = p(zeta) - b * zeta
+        // ```
+
+        // Compute b
+        Scalar.FE num_b = eval_zeta_omega.add(eval_zeta.neg());
+        Scalar.FE den_b_inv = zeta_omega.add(zeta.neg()).inv();
+        Scalar.FE b = num_b.mul(den_b_inv);
+
+        // Compute a
+        Scalar.FE a = eval_zeta.sub(b.mul(zeta));
+
+        Scalar.FE[] memory coeffs = new Scalar.FE[](2);
+        coeffs[0] = a;
+        coeffs[1] = b;
+        return Polynomial.Dense(coeffs);
     }
 
     /*
