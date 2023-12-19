@@ -8,6 +8,7 @@ import "./expr/Expr.sol";
 
 struct ProverProof {
     ProofEvaluationsArray evals;
+    ProverCommitments commitments;
 }
 
 struct ProofEvaluations {
@@ -33,6 +34,13 @@ struct ProofEvaluationsArray {
     // permutation polynomials
     // (PERMUTS-1 evaluations because the last permutation is only used in commitment form)
     PointEvaluationsArray[7 - 1] s; // TODO: use Constants.PERMUTS
+}
+
+struct ProverCOmmitments {
+    PolyComm[15] w_comm; // TODO: use Constants.COLUMNS
+    PolyComm z_comm;
+    PolyComm t_comm;
+    // TODO: lookup commitments
 }
 
 function combine_evals(

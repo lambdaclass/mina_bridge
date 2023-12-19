@@ -207,6 +207,12 @@ contract KimchiVerifier {
 
         ProofEvaluations memory evals = proof.evals.combine_evals(oracles_res.powers_of_eval_points_for_chunks);
 
+        Context memory context = Context(
+            verifier_index,
+            proof,
+            public_inputs
+        );
+
         // Compute the commitment to the linearized polynomial $f$.
         Scalar.FE permutation_vanishing_polynomial =
             Polynomial.vanishes_on_last_n_rows(
@@ -221,8 +227,12 @@ contract KimchiVerifier {
                 Constants.PERMUTATION_CONSTRAINTS
         );
 
-        PolyComm[] memory commitments = new PolyComm[](0);
-        Scalar.FE[] memory scalars = new Scalar.FE[](1);
+        Linearization memory linear = verifier_index.linearization;
+
+        PolyComm[] memory commitments = new PolyComm[](linear.index_terms.length + 1); 
+        // FIXME: todo! initialize `commitments` with sigma_comm
+
+        Scalar.FE[] memory scalars = new Scalar.FE[](linear.index_terms.length + 1);
         scalars[0] = perm_scalars(
             evals,
             oracles.beta,
@@ -240,6 +250,25 @@ contract KimchiVerifier {
             new Scalar.FE[](0), // FIXME: keccak sponge mds is missing (can a MDS matrix be defined for the keccak sponge?)
             verifier_index.zk_rows
         );
+
+        for (uint i = 0; i < linear.index_terms.length; i++) {
+            Column memory col = linear.index_terms[i].col;
+            PolishToken[] memory tokens = linear.index_terms[i].coeff;
+
+            Scalar.FE scalar = evaluate(
+                tokens,
+                verifier_index.domain_gen,
+                verifier_index.domain_size,
+                oracles.zeta,
+                evals,
+                constants
+            );
+
+            scalars[i + 1] = scalar;
+            commitments[i + 1] = get_column(context, col);
+        }
+
+        PolyComm memory f_comm = polycom_msm(commitments, scalars);
     }
 
     function perm_scalars(

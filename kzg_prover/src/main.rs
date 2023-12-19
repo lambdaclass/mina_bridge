@@ -32,7 +32,7 @@ use kimchi::{
     o1_utils::{foreign_field::BigUintForeignFieldHelpers, BigUintFieldHelpers, FieldHelpers},
     proof::ProverProof,
     prover_index::{self, ProverIndex},
-    verifier::{batch_verify, Context},
+    verifier::{batch_verify, Context}, prover,
 };
 use num::{bigint::RandBigInt, BigUint};
 use num_traits::{One, Zero};
@@ -103,6 +103,7 @@ fn generate_test_proof_ex() {
 
     let (_endo_r, endo_q) = G1::endos();
     let index = ProverIndex::<G1, KZGProof>::create(cs, *endo_q, Arc::new(srs.clone()));
+    println!("{:#?}", index.linearization);
 
     let group_map = <G1 as CommitmentCurve>::Map::setup();
     let proof = ProverProof::create_recursive::<KeccakFqSponge, KeccakFrSponge>(
