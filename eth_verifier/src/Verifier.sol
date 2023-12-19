@@ -207,12 +207,6 @@ contract KimchiVerifier {
 
         ProofEvaluations memory evals = proof.evals.combine_evals(oracles_res.powers_of_eval_points_for_chunks);
 
-        Context memory context = Context(
-            verifier_index,
-            proof,
-            public_inputs
-        );
-
         // Compute the commitment to the linearized polynomial $f$.
         Scalar.FE permutation_vanishing_polynomial =
             Polynomial.vanishes_on_last_n_rows(
@@ -265,10 +259,10 @@ contract KimchiVerifier {
             );
 
             scalars[i + 1] = scalar;
-            commitments[i + 1] = get_column(context, col);
+            commitments[i + 1] = get_column(verifier_index, proof, col);
         }
 
-        PolyComm memory f_comm = polycom_msm(commitments, scalars);
+        PolyComm memory f_comm = polycomm_msm(commitments, scalars);
     }
 
     function perm_scalars(

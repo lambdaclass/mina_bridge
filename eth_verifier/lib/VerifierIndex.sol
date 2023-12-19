@@ -26,7 +26,6 @@ struct VerifierIndex {
     /// domain offset for zero-knowledge
     Scalar.FE w;
     Linearization linearization;
-
     // polynomial commitments
 
     // permutation commitment array
@@ -40,30 +39,26 @@ function verifier_digest(VerifierIndex storage index) returns (Base.FE) {
     return Base.from(42);
 }
 
-struct Context {
-    VerifierIndex verifier_index;
-    ProverProof proof;
-    Scalar.FE[] public_inputs;
-}
-
 error UnimplementedVariant(ColumnVariant variant);
-function get_column(Context memory self, Column memory column)
-    pure
-    returns (PolyComm memory)
-{
+
+function get_column(
+    VerifierIndex storage verifier_index,
+    ProverProof storage proof,
+    Column memory column
+) view returns (PolyComm memory) {
     ColumnVariant colv = column.variant;
     if (colv == ColumnVariant.Witness) {
-        uint i = abi.decode(column.data, (uint));
-        return self.proof.commitments.w_comm[i];
+        uint256 i = abi.decode(column.data, (uint256));
+        return proof.commitments.w_comm[i];
     } else if (colv == ColumnVariant.Coefficient) {
-        uint i = abi.decode(column.data, (uint));
-        return self.verifier_index.coefficients_comm[i];
+        uint256 i = abi.decode(column.data, (uint256));
+        return verifier_index.coefficients_comm[i];
     } else if (colv == ColumnVariant.Permutation) {
-        uint i = abi.decode(column.data, (uint));
-        return self.verifier_index.sigma_comm[i];
+        uint256 i = abi.decode(column.data, (uint256));
+        return verifier_index.sigma_comm[i];
     } else if (colv == ColumnVariant.Z) {
-        uint i = abi.decode(column.data, (uint));
-        return self.verifier_index.z_comm;
+        uint256 i = abi.decode(column.data, (uint256));
+        return proof.commitments.z_comm;
     } else {
         revert UnimplementedVariant(column.variant);
     }

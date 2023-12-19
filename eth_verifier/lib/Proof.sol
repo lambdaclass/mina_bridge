@@ -5,6 +5,7 @@ import "./Evaluations.sol";
 import "./Polynomial.sol";
 import "./Constants.sol";
 import "./expr/Expr.sol";
+import "./Commitment.sol";
 
 struct ProverProof {
     ProofEvaluationsArray evals;
@@ -36,7 +37,7 @@ struct ProofEvaluationsArray {
     PointEvaluationsArray[7 - 1] s; // TODO: use Constants.PERMUTS
 }
 
-struct ProverCOmmitments {
+struct ProverCommitments {
     PolyComm[15] w_comm; // TODO: use Constants.COLUMNS
     PolyComm z_comm;
     PolyComm t_comm;
