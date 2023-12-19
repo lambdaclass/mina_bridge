@@ -368,6 +368,56 @@ library MsgPk {
 
         // domain offset for zero-knowledge
         index.w = index.domain_gen.pow(index.domain_size - index.zk_rows);
+
+        // commitments
+        EncodedArray memory sigma_comm_arr = abi.decode(
+            find_value(map, abi.encode("sigma_comm")),
+            (EncodedArray)
+        );
+        EncodedArray memory coefficients_comm_arr = abi.decode(
+            find_value(map, abi.encode("coefficients_comm")),
+            (EncodedArray)
+        );
+
+        PolyComm[7] memory sigma_comm;
+        for (uint i = 0; i < sigma_comm.length; i++) {
+            sigma_comm[i] = deser_poly_comm(abi.decode(
+                sigma_comm_arr.values[i],
+                (EncodedMap))
+            );
+        }
+
+        PolyComm[15] memory coefficients_comm;
+        for (uint i = 0; i < coefficients_comm.length; i++) {
+            coefficients_comm[i] = deser_poly_comm(abi.decode(
+                coefficients_comm_arr.values[i],
+                (EncodedMap))
+            );
+        }
+    }
+
+    function deser_poly_comm(EncodedMap memory map)
+        public
+        view
+        returns (PolyComm memory) 
+    {
+        EncodedArray memory unshifted_arr = abi.decode(
+            find_value(map, abi.encode("unshifted")),
+            (EncodedArray)
+        );
+
+        uint len = unshifted_arr.values.length;
+        BN254.G1Point[] memory unshifted = new BN254.G1Point[](len);
+        for (uint i = 0; i < len; i++) {
+            EncodedMap memory buffer = abi.decode(
+                unshifted_arr.values[i],
+                (EncodedMap)
+            );
+            unshifted[i] = BN254.g1Deserialize(bytes32(deser_buffer(buffer)));
+        }
+        // TODO: shifted part
+
+        return PolyComm(unshifted);
     }
 
     function deser_prover_proof(
