@@ -9,10 +9,7 @@ fetch() {
         consensusState {
           blockHeight
         }
-<<<<<<< Updated upstream
       }
-=======
->>>>>>> Stashed changes
 
       protocolStateProof {
         base64
