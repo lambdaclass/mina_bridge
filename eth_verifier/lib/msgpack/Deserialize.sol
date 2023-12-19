@@ -394,6 +394,9 @@ library MsgPk {
                 (EncodedMap))
             );
         }
+
+        index.sigma_comm = sigma_comm;
+        index.coefficients_comm = coefficients_comm;
     }
 
     function deser_poly_comm(EncodedMap memory map)
@@ -426,6 +429,8 @@ library MsgPk {
     ) external {
         EncodedMap memory map = deser_fixmap(self);
 
+        // deserialize evaluations
+
         EncodedMap memory all_evals_map = abi.decode(
             find_value(map, abi.encode("evals")),
             (EncodedMap)
@@ -451,6 +456,40 @@ library MsgPk {
         for (uint256 i = 0; i < 6; i++) {
             prover_proof.evals.w[i] = w[i];
         }
+
+        // deserialize commitments
+
+        EncodedMap memory comm_map = abi.decode(
+            find_value(map, abi.encode("commitments")),
+            (EncodedMap)
+        );
+
+        EncodedArray memory w_comm_arr = abi.decode(
+            find_value(comm_map, abi.encode("w_comm")),
+            (EncodedArray)
+        );
+        EncodedMap memory z_comm_map = abi.decode(
+            find_value(comm_map, abi.encode("z_comm")),
+            (EncodedMap)
+        );
+        EncodedMap memory t_comm_map = abi.decode(
+            find_value(comm_map, abi.encode("t_comm")),
+            (EncodedMap)
+        );
+
+        PolyComm[15] memory w_comm;
+        for (uint i = 0; i < w_comm.length; i++) {
+            w_comm[i] = deser_poly_comm(abi.decode(
+                w_comm_arr.values[i],
+                (EncodedMap))
+            );
+        }
+        PolyComm memory z_comm = deser_poly_comm(z_comm_map);
+        PolyComm memory t_comm = deser_poly_comm(t_comm_map);
+
+        prover_proof.commitments.w_comm = w_comm;
+        prover_proof.commitments.z_comm = z_comm;
+        prover_proof.commitments.t_comm = t_comm;
     }
 
     function deser_evals(EncodedMap memory all_evals_map, string memory name)
