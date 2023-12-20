@@ -612,6 +612,8 @@ library MsgPk {
         }
     }
 
+    // WARN: using the full urs may not be necessary, so we would only have to deserialize
+    // the `verifier_urs` (which is only made of three points) and the lagrange bases.
     function deser_pairing_urs(Stream memory self, PairingURS storage urs) public {
         // full_srs and verifier_srs fields
         EncodedMap memory urs_map = deser_fixmap(self);
