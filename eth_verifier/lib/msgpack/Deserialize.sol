@@ -480,7 +480,7 @@ library MsgPk {
         PolyComm[15] memory w_comm;
         for (uint i = 0; i < w_comm.length; i++) {
             w_comm[i] = deser_poly_comm(abi.decode(
-                w_comm_arr.values[i],
+                w_comm_arr.values[i]
                 (EncodedMap))
             );
         }

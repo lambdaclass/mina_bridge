@@ -54,6 +54,7 @@ library Kimchi {
 contract KimchiVerifier {
     using {AlphasLib.register} for Alphas;
     using {combine_evals} for ProofEvaluationsArray;
+    using {chunk_commitment} for PolyComm;
 
     VerifierIndex verifier_index;
     ProverProof proof;
@@ -263,6 +264,12 @@ contract KimchiVerifier {
         }
 
         PolyComm memory f_comm = polycomm_msm(commitments, scalars);
+
+        // Compute the chunked commitment of ft
+        Scalar.FE zeta_to_srs_len = oracles.zeta.pow(verifier_index.max_poly_size);
+        PolyComm memory chunked_f_comm = f_comm.chunk_commitment(zeta_to_srs_len);
+        PolyComm memory chunked_t_comm = proof.commitments.t_comm.chunk_commitment(zeta_to_srs_len);
+        
     }
 
     function perm_scalars(
