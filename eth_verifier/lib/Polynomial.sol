@@ -32,7 +32,7 @@ library Polynomial {
     }
 
     function sub(Dense memory self, Dense memory other) public view returns (Dense memory) {
-        uint n = Utils.max(self.coeffs.length, other.coeffs.length);
+        uint n = Utils.min(self.coeffs.length, other.coeffs.length);
         Scalar.FE[] memory coeffs_self_sub_other = new Scalar.FE[](n);
         for (uint i = 0; i < n; i++) {
             coeffs_self_sub_other[i] = self.coeffs[i].sub(other.coeffs[i]);
@@ -76,7 +76,7 @@ library Polynomial {
 
         Scalar.FE term = domain_gen.pow(domain_size - i);
         Dense memory acc = sub(x, constant_poly(term));
-        for (uint j = 0; j < i - 1; i++) {
+        for (uint j = 0; j < i - 1; j++) {
             term = term.mul(domain_gen);
             acc = mul(acc, sub(x, constant_poly(term)));
         }

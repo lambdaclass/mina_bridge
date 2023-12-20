@@ -22,7 +22,40 @@ error MSMInvalidLengths();
 struct URS {
     BN254.G1Point[] g;
     BN254.G1Point h;
+}
+
+function create_trusted_setup(Scalar.FE x, uint depth) view returns (URS memory) {
+    Scalar.FE x_pow = Scalar.one();
+    BN254.G1Point[] memory g = new BN254.G1Point[](depth);
+    BN254.G1Point memory h = BN254.P1(); // should be blake2b hash
+
+    for (uint i = 0; i < depth; i++) {
+        g[i] = BN254.P1().scale_scalar(x_pow);
+        x_pow = x_pow.mul(x);
+    }
+
+    return URS(g, h);
+}
+
+struct PairingURS {
+    URS full_urs;
+    URS verifier_urs;
     mapping(uint256 => PolyCommFlat) lagrange_bases_unshifted;
+}
+
+function random_lagrange_bases(PairingURS storage urs, uint domain_size) {
+    uint n = domain_size;
+
+    uint[] memory u_lengths = new uint[](1);
+    u_lengths[0] = domain_size;
+
+    BN254.G1Point[] memory unshifteds = new BN254.G1Point[](domain_size);
+    for (uint i = 0; i < domain_size; i++) {
+        unshifteds[i] = BN254.P1();
+    }
+
+    PolyCommFlat memory comms = PolyCommFlat(unshifteds, u_lengths);
+    urs.lagrange_bases_unshifted[domain_size] = comms;
 }
 
 struct PolyComm {
@@ -34,21 +67,42 @@ struct PolyComm {
 
 struct PolyCommFlat {
     BN254.G1Point[] unshifteds;
-    uint unshifted_length;
+    uint[] unshifted_lengths;
 }
 
 function poly_comm_unflat(PolyCommFlat memory com) pure returns (PolyComm[] memory res) {
-    // FIXME: assumes that every unshifted is the same length
-
-    res = new PolyComm[](com.unshifteds.length / com.unshifted_length); 
-    for (uint i = 0; i < res.length; i++) {
-        uint n = com.unshifted_length;
+    uint comm_count = com.unshifted_lengths.length;
+    res = new PolyComm[](comm_count); 
+    uint index = 0;
+    for (uint i = 0; i < comm_count; i++) {
+        uint n = com.unshifted_lengths[i];
         BN254.G1Point[] memory unshifted = new BN254.G1Point[](n);
         for (uint j = 0; j < n; j++) {
-            unshifted[j] = com.unshifteds[j + i*n];
+            unshifted[j] = com.unshifteds[index];
+            index++;
         }
         res[i] = PolyComm(unshifted);
     }
+}
+
+function poly_comm_flat(PolyComm[] memory com) pure returns (PolyCommFlat memory) {
+    uint total_length = 0;
+    uint[] memory unshifted_lengths = new uint[](com.length);
+    for (uint i = 0; i < com.length; i++) {
+        total_length += com[i].unshifted.length;
+        unshifted_lengths[i] = com[i].unshifted.length;
+    }
+    BN254.G1Point[] memory unshifteds = new BN254.G1Point[](total_length);
+
+    uint index = 0;
+    for (uint i = 0; i < com.length; i++) {
+        for (uint j = 0; j < com[i].unshifted.length; j++) {
+            unshifteds[index] = com[i].unshifted[j];
+            index++;
+        }
+    }
+
+    return PolyCommFlat(unshifteds, unshifted_lengths);
 }
 
 // @notice Executes multi-scalar multiplication between scalars `elm` and commitments `com`.
@@ -184,7 +238,11 @@ function calculate_lagrange_bases(
         }
 
         PolyCommFlat storage bases_unshifted = lagrange_bases_unshifted[domain_size];
-        bases_unshifted.unshifted_length = unshifted.length;
+        uint[] memory unshifted_lengths = new uint[](num_unshifteds);
+        for (uint i = 0; i < num_unshifteds; i++) {
+            unshifted_lengths[i] = 0;
+        }
+        bases_unshifted.unshifted_lengths = unshifted_lengths;
 
         for (uint i = 0; i < domain_size; i++) {
             for (uint j = 0; j < unshifted.length; j++) {

@@ -57,6 +57,7 @@ contract KimchiVerifier {
 
     VerifierIndex verifier_index;
     ProverProof proof;
+    PairingURS urs;
 
     Sponge base_sponge;
     Sponge scalar_sponge;
@@ -64,37 +65,49 @@ contract KimchiVerifier {
     State internal state;
     bool state_available;
 
-    function setup(
-        BN254.G1Point[] memory g,
-        BN254.G1Point memory h,
-        uint256 public_len,
-        uint64 domain_size,
-        uint256 max_poly_size,
-        ProofEvaluationsArray memory evals
-    ) public {
-        for (uint i = 0; i < g.length; i++) {
-            verifier_index.urs.g.push(g[i]);
-        }
-        verifier_index.urs.h = h;
-        calculate_lagrange_bases(
-            g,
-            h,
-            domain_size,
-            verifier_index.urs.lagrange_bases_unshifted
-        );
-        verifier_index.public_len = public_len;
-        verifier_index.domain_size = domain_size;
-        verifier_index.max_poly_size = max_poly_size;
+    function setup() public {
+        //MsgPk.deser_pairing_urs(MsgPk.new_stream(urs_serialized), urs);
+        // URS deserialization is WIP, we'll generate a random one for now:
+        Scalar.FE x = Scalar.from(42);
+        uint max_domain_size = 16384;
+        urs.full_urs = create_trusted_setup(x, max_domain_size);
+        urs.verifier_urs = create_trusted_setup(x, 3);
+
         verifier_index.powers_of_alpha.register(ArgumentType.GateZero, 21);
         verifier_index.powers_of_alpha.register(ArgumentType.Permutation, 3);
 
         // TODO: Investigate about linearization and write a proper function for this
         verifier_index.powers_of_alpha.register(ArgumentType.GateZero, Constants.VARBASEMUL_CONSTRAINTS);
         verifier_index.powers_of_alpha.register(ArgumentType.Permutation, Constants.PERMUTATION_CONSTRAINTS);
-
-        proof.evals = evals;
     }
 
+    function verify_with_index(
+        bytes calldata verifier_index_serialized,
+        bytes calldata prover_proof_serialized
+    ) public returns (bool) {
+        MsgPk.deser_verifier_index(
+            MsgPk.new_stream(verifier_index_serialized),
+            verifier_index
+        );
+        MsgPk.deser_prover_proof(
+            MsgPk.new_stream(prover_proof_serialized),
+            proof
+        );
+
+        //calculate_lagrange_bases(
+        //    verifier_index.urs.g,
+        //    verifier_index.urs.h,
+        //    verifier_index.domain_size,
+        //    verifier_index.urs.lagrange_bases_unshifted
+        //);
+
+        partial_verify(new Scalar.FE[](0));
+        // final_verify();
+        return false;
+    }
+
+    /// @notice this is currently deprecated but remains as to not break
+    /// @notice the demo.
     function verify_state(
         bytes calldata state_serialized,
         bytes calldata proof_serialized
@@ -142,8 +155,7 @@ contract KimchiVerifier {
         if (public_inputs.length != verifier_index.public_len) {
             revert IncorrectPublicInputLength();
         }
-        PolyCommFlat memory lgr_comm_flat = verifier_index
-            .urs
+        PolyCommFlat memory lgr_comm_flat = urs
             .lagrange_bases_unshifted[verifier_index.domain_size];
         PolyComm[] memory comm = new PolyComm[](verifier_index.public_len);
         PolyComm[] memory lgr_comm = poly_comm_unflat(lgr_comm_flat);
@@ -155,7 +167,7 @@ contract KimchiVerifier {
         if (public_inputs.length == 0) {
             BN254.G1Point[] memory blindings = new BN254.G1Point[](chunk_size);
             for (uint256 i = 0; i < chunk_size; i++) {
-                blindings[i] = verifier_index.urs.h;
+                blindings[i] = urs.full_urs.h;
             }
             public_comm = PolyComm(blindings);
         } else {
@@ -171,7 +183,7 @@ contract KimchiVerifier {
                 blinders[i] = Scalar.FE.wrap(1);
             }
             public_comm = mask_custom(
-                verifier_index.urs,
+                urs.full_urs,
                 public_comm_tmp,
                 blinders
             ).commitment;
