@@ -2,7 +2,7 @@ mod snarky_gate;
 
 use std::{array, collections::HashMap, fs, ops::Neg, sync::Arc};
 
-use ark_bn254::{G1Affine, G2Affine};
+use ark_bn254::{Bn254, G1Affine, G2Affine};
 use ark_ec::{
     msm::VariableBaseMSM, short_weierstrass_jacobian::GroupAffine, AffineCurve, ProjectiveCurve,
 };
@@ -17,8 +17,10 @@ use ark_std::{
 };
 use kimchi::{
     circuits::{
+        berkeley_columns::Column,
         constraints::ConstraintSystem,
         domains::EvaluationDomains,
+        expr::{Linearization, PolishToken},
         gate::{CircuitGate, GateType},
         polynomials::{
             generic::testing::{create_circuit, fill_in_witness},
@@ -31,8 +33,9 @@ use kimchi::{
     keccak_sponge::{Keccak256FqSponge, Keccak256FrSponge},
     o1_utils::{foreign_field::BigUintForeignFieldHelpers, BigUintFieldHelpers, FieldHelpers},
     proof::ProverProof,
+    prover,
     prover_index::{self, ProverIndex},
-    verifier::{batch_verify, Context}, prover,
+    verifier::{batch_verify, Context},
 };
 use num::{bigint::RandBigInt, BigUint};
 use num_traits::{One, Zero};
@@ -131,6 +134,28 @@ fn generate_test_proof_ex() {
         rmp_serde::to_vec_named(&srs).unwrap(),
     )
     .unwrap();
+    fs::write(
+        "../eth_verifier/linearization.mpk",
+        rmp_serde::to_vec_named(&serialize_linearization(index.linearization)).unwrap(),
+    )
+    .unwrap();
+}
+
+fn serialize_linearization(
+    linearization: Linearization<Vec<PolishToken<ScalarField, Column>>, Column>,
+) -> Vec<u8> {
+    linearization
+        .constant_term
+        .iter()
+        .map(|token| {
+            match token {
+                PolishToken::Alpha => rmp_serde::to_vec_named(&"alpha"),
+                _ => rmp_serde::to_vec_named(&"not implemented"),
+            }
+            .unwrap()
+        })
+        .flatten()
+        .collect()
 }
 
 fn generate_verifier_circuit_proof() {
