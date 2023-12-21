@@ -143,9 +143,14 @@ fn generate_test_proof_ex() {
 }
 
 #[derive(Serialize)]
-struct Mds {
+struct MdsInner {
     row: usize,
     col: usize,
+}
+
+#[derive(Serialize)]
+struct Mds {
+    mds: MdsInner,
 }
 
 struct Literal {
@@ -198,7 +203,9 @@ fn serialize_linearization(
                 PolishToken::Gamma => rmp_serde::to_vec_named(&"gamma"),
                 PolishToken::JointCombiner => rmp_serde::to_vec_named(&"jointcombiner"),
                 PolishToken::EndoCoefficient => rmp_serde::to_vec_named(&"endocoefficient"),
-                PolishToken::Mds { row, col } => rmp_serde::to_vec_named(&Mds { row, col }),
+                PolishToken::Mds { row, col } => rmp_serde::to_vec_named(&Mds {
+                    mds: MdsInner { row, col },
+                }),
                 PolishToken::Literal(literal) => rmp_serde::to_vec_named(&Literal { literal }),
                 PolishToken::Cell(variable) => rmp_serde::to_vec_named(&Cell { variable }),
                 PolishToken::Dup => rmp_serde::to_vec_named(&"dup"),
