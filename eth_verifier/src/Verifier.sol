@@ -144,6 +144,7 @@ contract KimchiVerifier {
 
     error IncorrectPublicInputLength();
 
+    // This takes Kimchi's `to_batch()` as reference.
     function partial_verify(Scalar.FE[] memory public_inputs) public {
         // Commit to the negated public input polynomial.
 
@@ -189,6 +190,8 @@ contract KimchiVerifier {
             ).commitment;
         }
 
+        // Execute fiat-shamir with a Keccak sponge
+
         Oracles.Result memory oracles_res = Oracles.fiat_shamir(
             proof,
             verifier_index,
@@ -232,9 +235,9 @@ contract KimchiVerifier {
             oracles.alpha,
             oracles.beta,
             oracles.gamma,
-            Scalar.from(0), // FIXME: joint_combiner in fiat-shamir
-            Scalar.from(0), // FIXME: endo_coefficient in verifier_index
-            new Scalar.FE[](0), // FIXME: keccak sponge mds
+            Scalar.from(0), // FIXME: joint_combiner in fiat-shamir is missing
+            Scalar.from(0), // FIXME: endo_coefficient in verifier_index is missing
+            new Scalar.FE[](0), // FIXME: keccak sponge mds is missing (can a MDS matrix be defined for the keccak sponge?)
             verifier_index.zk_rows
         );
     }
