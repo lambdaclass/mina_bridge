@@ -525,6 +525,7 @@ library MsgPk {
 
                 polycomms[j] = PolyComm(unshifted);
             }
+
             lagrange_bases_unshifted[
                 abi.decode(map.keys[i], (uint256))
             ] = poly_comm_flat(polycomms);
