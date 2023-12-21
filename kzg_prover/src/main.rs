@@ -143,6 +143,11 @@ fn generate_test_proof_ex() {
 }
 
 #[derive(Serialize)]
+struct UnitVariant<'a> {
+    variant: &'a str,
+}
+
+#[derive(Serialize)]
 struct MdsInner {
     row: usize,
     col: usize,
@@ -198,30 +203,36 @@ fn serialize_linearization(
         .iter()
         .map(|token| {
             match *token {
-                PolishToken::Alpha => rmp_serde::to_vec_named(&"alpha"),
-                PolishToken::Beta => rmp_serde::to_vec_named(&"beta"),
-                PolishToken::Gamma => rmp_serde::to_vec_named(&"gamma"),
-                PolishToken::JointCombiner => rmp_serde::to_vec_named(&"jointcombiner"),
-                PolishToken::EndoCoefficient => rmp_serde::to_vec_named(&"endocoefficient"),
+                PolishToken::Alpha => rmp_serde::to_vec_named(&UnitVariant { variant: "alpha" }),
+                PolishToken::Beta => rmp_serde::to_vec_named(&UnitVariant { variant: "beta" }),
+                PolishToken::Gamma => rmp_serde::to_vec_named(&UnitVariant { variant: "gamma" }),
+                PolishToken::JointCombiner => rmp_serde::to_vec_named(&UnitVariant {
+                    variant: "jointcombiner",
+                }),
+                PolishToken::EndoCoefficient => rmp_serde::to_vec_named(&UnitVariant {
+                    variant: "endocoefficient",
+                }),
                 PolishToken::Mds { row, col } => rmp_serde::to_vec_named(&Mds {
                     mds: MdsInner { row, col },
                 }),
                 PolishToken::Literal(literal) => rmp_serde::to_vec_named(&Literal { literal }),
                 PolishToken::Cell(variable) => rmp_serde::to_vec_named(&Cell { variable }),
-                PolishToken::Dup => rmp_serde::to_vec_named(&"dup"),
+                PolishToken::Dup => rmp_serde::to_vec_named(&UnitVariant { variant: "dup" }),
                 PolishToken::Pow(pow) => rmp_serde::to_vec_named(&Pow { pow }),
-                PolishToken::Add => rmp_serde::to_vec_named(&"add"),
-                PolishToken::Mul => rmp_serde::to_vec_named(&"mul"),
-                PolishToken::Sub => rmp_serde::to_vec_named(&"sub"),
+                PolishToken::Add => rmp_serde::to_vec_named(&UnitVariant { variant: "add" }),
+                PolishToken::Mul => rmp_serde::to_vec_named(&UnitVariant { variant: "mul" }),
+                PolishToken::Sub => rmp_serde::to_vec_named(&UnitVariant { variant: "sub" }),
                 PolishToken::VanishesOnZeroKnowledgeAndPreviousRows => {
-                    rmp_serde::to_vec_named(&"vanishesonzeroknowledgeandpreviousrows")
+                    rmp_serde::to_vec_named(&UnitVariant {
+                        variant: "vanishesonzeroknowledgeandpreviousrows",
+                    })
                 }
                 PolishToken::UnnormalizedLagrangeBasis(rowoffset) => {
                     rmp_serde::to_vec_named(&UnnormalizedLagrangeBasis { rowoffset })
                 }
-                PolishToken::Store => rmp_serde::to_vec_named(&"store"),
+                PolishToken::Store => rmp_serde::to_vec_named(&UnitVariant { variant: "store" }),
                 PolishToken::Load(load) => rmp_serde::to_vec_named(&Load { load }),
-                _ => rmp_serde::to_vec_named(&"not implemented"),
+                _ => rmp_serde::to_vec_named(&UnitVariant { variant: "not implemented" }),
             }
             .unwrap()
         })
