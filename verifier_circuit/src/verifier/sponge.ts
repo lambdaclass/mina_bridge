@@ -2,6 +2,7 @@ import { Field, ForeignGroup, Group, Poseidon, Provable, Scalar } from "o1js"
 import { PolyComm } from "../poly_commitment/commitment";
 import { PointEvaluations, ProofEvaluations } from "../prover/prover";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
+import { ForeignField } from "../foreign_fields/foreign_field.js";
 
 /**
  * Wrapper over o1js' poseidon `Sponge` class which extends its functionality.
@@ -20,13 +21,13 @@ export class Sponge {
         this.lastSqueezed = [];
     }
 
-    absorb(x: Field) {
+    absorb(x: ForeignField) {
         this.lastSqueezed = [];
-        this.#internalSponge.absorb(x);
+        this.#internalSponge.absorb(Field.fromFields(x.toFields()));
     }
 
-    squeezeField(): Field {
-        return this.#internalSponge.squeeze();
+    squeezeField(): ForeignField {
+        return ForeignField.fromFields([this.#internalSponge.squeeze()]);
     }
 
     absorbGroup(g: ForeignGroup) {
@@ -43,26 +44,26 @@ export class Sponge {
     absorbScalar(s: ForeignScalar) {
         // this operation was extracted from Kimchi FqSponge's`absorb_fr()`.
         if (Scalar.ORDER < Field.ORDER) {
-            const f = Field.fromFields(s.toFields());
+            const f = ForeignField.fromFields(s.toFields());
             this.absorb(f);
 
             // INFO: in reality the scalar field is known to be bigger so this won't ever
             // execute, but the code persists for when we have a generic implementation
             // so recursiveness can be achieved.
         } else {
-            const high = Provable.witness(Field, () => {
+            const high = Provable.witness(ForeignField, () => {
                 const s_bigint = s.toBigInt();
                 const bits = BigInt(s_bigint.toString(2).length);
 
-                const high = Field((s_bigint >> 1n) & ((1n << (bits - 1n)) - 1n)); // remaining bits
+                const high = ForeignField.from((s_bigint >> 1n) & ((1n << (bits - 1n)) - 1n)); // remaining bits
 
                 return high;
             });
 
-            const low = Provable.witness(Field, () => {
+            const low = Provable.witness(ForeignField, () => {
                 const s_bigint = s.toBigInt();
 
-                const low = Field(s_bigint & 1n); // LSB
+                const low = ForeignField.from(s_bigint & 1n); // LSB
 
                 return low;
             });

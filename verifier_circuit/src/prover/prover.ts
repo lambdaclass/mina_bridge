@@ -11,6 +11,7 @@ import { Column, PolishToken } from "./expr.js";
 import { deserHexScalar } from "../serde/serde_proof.js";
 import { range } from "../util/misc.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
+import { ForeignField } from "../foreign_fields/foreign_field.js";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
@@ -40,7 +41,7 @@ export class ProverProof {
      */
     oracles(index: VerifierIndex, public_comm: PolyComm<ForeignGroup>, public_input?: ForeignScalar[]): OraclesResult {
         let sponge_test = new Sponge();
-        const fields = [Field.from(1), Field.from(2)];
+        const fields = [ForeignField.from(1), ForeignField.from(2)];
         fields.forEach((f) => {
             sponge_test.absorb(f);
         });
