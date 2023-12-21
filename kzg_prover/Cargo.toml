@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 kimchi = { path = "proof-systems/kimchi", version = "0.1.0", features = ["bn254", "keccak-sponges"] }
+o1-utils = { path = "proof-systems/utils", version = "0.1.0" }
 poly-commitment = { path = "proof-systems/poly-commitment", version = "0.1.0" }
 ark-bn254 = "0.3.0"
 ark-ec = "0.3.0"
@@ -17,7 +18,8 @@ ark-serialize = "0.3.0"
 num-traits = "0.2.17"
 rmp-serde = "1.1.2"
 serde_json = "1.0.108"
-serde = "1.0.192"
+serde = { version = "1.0.192", features = ["derive"] }
 num = "0.4.1"
 const-hex = "1.10.0"
 hex = "0.4.3"
+serde_with = "3.4.0"

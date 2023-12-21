@@ -20,7 +20,7 @@ use kimchi::{
         berkeley_columns::Column,
         constraints::ConstraintSystem,
         domains::EvaluationDomains,
-        expr::{Linearization, PolishToken},
+        expr::{Linearization, PolishToken, RowOffset, Variable},
         gate::{CircuitGate, GateType},
         polynomials::{
             generic::testing::{create_circuit, fill_in_witness},
@@ -46,6 +46,7 @@ use poly_commitment::{
     srs::{endos, SRS},
     PolyComm, SRS as _,
 };
+use serde::{ser::SerializeStruct, Serialize};
 use snarky_gate::SnarkyGate;
 
 type PolynomialsToCombine<'a> = &'a [(
@@ -136,26 +137,107 @@ fn generate_test_proof_ex() {
     .unwrap();
     fs::write(
         "../eth_verifier/linearization.mpk",
-        rmp_serde::to_vec_named(&serialize_linearization(index.linearization)).unwrap(),
+        &serialize_linearization(index.linearization),
     )
     .unwrap();
+}
+
+#[derive(Serialize)]
+struct Mds {
+    row: usize,
+    col: usize,
+}
+
+struct Literal {
+    literal: ScalarField,
+}
+
+impl Serialize for Literal {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut lit = serializer.serialize_struct("Literal", 1)?;
+        let mut literal_ser = vec![];
+        self.literal.serialize(&mut literal_ser).unwrap();
+        lit.serialize_field("literal", &literal_ser)?;
+        lit.end()
+    }
+}
+
+#[derive(Serialize)]
+struct Cell {
+    variable: Variable<Column>,
+}
+
+#[derive(Serialize)]
+struct Pow {
+    pow: u64,
+}
+
+#[derive(Serialize)]
+struct UnnormalizedLagrangeBasis {
+    rowoffset: RowOffset,
+}
+
+#[derive(Serialize)]
+struct Load {
+    load: usize,
 }
 
 fn serialize_linearization(
     linearization: Linearization<Vec<PolishToken<ScalarField, Column>>, Column>,
 ) -> Vec<u8> {
-    linearization
+    let constant_term_ser: Vec<_> = linearization
         .constant_term
         .iter()
         .map(|token| {
-            match token {
+            match *token {
                 PolishToken::Alpha => rmp_serde::to_vec_named(&"alpha"),
+                PolishToken::Beta => rmp_serde::to_vec_named(&"beta"),
+                PolishToken::Gamma => rmp_serde::to_vec_named(&"gamma"),
+                PolishToken::JointCombiner => rmp_serde::to_vec_named(&"jointcombiner"),
+                PolishToken::EndoCoefficient => rmp_serde::to_vec_named(&"endocoefficient"),
+                PolishToken::Mds { row, col } => rmp_serde::to_vec_named(&Mds { row, col }),
+                PolishToken::Literal(literal) => rmp_serde::to_vec_named(&Literal { literal }),
+                PolishToken::Cell(variable) => rmp_serde::to_vec_named(&Cell { variable }),
+                PolishToken::Dup => rmp_serde::to_vec_named(&"dup"),
+                PolishToken::Pow(pow) => rmp_serde::to_vec_named(&Pow { pow }),
+                PolishToken::Add => rmp_serde::to_vec_named(&"add"),
+                PolishToken::Mul => rmp_serde::to_vec_named(&"mul"),
+                PolishToken::Sub => rmp_serde::to_vec_named(&"sub"),
+                PolishToken::VanishesOnZeroKnowledgeAndPreviousRows => {
+                    rmp_serde::to_vec_named(&"vanishesonzeroknowledgeandpreviousrows")
+                }
+                PolishToken::UnnormalizedLagrangeBasis(rowoffset) => {
+                    rmp_serde::to_vec_named(&UnnormalizedLagrangeBasis { rowoffset })
+                }
+                PolishToken::Store => rmp_serde::to_vec_named(&"store"),
+                PolishToken::Load(load) => rmp_serde::to_vec_named(&Load { load }),
                 _ => rmp_serde::to_vec_named(&"not implemented"),
             }
             .unwrap()
         })
         .flatten()
-        .collect()
+        .collect();
+
+    // Add bytes corresponding to an array type:
+
+    let mut constant_term_ser = constant_term_ser.into_iter().rev().collect::<Vec<_>>();
+    let len = linearization.constant_term.len();
+
+    // we choose arr32, so length is made of the next 4 bytes:
+    constant_term_ser.push((len & 0xFF) as u8);
+    constant_term_ser.push(((len >> 8) & 0xFF) as u8);
+    constant_term_ser.push(((len >> 16) & 0xFF) as u8);
+    constant_term_ser.push(((len >> 24) & 0xFF) as u8);
+
+    // and then the arr32 prefix
+    constant_term_ser.push(0xdd);
+
+    let constant_term_ser = constant_term_ser.into_iter().rev().collect::<Vec<_>>();
+
+    constant_term_ser
 }
 
 fn generate_verifier_circuit_proof() {
