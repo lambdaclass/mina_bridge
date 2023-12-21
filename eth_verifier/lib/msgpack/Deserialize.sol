@@ -62,6 +62,7 @@ library MsgPk {
 
     error EncodedMapKeyNotFound(bytes key, bytes[] stored_keys);
 
+    /// @notice returns the bytes corresponding to the queried key
     function find_value(EncodedMap memory self, bytes memory key)
         public
         pure
@@ -76,6 +77,24 @@ library MsgPk {
         }
         if (i == self.keys.length) revert EncodedMapKeyNotFound(key, self.keys);
         return self.values[i];
+    }
+
+    /// @notice like find_value() but returns a boolean that indicates if
+    /// @notice the key exists. If not found, the resulted bytes will be empty.
+    function find_value_or_fail(EncodedMap memory self, bytes memory key)
+        public
+        pure
+        returns (bytes memory, bool)
+    {
+        uint256 i = 0;
+        while (
+            i != self.keys.length &&
+            keccak256(self.keys[i]) != keccak256(key)
+        ) {
+            i++;
+        }
+        if (i == self.keys.length) return (new bytes(0), false);
+        return (self.values[i], true);
     }
 
     error NotImplementedType(bytes1 prefix);
@@ -205,6 +224,24 @@ library MsgPk {
         // size is next two bytes:
 
         uint16 n = uint16(bytes2(next_n(self, 2)));
+
+        arr = EncodedArray(new bytes[](n));
+
+        for (uint16 i = 0; i < n; i++) {
+            arr.values[i] = deser_encode(self);
+        }
+    }
+
+    function deser_arr32(Stream memory self)
+        public
+        view
+        returns (EncodedArray memory arr)
+    {
+        bytes1 first = next(self);
+        require(first == 0xdd, "not an arr32");
+        // size is next two bytes:
+
+        uint16 n = uint16(bytes2(next_n(self, 4)));
 
         arr = EncodedArray(new bytes[](n));
 
@@ -656,6 +693,47 @@ library MsgPk {
         EncodedMap memory lagrange_b_serialized = abi.decode(find_value(full_urs_serialized, abi.encode("lagrange_bases")), (EncodedMap));
         deser_lagrange_bases(lagrange_b_serialized, urs.lagrange_bases_unshifted);
     }
+
+    function deser_linearization(Stream memory self) public pure returns (Linearization memory) {
+        // TODO: only constant_term is deserialized right now.
+        EncodedArray memory arr = deser_arr32(self);
+
+        PolishToken[] memory constant_term = new PolishToken[](arr.values.length);
+        for (uint i = 0; i < arr.values.length; i++) {
+            EncodedMap memory value_map = abi.decode(arr.values[i], (EncodedMap));
+            // if its a unit variant (meaning that it doesn't have associated data):
+            (bytes memory value, bool is_unit) = find_value_or_fail(value_map, abi.encode("variant"));
+            if (is_unit) {
+                string memory variant = abi.decode(value, (string));
+                if (Utils.str_cmp(variant, "alpha")) {
+                    constant_term[i] = PolishToken(PolishTokenVariant.Alpha, new bytes(0));
+                } else if (Utils.str_cmp(variant, "beta")) {
+                    constant_term[i] = PolishToken(PolishTokenVariant.Beta, new bytes(0));
+                } else if (Utils.str_cmp(variant, "gamma")) {
+                    constant_term[i] = PolishToken(PolishTokenVariant.Gamma, new bytes(0));
+                } else if (Utils.str_cmp(variant, "jointcombiner")) {
+                    constant_term[i] = PolishToken(PolishTokenVariant.JointCombiner, new bytes(0));
+                } else if (Utils.str_cmp(variant, "endocoefficient")) {
+                    constant_term[i] = PolishToken(PolishTokenVariant.EndoCoefficient, new bytes(0));
+                } else if (Utils.str_cmp(variant, "dup")) {
+                    constant_term[i] = PolishToken(PolishTokenVariant.Dup, new bytes(0));
+                } else if (Utils.str_cmp(variant, "Add")) {
+                    constant_term[i] = PolishToken(PolishTokenVariant.Add, new bytes(0));
+                } else if (Utils.str_cmp(variant, "Mul")) {
+                    constant_term[i] = PolishToken(PolishTokenVariant.Mul, new bytes(0));
+                } else if (Utils.str_cmp(variant, "Sub")) {
+                    constant_term[i] = PolishToken(PolishTokenVariant.Sub, new bytes(0));
+                } else if (Utils.str_cmp(variant, "vanishesonzeroknowledgeandpreviousrows")) {
+                    constant_term[i] = PolishToken(PolishTokenVariant.VanishesOnZeroKnowledgeAndPreviousRows, new bytes(0));
+                } else if (Utils.str_cmp(variant, "store")) {
+                    constant_term[i] = PolishToken(PolishTokenVariant.Store, new bytes(0));
+                }
+            }
+
+        }
+    }
+
+    function deser_polishtoken(Encoded)
 
     //  !!! FUNCTIONS BELOW ARE DEPRECATED !!!
 
