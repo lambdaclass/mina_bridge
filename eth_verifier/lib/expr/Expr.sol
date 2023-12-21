@@ -42,6 +42,8 @@ struct RowOffset {
 
 // Variants like LookupPattern and TableWidth have data associated to them.
 // We will represent them as a contiguous array of `bytes`.
+//
+// For more info on this, see docs in PolishToken.sol
 struct FeatureFlag {
     FeatureFlagVariant variant;
     bytes data;

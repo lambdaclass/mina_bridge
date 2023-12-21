@@ -15,6 +15,11 @@ using {Scalar.add, Scalar.mul, Scalar.sub, Scalar.pow, Scalar.inv} for Scalar.FE
 // Here we'll use a struct, which will hold the `variant` tag as an enum and the
 // `data` as bytes. The struct will be discriminated over its `variant` and after
 // we can decode the bytes into the corresponding data type.
+//
+// The idea was also to have type aliases for each data type that's contained in
+// every variant (for example, the MDS variant contains a struct with two fields,
+// so we should set an alias to a structure type like that, or directly define
+// a struct with that shape, in this case PolishTokenMds was defined below).
 
 struct PolishToken {
     PolishTokenVariant variant;
@@ -209,14 +214,16 @@ struct PolishTokenMds {
     uint row;
     uint col;
 }
-// type PolishTokenLiteral is Scalar.FE; // can't do this
-// type PolishTokenCell is Variable; // can't do this
+// type PolishTokenLiteral is Scalar.FE; // can't do this, language limitation
+// type PolishTokenCell is Variable; // can't do this, language limitation
 type PolishTokenDup is uint;
 type PolishTokenPow is uint;
-// type PolishTokenUnnormalizedLagrangeBasis is RowOffset; // can't do this
+// type PolishTokenUnnormalizedLagrangeBasis is RowOffset; // can't do this, language limitation
 type PolishTokenLoad is uint;
 type PolishTokenSkipIf is uint;
-// TODO: maybe delete these types?
+// TODO: maybe delete these types? Solidity only allows to define aliases
+// (actually called "user-defined value types") over elementary value types like
+// integers, bools.
 
 // @notice Compute the ith unnormalized lagrange basis
 function unnormalized_lagrange_basis(

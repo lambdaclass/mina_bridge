@@ -1,6 +1,6 @@
 mod snarky_gate;
 
-use std::{array, fs, ops::Neg, sync::Arc};
+use std::{array, collections::HashMap, fs, ops::Neg, sync::Arc};
 
 use ark_bn254::{G1Affine, G2Affine};
 use ark_ec::{
@@ -98,13 +98,11 @@ fn generate_test_proof_ex() {
         .unwrap();
 
     let x = ark_bn254::Fr::rand(rng);
-    let srs = Arc::new(create_srs(x, cs.gates.len(), cs.domain));
-
-    let ptr: &mut SRS<G1> = unsafe { &mut *(std::sync::Arc::as_ptr(&srs) as *mut _) };
-    ptr.add_lagrange_basis(cs.domain.d1);
+    let mut srs = create_srs(x, cs.gates.len(), cs.domain);
+    srs.full_srs.add_lagrange_basis(cs.domain.d1);
 
     let (_endo_r, endo_q) = G1::endos();
-    let index = ProverIndex::<G1, KZGProof>::create(cs, *endo_q, srs);
+    let index = ProverIndex::<G1, KZGProof>::create(cs, *endo_q, Arc::new(srs.clone()));
 
     let group_map = <G1 as CommitmentCurve>::Map::setup();
     let proof = ProverProof::create_recursive::<KeccakFqSponge, KeccakFrSponge>(
@@ -116,8 +114,6 @@ fn generate_test_proof_ex() {
         None,
     )
     .unwrap();
-
-    println!("{:#?}", proof.evals.z.zeta);
 
     fs::write(
         "../eth_verifier/prover_proof.mpk",
@@ -131,7 +127,7 @@ fn generate_test_proof_ex() {
     .unwrap();
     fs::write(
         "../eth_verifier/urs.mpk",
-        rmp_serde::to_vec_named(&index.verifier_index().srs().verifier_srs).unwrap(),
+        rmp_serde::to_vec_named(&srs).unwrap(),
     )
     .unwrap();
 }

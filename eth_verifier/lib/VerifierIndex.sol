@@ -14,7 +14,6 @@ struct VerifierIndex {
     uint256 max_poly_size;
     // the number of randomized rows to achieve zero knowledge
     uint64 zk_rows;
-    URS urs;
     // domain
     uint64 domain_size;
     Scalar.FE domain_gen;
