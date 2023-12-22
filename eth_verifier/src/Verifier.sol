@@ -370,44 +370,75 @@ contract KimchiVerifier {
         return Polynomial.Dense(coeffs);
     }
 
+    /*
+/// Contains the evaluation of a polynomial commitment at a set of points.
+struct Evaluation {
+    /// The commitment of the polynomial being evaluated
+    Polynomial.Dense commitment;
+    /// Contains an evaluation table
+    Scalar.FE[][] evaluations;
+    /// optional degree bound
+    uint128 degree_bound;
+}
+ */
+
     function combineCommitments(
         Evaluation[] memory evaluations,
-        Scalar.FE[] memory scalars,
-        uint256[] memory points,
         Scalar.FE polyscale,
         Scalar.FE rand_base
-    ) internal {
+    ) internal returns (Scalar.FE[] memory) {
+        BN254.G1Point[] memory points;
+        Scalar.FE[] memory scalars;
+
         // Initialize xi_i to 1
-        uint256 xi_i = 1;
+        Scalar.FE xi_i = Scalar.FE.wrap(1);
 
         // Iterate over the evaluations
         for (uint256 i = 0; i < evaluations.length; i++) {
             // Filter out evaluations with an empty commitment
-            if (evaluations[i].unshifted.length > 0) {
-                // Iterate over the polynomial segments
-                for (uint256 j = 0; j < evaluations[i].unshifted.length; j++) {
-                    // Add the scalar rand_base * xi_i to the scalars vector
-                    scalars[i * 2] = rand_base * xi_i;
-                    // Add the point to the points vector
-                    points[i * 2] = evaluations[i].unshifted[j];
+            if (evaluations[i].commitment.unshifted.length == 0) {
+                continue;
+            }
 
-                    // Multiply xi_i by polyscale
+            // Iterate over the polynomial segments
+            for (
+                uint256 j = 0;
+                j < evaluations[i].commitment.unshifted.length;
+                j++
+            ) {
+                Scalar.FE comm_ch = evaluations[i].commitment.unshifted[j];
+                points.push(comm_ch);
+                /*
+                // iterating over the polynomial segments
+                for comm_ch in &commitment.unshifted {
+                    scalars.push(rand_base * xi_i);
+                    points.push(*comm_ch);
+
                     xi_i *= polyscale;
                 }
+                */
 
-                // If the evaluation has a degree bound and a non-zero shifted commitment
-                if (
-                    evaluations[i].degree_bound > 0 &&
-                    evaluations[i].shifted.length > 0
-                ) {
-                    // Add the scalar rand_base * xi_i to the scalars vector
-                    scalars[i * 2 + 1] = rand_base * xi_i;
-                    // Add the point to the points vector
-                    points[i * 2 + 1] = evaluations[i].shifted[0];
+                // Add the scalar rand_base * xi_i to the scalars vector
+                //scalars[i * 2] = rand_base.mul(xi_i);
+                // Add the point to the points vector
+                //points[i * 2] = evaluations[i].commitment.unshifted[j];
 
-                    // Multiply xi_i by polyscale
-                    xi_i *= polyscale;
-                }
+                // Multiply xi_i by polyscale
+                xi_i *= polyscale;
+            }
+
+            // If the evaluation has a degree bound and a non-zero shifted commitment
+            if (
+                evaluations[i].degree_bound > 0 &&
+                evaluations[i].shifted.length > 0
+            ) {
+                // Add the scalar rand_base * xi_i to the scalars vector
+                scalars[i * 2 + 1] = rand_base * xi_i;
+                // Add the point to the points vector
+                points[i * 2 + 1] = evaluations[i].shifted[0];
+
+                // Multiply xi_i by polyscale
+                xi_i *= polyscale;
             }
         }
     }
