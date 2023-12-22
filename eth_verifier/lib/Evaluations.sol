@@ -3,6 +3,7 @@ pragma solidity >=0.4.16 <0.9.0;
 
 import "./bn254/Fields.sol";
 import "./Polynomial.sol";
+import "./Commitment.sol";
 
 struct PointEvaluations {
     /// evaluation at the challenge point zeta
@@ -21,7 +22,7 @@ struct PointEvaluationsArray {
 /// Contains the evaluation of a polynomial commitment at a set of points.
 struct Evaluation {
     /// The commitment of the polynomial being evaluated
-    Polynomial.Dense commitment;
+    PolyComm commitment;
     /// Contains an evaluation table
     Scalar.FE[][] evaluations;
     /// optional degree bound
