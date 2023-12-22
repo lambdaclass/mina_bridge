@@ -370,6 +370,48 @@ contract KimchiVerifier {
         return Polynomial.Dense(coeffs);
     }
 
+    function combineCommitments(
+        Evaluation[] memory evaluations,
+        Scalar.FE[] memory scalars,
+        uint256[] memory points,
+        Scalar.FE polyscale,
+        Scalar.FE rand_base
+    ) internal {
+        // Initialize xi_i to 1
+        uint256 xi_i = 1;
+
+        // Iterate over the evaluations
+        for (uint256 i = 0; i < evaluations.length; i++) {
+            // Filter out evaluations with an empty commitment
+            if (evaluations[i].unshifted.length > 0) {
+                // Iterate over the polynomial segments
+                for (uint256 j = 0; j < evaluations[i].unshifted.length; j++) {
+                    // Add the scalar rand_base * xi_i to the scalars vector
+                    scalars[i * 2] = rand_base * xi_i;
+                    // Add the point to the points vector
+                    points[i * 2] = evaluations[i].unshifted[j];
+
+                    // Multiply xi_i by polyscale
+                    xi_i *= polyscale;
+                }
+
+                // If the evaluation has a degree bound and a non-zero shifted commitment
+                if (
+                    evaluations[i].degree_bound > 0 &&
+                    evaluations[i].shifted.length > 0
+                ) {
+                    // Add the scalar rand_base * xi_i to the scalars vector
+                    scalars[i * 2 + 1] = rand_base * xi_i;
+                    // Add the point to the points vector
+                    points[i * 2 + 1] = evaluations[i].shifted[0];
+
+                    // Multiply xi_i by polyscale
+                    xi_i *= polyscale;
+                }
+            }
+        }
+    }
+
     /*
     This is a list of steps needed for verification.
 
