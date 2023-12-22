@@ -566,6 +566,11 @@ library MsgPk {
         deser_lagrange_bases(lagrange_b_serialized, urs.lagrange_bases_unshifted);
     }
 
+    function deser_g1point(Stream memory self) public pure returns (BN254.G1Point memory) {
+        EncodedMap memory buffer = deser_fixmap(self);
+        return BN254.g1Deserialize(bytes32(deser_buffer(buffer)));
+    }
+
     //  !!! FUNCTIONS BELOW ARE DEPRECATED !!!
 
     function deserializeFinalCommitments(bytes calldata data)
