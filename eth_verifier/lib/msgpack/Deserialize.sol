@@ -571,7 +571,11 @@ library MsgPk {
         return BN254.g1Deserialize(bytes32(deser_buffer(buffer)));
     }
 
-    //  !!! FUNCTIONS BELOW ARE DEPRECATED !!!
+    /* WARN:
+        * Functions below are part of the previous deserializer implementation,
+        * and are still used for functions related to the demo. The goal is to replace
+        * them with the new WIP deserializer. Please prefer using functions above.
+    */
 
     function deserializeFinalCommitments(bytes calldata data)
         public
@@ -657,53 +661,6 @@ library MsgPk {
         (BN254.G1Point memory h, uint256 final_i) = deserializeG1Point(data, i);
         final_i += 1;
         return (g, h, final_i);
-    }
-
-    function deserializeOpeningProof(bytes calldata serialized_proof)
-        public
-        view
-        returns (Kimchi.ProverProof memory proof)
-    {
-        uint256 i = 0;
-        bytes1 firstbyte = serialized_proof[i];
-        // first byte is 0x92, indicating this is an array with 2 elements
-        require(firstbyte == 0x92, "first byte is not 0x92");
-
-        // read length of the data
-        i += 1;
-        require(serialized_proof[i] == 0xC4, "second byte is not 0xC4");
-
-        // next byte is the length of the data in one byte
-        i += 1;
-        require(serialized_proof[i] == 0x20, "size of element is not 32 bytes");
-
-        // read data
-        i += 1;
-        bytes32 data_quotient = abi.decode(
-            serialized_proof[i:i + 32],
-            (bytes32)
-        );
-
-        proof.opening_proof_quotient = BN254.g1Deserialize(data_quotient);
-
-        // read blinding
-        i += 32;
-        // read length of the data
-        require(serialized_proof[i] == 0xC4, "second byte is not 0xC4");
-
-        // next byte is the length of the data in one byte
-        i += 1;
-        require(serialized_proof[i] == 0x20, "size of element is not 32 bytes");
-
-        // read data
-        i += 1;
-        uint256 data_blinding = abi.decode(
-            serialized_proof[i:i + 32],
-            (uint256)
-        );
-
-        proof.opening_proof_blinding = data_blinding;
-        return proof;
     }
 
     function deserializeScalar(bytes calldata data, uint256 i)
