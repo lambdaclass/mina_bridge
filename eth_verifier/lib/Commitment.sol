@@ -214,7 +214,7 @@ function chunk_commitment(
     PolyComm memory self,
     Scalar.FE zeta_n
 ) pure returns (PolyComm memory) {
-    BN254.G1Point res = BN254.point_at_inf();
+    BN254.G1Point memory res = BN254.point_at_inf();
 
     uint length = self.unshifted.length;
     for (uint i = 0; i < length; i++) {
@@ -224,7 +224,7 @@ function chunk_commitment(
         res = res.add(chunk);
     }
 
-    BN254.G1Point[] unshifted = new BN254.G1Point[](1);
+    BN254.G1Point[] memory unshifted = new BN254.G1Point[](1);
     unshifted[0] = res;
 
     return PolyComm(unshifted);

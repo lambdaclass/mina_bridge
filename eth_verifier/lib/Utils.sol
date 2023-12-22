@@ -359,6 +359,6 @@ library Utils {
 
     /// @notice checks if two strings are equal
     function str_cmp(string memory self, string memory other) public pure returns (bool) {
-        return keccak256(self) == keccak256(other);
+        return keccak256(bytes(self)) == keccak256(bytes(other));
     }
 }

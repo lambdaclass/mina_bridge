@@ -701,39 +701,156 @@ library MsgPk {
         PolishToken[] memory constant_term = new PolishToken[](arr.values.length);
         for (uint i = 0; i < arr.values.length; i++) {
             EncodedMap memory value_map = abi.decode(arr.values[i], (EncodedMap));
-            // if its a unit variant (meaning that it doesn't have associated data):
-            (bytes memory value, bool is_unit) = find_value_or_fail(value_map, abi.encode("variant"));
-            if (is_unit) {
-                string memory variant = abi.decode(value, (string));
-                if (Utils.str_cmp(variant, "alpha")) {
-                    constant_term[i] = PolishToken(PolishTokenVariant.Alpha, new bytes(0));
-                } else if (Utils.str_cmp(variant, "beta")) {
-                    constant_term[i] = PolishToken(PolishTokenVariant.Beta, new bytes(0));
-                } else if (Utils.str_cmp(variant, "gamma")) {
-                    constant_term[i] = PolishToken(PolishTokenVariant.Gamma, new bytes(0));
-                } else if (Utils.str_cmp(variant, "jointcombiner")) {
-                    constant_term[i] = PolishToken(PolishTokenVariant.JointCombiner, new bytes(0));
-                } else if (Utils.str_cmp(variant, "endocoefficient")) {
-                    constant_term[i] = PolishToken(PolishTokenVariant.EndoCoefficient, new bytes(0));
-                } else if (Utils.str_cmp(variant, "dup")) {
-                    constant_term[i] = PolishToken(PolishTokenVariant.Dup, new bytes(0));
-                } else if (Utils.str_cmp(variant, "Add")) {
-                    constant_term[i] = PolishToken(PolishTokenVariant.Add, new bytes(0));
-                } else if (Utils.str_cmp(variant, "Mul")) {
-                    constant_term[i] = PolishToken(PolishTokenVariant.Mul, new bytes(0));
-                } else if (Utils.str_cmp(variant, "Sub")) {
-                    constant_term[i] = PolishToken(PolishTokenVariant.Sub, new bytes(0));
-                } else if (Utils.str_cmp(variant, "vanishesonzeroknowledgeandpreviousrows")) {
-                    constant_term[i] = PolishToken(PolishTokenVariant.VanishesOnZeroKnowledgeAndPreviousRows, new bytes(0));
-                } else if (Utils.str_cmp(variant, "store")) {
-                    constant_term[i] = PolishToken(PolishTokenVariant.Store, new bytes(0));
-                }
-            }
-
+            constant_term[i] = deser_polishtoken(value_map);
         }
     }
 
-    function deser_polishtoken(Encoded)
+    function deser_column(bytes memory col) public pure returns (Column memory) {
+        // if col is an encoded string, then it may be a unit value. In this case the encoded bytes
+        // must not be more than 32:
+        if (col.length <= 32) {
+            string memory variant = abi.decode(col, (string));
+            if (Utils.str_cmp(variant, "Z")) {
+                return Column(ColumnVariant.Z, new bytes(0));
+            }
+        }
+        // FIXME: this is hacky.
+
+        // else, its an EncodedMap:
+        EncodedMap memory col_map = abi.decode(col, (EncodedMap));
+        (bytes memory witness_value, bool is_witness) = find_value_or_fail(col_map, abi.encode("Witness"));
+        if (is_witness) {
+            return Column(ColumnVariant.Witness, witness_value);
+        }
+        (bytes memory index_value, bool is_index) = find_value_or_fail(col_map, abi.encode("Index"));
+        if (is_index) {
+            string memory gate_type_variant = abi.decode(index_value, (string));
+            if (Utils.str_cmp(gate_type_variant, "Zero")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.Zero));
+            }
+            if (Utils.str_cmp(gate_type_variant, "Generic")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.Generic));
+            }
+            if (Utils.str_cmp(gate_type_variant, "Poseidon")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.Poseidon));
+            }
+            if (Utils.str_cmp(gate_type_variant, "CompleteAdd")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.CompleteAdd));
+            }
+            if (Utils.str_cmp(gate_type_variant, "VarBaseMul")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.VarBaseMul));
+            }
+            if (Utils.str_cmp(gate_type_variant, "EndoMul")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.EndoMul));
+            }
+            if (Utils.str_cmp(gate_type_variant, "EndoMulScalar")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.EndoMulScalar));
+            }
+            if (Utils.str_cmp(gate_type_variant, "Lookup")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.Lookup));
+            }
+            if (Utils.str_cmp(gate_type_variant, "ForeignFieldAdd")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.ForeignFieldAdd));
+            }
+            if (Utils.str_cmp(gate_type_variant, "ForeignFieldMul")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.ForeignFieldMul));
+            }
+            revert("Couldn't match any GateType variant while deserializing a column.");
+            // TODO: match remaining variants
+        }
+        (bytes memory coefficient_value, bool is_coefficient) = find_value_or_fail(col_map, abi.encode("Coefficient"));
+        if (is_coefficient) {
+            uint i = deser_uint(new_stream(coefficient_value));
+            return Column(ColumnVariant.Coefficient, i);
+        }
+        (bytes memory permutation_value, bool is_permutation) = find_value_or_fail(col_map, abi.encode("Permutation"));
+        if (is_permutation) {
+            uint i = deser_uint(new_stream(permutation_value));
+            return Column(ColumnVariant.Permutation, i);
+        }
+        revert("Couldn't match any Column variant while deserializing a column.");
+        // TODO: remaining variants
+    }
+
+    function deser_polishtoken(EncodedMap memory map) public pure returns (PolishToken memory) {
+        // if its a unit variant (meaning that it doesn't have associated data):
+        (bytes memory unit_value, bool is_unit) = find_value_or_fail(map, abi.encode("variant"));
+        if (is_unit) {
+            string memory variant = abi.decode(unit_value, (string));
+            if (Utils.str_cmp(variant, "alpha")) {
+                return PolishToken(PolishTokenVariant.Alpha, new bytes(0));
+            } else if (Utils.str_cmp(variant, "beta")) {
+                return PolishToken(PolishTokenVariant.Beta, new bytes(0));
+            } else if (Utils.str_cmp(variant, "gamma")) {
+                return PolishToken(PolishTokenVariant.Gamma, new bytes(0));
+            } else if (Utils.str_cmp(variant, "jointcombiner")) {
+                return PolishToken(PolishTokenVariant.JointCombiner, new bytes(0));
+            } else if (Utils.str_cmp(variant, "endocoefficient")) {
+                return PolishToken(PolishTokenVariant.EndoCoefficient, new bytes(0));
+            } else if (Utils.str_cmp(variant, "dup")) {
+                return PolishToken(PolishTokenVariant.Dup, new bytes(0));
+            } else if (Utils.str_cmp(variant, "add")) {
+                return PolishToken(PolishTokenVariant.Add, new bytes(0));
+            } else if (Utils.str_cmp(variant, "mul")) {
+                return PolishToken(PolishTokenVariant.Mul, new bytes(0));
+            } else if (Utils.str_cmp(variant, "sub")) {
+                return PolishToken(PolishTokenVariant.Sub, new bytes(0));
+            } else if (Utils.str_cmp(variant, "vanishesonzeroknowledgeandpreviousrows")) {
+                return PolishToken(PolishTokenVariant.VanishesOnZeroKnowledgeAndPreviousRows, new bytes(0));
+            } else if (Utils.str_cmp(variant, "store")) {
+                return PolishToken(PolishTokenVariant.Store, new bytes(0));
+            }
+        } else {
+            (bytes memory mds_value, bool is_mds) = find_value_or_fail(map, abi.encode("mds"));
+            if (is_mds) {
+                EncodedMap memory mds_map = abi.decode(mds_value, (EncodedMap));
+                uint row = abi.decode(find_value(mds_map, abi.encode("row")), (uint));
+                uint col = abi.decode(find_value(mds_map, abi.encode("col")), (uint));
+                return PolishToken(PolishTokenVariant.Mds, abi.encode(PolishTokenMds(row, col)));
+            }
+            (bytes memory literal_value, bool is_literal) = find_value_or_fail(map, abi.encode("literal"));
+            if (is_literal) {
+                EncodedArray memory literal_arr = abi.decode(literal_value, (EncodedArray));
+                uint256 inner_int = Utils.padded_bytes_array_to_uint256(literal_arr.values);
+                return PolishToken(PolishTokenVariant.Literal, abi.encode(inner_int));
+            }
+            (bytes memory cell_value, bool is_cell) = find_value_or_fail(map, abi.encode("variable"));
+            if (is_cell) {
+                EncodedMap memory variable_map = abi.decode(cell_value, (EncodedMap));
+                string memory row_str = abi.decode(find_value(variable_map, abi.encode("row")), (string));
+                CurrOrNext row = CurrOrNext.Curr;
+                if (Utils.str_cmp(row_str, "Curr")) {
+                    row = CurrOrNext.Curr;
+                } else if (Utils.str_cmp(row_str, "Next")) {
+                    row = CurrOrNext.Next;
+                } else {
+                    revert("CurrOrNext didn't match any variant while deserializing linearization.");
+                }
+                Column memory col = deser_column(find_value(variable_map, abi.encode("col")));
+
+                Variable memory variable = Variable(col, row);
+                return PolishToken(PolishTokenVariant.Cell, abi.encode(Variable));
+            }
+            (bytes memory pow_value, bool is_literal) = find_value_or_fail(map, abi.encode("pow"));
+            if (is_literal) {
+                uint pow = deser_uint(pow_value);
+                return PolishToken(PolishTokenVariant.Pow, abi.encode(pow));
+            }
+            (bytes memory ulag_value, bool is_ulag) = find_value_or_fail(map, abi.encode("unnormalizedlagrangebasis"));
+            if (is_ulag) {
+                EncodedMap memory rowoffset_map = abi.decode(ulag_value, (EncodedMap));
+                bool zk_rows = abi.decode(find_value(rowoffset_map, abi.encode("zk_rows")), (bool));
+                uint offset = abi.decode(find_value(rowoffset_map, abi.encode("offset")), (uint));
+                RowOffset memory rowoffset = RowOffset(zk_rows, offset);
+                return PolishToken(PolishTokenVariant.UnnormalizedLagrangeBasis, abi.encode(rowoffset));
+            }
+            (bytes memory load_value, bool is_load) = find_value_or_fail(map, abi.encode("load"));
+            if (is_load) {
+                uint i = deser_uint(load_value);
+                return PolishToken(PolishTokenVariant.Load, abi.encode(i));
+            }
+        }
+    }
 
     //  !!! FUNCTIONS BELOW ARE DEPRECATED !!!
 

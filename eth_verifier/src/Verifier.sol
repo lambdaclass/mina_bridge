@@ -18,7 +18,7 @@ import "../lib/expr/PolishToken.sol";
 import "../lib/expr/ExprConstants.sol";
 
 using {BN254.neg} for BN254.G1Point;
-using {Scalar.neg, Scalar.mul, Scalar.add} for Scalar.FE;
+using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.pow} for Scalar.FE;
 using {AlphasLib.get_alphas} for Alphas;
 using {Polynomial.evaluate} for Polynomial.Dense;
 
@@ -269,7 +269,6 @@ contract KimchiVerifier {
         Scalar.FE zeta_to_srs_len = oracles.zeta.pow(verifier_index.max_poly_size);
         PolyComm memory chunked_f_comm = f_comm.chunk_commitment(zeta_to_srs_len);
         PolyComm memory chunked_t_comm = proof.commitments.t_comm.chunk_commitment(zeta_to_srs_len);
-        
     }
 
     function perm_scalars(
