@@ -213,7 +213,7 @@ function mask_custom(
 function chunk_commitment(
     PolyComm memory self,
     Scalar.FE zeta_n
-) pure returns (PolyComm memory) {
+) view returns (PolyComm memory) {
     BN254.G1Point memory res = BN254.point_at_inf();
 
     uint length = self.unshifted.length;

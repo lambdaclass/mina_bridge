@@ -29,7 +29,7 @@ library MsgPk {
         bytes[] values;
     }
 
-    function new_stream(bytes calldata data)
+    function new_stream(bytes memory data)
         public
         pure
         returns (Stream memory)
@@ -125,6 +125,8 @@ library MsgPk {
             return abi.encode(deser_arr16(self));
         } else if (prefix >> 2 == 0x33) {
             return abi.encode(deser_uint(self));
+        } else if (prefix >> 2 == 0x34) {
+            return abi.encode(deser_int(self));
         } else if (prefix >> 7 == 0x00) {
             return abi.encode(deser_posfixint(self));
         } else if (prefix == 0xc2 || prefix == 0xc3) {
@@ -284,6 +286,39 @@ library MsgPk {
             return uint32(bytes4(b));
         } else if (byte_count == 4) {
             return uint64(bytes8(b));
+        }
+    }
+
+    function deser_int(Stream memory self) public view returns (int256) {
+        bytes1 first = next(self);
+        require(first >> 2 == 0x34, "not a int");
+        // 110100XX are ints of 8,16,32,64 bits.
+
+        uint256 byte_count = 1 << uint8(first & 0x03); // mask with 11b
+        bytes memory b = next_n(self, byte_count);
+
+        // For decoding into a signed integer, we'll use solidity's ABI.
+        // Referencing the spec, we need to pad to a 32 byte array with
+        // 0xFF if the integer is negative, or with 0x00 if positive.
+        // The sign can be determined checking the most significant bit.
+
+        bytes1 pad_byte = b[0] & 0x40 == 0x40 ? bytes1(0xFF) : bytes1(0x00);
+        bytes memory padded_b = new bytes(32);
+        for (uint i = 0; i < 32 - b.length; i++) {
+            padded_b[i] = pad_byte;
+        }
+        for (uint i = b.length; i < 32; i++) {
+            padded_b[i] = b[i - b.length];
+        }
+
+        if (byte_count == 1) {
+            return abi.decode(padded_b, (int8));
+        } else if (byte_count == 2) {
+            return abi.decode(padded_b, (int16));
+        } else if (byte_count == 3) {
+            return abi.decode(padded_b, (int32));
+        } else if (byte_count == 4) {
+            return abi.decode(padded_b, (int64));
         }
     }
 
@@ -517,7 +552,7 @@ library MsgPk {
         PolyComm[15] memory w_comm;
         for (uint i = 0; i < w_comm.length; i++) {
             w_comm[i] = deser_poly_comm(abi.decode(
-                w_comm_arr.values[i]
+                w_comm_arr.values[i],
                 (EncodedMap))
             );
         }
@@ -694,7 +729,7 @@ library MsgPk {
         deser_lagrange_bases(lagrange_b_serialized, urs.lagrange_bases_unshifted);
     }
 
-    function deser_linearization(Stream memory self) public pure returns (Linearization memory) {
+    function deser_linearization(Stream memory self) public view returns (Linearization memory) {
         // TODO: only constant_term is deserialized right now.
         EncodedArray memory arr = deser_arr32(self);
 
@@ -705,7 +740,7 @@ library MsgPk {
         }
     }
 
-    function deser_column(bytes memory col) public pure returns (Column memory) {
+    function deser_column(bytes memory col) public view returns (Column memory) {
         // if col is an encoded string, then it may be a unit value. In this case the encoded bytes
         // must not be more than 32:
         if (col.length <= 32) {
@@ -761,18 +796,18 @@ library MsgPk {
         (bytes memory coefficient_value, bool is_coefficient) = find_value_or_fail(col_map, abi.encode("Coefficient"));
         if (is_coefficient) {
             uint i = deser_uint(new_stream(coefficient_value));
-            return Column(ColumnVariant.Coefficient, i);
+            return Column(ColumnVariant.Coefficient, abi.encode(i));
         }
         (bytes memory permutation_value, bool is_permutation) = find_value_or_fail(col_map, abi.encode("Permutation"));
         if (is_permutation) {
             uint i = deser_uint(new_stream(permutation_value));
-            return Column(ColumnVariant.Permutation, i);
+            return Column(ColumnVariant.Permutation, abi.encode(i));
         }
         revert("Couldn't match any Column variant while deserializing a column.");
         // TODO: remaining variants
     }
 
-    function deser_polishtoken(EncodedMap memory map) public pure returns (PolishToken memory) {
+    function deser_polishtoken(EncodedMap memory map) public view returns (PolishToken memory) {
         // if its a unit variant (meaning that it doesn't have associated data):
         (bytes memory unit_value, bool is_unit) = find_value_or_fail(map, abi.encode("variant"));
         if (is_unit) {
@@ -829,24 +864,24 @@ library MsgPk {
                 Column memory col = deser_column(find_value(variable_map, abi.encode("col")));
 
                 Variable memory variable = Variable(col, row);
-                return PolishToken(PolishTokenVariant.Cell, abi.encode(Variable));
+                return PolishToken(PolishTokenVariant.Cell, abi.encode(variable));
             }
-            (bytes memory pow_value, bool is_literal) = find_value_or_fail(map, abi.encode("pow"));
-            if (is_literal) {
-                uint pow = deser_uint(pow_value);
+            (bytes memory pow_value, bool is_pow) = find_value_or_fail(map, abi.encode("pow"));
+            if (is_pow) {
+                uint pow = deser_uint(new_stream(pow_value));
                 return PolishToken(PolishTokenVariant.Pow, abi.encode(pow));
             }
             (bytes memory ulag_value, bool is_ulag) = find_value_or_fail(map, abi.encode("unnormalizedlagrangebasis"));
             if (is_ulag) {
                 EncodedMap memory rowoffset_map = abi.decode(ulag_value, (EncodedMap));
                 bool zk_rows = abi.decode(find_value(rowoffset_map, abi.encode("zk_rows")), (bool));
-                uint offset = abi.decode(find_value(rowoffset_map, abi.encode("offset")), (uint));
+                int offset = abi.decode(find_value(rowoffset_map, abi.encode("offset")), (int));
                 RowOffset memory rowoffset = RowOffset(zk_rows, offset);
                 return PolishToken(PolishTokenVariant.UnnormalizedLagrangeBasis, abi.encode(rowoffset));
             }
             (bytes memory load_value, bool is_load) = find_value_or_fail(map, abi.encode("load"));
             if (is_load) {
-                uint i = deser_uint(load_value);
+                uint i = deser_uint(new_stream(load_value));
                 return PolishToken(PolishTokenVariant.Load, abi.encode(i));
             }
         }
