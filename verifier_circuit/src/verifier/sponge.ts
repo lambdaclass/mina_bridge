@@ -23,14 +23,17 @@ export class Sponge {
 
     absorb(x: ForeignField) {
         this.lastSqueezed = [];
+        // TODO: Make univoque conversion from foreign to native fields
         this.#internalSponge.absorb(Field.fromFields(x.toFields()));
     }
 
     squeezeField(): ForeignField {
+        // TODO: Make univoque conversion from foreign to native fields
         return ForeignField.fromFields([this.#internalSponge.squeeze()]);
     }
 
     absorbGroup(g: ForeignGroup) {
+        // TODO: Make univoque conversion from foreign to native fields
         this.#internalSponge.absorb(Field.fromFields(g.x.toFields()));
         this.#internalSponge.absorb(Field.fromFields(g.y.toFields()));
     }
