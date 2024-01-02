@@ -356,4 +356,9 @@ library Utils {
         require(data_b.length == 32, "not enough bytes in array");
         return uint256(bytes32(data_b));
     }
+
+    /// @notice checks if two strings are equal
+    function str_cmp(string memory self, string memory other) public pure returns (bool) {
+        return keccak256(bytes(self)) == keccak256(bytes(other));
+    }
 }

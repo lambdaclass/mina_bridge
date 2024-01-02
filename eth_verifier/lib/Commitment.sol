@@ -208,6 +208,37 @@ function mask_custom(
     return BlindedCommitment(PolyComm(unshifted), blinders);
 }
 
+// @notice multiplies each commitment chunk of f with powers of zeta^n
+// @notice note that it ignores the shifted part.
+function chunk_commitment(
+    PolyComm memory self,
+    Scalar.FE zeta_n
+) view returns (PolyComm memory) {
+    BN254.G1Point memory res = BN254.point_at_inf();
+
+    uint length = self.unshifted.length;
+    for (uint i = 0; i < length; i++) {
+        BN254.G1Point memory chunk = self.unshifted[length - i - 1];
+
+        res = res.scale_scalar(zeta_n);
+        res = res.add(chunk);
+    }
+
+    BN254.G1Point[] memory unshifted = new BN254.G1Point[](1);
+    unshifted[0] = res;
+
+    return PolyComm(unshifted);
+}
+
+// @notice substracts two polynomial commitments
+function sub_polycomms(
+    PolyComm memory self,
+    PolyComm memory other
+) pure returns (PolyComm memory)
+{
+    // TODO: implement this!
+}
+
 // Reference: Kimchi
 // https://github.com/o1-labs/proof-systems/
 function calculate_lagrange_bases(
