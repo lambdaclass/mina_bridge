@@ -390,8 +390,20 @@ struct Evaluation {
         Scalar.FE polyscale,
         Scalar.FE rand_base
     ) internal returns (Scalar.FE[] memory) {
-        BN254.G1Point[] memory points;
-        Scalar.FE[] memory scalars;
+        uint256 vec_length = 0;
+        // Calculate the max length of the points and scalars vectors
+        // Iterate over the evaluations
+        for (uint256 i = 0; i < evaluations.length; i++) {
+            // Filter out evaluations with an empty commitment
+            if (evaluations[i].commitment.unshifted.length == 0) {
+                continue;
+            }
+
+            vec_length += evaluations[i].commitment.unshifted.length + 1;
+        }
+        BN254.G1Point[] memory points = new BN254.G1Point[](vec_length);
+        Scalar.FE[] memory scalars = new Scalar.FE[](vec_length);
+        uint256 index = 0; // index of the element to assign in the vectors
 
         // Initialize xi_i to 1
         Scalar.FE xi_i = Scalar.FE.wrap(1);
@@ -403,33 +415,38 @@ struct Evaluation {
                 continue;
             }
 
-            // Iterate over the polynomial segments
+            // iterating over the polynomial segments
             for (
                 uint256 j = 0;
                 j < evaluations[i].commitment.unshifted.length;
                 j++
             ) {
-                Scalar.FE comm_ch = evaluations[i].commitment.unshifted[j];
-                points.push(comm_ch);
-                /*
-                // iterating over the polynomial segments
-                for comm_ch in &commitment.unshifted {
-                    scalars.push(rand_base * xi_i);
-                    points.push(*comm_ch);
-
-                    xi_i *= polyscale;
-                }
-                */
-
                 // Add the scalar rand_base * xi_i to the scalars vector
-                //scalars[i * 2] = rand_base.mul(xi_i);
+                scalars[index] = rand_base.mul(xi_i);
                 // Add the point to the points vector
-                //points[i * 2] = evaluations[i].commitment.unshifted[j];
+                points[index] = evaluations[i].commitment.unshifted[j];
 
                 // Multiply xi_i by polyscale
-                xi_i *= polyscale;
+                xi_i = xi_i.mul(polyscale);
+
+                // Increment the index
+                index++;
             }
 
+            /*
+            if let Some(_m) = degree_bound {
+                if let Some(comm_ch) = commitment.shifted {
+                    if !comm_ch.is_zero() {
+                        // polyscale^i sum_j evalscale^j elm_j^{N - m} f(elm_j)
+                        scalars.push(rand_base * xi_i);
+                        points.push(comm_ch);
+
+                        xi_i *= polyscale;
+                    }
+                }
+            }
+            */
+            /* TODO: FIX this with the previous version of the code
             // If the evaluation has a degree bound and a non-zero shifted commitment
             if (
                 evaluations[i].degree_bound > 0 &&
@@ -443,6 +460,7 @@ struct Evaluation {
                 // Multiply xi_i by polyscale
                 xi_i *= polyscale;
             }
+            */
         }
     }
 
