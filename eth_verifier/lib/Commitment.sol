@@ -62,9 +62,12 @@ struct PolyComm {
     BN254.G1Point[] unshifted;
     //BN254G1Point shifted;
     // WARN: The previous field is optional but in Solidity we can't have that.
-    // for our test circuit (circuit_gen/) it's not necessary
+    // for our test circuit it's not necessary
 }
 
+// @notice this structure flattens the fields of `PolyComm`.
+// its motivation lies in Solidity's inability to store nested arrays
+// in a mapping.
 struct PolyCommFlat {
     BN254.G1Point[] unshifteds;
     uint[] unshifted_lengths;
@@ -292,6 +295,14 @@ function combined_inner_product(
     }
 }
 
+// this represents an array of matrices of polynomial commitments
+// evaluations, in a flat manner. This was made to temporarily speed up
+// development and ignore details. In reality I think that there're only two
+// possible evaluations for every commitment so there's a fixed dimension. This
+// might me implementable as a 3D array composed of a fixed-length one and two
+// variable length.
+// TODO: could be replaced, needs a bit of research
+// relevant: https://github.com/o1-labs/proof-systems/blob/a27270040c08eb2c99e37f90833ee7bfb1fd22f5/kimchi/src/verifier.rs#L566
 struct PolyMatrices {
     Scalar.FE[] data;
     uint length;

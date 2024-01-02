@@ -628,7 +628,11 @@ library MsgPk {
         );
     }
 
-    //  !!! FUNCTIONS BELOW ARE DEPRECATED !!!
+    /* WARN:
+     * Functions below are part of the previous deserializer implementation,
+     * and are still used for functions related to the demo. The goal is to replace
+     * them with the new WIP deserializer. Please prefer using functions above.
+     */
 
     function deserializeFinalCommitments(
         bytes calldata data
@@ -715,6 +719,7 @@ library MsgPk {
         return (g, h, final_i);
     }
 
+    // TODO: this function is not used anywhere, but it's useful for debugging
     function deserializeOpeningProof(
         bytes calldata serialized_proof
     ) public view returns (Kimchi.ProverProof memory proof) {
