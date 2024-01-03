@@ -29,9 +29,7 @@ library MsgPk {
         bytes[] values;
     }
 
-    function new_stream(
-        bytes calldata data
-    ) public pure returns (Stream memory) {
+    function new_stream(bytes calldata data) public pure returns (Stream memory) {
         return Stream(data, 0);
     }
 
@@ -46,10 +44,7 @@ library MsgPk {
         return self.data[self.curr_index];
     }
 
-    function next_n(
-        Stream memory self,
-        uint256 n
-    ) public view returns (bytes memory consumed) {
+    function next_n(Stream memory self, uint256 n) public view returns (bytes memory consumed) {
         consumed = new bytes(n);
         for (uint256 i = 0; i < n; i++) {
             consumed[i] = self.data[self.curr_index + i];
@@ -59,14 +54,9 @@ library MsgPk {
 
     error EncodedMapKeyNotFound(bytes key, bytes[] stored_keys);
 
-    function find_value(
-        EncodedMap memory self,
-        bytes memory key
-    ) public pure returns (bytes memory) {
+    function find_value(EncodedMap memory self, bytes memory key) public pure returns (bytes memory) {
         uint256 i = 0;
-        while (
-            i != self.keys.length && keccak256(self.keys[i]) != keccak256(key)
-        ) {
+        while (i != self.keys.length && keccak256(self.keys[i]) != keccak256(key)) {
             i++;
         }
         if (i == self.keys.length) revert EncodedMapKeyNotFound(key, self.keys);
@@ -76,16 +66,9 @@ library MsgPk {
     error NotImplementedType(bytes1 prefix);
 
     /// @notice deserializes the next type and returns the encoded data.
-    function deser_encode(
-        Stream memory self
-    ) public view returns (bytes memory) {
+    function deser_encode(Stream memory self) public view returns (bytes memory) {
         bytes1 prefix = curr(self);
-        if (
-            prefix >> 5 == 0x05 ||
-            prefix == 0xd9 ||
-            prefix == 0xda ||
-            prefix == 0xdb
-        ) {
+        if (prefix >> 5 == 0x05 || prefix == 0xd9 || prefix == 0xda || prefix == 0xdb) {
             return abi.encode(deser_str(self));
         } else if (prefix == 0xC4) {
             return abi.encode(deser_bin8(self));
@@ -112,13 +95,7 @@ library MsgPk {
 
     function deser_str(Stream memory self) public view returns (string memory) {
         bytes1 first = next(self);
-        require(
-            first >> 5 == 0x05 ||
-                first == 0xd9 ||
-                first == 0xda ||
-                first == 0xdb,
-            "not a fixstr or strX"
-        );
+        require(first >> 5 == 0x05 || first == 0xd9 || first == 0xda || first == 0xdb, "not a fixstr or strX");
 
         if (first >> 5 == 0x05) {
             // fixstr
@@ -155,9 +132,7 @@ library MsgPk {
         return next_n(self, n);
     }
 
-    function deser_fixarr(
-        Stream memory self
-    ) public view returns (EncodedArray memory arr) {
+    function deser_fixarr(Stream memory self) public view returns (EncodedArray memory arr) {
         bytes1 first = next(self);
         require(first >> 4 == 0x09, "not a fixarr");
         uint256 n = uint256(uint8(first & 0x0F)); // low nibble
@@ -169,9 +144,7 @@ library MsgPk {
         }
     }
 
-    function deser_fixmap(
-        Stream memory self
-    ) public view returns (EncodedMap memory map) {
+    function deser_fixmap(Stream memory self) public view returns (EncodedMap memory map) {
         bytes1 first = next(self);
         require(first >> 4 == 0x08, "not a fixmap");
         uint256 n = uint256(uint8(first & 0x0F)); // low nibble
@@ -184,9 +157,7 @@ library MsgPk {
         }
     }
 
-    function deser_arr16(
-        Stream memory self
-    ) public view returns (EncodedArray memory arr) {
+    function deser_arr16(Stream memory self) public view returns (EncodedArray memory arr) {
         bytes1 first = next(self);
         require(first == 0xdc, "not an arr16");
         // size is next two bytes:
@@ -200,9 +171,7 @@ library MsgPk {
         }
     }
 
-    function deser_map16(
-        Stream memory self
-    ) public view returns (EncodedMap memory map) {
+    function deser_map16(Stream memory self) public view returns (EncodedMap memory map) {
         bytes1 first = next(self);
         require(first == 0xde, "not a map16");
         // size is next two bytes:
@@ -242,9 +211,7 @@ library MsgPk {
         return uint8(first);
     }
 
-    function deser_null(
-        Stream memory self
-    ) public view returns (string memory) {
+    function deser_null(Stream memory self) public view returns (string memory) {
         bytes1 first = next(self);
         require(first == 0xc0, "not null");
 
@@ -258,19 +225,11 @@ library MsgPk {
         return first == 0xc3; // 0xc3 == true
     }
 
-    function deser_buffer(
-        EncodedMap memory self
-    ) public pure returns (bytes memory data) {
-        bytes memory type_name = abi.decode(
-            find_value(self, abi.encode("type")),
-            (bytes)
-        );
+    function deser_buffer(EncodedMap memory self) public pure returns (bytes memory data) {
+        bytes memory type_name = abi.decode(find_value(self, abi.encode("type")), (bytes));
         require(keccak256(type_name) == keccak256("Buffer"));
 
-        EncodedArray memory data_arr = abi.decode(
-            find_value(self, abi.encode("data")),
-            (EncodedArray)
-        );
+        EncodedArray memory data_arr = abi.decode(find_value(self, abi.encode("data")), (EncodedArray));
 
         // data_arr will hold an array of `bytes` arrays, where each `bytes`
         // is a 32 sized byte array which represents only one byte, but padded
@@ -285,45 +244,22 @@ library MsgPk {
         data = Utils.flatten_padded_bytes_array(data_arr.values);
     }
 
-    function deser_buffer_to_uint256(
-        EncodedMap memory self
-    ) public pure returns (uint256 integer) {
-        bytes memory type_name = abi.decode(
-            find_value(self, abi.encode("type")),
-            (bytes)
-        );
+    function deser_buffer_to_uint256(EncodedMap memory self) public pure returns (uint256 integer) {
+        bytes memory type_name = abi.decode(find_value(self, abi.encode("type")), (bytes));
         require(keccak256(type_name) == keccak256("Buffer"));
 
-        EncodedArray memory data_arr = abi.decode(
-            find_value(self, abi.encode("data")),
-            (EncodedArray)
-        );
+        EncodedArray memory data_arr = abi.decode(find_value(self, abi.encode("data")), (EncodedArray));
 
         integer = Utils.padded_bytes_array_to_uint256(data_arr.values);
     }
 
-    function deser_verifier_index(
-        Stream memory self,
-        VerifierIndex storage index
-    ) external {
+    function deser_verifier_index(Stream memory self, VerifierIndex storage index) external {
         EncodedMap memory map = deser_map16(self);
-        index.public_len = abi.decode(
-            find_value(map, abi.encode("public")),
-            (uint256)
-        );
-        index.max_poly_size = abi.decode(
-            find_value(map, abi.encode("max_poly_size")),
-            (uint256)
-        );
-        index.zk_rows = abi.decode(
-            find_value(map, abi.encode("zk_rows")),
-            (uint64)
-        );
+        index.public_len = abi.decode(find_value(map, abi.encode("public")), (uint256));
+        index.max_poly_size = abi.decode(find_value(map, abi.encode("max_poly_size")), (uint256));
+        index.zk_rows = abi.decode(find_value(map, abi.encode("zk_rows")), (uint64));
 
-        EncodedMap memory domain_map = abi.decode(
-            find_value(map, abi.encode("domain")),
-            (EncodedMap)
-        );
+        EncodedMap memory domain_map = abi.decode(find_value(map, abi.encode("domain")), (EncodedMap));
 
         bytes memory domain_b = deser_buffer(domain_map);
 
@@ -345,15 +281,10 @@ library MsgPk {
         index.domain_gen = Scalar.from(domain_gen);
 
         // wire shift coordinates
-        EncodedArray memory shift_arr = abi.decode(
-            find_value(map, abi.encode("shift")),
-            (EncodedArray)
-        );
+        EncodedArray memory shift_arr = abi.decode(find_value(map, abi.encode("shift")), (EncodedArray));
         require(shift_arr.values.length == 7, "shift array is not of length 7");
         for (uint256 i = 0; i < 7; i++) {
-            uint256 inner = deser_buffer_to_uint256(
-                abi.decode(shift_arr.values[i], (EncodedMap))
-            );
+            uint256 inner = deser_buffer_to_uint256(abi.decode(shift_arr.values[i], (EncodedMap)));
             index.shift[i] = Scalar.from(inner);
         }
 
@@ -361,70 +292,44 @@ library MsgPk {
         index.w = index.domain_gen.pow(index.domain_size - index.zk_rows);
     }
 
-    function deser_prover_proof(
-        Stream memory self,
-        ProverProof storage prover_proof
-    ) external {
+    function deser_prover_proof(Stream memory self, ProverProof storage prover_proof) external {
         EncodedMap memory map = deser_fixmap(self);
 
-        EncodedMap memory all_evals_map = abi.decode(
-            find_value(map, abi.encode("evals")),
-            (EncodedMap)
-        );
+        EncodedMap memory all_evals_map = abi.decode(find_value(map, abi.encode("evals")), (EncodedMap));
 
         prover_proof.evals.public_evals = deser_evals(all_evals_map, "public");
         prover_proof.evals.is_public_evals_set = true;
 
         prover_proof.evals.z = deser_evals(all_evals_map, "z");
 
-        PointEvaluationsArray[] memory w = deser_evals_array(
-            all_evals_map,
-            "w"
-        );
+        PointEvaluationsArray[] memory w = deser_evals_array(all_evals_map, "w");
         for (uint256 i = 0; i < 15; i++) {
             prover_proof.evals.w[i] = w[i];
         }
 
-        PointEvaluationsArray[] memory s = deser_evals_array(
-            all_evals_map,
-            "s"
-        );
+        PointEvaluationsArray[] memory s = deser_evals_array(all_evals_map, "s");
         for (uint256 i = 0; i < 6; i++) {
             prover_proof.evals.w[i] = w[i];
         }
     }
 
-    function deser_evals(
-        EncodedMap memory all_evals_map,
-        string memory name
-    ) public pure returns (PointEvaluationsArray memory) {
-        EncodedMap memory eval_map = abi.decode(
-            find_value(all_evals_map, abi.encode(name)),
-            (EncodedMap)
-        );
+    function deser_evals(EncodedMap memory all_evals_map, string memory name)
+        public
+        pure
+        returns (PointEvaluationsArray memory)
+    {
+        EncodedMap memory eval_map = abi.decode(find_value(all_evals_map, abi.encode(name)), (EncodedMap));
 
-        EncodedArray memory zeta_arr = abi.decode(
-            find_value(eval_map, abi.encode("zeta")),
-            (EncodedArray)
-        );
-        EncodedArray memory zeta_omega_arr = abi.decode(
-            find_value(eval_map, abi.encode("zeta_omega")),
-            (EncodedArray)
-        );
+        EncodedArray memory zeta_arr = abi.decode(find_value(eval_map, abi.encode("zeta")), (EncodedArray));
+        EncodedArray memory zeta_omega_arr = abi.decode(find_value(eval_map, abi.encode("zeta_omega")), (EncodedArray));
         require(zeta_arr.values.length == zeta_omega_arr.values.length);
         uint256 length = zeta_arr.values.length;
 
         Scalar.FE[] memory zetas = new Scalar.FE[](length);
         Scalar.FE[] memory zeta_omegas = new Scalar.FE[](length);
         for (uint256 i = 0; i < zeta_arr.values.length; i++) {
-            EncodedMap memory zeta_map = abi.decode(
-                zeta_arr.values[i],
-                (EncodedMap)
-            );
-            EncodedMap memory zeta_omega_map = abi.decode(
-                zeta_omega_arr.values[i],
-                (EncodedMap)
-            );
+            EncodedMap memory zeta_map = abi.decode(zeta_arr.values[i], (EncodedMap));
+            EncodedMap memory zeta_omega_map = abi.decode(zeta_omega_arr.values[i], (EncodedMap));
 
             uint256 zeta_inner = deser_buffer_to_uint256(zeta_map);
             uint256 zeta_omega_inner = deser_buffer_to_uint256(zeta_omega_map);
@@ -436,50 +341,32 @@ library MsgPk {
         return PointEvaluationsArray(zetas, zeta_omegas);
     }
 
-    function deser_evals_array(
-        EncodedMap memory all_evals_map,
-        string memory name
-    ) public pure returns (PointEvaluationsArray[] memory evals) {
-        EncodedArray memory eval_array = abi.decode(
-            find_value(all_evals_map, abi.encode(name)),
-            (EncodedArray)
-        );
+    function deser_evals_array(EncodedMap memory all_evals_map, string memory name)
+        public
+        pure
+        returns (PointEvaluationsArray[] memory evals)
+    {
+        EncodedArray memory eval_array = abi.decode(find_value(all_evals_map, abi.encode(name)), (EncodedArray));
         uint256 length = eval_array.values.length;
         evals = new PointEvaluationsArray[](length);
 
         for (uint256 eval = 0; eval < length; eval++) {
-            EncodedMap memory eval_map = abi.decode(
-                eval_array.values[eval],
-                (EncodedMap)
-            );
+            EncodedMap memory eval_map = abi.decode(eval_array.values[eval], (EncodedMap));
 
-            EncodedArray memory zeta_arr = abi.decode(
-                find_value(eval_map, abi.encode("zeta")),
-                (EncodedArray)
-            );
-            EncodedArray memory zeta_omega_arr = abi.decode(
-                find_value(eval_map, abi.encode("zeta_omega")),
-                (EncodedArray)
-            );
+            EncodedArray memory zeta_arr = abi.decode(find_value(eval_map, abi.encode("zeta")), (EncodedArray));
+            EncodedArray memory zeta_omega_arr =
+                abi.decode(find_value(eval_map, abi.encode("zeta_omega")), (EncodedArray));
             require(zeta_arr.values.length == zeta_omega_arr.values.length);
             uint256 length = zeta_arr.values.length;
 
             Scalar.FE[] memory zetas = new Scalar.FE[](length);
             Scalar.FE[] memory zeta_omegas = new Scalar.FE[](length);
             for (uint256 i = 0; i < zeta_arr.values.length; i++) {
-                EncodedMap memory zeta_map = abi.decode(
-                    zeta_arr.values[i],
-                    (EncodedMap)
-                );
-                EncodedMap memory zeta_omega_map = abi.decode(
-                    zeta_omega_arr.values[i],
-                    (EncodedMap)
-                );
+                EncodedMap memory zeta_map = abi.decode(zeta_arr.values[i], (EncodedMap));
+                EncodedMap memory zeta_omega_map = abi.decode(zeta_omega_arr.values[i], (EncodedMap));
 
                 uint256 zeta_inner = deser_buffer_to_uint256(zeta_map);
-                uint256 zeta_omega_inner = deser_buffer_to_uint256(
-                    zeta_omega_map
-                );
+                uint256 zeta_omega_inner = deser_buffer_to_uint256(zeta_omega_map);
 
                 zetas[i] = Scalar.from(zeta_inner);
                 zeta_omegas[i] = Scalar.from(zeta_omega_inner);
@@ -492,123 +379,73 @@ library MsgPk {
         EncodedMap memory map,
         mapping(uint256 => PolyCommFlat) storage lagrange_bases_unshifted
     ) public {
-        for (uint i = 0; i < map.keys.length; i++) {
-            EncodedArray memory comms = abi.decode(
-                map.values[i],
-                (EncodedArray)
-            );
+        for (uint256 i = 0; i < map.keys.length; i++) {
+            EncodedArray memory comms = abi.decode(map.values[i], (EncodedArray));
             PolyComm[] memory polycomms = new PolyComm[](comms.values.length);
 
-            for (uint j = 0; j < comms.values.length; j++) {
-                EncodedMap memory comm = abi.decode(
-                    comms.values[i],
-                    (EncodedMap)
-                );
-                EncodedArray memory unshifted_arr = abi.decode(
-                    find_value(comm, abi.encode("unshifted")),
-                    (EncodedArray)
-                );
+            for (uint256 j = 0; j < comms.values.length; j++) {
+                EncodedMap memory comm = abi.decode(comms.values[i], (EncodedMap));
+                EncodedArray memory unshifted_arr =
+                    abi.decode(find_value(comm, abi.encode("unshifted")), (EncodedArray));
 
-                uint unshifted_length = unshifted_arr.values.length;
+                uint256 unshifted_length = unshifted_arr.values.length;
                 BN254.G1Point[] memory unshifted = new BN254.G1Point[](
                     unshifted_length
                 );
-                for (uint k = 0; k < unshifted_length; k++) {
-                    EncodedMap memory unshifted_buffer = abi.decode(
-                        unshifted_arr.values[k],
-                        (EncodedMap)
-                    );
-                    unshifted[k] = BN254.g1Deserialize(
-                        bytes32(deser_buffer(unshifted_buffer))
-                    );
+                for (uint256 k = 0; k < unshifted_length; k++) {
+                    EncodedMap memory unshifted_buffer = abi.decode(unshifted_arr.values[k], (EncodedMap));
+                    unshifted[k] = BN254.g1Deserialize(bytes32(deser_buffer(unshifted_buffer)));
                 }
 
                 polycomms[j] = PolyComm(unshifted);
             }
 
-            lagrange_bases_unshifted[
-                abi.decode(map.keys[i], (uint256))
-            ] = poly_comm_flat(polycomms);
+            lagrange_bases_unshifted[abi.decode(map.keys[i], (uint256))] = poly_comm_flat(polycomms);
         }
     }
 
-    function deser_pairing_urs(
-        Stream memory self,
-        PairingURS storage urs
-    ) public {
+    function deser_pairing_urs(Stream memory self, PairingURS storage urs) public {
         // full_srs and verifier_srs fields
         EncodedMap memory urs_map = deser_fixmap(self);
 
-        EncodedMap memory full_urs_serialized = abi.decode(
-            find_value(urs_map, abi.encode("full_srs")),
-            (EncodedMap)
-        );
-        EncodedMap memory verifier_urs_serialized = abi.decode(
-            find_value(urs_map, abi.encode("verifier_srs")),
-            (EncodedMap)
-        );
+        EncodedMap memory full_urs_serialized = abi.decode(find_value(urs_map, abi.encode("full_srs")), (EncodedMap));
+        EncodedMap memory verifier_urs_serialized =
+            abi.decode(find_value(urs_map, abi.encode("verifier_srs")), (EncodedMap));
 
         // get data from g and h fields (g is an array of buffers and h is a buffer)
-        EncodedArray memory full_urs_g_serialized = abi.decode(
-            find_value(full_urs_serialized, abi.encode("g")),
-            (EncodedArray)
-        );
-        EncodedMap memory full_urs_h_serialized = abi.decode(
-            find_value(full_urs_serialized, abi.encode("h")),
-            (EncodedMap)
-        );
+        EncodedArray memory full_urs_g_serialized =
+            abi.decode(find_value(full_urs_serialized, abi.encode("g")), (EncodedArray));
+        EncodedMap memory full_urs_h_serialized =
+            abi.decode(find_value(full_urs_serialized, abi.encode("h")), (EncodedMap));
 
-        EncodedArray memory verifier_urs_g_serialized = abi.decode(
-            find_value(verifier_urs_serialized, abi.encode("g")),
-            (EncodedArray)
-        );
-        EncodedMap memory verifier_urs_h_serialized = abi.decode(
-            find_value(verifier_urs_serialized, abi.encode("h")),
-            (EncodedMap)
-        );
+        EncodedArray memory verifier_urs_g_serialized =
+            abi.decode(find_value(verifier_urs_serialized, abi.encode("g")), (EncodedArray));
+        EncodedMap memory verifier_urs_h_serialized =
+            abi.decode(find_value(verifier_urs_serialized, abi.encode("h")), (EncodedMap));
 
         // deserialized and save g for both URS
-        uint full_urs_g_length = full_urs_g_serialized.values.length;
+        uint256 full_urs_g_length = full_urs_g_serialized.values.length;
         BN254.G1Point[] memory full_urs_g = new BN254.G1Point[](
             full_urs_g_length
         );
-        for (uint i = 0; i < full_urs_g_length; i++) {
-            full_urs_g[i] = BN254.g1Deserialize(
-                bytes32(
-                    deser_buffer(
-                        abi.decode(
-                            full_urs_g_serialized.values[i],
-                            (EncodedMap)
-                        )
-                    )
-                )
-            );
+        for (uint256 i = 0; i < full_urs_g_length; i++) {
+            full_urs_g[i] =
+                BN254.g1Deserialize(bytes32(deser_buffer(abi.decode(full_urs_g_serialized.values[i], (EncodedMap)))));
         }
 
-        uint verifier_urs_g_length = verifier_urs_g_serialized.values.length;
+        uint256 verifier_urs_g_length = verifier_urs_g_serialized.values.length;
         BN254.G1Point[] memory verifier_urs_g = new BN254.G1Point[](
             verifier_urs_g_length
         );
-        for (uint i = 0; i < verifier_urs_g_length; i++) {
+        for (uint256 i = 0; i < verifier_urs_g_length; i++) {
             verifier_urs_g[i] = BN254.g1Deserialize(
-                bytes32(
-                    deser_buffer(
-                        abi.decode(
-                            verifier_urs_g_serialized.values[i],
-                            (EncodedMap)
-                        )
-                    )
-                )
+                bytes32(deser_buffer(abi.decode(verifier_urs_g_serialized.values[i], (EncodedMap))))
             );
         }
 
         // deserialized and save h for both URS
-        BN254.G1Point memory full_urs_h = BN254.g1Deserialize(
-            bytes32(deser_buffer(full_urs_h_serialized))
-        );
-        BN254.G1Point memory verifier_urs_h = BN254.g1Deserialize(
-            bytes32(deser_buffer(verifier_urs_h_serialized))
-        );
+        BN254.G1Point memory full_urs_h = BN254.g1Deserialize(bytes32(deser_buffer(full_urs_h_serialized)));
+        BN254.G1Point memory verifier_urs_h = BN254.g1Deserialize(bytes32(deser_buffer(verifier_urs_h_serialized)));
 
         // store values
         urs.full_urs.g = full_urs_g;
@@ -618,14 +455,9 @@ library MsgPk {
         urs.verifier_urs.h = verifier_urs_h;
 
         // deserialize and store lagrange bases
-        EncodedMap memory lagrange_b_serialized = abi.decode(
-            find_value(full_urs_serialized, abi.encode("lagrange_bases")),
-            (EncodedMap)
-        );
-        deser_lagrange_bases(
-            lagrange_b_serialized,
-            urs.lagrange_bases_unshifted
-        );
+        EncodedMap memory lagrange_b_serialized =
+            abi.decode(find_value(full_urs_serialized, abi.encode("lagrange_bases")), (EncodedMap));
+        deser_lagrange_bases(lagrange_b_serialized, urs.lagrange_bases_unshifted);
     }
 
     /* WARN:
@@ -634,16 +466,10 @@ library MsgPk {
      * them with the new WIP deserializer. Please prefer using functions above.
      */
 
-    function deserializeFinalCommitments(
-        bytes calldata data
-    )
+    function deserializeFinalCommitments(bytes calldata data)
         public
         view
-        returns (
-            BN254.G1Point memory numerator,
-            BN254.G1Point memory quotient,
-            BN254.G2Point memory divisor
-        )
+        returns (BN254.G1Point memory numerator, BN254.G1Point memory quotient, BN254.G2Point memory divisor)
     {
         numerator = abi.decode(data[:64], (BN254.G1Point));
         quotient = abi.decode(data[64:128], (BN254.G1Point));
@@ -653,10 +479,11 @@ library MsgPk {
     /// @notice deserializes an array of G1Point and also returns the rest of the
     // data, excluding the consumed bytes. `i` is the index that we start to read
     // the data from.
-    function deserializeG1Point(
-        bytes calldata data,
-        uint256 i
-    ) public view returns (BN254.G1Point memory p, uint256 final_i) {
+    function deserializeG1Point(bytes calldata data, uint256 i)
+        public
+        view
+        returns (BN254.G1Point memory p, uint256 final_i)
+    {
         // read length of the data
         require(data[i] == 0xC4, "not a stream of bin8 (bytes)");
 
@@ -677,9 +504,7 @@ library MsgPk {
 
     /// @notice deserializes an URS excluding the lagrange bases, and also
     // returns the final index which points at the end of the consumed data.
-    function deserializeURS(
-        bytes calldata data
-    )
+    function deserializeURS(bytes calldata data)
         public
         view
         returns (BN254.G1Point[] memory, BN254.G1Point memory, uint256)
@@ -688,28 +513,21 @@ library MsgPk {
         require(data[i] == 0x92, "not a fix array of two elements");
 
         i += 1;
-        require(
-            data[i] == 0xdc || data[i] == 0xdd,
-            "not an array16 or array32"
-        );
+        require(data[i] == 0xdc || data[i] == 0xdd, "not an array16 or array32");
         // 0xdc means that the next 2 bytes represent the size,
         // 0xdd means that the next 4 bytes represent the size.
         uint256 byte_count = data[i] == 0xdc ? 2 : 4;
 
         // next bytes are size of the array
         i += 1;
-        uint256 size = uint256(bytes32(data[i:i + byte_count])) >>
-            ((32 - byte_count) * 8);
+        uint256 size = uint256(bytes32(data[i:i + byte_count])) >> ((32 - byte_count) * 8);
         // shift is necessary because conversion pads with zeros to the left
         BN254.G1Point[] memory g = new BN254.G1Point[](size);
         i += byte_count;
 
         // read elements
         for (uint256 elem = 0; elem < size; elem++) {
-            (BN254.G1Point memory p, uint256 new_index) = deserializeG1Point(
-                data,
-                i
-            );
+            (BN254.G1Point memory p, uint256 new_index) = deserializeG1Point(data, i);
             g[elem] = p;
             i = new_index;
         }
@@ -719,10 +537,11 @@ library MsgPk {
         return (g, h, final_i);
     }
 
-    function deserializeScalar(
-        bytes calldata data,
-        uint256 i
-    ) public pure returns (Scalar.FE scalar, uint256 final_i) {
+    function deserializeScalar(bytes calldata data, uint256 i)
+        public
+        pure
+        returns (Scalar.FE scalar, uint256 final_i)
+    {
         // read length of the data
         require(data[i] == 0xC4, "not a stream of bin8 (bytes)");
 
@@ -741,10 +560,11 @@ library MsgPk {
         final_i = i;
     }
 
-    function deserializePointEvals(
-        bytes calldata data,
-        uint256 i
-    ) public pure returns (PointEvaluations memory eval, uint256 final_i) {
+    function deserializePointEvals(bytes calldata data, uint256 i)
+        public
+        pure
+        returns (PointEvaluations memory eval, uint256 final_i)
+    {
         require(data[i] == 0x92, "not a fix array of two elements");
         i += 1;
         require(data[i] == 0x91, "not a fix array of one element");
@@ -761,29 +581,20 @@ library MsgPk {
         final_i = i;
     }
 
-    function deserializeProofEvaluationsArray(
-        bytes calldata data,
-        uint256 i
-    )
+    function deserializeProofEvaluationsArray(bytes calldata data, uint256 i)
         public
         pure
         returns (ProofEvaluationsArray memory evals, uint256 final_i)
     {
         // WARN: This works because the test circuit evaluations have one elem per array.
-        (
-            PointEvaluations memory evals_non_array,
-            uint256 _i
-        ) = deserializePointEvals(data, i);
+        (PointEvaluations memory evals_non_array, uint256 _i) = deserializePointEvals(data, i);
 
         Scalar.FE[] memory zeta = new Scalar.FE[](1);
         Scalar.FE[] memory zeta_omega = new Scalar.FE[](1);
         zeta[0] = evals_non_array.zeta;
         zeta_omega[0] = evals_non_array.zeta_omega;
 
-        PointEvaluationsArray memory public_evals = PointEvaluationsArray(
-            zeta,
-            zeta_omega
-        );
+        PointEvaluationsArray memory public_evals = PointEvaluationsArray(zeta, zeta_omega);
 
         PointEvaluationsArray[15] memory w;
         Scalar.FE[] memory zero = new Scalar.FE[](1);
@@ -796,10 +607,7 @@ library MsgPk {
         final_i = _i;
     }
 
-    function deserializeState(
-        bytes calldata data,
-        uint256 i
-    ) public view returns (State memory) {
+    function deserializeState(bytes calldata data, uint256 i) public view returns (State memory) {
         require(data[i] == 0x93, "not a fix array of three elements");
         i += 1;
 
