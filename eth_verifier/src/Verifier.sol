@@ -309,7 +309,7 @@ contract KimchiVerifier {
     /// The polynomial that evaluates to each of `evals` for the respective `elm`s.
     function eval_polynomial(Scalar.FE[] memory elm, Scalar.FE[] memory evals)
         public
-        pure
+        view
         returns (Polynomial.Dense memory)
     {
         require(elm.length == evals.length, "lengths don't match");
