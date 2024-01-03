@@ -394,9 +394,6 @@ contract KimchiVerifier {
             // If the evaluation has a degree bound and a non-zero shifted commitment
             if (evaluations[i].degree_bound > 0 && evaluations[i].commitment.shifted.x != 0) {
                 //// polyscale^i sum_j evalscale^j elm_j^{N - m} f(elm_j)
-                //scalars.push(rand_base * xi_i);
-                //points.push(comm_ch);
-                //xi_i *= polyscale;
 
                 // Add the scalar rand_base * xi_i to the scalars vector
                 scalars[index] = rand_base.mul(xi_i);
