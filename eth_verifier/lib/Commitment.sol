@@ -196,14 +196,11 @@ function mask_custom(URS storage urs, PolyComm memory com, Scalar.FE[] memory bl
 
 // @notice multiplies each commitment chunk of f with powers of zeta^n
 // @notice note that it ignores the shifted part.
-function chunk_commitment(
-    PolyComm memory self,
-    Scalar.FE zeta_n
-) view returns (PolyComm memory) {
+function chunk_commitment(PolyComm memory self, Scalar.FE zeta_n) view returns (PolyComm memory) {
     BN254.G1Point memory res = BN254.point_at_inf();
 
-    uint length = self.unshifted.length;
-    for (uint i = 0; i < length; i++) {
+    uint256 length = self.unshifted.length;
+    for (uint256 i = 0; i < length; i++) {
         BN254.G1Point memory chunk = self.unshifted[length - i - 1];
 
         res = res.scale_scalar(zeta_n);
@@ -217,11 +214,7 @@ function chunk_commitment(
 }
 
 // @notice substracts two polynomial commitments
-function sub_polycomms(
-    PolyComm memory self,
-    PolyComm memory other
-) pure returns (PolyComm memory)
-{
+function sub_polycomms(PolyComm memory self, PolyComm memory other) pure returns (PolyComm memory) {
     // TODO: implement this!
 }
 
