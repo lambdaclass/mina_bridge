@@ -152,7 +152,9 @@ contract KimchiVerifier {
             for (uint256 i = 0; i < chunk_size; i++) {
                 blindings[i] = urs.full_urs.h;
             }
-            public_comm = PolyComm(blindings);
+            // TODO: shifted is fixed to infinity
+            BN254.G1Point memory shifted = BN254.point_at_inf();
+            public_comm = PolyComm(blindings, shifted);
         } else {
             Scalar.FE[] memory elm = new Scalar.FE[](public_inputs.length);
             for (uint256 i = 0; i < elm.length; i++) {
