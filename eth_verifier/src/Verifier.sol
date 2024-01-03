@@ -314,7 +314,7 @@ contract KimchiVerifier {
         view
         returns (Polynomial.Dense memory)
     {
-        require(elm.length == evals.length, "lengths don't match");
+        require(elm.length == evals.length, "lengths don\'t match");
         require(elm.length == 2, "length must be 2");
         Scalar.FE zeta = elm[0];
         Scalar.FE zeta_omega = elm[1];
@@ -392,34 +392,22 @@ contract KimchiVerifier {
             }
 
             // If the evaluation has a degree bound and a non-zero shifted commitment
-            //if (evaluations[i].degree_bound > 0 && evaluations[i].commitment.shifted.length > 0) {}
-            /*
-            if let Some(_m) = degree_bound {
-                if let Some(comm_ch) = commitment.shifted {
-                    if !comm_ch.is_zero() {
-                        // polyscale^i sum_j evalscale^j elm_j^{N - m} f(elm_j)
-                        scalars.push(rand_base * xi_i);
-                        points.push(comm_ch);
+            if (evaluations[i].degree_bound > 0 && evaluations[i].commitment.shifted.x != 0) {
+                //// polyscale^i sum_j evalscale^j elm_j^{N - m} f(elm_j)
+                //scalars.push(rand_base * xi_i);
+                //points.push(comm_ch);
+                //xi_i *= polyscale;
 
-                        xi_i *= polyscale;
-                    }
-                }
-            }
-            */
-            /* TODO: FIX this with the previous version of the code
-            if (
-                evaluations[i].degree_bound > 0 &&
-                evaluations[i].shifted.length > 0
-            ) {
                 // Add the scalar rand_base * xi_i to the scalars vector
-                scalars[i * 2 + 1] = rand_base * xi_i;
+                scalars[index] = rand_base.mul(xi_i);
                 // Add the point to the points vector
-                points[i * 2 + 1] = evaluations[i].shifted[0];
+                points[index] = evaluations[i].commitment.shifted;
 
                 // Multiply xi_i by polyscale
-                xi_i *= polyscale;
+                xi_i = xi_i.mul(polyscale);
+                // Increment the index
+                index++;
             }
-            */
         }
     }
 
