@@ -29,7 +29,7 @@ library MsgPk {
         bytes[] values;
     }
 
-    function new_stream(bytes calldata data) public pure returns (Stream memory) {
+    function new_stream(bytes memory data) public pure returns (Stream memory) {
         return Stream(data, 0);
     }
 
@@ -54,6 +54,7 @@ library MsgPk {
 
     error EncodedMapKeyNotFound(bytes key, bytes[] stored_keys);
 
+    /// @notice returns the bytes corresponding to the queried key
     function find_value(EncodedMap memory self, bytes memory key) public pure returns (bytes memory) {
         uint256 i = 0;
         while (i != self.keys.length && keccak256(self.keys[i]) != keccak256(key)) {
@@ -387,6 +388,8 @@ library MsgPk {
     function deser_prover_proof(Stream memory self, ProverProof storage prover_proof) external {
         EncodedMap memory map = deser_fixmap(self);
 
+        // deserialize evaluations
+
         EncodedMap memory all_evals_map = abi.decode(find_value(map, abi.encode("evals")), (EncodedMap));
 
         prover_proof.evals.public_evals = deser_evals(all_evals_map, "public");
@@ -500,9 +503,7 @@ library MsgPk {
                     abi.decode(find_value(comm, abi.encode("unshifted")), (EncodedArray));
 
                 uint256 unshifted_length = unshifted_arr.values.length;
-                BN254.G1Point[] memory unshifted = new BN254.G1Point[](
-                    unshifted_length
-                );
+                BN254.G1Point[] memory unshifted = new BN254.G1Point[](unshifted_length);
                 for (uint256 k = 0; k < unshifted_length; k++) {
                     EncodedMap memory unshifted_buffer = abi.decode(unshifted_arr.values[k], (EncodedMap));
                     unshifted[k] = BN254.g1Deserialize(bytes32(deser_buffer(unshifted_buffer)));
@@ -538,18 +539,14 @@ library MsgPk {
 
         // deserialized and save g for both URS
         uint256 full_urs_g_length = full_urs_g_serialized.values.length;
-        BN254.G1Point[] memory full_urs_g = new BN254.G1Point[](
-            full_urs_g_length
-        );
+        BN254.G1Point[] memory full_urs_g = new BN254.G1Point[](full_urs_g_length);
         for (uint256 i = 0; i < full_urs_g_length; i++) {
             full_urs_g[i] =
                 BN254.g1Deserialize(bytes32(deser_buffer(abi.decode(full_urs_g_serialized.values[i], (EncodedMap)))));
         }
 
         uint256 verifier_urs_g_length = verifier_urs_g_serialized.values.length;
-        BN254.G1Point[] memory verifier_urs_g = new BN254.G1Point[](
-            verifier_urs_g_length
-        );
+        BN254.G1Point[] memory verifier_urs_g = new BN254.G1Point[](verifier_urs_g_length);
         for (uint256 i = 0; i < verifier_urs_g_length; i++) {
             verifier_urs_g[i] = BN254.g1Deserialize(
                 bytes32(deser_buffer(abi.decode(verifier_urs_g_serialized.values[i], (EncodedMap))))

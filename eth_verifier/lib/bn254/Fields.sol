@@ -5,8 +5,7 @@ pragma solidity >=0.4.16 <0.9.0;
 library Base {
     type FE is uint256;
 
-    uint256 public constant MODULUS =
-        21888242871839275222246405745257275088696311157297823662689037894645226208583;
+    uint256 public constant MODULUS = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
 
     function zero() public pure returns (FE) {
         return FE.wrap(0);
@@ -16,13 +15,13 @@ library Base {
         return FE.wrap(1);
     }
 
-    function from(uint n) public pure returns (FE) {
+    function from(uint256 n) public pure returns (FE) {
         return FE.wrap(n % MODULUS);
     }
 
     function from_bytes_be(bytes memory b) public pure returns (FE) {
         uint256 integer = 0;
-        for (uint i = 0; i < 32; i++) {
+        for (uint256 i = 0; i < 32; i++) {
             integer <<= 8;
             integer += uint8(b[i]);
         }
@@ -49,7 +48,7 @@ library Base {
 
     function inv(FE self) public view returns (FE) {
         require(FE.unwrap(self) != 0, "tried to get inverse of 0");
-        (uint gcd, uint inverse) = Aux.xgcd(FE.unwrap(self), MODULUS);
+        (uint256 gcd, uint256 inverse) = Aux.xgcd(FE.unwrap(self), MODULUS);
         require(gcd == 1, "gcd not 1");
 
         return FE.wrap(inverse);
@@ -67,7 +66,7 @@ library Base {
 
     // Reference: Lambdaworks
     // https://github.com/lambdaclass/lambdaworks/
-    function pow(FE self, uint exponent) public pure returns (FE result) {
+    function pow(FE self, uint256 exponent) public pure returns (FE result) {
         if (exponent == 0) {
             return FE.wrap(1);
         } else if (exponent == 1) {
@@ -101,13 +100,13 @@ library Base {
 import {console} from "forge-std/console.sol";
 
 /// @notice Implements 256 bit modular arithmetic over the scalar field of bn254.
+
 library Scalar {
     type FE is uint256;
 
     using {add, mul, inv, neg, sub} for FE;
 
-    uint256 public constant MODULUS =
-        21888242871839275222246405745257275088548364400416034343698204186575808495617;
+    uint256 public constant MODULUS = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
     uint256 public constant TWO_ADIC_PRIMITIVE_ROOT_OF_UNITY =
         19103219067921713944291392827692070036145651957329286315305642004821462161904;
@@ -121,15 +120,15 @@ library Scalar {
         return FE.wrap(1);
     }
 
-    function from(uint n) public pure returns (FE) {
+    function from(uint256 n) public pure returns (FE) {
         return FE.wrap(n % MODULUS);
     }
 
     function from_bytes_be(bytes memory b) public pure returns (FE) {
         uint256 integer = 0;
-        uint count = b.length <= 32 ? b.length : 32;
+        uint256 count = b.length <= 32 ? b.length : 32;
 
-        for (uint i = 0; i < count; i++) {
+        for (uint256 i = 0; i < count; i++) {
             integer <<= 8;
             integer += uint8(b[i]);
         }
@@ -159,7 +158,7 @@ library Scalar {
 
     function inv(FE self) public pure returns (FE) {
         require(FE.unwrap(self) != 0, "tried to get inverse of 0");
-        (uint gcd, uint inverse) = Aux.xgcd(FE.unwrap(self), MODULUS);
+        (uint256 gcd, uint256 inverse) = Aux.xgcd(FE.unwrap(self), MODULUS);
         require(gcd == 1, "gcd not 1");
 
         return FE.wrap(inverse);
@@ -177,7 +176,7 @@ library Scalar {
 
     // Reference: Lambdaworks
     // https://github.com/lambdaclass/lambdaworks/
-    function pow(FE self, uint exponent) public pure returns (FE result) {
+    function pow(FE self, uint256 exponent) public pure returns (FE result) {
         if (exponent == 0) {
             return FE.wrap(1);
         } else if (exponent == 1) {
@@ -212,9 +211,8 @@ library Scalar {
     /// @notice returns a primitive root of unity of order $2^{order}$.
     // Reference: Lambdaworks
     // https://github.com/lambdaclass/lambdaworks/
-    function get_primitive_root_of_unity(
-        uint order
-    ) public view returns (FE root) {
+
+    function get_primitive_root_of_unity(uint256 order) public view returns (FE root) {
         if (order == 0) {
             return FE.wrap(1);
         }
@@ -222,9 +220,9 @@ library Scalar {
             revert RootOfUnityError();
         }
 
-        uint log_power = TWO_ADICITY - order;
+        uint256 log_power = TWO_ADICITY - order;
         FE root = from(TWO_ADIC_PRIMITIVE_ROOT_OF_UNITY);
-        for (uint i = 0; i < log_power; i++) {
+        for (uint256 i = 0; i < log_power; i++) {
             root = square(root);
         }
 
@@ -237,21 +235,21 @@ library Aux {
     /// @notice Extended euclidean algorithm. Returns [gcd, Bezout_a]
     /// @notice so gcd = a*Bezout_a + b*Bezout_b.
     /// @notice source: https://www.extendedeuclideanalgorithm.com/code
-    function xgcd(uint a, uint b) public pure returns (uint r0, uint s0) {
+    function xgcd(uint256 a, uint256 b) public pure returns (uint256 r0, uint256 s0) {
         r0 = a;
-        uint r1 = b;
+        uint256 r1 = b;
         s0 = 1;
-        uint s1 = 0;
-        uint t0 = 0;
-        uint t1 = 1;
+        uint256 s1 = 0;
+        uint256 t0 = 0;
+        uint256 t1 = 1;
 
-        uint n = 0;
+        uint256 n = 0;
         while (r1 != 0) {
-            uint q = r0 / r1;
+            uint256 q = r0 / r1;
             r0 = r0 > q * r1 ? r0 - q * r1 : q * r1 - r0; // abs
 
             // swap r0, r1
-            uint temp = r0;
+            uint256 temp = r0;
             r0 = r1;
             r1 = temp;
 
