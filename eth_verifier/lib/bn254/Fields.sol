@@ -100,7 +100,6 @@ library Base {
 import {console} from "forge-std/console.sol";
 
 /// @notice Implements 256 bit modular arithmetic over the scalar field of bn254.
-
 library Scalar {
     type FE is uint256;
 
@@ -156,7 +155,7 @@ library Scalar {
         res = mul(self, self);
     }
 
-    function inv(FE self) public pure returns (FE) {
+    function inv(FE self) public view returns (FE) {
         require(FE.unwrap(self) != 0, "tried to get inverse of 0");
         (uint256 gcd, uint256 inverse) = Aux.xgcd(FE.unwrap(self), MODULUS);
         require(gcd == 1, "gcd not 1");
@@ -207,7 +206,6 @@ library Scalar {
     }
 
     error RootOfUnityError();
-
     /// @notice returns a primitive root of unity of order $2^{order}$.
     // Reference: Lambdaworks
     // https://github.com/lambdaclass/lambdaworks/
