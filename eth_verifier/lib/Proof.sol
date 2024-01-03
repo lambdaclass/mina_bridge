@@ -37,12 +37,12 @@ struct ProofEvaluationsArray {
     PointEvaluationsArray[7 - 1] s; // TODO: use Constants.PERMUTS
 }
 
+// TODO: add lookup commitments
 struct ProverCommitments {
     PolyComm[15] w_comm; // TODO: use Constants.COLUMNS
     PolyComm z_comm;
     PolyComm t_comm;
 }
-// TODO: lookup commitments
 
 function combine_evals(ProofEvaluationsArray memory self, PointEvaluations memory pt)
     pure
