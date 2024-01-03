@@ -70,7 +70,7 @@ contract KimchiVerifier {
         //MsgPk.deser_pairing_urs(MsgPk.new_stream(urs_serialized), urs);
         // URS deserialization is WIP, we'll generate a random one for now:
         Scalar.FE x = Scalar.from(42);
-        uint max_domain_size = 16384;
+        uint256 max_domain_size = 16384;
         urs.full_urs = create_trusted_setup(x, max_domain_size);
         urs.verifier_urs = create_trusted_setup(x, 3);
 
@@ -82,18 +82,12 @@ contract KimchiVerifier {
         verifier_index.powers_of_alpha.register(ArgumentType.Permutation, Constants.PERMUTATION_CONSTRAINTS);
     }
 
-    function verify_with_index(
-        bytes calldata verifier_index_serialized,
-        bytes calldata prover_proof_serialized
-    ) public returns (bool) {
-        MsgPk.deser_verifier_index(
-            MsgPk.new_stream(verifier_index_serialized),
-            verifier_index
-        );
-        MsgPk.deser_prover_proof(
-            MsgPk.new_stream(prover_proof_serialized),
-            proof
-        );
+    function verify_with_index(bytes calldata verifier_index_serialized, bytes calldata prover_proof_serialized)
+        public
+        returns (bool)
+    {
+        MsgPk.deser_verifier_index(MsgPk.new_stream(verifier_index_serialized), verifier_index);
+        MsgPk.deser_prover_proof(MsgPk.new_stream(prover_proof_serialized), proof);
 
         //calculate_lagrange_bases(
         //    verifier_index.urs.g,
@@ -109,10 +103,7 @@ contract KimchiVerifier {
 
     /// @notice this is currently deprecated but remains as to not break
     /// @notice the demo.
-    function verify_state(
-        bytes calldata state_serialized,
-        bytes calldata proof_serialized
-    ) public returns (bool) {
+    function verify_state(bytes calldata state_serialized, bytes calldata proof_serialized) public returns (bool) {
         // 1. Deserialize proof and setup
 
         // For now, proof consists in the concatenation of the bytes that
@@ -121,18 +112,10 @@ contract KimchiVerifier {
 
         // BEWARE: quotient must be negated.
 
-        (
-            BN254.G1Point memory numerator,
-            BN254.G1Point memory quotient,
-            BN254.G2Point memory divisor
-        ) = MsgPk.deserializeFinalCommitments(proof_serialized);
+        (BN254.G1Point memory numerator, BN254.G1Point memory quotient, BN254.G2Point memory divisor) =
+            MsgPk.deserializeFinalCommitments(proof_serialized);
 
-        bool success = BN254.pairingProd2(
-            numerator,
-            BN254.P2(),
-            quotient,
-            divisor
-        );
+        bool success = BN254.pairingProd2(numerator, BN254.P2(), quotient, divisor);
 
         // 3. If success, deserialize and store state
         if (success) {
@@ -149,16 +132,14 @@ contract KimchiVerifier {
     function partial_verify(Scalar.FE[] memory public_inputs) public {
         // Commit to the negated public input polynomial.
 
-        uint256 chunk_size = verifier_index.domain_size <
-            verifier_index.max_poly_size
+        uint256 chunk_size = verifier_index.domain_size < verifier_index.max_poly_size
             ? 1
             : verifier_index.domain_size / verifier_index.max_poly_size;
 
         if (public_inputs.length != verifier_index.public_len) {
             revert IncorrectPublicInputLength();
         }
-        PolyCommFlat memory lgr_comm_flat = urs
-            .lagrange_bases_unshifted[verifier_index.domain_size];
+        PolyCommFlat memory lgr_comm_flat = urs.lagrange_bases_unshifted[verifier_index.domain_size];
         PolyComm[] memory comm = new PolyComm[](verifier_index.public_len);
         PolyComm[] memory lgr_comm = poly_comm_unflat(lgr_comm_flat);
         // INFO: can use unchecked on for loops to save gas
@@ -174,34 +155,23 @@ contract KimchiVerifier {
             public_comm = PolyComm(blindings);
         } else {
             Scalar.FE[] memory elm = new Scalar.FE[](public_inputs.length);
-            for (uint i = 0; i < elm.length; i++) {
+            for (uint256 i = 0; i < elm.length; i++) {
                 elm[i] = public_inputs[i].neg();
             }
             PolyComm memory public_comm_tmp = polycomm_msm(comm, elm);
             Scalar.FE[] memory blinders = new Scalar.FE[](
                 public_comm_tmp.unshifted.length
             );
-            for (uint i = 0; i < public_comm_tmp.unshifted.length; i++) {
+            for (uint256 i = 0; i < public_comm_tmp.unshifted.length; i++) {
                 blinders[i] = Scalar.FE.wrap(1);
             }
-            public_comm = mask_custom(
-                urs.full_urs,
-                public_comm_tmp,
-                blinders
-            ).commitment;
+            public_comm = mask_custom(urs.full_urs, public_comm_tmp, blinders).commitment;
         }
 
         // Execute fiat-shamir with a Keccak sponge
 
-        Oracles.Result memory oracles_res = Oracles.fiat_shamir(
-            proof,
-            verifier_index,
-            public_comm,
-            public_inputs,
-            true,
-            base_sponge,
-            scalar_sponge
-        );
+        Oracles.Result memory oracles_res =
+            Oracles.fiat_shamir(proof, verifier_index, public_comm, public_inputs, true, base_sponge, scalar_sponge);
         Oracles.RandomOracles memory oracles = oracles_res.oracles;
 
         // Combine the chunked polynomials' evaluations
@@ -209,22 +179,16 @@ contract KimchiVerifier {
         ProofEvaluations memory evals = proof.evals.combine_evals(oracles_res.powers_of_eval_points_for_chunks);
 
         // Compute the commitment to the linearized polynomial $f$.
-        Scalar.FE permutation_vanishing_polynomial =
-            Polynomial.vanishes_on_last_n_rows(
-                verifier_index.domain_gen,
-                verifier_index.domain_size,
-                verifier_index.zk_rows
+        Scalar.FE permutation_vanishing_polynomial = Polynomial.vanishes_on_last_n_rows(
+            verifier_index.domain_gen, verifier_index.domain_size, verifier_index.zk_rows
         ).evaluate(oracles.zeta);
 
         Scalar.FE[] memory alphas =
-            verifier_index.powers_of_alpha.get_alphas(
-                ArgumentType.Permutation,
-                Constants.PERMUTATION_CONSTRAINTS
-        );
+            verifier_index.powers_of_alpha.get_alphas(ArgumentType.Permutation, Constants.PERMUTATION_CONSTRAINTS);
 
         Linearization memory linear = verifier_index.linearization;
 
-        PolyComm[] memory commitments = new PolyComm[](linear.index_terms.length + 1); 
+        PolyComm[] memory commitments = new PolyComm[](linear.index_terms.length + 1);
         // FIXME: todo! initialize `commitments` with sigma_comm
 
         Scalar.FE[] memory scalars = new Scalar.FE[](linear.index_terms.length + 1);
@@ -246,18 +210,12 @@ contract KimchiVerifier {
             verifier_index.zk_rows
         );
 
-        for (uint i = 0; i < linear.index_terms.length; i++) {
+        for (uint256 i = 0; i < linear.index_terms.length; i++) {
             Column memory col = linear.index_terms[i].col;
             PolishToken[] memory tokens = linear.index_terms[i].coeff;
 
-            Scalar.FE scalar = evaluate(
-                tokens,
-                verifier_index.domain_gen,
-                verifier_index.domain_size,
-                oracles.zeta,
-                evals,
-                constants
-            );
+            Scalar.FE scalar =
+                evaluate(tokens, verifier_index.domain_gen, verifier_index.domain_size, oracles.zeta, evals, constants);
 
             scalars[i + 1] = scalar;
             commitments[i + 1] = get_column(verifier_index, proof, col);
@@ -282,8 +240,8 @@ contract KimchiVerifier {
         // TODO: alphas should be an iterator
 
         res = e.z.zeta_omega.mul(beta).mul(alphas[0]).mul(zkp_zeta);
-        uint len = Utils.min(e.w.length, e.s.length);
-        for (uint i = 0; i < len; i++) {
+        uint256 len = Utils.min(e.w.length, e.s.length);
+        for (uint256 i = 0; i < len; i++) {
             res = res.mul(gamma.add(beta.mul(e.s[i].zeta)).add(e.w[i].zeta));
         }
     }
@@ -342,7 +300,7 @@ contract KimchiVerifier {
     }
 
     /// @notice retrieves the hash of the state after this block
-    function retrieve_state_hash() public view returns (uint) {
+    function retrieve_state_hash() public view returns (uint256) {
         if (!state_available) {
             revert UnavailableState();
         }
@@ -350,7 +308,7 @@ contract KimchiVerifier {
     }
 
     /// @notice retrieves the block height
-    function retrieve_state_height() public view returns (uint) {
+    function retrieve_state_height() public view returns (uint256) {
         if (!state_available) {
             revert UnavailableState();
         }
