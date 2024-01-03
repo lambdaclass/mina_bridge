@@ -63,6 +63,17 @@ library MsgPk {
         return self.values[i];
     }
 
+    /// @notice like find_value() but returns a boolean that indicates if
+    /// @notice the key exists. If not found, the resulted bytes will be empty.
+    function find_value_or_fail(EncodedMap memory self, bytes memory key) public pure returns (bytes memory, bool) {
+        uint256 i = 0;
+        while (i != self.keys.length && keccak256(self.keys[i]) != keccak256(key)) {
+            i++;
+        }
+        if (i == self.keys.length) return (new bytes(0), false);
+        return (self.values[i], true);
+    }
+
     error NotImplementedType(bytes1 prefix);
 
     /// @notice deserializes the next type and returns the encoded data.
@@ -82,6 +93,8 @@ library MsgPk {
             return abi.encode(deser_arr16(self));
         } else if (prefix >> 2 == 0x33) {
             return abi.encode(deser_uint(self));
+        } else if (prefix >> 2 == 0x34) {
+            return abi.encode(deser_int(self));
         } else if (prefix >> 7 == 0x00) {
             return abi.encode(deser_posfixint(self));
         } else if (prefix == 0xc2 || prefix == 0xc3) {
@@ -171,6 +184,20 @@ library MsgPk {
         }
     }
 
+    function deser_arr32(Stream memory self) public view returns (EncodedArray memory arr) {
+        bytes1 first = next(self);
+        require(first == 0xdd, "not an arr32");
+        // size is next two bytes:
+
+        uint16 n = uint16(bytes2(next_n(self, 4)));
+
+        arr = EncodedArray(new bytes[](n));
+
+        for (uint16 i = 0; i < n; i++) {
+            arr.values[i] = deser_encode(self);
+        }
+    }
+
     function deser_map16(Stream memory self) public view returns (EncodedMap memory map) {
         bytes1 first = next(self);
         require(first == 0xde, "not a map16");
@@ -201,6 +228,39 @@ library MsgPk {
             return uint32(bytes4(b));
         } else if (byte_count == 4) {
             return uint64(bytes8(b));
+        }
+    }
+
+    function deser_int(Stream memory self) public view returns (int256) {
+        bytes1 first = next(self);
+        require(first >> 2 == 0x34, "not a int");
+        // 110100XX are ints of 8,16,32,64 bits.
+
+        uint256 byte_count = 1 << uint8(first & 0x03); // mask with 11b
+        bytes memory b = next_n(self, byte_count);
+
+        // For decoding into a signed integer, we'll use solidity's ABI.
+        // Referencing the spec, we need to pad to a 32 byte array with
+        // 0xFF if the integer is negative, or with 0x00 if positive.
+        // The sign can be determined checking the most significant bit.
+
+        bytes1 pad_byte = b[0] & 0x40 == 0x40 ? bytes1(0xFF) : bytes1(0x00);
+        bytes memory padded_b = new bytes(32);
+        for (uint256 i = 0; i < 32 - b.length; i++) {
+            padded_b[i] = pad_byte;
+        }
+        for (uint256 i = b.length; i < 32; i++) {
+            padded_b[i] = b[i - b.length];
+        }
+
+        if (byte_count == 1) {
+            return abi.decode(padded_b, (int8));
+        } else if (byte_count == 2) {
+            return abi.decode(padded_b, (int16));
+        } else if (byte_count == 3) {
+            return abi.decode(padded_b, (int32));
+        } else if (byte_count == 4) {
+            return abi.decode(padded_b, (int64));
         }
     }
 
@@ -290,6 +350,38 @@ library MsgPk {
 
         // domain offset for zero-knowledge
         index.w = index.domain_gen.pow(index.domain_size - index.zk_rows);
+
+        // commitments
+        EncodedArray memory sigma_comm_arr = abi.decode(find_value(map, abi.encode("sigma_comm")), (EncodedArray));
+        EncodedArray memory coefficients_comm_arr =
+            abi.decode(find_value(map, abi.encode("coefficients_comm")), (EncodedArray));
+
+        PolyComm[7] memory sigma_comm;
+        for (uint256 i = 0; i < sigma_comm.length; i++) {
+            sigma_comm[i] = deser_poly_comm(abi.decode(sigma_comm_arr.values[i], (EncodedMap)));
+        }
+
+        PolyComm[15] memory coefficients_comm;
+        for (uint256 i = 0; i < coefficients_comm.length; i++) {
+            coefficients_comm[i] = deser_poly_comm(abi.decode(coefficients_comm_arr.values[i], (EncodedMap)));
+        }
+
+        index.sigma_comm = sigma_comm;
+        index.coefficients_comm = coefficients_comm;
+    }
+
+    function deser_poly_comm(EncodedMap memory map) public view returns (PolyComm memory) {
+        EncodedArray memory unshifted_arr = abi.decode(find_value(map, abi.encode("unshifted")), (EncodedArray));
+
+        uint256 len = unshifted_arr.values.length;
+        BN254.G1Point[] memory unshifted = new BN254.G1Point[](len);
+        for (uint256 i = 0; i < len; i++) {
+            EncodedMap memory buffer = abi.decode(unshifted_arr.values[i], (EncodedMap));
+            unshifted[i] = BN254.g1Deserialize(bytes32(deser_buffer(buffer)));
+        }
+        // TODO: shifted part
+
+        return PolyComm(unshifted);
     }
 
     function deser_prover_proof(Stream memory self, ProverProof storage prover_proof) external {
@@ -311,6 +403,25 @@ library MsgPk {
         for (uint256 i = 0; i < 6; i++) {
             prover_proof.evals.w[i] = w[i];
         }
+
+        // deserialize commitments
+
+        EncodedMap memory comm_map = abi.decode(find_value(map, abi.encode("commitments")), (EncodedMap));
+
+        EncodedArray memory w_comm_arr = abi.decode(find_value(comm_map, abi.encode("w_comm")), (EncodedArray));
+        EncodedMap memory z_comm_map = abi.decode(find_value(comm_map, abi.encode("z_comm")), (EncodedMap));
+        EncodedMap memory t_comm_map = abi.decode(find_value(comm_map, abi.encode("t_comm")), (EncodedMap));
+
+        PolyComm[15] memory w_comm;
+        for (uint256 i = 0; i < w_comm.length; i++) {
+            w_comm[i] = deser_poly_comm(abi.decode(w_comm_arr.values[i], (EncodedMap)));
+        }
+        PolyComm memory z_comm = deser_poly_comm(z_comm_map);
+        PolyComm memory t_comm = deser_poly_comm(t_comm_map);
+
+        prover_proof.commitments.w_comm = w_comm;
+        prover_proof.commitments.z_comm = z_comm;
+        prover_proof.commitments.t_comm = t_comm;
     }
 
     function deser_evals(EncodedMap memory all_evals_map, string memory name)
@@ -404,6 +515,8 @@ library MsgPk {
         }
     }
 
+    // WARN: using the full urs may not be necessary, so we would only have to deserialize
+    // the `verifier_urs` (which is only made of three points) and the lagrange bases.
     function deser_pairing_urs(Stream memory self, PairingURS storage urs) public {
         // full_srs and verifier_srs fields
         EncodedMap memory urs_map = deser_fixmap(self);
@@ -458,6 +571,164 @@ library MsgPk {
         EncodedMap memory lagrange_b_serialized =
             abi.decode(find_value(full_urs_serialized, abi.encode("lagrange_bases")), (EncodedMap));
         deser_lagrange_bases(lagrange_b_serialized, urs.lagrange_bases_unshifted);
+    }
+
+    function deser_linearization(Stream memory self) public view returns (Linearization memory) {
+        // TODO: only constant_term is deserialized right now.
+        EncodedArray memory arr = deser_arr32(self);
+
+        PolishToken[] memory constant_term = new PolishToken[](arr.values.length);
+        for (uint256 i = 0; i < arr.values.length; i++) {
+            EncodedMap memory value_map = abi.decode(arr.values[i], (EncodedMap));
+            constant_term[i] = deser_polishtoken(value_map);
+        }
+    }
+
+    function deser_column(bytes memory col) public view returns (Column memory) {
+        // if col is an encoded string, then it may be a unit value. In this case the encoded bytes
+        // must not be more than 32:
+        if (col.length <= 32) {
+            string memory variant = abi.decode(col, (string));
+            if (Utils.str_cmp(variant, "Z")) {
+                return Column(ColumnVariant.Z, new bytes(0));
+            }
+        }
+        // FIXME: this is hacky.
+
+        // else, its an EncodedMap:
+        EncodedMap memory col_map = abi.decode(col, (EncodedMap));
+        (bytes memory witness_value, bool is_witness) = find_value_or_fail(col_map, abi.encode("Witness"));
+        if (is_witness) {
+            return Column(ColumnVariant.Witness, witness_value);
+        }
+        (bytes memory index_value, bool is_index) = find_value_or_fail(col_map, abi.encode("Index"));
+        if (is_index) {
+            string memory gate_type_variant = abi.decode(index_value, (string));
+            if (Utils.str_cmp(gate_type_variant, "Zero")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.Zero));
+            }
+            if (Utils.str_cmp(gate_type_variant, "Generic")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.Generic));
+            }
+            if (Utils.str_cmp(gate_type_variant, "Poseidon")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.Poseidon));
+            }
+            if (Utils.str_cmp(gate_type_variant, "CompleteAdd")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.CompleteAdd));
+            }
+            if (Utils.str_cmp(gate_type_variant, "VarBaseMul")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.VarBaseMul));
+            }
+            if (Utils.str_cmp(gate_type_variant, "EndoMul")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.EndoMul));
+            }
+            if (Utils.str_cmp(gate_type_variant, "EndoMulScalar")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.EndoMulScalar));
+            }
+            if (Utils.str_cmp(gate_type_variant, "Lookup")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.Lookup));
+            }
+            if (Utils.str_cmp(gate_type_variant, "ForeignFieldAdd")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.ForeignFieldAdd));
+            }
+            if (Utils.str_cmp(gate_type_variant, "ForeignFieldMul")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.ForeignFieldMul));
+            }
+            revert("Couldn't match any GateType variant while deserializing a column.");
+            // TODO: match remaining variants
+        }
+        (bytes memory coefficient_value, bool is_coefficient) = find_value_or_fail(col_map, abi.encode("Coefficient"));
+        if (is_coefficient) {
+            uint256 i = deser_uint(new_stream(coefficient_value));
+            return Column(ColumnVariant.Coefficient, abi.encode(i));
+        }
+        (bytes memory permutation_value, bool is_permutation) = find_value_or_fail(col_map, abi.encode("Permutation"));
+        if (is_permutation) {
+            uint256 i = deser_uint(new_stream(permutation_value));
+            return Column(ColumnVariant.Permutation, abi.encode(i));
+        }
+        revert("Couldn't match any Column variant while deserializing a column.");
+        // TODO: remaining variants
+    }
+
+    function deser_polishtoken(EncodedMap memory map) public view returns (PolishToken memory) {
+        // if its a unit variant (meaning that it doesn't have associated data):
+        (bytes memory unit_value, bool is_unit) = find_value_or_fail(map, abi.encode("variant"));
+        if (is_unit) {
+            string memory variant = abi.decode(unit_value, (string));
+            if (Utils.str_cmp(variant, "alpha")) {
+                return PolishToken(PolishTokenVariant.Alpha, new bytes(0));
+            } else if (Utils.str_cmp(variant, "beta")) {
+                return PolishToken(PolishTokenVariant.Beta, new bytes(0));
+            } else if (Utils.str_cmp(variant, "gamma")) {
+                return PolishToken(PolishTokenVariant.Gamma, new bytes(0));
+            } else if (Utils.str_cmp(variant, "jointcombiner")) {
+                return PolishToken(PolishTokenVariant.JointCombiner, new bytes(0));
+            } else if (Utils.str_cmp(variant, "endocoefficient")) {
+                return PolishToken(PolishTokenVariant.EndoCoefficient, new bytes(0));
+            } else if (Utils.str_cmp(variant, "dup")) {
+                return PolishToken(PolishTokenVariant.Dup, new bytes(0));
+            } else if (Utils.str_cmp(variant, "add")) {
+                return PolishToken(PolishTokenVariant.Add, new bytes(0));
+            } else if (Utils.str_cmp(variant, "mul")) {
+                return PolishToken(PolishTokenVariant.Mul, new bytes(0));
+            } else if (Utils.str_cmp(variant, "sub")) {
+                return PolishToken(PolishTokenVariant.Sub, new bytes(0));
+            } else if (Utils.str_cmp(variant, "vanishesonzeroknowledgeandpreviousrows")) {
+                return PolishToken(PolishTokenVariant.VanishesOnZeroKnowledgeAndPreviousRows, new bytes(0));
+            } else if (Utils.str_cmp(variant, "store")) {
+                return PolishToken(PolishTokenVariant.Store, new bytes(0));
+            }
+        } else {
+            (bytes memory mds_value, bool is_mds) = find_value_or_fail(map, abi.encode("mds"));
+            if (is_mds) {
+                EncodedMap memory mds_map = abi.decode(mds_value, (EncodedMap));
+                uint256 row = abi.decode(find_value(mds_map, abi.encode("row")), (uint256));
+                uint256 col = abi.decode(find_value(mds_map, abi.encode("col")), (uint256));
+                return PolishToken(PolishTokenVariant.Mds, abi.encode(PolishTokenMds(row, col)));
+            }
+            (bytes memory literal_value, bool is_literal) = find_value_or_fail(map, abi.encode("literal"));
+            if (is_literal) {
+                EncodedArray memory literal_arr = abi.decode(literal_value, (EncodedArray));
+                uint256 inner_int = Utils.padded_bytes_array_to_uint256(literal_arr.values);
+                return PolishToken(PolishTokenVariant.Literal, abi.encode(inner_int));
+            }
+            (bytes memory cell_value, bool is_cell) = find_value_or_fail(map, abi.encode("variable"));
+            if (is_cell) {
+                EncodedMap memory variable_map = abi.decode(cell_value, (EncodedMap));
+                string memory row_str = abi.decode(find_value(variable_map, abi.encode("row")), (string));
+                CurrOrNext row = CurrOrNext.Curr;
+                if (Utils.str_cmp(row_str, "Curr")) {
+                    row = CurrOrNext.Curr;
+                } else if (Utils.str_cmp(row_str, "Next")) {
+                    row = CurrOrNext.Next;
+                } else {
+                    revert("CurrOrNext didn't match any variant while deserializing linearization.");
+                }
+                Column memory col = deser_column(find_value(variable_map, abi.encode("col")));
+
+                Variable memory variable = Variable(col, row);
+                return PolishToken(PolishTokenVariant.Cell, abi.encode(variable));
+            }
+            (bytes memory pow_value, bool is_pow) = find_value_or_fail(map, abi.encode("pow"));
+            if (is_pow) {
+                uint256 pow = deser_uint(new_stream(pow_value));
+                return PolishToken(PolishTokenVariant.Pow, abi.encode(pow));
+            }
+            (bytes memory ulag_value, bool is_ulag) = find_value_or_fail(map, abi.encode("unnormalizedlagrangebasis"));
+            if (is_ulag) {
+                EncodedMap memory rowoffset_map = abi.decode(ulag_value, (EncodedMap));
+                bool zk_rows = abi.decode(find_value(rowoffset_map, abi.encode("zk_rows")), (bool));
+                int256 offset = abi.decode(find_value(rowoffset_map, abi.encode("offset")), (int256));
+                RowOffset memory rowoffset = RowOffset(zk_rows, offset);
+                return PolishToken(PolishTokenVariant.UnnormalizedLagrangeBasis, abi.encode(rowoffset));
+            }
+            (bytes memory load_value, bool is_load) = find_value_or_fail(map, abi.encode("load"));
+            if (is_load) {
+                uint256 i = deser_uint(new_stream(load_value));
+                return PolishToken(PolishTokenVariant.Load, abi.encode(i));
+            }
+        }
     }
 
     /* WARN:

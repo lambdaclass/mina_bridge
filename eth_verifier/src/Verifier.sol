@@ -18,7 +18,7 @@ import "../lib/expr/PolishToken.sol";
 import "../lib/expr/ExprConstants.sol";
 
 using {BN254.neg} for BN254.G1Point;
-using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub} for Scalar.FE;
+using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
 using {AlphasLib.get_alphas} for Alphas;
 using {Polynomial.evaluate} for Polynomial.Dense;
 
@@ -54,6 +54,7 @@ library Kimchi {
 contract KimchiVerifier {
     using {AlphasLib.register} for Alphas;
     using {combine_evals} for ProofEvaluationsArray;
+    using {chunk_commitment} for PolyComm;
 
     VerifierIndex verifier_index;
     ProverProof proof;
@@ -185,8 +186,12 @@ contract KimchiVerifier {
         Scalar.FE[] memory alphas =
             verifier_index.powers_of_alpha.get_alphas(ArgumentType.Permutation, Constants.PERMUTATION_CONSTRAINTS);
 
-        PolyComm[] memory commitments = new PolyComm[](0);
-        Scalar.FE[] memory scalars = new Scalar.FE[](1);
+        Linearization memory linear = verifier_index.linearization;
+
+        PolyComm[] memory commitments = new PolyComm[](linear.index_terms.length + 1);
+        // FIXME: todo! initialize `commitments` with sigma_comm
+
+        Scalar.FE[] memory scalars = new Scalar.FE[](linear.index_terms.length + 1);
         scalars[0] = perm_scalars(
             evals,
             oracles.beta,
@@ -204,6 +209,24 @@ contract KimchiVerifier {
             new Scalar.FE[](0), // FIXME: keccak sponge mds is missing (can a MDS matrix be defined for the keccak sponge?)
             verifier_index.zk_rows
         );
+
+        for (uint256 i = 0; i < linear.index_terms.length; i++) {
+            Column memory col = linear.index_terms[i].col;
+            PolishToken[] memory tokens = linear.index_terms[i].coeff;
+
+            Scalar.FE scalar =
+                evaluate(tokens, verifier_index.domain_gen, verifier_index.domain_size, oracles.zeta, evals, constants);
+
+            scalars[i + 1] = scalar;
+            commitments[i + 1] = get_column(verifier_index, proof, col);
+        }
+
+        PolyComm memory f_comm = polycomm_msm(commitments, scalars);
+
+        // Compute the chunked commitment of ft
+        Scalar.FE zeta_to_srs_len = oracles.zeta.pow(verifier_index.max_poly_size);
+        PolyComm memory chunked_f_comm = f_comm.chunk_commitment(zeta_to_srs_len);
+        PolyComm memory chunked_t_comm = proof.commitments.t_comm.chunk_commitment(zeta_to_srs_len);
     }
 
     function perm_scalars(

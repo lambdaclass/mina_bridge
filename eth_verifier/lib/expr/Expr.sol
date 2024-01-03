@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
+import "./PolishToken.sol";
+
 struct Column {
     ColumnVariant variant;
     bytes data;
@@ -86,4 +88,16 @@ enum GateType {
     ForeignFieldMul,
     Xor16,
     Rot64
+}
+
+// @notice non-independent term of a linearization
+struct LinearTerm {
+    Column col;
+    PolishToken[] coeff;
+}
+
+// @notice a linear combination of coefficients and columns
+struct Linearization {
+    PolishToken[] constant_term;
+    LinearTerm[] index_terms;
 }
