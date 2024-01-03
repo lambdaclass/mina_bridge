@@ -98,8 +98,8 @@ library Base {
 }
 
 import {console} from "forge-std/console.sol";
-
 /// @notice Implements 256 bit modular arithmetic over the scalar field of bn254.
+
 library Scalar {
     type FE is uint256;
 
