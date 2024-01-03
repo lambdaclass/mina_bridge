@@ -50,9 +50,9 @@ function random_lagrange_bases(PairingURS storage urs, uint256 domain_size) {
     urs.lagrange_bases_unshifted[domain_size] = comms;
 }
 
-//BN254G1Point shifted;
-// WARN: The previous field is optional but in Solidity we can't have that.
-// for our test circuit it's not necessary
+// WARN: The field shifted is optional but in Solidity we can't have that.
+// for our test circuit it's not necessary, we can just ignore it, using infinity.
+//BN254.G1Point shifted;
 struct PolyComm {
     BN254.G1Point[] unshifted;
 }

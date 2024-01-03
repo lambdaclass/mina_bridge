@@ -511,6 +511,7 @@ library MsgPk {
 
                 polycomms[j] = PolyComm(unshifted);
             }
+
             lagrange_bases_unshifted[abi.decode(map.keys[i], (uint256))] = poly_comm_flat(polycomms);
         }
     }
@@ -728,10 +729,10 @@ library MsgPk {
     }
 
     /* WARN:
-        * Functions below are part of the previous deserializer implementation,
-        * and are still used for functions related to the demo. The goal is to replace
-        * them with the new WIP deserializer. Please prefer using functions above.
-    */
+     * Functions below are part of the previous deserializer implementation,
+     * and are still used for functions related to the demo. The goal is to replace
+     * them with the new WIP deserializer. Please prefer using functions above.
+     */
 
     function deserializeFinalCommitments(bytes calldata data)
         public
