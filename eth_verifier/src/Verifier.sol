@@ -18,7 +18,7 @@ import "../lib/expr/PolishToken.sol";
 import "../lib/expr/ExprConstants.sol";
 
 using {BN254.neg} for BN254.G1Point;
-using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.pow} for Scalar.FE;
+using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
 using {AlphasLib.get_alphas} for Alphas;
 using {Polynomial.evaluate} for Polynomial.Dense;
 
@@ -152,7 +152,9 @@ contract KimchiVerifier {
             for (uint256 i = 0; i < chunk_size; i++) {
                 blindings[i] = urs.full_urs.h;
             }
-            public_comm = PolyComm(blindings);
+            // TODO: shifted is fixed to infinity
+            BN254.G1Point memory shifted = BN254.point_at_inf();
+            public_comm = PolyComm(blindings, shifted);
         } else {
             Scalar.FE[] memory elm = new Scalar.FE[](public_inputs.length);
             for (uint256 i = 0; i < elm.length; i++) {
@@ -246,6 +248,104 @@ contract KimchiVerifier {
         }
     }
 
+    /// The polynomial that evaluates to each of `evals` for the respective `elm`s.
+    function evalPolynomial(Scalar.FE[] memory elm, Scalar.FE[] memory evals)
+        public
+        view
+        returns (Polynomial.Dense memory)
+    {
+        require(elm.length == evals.length, "lengths don\'t match");
+        require(elm.length == 2, "length must be 2");
+        Scalar.FE zeta = elm[0];
+        Scalar.FE zeta_omega = elm[1];
+        Scalar.FE eval_zeta = evals[0];
+        Scalar.FE eval_zeta_omega = evals[1];
+
+        // The polynomial that evaluates to `p(zeta)` at `zeta` and `p(zeta_omega)` at
+        // `zeta_omega`.
+        // We write `p(x) = a + bx`, which gives
+        // ```text
+        // p(zeta) = a + b * zeta
+        // p(zeta_omega) = a + b * zeta_omega
+        // ```
+        // and so
+        // ```text
+        // b = (p(zeta_omega) - p(zeta)) / (zeta_omega - zeta)
+        // a = p(zeta) - b * zeta
+        // ```
+
+        // Compute b
+        Scalar.FE num_b = eval_zeta_omega.add(eval_zeta.neg());
+        Scalar.FE den_b_inv = zeta_omega.add(zeta.neg()).inv();
+        Scalar.FE b = num_b.mul(den_b_inv);
+
+        // Compute a
+        Scalar.FE a = eval_zeta.sub(b.mul(zeta));
+
+        Scalar.FE[] memory coeffs = new Scalar.FE[](2);
+        coeffs[0] = a;
+        coeffs[1] = b;
+        return Polynomial.Dense(coeffs);
+    }
+
+    function combineCommitments(Evaluation[] memory evaluations, Scalar.FE polyscale, Scalar.FE rand_base)
+        internal
+        returns (Scalar.FE[] memory)
+    {
+        uint256 vec_length = 0;
+        // Calculate the max length of the points and scalars vectors
+        // Iterate over the evaluations
+        for (uint256 i = 0; i < evaluations.length; i++) {
+            // Filter out evaluations with an empty commitment
+            if (evaluations[i].commitment.unshifted.length == 0) {
+                continue;
+            }
+
+            vec_length += evaluations[i].commitment.unshifted.length + 1;
+        }
+        BN254.G1Point[] memory points = new BN254.G1Point[](vec_length);
+        Scalar.FE[] memory scalars = new Scalar.FE[](vec_length);
+        uint256 index = 0; // index of the element to assign in the vectors
+
+        // Initialize xi_i to 1
+        Scalar.FE xi_i = Scalar.FE.wrap(1);
+
+        // Iterate over the evaluations
+        for (uint256 i = 0; i < evaluations.length; i++) {
+            // Filter out evaluations with an empty commitment
+            if (evaluations[i].commitment.unshifted.length == 0) {
+                continue;
+            }
+
+            // iterating over the polynomial segments
+            for (uint256 j = 0; j < evaluations[i].commitment.unshifted.length; j++) {
+                // Add the scalar rand_base * xi_i to the scalars vector
+                scalars[index] = rand_base.mul(xi_i);
+                // Add the point to the points vector
+                points[index] = evaluations[i].commitment.unshifted[j];
+
+                // Multiply xi_i by polyscale
+                xi_i = xi_i.mul(polyscale);
+
+                // Increment the index
+                index++;
+            }
+
+            // If the evaluation has a degree bound and a non-zero shifted commitment
+            if (evaluations[i].degree_bound > 0 && evaluations[i].commitment.shifted.x != 0) {
+                // Add the scalar rand_base * xi_i to the scalars vector
+                scalars[index] = rand_base.mul(xi_i);
+                // Add the point to the points vector
+                points[index] = evaluations[i].commitment.shifted;
+
+                // Multiply xi_i by polyscale
+                xi_i = xi_i.mul(polyscale);
+                // Increment the index
+                index++;
+            }
+        }
+    }
+
     /*
     This is a list of steps needed for verification.
 
@@ -266,6 +366,54 @@ contract KimchiVerifier {
         5. Compute scaled quotient
         6. Check numerator == scaled_quotient
     */
+
+    function final_verify(Scalar.FE[] memory public_inputs) public {
+        /*
+        pub fn verify(
+            &self,
+            srs: &PairingSRS<Pair>,           // SRS
+            evaluations: &Vec<Evaluation<G>>, // commitments to the polynomials
+            polyscale: G::ScalarField,        // scaling factor for polynoms
+            elm: &[G::ScalarField],           // vector of evaluation points
+        ) -> bool {
+            let poly_commitment = {
+                let mut scalars: Vec<F> = Vec::new();
+                let mut points = Vec::new();
+                combine_commitments(
+                    evaluations,
+                    &mut scalars,
+                    &mut points,
+                    polyscale,
+                    F::one(), // TODO: This is inefficient
+                );
+                let scalars: Vec<_> = scalars.iter().map(|x| x.into_repr()).collect();
+
+                VariableBaseMSM::multi_scalar_mul(&points, &scalars)
+            };
+
+            let evals = combine_evaluations(evaluations, polyscale);
+            let blinding_commitment = srs.full_srs.h.mul(self.blinding);
+            let divisor_commitment = srs
+                .verifier_srs
+                .commit_non_hiding(&divisor_polynomial(elm), 1, None)
+                .unshifted[0];
+
+            let eval_commitment = srs
+                .full_srs
+                .commit_non_hiding(&eval_polynomial(elm, &evals), 1, None)
+                .unshifted[0]
+                .into_projective();
+            let numerator_commitment = { poly_commitment - eval_commitment - blinding_commitment };
+
+            let numerator = Pair::pairing(
+                numerator_commitment,
+                Pair::G2Affine::prime_subgroup_generator(),
+            );
+            let scaled_quotient = Pair::pairing(self.quotient, divisor_commitment);
+            numerator == scaled_quotient
+        }
+        */
+    }
 
     /* TODO WIP
     function deserialize_proof(

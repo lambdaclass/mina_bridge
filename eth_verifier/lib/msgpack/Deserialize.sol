@@ -380,9 +380,9 @@ library MsgPk {
             EncodedMap memory buffer = abi.decode(unshifted_arr.values[i], (EncodedMap));
             unshifted[i] = BN254.g1Deserialize(bytes32(deser_buffer(buffer)));
         }
-        // TODO: shifted part
-
-        return PolyComm(unshifted);
+        // TODO: shifted is fixed to infinity
+        BN254.G1Point memory shifted = BN254.point_at_inf();
+        return PolyComm(unshifted, shifted);
     }
 
     function deser_prover_proof(Stream memory self, ProverProof storage prover_proof) external {
@@ -509,7 +509,9 @@ library MsgPk {
                     unshifted[k] = BN254.g1Deserialize(bytes32(deser_buffer(unshifted_buffer)));
                 }
 
-                polycomms[j] = PolyComm(unshifted);
+                // TODO: shifted is fixed to infinity
+                BN254.G1Point memory shifted = BN254.point_at_inf();
+                polycomms[j] = PolyComm(unshifted, shifted);
             }
 
             lagrange_bases_unshifted[abi.decode(map.keys[i], (uint256))] = poly_comm_flat(polycomms);

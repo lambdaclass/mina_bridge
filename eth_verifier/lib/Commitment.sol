@@ -52,9 +52,9 @@ function random_lagrange_bases(PairingURS storage urs, uint256 domain_size) {
 
 // WARN: The field shifted is optional but in Solidity we can't have that.
 // for our test circuit it's not necessary, we can just ignore it, using infinity.
-//BN254.G1Point shifted;
 struct PolyComm {
     BN254.G1Point[] unshifted;
+    BN254.G1Point shifted;
 }
 
 // @notice this structure flattens the fields of `PolyComm`.
@@ -76,7 +76,9 @@ function poly_comm_unflat(PolyCommFlat memory com) pure returns (PolyComm[] memo
             unshifted[j] = com.unshifteds[index];
             index++;
         }
-        res[i] = PolyComm(unshifted);
+        // TODO: shifted is fixed to infinity
+        BN254.G1Point memory shifted = BN254.point_at_inf();
+        res[i] = PolyComm(unshifted, shifted);
     }
 }
 
@@ -106,7 +108,9 @@ function polycomm_msm(PolyComm[] memory com, Scalar.FE[] memory elm) view return
     if (com.length == 0 || elm.length == 0) {
         BN254.G1Point[] memory z = new BN254.G1Point[](1);
         z[0] = BN254.point_at_inf();
-        return PolyComm(z);
+        // TODO: shifted is fixed to infinity
+        BN254.G1Point memory shifted = BN254.point_at_inf();
+        return PolyComm(z, shifted);
     }
 
     if (com.length != elm.length) {
@@ -150,7 +154,9 @@ function polycomm_msm(PolyComm[] memory com, Scalar.FE[] memory elm) view return
         BN254.G1Point memory chunk_msm = naive_msm(points, scalars);
         unshifted[chunk] = chunk_msm;
     }
-    return PolyComm(unshifted);
+    // TODO: shifted is fixed to infinity
+    BN254.G1Point memory shifted = BN254.point_at_inf();
+    return PolyComm(unshifted, shifted);
 }
 
 // @notice Execute a simple multi-scalar multiplication
@@ -189,7 +195,9 @@ function mask_custom(URS storage urs, PolyComm memory com, Scalar.FE[] memory bl
         unshifted[i] = (g_masked.add(com.unshifted[i]));
     }
 
-    return BlindedCommitment(PolyComm(unshifted), blinders);
+    // TODO: shifted is fixed to infinity
+    BN254.G1Point memory shifted = BN254.point_at_inf();
+    return BlindedCommitment(PolyComm(unshifted, shifted), blinders);
 }
 
 // @notice multiplies each commitment chunk of f with powers of zeta^n
@@ -208,7 +216,9 @@ function chunk_commitment(PolyComm memory self, Scalar.FE zeta_n) view returns (
     BN254.G1Point[] memory unshifted = new BN254.G1Point[](1);
     unshifted[0] = res;
 
-    return PolyComm(unshifted);
+    // TODO: shifted is fixed to infinity
+    BN254.G1Point memory shifted = BN254.point_at_inf();
+    return PolyComm(unshifted, shifted);
 }
 
 // @notice substracts two polynomial commitments
