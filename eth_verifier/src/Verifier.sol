@@ -290,7 +290,7 @@ contract KimchiVerifier {
 
     function combineCommitments(Evaluation[] memory evaluations, Scalar.FE polyscale, Scalar.FE rand_base)
         internal
-        returns (Scalar.FE[] memory)
+        returns (BN254.G1Point[] memory, Scalar.FE[] memory)
     {
         uint256 vec_length = 0;
         // Calculate the max length of the points and scalars vectors
@@ -344,6 +344,7 @@ contract KimchiVerifier {
                 index++;
             }
         }
+        return (points, scalars);
     }
 
     /*
