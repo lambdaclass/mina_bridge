@@ -249,7 +249,7 @@ contract KimchiVerifier {
     }
 
     /// The polynomial that evaluates to each of `evals` for the respective `elm`s.
-    function eval_polynomial(Scalar.FE[] memory elm, Scalar.FE[] memory evals)
+    function evalPolynomial(Scalar.FE[] memory elm, Scalar.FE[] memory evals)
         public
         view
         returns (Polynomial.Dense memory)
