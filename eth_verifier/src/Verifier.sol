@@ -248,66 +248,6 @@ contract KimchiVerifier {
         }
     }
 
-    function final_verify(Scalar.FE[] memory public_inputs) public {
-        /*
-            Final verification:
-                1. Combine commitments, compute final poly commitment (MSM)
-                2. Combine evals
-                3. Commit divisor and eval polynomials
-                4. Compute numerator commitment
-                5. Compute scaled quotient
-                6. Check numerator == scaled_quotient
-        */
-        /*
-        pub fn verify(
-            &self,
-            srs: &PairingSRS<Pair>,           // SRS
-            evaluations: &Vec<Evaluation<G>>, // commitments to the polynomials
-            polyscale: G::ScalarField,        // scaling factor for polynoms
-            elm: &[G::ScalarField],           // vector of evaluation points
-        ) -> bool {
-            let poly_commitment = {
-                let mut scalars: Vec<F> = Vec::new();
-                let mut points = Vec::new();
-                combine_commitments(
-                    evaluations,
-                    &mut scalars,
-                    &mut points,
-                    polyscale,
-                    F::one(), // TODO: This is inefficient
-                );
-                let scalars: Vec<_> = scalars.iter().map(|x| x.into_repr()).collect();
-
-                VariableBaseMSM::multi_scalar_mul(&points, &scalars)
-            };
-        */
-        /*
-            let evals = combine_evaluations(evaluations, polyscale);
-            let blinding_commitment = srs.full_srs.h.mul(self.blinding);
-            let divisor_commitment = srs
-                .verifier_srs
-                .commit_non_hiding(&divisor_polynomial(elm), 1, None)
-                .unshifted[0];
-        */
-        /*
-            let eval_commitment = srs
-                .full_srs
-                .commit_non_hiding(&eval_polynomial(elm, &evals), 1, None)
-                .unshifted[0]
-                .into_projective();
-            let numerator_commitment = { poly_commitment - eval_commitment - blinding_commitment };
-        */
-        /*
-            let numerator = Pair::pairing(
-                numerator_commitment,
-                Pair::G2Affine::prime_subgroup_generator(),
-            );
-            let scaled_quotient = Pair::pairing(self.quotient, divisor_commitment);
-            numerator == scaled_quotient
-        }
-        */
-    }
-
     /// The polynomial that evaluates to each of `evals` for the respective `elm`s.
     function eval_polynomial(Scalar.FE[] memory elm, Scalar.FE[] memory evals)
         public
@@ -419,7 +359,63 @@ contract KimchiVerifier {
         5. Commitment to linearized polynomial f
         6. Chunked commitment of ft
         7. List poly commitments for final verification
+
+    Final verification:
+        1. Combine commitments, compute final poly commitment (MSM)
+        2. Combine evals
+        3. Commit divisor and eval polynomials
+        4. Compute numerator commitment
+        5. Compute scaled quotient
+        6. Check numerator == scaled_quotient
     */
+
+    function final_verify(Scalar.FE[] memory public_inputs) public {
+        /*
+        pub fn verify(
+            &self,
+            srs: &PairingSRS<Pair>,           // SRS
+            evaluations: &Vec<Evaluation<G>>, // commitments to the polynomials
+            polyscale: G::ScalarField,        // scaling factor for polynoms
+            elm: &[G::ScalarField],           // vector of evaluation points
+        ) -> bool {
+            let poly_commitment = {
+                let mut scalars: Vec<F> = Vec::new();
+                let mut points = Vec::new();
+                combine_commitments(
+                    evaluations,
+                    &mut scalars,
+                    &mut points,
+                    polyscale,
+                    F::one(), // TODO: This is inefficient
+                );
+                let scalars: Vec<_> = scalars.iter().map(|x| x.into_repr()).collect();
+
+                VariableBaseMSM::multi_scalar_mul(&points, &scalars)
+            };
+
+            let evals = combine_evaluations(evaluations, polyscale);
+            let blinding_commitment = srs.full_srs.h.mul(self.blinding);
+            let divisor_commitment = srs
+                .verifier_srs
+                .commit_non_hiding(&divisor_polynomial(elm), 1, None)
+                .unshifted[0];
+
+            let eval_commitment = srs
+                .full_srs
+                .commit_non_hiding(&eval_polynomial(elm, &evals), 1, None)
+                .unshifted[0]
+                .into_projective();
+            let numerator_commitment = { poly_commitment - eval_commitment - blinding_commitment };
+
+            let numerator = Pair::pairing(
+                numerator_commitment,
+                Pair::G2Affine::prime_subgroup_generator(),
+            );
+            let scaled_quotient = Pair::pairing(self.quotient, divisor_commitment);
+            numerator == scaled_quotient
+        }
+        */
+    }
 
     /* TODO WIP
     function deserialize_proof(
