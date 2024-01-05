@@ -382,6 +382,10 @@ contract KimchiVerifier {
         (BN254.G1Point[] memory points, Scalar.FE[] memory scalars) =
             combineCommitments(evaluations, polyscale, rand_base);
 
+        // TODO: Call this functions and assign to poly_commitment, as in the original code
+        // let scalars: Vec<_> = scalars.iter().map(|x| x.into_repr()).collect();
+        // let poly_commitment = VariableBaseMSM::multi_scalar_mul(&points, &scalars)
+
         /* This is the Rust code of the remainder steps, just for reference
         pub fn verify(
             &self,
@@ -390,23 +394,11 @@ contract KimchiVerifier {
             polyscale: G::ScalarField,        // scaling factor for polynoms
             elm: &[G::ScalarField],           // vector of evaluation points
         ) -> bool {
-            let poly_commitment = {
-                let mut scalars: Vec<F> = Vec::new();
-                let mut points = Vec::new();
-                combine_commitments(
-                    evaluations,
-                    &mut scalars,
-                    &mut points,
-                    polyscale,
-                    F::one(), // TODO: This is inefficient
-                );
-                let scalars: Vec<_> = scalars.iter().map(|x| x.into_repr()).collect();
 
-                VariableBaseMSM::multi_scalar_mul(&points, &scalars)
-            };
+            // ...
 
             let evals = combine_evaluations(evaluations, polyscale);
-            let blinding_commitment = srs.full_srs.h.mul(self.blinding);
+            
             let divisor_commitment = srs
                 .verifier_srs
                 .commit_non_hiding(&divisor_polynomial(elm), 1, None)
