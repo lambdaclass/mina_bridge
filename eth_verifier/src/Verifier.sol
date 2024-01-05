@@ -382,18 +382,7 @@ contract KimchiVerifier {
         (BN254.G1Point[] memory points, Scalar.FE[] memory scalars) =
             combineCommitments(evaluations, polyscale, rand_base);
 
-        /*
-                combine_commitments(
-                    evaluations,
-                    &mut scalars,
-                    &mut points,
-                    polyscale,
-                    F::one(), // TODO: This is inefficient
-                );
-
-         */
-
-        /*
+        /* This is the Rust code of the remainder steps, just for reference
         pub fn verify(
             &self,
             srs: &PairingSRS<Pair>,           // SRS
