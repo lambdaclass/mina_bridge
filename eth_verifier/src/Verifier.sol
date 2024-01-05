@@ -17,7 +17,7 @@ import "../lib/expr/Expr.sol";
 import "../lib/expr/PolishToken.sol";
 import "../lib/expr/ExprConstants.sol";
 
-using {BN254.neg} for BN254.G1Point;
+using {BN254.neg, BN254.scalarMul} for BN254.G1Point;
 using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
 using {AlphasLib.get_alphas} for Alphas;
 using {Polynomial.evaluate} for Polynomial.Dense;
@@ -368,8 +368,25 @@ contract KimchiVerifier {
         6. Check numerator == scaled_quotient
     */
 
-    function final_verify(Scalar.FE[] memory public_inputs) public {
-        /*
+    function final_verify(
+        Scalar.FE[] memory public_inputs,
+        BN254.G1Point memory h_srs,
+        uint256 blinding,
+        Evaluation[] memory evaluations,
+        Scalar.FE polyscale
+    ) public {
+        // calculate blinding commitment with a "hardcoded" value
+        BN254.G1Point memory blinding_commitment = h_srs.scalarMul(blinding);
+        Scalar.FE rand_base = Scalar.from(1); // TODO: This is inefficient
+
+        (BN254.G1Point[] memory points, Scalar.FE[] memory scalars) =
+            combineCommitments(evaluations, polyscale, rand_base);
+
+        // TODO: Call this functions and assign to poly_commitment, as in the original code
+        // let scalars: Vec<_> = scalars.iter().map(|x| x.into_repr()).collect();
+        // let poly_commitment = VariableBaseMSM::multi_scalar_mul(&points, &scalars)
+
+        /* This is the Rust code of the remainder steps, just for reference
         pub fn verify(
             &self,
             srs: &PairingSRS<Pair>,           // SRS
@@ -377,42 +394,47 @@ contract KimchiVerifier {
             polyscale: G::ScalarField,        // scaling factor for polynoms
             elm: &[G::ScalarField],           // vector of evaluation points
         ) -> bool {
-            let poly_commitment = {
-                let mut scalars: Vec<F> = Vec::new();
-                let mut points = Vec::new();
-                combine_commitments(
-                    evaluations,
-                    &mut scalars,
-                    &mut points,
-                    polyscale,
-                    F::one(), // TODO: This is inefficient
-                );
-                let scalars: Vec<_> = scalars.iter().map(|x| x.into_repr()).collect();
 
-                VariableBaseMSM::multi_scalar_mul(&points, &scalars)
-            };
+            // ...
 
             let evals = combine_evaluations(evaluations, polyscale);
-            let blinding_commitment = srs.full_srs.h.mul(self.blinding);
+            
             let divisor_commitment = srs
                 .verifier_srs
                 .commit_non_hiding(&divisor_polynomial(elm), 1, None)
                 .unshifted[0];
 
+
+        }
+        */
+
+        // eval commitment
+        /*
             let eval_commitment = srs
                 .full_srs
                 .commit_non_hiding(&eval_polynomial(elm, &evals), 1, None)
                 .unshifted[0]
                 .into_projective();
+        */
+
+        // numerator commitment
+        /*
             let numerator_commitment = { poly_commitment - eval_commitment - blinding_commitment };
 
+            // G2Point memory numerator_commitment = G2Point(
+            //     poly_commitment.x.sub(eval_commitment.x).sub(blinding_commitment.x),
+            //     poly_commitment.y.sub(eval_commitment.y).sub(blinding_commitment.y)
+            // );
+        */
+
+        // check pairing
+        /*
             let numerator = Pair::pairing(
                 numerator_commitment,
                 Pair::G2Affine::prime_subgroup_generator(),
             );
             let scaled_quotient = Pair::pairing(self.quotient, divisor_commitment);
             numerator == scaled_quotient
-        }
         */
     }
 
