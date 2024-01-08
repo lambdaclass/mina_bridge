@@ -728,7 +728,7 @@ export class ScalarChallenge {
     }
 
     toFieldWithLength(length_in_bits: number, endo_coeff: ForeignScalar): ForeignScalar {
-        return Provable.witness(ForeignScalar, () => {
+        return Provable.witnessBn254(ForeignScalar, () => {
             const rep = this.chal.toBigInt();
             const rep_64_limbs = getLimbs64(rep);
 

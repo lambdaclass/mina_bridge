@@ -52,18 +52,17 @@ ForeignGroup.curve = [
     "28948022309329048855892746252171976963363056481941647379679742748393362948097" // order
 ];
 
+await Verifier.generateKeypairBn254();
+
 // Convert JSON inputs to O1JS inputs so that we can pass them to the circuit
 let openingProof = deserOpeningProof(inputs);
 let expected_x = ForeignField.from(inputs.expected.x);
 let expected_y = ForeignField.from(inputs.expected.y);
 let expected = new ForeignGroup(expected_x, expected_y);
 
-let keypair = await Verifier.generateKeypairBn254();
-console.dir(keypair, { depth: null });
-
-console.log("Writing circuit into file...");
-let { gates } = Provable.constraintSystem(() => Verifier.main(openingProof, expected));
-writeFileSync("../kzg_prover/gates.json", JSON.stringify(gates));
+// console.log("Writing circuit into file...");
+// let { gates } = Provable.constraintSystem(() => Verifier.main(openingProof, expected));
+// writeFileSync("../kzg_prover/gates.json", JSON.stringify(gates));
 
 // ----------------------------------------------------
 console.log('Shutting down O1JS...');

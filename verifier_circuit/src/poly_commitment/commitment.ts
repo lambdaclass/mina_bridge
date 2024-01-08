@@ -268,41 +268,21 @@ export class OpeningProof {
 
     /**
      * Part of the {@link Provable} interface.
-     *
-     * Returns the sum of the size in fields of each field of the `OpeningProof` object.
      * 
-     * `lr` length is 2
-     * 
-     * Let `fs` = `ForeignScalar.sizeInFields()`
-     * 
-     * Let `fg` = `ForeignGroup.sizeInFields()`
-     * 
-     * So, it returns `2 * fg + fg + fs + fs + fg` which is 30
+     * Returns the sum of `sizeInFields()` of all the class fields, which is 30.
      */
     static sizeInFields() {
+        // lr + delta + z1 + z2 + sg = 2 * 6 + 6 + 3 + 3 + 6 = 30
         return 30;
     }
 
-    /**
-     * Part of the {@link Provable} interface.
-     *
-     * Deserializes a {@link OpeningProof} element from a list of field elements.
-     * Assumes the following format `[...lr, ...delta, ...z1, ...z2, ...sg]`
-     */
     static fromFields(fields: Field[]) {
-        const lr0Fields = fields.slice(0, 6);
-        const lr1Fields = fields.slice(6, 12);
-        const deltaFields = fields.slice(12, 18);
-        const z1Fields = fields.slice(18, 21);
-        const z2Fields = fields.slice(21, 24);
-        const sgFields = fields.slice(24);
-        const lr0 = ForeignGroup.fromFields(lr0Fields);
-        const lr1 = ForeignGroup.fromFields(lr1Fields);
-        const delta = ForeignGroup.fromFields(deltaFields);
-        const z1 = ForeignScalar.fromFields(z1Fields);
-        const z2 = ForeignScalar.fromFields(z2Fields);
-        const sg = ForeignGroup.fromFields(sgFields);
-
-        return { lr: [lr0, lr1], delta, z1, z2, sg };
+        return {
+            lr: [ForeignGroup.fromFields(fields.slice(0, 6)), ForeignGroup.fromFields(fields.slice(6, 12))],
+            delta: ForeignGroup.fromFields(fields.slice(12, 18)),
+            z1: ForeignScalar.fromFields(fields.slice(18, 21)),
+            z2: ForeignScalar.fromFields(fields.slice(21, 24)),
+            sg: ForeignGroup.fromFields(fields.slice(24, 30)),
+        };
     }
 }
