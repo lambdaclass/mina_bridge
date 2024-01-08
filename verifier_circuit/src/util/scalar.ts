@@ -65,7 +65,7 @@ function xgcd(
 
 
 export function invScalar(f: ForeignScalar): ForeignScalar {
-    return Provable.witness(ForeignScalar, () => {
+    return Provable.witnessBn254(ForeignScalar, () => {
         const [gcd, inv, _] = xgcd(f.toBigInt(), Scalar.ORDER);
         if (gcd !== 1n) {
             // FIXME: error

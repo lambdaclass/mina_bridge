@@ -141,8 +141,8 @@ export function deserOpeningProof(json: OpeningProofJSON): OpeningProof {
     return {
         lr: json.lr.map((g) => [deserGroup(g[0]), deserGroup(g[1])]),
         delta: deserGroup(json.delta),
-        z1: deserDecScalar(json.z1),
-        z2: deserDecScalar(json.z2),
+        z1: deserHexScalar(json.z1),
+        z2: deserHexScalar(json.z2),
         sg: deserGroup(json.sg),
     }
 }

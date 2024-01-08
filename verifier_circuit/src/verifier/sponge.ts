@@ -1,12 +1,13 @@
-import { Field, ForeignGroup, Group, Poseidon, Provable, Scalar } from "o1js"
+import { Field, ForeignGroup, Poseidon, Provable, Scalar } from "o1js"
 import { PolyComm } from "../poly_commitment/commitment";
 import { PointEvaluations, ProofEvaluations } from "../prover/prover";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
+import { ForeignField } from "../foreign_fields/foreign_field.js";
 
 /**
  * Wrapper over o1js' poseidon `Sponge` class which extends its functionality.
- * Currently the sponge operates over the base field (whose elements are represented
- * with the `Field` type).
+ * Currently the sponge operates over the emulated base field (whose elements are 
+ * represented with the `ForeignField` type).
  */
 export class Sponge {
     static readonly HIGH_ENTROPY_LIMBS: number = 2;
@@ -16,22 +17,22 @@ export class Sponge {
     lastSqueezed: bigint[]
 
     constructor() {
-        this.#internalSponge = new Poseidon.Sponge();
+        this.#internalSponge = new Poseidon.ForeignSponge(ForeignField.modulus);
         this.lastSqueezed = [];
     }
 
-    absorb(x: Field) {
+    absorb(x: ForeignField) {
         this.lastSqueezed = [];
         this.#internalSponge.absorb(x);
     }
 
-    squeezeField(): Field {
+    squeezeField(): ForeignField {
         return this.#internalSponge.squeeze();
     }
 
     absorbGroup(g: ForeignGroup) {
-        this.#internalSponge.absorb(Field.fromFields(g.x.toFields()));
-        this.#internalSponge.absorb(Field.fromFields(g.y.toFields()));
+        this.#internalSponge.absorb(g.x);
+        this.#internalSponge.absorb(g.y);
     }
 
     absorbGroups(gs: ForeignGroup[]) {
@@ -43,26 +44,26 @@ export class Sponge {
     absorbScalar(s: ForeignScalar) {
         // this operation was extracted from Kimchi FqSponge's`absorb_fr()`.
         if (Scalar.ORDER < Field.ORDER) {
-            const f = Field.fromFields(s.toFields());
+            const f = ForeignField.fromFields(s.toFields());
             this.absorb(f);
 
             // INFO: in reality the scalar field is known to be bigger so this won't ever
             // execute, but the code persists for when we have a generic implementation
             // so recursiveness can be achieved.
         } else {
-            const high = Provable.witness(Field, () => {
+            const high = Provable.witnessBn254(ForeignField, () => {
                 const s_bigint = s.toBigInt();
                 const bits = BigInt(s_bigint.toString(2).length);
 
-                const high = Field((s_bigint >> 1n) & ((1n << (bits - 1n)) - 1n)); // remaining bits
+                const high = ForeignField.from((s_bigint >> 1n) & ((1n << (bits - 1n)) - 1n)); // remaining bits
 
                 return high;
             });
 
-            const low = Provable.witness(Field, () => {
+            const low = Provable.witnessBn254(ForeignField, () => {
                 const s_bigint = s.toBigInt();
 
-                const low = Field(s_bigint & 1n); // LSB
+                const low = ForeignField.from(s_bigint & 1n); // LSB
 
                 return low;
             });
@@ -147,7 +148,7 @@ export class Sponge {
     * Calls `squeezeLimbs()` and composes them into a scalar.
     */
     squeeze(numLimbs: number): ForeignScalar {
-        return Provable.witness(ForeignScalar, () => {
+        return Provable.witnessBn254(ForeignScalar, () => {
             let squeezed = 0n;
             const squeezedLimbs = this.squeezeLimbs(numLimbs);
             for (const i in this.squeezeLimbs(numLimbs)) {
@@ -162,7 +163,7 @@ export class Sponge {
     }
 
     digest(): ForeignScalar {
-        return Provable.witness(ForeignScalar, () => {
+        return Provable.witnessBn254(ForeignScalar, () => {
             const x = this.squeezeField().toBigInt();
             const result = x < Scalar.ORDER ? x : 0;
             // Comment copied from Kimchi's codebase:

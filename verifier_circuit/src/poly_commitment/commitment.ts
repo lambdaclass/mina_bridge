@@ -1,4 +1,4 @@
-import { ForeignGroup, Group, Scalar } from "o1js";
+import { Field, ForeignGroup, Group, Scalar } from "o1js";
 import { Sponge } from "../verifier/sponge";
 import { ForeignField } from "../foreign_fields/foreign_field.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
@@ -265,4 +265,24 @@ export class OpeningProof {
     z1: ForeignScalar
     z2: ForeignScalar
     sg: ForeignGroup
+
+    /**
+     * Part of the {@link Provable} interface.
+     * 
+     * Returns the sum of `sizeInFields()` of all the class fields, which is 30.
+     */
+    static sizeInFields() {
+        // lr + delta + z1 + z2 + sg = 2 * 6 + 6 + 3 + 3 + 6 = 30
+        return 30;
+    }
+
+    static fromFields(fields: Field[]) {
+        return {
+            lr: [ForeignGroup.fromFields(fields.slice(0, 6)), ForeignGroup.fromFields(fields.slice(6, 12))],
+            delta: ForeignGroup.fromFields(fields.slice(12, 18)),
+            z1: ForeignScalar.fromFields(fields.slice(18, 21)),
+            z2: ForeignScalar.fromFields(fields.slice(21, 24)),
+            sg: ForeignGroup.fromFields(fields.slice(24, 30)),
+        };
+    }
 }
