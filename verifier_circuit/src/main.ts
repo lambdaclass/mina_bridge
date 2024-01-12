@@ -1,6 +1,8 @@
 import { readFileSync, writeFileSync } from "fs";
 import { ForeignGroup, Provable } from "o1js";
 import { Verifier } from "./verifier/verifier.js";
+import { deserOpeningProof } from "./serde/serde_proof.js";
+import { ForeignField } from "./foreign_fields/foreign_field.js";
 
 let inputs;
 try {
@@ -52,6 +54,14 @@ ForeignGroup.curve = [
 
 console.log("Generating circuit keypair...");
 let keypair = await Verifier.generateKeypair();
+
+console.log("Proving...");
+let openingProof = deserOpeningProof(inputs);
+let expected_x = ForeignField.from(inputs.expected.x);
+let expected_y = ForeignField.from(inputs.expected.y);
+let expected = new ForeignGroup(expected_x, expected_y);
+let proof = await Verifier.prove([], [openingProof, expected], keypair);
+console.log(proof);
 
 console.log("Writing circuit gates into file...");
 let gates = keypair.constraintSystem();
