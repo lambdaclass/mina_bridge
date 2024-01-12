@@ -1,5 +1,5 @@
 import { readFileSync } from 'fs';
-import { circuitMain, Circuit, Group, Scalar, public_, Field, ForeignGroup } from 'o1js';
+import { circuitMainBn254, CircuitBn254, Group, public_, ForeignGroup } from 'o1js';
 import { OpeningProof, PolyComm } from '../poly_commitment/commitment.js';
 import { SRS } from '../SRS.js';
 import { Sponge } from './sponge.js';
@@ -176,14 +176,14 @@ export class VerifierIndex {
     }
 }
 
-export class Verifier extends Circuit {
+export class Verifier extends CircuitBn254 {
     /** Number of total registers */
     static readonly COLUMNS: number = 15;
     /** Number of registers that can be wired (participating in the permutation) */
     static readonly PERMUTS: number = 7;
     static readonly PERMUTATION_CONSTRAINTS: number = 3;
 
-    @circuitMain
+    @circuitMainBn254
     static main(@public_ openingProof: OpeningProof, @public_ expected: ForeignGroup) {
         let proverProof = deserProverProof(proof_json);
         proverProof.proof = openingProof;
