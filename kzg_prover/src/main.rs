@@ -2,7 +2,7 @@ mod snarky_gate;
 
 use std::{array, collections::HashMap, fs, ops::Neg, sync::Arc};
 
-use ark_bn254::{G1Affine, G2Affine};
+use ark_bn254::{Bn254, G1Affine, G2Affine};
 use ark_ec::{
     msm::VariableBaseMSM, short_weierstrass_jacobian::GroupAffine, AffineCurve, ProjectiveCurve,
 };
@@ -17,8 +17,10 @@ use ark_std::{
 };
 use kimchi::{
     circuits::{
+        berkeley_columns::Column,
         constraints::ConstraintSystem,
         domains::EvaluationDomains,
+        expr::{Linearization, PolishToken, RowOffset, Variable},
         gate::{CircuitGate, GateType},
         polynomials::{
             generic::testing::{create_circuit, fill_in_witness},
@@ -31,6 +33,7 @@ use kimchi::{
     keccak_sponge::{Keccak256FqSponge, Keccak256FrSponge},
     o1_utils::{foreign_field::BigUintForeignFieldHelpers, BigUintFieldHelpers, FieldHelpers},
     proof::ProverProof,
+    prover,
     prover_index::{self, ProverIndex},
     verifier::{batch_verify, Context},
 };
@@ -43,6 +46,7 @@ use poly_commitment::{
     srs::{endos, SRS},
     PolyComm, SRS as _,
 };
+use serde::{ser::SerializeStruct, Serialize};
 use snarky_gate::SnarkyGate;
 
 type PolynomialsToCombine<'a> = &'a [(
@@ -130,6 +134,127 @@ fn generate_test_proof_for_evm_verifier() {
         rmp_serde::to_vec_named(&srs).unwrap(),
     )
     .unwrap();
+    fs::write(
+        "../eth_verifier/linearization.mpk",
+        &serialize_linearization(index.linearization),
+    )
+    .unwrap();
+}
+
+#[derive(Serialize)]
+struct UnitVariant<'a> {
+    variant: &'a str,
+}
+
+#[derive(Serialize)]
+struct MdsInner {
+    row: usize,
+    col: usize,
+}
+
+#[derive(Serialize)]
+struct Mds {
+    mds: MdsInner,
+}
+
+struct Literal {
+    literal: ScalarField,
+}
+
+impl Serialize for Literal {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut lit = serializer.serialize_struct("Literal", 1)?;
+        let mut literal_ser = vec![];
+        self.literal.serialize(&mut literal_ser).unwrap();
+        lit.serialize_field("literal", &literal_ser)?;
+        lit.end()
+    }
+}
+
+#[derive(Serialize)]
+struct Cell {
+    variable: Variable<Column>,
+}
+
+#[derive(Serialize)]
+struct Pow {
+    pow: u64,
+}
+
+#[derive(Serialize)]
+struct UnnormalizedLagrangeBasis {
+    rowoffset: RowOffset,
+}
+
+#[derive(Serialize)]
+struct Load {
+    load: usize,
+}
+
+fn serialize_linearization(
+    linearization: Linearization<Vec<PolishToken<ScalarField, Column>>, Column>,
+) -> Vec<u8> {
+    let constant_term_ser: Vec<_> = linearization
+        .constant_term
+        .iter()
+        .map(|token| {
+            match *token {
+                PolishToken::Alpha => rmp_serde::to_vec_named(&UnitVariant { variant: "alpha" }),
+                PolishToken::Beta => rmp_serde::to_vec_named(&UnitVariant { variant: "beta" }),
+                PolishToken::Gamma => rmp_serde::to_vec_named(&UnitVariant { variant: "gamma" }),
+                PolishToken::JointCombiner => rmp_serde::to_vec_named(&UnitVariant {
+                    variant: "jointcombiner",
+                }),
+                PolishToken::EndoCoefficient => rmp_serde::to_vec_named(&UnitVariant {
+                    variant: "endocoefficient",
+                }),
+                PolishToken::Mds { row, col } => rmp_serde::to_vec_named(&Mds {
+                    mds: MdsInner { row, col },
+                }),
+                PolishToken::Literal(literal) => rmp_serde::to_vec_named(&Literal { literal }),
+                PolishToken::Cell(variable) => rmp_serde::to_vec_named(&Cell { variable }),
+                PolishToken::Dup => rmp_serde::to_vec_named(&UnitVariant { variant: "dup" }),
+                PolishToken::Pow(pow) => rmp_serde::to_vec_named(&Pow { pow }),
+                PolishToken::Add => rmp_serde::to_vec_named(&UnitVariant { variant: "add" }),
+                PolishToken::Mul => rmp_serde::to_vec_named(&UnitVariant { variant: "mul" }),
+                PolishToken::Sub => rmp_serde::to_vec_named(&UnitVariant { variant: "sub" }),
+                PolishToken::VanishesOnZeroKnowledgeAndPreviousRows => {
+                    rmp_serde::to_vec_named(&UnitVariant {
+                        variant: "vanishesonzeroknowledgeandpreviousrows",
+                    })
+                }
+                PolishToken::UnnormalizedLagrangeBasis(rowoffset) => {
+                    rmp_serde::to_vec_named(&UnnormalizedLagrangeBasis { rowoffset })
+                }
+                PolishToken::Store => rmp_serde::to_vec_named(&UnitVariant { variant: "store" }),
+                PolishToken::Load(load) => rmp_serde::to_vec_named(&Load { load }),
+                _ => rmp_serde::to_vec_named(&UnitVariant { variant: "not implemented" }),
+            }
+            .unwrap()
+        })
+        .flatten()
+        .collect();
+
+    // Add bytes corresponding to an array type:
+
+    let mut constant_term_ser = constant_term_ser.into_iter().rev().collect::<Vec<_>>();
+    let len = linearization.constant_term.len();
+
+    // we choose arr32, so length is made of the next 4 bytes:
+    constant_term_ser.push((len & 0xFF) as u8);
+    constant_term_ser.push(((len >> 8) & 0xFF) as u8);
+    constant_term_ser.push(((len >> 16) & 0xFF) as u8);
+    constant_term_ser.push(((len >> 24) & 0xFF) as u8);
+
+    // and then the arr32 prefix
+    constant_term_ser.push(0xdd);
+
+    let constant_term_ser = constant_term_ser.into_iter().rev().collect::<Vec<_>>();
+
+    constant_term_ser
 }
 
 fn generate_verifier_circuit_proof() {
