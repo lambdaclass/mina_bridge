@@ -6,6 +6,13 @@ import "./Polynomial.sol";
 import "./Constants.sol";
 import "./expr/Expr.sol";
 import "./Commitment.sol";
+import "./bn254/BN254.sol";
+import "./bn254/Fields.sol";
+
+struct PairingProof {
+    BN254.G1Point quotient;
+    Scalar.FE blinding;
+}
 
 struct ProverProof {
     ProofEvaluationsArray evals;
@@ -44,15 +51,18 @@ struct ProverCommitments {
     PolyComm t_comm;
 }
 
-function combine_evals(ProofEvaluationsArray memory self, PointEvaluations memory pt)
-    pure
-    returns (ProofEvaluations memory)
-{
+function combine_evals(
+    ProofEvaluationsArray memory self,
+    PointEvaluations memory pt
+) pure returns (ProofEvaluations memory) {
     PointEvaluations memory public_evals;
     if (self.is_public_evals_set) {
         public_evals = PointEvaluations(
             Polynomial.build_and_eval(self.public_evals.zeta, pt.zeta),
-            Polynomial.build_and_eval(self.public_evals.zeta_omega, pt.zeta_omega)
+            Polynomial.build_and_eval(
+                self.public_evals.zeta_omega,
+                pt.zeta_omega
+            )
         );
     } else {
         public_evals = PointEvaluations(Scalar.zero(), Scalar.zero());
@@ -68,7 +78,8 @@ function combine_evals(ProofEvaluationsArray memory self, PointEvaluations memor
 
     PointEvaluations memory z;
     z = PointEvaluations(
-        Polynomial.build_and_eval(self.z.zeta, pt.zeta), Polynomial.build_and_eval(self.z.zeta_omega, pt.zeta_omega)
+        Polynomial.build_and_eval(self.z.zeta, pt.zeta),
+        Polynomial.build_and_eval(self.z.zeta_omega, pt.zeta_omega)
     );
 
     PointEvaluations[7 - 1] memory s;
@@ -82,7 +93,10 @@ function combine_evals(ProofEvaluationsArray memory self, PointEvaluations memor
     return ProofEvaluations(public_evals, self.is_public_evals_set, w, z, s);
 }
 
-function evaluate_column(ProofEvaluations memory self, Column memory col) pure returns (PointEvaluations memory) {
+function evaluate_column(ProofEvaluations memory self, Column memory col)
+    pure
+    returns (PointEvaluations memory)
+{
     if (col.variant == ColumnVariant.Witness) {
         uint256 i = abi.decode(col.data, (uint256));
         return self.w[i];
@@ -98,7 +112,10 @@ function evaluate_column(ProofEvaluations memory self, Column memory col) pure r
     // TODO: rest of variants, for this it's necessary to expand ProofEvaluations
 }
 
-function evaluate_variable(Variable memory self, ProofEvaluations memory evals) pure returns (Scalar.FE) {
+function evaluate_variable(Variable memory self, ProofEvaluations memory evals)
+    pure
+    returns (Scalar.FE)
+{
     PointEvaluations memory point_evals = evaluate_column(evals, self.col);
     if (self.row == CurrOrNext.Curr) {
         return point_evals.zeta;

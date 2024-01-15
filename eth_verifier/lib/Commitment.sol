@@ -8,6 +8,7 @@ import "./Polynomial.sol";
 
 using {BN254.add, BN254.scale_scalar} for BN254.G1Point;
 using {Scalar.neg, Scalar.add, Scalar.sub, Scalar.mul, Scalar.inv, Scalar.double, Scalar.pow} for Scalar.FE;
+using {Polynomial.is_zero} for Polynomial.Dense;
 
 error MSMInvalidLengths();
 
@@ -55,6 +56,10 @@ function random_lagrange_bases(PairingURS storage urs, uint256 domain_size) {
 struct PolyComm {
     BN254.G1Point[] unshifted;
     BN254.G1Point shifted;
+}
+
+struct PolyCommG2 {
+    BN254.G2Point[] unshifted;
 }
 
 // @notice this structure flattens the fields of `PolyComm`.
@@ -159,9 +164,20 @@ function polycomm_msm(PolyComm[] memory com, Scalar.FE[] memory elm) view return
     return PolyComm(unshifted, shifted);
 }
 
-// @notice Execute a simple multi-scalar multiplication
+// @notice Execute a simple multi-scalar multiplication with points on G1
 function naive_msm(BN254.G1Point[] memory points, Scalar.FE[] memory scalars) view returns (BN254.G1Point memory) {
     BN254.G1Point memory result = BN254.point_at_inf();
+
+    for (uint256 i = 0; i < points.length; i++) {
+        result = result.add(points[i].scale_scalar(scalars[i]));
+    }
+
+    return result;
+}
+
+// @notice Execute a simple multi-scalar multiplication with points on G2
+function naive_msm(BN254.G2Point[] memory points, Scalar.FE[] memory scalars) view returns (BN254.G1Point memory) {
+    BN254.G2Point memory result = BN254.point_at_inf_g2();
 
     for (uint256 i = 0; i < points.length; i++) {
         result = result.add(points[i].scale_scalar(scalars[i]));
@@ -311,6 +327,55 @@ function combined_inner_product(
 
         // TODO: shifted
     }
+}
+
+function commit_non_hiding(
+    URS memory self,
+    Polynomial.Dense memory plnm,
+    uint256 num_chunks
+) public pure returns (PolyCommG2 memory comm) {
+    bool is_zero = plnm.is_zero();
+
+    uint basis_len = self.g.length;
+    uint coeffs_len = plnm.coeffs.length;
+
+    uint unshifted_len = is_zero ? 1 : coeffs_len / basis_len;
+    uint odd_chunk_len = coeffs_len % basis_len;
+    if (odd_chunk_len != 0) unshifted_len += 1;
+    BN254.G2Point[] unshifted = new BN254.G2Point[](Utils.max(unshifted_len, num_chunks));
+
+    if (is_zero) {
+        unshifted[0] = BN254.point_at_inf_g2();
+    } else {
+        // whole chunks
+        for (uint i = 0; i < coeffs_len / basis_len; i++) {
+            Scalar.FE[] coeffs_chunk = new Scalar.FE[](basis_len);
+            for (uint j = 0; j < coeffs_chunk.length; j++) {
+                coeffs_chunk[j] = plnm.coeffs[j + i * basis_len];
+            }
+
+            unshifted[i] = naive_msm(self.g, coeffs_chunk);
+        }
+
+        // odd chunk
+        if (odd_chunk_len != 0) {
+            Scalar.FE[] coeffs_chunk = new Scalar.FE[](basis_len);
+            for (uint j = 0; j < odd_chunk_len; j++) {
+                coeffs_chunk[j] = plnm.coeffs[j + i * basis_len];
+            }
+            for (uint j = odd_chunk_len; j < coeffs_chunk.length; j++) {
+                coeffs_chunk[j] = Scalar.zero();
+            } // FIXME: fill with zeros so I don't have to modify the MSM algorithm
+
+            unshifted[unshifted_len - 1] = naive_msm(self.g, coeffs_chunk);
+        }
+    }
+
+    for (uint i = unshifted_len; i < num_chunks; i++) {
+        unshifted[i] = BN254.point_at_inf();
+    }
+
+    comm.unshifted = unshifted;
 }
 
 // this represents an array of matrices of polynomial commitments
