@@ -321,8 +321,8 @@ export class OpeningProof {
     toFields() {
         let lr: FieldBn254[] = [];
         for (const [l, r] of this.lr) {
-            lr.concat(l.toFields());
-            lr.concat(r.toFields());
+            lr = lr.concat(l.toFields());
+            lr = lr.concat(r.toFields());
         }
         let z1 = ForeignScalar.toFieldsBn254(this.z1);
         let z2 = ForeignScalar.toFieldsBn254(this.z2);
