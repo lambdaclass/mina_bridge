@@ -29,7 +29,7 @@ struct Inputs {
 }
 
 fn main() {
-    let state_proof: StateProof = match fs::read_to_string("proof.json") {
+    let state_proof: StateProof = match fs::read_to_string("./src/proof.json") {
         Ok(state_proof_file) => serde_json::from_str(&state_proof_file).unwrap(),
         Err(_) => StateProof::default(),
     };
