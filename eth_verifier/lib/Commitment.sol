@@ -2,6 +2,7 @@
 pragma solidity >=0.4.16 <0.9.0;
 
 import "./bn254/BN254.sol";
+import "./bn254/BN256G2.sol";
 import "./bn254/Fields.sol";
 import "./Utils.sol";
 import "./Polynomial.sol";
@@ -15,6 +16,11 @@ error MSMInvalidLengths();
 struct URS {
     BN254.G1Point[] g;
     BN254.G1Point h;
+}
+
+struct URSG2 {
+    BN254.G2Point[] g;
+    BN254.G2Point h;
 }
 
 function create_trusted_setup(Scalar.FE x, uint256 depth) view returns (URS memory) {
@@ -32,7 +38,7 @@ function create_trusted_setup(Scalar.FE x, uint256 depth) view returns (URS memo
 
 struct PairingURS {
     URS full_urs;
-    URS verifier_urs;
+    URS verifier_urs; // FIXME: this should be a URSG2.
     mapping(uint256 => PolyCommFlat) lagrange_bases_unshifted;
 }
 
@@ -176,11 +182,28 @@ function naive_msm(BN254.G1Point[] memory points, Scalar.FE[] memory scalars) vi
 }
 
 // @notice Execute a simple multi-scalar multiplication with points on G2
-function naive_msm(BN254.G2Point[] memory points, Scalar.FE[] memory scalars) view returns (BN254.G1Point memory) {
+function naive_msm(BN254.G2Point[] memory points, Scalar.FE[] memory scalars) view returns (BN254.G2Point memory) {
     BN254.G2Point memory result = BN254.point_at_inf_g2();
 
     for (uint256 i = 0; i < points.length; i++) {
-        result = result.add(points[i].scale_scalar(scalars[i]));
+        (uint px0, uint px1, uint py0, uint py1) = BN256G2.ECTwistMul(
+            Scalar.FE.unwrap(scalars[i]),
+            points[i].x0,
+            points[i].x1,
+            points[i].y0,
+            points[i].y1
+        );
+        (uint rx0, uint rx1, uint ry0, uint ry1) = BN256G2.ECTwistAdd(
+            result.x0,
+            result.x1,
+            result.y0,
+            result.y1,
+            px0,
+            px1,
+            py0,
+            py1
+        );
+        result = BN254.G2Point(rx0, rx1, ry0, ry1);
     }
 
     return result;
@@ -329,11 +352,13 @@ function combined_inner_product(
     }
 }
 
+/// @notice commits a polynomial using a URS in G2 of size `n`, splitting in at least
+/// @notice `num_chunks` unshifted chunks.
 function commit_non_hiding(
-    URS memory self,
+    URSG2 memory self,
     Polynomial.Dense memory plnm,
     uint256 num_chunks
-) public pure returns (PolyCommG2 memory comm) {
+) view returns (PolyCommG2 memory comm) {
     bool is_zero = plnm.is_zero();
 
     uint basis_len = self.g.length;
@@ -342,14 +367,14 @@ function commit_non_hiding(
     uint unshifted_len = is_zero ? 1 : coeffs_len / basis_len;
     uint odd_chunk_len = coeffs_len % basis_len;
     if (odd_chunk_len != 0) unshifted_len += 1;
-    BN254.G2Point[] unshifted = new BN254.G2Point[](Utils.max(unshifted_len, num_chunks));
+    BN254.G2Point[] memory unshifted = new BN254.G2Point[](Utils.max(unshifted_len, num_chunks));
 
     if (is_zero) {
         unshifted[0] = BN254.point_at_inf_g2();
     } else {
         // whole chunks
         for (uint i = 0; i < coeffs_len / basis_len; i++) {
-            Scalar.FE[] coeffs_chunk = new Scalar.FE[](basis_len);
+            Scalar.FE[] memory coeffs_chunk = new Scalar.FE[](basis_len);
             for (uint j = 0; j < coeffs_chunk.length; j++) {
                 coeffs_chunk[j] = plnm.coeffs[j + i * basis_len];
             }
@@ -359,9 +384,9 @@ function commit_non_hiding(
 
         // odd chunk
         if (odd_chunk_len != 0) {
-            Scalar.FE[] coeffs_chunk = new Scalar.FE[](basis_len);
+            Scalar.FE[] memory coeffs_chunk = new Scalar.FE[](basis_len);
             for (uint j = 0; j < odd_chunk_len; j++) {
-                coeffs_chunk[j] = plnm.coeffs[j + i * basis_len];
+                coeffs_chunk[j] = plnm.coeffs[j + unshifted_len * basis_len];
             }
             for (uint j = odd_chunk_len; j < coeffs_chunk.length; j++) {
                 coeffs_chunk[j] = Scalar.zero();
@@ -372,7 +397,7 @@ function commit_non_hiding(
     }
 
     for (uint i = unshifted_len; i < num_chunks; i++) {
-        unshifted[i] = BN254.point_at_inf();
+        unshifted[i] = BN254.point_at_inf_g2();
     }
 
     comm.unshifted = unshifted;

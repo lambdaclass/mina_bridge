@@ -21,7 +21,6 @@ using {BN254.neg, BN254.scalarMul} for BN254.G1Point;
 using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
 using {AlphasLib.get_alphas} for Alphas;
 using {Polynomial.evaluate} for Polynomial.Dense;
-using {commit_non_hiding} for URS;
 
 library Kimchi {
     struct Proof {
@@ -370,15 +369,19 @@ contract KimchiVerifier {
     */
 
     function final_verify(
-        PairingProof opening_proof,
-        URS verifier_urs,
-        Scalar.FE[] elm // evaluation points, challenges
+        PairingProof memory opening_proof,
+        URSG2 memory verifier_urs,
+        Scalar.FE[] memory elm // evaluation points, challenges
     ) public {
         // We'll do an incomplete verification in which we'll receive a faked
         // numerator commitment, with the objective of skipping most of the
         // partial verification for now.
 
-        verifier_urs.commit_non_hiding(Polynomial.divisor_polynomial(elm), 1);
+        PolyCommG2 memory divisor = commit_non_hiding(
+            verifier_urs,
+            Polynomial.divisor_polynomial(elm),
+            1
+        );
     }
 
     /* TODO WIP

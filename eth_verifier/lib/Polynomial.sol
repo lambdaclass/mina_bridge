@@ -14,7 +14,7 @@ library Polynomial {
     function is_zero(Dense memory self) public pure returns (bool) {
         bool all_zero = true;
         for (uint i = 0; i < self.coeffs.length; i++) {
-            if (self.coeffs[i] != 0) {
+            if (Scalar.FE.unwrap(self.coeffs[i]) != 0) {
                 all_zero = false;
                 break;
             }
@@ -42,7 +42,7 @@ library Polynomial {
         return Dense(coeffs);
     }
 
-    function binomial(Scalar.FE first_coeff, Scalar.FE second_coeff) publci pure returns (Dense memory) {
+    function binomial(Scalar.FE first_coeff, Scalar.FE second_coeff) public pure returns (Dense memory) {
         Scalar.FE[] memory coeffs = new Scalar.FE[](2);
         coeffs[0] = first_coeff;
         coeffs[1] = second_coeff;
@@ -104,7 +104,7 @@ library Polynomial {
 
 
     /// @notice the polynomial that evaluates to `0` at the evaluation points.
-    function divisor_polynomial(Scalar.FE[] memory elm) public pure returns (Dense memory result) {
+    function divisor_polynomial(Scalar.FE[] memory elm) public view returns (Dense memory result) {
         result = binomial(elm[0].neg(), Scalar.one());
         for (uint i = 1; i < elm.length; i++) {
             result = mul(result, binomial(elm[i].neg(), Scalar.one()));

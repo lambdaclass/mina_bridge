@@ -270,7 +270,7 @@ library BN256G2 {
             mstore(add(freemem, 0x80), sub(n, 2))
             mstore(add(freemem, 0xA0), n)
             success := staticcall(
-                sub(gas, 2000),
+                sub(gas(), 2000),
                 5,
                 freemem,
                 0xC0,

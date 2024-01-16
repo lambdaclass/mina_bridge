@@ -86,6 +86,7 @@ library BN254 {
     /// @return the point at infinity of G2
     function point_at_inf_g2() internal pure returns (G2Point memory) {
         return G2Point(0, 0, 0, 0);
+    }
 
     /// @dev check if a G1 point is Infinity
     /// @notice precompile bn256Add at address(6) takes (0, 0) as Point of Infinity,
