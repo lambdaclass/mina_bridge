@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: LGPL-3.0
-pragma solidity >=0.4.24 <0.9.0;
+pragma solidity >=0.4.16 <0.9.0;
 
 /**
  * @title Elliptic curve operations on twist points for alt_bn128
@@ -146,14 +146,6 @@ library BN256G2 {
             );
     }
 
-    /**
-     * @notice Get the field modulus
-     * @return The field modulus
-     */
-    function GetFieldModulus() public pure returns (uint256) {
-        return FIELD_MODULUS;
-    }
-
     function submod(
         uint256 a,
         uint256 b,
@@ -190,15 +182,6 @@ library BN256G2 {
         return (mulmod(xx, c, FIELD_MODULUS), mulmod(xy, c, FIELD_MODULUS));
     }
 
-    function _FQ2Add(
-        uint256 xx,
-        uint256 xy,
-        uint256 yx,
-        uint256 yy
-    ) internal pure returns (uint256, uint256) {
-        return (addmod(xx, yx, FIELD_MODULUS), addmod(xy, yy, FIELD_MODULUS));
-    }
-
     function _FQ2Sub(
         uint256 xx,
         uint256 xy,
@@ -206,16 +189,6 @@ library BN256G2 {
         uint256 yy
     ) internal pure returns (uint256 rx, uint256 ry) {
         return (submod(xx, yx, FIELD_MODULUS), submod(xy, yy, FIELD_MODULUS));
-    }
-
-    function _FQ2Div(
-        uint256 xx,
-        uint256 xy,
-        uint256 yx,
-        uint256 yy
-    ) internal view returns (uint256, uint256) {
-        (yx, yy) = _FQ2Inv(yx, yy);
-        return _FQ2Mul(xx, xy, yx, yy);
     }
 
     function _FQ2Inv(uint256 x, uint256 y)
@@ -260,25 +233,22 @@ library BN256G2 {
         view
         returns (uint256 result)
     {
-        bool success;
-        assembly {
-            let freemem := mload(0x40)
-            mstore(freemem, 0x20)
-            mstore(add(freemem, 0x20), 0x20)
-            mstore(add(freemem, 0x40), 0x20)
-            mstore(add(freemem, 0x60), a)
-            mstore(add(freemem, 0x80), sub(n, 2))
-            mstore(add(freemem, 0xA0), n)
-            success := staticcall(
-                sub(gas(), 2000),
-                5,
-                freemem,
-                0xC0,
-                freemem,
-                0x20
+        uint256 length_of_base = 0x20;
+        uint256 length_of_exponent = 0x20;
+        uint256 length_of_modulus = 0x20;
+
+        (bool success, bytes memory result_bytes) = address(0x05).staticcall(
+            abi.encode(
+                length_of_base,
+                length_of_exponent,
+                length_of_modulus,
+                a,
+                n - 2,
+                n
             )
-            result := mload(freemem)
-        }
+        );
+
+        result = abi.decode(result_bytes, (uint256));
         require(success);
     }
 
