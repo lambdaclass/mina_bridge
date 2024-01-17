@@ -67,10 +67,10 @@ type KZGProof = PairingProof<ark_ec::bn::Bn<ark_bn254::Parameters>>;
 fn main() {
     generate_verifier_circuit_proof();
     //generate_test_proof();
-    generate_test_proof_ex();
+    generate_test_proof_for_evm_verifier();
 }
 
-fn generate_test_proof_ex() {
+fn generate_test_proof_for_evm_verifier() {
     let rng = &mut StdRng::from_seed([255u8; 32]);
 
     // Create range-check gadget
