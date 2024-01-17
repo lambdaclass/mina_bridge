@@ -10,7 +10,7 @@ import "./bn254/BN254.sol";
 import "./bn254/Fields.sol";
 
 struct PairingProof {
-    BN254.G1Point quotient;
+    PolyComm quotient;
     Scalar.FE blinding;
 }
 

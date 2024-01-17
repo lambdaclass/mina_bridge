@@ -371,17 +371,26 @@ contract KimchiVerifier {
     function final_verify(
         PairingProof memory opening_proof,
         URSG2 memory verifier_urs,
-        Scalar.FE[] memory elm // evaluation points, challenges
-    ) public {
+        Scalar.FE[] memory elm, // evaluation points, challenges
+        BN254.G1Point memory numerator // this is faked
+    ) public returns (bool) {
         // We'll do an incomplete verification in which we'll receive a faked
         // numerator commitment, with the objective of skipping most of the
         // partial verification for now.
 
-        PolyCommG2 memory divisor = commit_non_hiding(
+        BN254.G1Point memory quotient = opening_proof.quotient.unshifted[0];
+
+        // This is calculated executing a small part of the partial verification
+        // (we only need to squeeze a challenge in the fiat-shamir step).
+        PolyCommG2 memory divisor_polycomm = commit_non_hiding(
             verifier_urs,
             Polynomial.divisor_polynomial(elm),
             1
         );
+
+        BN254.G2Point memory divisor = divisor_polycomm.unshifted[0];
+
+        return BN254.pairingProd2(numerator, BN254.P2(), quotient, divisor);
     }
 
     /* TODO WIP
