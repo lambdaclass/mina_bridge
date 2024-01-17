@@ -314,6 +314,11 @@ library MsgPk {
         integer = Utils.padded_bytes_array_to_uint256(data_arr.values);
     }
 
+    function deser_buffer_to_scalar(EncodedMap memory self) public pure returns (Scalar.FE) {
+        uint256 inner = deser_buffer_to_uint256(self);
+        return Scalar.from(inner);
+    }
+
     function deser_verifier_index(Stream memory self, VerifierIndex storage index) external {
         EncodedMap memory map = deser_map16(self);
         index.public_len = abi.decode(find_value(map, abi.encode("public")), (uint256));
@@ -425,6 +430,20 @@ library MsgPk {
         prover_proof.commitments.w_comm = w_comm;
         prover_proof.commitments.z_comm = z_comm;
         prover_proof.commitments.t_comm = t_comm;
+
+        // deserialize opening proof
+
+        EncodedMap memory proof_map = abi.decode(find_value(map, abi.encode("proof")), (EncodedMap));
+        EncodedMap memory quotient_buffer = abi.decode(find_value(proof_map, abi.encode("quotient")), (EncodedMap));
+        EncodedMap memory blinding_buffer = abi.decode(find_value(proof_map, abi.encode("blinding")), (EncodedMap));
+
+        BN254.G1Point[] memory quotient_unshifted = new BN254.G1Point[](1);
+        quotient_unshifted[0] = deser_g1point(quotient_buffer);
+
+        Scalar.FE blinding = deser_buffer_to_scalar(blinding_buffer);
+
+        prover_proof.opening.quotient.unshifted = quotient_unshifted;
+        prover_proof.opening.blinding = blinding;
     }
 
     function deser_evals(EncodedMap memory all_evals_map, string memory name)
@@ -574,6 +593,10 @@ library MsgPk {
 
     function deser_g1point(Stream memory self) public view returns (BN254.G1Point memory) {
         EncodedMap memory buffer = deser_fixmap(self);
+        return BN254.g1Deserialize(bytes32(deser_buffer(buffer)));
+    }
+
+    function deser_g1point(EncodedMap memory buffer) public view returns (BN254.G1Point memory) {
         return BN254.g1Deserialize(bytes32(deser_buffer(buffer)));
     }
 
