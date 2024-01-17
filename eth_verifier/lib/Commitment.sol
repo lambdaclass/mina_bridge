@@ -36,9 +36,31 @@ function create_trusted_setup(Scalar.FE x, uint256 depth) view returns (URS memo
     return URS(g, h);
 }
 
+function create_trusted_setup_g2(Scalar.FE x, uint256 depth) view returns (URSG2 memory) {
+    BN254.G2Point memory p2 = BN254.P2();
+
+    Scalar.FE x_pow = Scalar.one();
+    BN254.G2Point[] memory g = new BN254.G2Point[](depth);
+    BN254.G2Point memory h = BN254.P2(); // should be blake2b hash
+
+    for (uint256 i = 0; i < depth; i++) {
+        (uint gx0, uint gx1, uint gy0, uint gy1) = BN256G2.ECTwistMul(
+            Scalar.FE.unwrap(x_pow),
+            p2.x0,
+            p2.x1,
+            p2.y0,
+            p2.y1
+        );
+        g[i] = BN254.G2Point(gx0, gx1, gy0, gy1);
+        x_pow = x_pow.mul(x);
+    }
+
+    return URSG2(g, h);
+}
+
 struct PairingURS {
     URS full_urs;
-    URS verifier_urs; // FIXME: this should be a URSG2.
+    URSG2 verifier_urs;
     mapping(uint256 => PolyCommFlat) lagrange_bases_unshifted;
 }
 

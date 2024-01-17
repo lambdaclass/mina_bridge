@@ -249,7 +249,7 @@ library BN256G2 {
         );
 
         result = abi.decode(result_bytes, (uint256));
-        require(success);
+        require(success, "BN256 _modInv staticcall failed");
     }
 
     function _fromJacobian(

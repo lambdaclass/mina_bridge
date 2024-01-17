@@ -537,59 +537,62 @@ library MsgPk {
         }
     }
 
+    // FIXME: for testing we're generating the URS in the contract. We should deserialize it.
+    // We need to investigate how G2 points are serialized.
     // WARN: using the full urs may not be necessary, so we would only have to deserialize
-    // the `verifier_urs` (which is only made of three points) and the lagrange bases.
-    function deser_pairing_urs(Stream memory self, PairingURS storage urs) public {
-        // full_srs and verifier_srs fields
-        EncodedMap memory urs_map = deser_fixmap(self);
+    // the `verifier_urs` (which is only made of three points), the lagrange bases.
+    // and three points from the full_urs.
+    // function deser_pairing_urs(Stream memory self, PairingURS storage urs) public {
+    //     // full_srs and verifier_srs fields
+    //     EncodedMap memory urs_map = deser_fixmap(self);
 
-        EncodedMap memory full_urs_serialized = abi.decode(find_value(urs_map, abi.encode("full_srs")), (EncodedMap));
-        EncodedMap memory verifier_urs_serialized =
-            abi.decode(find_value(urs_map, abi.encode("verifier_srs")), (EncodedMap));
+    //     EncodedMap memory full_urs_serialized = abi.decode(find_value(urs_map, abi.encode("full_srs")), (EncodedMap));
+    //     EncodedMap memory verifier_urs_serialized =
+    //         abi.decode(find_value(urs_map, abi.encode("verifier_srs")), (EncodedMap));
 
-        // get data from g and h fields (g is an array of buffers and h is a buffer)
-        EncodedArray memory full_urs_g_serialized =
-            abi.decode(find_value(full_urs_serialized, abi.encode("g")), (EncodedArray));
-        EncodedMap memory full_urs_h_serialized =
-            abi.decode(find_value(full_urs_serialized, abi.encode("h")), (EncodedMap));
+    //     // get data from g and h fields (g is an array of buffers and h is a buffer)
+    //     EncodedArray memory full_urs_g_serialized =
+    //         abi.decode(find_value(full_urs_serialized, abi.encode("g")), (EncodedArray));
+    //     EncodedMap memory full_urs_h_serialized =
+    //         abi.decode(find_value(full_urs_serialized, abi.encode("h")), (EncodedMap));
 
-        EncodedArray memory verifier_urs_g_serialized =
-            abi.decode(find_value(verifier_urs_serialized, abi.encode("g")), (EncodedArray));
-        EncodedMap memory verifier_urs_h_serialized =
-            abi.decode(find_value(verifier_urs_serialized, abi.encode("h")), (EncodedMap));
+    //     EncodedArray memory verifier_urs_g_serialized =
+    //         abi.decode(find_value(verifier_urs_serialized, abi.encode("g")), (EncodedArray));
+    //     EncodedMap memory verifier_urs_h_serialized =
+    //         abi.decode(find_value(verifier_urs_serialized, abi.encode("h")), (EncodedMap));
 
-        // deserialized and save g for both URS
-        uint256 full_urs_g_length = full_urs_g_serialized.values.length;
-        BN254.G1Point[] memory full_urs_g = new BN254.G1Point[](full_urs_g_length);
-        for (uint256 i = 0; i < full_urs_g_length; i++) {
-            full_urs_g[i] =
-                BN254.g1Deserialize(bytes32(deser_buffer(abi.decode(full_urs_g_serialized.values[i], (EncodedMap)))));
-        }
+    //     // deserialized and save g for both URS
+    //     uint256 full_urs_g_length = full_urs_g_serialized.values.length;
+    //     BN254.G1Point[] memory full_urs_g = new BN254.G1Point[](full_urs_g_length);
+    //     for (uint256 i = 0; i < full_urs_g_length; i++) {
+    //         full_urs_g[i] =
+    //             BN254.g1Deserialize(bytes32(deser_buffer(abi.decode(full_urs_g_serialized.values[i], (EncodedMap)))));
+    //     }
 
-        uint256 verifier_urs_g_length = verifier_urs_g_serialized.values.length;
-        BN254.G1Point[] memory verifier_urs_g = new BN254.G1Point[](verifier_urs_g_length);
-        for (uint256 i = 0; i < verifier_urs_g_length; i++) {
-            verifier_urs_g[i] = BN254.g1Deserialize(
-                bytes32(deser_buffer(abi.decode(verifier_urs_g_serialized.values[i], (EncodedMap))))
-            );
-        }
+    //     uint256 verifier_urs_g_length = verifier_urs_g_serialized.values.length;
+    //     BN254.G1Point[] memory verifier_urs_g = new BN254.G1Point[](verifier_urs_g_length);
+    //     for (uint256 i = 0; i < verifier_urs_g_length; i++) {
+    //         verifier_urs_g[i] = BN254.g1Deserialize(
+    //             bytes32(deser_buffer(abi.decode(verifier_urs_g_serialized.values[i], (EncodedMap))))
+    //         );
+    //     }
 
-        // deserialized and save h for both URS
-        BN254.G1Point memory full_urs_h = BN254.g1Deserialize(bytes32(deser_buffer(full_urs_h_serialized)));
-        BN254.G1Point memory verifier_urs_h = BN254.g1Deserialize(bytes32(deser_buffer(verifier_urs_h_serialized)));
+    //     // deserialized and save h for both URS
+    //     BN254.G1Point memory full_urs_h = BN254.g1Deserialize(bytes32(deser_buffer(full_urs_h_serialized)));
+    //     BN254.G1Point memory verifier_urs_h = BN254.g1Deserialize(bytes32(deser_buffer(verifier_urs_h_serialized)));
 
-        // store values
-        urs.full_urs.g = full_urs_g;
-        urs.full_urs.h = full_urs_h;
+    //     // store values
+    //     urs.full_urs.g = full_urs_g;
+    //     urs.full_urs.h = full_urs_h;
 
-        urs.verifier_urs.g = verifier_urs_g;
-        urs.verifier_urs.h = verifier_urs_h;
+    //     urs.verifier_urs.g = verifier_urs_g;
+    //     urs.verifier_urs.h = verifier_urs_h;
 
-        // deserialize and store lagrange bases
-        EncodedMap memory lagrange_b_serialized =
-            abi.decode(find_value(full_urs_serialized, abi.encode("lagrange_bases")), (EncodedMap));
-        deser_lagrange_bases(lagrange_b_serialized, urs.lagrange_bases_unshifted);
-    }
+    //     // deserialize and store lagrange bases
+    //     EncodedMap memory lagrange_b_serialized =
+    //         abi.decode(find_value(full_urs_serialized, abi.encode("lagrange_bases")), (EncodedMap));
+    //     deser_lagrange_bases(lagrange_b_serialized, urs.lagrange_bases_unshifted);
+    // }
 
     function deser_g1point(Stream memory self) public view returns (BN254.G1Point memory) {
         EncodedMap memory buffer = deser_fixmap(self);

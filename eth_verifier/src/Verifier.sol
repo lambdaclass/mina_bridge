@@ -71,8 +71,9 @@ contract KimchiVerifier {
         // URS deserialization is WIP, we'll generate a random one for now:
         Scalar.FE x = Scalar.from(42);
         uint256 max_domain_size = 16384;
-        urs.full_urs = create_trusted_setup(x, max_domain_size);
-        urs.verifier_urs = create_trusted_setup(x, 3);
+        urs.full_urs = create_trusted_setup(x, 2);
+        urs.verifier_urs = create_trusted_setup_g2(x, 3);
+        require(false, "asda");
 
         verifier_index.powers_of_alpha.register(ArgumentType.GateZero, 21);
         verifier_index.powers_of_alpha.register(ArgumentType.Permutation, 3);
@@ -82,12 +83,16 @@ contract KimchiVerifier {
         verifier_index.powers_of_alpha.register(ArgumentType.Permutation, Constants.PERMUTATION_CONSTRAINTS);
     }
 
-    function verify_with_index(bytes calldata verifier_index_serialized, bytes calldata prover_proof_serialized)
-        public
-        returns (bool)
-    {
+    function verify_with_index(
+        bytes calldata verifier_index_serialized,
+        bytes calldata prover_proof_serialized,
+        bytes calldata numerator_serialized
+    ) public returns (bool) {
         MsgPk.deser_verifier_index(MsgPk.new_stream(verifier_index_serialized), verifier_index);
         MsgPk.deser_prover_proof(MsgPk.new_stream(prover_proof_serialized), proof);
+        BN254.G1Point memory numerator = MsgPk.deser_g1point(MsgPk.new_stream(numerator_serialized));
+        // "numerator" is a fake commitment that should be calculated after running
+        // all the partial verifier.
 
         //calculate_lagrange_bases(
         //    verifier_index.urs.g,
@@ -99,7 +104,7 @@ contract KimchiVerifier {
         AggregatedEvaluationProof memory agg_proof =
             partial_verify_stripped(new Scalar.FE[](0));
 
-        //final_verify(agg_proof.opening, );
+        final_verify(agg_proof, urs.verifier_urs, numerator);
         return false;
     }
 

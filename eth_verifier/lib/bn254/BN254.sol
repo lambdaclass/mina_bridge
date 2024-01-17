@@ -93,7 +93,7 @@ library BN254 {
     /// some crypto libraries (such as arkwork) uses a boolean flag to mark PoI, and
     /// just use (0, 1) as affine coordinates (not on curve) to represents PoI.
     function isInfinity(G1Point memory point) internal pure returns (bool result) {
-        assembly {
+        assembly ("memory-safe") {
             let x := mload(point)
             let y := mload(add(point, 0x20))
             result := and(iszero(x), iszero(y))
@@ -116,7 +116,7 @@ library BN254 {
         input[2] = p2.x;
         input[3] = p2.y;
         bool success;
-        assembly {
+        assembly ("memory-safe") {
             success := staticcall(sub(gas(), 2000), 6, input, 0xc0, r, 0x60)
             // Use "invalid" to make gas estimation work
             switch success
@@ -135,7 +135,7 @@ library BN254 {
         input[1] = p.y;
         input[2] = s;
         bool success;
-        assembly {
+        assembly ("memory-safe") {
             success := staticcall(sub(gas(), 2000), 7, input, 0x80, r, 0x60)
             // Use "invalid" to make gas estimation work
             switch success
@@ -170,7 +170,7 @@ library BN254 {
     function invert(uint256 fr) internal view returns (uint256 output) {
         bool success;
         uint256 p = R_MOD;
-        assembly {
+        assembly ("memory-safe") {
             let mPtr := mload(0x40)
             mstore(mPtr, 0x20)
             mstore(add(mPtr, 0x20), 0x20)
@@ -197,7 +197,7 @@ library BN254 {
     function validateG1Point(G1Point memory point) internal pure {
         bool isWellFormed;
         uint256 p = P_MOD;
-        assembly {
+        assembly ("memory-safe") {
             let x := mload(point)
             let y := mload(add(point, 0x20))
 
@@ -213,7 +213,7 @@ library BN254 {
     /// @notice Writing this inline instead of calling it might save gas.
     function validateScalarField(uint256 fr) internal pure {
         bool isValid;
-        assembly {
+        assembly ("memory-safe") {
             isValid := lt(fr, R_MOD)
         }
         require(isValid, "Bn254: invalid scalar field");
@@ -231,7 +231,7 @@ library BN254 {
     ) internal view returns (bool) {
         uint256 out;
         bool success;
-        assembly {
+        assembly ("memory-safe") {
             let mPtr := mload(0x40)
             mstore(mPtr, mload(a1))
             mstore(add(mPtr, 0x20), mload(add(a1, 0x20)))
@@ -278,7 +278,7 @@ library BN254 {
         uint256 input = base;
         uint256 count = 1;
 
-        assembly {
+        assembly ("memory-safe") {
             let endpoint := add(exponent, 0x01)
             for {
 
@@ -359,7 +359,7 @@ library BN254 {
 
         // we have p == 3 mod 4 therefore
         // a = x^((p+1)/4)
-        assembly {
+        assembly ("memory-safe") {
             // credit: Aztec
             let mPtr := mload(0x40)
             mstore(mPtr, 0x20)
