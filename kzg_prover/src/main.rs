@@ -129,9 +129,16 @@ fn generate_test_proof_for_evm_verifier() {
         rmp_serde::to_vec_named(&index.verifier_index()).unwrap(),
     )
     .unwrap();
+    let srs_to_serialize = PairingSRS {
+        full_srs: SRS {
+            g: srs.full_srs.g[0..3].to_vec(),
+            ..srs.full_srs
+        },
+        ..srs
+    };
     fs::write(
         "../eth_verifier/urs.mpk",
-        rmp_serde::to_vec_named(&srs).unwrap(),
+        rmp_serde::to_vec_named(&srs_to_serialize).unwrap(),
     )
     .unwrap();
     fs::write(
