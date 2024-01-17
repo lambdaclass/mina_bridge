@@ -17,6 +17,12 @@ struct PairingProof {
 struct ProverProof {
     ProofEvaluationsArray evals;
     ProverCommitments commitments;
+    PairingProof opening;
+}
+
+struct AggregatedEvaluationProof {
+    Scalar.FE[] evaluation_points;
+    PairingProof opening;
 }
 
 struct ProofEvaluations {

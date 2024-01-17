@@ -96,8 +96,10 @@ contract KimchiVerifier {
         //    verifier_index.urs.lagrange_bases_unshifted
         //);
 
-        partial_verify(new Scalar.FE[](0));
-        // final_verify();
+        AggregatedEvaluationProof memory agg_proof =
+            partial_verify_stripped(new Scalar.FE[](0));
+
+        //final_verify(agg_proof.opening, );
         return false;
     }
 
@@ -229,6 +231,63 @@ contract KimchiVerifier {
         Scalar.FE zeta_to_srs_len = oracles.zeta.pow(verifier_index.max_poly_size);
         PolyComm memory chunked_f_comm = f_comm.chunk_commitment(zeta_to_srs_len);
         PolyComm memory chunked_t_comm = proof.commitments.t_comm.chunk_commitment(zeta_to_srs_len);
+    }
+
+    // @notice executes only the needed steps of partial verification for
+    // @notice the current iteration of the final verification steps.
+    function partial_verify_stripped(Scalar.FE[] memory public_inputs) public returns (AggregatedEvaluationProof memory) {
+        // Commit to the negated public input polynomial.
+
+        uint256 chunk_size = verifier_index.domain_size < verifier_index.max_poly_size
+            ? 1
+            : verifier_index.domain_size / verifier_index.max_poly_size;
+
+        if (public_inputs.length != verifier_index.public_len) {
+            revert IncorrectPublicInputLength();
+        }
+        PolyCommFlat memory lgr_comm_flat = urs.lagrange_bases_unshifted[verifier_index.domain_size];
+        PolyComm[] memory comm = new PolyComm[](verifier_index.public_len);
+        PolyComm[] memory lgr_comm = poly_comm_unflat(lgr_comm_flat);
+        // INFO: can use unchecked on for loops to save gas
+        for (uint256 i = 0; i < verifier_index.public_len; i++) {
+            comm[i] = lgr_comm[i];
+        }
+        PolyComm memory public_comm;
+        if (public_inputs.length == 0) {
+            BN254.G1Point[] memory blindings = new BN254.G1Point[](chunk_size);
+            for (uint256 i = 0; i < chunk_size; i++) {
+                blindings[i] = urs.full_urs.h;
+            }
+            // TODO: shifted is fixed to infinity
+            BN254.G1Point memory shifted = BN254.point_at_inf();
+            public_comm = PolyComm(blindings, shifted);
+        } else {
+            Scalar.FE[] memory elm = new Scalar.FE[](public_inputs.length);
+            for (uint256 i = 0; i < elm.length; i++) {
+                elm[i] = public_inputs[i].neg();
+            }
+            PolyComm memory public_comm_tmp = polycomm_msm(comm, elm);
+            Scalar.FE[] memory blinders = new Scalar.FE[](
+                public_comm_tmp.unshifted.length
+            );
+            for (uint256 i = 0; i < public_comm_tmp.unshifted.length; i++) {
+                blinders[i] = Scalar.FE.wrap(1);
+            }
+            public_comm = mask_custom(urs.full_urs, public_comm_tmp, blinders).commitment;
+        }
+
+        // Execute fiat-shamir with a Keccak sponge
+        // WARN: we don't need to execute the whole heuristic, we only need the first 'zeta' challenge.
+
+        Oracles.Result memory oracles_res =
+            Oracles.fiat_shamir(proof, verifier_index, public_comm, public_inputs, true, base_sponge, scalar_sponge);
+        Oracles.RandomOracles memory oracles = oracles_res.oracles;
+
+        Scalar.FE[] memory evaluation_points = new Scalar.FE[](2);
+        evaluation_points[0] = oracles.zeta;
+        evaluation_points[1] = oracles.zeta.mul(verifier_index.domain_gen);
+
+        return AggregatedEvaluationProof(evaluation_points, proof.opening);
     }
 
     function perm_scalars(
@@ -369,22 +428,21 @@ contract KimchiVerifier {
     */
 
     function final_verify(
-        PairingProof memory opening_proof,
+        AggregatedEvaluationProof memory agg_proof,
         URSG2 memory verifier_urs,
-        Scalar.FE[] memory elm, // evaluation points, challenges
         BN254.G1Point memory numerator // this is faked
     ) public returns (bool) {
         // We'll do an incomplete verification in which we'll receive a faked
         // numerator commitment, with the objective of skipping most of the
         // partial verification for now.
 
-        BN254.G1Point memory quotient = opening_proof.quotient.unshifted[0];
+        BN254.G1Point memory quotient = agg_proof.opening.quotient.unshifted[0];
 
         // This is calculated executing a small part of the partial verification
         // (we only need to squeeze a challenge in the fiat-shamir step).
         PolyCommG2 memory divisor_polycomm = commit_non_hiding(
             verifier_urs,
-            Polynomial.divisor_polynomial(elm),
+            Polynomial.divisor_polynomial(agg_proof.evaluation_points),
             1
         );
 
