@@ -122,7 +122,10 @@ library BN256G2 {
             pt1yx = 1;
             pt1zx = 0;
         } else {
-            assert(_isOnCurve(pt1xx, pt1xy, pt1yx, pt1yy));
+            require(
+                _isOnCurve(pt1xx, pt1xy, pt1yx, pt1yy),
+                "G2 point is not on curve"
+            );
         }
 
         uint256[6] memory pt2 = _ECTwistMulJacobian(

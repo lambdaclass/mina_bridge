@@ -88,6 +88,11 @@ library BN254 {
         return G2Point(0, 0, 0, 0);
     }
 
+    /// @notice returns the components of a g2 point to use with the BN256G2 library
+    function g2_to_components(G2Point memory p) internal pure returns (uint xx, uint xy, uint yx, uint yy) {
+        return (p.x1, p.x0, p.y1, p.y0);
+    }
+
     /// @dev check if a G1 point is Infinity
     /// @notice precompile bn256Add at address(6) takes (0, 0) as Point of Infinity,
     /// some crypto libraries (such as arkwork) uses a boolean flag to mark PoI, and

@@ -10,6 +10,7 @@ import "./Polynomial.sol";
 using {BN254.add, BN254.scale_scalar} for BN254.G1Point;
 using {Scalar.neg, Scalar.add, Scalar.sub, Scalar.mul, Scalar.inv, Scalar.double, Scalar.pow} for Scalar.FE;
 using {Polynomial.is_zero} for Polynomial.Dense;
+using {BN254.g2_to_components} for BN254.G2Point;
 
 error MSMInvalidLengths();
 
@@ -41,15 +42,16 @@ function create_trusted_setup_g2(Scalar.FE x, uint256 depth) view returns (URSG2
 
     Scalar.FE x_pow = Scalar.one();
     BN254.G2Point[] memory g = new BN254.G2Point[](depth);
-    BN254.G2Point memory h = BN254.P2(); // should be blake2b hash
+    BN254.G2Point memory h = BN254.P2(); // should be blake2b hash, see precompile 0x09
 
     for (uint256 i = 0; i < depth; i++) {
+        (uint xx, uint xy, uint yx, uint yy) = p2.g2_to_components();
         (uint gx0, uint gx1, uint gy0, uint gy1) = BN256G2.ECTwistMul(
             Scalar.FE.unwrap(x_pow),
-            p2.x0,
-            p2.x1,
-            p2.y0,
-            p2.y1
+            xx,
+            xy,
+            yx,
+            yy
         );
         g[i] = BN254.G2Point(gx0, gx1, gy0, gy1);
         x_pow = x_pow.mul(x);
@@ -208,12 +210,14 @@ function naive_msm(BN254.G2Point[] memory points, Scalar.FE[] memory scalars) vi
     BN254.G2Point memory result = BN254.point_at_inf_g2();
 
     for (uint256 i = 0; i < points.length; i++) {
+        (uint xx, uint xy, uint yx, uint yy) = points[i].g2_to_components();
+        // FIXME: why does the components here need to be swapped??
         (uint px0, uint px1, uint py0, uint py1) = BN256G2.ECTwistMul(
             Scalar.FE.unwrap(scalars[i]),
-            points[i].x0,
-            points[i].x1,
-            points[i].y0,
-            points[i].y1
+            xy,
+            xx,
+            yy,
+            yx
         );
         (uint rx0, uint rx1, uint ry0, uint ry1) = BN256G2.ECTwistAdd(
             result.x0,
@@ -408,7 +412,7 @@ function commit_non_hiding(
         if (odd_chunk_len != 0) {
             Scalar.FE[] memory coeffs_chunk = new Scalar.FE[](basis_len);
             for (uint j = 0; j < odd_chunk_len; j++) {
-                coeffs_chunk[j] = plnm.coeffs[j + unshifted_len * basis_len];
+                coeffs_chunk[j] = plnm.coeffs[j + (coeffs_len / basis_len) * basis_len];
             }
             for (uint j = odd_chunk_len; j < coeffs_chunk.length; j++) {
                 coeffs_chunk[j] = Scalar.zero();

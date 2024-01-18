@@ -102,7 +102,6 @@ library Polynomial {
         return acc;
     }
 
-
     /// @notice the polynomial that evaluates to `0` at the evaluation points.
     function divisor_polynomial(Scalar.FE[] memory elm) public view returns (Dense memory result) {
         result = binomial(elm[0].neg(), Scalar.one());
