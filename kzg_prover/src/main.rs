@@ -35,9 +35,10 @@ use kimchi::{
     proof::ProverProof,
     prover,
     prover_index::{self, ProverIndex},
-    verifier::{batch_verify, to_batch, Context},
+    verifier::{batch_verify, Context},
     verifier_index,
 };
+use kzg_prover::to_batch::to_batch;
 use num::{bigint::RandBigInt, BigUint};
 use num_traits::{One, Zero};
 use poly_commitment::{
@@ -147,6 +148,7 @@ fn generate_test_proof_for_evm_verifier() {
     let numerator_commitment =
         (poly_commitment - eval_commitment - blinding_commitment).into_affine();
     let mut numerator_serialized = vec![];
+    numerator_serialized.reverse();
     numerator_commitment
         .serialize(&mut numerator_serialized)
         .unwrap();

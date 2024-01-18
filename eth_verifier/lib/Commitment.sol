@@ -10,7 +10,6 @@ import "./Polynomial.sol";
 using {BN254.add, BN254.scale_scalar} for BN254.G1Point;
 using {Scalar.neg, Scalar.add, Scalar.sub, Scalar.mul, Scalar.inv, Scalar.double, Scalar.pow} for Scalar.FE;
 using {Polynomial.is_zero} for Polynomial.Dense;
-using {BN254.g2_to_components} for BN254.G2Point;
 
 error MSMInvalidLengths();
 
@@ -45,15 +44,7 @@ function create_trusted_setup_g2(Scalar.FE x, uint256 depth) view returns (URSG2
     BN254.G2Point memory h = BN254.P2(); // should be blake2b hash, see precompile 0x09
 
     for (uint256 i = 0; i < depth; i++) {
-        (uint xx, uint xy, uint yx, uint yy) = p2.g2_to_components();
-        (uint gx0, uint gx1, uint gy0, uint gy1) = BN256G2.ECTwistMul(
-            Scalar.FE.unwrap(x_pow),
-            xx,
-            xy,
-            yx,
-            yy
-        );
-        g[i] = BN254.G2Point(gx0, gx1, gy0, gy1);
+        g[i] = BN256G2.ECTwistMul(Scalar.FE.unwrap(x_pow), p2);
         x_pow = x_pow.mul(x);
     }
 
@@ -210,26 +201,10 @@ function naive_msm(BN254.G2Point[] memory points, Scalar.FE[] memory scalars) vi
     BN254.G2Point memory result = BN254.point_at_inf_g2();
 
     for (uint256 i = 0; i < points.length; i++) {
-        (uint xx, uint xy, uint yx, uint yy) = points[i].g2_to_components();
-        // FIXME: why does the components here need to be swapped??
-        (uint px0, uint px1, uint py0, uint py1) = BN256G2.ECTwistMul(
-            Scalar.FE.unwrap(scalars[i]),
-            xy,
-            xx,
-            yy,
-            yx
+        BN254.G2Point memory p = BN256G2.ECTwistMul(
+            Scalar.FE.unwrap(scalars[i]), points[i]
         );
-        (uint rx0, uint rx1, uint ry0, uint ry1) = BN256G2.ECTwistAdd(
-            result.x0,
-            result.x1,
-            result.y0,
-            result.y1,
-            px0,
-            px1,
-            py0,
-            py1
-        );
-        result = BN254.G2Point(rx0, rx1, ry0, ry1);
+        result = BN256G2.ECTwistAdd(result, p);
     }
 
     return result;

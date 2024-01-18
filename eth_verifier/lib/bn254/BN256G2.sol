@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: LGPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
+import "./BN254.sol";
+
 /**
  * @title Elliptic curve operations on twist points for alt_bn128
  * @author Mustafa Al-Bassam (mus@musalbas.com)
@@ -91,6 +93,34 @@ library BN256G2 {
             );
     }
 
+    function ECTwistAdd(
+        BN254.G2Point memory p1,
+        BN254.G2Point memory p2
+    )
+        public
+        view
+        returns (
+            BN254.G2Point memory
+        )
+    {
+        uint p1xx = p1.x1;
+        uint p1xy = p1.x0;
+        uint p1yx = p1.y1;
+        uint p1yy = p1.y0;
+
+        uint p2xx = p2.x1;
+        uint p2xy = p2.x0;
+        uint p2yx = p2.y1;
+        uint p2yy = p2.y0;
+
+        (uint rxx, uint rxy, uint ryx, uint ryy) = ECTwistAdd(
+            p1xx, p1xy, p1yx, p1yy,
+            p2xx, p2xy, p2yx, p2yy
+        );
+
+        return BN254.G2Point(rxy, rxx, ryy, ryx);
+    }
+
     /**
      * @notice Multiply a twist point by a scalar
      * @param s     Scalar to multiply by
@@ -147,6 +177,26 @@ library BN256G2 {
                 pt2[PTZX],
                 pt2[PTZY]
             );
+    }
+
+    function ECTwistMul(
+        uint256 s,
+        BN254.G2Point memory p
+    )
+        public
+        view
+        returns (
+            BN254.G2Point memory
+        )
+    {
+        uint pxx = p.x1;
+        uint pxy = p.x0;
+        uint pyx = p.y1;
+        uint pyy = p.y0;
+
+        (uint rxx, uint rxy, uint ryx, uint ryy) = ECTwistMul(s, pxx, pxy, pyx, pyy);
+
+        return BN254.G2Point(rxy, rxx, ryy, ryx);
     }
 
     function submod(

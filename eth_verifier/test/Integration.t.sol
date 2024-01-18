@@ -17,15 +17,17 @@ contract Integration is Test {
     bytes32 numerator_binary =
         0xa1dd4270f6034403b09377e4d3d5c1181f36aee036a5d38c0b3ebd837c9b7c9a;
 
-    function test_partial_verify() public {
+    function test_verify_with_index() public {
         KimchiVerifier verifier = new KimchiVerifier();
 
         verifier.setup();
 
-        verifier.verify_with_index(
+        bool success = verifier.verify_with_index(
             verifier_index_binary,
             proof_binary,
             numerator_binary
         );
+
+        require(success, "Verification failed!");
     }
 }

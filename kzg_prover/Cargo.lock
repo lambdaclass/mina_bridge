@@ -635,6 +635,7 @@ dependencies = [
  "const-hex",
  "hex",
  "kimchi",
+ "mina-poseidon",
  "num",
  "num-traits",
  "o1-utils",

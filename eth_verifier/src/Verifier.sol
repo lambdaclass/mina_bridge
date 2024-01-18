@@ -104,8 +104,7 @@ contract KimchiVerifier {
         AggregatedEvaluationProof memory agg_proof =
             partial_verify_stripped(new Scalar.FE[](0));
 
-        final_verify(agg_proof, urs.verifier_urs, numerator);
-        return false;
+        return final_verify(agg_proof, urs.verifier_urs, numerator);
     }
 
     /// @notice this is currently deprecated but remains as to not break
