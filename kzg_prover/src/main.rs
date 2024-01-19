@@ -103,7 +103,8 @@ fn generate_test_proof_for_evm_verifier() {
         .build()
         .unwrap();
 
-    let x = ark_bn254::Fr::rand(rng);
+    // This seed (42) is also used for generating a trusted setup in Solidity.
+    let x = ark_bn254::Fr::from(42);
     let mut srs = create_srs(x, cs.gates.len(), cs.domain);
     srs.full_srs.add_lagrange_basis(cs.domain.d1);
 
