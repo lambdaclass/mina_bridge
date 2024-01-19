@@ -446,7 +446,7 @@ contract KimchiVerifier {
         AggregatedEvaluationProof memory agg_proof,
         URSG2 memory verifier_urs,
         BN254.G1Point memory numerator // this is faked
-    ) public returns (bool) {
+    ) public view returns (bool) {
         // We'll do an incomplete verification in which we'll receive a faked
         // numerator commitment, with the objective of skipping most of the
         // partial verification for now.
@@ -463,7 +463,8 @@ contract KimchiVerifier {
 
         BN254.G2Point memory divisor = divisor_polycomm.unshifted[0];
 
-        return BN254.pairingProd2(numerator, BN254.P2(), quotient, divisor);
+        // quotient commitment needs to be negated. See the doc of pairingProd2().
+        return BN254.pairingProd2(numerator, BN254.P2(), quotient.neg(), divisor);
     }
 
     /* TODO WIP
