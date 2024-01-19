@@ -5,10 +5,21 @@ import "./bn254/Fields.sol";
 import "./Utils.sol";
 
 library Polynomial {
-    using {Scalar.add, Scalar.mul, Scalar.sub, Scalar.pow} for Scalar.FE;
+    using {Scalar.add, Scalar.mul, Scalar.sub, Scalar.pow, Scalar.neg} for Scalar.FE;
 
     struct Dense {
         Scalar.FE[] coeffs;
+    }
+
+    function is_zero(Dense memory self) public pure returns (bool) {
+        bool all_zero = true;
+        for (uint i = 0; i < self.coeffs.length; i++) {
+            if (Scalar.FE.unwrap(self.coeffs[i]) != 0) {
+                all_zero = false;
+                break;
+            }
+        }
+        return all_zero; // if coeffs is empty, this will return true too.
     }
 
     function evaluate(Dense memory self, Scalar.FE x) external pure returns (Scalar.FE result) {
@@ -28,6 +39,13 @@ library Polynomial {
     function constant_poly(Scalar.FE coeff) public pure returns (Dense memory) {
         Scalar.FE[] memory coeffs = new Scalar.FE[](1);
         coeffs[0] = coeff;
+        return Dense(coeffs);
+    }
+
+    function binomial(Scalar.FE first_coeff, Scalar.FE second_coeff) public pure returns (Dense memory) {
+        Scalar.FE[] memory coeffs = new Scalar.FE[](2);
+        coeffs[0] = first_coeff;
+        coeffs[1] = second_coeff;
         return Dense(coeffs);
     }
 
@@ -82,5 +100,13 @@ library Polynomial {
         }
 
         return acc;
+    }
+
+    /// @notice the polynomial that evaluates to `0` at the evaluation points.
+    function divisor_polynomial(Scalar.FE[] memory elm) public view returns (Dense memory result) {
+        result = binomial(elm[0].neg(), Scalar.one());
+        for (uint i = 1; i < elm.length; i++) {
+            result = mul(result, binomial(elm[i].neg(), Scalar.one()));
+        }
     }
 }

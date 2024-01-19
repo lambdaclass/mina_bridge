@@ -36,7 +36,9 @@ use kimchi::{
     prover,
     prover_index::{self, ProverIndex},
     verifier::{batch_verify, Context},
+    verifier_index,
 };
+use kzg_prover::to_batch::to_batch;
 use num::{bigint::RandBigInt, BigUint};
 use num_traits::{One, Zero};
 use poly_commitment::{
@@ -65,7 +67,7 @@ type KeccakFrSponge = Keccak256FrSponge<ScalarField>;
 type KZGProof = PairingProof<ark_ec::bn::Bn<ark_bn254::Parameters>>;
 
 fn main() {
-    generate_verifier_circuit_proof();
+    generate_test_proof_for_demo();
     //generate_test_proof();
     generate_test_proof_for_evm_verifier();
 }
@@ -101,7 +103,8 @@ fn generate_test_proof_for_evm_verifier() {
         .build()
         .unwrap();
 
-    let x = ark_bn254::Fr::rand(rng);
+    // This seed (42) is also used for generating a trusted setup in Solidity.
+    let x = ark_bn254::Fr::from(42);
     let mut srs = create_srs(x, cs.gates.len(), cs.domain);
     srs.full_srs.add_lagrange_basis(cs.domain.d1);
 
@@ -119,6 +122,39 @@ fn generate_test_proof_for_evm_verifier() {
     )
     .unwrap();
 
+    // Partially verify proof
+    let public_inputs = vec![];
+    let agg_proof = to_batch::<
+        G1Affine,
+        Keccak256FqSponge<BaseField, G1, ScalarField>,
+        Keccak256FrSponge<ScalarField>,
+        KZGProof,
+    >(&index.verifier_index(), &proof, &public_inputs)
+    .unwrap();
+
+    // Calculate numerator commitment
+    let poly_commitment = create_poly_commitment(&agg_proof.evaluations, agg_proof.polyscale);
+    let evals = combine_evaluations(&agg_proof.evaluations, agg_proof.polyscale);
+    let blinding_commitment = srs.full_srs.h.mul(proof.proof.blinding);
+    let eval_commitment = srs
+        .full_srs
+        .commit_non_hiding(
+            &eval_polynomial(&agg_proof.evaluation_points, &evals),
+            1,
+            None,
+        )
+        .unshifted[0]
+        .into_projective();
+
+    let numerator_commitment =
+        (poly_commitment - eval_commitment - blinding_commitment).into_affine();
+    let mut numerator_serialized = vec![];
+    numerator_serialized.reverse();
+    numerator_commitment
+        .serialize(&mut numerator_serialized)
+        .unwrap();
+
+    // Serialize and write to binaries
     fs::write(
         "../eth_verifier/prover_proof.mpk",
         rmp_serde::to_vec_named(&proof).unwrap(),
@@ -129,14 +165,26 @@ fn generate_test_proof_for_evm_verifier() {
         rmp_serde::to_vec_named(&index.verifier_index()).unwrap(),
     )
     .unwrap();
+    let srs_to_serialize = PairingSRS {
+        full_srs: SRS {
+            g: srs.full_srs.g[0..3].to_vec(),
+            ..srs.full_srs
+        },
+        ..srs
+    };
     fs::write(
         "../eth_verifier/urs.mpk",
-        rmp_serde::to_vec_named(&srs).unwrap(),
+        rmp_serde::to_vec_named(&srs_to_serialize).unwrap(),
     )
     .unwrap();
     fs::write(
         "../eth_verifier/linearization.mpk",
         &serialize_linearization(index.linearization),
+    )
+    .unwrap();
+    fs::write(
+        "../eth_verifier/numerator.mpk",
+        rmp_serde::to_vec_named(&numerator_serialized).unwrap(),
     )
     .unwrap();
 }
@@ -231,7 +279,9 @@ fn serialize_linearization(
                 }
                 PolishToken::Store => rmp_serde::to_vec_named(&UnitVariant { variant: "store" }),
                 PolishToken::Load(load) => rmp_serde::to_vec_named(&Load { load }),
-                _ => rmp_serde::to_vec_named(&UnitVariant { variant: "not implemented" }),
+                _ => rmp_serde::to_vec_named(&UnitVariant {
+                    variant: "not implemented",
+                }),
             }
             .unwrap()
         })
@@ -257,7 +307,7 @@ fn serialize_linearization(
     constant_term_ser
 }
 
-fn generate_verifier_circuit_proof() {
+fn generate_test_proof_for_demo() {
     let rng = &mut StdRng::from_seed([0u8; 32]);
 
     let gates = read_gates_file();
