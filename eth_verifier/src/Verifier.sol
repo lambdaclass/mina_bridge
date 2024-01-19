@@ -75,7 +75,7 @@ contract KimchiVerifier {
         // x is a seed used in the KZG prover for creating the trusted setup.
         Scalar.FE x = Scalar.from(42);
         uint256 max_domain_size = 16384;
-        urs.full_urs = create_trusted_setup(x, 2);
+        urs.full_urs = create_trusted_setup(x, max_domain_size);
         urs.verifier_urs = create_trusted_setup_g2(x, 3);
 
         verifier_index.powers_of_alpha.register(ArgumentType.GateZero, 21);
