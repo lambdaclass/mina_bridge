@@ -238,7 +238,7 @@ contract KimchiVerifier {
     }
 
     // @notice executes only the needed steps of partial verification for
-    // @notice the current iteration of the final verification steps.
+    // @notice the current version of the final verification steps.
     function partial_verify_stripped(Scalar.FE[] memory public_inputs) public returns (AggregatedEvaluationProof memory) {
         // Commit to the negated public input polynomial.
 
