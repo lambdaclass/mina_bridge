@@ -82,13 +82,20 @@ contract KimchiVerifier {
         verifier_index.powers_of_alpha.register(ArgumentType.Permutation, Constants.PERMUTATION_CONSTRAINTS);
     }
 
+    function deserialize_proof(
+        bytes calldata verifier_index_serialized,
+        bytes calldata prover_proof_serialized
+    ) public {
+        MsgPk.deser_verifier_index(MsgPk.new_stream(verifier_index_serialized), verifier_index);
+        MsgPk.deser_prover_proof(MsgPk.new_stream(prover_proof_serialized), proof);
+    }
+
     function verify_with_index(
         bytes calldata verifier_index_serialized,
         bytes calldata prover_proof_serialized,
         bytes32 numerator_serialized
     ) public returns (bool) {
-        MsgPk.deser_verifier_index(MsgPk.new_stream(verifier_index_serialized), verifier_index);
-        MsgPk.deser_prover_proof(MsgPk.new_stream(prover_proof_serialized), proof);
+        deserialize_proof(verifier_index_serialized, prover_proof_serialized);
         // The numerator was "manually" serialized so we can't use deser_g1point();
         BN254.G1Point memory numerator = BN254.g1Deserialize(numerator_serialized);
         // "numerator" is a fake commitment that should be calculated after running
