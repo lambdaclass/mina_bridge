@@ -40,4 +40,12 @@ contract FieldsTest is Test {
         Scalar.FE one = Scalar.from(1);
         assertEq(Scalar.FE.unwrap(a.mul(b)), 1, "a * a.inv() != 1");
     }
+
+    function test_fq2_sqrt() public {
+        (uint256 a0, uint256 a1) = BN256G2._FQ2Mul(42, 42, 42, 42);
+        (uint256 x0, uint256 x1) = BN256G2.FQ2Sqrt(a0, a1);
+
+        assertEq(x0, 42);
+        assertEq(x1, 42);
+    }
 }
