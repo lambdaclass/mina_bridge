@@ -361,7 +361,7 @@ library BN256G2 {
         }
 
         uint x0 = _FQ1Sqrt(delta);
-        uint x1 = _FQ1Div(a1, _FQ1Mul(a0, 2));
+        uint x1 = _FQ1Div(a1, _FQ1Mul(x0, 2));
 
         return (x0, x1);
     }
