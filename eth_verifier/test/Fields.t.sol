@@ -42,10 +42,11 @@ contract FieldsTest is Test {
     }
 
     function test_fq2_sqrt() public {
+        uint256 MODULUS = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47;
         (uint256 a0, uint256 a1) = BN256G2._FQ2Mul(42, 42, 42, 42);
         (uint256 x0, uint256 x1) = BN256G2.FQ2Sqrt(a0, a1);
 
-        assertEq(x0, 42);
-        assertEq(x1, 42);
+        assertEq(x0, MODULUS - 42);
+        assertEq(x1, MODULUS - 42);
     }
 }
