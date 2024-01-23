@@ -284,14 +284,14 @@ library BN256G2 {
 
     // @returns true if a is a quadratic residue (there exists x such that x^2 = a)
     function _FQ1EulerCriterion(uint256 a) internal view returns (bool) {
-        // p = 3 mod 4, so the residue is a^( (p+1)/4 )
+        // p = 3 mod 4, so the residue is a^( (p-1)/2 )
         (bool success, bytes memory result_bytes) = address(0x05).staticcall(
             abi.encode(
                 0x20,
                 0x20,
                 0x20,
                 a,
-                (FIELD_MODULUS + 1) / 4,
+                (FIELD_MODULUS - 1) / 2,
                 FIELD_MODULUS
             )
         );
