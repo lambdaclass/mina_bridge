@@ -349,20 +349,39 @@ library BN256G2 {
     function FQ2Sqrt(uint256 a0, uint256 a1) public view returns (uint256, uint256) {
         if (a1 == 0) return (_FQ1Sqrt(a0), 0);
 
+        // 4: alpha <- a_0^2 - beta * a_1^2
         // for BN254, beta = -1
         uint256 alpha = _FQ1Add(_FQ1Square(a0), _FQ1Square(a1));
+
+        // 5: gamma <- x_q(alpha)
+        // x_q refers to the Euler criterion: x_q(a) = a^( (p-1)/2 )
+        // 6: if gamma = 1
+        // 7:    return false;
+        // 8: end if;
+        // returning false indicates that a is not a quadratic residue.
+        // in that case the contract reverts.
         require(_FQ1EulerCriterion(alpha), "couldn't find the square root of alpha.");
 
+        // 9: alpha <- SQRT(alpha)
         alpha = _FQ1Sqrt(alpha);
+
+        // 10: delta <- (a_0 + alpha) / 2
         uint256 delta = _FQ1Div(_FQ1Add(a0, alpha), 2);
 
+        // 11: gamma <- x_q(alpha)
+        // 12: if gamma = 1
+        // 14:    delta <- (a_0 - alpha) / 2
+        // 14: end if;
         if (!_FQ1EulerCriterion(delta)) {
             delta = _FQ1Div(_FQ1Sub(a0, alpha), 2);
         }
 
+        // 15: x_0 <- SQRT(delta)
         uint x0 = _FQ1Sqrt(delta);
+        // 16: x_1 <- (a1 / (2*x_0))
         uint x1 = _FQ1Div(a1, _FQ1Mul(x0, 2));
 
+        // 17: x <- x_0 + x_1*y
         return (x0, x1);
     }
 
