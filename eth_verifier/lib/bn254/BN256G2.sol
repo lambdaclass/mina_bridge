@@ -212,7 +212,7 @@ library BN256G2 {
         uint256 xy,
         uint256 yx,
         uint256 yy
-    ) internal pure returns (uint256, uint256) {
+    ) public pure returns (uint256, uint256) {
         return (
             submod(
                 mulmod(xx, yx, FIELD_MODULUS),
@@ -261,6 +261,109 @@ library BN256G2 {
             mulmod(x, inv, FIELD_MODULUS),
             FIELD_MODULUS - mulmod(y, inv, FIELD_MODULUS)
         );
+    }
+
+    // FIXME: we should clean up this library and use the `Fields.sol` functions.
+
+    function _FQ1Sqrt(uint256 a) internal view returns (uint256) {
+        // p = 3 mod 4, so the residue is a^( (p+1)/4 )
+        (bool success, bytes memory result_bytes) = address(0x05).staticcall(
+            abi.encode(
+                0x20,
+                0x20,
+                0x20,
+                a,
+                (FIELD_MODULUS + 1) / 4,
+                FIELD_MODULUS
+            )
+        );
+
+        require(success, "FQ1Sqrt modexp precompile call failed");
+        return abi.decode(result_bytes, (uint256));
+    }
+
+    // @returns true if a is a quadratic residue (there exists x such that x^2 = a)
+    function _FQ1EulerCriterion(uint256 a) internal view returns (bool) {
+        // p = 3 mod 4, so the residue is a^( (p+1)/4 )
+        (bool success, bytes memory result_bytes) = address(0x05).staticcall(
+            abi.encode(
+                0x20,
+                0x20,
+                0x20,
+                a,
+                (FIELD_MODULUS + 1) / 4,
+                FIELD_MODULUS
+            )
+        );
+
+        require(success, "FQ1Sqrt modexp precompile call failed");
+        uint256 crit = abi.decode(result_bytes, (uint256));
+
+        require(crit == 1 || crit == FIELD_MODULUS - 1, "Euler's criterion failed");
+        return crit == 1;
+    }
+
+    function _FQ1Add(uint256 a, uint256 b) internal view returns (uint256 res) {
+        assembly {
+            res := addmod(a, b, FIELD_MODULUS)
+        }
+    }
+
+    function _FQ1Neg(uint256 a) internal view returns (uint256) {
+        return FIELD_MODULUS - a;
+    }
+
+    function _FQ1Sub(uint256 a, uint256 b) internal view returns (uint256) {
+        return _FQ1Add(a, _FQ1Neg(b));
+    }
+
+    function _FQ1Mul(uint256 a, uint256 b) internal view returns (uint256 res) {
+        assembly {
+            res := mulmod(a, b, FIELD_MODULUS)
+        }
+    }
+
+    function _FQ1Square(uint256 a) internal view returns (uint256 res) {
+        assembly {
+            res := mulmod(a, a, FIELD_MODULUS)
+        }
+    }
+
+    function _FQ1Inv(uint256 a) internal view returns (uint256) {
+        require(a != 0, "tried to get inverse of 0 in BN254G2 lib");
+        (uint256 gcd, uint256 inverse) = Aux.xgcd(a, FIELD_MODULUS);
+        require(gcd == 1, "gcd not 1");
+
+        return inverse;
+    }
+
+    function _FQ1Div(uint256 a, uint256 b) internal view returns (uint256) {
+        uint256 b_inv = _FQ1Inv(b);
+        return _FQ1Mul(a, b_inv);
+    }
+
+    // @returns both components of the Fq2 result, and a boolean that is set if
+    // @returns the root was found.
+    //
+    // @notice reference: Algorithm 8 of https://eprint.iacr.org/2012/685.pdf
+    function FQ2Sqrt(uint256 a0, uint256 a1) public view returns (uint256, uint256) {
+        if (a1 == 0) return (_FQ1Sqrt(a0), 0);
+
+        // for BN254, beta = -1
+        uint256 alpha = _FQ1Add(_FQ1Square(a0), _FQ1Square(a1));
+        require(_FQ1EulerCriterion(alpha), "couldn't find the square root of alpha.");
+
+        alpha = _FQ1Sqrt(alpha);
+        uint256 delta = _FQ1Div(_FQ1Add(a0, alpha), 2);
+
+        if (!_FQ1EulerCriterion(delta)) {
+            delta = _FQ1Div(_FQ1Sub(a0, alpha), 2);
+        }
+
+        uint x0 = _FQ1Sqrt(delta);
+        uint x1 = _FQ1Div(a1, _FQ1Mul(a0, 2));
+
+        return (x0, x1);
     }
 
     function _isOnCurve(
