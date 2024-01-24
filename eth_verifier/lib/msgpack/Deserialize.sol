@@ -546,6 +546,15 @@ library MsgPk {
         return BN254.g1Deserialize(bytes32(deser_buffer(buffer)));
     }
 
+    function deser_g2point(Stream memory self) public view returns (BN254.G2Point memory) {
+        EncodedMap memory buffer = deser_fixmap(self);
+        return BN256G2.G2Deserialize(deser_buffer(buffer));
+    }
+
+    function deser_g2point(EncodedMap memory buffer) public view returns (BN254.G2Point memory) {
+        return BN256G2.G2Deserialize(deser_buffer(buffer));
+    }
+
     function deser_linearization(Stream memory self) public view returns (Linearization memory) {
         // TODO: only constant_term is deserialized right now.
         EncodedArray memory arr = deser_arr32(self);
