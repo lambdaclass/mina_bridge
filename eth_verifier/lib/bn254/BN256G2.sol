@@ -291,7 +291,7 @@ library BN256G2 {
 
         require(
             crit == 1 || crit == FIELD_MODULUS - 1,
-            "Euler's criterion failed"
+            "Euler\'s criterion failed"
         );
         return crit == 1;
     }
@@ -358,7 +358,7 @@ library BN256G2 {
         // in that case the contract reverts.
         require(
             _FQ1EulerCriterion(alpha),
-            "couldn't find the square root of alpha, meaning that this is not a quadratic residue."
+            "couldn\'t find the square root of alpha, meaning that this is not a quadratic residue."
         );
 
         // 9: alpha <- SQRT(alpha)
@@ -398,8 +398,8 @@ library BN256G2 {
         // if the 255-th bit is set then y is positive
         bool isYPositive = (x[0] & 0x80 != 0);
 
-        // mask off the first three bits of x
-        x[0] &= 0x1F;
+        // mask off the first two bits of x
+        x[0] &= 0x3F;
 
         // decompose both components of the element
         uint256 xx = 0;
