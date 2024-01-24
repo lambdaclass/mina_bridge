@@ -556,8 +556,8 @@ library MsgPk {
     }
 
     // WARN: using the entire `full_urs` may not be necessary, we would only have to deserialize the
-    // first three points (in the final verification step, we need the `full_urs` for committing the
-    // divisor polynomial, which seems to be always of degree 2).
+    // first two points (in the final verification step, we need the `full_urs` for commitment a
+    // evaluation polynomial, which seems to be always of degree 1).
     function deser_pairing_urs(Stream memory self, PairingURS storage urs) public {
         // full_srs and verifier_srs fields
         EncodedMap memory urs_map = deser_fixmap(self);
@@ -578,8 +578,8 @@ library MsgPk {
             abi.decode(find_value(verifier_urs_serialized, abi.encode("h")), (EncodedMap));
 
         // deserialized and save g for both URS
-        // INFO: we only need the first three points
-        BN254.G1Point[] memory full_urs_g = new BN254.G1Point[](3);
+        // INFO: we only need the first two points
+        BN254.G1Point[] memory full_urs_g = new BN254.G1Point[](2);
         for (uint256 i = 0; i < full_urs_g.length; i++) {
             EncodedMap memory point_buffer = abi.decode(full_urs_g_serialized.values[i], (EncodedMap));
             full_urs_g[i] = deser_g1point(point_buffer);

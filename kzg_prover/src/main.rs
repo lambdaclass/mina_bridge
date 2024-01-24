@@ -167,7 +167,7 @@ fn generate_test_proof_for_evm_verifier() {
     .unwrap();
     let srs_to_serialize = PairingSRS {
         full_srs: SRS {
-            g: srs.full_srs.g[0..=3].to_vec(),
+            g: srs.full_srs.g[0..3].to_vec(),
             ..srs.full_srs
         },
         ..srs
