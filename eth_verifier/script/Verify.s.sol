@@ -26,7 +26,6 @@ contract Verify is Script {
             numerator_binary
         );
 
-        //console.log("Verification ", success ? "succeeded" : "failed");
         require(success, "Verification failed.");
 
         vm.stopBroadcast();
