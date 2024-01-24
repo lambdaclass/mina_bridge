@@ -358,7 +358,7 @@ library BN256G2 {
         // in that case the contract reverts.
         require(
             _FQ1EulerCriterion(alpha),
-            "couldn't find the square root of alpha, meaning that this is not a quadratic residue."
+            "couldn\'t find the square root of alpha, meaning that this is not a quadratic residue."
         );
 
         // 9: alpha <- SQRT(alpha)
