@@ -398,8 +398,8 @@ library BN256G2 {
         // if the 255-th bit is set then y is positive
         bool isYPositive = (x[0] & 0x80 != 0);
 
-        // mask off the first two bits of x
-        x[0] &= 0x3F;
+        // mask off the first three bits of x
+        x[0] &= 0x1F;
 
         // decompose both components of the element
         uint256 xx = 0;
@@ -407,8 +407,8 @@ library BN256G2 {
 
         for (uint i = 0; i < 32; i++) {
             uint order = (32 - i - 1) * 8;
-            xx |= uint256(uint8(x[i])) << order;
-            xy |= uint256(uint8(x[i + 32])) << order;
+            xy |= uint256(uint8(x[i])) << order;
+            xx |= uint256(uint8(x[i + 32])) << order;
         }
 
         // solve for y where E: y^2 = x^3 + B
@@ -428,7 +428,7 @@ library BN256G2 {
         // sqrt(x^3 + B)
         (yx, yy) = FQ2Sqrt(yx, yy);
 
-        if (!isYPositive) {
+        if (isYPositive) {
             yx = FIELD_MODULUS - yx;
             yy = FIELD_MODULUS - yy;
         }
