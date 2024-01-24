@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import {Test, console2} from "forge-std/Test.sol";
 import "../lib/bn254/BN254.sol";
+import "../lib/bn254/BN256G2.sol";
 import "../src/Verifier.sol";
 import "../lib/msgpack/Deserialize.sol";
 import "../lib/Proof.sol";
@@ -185,5 +186,12 @@ contract DeserializeTest is Test {
             Scalar.FE.unwrap(prover_proof.evals.z.zeta[0]),
             1185616399363588256963486679032130114413868343618131345040286155216030688553
         );
+    }
+
+    function test_deserialize_g2point() public {
+        bytes
+            memory point_serialized = hex"edf692d95cbdde46ddda5ef7d422436779445c5e66006a42761e1f12efde0018c212f3aeb785e49712e7a9353349aaf1255dfb31b7bf60723a480d9293938e19";
+        BN254.G2Point memory point = BN256G2.G2Deserialize(point_serialized);
+        console.log(point.x0, point.x1, point.y0, point.y1);
     }
 }
