@@ -448,15 +448,19 @@ contract KimchiVerifier {
 
         BN254.G1Point memory quotient = agg_proof.opening.quotient.unshifted[0];
 
-        // This is calculated executing a small part of the partial verification
-        // (we only need to squeeze a challenge in the fiat-shamir step).
-        PolyCommG2 memory divisor_polycomm = commit_non_hiding(
-            verifier_urs,
-            Polynomial.divisor_polynomial(agg_proof.evaluation_points),
-            1
-        );
+        // The evaluation points are calculated executing a small part of the partial
+        // verification (we only need to squeeze a challenge in the fiat-shamir step).
 
-        BN254.G2Point memory divisor = divisor_polycomm.unshifted[0];
+        Scalar.FE[] memory divisor_poly_coeffs = new Scalar.FE[](3);
+
+        // (x-a)(x-b) = x^2 - (a + b)x + ab
+        divisor_poly_coeffs[0] = agg_proof.evaluation_points[0].mul(agg_proof.evaluation_points[1]);
+        divisor_poly_coeffs[1] = agg_proof.evaluation_points[0].add(agg_proof.evaluation_points[1]).neg();
+        divisor_poly_coeffs[2] = Scalar.one();
+
+        require(verifier_urs.g.length == 3, "verifier_urs doesn't have 3 of points");
+
+        BN254.G2Point memory divisor = naive_msm(verifier_urs.g, divisor_poly_coeffs);
 
         // quotient commitment needs to be negated. See the doc of pairingProd2().
         return BN254.pairingProd2(numerator, BN254.P2(), quotient.neg(), divisor);
