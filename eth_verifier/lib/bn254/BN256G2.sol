@@ -398,8 +398,8 @@ library BN256G2 {
         // if the 255-th bit is set then y is positive
         bool isYPositive = (x[0] & 0x80 != 0);
 
-        // mask off the first three bits of x
-        x[0] &= 0x1F;
+        // mask off the first two bits of x
+        x[0] &= 0x3F;
 
         // decompose both components of the element
         uint256 xx = 0;
