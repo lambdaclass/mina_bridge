@@ -244,6 +244,15 @@ library BN256G2 {
         return (submod(xx, yx, FIELD_MODULUS), submod(xy, yy, FIELD_MODULUS));
     }
 
+    function _FQ2Add(
+        uint256 xx,
+        uint256 xy,
+        uint256 yx,
+        uint256 yy
+    ) internal pure returns (uint256 rx, uint256 ry) {
+        return (addmod(xx, yx, FIELD_MODULUS), addmod(xy, yy, FIELD_MODULUS));
+    }
+
     function _FQ2Inv(uint256 x, uint256 y)
         internal
         view
@@ -384,6 +393,56 @@ library BN256G2 {
         // 17: x <- x_0 + x_1*y
         return (x0, x1);
     }
+
+    function G2Deserialize(bytes memory input) internal view returns (BN254.G2Point memory point) {
+        require(input.length == 64, "Compressed G2 point is not 64 bytes long");
+        bytes memory x = UtilsExternal.reverseEndianness(input);
+
+        if (x[0] & 0x40 != 0x00) {
+            // if the 254-th bit is set then this is the point at infinity
+            return BN254.G2Point(0, 0, 0, 0);
+        } else {
+            // if the 255-th bit is set then y is positive
+            bool isYPositive = (x[0] & 0x80 != 0);
+
+            // mask off the first two bits of x
+            x[0] &= 0x3F;
+
+            // decompose both components of the element
+            uint256 xx = 0;
+            uint256 xy = 0;
+
+            for (uint i = 0; i < 32; i++) {
+                xx |= uint256(uint8(x[i])) << i * 8;
+                xy |= uint256(uint8(x[i + 32])) << i * 8;
+            }
+
+            // solve for y where E: y^2 = x^3 + B
+            // equation taken from: https://hackmd.io/@jpw/bn254#Twists
+
+            // x^3
+            uint256 yx;
+            uint256 yy;
+            (yx, yy) = _FQ2Mul(xx, xy, xx, xy);
+            (yx, yy) = _FQ2Mul(yx, yy, xx, xy);
+
+            // x^3 + B
+            uint256 Bx = 19485874751759354771024239261021720505790618469301721065564631296452457478373;
+            uint256 By = 266929791119991161246907387137283842545076965332900288569378510910307636690;
+            (yx, yy) = _FQ2Add(yx, yy, Bx, By);
+
+            // sqrt(x^3 + B)
+            (yx, yy) = FQ2Sqrt(yx, yy);
+
+            if (isYPositive) {
+                yx = FIELD_MODULUS - yx;
+                yy = FIELD_MODULUS - yy;
+            }
+
+            return BN254.G2Point(xx, xy, yx, yy);
+        }
+    }
+
 
     function _isOnCurve(
         uint256 xx,
