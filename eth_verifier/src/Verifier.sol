@@ -66,17 +66,12 @@ contract KimchiVerifier {
     State internal state;
     bool state_available;
 
-    function setup() public {
-        //MsgPk.deser_pairing_urs(MsgPk.new_stream(urs_serialized), urs);
-        // INFO: currently we aren't deserializing the trusted setup from the prover.
-        // this is because the full_srs is too big. Recently we found that we actually
-        // don't need the full_srs for verification.
+    function setup(bytes memory urs_serialized) public {
+        MsgPk.deser_pairing_urs(MsgPk.new_stream(urs_serialized), urs);
 
         // x is a seed used in the KZG prover for creating the trusted setup.
         Scalar.FE x = Scalar.from(42);
         uint256 max_domain_size = 16384;
-        urs.full_urs = create_trusted_setup(x, max_domain_size);
-        urs.verifier_urs = create_trusted_setup_g2(x, 3);
 
         verifier_index.powers_of_alpha.register(ArgumentType.GateZero, 21);
         verifier_index.powers_of_alpha.register(ArgumentType.Permutation, 3);
