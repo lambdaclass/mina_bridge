@@ -291,7 +291,7 @@ library BN256G2 {
 
         require(
             crit == 1 || crit == FIELD_MODULUS - 1,
-            "Euler's criterion failed"
+            "Euler\'s criterion failed"
         );
         return crit == 1;
     }
