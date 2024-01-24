@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import {Test, console2} from "forge-std/Test.sol";
 import "../lib/bn254/BN254.sol";
+import "../lib/bn254/BN256G2.sol";
 import "../src/Verifier.sol";
 import "../lib/msgpack/Deserialize.sol";
 import "../lib/Proof.sol";
@@ -185,5 +186,21 @@ contract DeserializeTest is Test {
             Scalar.FE.unwrap(prover_proof.evals.z.zeta[0]),
             1185616399363588256963486679032130114413868343618131345040286155216030688553
         );
+    }
+
+    function test_deserialize_g2point() public {
+        bytes
+            memory point_serialized = hex"edf692d95cbdde46ddda5ef7d422436779445c5e66006a42761e1f12efde0018c212f3aeb785e49712e7a9353349aaf1255dfb31b7bf60723a480d9293938e19";
+        uint256 x0 = 0x1800DEEF121F1E76426A00665E5C4479674322D4F75EDADD46DEBD5CD992F6ED;
+        uint256 x1 = 0x198E9393920D483A7260BFB731FB5D25F1AA493335A9E71297E485B7AEF312C2;
+        uint256 y0 = 0x12C85EA5DB8C6DEB4AAB71808DCB408FE3D1E7690C43D37B4CE6CC0166FA7DAA;
+        uint256 y1 = 0x090689D0585FF075EC9E99AD690C3395BC4B313370B38EF355ACDADCD122975B;
+
+        BN254.G2Point memory point = BN256G2.G2Deserialize(point_serialized);
+
+        assertEq(point.x0, x0, "x0 is not correct");
+        assertEq(point.x1, x1, "x1 is not correct");
+        assertEq(point.y0, y0, "y0 is not correct");
+        assertEq(point.y1, y1, "y1 is not correct");
     }
 }

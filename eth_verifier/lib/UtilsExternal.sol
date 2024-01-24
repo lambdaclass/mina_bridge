@@ -56,4 +56,16 @@ library UtilsExternal {
         // swap 16-byte long pairs
         v = (v >> 128) | (v << 128);
     }
+
+    function reverseEndianness(bytes memory input)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        bytes memory output = new bytes(input.length);
+        for (uint i = 0; i < input.length; i++) {
+            output[i] = input[input.length - i - 1];
+        }
+        return output;
+    }
 }
