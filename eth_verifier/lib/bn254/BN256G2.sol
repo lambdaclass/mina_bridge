@@ -405,8 +405,9 @@ library BN256G2 {
             uint256 xy = 0;
 
             for (uint i = 0; i < 32; i++) {
-                xx |= uint256(uint8(x[i])) << (i * 8);
-                xy |= uint256(uint8(x[i + 32])) << (i * 8);
+                uint order = (32 - i - 1) * 8;
+                xx |= uint256(uint8(x[i])) << order;
+                xy |= uint256(uint8(x[i + 32])) << order;
             }
 
             // solve for y where E: y^2 = x^3 + B
