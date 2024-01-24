@@ -393,47 +393,47 @@ library BN256G2 {
         if (x[0] & 0x40 != 0x00) {
             // if the 254-th bit is set then this is the point at infinity
             return BN254.G2Point(0, 0, 0, 0);
-        } else {
-            // if the 255-th bit is set then y is positive
-            bool isYPositive = (x[0] & 0x80 != 0);
-
-            // mask off the first two bits of x
-            x[0] &= 0x3F;
-
-            // decompose both components of the element
-            uint256 xx = 0;
-            uint256 xy = 0;
-
-            for (uint i = 0; i < 32; i++) {
-                uint order = (32 - i - 1) * 8;
-                xx |= uint256(uint8(x[i])) << order;
-                xy |= uint256(uint8(x[i + 32])) << order;
-            }
-
-            // solve for y where E: y^2 = x^3 + B
-            // equation taken from: https://hackmd.io/@jpw/bn254#Twists
-
-            // x^3
-            uint256 yx;
-            uint256 yy;
-            (yx, yy) = _FQ2Mul(xx, xy, xx, xy);
-            (yx, yy) = _FQ2Mul(yx, yy, xx, xy);
-
-            // x^3 + B
-            uint256 Bx = 19485874751759354771024239261021720505790618469301721065564631296452457478373;
-            uint256 By = 266929791119991161246907387137283842545076965332900288569378510910307636690;
-            (yx, yy) = _FQ2Add(yx, yy, Bx, By);
-
-            // sqrt(x^3 + B)
-            (yx, yy) = FQ2Sqrt(yx, yy);
-
-            if (isYPositive) {
-                yx = FIELD_MODULUS - yx;
-                yy = FIELD_MODULUS - yy;
-            }
-
-            return BN254.G2Point(xx, xy, yx, yy);
         }
+
+        // if the 255-th bit is set then y is positive
+        bool isYPositive = (x[0] & 0x80 != 0);
+
+        // mask off the first two bits of x
+        x[0] &= 0x3F;
+
+        // decompose both components of the element
+        uint256 xx = 0;
+        uint256 xy = 0;
+
+        for (uint i = 0; i < 32; i++) {
+            uint order = (32 - i - 1) * 8;
+            xx |= uint256(uint8(x[i])) << order;
+            xy |= uint256(uint8(x[i + 32])) << order;
+        }
+
+        // solve for y where E: y^2 = x^3 + B
+        // equation taken from: https://hackmd.io/@jpw/bn254#Twists
+
+        // x^3
+        uint256 yx;
+        uint256 yy;
+        (yx, yy) = _FQ2Mul(xx, xy, xx, xy);
+        (yx, yy) = _FQ2Mul(yx, yy, xx, xy);
+
+        // x^3 + B
+        uint256 Bx = 19485874751759354771024239261021720505790618469301721065564631296452457478373;
+        uint256 By = 266929791119991161246907387137283842545076965332900288569378510910307636690;
+        (yx, yy) = _FQ2Add(yx, yy, Bx, By);
+
+        // sqrt(x^3 + B)
+        (yx, yy) = FQ2Sqrt(yx, yy);
+
+        if (!isYPositive) {
+            yx = FIELD_MODULUS - yx;
+            yy = FIELD_MODULUS - yy;
+        }
+
+        return BN254.G2Point(xx, xy, yx, yy);
     }
 
     function _isOnCurve(
