@@ -44,16 +44,7 @@ library BN256G2 {
         uint256 pt2xy,
         uint256 pt2yx,
         uint256 pt2yy
-    )
-        public
-        view
-        returns (
-            uint256,
-            uint256,
-            uint256,
-            uint256
-        )
-    {
+    ) public view returns (uint256, uint256, uint256, uint256) {
         if (pt1xx == 0 && pt1xy == 0 && pt1yx == 0 && pt1yy == 0) {
             if (!(pt2xx == 0 && pt2xy == 0 && pt2yx == 0 && pt2yy == 0)) {
                 assert(_isOnCurve(pt2xx, pt2xy, pt2yx, pt2yy));
@@ -96,13 +87,7 @@ library BN256G2 {
     function ECTwistAdd(
         BN254.G2Point memory p1,
         BN254.G2Point memory p2
-    )
-        public
-        view
-        returns (
-            BN254.G2Point memory
-        )
-    {
+    ) public view returns (BN254.G2Point memory) {
         uint p1xx = p1.x1;
         uint p1xy = p1.x0;
         uint p1yx = p1.y1;
@@ -114,8 +99,14 @@ library BN256G2 {
         uint p2yy = p2.y0;
 
         (uint rxx, uint rxy, uint ryx, uint ryy) = ECTwistAdd(
-            p1xx, p1xy, p1yx, p1yy,
-            p2xx, p2xy, p2yx, p2yy
+            p1xx,
+            p1xy,
+            p1yx,
+            p1yy,
+            p2xx,
+            p2xy,
+            p2yx,
+            p2yy
         );
 
         return BN254.G2Point(rxy, rxx, ryy, ryx);
@@ -136,16 +127,7 @@ library BN256G2 {
         uint256 pt1xy,
         uint256 pt1yx,
         uint256 pt1yy
-    )
-        public
-        view
-        returns (
-            uint256,
-            uint256,
-            uint256,
-            uint256
-        )
-    {
+    ) public view returns (uint256, uint256, uint256, uint256) {
         uint256 pt1zx = 1;
         if (pt1xx == 0 && pt1xy == 0 && pt1yx == 0 && pt1yy == 0) {
             pt1xx = 1;
@@ -182,19 +164,19 @@ library BN256G2 {
     function ECTwistMul(
         uint256 s,
         BN254.G2Point memory p
-    )
-        public
-        view
-        returns (
-            BN254.G2Point memory
-        )
-    {
+    ) public view returns (BN254.G2Point memory) {
         uint pxx = p.x1;
         uint pxy = p.x0;
         uint pyx = p.y1;
         uint pyy = p.y0;
 
-        (uint rxx, uint rxy, uint ryx, uint ryy) = ECTwistMul(s, pxx, pxy, pyx, pyy);
+        (uint rxx, uint rxy, uint ryx, uint ryy) = ECTwistMul(
+            s,
+            pxx,
+            pxy,
+            pyx,
+            pyy
+        );
 
         return BN254.G2Point(rxy, rxx, ryy, ryx);
     }
@@ -253,11 +235,10 @@ library BN256G2 {
         return (addmod(xx, yx, FIELD_MODULUS), addmod(xy, yy, FIELD_MODULUS));
     }
 
-    function _FQ2Inv(uint256 x, uint256 y)
-        internal
-        view
-        returns (uint256, uint256)
-    {
+    function _FQ2Inv(
+        uint256 x,
+        uint256 y
+    ) internal view returns (uint256, uint256) {
         uint256 inv = _modInv(
             addmod(
                 mulmod(y, y, FIELD_MODULUS),
@@ -308,7 +289,10 @@ library BN256G2 {
         require(success, "FQ1Sqrt modexp precompile call failed");
         uint256 crit = abi.decode(result_bytes, (uint256));
 
-        require(crit == 1 || crit == FIELD_MODULUS - 1, "Euler's criterion failed");
+        require(
+            crit == 1 || crit == FIELD_MODULUS - 1,
+            "Euler's criterion failed"
+        );
         return crit == 1;
     }
 
@@ -355,7 +339,10 @@ library BN256G2 {
     // @returns the root was found.
     //
     // @notice reference: Algorithm 8 of https://eprint.iacr.org/2012/685.pdf
-    function FQ2Sqrt(uint256 a0, uint256 a1) public view returns (uint256, uint256) {
+    function FQ2Sqrt(
+        uint256 a0,
+        uint256 a1
+    ) public view returns (uint256, uint256) {
         if (a1 == 0) return (_FQ1Sqrt(a0), 0);
 
         // 4: alpha <- a_0^2 - beta * a_1^2
@@ -369,7 +356,10 @@ library BN256G2 {
         // 8: end if;
         // returning false indicates that a is not a quadratic residue.
         // in that case the contract reverts.
-        require(_FQ1EulerCriterion(alpha), "couldn't find the square root of alpha.");
+        require(
+            _FQ1EulerCriterion(alpha),
+            "couldn't find the square root of alpha, meaning that this is not a quadratic residue."
+        );
 
         // 9: alpha <- SQRT(alpha)
         alpha = _FQ1Sqrt(alpha);
@@ -394,7 +384,9 @@ library BN256G2 {
         return (x0, x1);
     }
 
-    function G2Deserialize(bytes memory input) internal view returns (BN254.G2Point memory point) {
+    function G2Deserialize(
+        bytes memory input
+    ) internal view returns (BN254.G2Point memory point) {
         require(input.length == 64, "Compressed G2 point is not 64 bytes long");
         bytes memory x = UtilsExternal.reverseEndianness(input);
 
@@ -413,8 +405,8 @@ library BN256G2 {
             uint256 xy = 0;
 
             for (uint i = 0; i < 32; i++) {
-                xx |= uint256(uint8(x[i])) << i * 8;
-                xy |= uint256(uint8(x[i + 32])) << i * 8;
+                xx |= uint256(uint8(x[i])) << (i * 8);
+                xy |= uint256(uint8(x[i + 32])) << (i * 8);
             }
 
             // solve for y where E: y^2 = x^3 + B
@@ -443,7 +435,6 @@ library BN256G2 {
         }
     }
 
-
     function _isOnCurve(
         uint256 xx,
         uint256 xy,
@@ -462,11 +453,10 @@ library BN256G2 {
         return yyx == 0 && yyy == 0;
     }
 
-    function _modInv(uint256 a, uint256 n)
-        internal
-        view
-        returns (uint256 result)
-    {
+    function _modInv(
+        uint256 a,
+        uint256 n
+    ) internal view returns (uint256 result) {
         uint256 length_of_base = 0x20;
         uint256 length_of_exponent = 0x20;
         uint256 length_of_modulus = 0x20;
@@ -496,12 +486,7 @@ library BN256G2 {
     )
         internal
         view
-        returns (
-            uint256 pt2xx,
-            uint256 pt2xy,
-            uint256 pt2yx,
-            uint256 pt2yy
-        )
+        returns (uint256 pt2xx, uint256 pt2xy, uint256 pt2yx, uint256 pt2yy)
     {
         uint256 invzx;
         uint256 invzy;
