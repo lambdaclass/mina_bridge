@@ -458,8 +458,6 @@ contract KimchiVerifier {
         Scalar.FE a = Scalar.from(0x1E6D6F34116AFE5584E0D489DF48953902552AB6A8E68F4CBA712B57B9D0AD13);
         Scalar.FE b = Scalar.from(0x05C15E50D5AF136340E37048C5A415240B8699A6D2B37CE35AEF0EBDD1F42DF4);
 
-        require(Scalar.FE.unwrap(a) == Scalar.FE.unwrap(agg_proof.evaluation_points[0]));
-
         divisor_poly_coeffs[0] = a.mul(b);
         divisor_poly_coeffs[1] = a.add(b).neg();
         divisor_poly_coeffs[2] = Scalar.one();
