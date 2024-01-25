@@ -227,7 +227,6 @@ contract DeserializeTest is Test {
         assertEq(test_urs.verifier_urs.g[1].y1, 0x25222D9816E5F86B4A7DEDD00D04ACC5C979C18BD22B834EA8C6D07C0BA441DB, "y1 point 1");
 
         // third point
-        //console.log(test_urs.verifier_urs.g[0].x0);
         assertEq(test_urs.verifier_urs.g[2].x0, 0x1F3C07CB202A4703327B7AA545EBD51936CC75A927E5EA44900FDA7212F20DA5, "x0 point 2");
         assertEq(test_urs.verifier_urs.g[2].x1, 0x0A4292251D61B69443EF8D46761F92C88FF566B5FA90D261E3BEBD5706F94FF7, "x1 point 2");
         assertEq(test_urs.verifier_urs.g[2].y0, 0x227496FC46FCD4887801FE92F5D62804B7B26EAB126B4F4E7A5F255FAE7089E4, "y0 point 2");

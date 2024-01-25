@@ -396,7 +396,7 @@ library BN256G2 {
         }
 
         // if the 255-th bit is set then y is positive
-        bool isYPositive = (x[0] & 0x80 != 0);
+        bool y_needs_to_be_positive = (x[0] & 0x80 != 0);
 
         // mask off the first two bits of x
         x[0] &= 0x3F;
@@ -428,9 +428,17 @@ library BN256G2 {
         // sqrt(x^3 + B)
         (yx, yy) = FQ2Sqrt(yx, yy);
 
-        if (isYPositive) {
-            yx = FIELD_MODULUS - yx;
-            yy = FIELD_MODULUS - yy;
+        // define "sign" of y
+        uint256 neg_yx = FIELD_MODULUS - yx;
+        uint256 neg_yy = FIELD_MODULUS - yy;
+
+        // is_y_positive == y > -y
+        // a > b == a.c1 > b.c1 || (a.c1 == b.c1 && a.c0 > a.c0)
+        bool is_y_positive = yy > neg_yy || (yy == neg_yy && yx > neg_yx);
+
+        if (y_needs_to_be_positive && !is_y_positive) {
+            yx = neg_yx;
+            yy = neg_yy;
         }
 
         return BN254.G2Point(xx, xy, yx, yy);
