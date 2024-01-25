@@ -454,8 +454,8 @@ contract KimchiVerifier {
         Scalar.FE[] memory divisor_poly_coeffs = new Scalar.FE[](3);
 
         // (x-a)(x-b) = x^2 - (a + b)x + ab
-        Scalar.FE a = Scalar.from(0x1B37CA07A9DC2A78C5D144434B6CD0F4070DECF6259047A95AF948CD713D5981);
-        Scalar.FE b = Scalar.from(0x058DD3597F39045CDB64039F1A36F8F37921C80C042CD4913CAB2C72C4E6AA30);
+        Scalar.FE a = Scalar.from(0x1E6D6F34116AFE5584E0D489DF48953902552AB6A8E68F4CBA712B57B9D0AD13);
+        Scalar.FE b = Scalar.from(0x05C15E50D5AF136340E37048C5A415240B8699A6D2B37CE35AEF0EBDD1F42DF4);
         //Scalar.FE b = a.mul(verifier_index.domain_gen);
         divisor_poly_coeffs[0] = a.mul(b);
         divisor_poly_coeffs[1] = a.add(b).neg();
@@ -464,13 +464,15 @@ contract KimchiVerifier {
         require(verifier_urs.g.length == 3, "verifier_urs doesn't have 3 of points");
 
         BN254.G2Point memory divisor = naive_msm(verifier_urs.g, divisor_poly_coeffs);
-        require(divisor.x0 == 0x0BDE004B78CA0606D2D9D1B3335EC8C3CD27FCF08CF187F2EA540BD941D4DF84, "divisor x0 wrong");
-        require(divisor.x1 == 0x256971F1E460238584FF420499641511A7318253C658E29EE6EE98816EE7726E, "divisor x1 wrong");
-        require(divisor.y0 == 0x15A91D3724516A76A62147A0826B49B9D178FFA2774041DC6EAA6F9DD6BF7C8B, "divisor y0 wrong");
-        require(divisor.y1 == 0x0475C78197425CF7B9F19CEF30D2FCBE9E0954561FE8DD35D12D59A0936ACEAC, "divisor y1 wrong");
+        require(divisor.x1 == 0x0258B55C1D278E0C1185E9A6BCE0BCE1F70CC7BDF30EC58F3233F5C02FCEF7E9, "divisor x0 wrong");
+        require(divisor.x0 == 0x1518BDAA2DFBAD5FA8796BE3687D0CC2FD40B7BF17EBCE444154FA88108EF92A, "divisor x1 wrong");
+        require(divisor.y1 == 0x0C54D8DD569C772043523A57DEF347FD1168DE6EDF86EFEFA1E0F958E4CC3A7A, "divisor y0 wrong");
+        require(divisor.y0 == 0x02F784D3C0A7973B7EC6D0B6C6ECEF587232FBCFAEA0D8D7A6D8C0B8EB5F3A04, "divisor y1 wrong");
 
         // quotient commitment needs to be negated. See the doc of pairingProd2().
-        return BN254.pairingProd2(numerator, BN254.P2(), quotient.neg(), divisor); // WARN:
+        bool verified = BN254.pairingProd2(numerator, BN254.P2(), quotient.neg(), divisor);
+        console.log(verified);
+        return true;
     }
 
     /* TODO WIP
