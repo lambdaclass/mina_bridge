@@ -165,10 +165,10 @@ library BN256G2 {
         uint256 s,
         BN254.G2Point memory p
     ) public view returns (BN254.G2Point memory) {
-        uint pxx = p.x1;
-        uint pxy = p.x0;
-        uint pyx = p.y1;
-        uint pyy = p.y0;
+        uint pxx = p.x0;
+        uint pxy = p.x1;
+        uint pyx = p.y0;
+        uint pyy = p.y1;
 
         (uint rxx, uint rxy, uint ryx, uint ryy) = ECTwistMul(
             s,
