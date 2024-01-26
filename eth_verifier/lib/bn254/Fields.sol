@@ -131,7 +131,6 @@ library Scalar {
             integer <<= 8;
             integer += uint8(b[i]);
         }
-        integer <<= (32 - count) * 8;
         return FE.wrap(integer % MODULUS);
     }
 

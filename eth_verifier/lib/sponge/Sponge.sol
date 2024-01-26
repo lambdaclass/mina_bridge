@@ -52,7 +52,7 @@ library KeccakSponge {
     // KZG methods
 
     function absorb_base(Sponge storage self, Base.FE elem) external {
-        bytes memory b = abi.encode(elem);
+        bytes memory b = abi.encodePacked(elem);
         for (uint256 i = 0; i < b.length; i++) {
             self.pending.push(b[i]);
         }
@@ -69,7 +69,7 @@ library KeccakSponge {
         Sponge storage self,
         Scalar.FE[] memory elems
     ) external {
-        bytes memory b = abi.encode(elems);
+        bytes memory b = abi.encodePacked(elems);
         for (uint256 i = 0; i < b.length; i++) {
             self.pending.push(b[i]);
         }
