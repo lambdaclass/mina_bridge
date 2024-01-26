@@ -127,6 +127,11 @@ fn generate_test_proof_for_evm_verifier() {
     )
     .unwrap();
 
+    println!(
+        "verifier_index digest: {}",
+        index.verifier_index().digest::<KeccakFqSponge>()
+    );
+
     // Partially verify proof
     let public_inputs = vec![];
     let agg_proof = to_batch::<
