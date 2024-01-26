@@ -73,9 +73,10 @@ library Oracles {
         // 4. Absorb the commitment to the public inputs.
         base_sponge.absorb_commitment(public_comm);
 
-        // TODO: 5. Absorb the commitments to the registers / witness columns
-        // base_sponge.absorb_commitments(proof.w_comms);
-        // INFO: needs deserialization
+        // 5. Absorb the commitments to the registers / witness columns
+        for (uint i = 0; i < proof.commitments.w_comm.length; i++) {
+            base_sponge.absorb_commitment(proof.commitments.w_comm[i]);
+        }
 
         // TODO: 6. If lookup is used:
         // WARN: is this necessary? (optional feature)
