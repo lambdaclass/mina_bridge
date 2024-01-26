@@ -2,9 +2,10 @@ mod snarky_gate;
 
 use std::{array, collections::HashMap, fs, ops::Neg, sync::Arc};
 
-use ark_bn254::{Bn254, G1Affine, G2Affine};
+use ark_bn254::{Bn254, G1Affine, G2Affine, Parameters};
 use ark_ec::{
-    msm::VariableBaseMSM, short_weierstrass_jacobian::GroupAffine, AffineCurve, ProjectiveCurve,
+    bn::Bn, msm::VariableBaseMSM, short_weierstrass_jacobian::GroupAffine, AffineCurve,
+    ProjectiveCurve,
 };
 use ark_ff::PrimeField;
 use ark_poly::{
@@ -42,7 +43,9 @@ use kzg_prover::to_batch::to_batch;
 use num::{bigint::RandBigInt, BigUint};
 use num_traits::{One, Zero};
 use poly_commitment::{
-    commitment::{combine_commitments, combine_evaluations, CommitmentCurve, Evaluation},
+    commitment::{
+        combine_commitments, combine_evaluations, BatchEvaluationProof, CommitmentCurve, Evaluation,
+    },
     evaluation_proof::{combine_polys, DensePolynomialOrEvaluations, OpeningProof},
     pairing_proof::{PairingProof, PairingSRS},
     srs::{endos, SRS},
@@ -131,6 +134,7 @@ fn generate_test_proof_for_evm_verifier() {
         KZGProof,
     >(&index.verifier_index(), &proof, &public_inputs)
     .unwrap();
+    println!("domain_gen: {}", index.verifier_index().domain.group_gen);
 
     // Calculate numerator commitment
     let poly_commitment = create_poly_commitment(&agg_proof.evaluations, agg_proof.polyscale);
@@ -154,6 +158,24 @@ fn generate_test_proof_for_evm_verifier() {
         .serialize(&mut numerator_serialized)
         .unwrap();
 
+    // Final verify
+    let BatchEvaluationProof {
+        sponge: _,
+        evaluations,
+        evaluation_points,
+        polyscale,
+        evalscale: _,
+        opening,
+        combined_inner_product: _,
+    } = agg_proof;
+    if !opening.verify(&srs, &evaluations, polyscale, &evaluation_points) {
+        panic!();
+    }
+
+    println!("verifier_srs.g[0]: {}", srs.verifier_srs.g[0]);
+    println!("verifier_srs.g[1]: {}", srs.verifier_srs.g[1]);
+    println!("verifier_srs.g[2]: {}", srs.verifier_srs.g[2]);
+
     // Serialize and write to binaries
     fs::write(
         "../eth_verifier/prover_proof.mpk",
@@ -165,12 +187,13 @@ fn generate_test_proof_for_evm_verifier() {
         rmp_serde::to_vec_named(&index.verifier_index()).unwrap(),
     )
     .unwrap();
-    let srs_to_serialize = PairingSRS {
+    let srs_to_serialize = PairingSRS::<Bn<Parameters>> {
         full_srs: SRS {
             g: srs.full_srs.g[0..3].to_vec(),
-            ..srs.full_srs
+            h: srs.full_srs.h,
+            lagrange_bases: HashMap::new(),
         },
-        ..srs
+        verifier_srs: srs.verifier_srs,
     };
     fs::write(
         "../eth_verifier/urs.mpk",
@@ -182,6 +205,11 @@ fn generate_test_proof_for_evm_verifier() {
         &serialize_linearization(index.linearization),
     )
     .unwrap();
+    println!(
+        "numerator_serialized: {}",
+        hex::encode(numerator_serialized.clone())
+    );
+    println!("numerator_commitment: {}", numerator_commitment);
     fs::write(
         "../eth_verifier/numerator.mpk",
         rmp_serde::to_vec_named(&numerator_serialized).unwrap(),

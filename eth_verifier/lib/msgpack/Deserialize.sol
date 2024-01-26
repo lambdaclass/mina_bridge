@@ -585,7 +585,7 @@ library MsgPk {
             full_urs_g[i] = deser_g1point(point_buffer);
         }
 
-        require(verifier_urs_g_serialized.values.length == 3, "verifier_urs doesn't have three elements");
+        require(verifier_urs_g_serialized.values.length == 3, "verifier_urs doesn\'t have three elements");
         BN254.G2Point[] memory verifier_urs_g = new BN254.G2Point[](3);
         for (uint256 i = 0; i < verifier_urs_g.length; i++) {
             EncodedMap memory point_buffer = abi.decode(verifier_urs_g_serialized.values[i], (EncodedMap));
