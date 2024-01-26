@@ -12,7 +12,8 @@ using {
     KeccakSponge.challenge_scalar,
     KeccakSponge.absorb_base,
     KeccakSponge.digest_base,
-    KeccakSponge.challenge_base
+    KeccakSponge.challenge_base,
+    KeccakSponge.absorb_g
 } for Sponge;
 
 contract KeccakSpongeTest is Test {
@@ -68,6 +69,20 @@ contract KeccakSpongeTest is Test {
         assertEq(
             Base.FE.unwrap(digest),
             0x0000000000000000000000000000000000BECED09521047D05B8960B7E7BCC1D
+        );
+        // INFO: reference value taken from analogous test in kzg_prover/sponge_tests.rs
+    }
+
+    function test_absorb_digest_g() public {
+        sponge.reinit();
+        BN254.G1Point[] memory input = new BN254.G1Point[](1);
+        input[0] = BN254.P1();
+        sponge.absorb_g(input);
+
+        Scalar.FE digest = sponge.digest_scalar();
+        assertEq(
+            Scalar.FE.unwrap(digest),
+            0x00E90B7BCEB6E7DF5418FB78D8EE546E97C83A08BBCCC01A0644D599CCD2A7C2
         );
         // INFO: reference value taken from analogous test in kzg_prover/sponge_tests.rs
     }

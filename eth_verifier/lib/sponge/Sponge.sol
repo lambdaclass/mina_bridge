@@ -10,6 +10,8 @@ struct Sponge {
     bytes pending;
 }
 
+using {BN254.isInfinity} for BN254.G1Point;
+
 library KeccakSponge {
     // Basic methods
 
@@ -51,7 +53,7 @@ library KeccakSponge {
 
     // KZG methods
 
-    function absorb_base(Sponge storage self, Base.FE elem) external {
+    function absorb_base(Sponge storage self, Base.FE elem) public {
         bytes memory b = abi.encodePacked(elem);
         for (uint256 i = 0; i < b.length; i++) {
             self.pending.push(b[i]);
@@ -75,22 +77,32 @@ library KeccakSponge {
         }
     }
 
-    function absorb_g(Sponge storage self, BN254.G1Point memory point)
-        external
+    function absorb_g(Sponge storage self, BN254.G1Point[] memory points)
+        public
     {
-        bytes memory b = abi.encode(point);
-        for (uint256 i = 0; i < b.length; i++) {
-            self.pending.push(b[i]);
+        for (uint256 i = 0; i < points.length; i++) {
+            BN254.G1Point memory point = points[i];
+            if (point.isInfinity()) {
+                absorb_base(self, Base.zero());
+                absorb_base(self, Base.zero());
+            } else {
+                absorb_base(self, Base.from(point.x));
+                absorb_base(self, Base.from(point.y));
+            }
         }
     }
 
     function absorb_commitment(Sponge storage self, PolyComm memory comm)
         external
     {
-        bytes memory b = abi.encode(comm);
-        for (uint256 i = 0; i < b.length; i++) {
-            self.pending.push(b[i]);
+        absorb_g(self, comm.unshifted);
+        if (!comm.shifted.isInfinity()) {
+            BN254.G1Point[] memory shifted = new BN254.G1Point[](1);
+            shifted[0] = comm.shifted;
+            absorb_g(self, shifted);
         }
+        // WARN: we should keep in mind that if the shifted part is assigned
+        // to the point at infinity then it means that there's no shifted part.
     }
 
     function absorb_evaluations(

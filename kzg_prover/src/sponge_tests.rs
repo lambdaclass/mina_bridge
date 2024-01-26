@@ -1,13 +1,15 @@
 #[cfg(test)]
 mod test {
-    use ark_ec::short_weierstrass_jacobian::GroupAffine;
+    use ark_ec::{short_weierstrass_jacobian::GroupAffine, AffineCurve};
     use kimchi::{
         curve::KimchiCurve,
         keccak_sponge::{Keccak256FqSponge, Keccak256FrSponge},
         plonk_sponge::FrSponge,
     };
+    use mina_poseidon::FqSponge;
     use num::BigUint;
     use num_traits::Num;
+    use poly_commitment::PolyComm;
 
     type BaseField = ark_bn254::Fq;
     type ScalarField = ark_bn254::Fr;
@@ -43,6 +45,19 @@ mod test {
         assert_eq!(
             digest,
             scalar_from_hex("0000000000000000000000000000000000BECED09521047D05B8960B7E7BCC1D",)
+        );
+    }
+
+    #[test]
+    fn test_absorb_digest_g() {
+        let mut sponge = KeccakFqSponge::new(G1::other_curve_sponge_params());
+        let input = vec![G1::prime_subgroup_generator()];
+        sponge.absorb_g(&input);
+        let digest = sponge.digest();
+
+        assert_eq!(
+            digest,
+            scalar_from_hex("00E90B7BCEB6E7DF5418FB78D8EE546E97C83A08BBCCC01A0644D599CCD2A7C2",)
         );
     }
 }
