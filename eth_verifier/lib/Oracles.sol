@@ -39,6 +39,12 @@ library Oracles {
 
     uint64 internal constant CHALLENGE_LENGTH_IN_LIMBS = 2;
 
+    error IncorrectCommitmentLength(
+        string name,
+        uint256 required_len,
+        uint256 actual_len
+    );
+
     // This takes Kimchi's `oracles()` as reference.
     function fiat_shamir(
         ProverProof memory proof,
@@ -52,33 +58,63 @@ library Oracles {
         uint chunk_size = index.domain_size < index.max_poly_size ?
             1 : index.domain_size / index.max_poly_size;
 
-        Scalar.FE endo_coeff = Scalar.from(0); // FIXME: not zero
+        (Base.FE _endo_q, Scalar.FE endo_r) = BN254.endo_coeffs_g1();
 
+        // 1. Setup the Fq-Sponge.
         base_sponge.reinit();
 
+        // 2. Absorb the digest of the VerifierIndex.
+        // TODO: verifier_digest() is a dummy function
         base_sponge.absorb_base(verifier_digest(index));
+
+        // TODO: 3. Absorb the commitment to the previous challenges.
+        // WARN: is this necessary?
+
+        // 4. Absorb the commitment to the public inputs.
         base_sponge.absorb_commitment(public_comm);
 
-        // TODO: absorb the commitments to the registers / witness columns
-        // TODO: lookups
+        // TODO: 5. Absorb the commitments to the registers / witness columns
+        // base_sponge.absorb_commitments(proof.w_comms);
+        // INFO: needs deserialization
 
-        // Sample beta and gamma from the sponge
+        // TODO: 6. If lookup is used:
+        // WARN: is this necessary? (optional feature)
+
+        // 7. Sample beta from the sponge
         Scalar.FE beta = base_sponge.challenge_scalar();
+        // 8. Sample gamma from the sponge
         Scalar.FE gamma = base_sponge.challenge_scalar();
 
-        // Sample alpha prime
+        //TODO: 9. If using lookup, absorb the commitment to the aggregation lookup polynomial.
+        // WARN: is this necessary? (optional feature)
+
+        // 10. Absorb the commitment to the permutation trace with the Fq-Sponge.
+        base_sponge.absorb_commitment(proof.commitments.z_comm);
+
+        // 11. Sample alpha prime
         ScalarChallenge memory alpha_chal = ScalarChallenge(base_sponge.challenge_scalar());
-        // Derive alpha using the endomorphism
-        Scalar.FE alpha = alpha_chal.to_field(endo_coeff);
 
-        // TODO: enforce length of the $t$ commitment
+        // 12. Derive alpha using the endomorphism
+        Scalar.FE alpha = alpha_chal.to_field(endo_r);
 
-        // TODO: absorb commitment to the quotient poly
+        // 13. Enforce that the length of the $t$ commitment is of size 7.
+        if (proof.commitments.t_comm.unshifted.length > chunk_size * 7) {
+            revert IncorrectCommitmentLength(
+                "t",
+                chunk_size * 7,
+                proof.commitments.t_comm.unshifted.length
+            );
+        }
 
-        // Sample alpha prime
+        // 14. Absorb commitment to the quotient polynomial $t$.
+        base_sponge.absorb_commitment(proof.commitments.t_comm);
+
+        // 15. Sample zeta prime
         ScalarChallenge memory zeta_chal = ScalarChallenge(base_sponge.challenge_scalar());
-        // Derive alpha using the endomorphism
-        Scalar.FE zeta = zeta_chal.to_field(endo_coeff);
+        // 16. Derive zeta using the endomorphism
+        Scalar.FE zeta = zeta_chal.to_field(endo_r);
+
+        // TODO: check the rest of the heuristic.
 
         scalar_sponge.reinit();
         scalar_sponge.absorb_scalar(base_sponge.digest_scalar());
@@ -169,10 +205,10 @@ library Oracles {
         scalar_sponge.absorb_evaluations(proof.evals);
 
         ScalarChallenge memory v_chal = ScalarChallenge(scalar_sponge.challenge_scalar());
-        Scalar.FE v = v_chal.to_field(endo_coeff);
+        Scalar.FE v = v_chal.to_field(endo_r);
 
         ScalarChallenge memory u_chal = ScalarChallenge(scalar_sponge.challenge_scalar());
-        Scalar.FE u = u_chal.to_field(endo_coeff);
+        Scalar.FE u = u_chal.to_field(endo_r);
 
         ProofEvaluations memory evals = proof.evals.combine_evals(powers_of_eval_points_for_chunks);
 
@@ -309,7 +345,7 @@ library Oracles {
     function to_field_with_length(
         ScalarChallenge memory self,
         uint length_in_bits,
-        Scalar.FE endo_coeff
+        Scalar.FE endo_r
     ) internal pure returns (Scalar.FE) {
         uint64[] memory r = get_limbs_64(Scalar.FE.unwrap(self.chal));
         Scalar.FE a = Scalar.from(2);
@@ -332,15 +368,15 @@ library Oracles {
             }
         }
 
-        return a.mul(endo_coeff).add(b);
+        return a.mul(endo_r).add(b);
     }
 
     function to_field(
         ScalarChallenge memory self,
-        Scalar.FE endo_coeff
+        Scalar.FE endo_r
     ) internal pure returns (Scalar.FE) {
         uint64 length_in_bits = 64 * CHALLENGE_LENGTH_IN_LIMBS;
-        return self.to_field_with_length(length_in_bits, endo_coeff);
+        return self.to_field_with_length(length_in_bits, endo_r);
     }
 
     function get_bit(

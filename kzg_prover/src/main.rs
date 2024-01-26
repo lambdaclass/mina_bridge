@@ -77,6 +77,8 @@ fn main() {
 
 fn generate_test_proof_for_evm_verifier() {
     let rng = &mut StdRng::from_seed([255u8; 32]);
+    println!("G1 endo_q: {}", G1::endos().0);
+    println!("G1 endo_r: {}", G1::endos().1);
 
     // Create range-check gadget
     let (mut next_row, mut gates) = CircuitGate::<ScalarField>::create_multi_range_check(0);
