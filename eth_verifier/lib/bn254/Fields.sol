@@ -21,7 +21,9 @@ library Base {
 
     function from_bytes_be(bytes memory b) public pure returns (FE) {
         uint256 integer = 0;
-        for (uint256 i = 0; i < 32; i++) {
+        uint256 count = b.length <= 32 ? b.length : 32;
+
+        for (uint256 i = 0; i < count; i++) {
             integer <<= 8;
             integer += uint8(b[i]);
         }
