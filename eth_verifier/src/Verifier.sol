@@ -462,7 +462,7 @@ contract KimchiVerifier {
         divisor_poly_coeffs[1] = a.add(b).neg();
         divisor_poly_coeffs[2] = Scalar.one();
 
-        require(verifier_urs.g.length == 3, "verifier_urs doesn't have 3 of points");
+        require(verifier_urs.g.length == 3, "verifier_urs doesn\'t have 3 of points");
 
         BN254.G2Point memory divisor = naive_msm(verifier_urs.g, divisor_poly_coeffs);
         require(divisor.x1 == 0x0258B55C1D278E0C1185E9A6BCE0BCE1F70CC7BDF30EC58F3233F5C02FCEF7E9, "divisor x0 wrong");
