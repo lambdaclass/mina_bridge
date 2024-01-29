@@ -55,9 +55,11 @@ contract FieldsTest is Test {
     }
 
     function test_scalar_challenge_to_field() public {
-        Oracles.ScalarChallenge memory chal = Oracles.ScalarChallenge(
-            Scalar.from(0x1B98C45C863AD2A1F4EB90EFBC8F1104AF5534B239720D63ECB7156E9347F622));
+        Oracles.ScalarChallenge memory chal = Oracles.ScalarChallenge(Scalar.from(42));
         (Base.FE _endo_q, Scalar.FE endo_r) = BN254.endo_coeffs_g1();
-        chal.to_field(endo_r);
+        assertEq(
+            Scalar.FE.unwrap(chal.to_field(endo_r)),
+            0x1B98C45C863AD2A1F4EB90EFBC8F1104AF5534B239720D63ECB7156E9347F622
+        );
     }
 }

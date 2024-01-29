@@ -30,6 +30,7 @@ library Oracles {
         KeccakSponge.absorb_scalar_multiple,
         KeccakSponge.absorb_commitment,
         KeccakSponge.absorb_evaluations,
+        KeccakSponge.absorb_g_single,
         KeccakSponge.challenge_base,
         KeccakSponge.challenge_scalar,
         KeccakSponge.digest_base,
@@ -64,14 +65,17 @@ library Oracles {
         base_sponge.reinit();
 
         // 2. Absorb the digest of the VerifierIndex.
-        // TODO: verifier_digest() is a dummy function
         //base_sponge.absorb_base(verifier_digest(index));
+        // TODO: verifier_digest() is a dummy function
         // FIXME: hardcoding for now
         base_sponge.absorb_base(Base.from(0x0086C5805E91E448C36A3D4A624F285FB05F6A9DBD9E37C44629C3F12733D81B));
 
         // TODO: 3. Absorb the commitment to the previous challenges.
         // WARN: is this necessary?
+        // INFO: For our current test proof, this isn't necessary.
 
+        require(public_comm.unshifted[0].x == 0x259C9A9126385A54663D11F284944E91215DF44F4A502100B46BC91CCF373772);
+        require(public_comm.unshifted[0].y == 0x0EC1C952555B2D6978D2D39FA999D6469581ECF94F61262CDC9AA5C05FB8E70B);
         // 4. Absorb the commitment to the public inputs.
         base_sponge.absorb_commitment(public_comm);
 
@@ -82,14 +86,21 @@ library Oracles {
 
         // TODO: 6. If lookup is used:
         // WARN: is this necessary? (optional feature)
+        // INFO: For our current test proof, this isn't necessary.
 
         // 7. Sample beta from the sponge
         Scalar.FE beta = base_sponge.challenge_scalar();
         // 8. Sample gamma from the sponge
         Scalar.FE gamma = base_sponge.challenge_scalar();
 
-        //TODO: 9. If using lookup, absorb the commitment to the aggregation lookup polynomial.
+        // TODO: 9. If using lookup, absorb the commitment to the aggregation lookup polynomial.
         // WARN: is this necessary? (optional feature)
+        // FIXME: For our current test proof, this IS necessary.
+        // for now we'll hardcode the commitment
+        base_sponge.absorb_g_single(BN254.G1Point(
+            0x2206AD2635ADB90123629DC4EC1FD25E5D3F6CD830E92D27E557F48ABD139DFB,
+            0x21D5BD2645F1738A3F1CEF4906398D0B7DD1EF0EC599C0F2C4F2966D42121BC3
+        ));
 
         // 10. Absorb the commitment to the permutation trace with the Fq-Sponge.
         base_sponge.absorb_commitment(proof.commitments.z_comm);
@@ -348,7 +359,7 @@ library Oracles {
     function to_field_with_length(
         ScalarChallenge memory self,
         uint length_in_bits,
-        Scalar.FE endo_r
+        Scalar.FE endo_coeff
     ) internal pure returns (Scalar.FE) {
         uint64[] memory r = get_limbs_64(Scalar.FE.unwrap(self.chal));
         Scalar.FE a = Scalar.from(2);
@@ -357,7 +368,9 @@ library Oracles {
         Scalar.FE one = Scalar.from(1);
         Scalar.FE neg_one = one.neg();
 
-        for (uint64 i = 0; i < length_in_bits / 2; i++) {
+        // (0..length_in_bits / 2).rev()
+        for (uint _i = length_in_bits / 2; _i >= 1; _i--) {
+            uint64 i = uint64(_i) - 1;
             a = a.double();
             b = b.double();
 
@@ -371,15 +384,15 @@ library Oracles {
             }
         }
 
-        return a.mul(endo_r).add(b);
+        return a.mul(endo_coeff).add(b);
     }
 
     function to_field(
         ScalarChallenge memory self,
-        Scalar.FE endo_r
+        Scalar.FE endo_coeff
     ) internal pure returns (Scalar.FE) {
         uint64 length_in_bits = 64 * CHALLENGE_LENGTH_IN_LIMBS;
-        return self.to_field_with_length(length_in_bits, endo_r);
+        return self.to_field_with_length(length_in_bits, endo_coeff);
     }
 
     function get_bit(
