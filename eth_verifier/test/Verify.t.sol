@@ -1,11 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
-import {Script, console2} from "forge-std/Script.sol";
-import {KimchiVerifier} from "../src/Verifier.sol";
-import "forge-std/console.sol";
+import {Test, console2} from "forge-std/Test.sol";
+import "../lib/bn254/Fields.sol";
+import "../lib/bn254/BN254.sol";
+import "../src/Verifier.sol";
+import "../lib/msgpack/Deserialize.sol";
+import "../lib/Commitment.sol";
+import "../lib/Alphas.sol";
 
-contract Verify is Script {
+contract KimchiVerifierTest is Test {
     // INFO: data is taken from executing `generate_test_proof_for_evm_verifier()` in the kzg_prover/.
 
     bytes verifier_index_serialized =
@@ -17,11 +21,9 @@ contract Verify is Script {
     bytes32 numerator_binary =
         0x760553641e13f70f3c75d4e3f8ffc1e46024507d1d363af1dc1177fd9c863c05;
 
-    function run() public {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        vm.startBroadcast(deployerPrivateKey);
-
+    function test_verify_with_index() public {
         KimchiVerifier verifier = new KimchiVerifier();
+
         verifier.setup(urs_serialized);
 
         bool success = verifier.verify_with_index(
@@ -30,8 +32,14 @@ contract Verify is Script {
             numerator_binary
         );
 
-        require(success, "Verification failed.");
+        require(success, "Verification failed!");
+    }
 
-        vm.stopBroadcast();
+    function test_partial_verify() public {
+        KimchiVerifier verifier = new KimchiVerifier();
+
+        verifier.setup(urs_serialized);
+        verifier.deserialize_proof(verifier_index_serialized, prover_proof_serialized);
+        verifier.partial_verify(new Scalar.FE[](0));
     }
 }

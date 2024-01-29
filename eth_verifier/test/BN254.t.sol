@@ -6,12 +6,13 @@ import {console} from "forge-std/console.sol";
 import {BN254} from "../lib/bn254/BN254.sol";
 
 contract DeserializeTest is Test {
-    function test_deserialize() public {
-        bytes32 input = 0xce6c6d7118ed4276a5eca6b1000f52462844b3c962075696eb0bf95d2218432d;
+    function test_BN254_add_scale() public {
+        BN254.G1Point memory g = BN254.P1();
 
-        BN254.G1Point memory p = BN254.g1Deserialize(input);
+        BN254.G1Point memory g_plus_g = BN254.add(g, g);
+        BN254.G1Point memory two_g = BN254.add(g, g);
 
-        //bytes memory inp
-        //assertEq(0, 0, "0 == 0");
+        assertEq(g_plus_g.x, two_g.x, "g + g should equal 2g");
+        assertEq(g_plus_g.y, two_g.y, "g + g should equal 2g");
     }
 }
