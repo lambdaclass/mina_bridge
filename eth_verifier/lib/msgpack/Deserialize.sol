@@ -559,7 +559,7 @@ library MsgPk {
     // first two points (in the final verification step, we need the `full_urs` for commitment a
     // evaluation polynomial, which seems to be always of degree 1).
     function deser_pairing_urs(Stream memory self, PairingURS storage urs) public {
-        // full_srs and verifier_srs fields
+// full_srs and verifier_srs fields
         EncodedMap memory urs_map = deser_fixmap(self);
 
         EncodedMap memory full_urs_serialized = abi.decode(find_value(urs_map, abi.encode("full_srs")), (EncodedMap));
@@ -569,32 +569,32 @@ library MsgPk {
         // get data from g and h fields (g is an array of buffers and h is a buffer)
         EncodedArray memory full_urs_g_serialized =
             abi.decode(find_value(full_urs_serialized, abi.encode("g")), (EncodedArray));
-        EncodedMap memory full_urs_h_serialized =
-            abi.decode(find_value(full_urs_serialized, abi.encode("h")), (EncodedMap));
+        bytes memory full_urs_h_serialized =
+            abi.decode(find_value(full_urs_serialized, abi.encode("h")), (bytes));
 
         EncodedArray memory verifier_urs_g_serialized =
             abi.decode(find_value(verifier_urs_serialized, abi.encode("g")), (EncodedArray));
-        EncodedMap memory verifier_urs_h_serialized =
-            abi.decode(find_value(verifier_urs_serialized, abi.encode("h")), (EncodedMap));
+        bytes memory verifier_urs_h_serialized =
+            abi.decode(find_value(verifier_urs_serialized, abi.encode("h")), (bytes));
 
         // deserialized and save g for both URS
         // INFO: we only need the first two points
         BN254.G1Point[] memory full_urs_g = new BN254.G1Point[](2);
         for (uint256 i = 0; i < full_urs_g.length; i++) {
-            EncodedMap memory point_buffer = abi.decode(full_urs_g_serialized.values[i], (EncodedMap));
-            full_urs_g[i] = deser_g1point(point_buffer);
+            bytes memory point_bytes = abi.decode(full_urs_g_serialized.values[i], (bytes));
+            full_urs_g[i] = BN254.g1Deserialize(bytes32(point_bytes));
         }
 
         require(verifier_urs_g_serialized.values.length == 3, "verifier_urs doesn\'t have three elements");
         BN254.G2Point[] memory verifier_urs_g = new BN254.G2Point[](3);
         for (uint256 i = 0; i < verifier_urs_g.length; i++) {
-            EncodedMap memory point_buffer = abi.decode(verifier_urs_g_serialized.values[i], (EncodedMap));
-            verifier_urs_g[i] = deser_g2point(point_buffer);
+            bytes memory point_bytes = abi.decode(verifier_urs_g_serialized.values[i], (bytes));
+            verifier_urs_g[i] = BN256G2.G2Deserialize(point_bytes);
         }
 
         // deserialized and save h for both URS
-        BN254.G1Point memory full_urs_h = deser_g1point(full_urs_h_serialized);
-        BN254.G2Point memory verifier_urs_h = deser_g2point(verifier_urs_h_serialized);
+        BN254.G1Point memory full_urs_h = BN254.g1Deserialize(bytes32(full_urs_h_serialized));
+        BN254.G2Point memory verifier_urs_h = BN256G2.G2Deserialize(verifier_urs_h_serialized);
 
         // store values
         urs.full_urs.g = full_urs_g;
