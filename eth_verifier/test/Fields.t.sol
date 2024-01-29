@@ -5,9 +5,12 @@ import {Test } from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 import {Scalar, Base} from "../lib/bn254/Fields.sol";
 import "../lib/bn254/BN256G2.sol";
+import "../lib/bn254/BN254.sol";
+import "../lib/Oracles.sol";
 
 using { Base.add, Base.mul, Base.inv } for Base.FE;
 using { Scalar.add, Scalar.mul, Scalar.inv } for Scalar.FE;
+using { Oracles.to_field } for Oracles.ScalarChallenge;
 
 contract FieldsTest is Test {
     function test_add_base() public {
@@ -49,5 +52,12 @@ contract FieldsTest is Test {
 
         assertEq(x0, MODULUS - 42);
         assertEq(x1, MODULUS - 42);
+    }
+
+    function test_scalar_challenge_to_field() public {
+        Oracles.ScalarChallenge memory chal = Oracles.ScalarChallenge(
+            Scalar.from(0x1B98C45C863AD2A1F4EB90EFBC8F1104AF5534B239720D63ECB7156E9347F622));
+        (Base.FE _endo_q, Scalar.FE endo_r) = BN254.endo_coeffs_g1();
+        chal.to_field(endo_r);
     }
 }
