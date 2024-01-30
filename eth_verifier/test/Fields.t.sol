@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {Test } from "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 import {Scalar, Base} from "../lib/bn254/Fields.sol";
 import "../lib/bn254/BN256G2.sol";
 
-using { Base.add, Base.mul, Base.inv } for Base.FE;
-using { Scalar.add, Scalar.mul, Scalar.inv } for Scalar.FE;
+using {Base.add, Base.mul, Base.inv} for Base.FE;
+using {Scalar.add, Scalar.mul, Scalar.inv} for Scalar.FE;
 
 contract FieldsTest is Test {
     function test_add_base() public {
@@ -30,7 +30,6 @@ contract FieldsTest is Test {
         Base.FE a = Base.from(Base.MODULUS - 1);
         Base.FE b = a.inv();
 
-        Base.FE one = Base.from(1);
         assertEq(Base.FE.unwrap(a.mul(b)), 1, "a * a.inv() != 1");
     }
 
@@ -38,7 +37,6 @@ contract FieldsTest is Test {
         Scalar.FE a = Scalar.from(42);
         Scalar.FE b = a.inv();
 
-        Scalar.FE one = Scalar.from(1);
         assertEq(Scalar.FE.unwrap(a.mul(b)), 1, "a * a.inv() != 1");
     }
 
