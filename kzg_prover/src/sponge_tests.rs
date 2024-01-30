@@ -10,6 +10,7 @@ mod test {
     use num::BigUint;
     use num_traits::Num;
     use poly_commitment::PolyComm;
+    use rmp_serde::encode::write;
 
     type BaseField = ark_bn254::Fq;
     type ScalarField = ark_bn254::Fr;
@@ -58,6 +59,56 @@ mod test {
         assert_eq!(
             digest,
             scalar_from_hex("00E90B7BCEB6E7DF5418FB78D8EE546E97C83A08BBCCC01A0644D599CCD2A7C2",)
+        );
+    }
+
+    #[test]
+    fn test_absorb_absorb_digest_scalar() {
+        let mut sponge = KeccakFrSponge::new(G1::sponge_params());
+        let inputs = [ScalarField::from(42), ScalarField::from(24)];
+        sponge.absorb(&inputs[0]);
+        sponge.absorb(&inputs[1]);
+        let digest = sponge.digest();
+
+        assert_eq!(
+            digest,
+            scalar_from_hex("00DB760B992492E99DAE648DBA78682EB78FAFF3B40E0DB291710EFCB8A7D0D3",)
+        );
+    }
+
+    #[test]
+    fn test_absorb_challenge_challenge_scalar() {
+        let mut sponge = KeccakFrSponge::new(G1::sponge_params());
+        let input = ScalarField::from(42);
+        sponge.absorb(&input);
+        let challenges = [sponge.challenge(), sponge.challenge()];
+
+        assert_eq!(
+            challenges[0].0,
+            scalar_from_hex("0000000000000000000000000000000000BECED09521047D05B8960B7E7BCC1D",)
+        );
+        assert_eq!(
+            challenges[1].0,
+            scalar_from_hex("0000000000000000000000000000000000964765235251D0E2EACFBC25925D55",)
+        );
+    }
+
+    #[test]
+    fn test_absorb_challenge_absorb_challenge_scalar() {
+        let mut sponge = KeccakFrSponge::new(G1::sponge_params());
+        let inputs = [ScalarField::from(42), ScalarField::from(24)];
+
+        sponge.absorb(&inputs[0]);
+        let challenge = sponge.challenge();
+        assert_eq!(
+            challenge.0,
+            scalar_from_hex("0000000000000000000000000000000000BECED09521047D05B8960B7E7BCC1D",)
+        );
+        sponge.absorb(&inputs[1]);
+        let challenge = sponge.challenge();
+        assert_eq!(
+            challenge.0,
+            scalar_from_hex("0000000000000000000000000000000000D9E16B1DA42107514692CD8896E64F",)
         );
     }
 }
