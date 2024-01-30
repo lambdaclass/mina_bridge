@@ -13,13 +13,13 @@ contract Integration is Test {
     bytes verifier_index_serialized;
     bytes prover_proof_serialized;
     bytes urs_serialized;
-    bytes32 numerator_binary =
-        0xa1dd4270f6034403b09377e4d3d5c1181f36aee036a5d38c0b3ebd837c9b7c9a;
+    bytes32 numerator_binary;
 
     function setUp() public {
         verifier_index_serialized = vm.readFileBinary("verifier_index.mpk");
         prover_proof_serialized = vm.readFileBinary("prover_proof.mpk");
         urs_serialized = vm.readFileBinary("urs.mpk");
+        numerator_binary = bytes32(vm.readFileBinary("numerator.bin"));
     }
 
     // FIXME: skipped test: debug why verification is failing.
