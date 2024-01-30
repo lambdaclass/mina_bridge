@@ -729,8 +729,10 @@ export class ScalarChallenge {
     }
 
     toFieldWithLength(length_in_bits: number, endo_coeff: ForeignScalar): ForeignScalar {
-        let wrapped = Provable.witnessBn254(ForeignScalarBn254, () => {
-            const rep = this.chal.toBigInt();
+        let result = ForeignScalar.from(0);
+
+        Provable.asProverBn254(() => {
+            const rep = this.chal.toBigIntBn254();
             const rep_64_limbs = getLimbs64(rep);
 
             let a = ForeignScalar.from(2);
@@ -752,44 +754,15 @@ export class ScalarChallenge {
                 }
             }
 
-            let inner = a.mul(endo_coeff).add(b);
-
-            return new ForeignScalarBn254(inner);
+            result = a.mul(endo_coeff).add(b);
         });
 
-        return wrapped.inner;
+        return result;
     }
 
     toField(endo_coeff: ForeignScalar): ForeignScalar {
         const length_in_bits = 64 * Sponge.CHALLENGE_LENGTH_IN_LIMBS;
         return this.toFieldWithLength(length_in_bits, endo_coeff);
-    }
-}
-
-// Wrapper class to match `ProvableBn254` interface
-class ForeignScalarBn254 {
-    inner: ForeignScalar;
-
-    constructor(inner: ForeignScalar) {
-        this.inner = inner;
-    }
-
-    static toFields(value: ForeignScalarBn254) {
-        return ForeignScalar.toFieldsBn254(value.inner);
-    }
-
-    static fromFields(value: FieldBn254[]) {
-        let inner = ForeignScalar.fromFieldsBn254(value);
-
-        return new ForeignScalarBn254(inner);
-    }
-
-    static sizeInFields() {
-        return ForeignScalar.sizeInFields();
-    }
-
-    static check(value: ForeignScalarBn254) {
-        return ForeignScalar.check(value.inner);
     }
 }
 

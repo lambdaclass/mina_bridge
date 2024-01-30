@@ -51,21 +51,19 @@ export class Sponge {
             // execute, but the code persists for when we have a generic implementation
             // so recursiveness can be achieved.
         } else {
-            const high = Provable.witnessBn254(ForeignField, () => {
-                const s_bigint = s.toBigInt();
+            let high = ForeignField.from(0);
+            Provable.asProverBn254(() => {
+                const s_bigint = s.toBigIntBn254();
                 const bits = BigInt(s_bigint.toString(2).length);
 
-                const high = ForeignField.from((s_bigint >> 1n) & ((1n << (bits - 1n)) - 1n)); // remaining bits
-
-                return high;
+                high = ForeignField.from((s_bigint >> 1n) & ((1n << (bits - 1n)) - 1n)); // remaining bits
             });
 
-            const low = Provable.witnessBn254(ForeignField, () => {
-                const s_bigint = s.toBigInt();
+            let low = ForeignField.from(0);
+            Provable.asProverBn254(() => {
+                const s_bigint = s.toBigIntBn254();
 
-                const low = ForeignField.from(s_bigint & 1n); // LSB
-
-                return low;
+                low = ForeignField.from(s_bigint & 1n); // LSB
             });
 
             // WARN: be careful when s_bigint is negative, because >> is the "sign-propagating
