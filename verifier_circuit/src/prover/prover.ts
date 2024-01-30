@@ -1,5 +1,5 @@
 import { Polynomial } from "../polynomial.js"
-import { Field, ForeignGroup, Group, Provable, Scalar } from "o1js"
+import { Field, FieldBn254, ForeignGroup, Group, Provable, Scalar } from "o1js"
 import { PolyComm, bPoly, bPolyCoefficients, OpeningProof } from "../poly_commitment/commitment.js";
 import { getLimbs64 } from "../util/bigint.js";
 import { Sponge } from "../verifier/sponge.js";
@@ -12,6 +12,7 @@ import { deserHexScalar } from "../serde/serde_proof.js";
 import { range } from "../util/misc.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { ForeignField } from "../foreign_fields/foreign_field.js";
+import { ProvableBn254 } from "o1js/dist/node/snarky.js";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
@@ -207,7 +208,7 @@ export class ProverProof {
                     pe_zeta = pe_zeta.add(l.neg().mul(p).mul(w_i));
                 }
                 const size_inv = invScalar(ForeignScalar.from(index.domain_size));
-                pe_zeta = pe_zeta.mul(zeta1.sub(Scalar.from(1))).mul(size_inv);
+                pe_zeta = pe_zeta.mul(zeta1.sub(ForeignScalar.from(1))).mul(size_inv);
 
                 let pe_zetaOmega = ForeignScalar.from(0);
                 const min_lenOmega = Math.min(
@@ -223,7 +224,7 @@ export class ProverProof {
                     pe_zetaOmega = pe_zetaOmega.add(l.neg().mul(p).mul(w_i));
                 }
                 pe_zetaOmega = pe_zetaOmega
-                    .mul(powScalar(zetaw, n).sub(Scalar.from(1)))
+                    .mul(powScalar(zetaw, n).sub(ForeignScalar.from(1)))
                     .mul(size_inv);
 
                 public_evals = [[pe_zeta], [pe_zetaOmega]];
@@ -728,7 +729,7 @@ export class ScalarChallenge {
     }
 
     toFieldWithLength(length_in_bits: number, endo_coeff: ForeignScalar): ForeignScalar {
-        return Provable.witnessBn254(ForeignScalar, () => {
+        let wrapped = Provable.witnessBn254(ForeignScalarBn254, () => {
             const rep = this.chal.toBigInt();
             const rep_64_limbs = getLimbs64(rep);
 
@@ -751,13 +752,44 @@ export class ScalarChallenge {
                 }
             }
 
-            return a.mul(endo_coeff).add(b);
+            let inner = a.mul(endo_coeff).add(b);
+
+            return new ForeignScalarBn254(inner);
         });
+
+        return wrapped.inner;
     }
 
     toField(endo_coeff: ForeignScalar): ForeignScalar {
         const length_in_bits = 64 * Sponge.CHALLENGE_LENGTH_IN_LIMBS;
         return this.toFieldWithLength(length_in_bits, endo_coeff);
+    }
+}
+
+// Wrapper class to match `ProvableBn254` interface
+class ForeignScalarBn254 {
+    inner: ForeignScalar;
+
+    constructor(inner: ForeignScalar) {
+        this.inner = inner;
+    }
+
+    static toFields(value: ForeignScalarBn254) {
+        return ForeignScalar.toFieldsBn254(value.inner);
+    }
+
+    static fromFields(value: FieldBn254[]) {
+        let inner = ForeignScalar.fromFieldsBn254(value);
+
+        return new ForeignScalarBn254(inner);
+    }
+
+    static sizeInFields() {
+        return ForeignScalar.sizeInFields();
+    }
+
+    static check(value: ForeignScalarBn254) {
+        return ForeignScalar.check(value.inner);
     }
 }
 

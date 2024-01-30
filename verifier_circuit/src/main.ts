@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from "fs";
-import { ForeignGroup, Provable } from "o1js";
+import { ForeignGroup } from "o1js";
 import { Verifier } from "./verifier/verifier.js";
 import { deserOpeningProof } from "./serde/serde_proof.js";
 import { ForeignField } from "./foreign_fields/foreign_field.js";
@@ -205,11 +205,11 @@ console.log('O1JS loaded');
 
 ForeignGroup.curve = [
     "0", // a
-    "5", // b
-    "28948022309329048855892746252171976963363056481941560715954676764349967630337", // modulus
-    "1", // gen_x
-    "12418654782883325593414442427049395787963493412651469444558597405572177144507", // gen_y
-    "28948022309329048855892746252171976963363056481941647379679742748393362948097" // order
+    "2", // b
+    "16798108731015832284940804142231733909889187121439069848933715426072753864723", // modulus
+    "16798108731015832284940804142231733909889187121439069848933715426072753864722", // gen_x
+    "1", // gen_y
+    "16798108731015832284940804142231733909759579603404752749028378864165570215949" // order
 ];
 
 console.log("Generating circuit keypair...");
