@@ -10,6 +10,16 @@
 
 This project introduces the proof generation, posting and verification of the validity of [Mina](https://minaprotocol.com/) states into a EVM chain, which will serve as a foundation for token bridging.
 
+We are working on delivering an MVP for mid March 2024. This MVP verifies Mina state opening proofs in Ethereum without taking into account consensus validation and Pickles verification.
+* Circuit for verification algorithm. :no_entry_sign: All the tasks described below can be started once the new circuit framework and its API in Rust is ready to be used
+    * Integrate current Kimchi partial verification in o1js with the verifier circuit. The rework in Rust should take 2 weeks, depending on the new API.
+    * Complete Kimchi verifier circuit: final verification. (2 weeks)
+* KZG Prover (state proof wrapper):
+    * Connect Kimchi + KZG prover with current verifier circuit. We are working on this. :hammer::ladder: (3 weeks)
+* Verifier Smart Contract:Inputs deserialization. We are working on this. :hammer::ladder: (2 weeks)
+    * Partial verification, final steps. We are working on this. :hammer::ladder: (2 weeks)
+    * Final verification. We are working on this. :hammer::ladder: (3 weeks)
+
 ## Design objectives
 
 `mina_bridge` will include:
