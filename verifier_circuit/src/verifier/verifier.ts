@@ -160,7 +160,7 @@ export class VerifierIndex {
     /*
     * Compute the digest of the VerifierIndex, which can be used for the Fiat-Shamir transform.
     */
-    digest(): Field {
+    digest(): ForeignField {
         let fq_sponge = new Sponge();
 
         this.sigma_comm.forEach((g) => fq_sponge.absorbGroups(g.unshifted));
