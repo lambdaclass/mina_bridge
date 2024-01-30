@@ -1,6 +1,12 @@
 mod snarky_gate;
 
-use std::{array, collections::HashMap, fs, ops::Neg, sync::Arc};
+use std::{
+    array,
+    collections::HashMap,
+    fs::{self, File},
+    ops::Neg,
+    sync::Arc,
+};
 
 use ark_bn254::{Bn254, G1Affine, G2Affine, Parameters};
 use ark_ec::{
@@ -205,16 +211,9 @@ fn generate_test_proof_for_evm_verifier() {
         &serialize_linearization(index.linearization),
     )
     .unwrap();
-    println!(
-        "numerator_serialized: {}",
-        hex::encode(numerator_serialized.clone())
-    );
-    println!("numerator_commitment: {}", numerator_commitment);
-    fs::write(
-        "../eth_verifier/numerator.mpk",
-        rmp_serde::to_vec_named(&numerator_serialized).unwrap(),
-    )
-    .unwrap();
+    numerator_commitment
+        .serialize(&mut File::create("../eth_verifier/numerator.bin").unwrap())
+        .unwrap();
 }
 
 #[derive(Serialize)]

@@ -286,48 +286,13 @@ library MsgPk {
         return first == 0xc3; // 0xc3 == true
     }
 
-    function deser_buffer(EncodedMap memory self) public pure returns (bytes memory data) {
-        bytes memory type_name = abi.decode(find_value(self, abi.encode("type")), (bytes));
-        require(keccak256(type_name) == keccak256("Buffer"));
-
-        EncodedArray memory data_arr = abi.decode(find_value(self, abi.encode("data")), (EncodedArray));
-
-        // data_arr will hold an array of `bytes` arrays, where each `bytes`
-        // is a 32 sized byte array which represents only one byte, but padded
-        // with 31 zero bytes. e.g:
-        // data_arr[0]: 0x00000000000000000000000000000000000000000000000000000000000000a7
-        // data_arr[1]: 0x0000000000000000000000000000000000000000000000000000000000000040
-        // data_arr[3]: 0x000000000000000000000000000000000000000000000000000000000000002e
-        //
-        // this is becasue of Solidity's RLP encoding of every byte.
-        // We're interested in removing this padding and flattening all the arrays:
-
-        data = Utils.flatten_padded_bytes_array(data_arr.values);
-    }
-
-    function deser_buffer_to_uint256(EncodedMap memory self) public pure returns (uint256 integer) {
-        bytes memory type_name = abi.decode(find_value(self, abi.encode("type")), (bytes));
-        require(keccak256(type_name) == keccak256("Buffer"));
-
-        EncodedArray memory data_arr = abi.decode(find_value(self, abi.encode("data")), (EncodedArray));
-
-        integer = Utils.padded_bytes_array_to_uint256(data_arr.values);
-    }
-
-    function deser_buffer_to_scalar(EncodedMap memory self) public pure returns (Scalar.FE) {
-        uint256 inner = deser_buffer_to_uint256(self);
-        return Scalar.from(inner);
-    }
-
     function deser_verifier_index(Stream memory self, VerifierIndex storage index) external {
         EncodedMap memory map = deser_map16(self);
         index.public_len = abi.decode(find_value(map, abi.encode("public")), (uint256));
         index.max_poly_size = abi.decode(find_value(map, abi.encode("max_poly_size")), (uint256));
         index.zk_rows = abi.decode(find_value(map, abi.encode("zk_rows")), (uint64));
 
-        EncodedMap memory domain_map = abi.decode(find_value(map, abi.encode("domain")), (EncodedMap));
-
-        bytes memory domain_b = deser_buffer(domain_map);
+        bytes memory domain_b = abi.decode(find_value(map, abi.encode("domain")), (bytes));
 
         // The domain info is in a packed, little endian serialization format.
         // So we'll need to manually deserialize the parameters that we're
@@ -350,7 +315,7 @@ library MsgPk {
         EncodedArray memory shift_arr = abi.decode(find_value(map, abi.encode("shift")), (EncodedArray));
         require(shift_arr.values.length == 7, "shift array is not of length 7");
         for (uint256 i = 0; i < 7; i++) {
-            uint256 inner = deser_buffer_to_uint256(abi.decode(shift_arr.values[i], (EncodedMap)));
+            uint256 inner = uint256(bytes32(abi.decode(shift_arr.values[i], (bytes))));
             index.shift[i] = Scalar.from(inner);
         }
 
@@ -382,8 +347,8 @@ library MsgPk {
         uint256 len = unshifted_arr.values.length;
         BN254.G1Point[] memory unshifted = new BN254.G1Point[](len);
         for (uint256 i = 0; i < len; i++) {
-            EncodedMap memory buffer = abi.decode(unshifted_arr.values[i], (EncodedMap));
-            unshifted[i] = BN254.g1Deserialize(bytes32(deser_buffer(buffer)));
+            bytes memory comm_bytes = abi.decode(unshifted_arr.values[i], (bytes));
+            unshifted[i] = BN254.g1Deserialize(bytes32(comm_bytes));
         }
         // TODO: shifted is fixed to infinity
         BN254.G1Point memory shifted = BN254.point_at_inf();
@@ -434,13 +399,13 @@ library MsgPk {
         // deserialize opening proof
 
         EncodedMap memory proof_map = abi.decode(find_value(map, abi.encode("proof")), (EncodedMap));
-        EncodedMap memory quotient_buffer = abi.decode(find_value(proof_map, abi.encode("quotient")), (EncodedMap));
-        EncodedMap memory blinding_buffer = abi.decode(find_value(proof_map, abi.encode("blinding")), (EncodedMap));
+        bytes memory quotient_bytes = abi.decode(find_value(proof_map, abi.encode("quotient")), (bytes));
+        bytes memory blinding_bytes = abi.decode(find_value(proof_map, abi.encode("blinding")), (bytes));
 
         BN254.G1Point[] memory quotient_unshifted = new BN254.G1Point[](1);
-        quotient_unshifted[0] = deser_g1point(quotient_buffer);
+        quotient_unshifted[0] = BN254.g1Deserialize(bytes32(quotient_bytes));
 
-        Scalar.FE blinding = deser_buffer_to_scalar(blinding_buffer);
+        Scalar.FE blinding = Scalar.from(uint256(bytes32(blinding_bytes)));
 
         prover_proof.opening.quotient.unshifted = quotient_unshifted;
         prover_proof.opening.blinding = blinding;
@@ -461,11 +426,11 @@ library MsgPk {
         Scalar.FE[] memory zetas = new Scalar.FE[](length);
         Scalar.FE[] memory zeta_omegas = new Scalar.FE[](length);
         for (uint256 i = 0; i < zeta_arr.values.length; i++) {
-            EncodedMap memory zeta_map = abi.decode(zeta_arr.values[i], (EncodedMap));
-            EncodedMap memory zeta_omega_map = abi.decode(zeta_omega_arr.values[i], (EncodedMap));
+            bytes memory zeta_bytes = abi.decode(zeta_arr.values[i], (bytes));
+            bytes memory zeta_omega_bytes = abi.decode(zeta_omega_arr.values[i], (bytes));
 
-            uint256 zeta_inner = deser_buffer_to_uint256(zeta_map);
-            uint256 zeta_omega_inner = deser_buffer_to_uint256(zeta_omega_map);
+            uint256 zeta_inner = uint256(bytes32(zeta_bytes));
+            uint256 zeta_omega_inner = uint256(bytes32(zeta_omega_bytes));
 
             zetas[i] = Scalar.from(zeta_inner);
             zeta_omegas[i] = Scalar.from(zeta_omega_inner);
@@ -495,11 +460,11 @@ library MsgPk {
             Scalar.FE[] memory zetas = new Scalar.FE[](length);
             Scalar.FE[] memory zeta_omegas = new Scalar.FE[](length);
             for (uint256 i = 0; i < zeta_arr.values.length; i++) {
-                EncodedMap memory zeta_map = abi.decode(zeta_arr.values[i], (EncodedMap));
-                EncodedMap memory zeta_omega_map = abi.decode(zeta_omega_arr.values[i], (EncodedMap));
+                bytes memory zeta_bytes = abi.decode(zeta_arr.values[i], (bytes));
+                bytes memory zeta_omega_bytes = abi.decode(zeta_omega_arr.values[i], (bytes));
 
-                uint256 zeta_inner = deser_buffer_to_uint256(zeta_map);
-                uint256 zeta_omega_inner = deser_buffer_to_uint256(zeta_omega_map);
+                uint256 zeta_inner = uint256(bytes32(zeta_bytes));
+                uint256 zeta_omega_inner = uint256(bytes32(zeta_omega_bytes));
 
                 zetas[i] = Scalar.from(zeta_inner);
                 zeta_omegas[i] = Scalar.from(zeta_omega_inner);
@@ -524,8 +489,8 @@ library MsgPk {
                 uint256 unshifted_length = unshifted_arr.values.length;
                 BN254.G1Point[] memory unshifted = new BN254.G1Point[](unshifted_length);
                 for (uint256 k = 0; k < unshifted_length; k++) {
-                    EncodedMap memory unshifted_buffer = abi.decode(unshifted_arr.values[k], (EncodedMap));
-                    unshifted[k] = BN254.g1Deserialize(bytes32(deser_buffer(unshifted_buffer)));
+                    bytes memory unshifted_bytes = abi.decode(unshifted_arr.values[k], (bytes));
+                    unshifted[k] = BN254.g1Deserialize(bytes32(unshifted_bytes));
                 }
 
                 // TODO: shifted is fixed to infinity
@@ -537,64 +502,46 @@ library MsgPk {
         }
     }
 
-    function deser_g1point(Stream memory self) public view returns (BN254.G1Point memory) {
-        EncodedMap memory buffer = deser_fixmap(self);
-        return BN254.g1Deserialize(bytes32(deser_buffer(buffer)));
-    }
-
-    function deser_g1point(EncodedMap memory buffer) public view returns (BN254.G1Point memory) {
-        return BN254.g1Deserialize(bytes32(deser_buffer(buffer)));
-    }
-
-    function deser_g2point(Stream memory self) public view returns (BN254.G2Point memory) {
-        EncodedMap memory buffer = deser_fixmap(self);
-        return BN256G2.G2Deserialize(deser_buffer(buffer));
-    }
-
-    function deser_g2point(EncodedMap memory buffer) public view returns (BN254.G2Point memory) {
-        return BN256G2.G2Deserialize(deser_buffer(buffer));
-    }
-
     // WARN: using the entire `full_urs` may not be necessary, we would only have to deserialize the
     // first two points (in the final verification step, we need the `full_urs` for commitment a
     // evaluation polynomial, which seems to be always of degree 1).
     function deser_pairing_urs(Stream memory self, PairingURS storage urs) public {
-        // full_srs and verifier_srs fields
+// full_srs and verifier_srs fields
         EncodedMap memory urs_map = deser_fixmap(self);
 
         EncodedMap memory full_urs_serialized = abi.decode(find_value(urs_map, abi.encode("full_srs")), (EncodedMap));
         EncodedMap memory verifier_urs_serialized =
             abi.decode(find_value(urs_map, abi.encode("verifier_srs")), (EncodedMap));
 
-        // get data from g and h fields (g is an array of buffers and h is a buffer)
+        // get data from g and h fields (g is an array of bin8 and h is a bin8)
         EncodedArray memory full_urs_g_serialized =
             abi.decode(find_value(full_urs_serialized, abi.encode("g")), (EncodedArray));
-        EncodedMap memory full_urs_h_serialized =
-            abi.decode(find_value(full_urs_serialized, abi.encode("h")), (EncodedMap));
+        bytes memory full_urs_h_serialized =
+            abi.decode(find_value(full_urs_serialized, abi.encode("h")), (bytes));
 
         EncodedArray memory verifier_urs_g_serialized =
             abi.decode(find_value(verifier_urs_serialized, abi.encode("g")), (EncodedArray));
-        EncodedMap memory verifier_urs_h_serialized =
-            abi.decode(find_value(verifier_urs_serialized, abi.encode("h")), (EncodedMap));
+        bytes memory verifier_urs_h_serialized =
+            abi.decode(find_value(verifier_urs_serialized, abi.encode("h")), (bytes));
 
         // deserialized and save g for both URS
         // INFO: we only need the first two points
         BN254.G1Point[] memory full_urs_g = new BN254.G1Point[](2);
         for (uint256 i = 0; i < full_urs_g.length; i++) {
-            EncodedMap memory point_buffer = abi.decode(full_urs_g_serialized.values[i], (EncodedMap));
-            full_urs_g[i] = deser_g1point(point_buffer);
+            bytes memory point_bytes = abi.decode(full_urs_g_serialized.values[i], (bytes));
+            full_urs_g[i] = BN254.g1Deserialize(bytes32(point_bytes));
         }
 
         require(verifier_urs_g_serialized.values.length == 3, "verifier_urs doesn\'t have three elements");
         BN254.G2Point[] memory verifier_urs_g = new BN254.G2Point[](3);
         for (uint256 i = 0; i < verifier_urs_g.length; i++) {
-            EncodedMap memory point_buffer = abi.decode(verifier_urs_g_serialized.values[i], (EncodedMap));
-            verifier_urs_g[i] = deser_g2point(point_buffer);
+            bytes memory point_bytes = abi.decode(verifier_urs_g_serialized.values[i], (bytes));
+            verifier_urs_g[i] = BN256G2.G2Deserialize(point_bytes);
         }
 
         // deserialized and save h for both URS
-        BN254.G1Point memory full_urs_h = deser_g1point(full_urs_h_serialized);
-        BN254.G2Point memory verifier_urs_h = deser_g2point(verifier_urs_h_serialized);
+        BN254.G1Point memory full_urs_h = BN254.g1Deserialize(bytes32(full_urs_h_serialized));
+        BN254.G2Point memory verifier_urs_h = BN256G2.G2Deserialize(verifier_urs_h_serialized);
 
         // store values
         urs.full_urs.g = full_urs_g;
