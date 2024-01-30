@@ -456,6 +456,9 @@ contract KimchiVerifier {
         // (x-a)(x-b) = x^2 - (a + b)x + ab
         Scalar.FE a = agg_proof.evaluation_points[0];
         Scalar.FE b = agg_proof.evaluation_points[1];
+        // FIXME: For now we're hardcoding the evaluation points a (zeta challenge) and b (zeta*domain_gen)
+        //Scalar.FE a = Scalar.from(0x2072C24AEEF5F46C7D8B860649BB6BB00970869060B061CCFD15D6447C6F2514);
+        //Scalar.FE b = Scalar.from(0x2B8D448F6D5A415992B9446D601795FAD9FEF1B6F1115B7090B04657025C6527);
 
         divisor_poly_coeffs[0] = a.mul(b);
         divisor_poly_coeffs[1] = a.add(b).neg();
