@@ -48,7 +48,7 @@ library Base {
         }
     }
 
-    function inv(FE self) public view returns (FE) {
+    function inv(FE self) public pure returns (FE) {
         require(FE.unwrap(self) != 0, "tried to get inverse of 0");
         (uint256 gcd, uint256 inverse) = Aux.xgcd(FE.unwrap(self), MODULUS);
         require(gcd == 1, "gcd not 1");
@@ -156,7 +156,7 @@ library Scalar {
         res = mul(self, self);
     }
 
-    function inv(FE self) public view returns (FE) {
+    function inv(FE self) public pure returns (FE) {
         require(FE.unwrap(self) != 0, "tried to get inverse of 0");
         (uint256 gcd, uint256 inverse) = Aux.xgcd(FE.unwrap(self), MODULUS);
         require(gcd == 1, "gcd not 1");
@@ -211,7 +211,7 @@ library Scalar {
     // Reference: Lambdaworks
     // https://github.com/lambdaclass/lambdaworks/
 
-    function get_primitive_root_of_unity(uint256 order) public view returns (FE root) {
+    function get_primitive_root_of_unity(uint256 order) public pure returns (FE root) {
         if (order == 0) {
             return FE.wrap(1);
         }
@@ -220,13 +220,12 @@ library Scalar {
         }
 
         uint256 log_power = TWO_ADICITY - order;
-        FE root = from(TWO_ADIC_PRIMITIVE_ROOT_OF_UNITY);
+        root = from(TWO_ADIC_PRIMITIVE_ROOT_OF_UNITY);
         for (uint256 i = 0; i < log_power; i++) {
             root = square(root);
         }
 
         require(FE.unwrap(pow(root, 1 << order)) == 1, "not a root of unity");
-        return root;
     }
 }
 

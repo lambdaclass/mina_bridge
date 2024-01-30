@@ -34,18 +34,17 @@ struct VerifierIndex {
     PolyComm[15] coefficients_comm; // TODO: use Constants.COLUMNS
 }
 
-function verifier_digest(VerifierIndex storage index) returns (Base.FE) {
+function verifier_digest(VerifierIndex storage index) pure returns (Base.FE) {
     // FIXME: todo!
     return Base.from(42);
 }
 
 error UnimplementedVariant(ColumnVariant variant);
 
-function get_column(
-    VerifierIndex storage verifier_index,
-    ProverProof storage proof,
-    Column memory column
-) view returns (PolyComm memory) {
+function get_column(VerifierIndex storage verifier_index, ProverProof storage proof, Column memory column)
+    view
+    returns (PolyComm memory)
+{
     ColumnVariant colv = column.variant;
     if (colv == ColumnVariant.Witness) {
         uint256 i = abi.decode(column.data, (uint256));

@@ -8,14 +8,10 @@ import "./BN254.sol";
  * @author Mustafa Al-Bassam (mus@musalbas.com)
  * @dev Homepage: https://github.com/musalbas/solidity-BN256G2
  */
-
 library BN256G2 {
-    uint256 internal constant FIELD_MODULUS =
-        0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47;
-    uint256 internal constant TWISTBX =
-        0x2b149d40ceb8aaae81be18991be06ac3b5b4c5e559dbefa33267e6dc24a138e5;
-    uint256 internal constant TWISTBY =
-        0x9713b03af0fed4cd2cafadeed8fdf4a74fa084e52d1852e4a2bd0685c315d2;
+    uint256 internal constant FIELD_MODULUS = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47;
+    uint256 internal constant TWISTBX = 0x2b149d40ceb8aaae81be18991be06ac3b5b4c5e559dbefa33267e6dc24a138e5;
+    uint256 internal constant TWISTBY = 0x9713b03af0fed4cd2cafadeed8fdf4a74fa084e52d1852e4a2bd0685c315d2;
     uint256 internal constant PTXX = 0;
     uint256 internal constant PTXY = 1;
     uint256 internal constant PTYX = 2;
@@ -58,56 +54,24 @@ library BN256G2 {
         assert(_isOnCurve(pt1xx, pt1xy, pt1yx, pt1yy));
         assert(_isOnCurve(pt2xx, pt2xy, pt2yx, pt2yy));
 
-        uint256[6] memory pt3 = _ECTwistAddJacobian(
-            pt1xx,
-            pt1xy,
-            pt1yx,
-            pt1yy,
-            1,
-            0,
-            pt2xx,
-            pt2xy,
-            pt2yx,
-            pt2yy,
-            1,
-            0
-        );
+        uint256[6] memory pt3 = _ECTwistAddJacobian(pt1xx, pt1xy, pt1yx, pt1yy, 1, 0, pt2xx, pt2xy, pt2yx, pt2yy, 1, 0);
 
-        return
-            _fromJacobian(
-                pt3[PTXX],
-                pt3[PTXY],
-                pt3[PTYX],
-                pt3[PTYY],
-                pt3[PTZX],
-                pt3[PTZY]
-            );
+        return _fromJacobian(pt3[PTXX], pt3[PTXY], pt3[PTYX], pt3[PTYY], pt3[PTZX], pt3[PTZY]);
     }
 
-    function ECTwistAdd(
-        BN254.G2Point memory p1,
-        BN254.G2Point memory p2
-    ) public view returns (BN254.G2Point memory) {
-        uint p1xx = p1.x1;
-        uint p1xy = p1.x0;
-        uint p1yx = p1.y1;
-        uint p1yy = p1.y0;
+    function ECTwistAdd(BN254.G2Point memory p1, BN254.G2Point memory p2) public view returns (BN254.G2Point memory) {
+        uint256 p1xx = p1.x1;
+        uint256 p1xy = p1.x0;
+        uint256 p1yx = p1.y1;
+        uint256 p1yy = p1.y0;
 
-        uint p2xx = p2.x1;
-        uint p2xy = p2.x0;
-        uint p2yx = p2.y1;
-        uint p2yy = p2.y0;
+        uint256 p2xx = p2.x1;
+        uint256 p2xy = p2.x0;
+        uint256 p2yx = p2.y1;
+        uint256 p2yy = p2.y0;
 
-        (uint rxx, uint rxy, uint ryx, uint ryy) = ECTwistAdd(
-            p1xx,
-            p1xy,
-            p1yx,
-            p1yy,
-            p2xx,
-            p2xy,
-            p2yx,
-            p2yy
-        );
+        (uint256 rxx, uint256 rxy, uint256 ryx, uint256 ryy) =
+            ECTwistAdd(p1xx, p1xy, p1yx, p1yy, p2xx, p2xy, p2yx, p2yy);
 
         return BN254.G2Point(rxy, rxx, ryy, ryx);
     }
@@ -121,152 +85,71 @@ library BN256G2 {
      * @param pt1yy Coefficient 2 of y
      * @return (pt2xx, pt2xy, pt2yx, pt2yy)
      */
-    function ECTwistMul(
-        uint256 s,
-        uint256 pt1xx,
-        uint256 pt1xy,
-        uint256 pt1yx,
-        uint256 pt1yy
-    ) public view returns (uint256, uint256, uint256, uint256) {
+    function ECTwistMul(uint256 s, uint256 pt1xx, uint256 pt1xy, uint256 pt1yx, uint256 pt1yy)
+        public
+        view
+        returns (uint256, uint256, uint256, uint256)
+    {
         uint256 pt1zx = 1;
         if (pt1xx == 0 && pt1xy == 0 && pt1yx == 0 && pt1yy == 0) {
             pt1xx = 1;
             pt1yx = 1;
             pt1zx = 0;
         } else {
-            require(
-                _isOnCurve(pt1xx, pt1xy, pt1yx, pt1yy),
-                "G2 point is not on curve"
-            );
+            require(_isOnCurve(pt1xx, pt1xy, pt1yx, pt1yy), "G2 point is not on curve");
         }
 
-        uint256[6] memory pt2 = _ECTwistMulJacobian(
-            s,
-            pt1xx,
-            pt1xy,
-            pt1yx,
-            pt1yy,
-            pt1zx,
-            0
-        );
+        uint256[6] memory pt2 = _ECTwistMulJacobian(s, pt1xx, pt1xy, pt1yx, pt1yy, pt1zx, 0);
 
-        return
-            _fromJacobian(
-                pt2[PTXX],
-                pt2[PTXY],
-                pt2[PTYX],
-                pt2[PTYY],
-                pt2[PTZX],
-                pt2[PTZY]
-            );
+        return _fromJacobian(pt2[PTXX], pt2[PTXY], pt2[PTYX], pt2[PTYY], pt2[PTZX], pt2[PTZY]);
     }
 
-    function ECTwistMul(
-        uint256 s,
-        BN254.G2Point memory p
-    ) public view returns (BN254.G2Point memory) {
-        uint pxx = p.x0;
-        uint pxy = p.x1;
-        uint pyx = p.y0;
-        uint pyy = p.y1;
+    function ECTwistMul(uint256 s, BN254.G2Point memory p) public view returns (BN254.G2Point memory) {
+        uint256 pxx = p.x0;
+        uint256 pxy = p.x1;
+        uint256 pyx = p.y0;
+        uint256 pyy = p.y1;
 
-        (uint rxx, uint rxy, uint ryx, uint ryy) = ECTwistMul(
-            s,
-            pxx,
-            pxy,
-            pyx,
-            pyy
-        );
+        (uint256 rxx, uint256 rxy, uint256 ryx, uint256 ryy) = ECTwistMul(s, pxx, pxy, pyx, pyy);
 
         return BN254.G2Point(rxy, rxx, ryy, ryx);
     }
 
-    function submod(
-        uint256 a,
-        uint256 b,
-        uint256 n
-    ) internal pure returns (uint256) {
+    function submod(uint256 a, uint256 b, uint256 n) internal pure returns (uint256) {
         return addmod(a, n - b, n);
     }
 
-    function _FQ2Mul(
-        uint256 xx,
-        uint256 xy,
-        uint256 yx,
-        uint256 yy
-    ) public pure returns (uint256, uint256) {
+    function _FQ2Mul(uint256 xx, uint256 xy, uint256 yx, uint256 yy) public pure returns (uint256, uint256) {
         return (
-            submod(
-                mulmod(xx, yx, FIELD_MODULUS),
-                mulmod(xy, yy, FIELD_MODULUS),
-                FIELD_MODULUS
-            ),
-            addmod(
-                mulmod(xx, yy, FIELD_MODULUS),
-                mulmod(xy, yx, FIELD_MODULUS),
-                FIELD_MODULUS
-            )
+            submod(mulmod(xx, yx, FIELD_MODULUS), mulmod(xy, yy, FIELD_MODULUS), FIELD_MODULUS),
+            addmod(mulmod(xx, yy, FIELD_MODULUS), mulmod(xy, yx, FIELD_MODULUS), FIELD_MODULUS)
         );
     }
 
-    function _FQ2Muc(
-        uint256 xx,
-        uint256 xy,
-        uint256 c
-    ) internal pure returns (uint256, uint256) {
+    function _FQ2Muc(uint256 xx, uint256 xy, uint256 c) internal pure returns (uint256, uint256) {
         return (mulmod(xx, c, FIELD_MODULUS), mulmod(xy, c, FIELD_MODULUS));
     }
 
-    function _FQ2Sub(
-        uint256 xx,
-        uint256 xy,
-        uint256 yx,
-        uint256 yy
-    ) internal pure returns (uint256 rx, uint256 ry) {
+    function _FQ2Sub(uint256 xx, uint256 xy, uint256 yx, uint256 yy) internal pure returns (uint256 rx, uint256 ry) {
         return (submod(xx, yx, FIELD_MODULUS), submod(xy, yy, FIELD_MODULUS));
     }
 
-    function _FQ2Add(
-        uint256 xx,
-        uint256 xy,
-        uint256 yx,
-        uint256 yy
-    ) internal pure returns (uint256 rx, uint256 ry) {
+    function _FQ2Add(uint256 xx, uint256 xy, uint256 yx, uint256 yy) internal pure returns (uint256 rx, uint256 ry) {
         return (addmod(xx, yx, FIELD_MODULUS), addmod(xy, yy, FIELD_MODULUS));
     }
 
-    function _FQ2Inv(
-        uint256 x,
-        uint256 y
-    ) internal view returns (uint256, uint256) {
-        uint256 inv = _modInv(
-            addmod(
-                mulmod(y, y, FIELD_MODULUS),
-                mulmod(x, x, FIELD_MODULUS),
-                FIELD_MODULUS
-            ),
-            FIELD_MODULUS
-        );
-        return (
-            mulmod(x, inv, FIELD_MODULUS),
-            FIELD_MODULUS - mulmod(y, inv, FIELD_MODULUS)
-        );
+    function _FQ2Inv(uint256 x, uint256 y) internal view returns (uint256, uint256) {
+        uint256 inv =
+            _modInv(addmod(mulmod(y, y, FIELD_MODULUS), mulmod(x, x, FIELD_MODULUS), FIELD_MODULUS), FIELD_MODULUS);
+        return (mulmod(x, inv, FIELD_MODULUS), FIELD_MODULUS - mulmod(y, inv, FIELD_MODULUS));
     }
 
     // FIXME: we should clean up this library and use the `Fields.sol` functions.
 
     function _FQ1Sqrt(uint256 a) internal view returns (uint256) {
         // p = 3 mod 4, so the residue is a^( (p+1)/4 )
-        (bool success, bytes memory result_bytes) = address(0x05).staticcall(
-            abi.encode(
-                0x20,
-                0x20,
-                0x20,
-                a,
-                (FIELD_MODULUS + 1) / 4,
-                FIELD_MODULUS
-            )
-        );
+        (bool success, bytes memory result_bytes) =
+            address(0x05).staticcall(abi.encode(0x20, 0x20, 0x20, a, (FIELD_MODULUS + 1) / 4, FIELD_MODULUS));
 
         require(success, "FQ1Sqrt modexp precompile call failed");
         return abi.decode(result_bytes, (uint256));
@@ -275,54 +158,43 @@ library BN256G2 {
     // @returns true if a is a quadratic residue (there exists x such that x^2 = a)
     function _FQ1EulerCriterion(uint256 a) internal view returns (bool) {
         // p = 3 mod 4, so the residue is a^( (p-1)/2 )
-        (bool success, bytes memory result_bytes) = address(0x05).staticcall(
-            abi.encode(
-                0x20,
-                0x20,
-                0x20,
-                a,
-                (FIELD_MODULUS - 1) / 2,
-                FIELD_MODULUS
-            )
-        );
+        (bool success, bytes memory result_bytes) =
+            address(0x05).staticcall(abi.encode(0x20, 0x20, 0x20, a, (FIELD_MODULUS - 1) / 2, FIELD_MODULUS));
 
         require(success, "FQ1Sqrt modexp precompile call failed");
         uint256 crit = abi.decode(result_bytes, (uint256));
 
-        require(
-            crit == 1 || crit == FIELD_MODULUS - 1,
-            "Euler\'s criterion failed"
-        );
+        require(crit == 1 || crit == FIELD_MODULUS - 1, "Euler\'s criterion failed");
         return crit == 1;
     }
 
-    function _FQ1Add(uint256 a, uint256 b) internal view returns (uint256 res) {
+    function _FQ1Add(uint256 a, uint256 b) internal pure returns (uint256 res) {
         assembly {
             res := addmod(a, b, FIELD_MODULUS)
         }
     }
 
-    function _FQ1Neg(uint256 a) internal view returns (uint256) {
+    function _FQ1Neg(uint256 a) internal pure returns (uint256) {
         return FIELD_MODULUS - a;
     }
 
-    function _FQ1Sub(uint256 a, uint256 b) internal view returns (uint256) {
+    function _FQ1Sub(uint256 a, uint256 b) internal pure returns (uint256) {
         return _FQ1Add(a, _FQ1Neg(b));
     }
 
-    function _FQ1Mul(uint256 a, uint256 b) internal view returns (uint256 res) {
+    function _FQ1Mul(uint256 a, uint256 b) internal pure returns (uint256 res) {
         assembly {
             res := mulmod(a, b, FIELD_MODULUS)
         }
     }
 
-    function _FQ1Square(uint256 a) internal view returns (uint256 res) {
+    function _FQ1Square(uint256 a) internal pure returns (uint256 res) {
         assembly {
             res := mulmod(a, a, FIELD_MODULUS)
         }
     }
 
-    function _FQ1Inv(uint256 a) internal view returns (uint256) {
+    function _FQ1Inv(uint256 a) internal pure returns (uint256) {
         require(a != 0, "tried to get inverse of 0 in BN254G2 lib");
         (uint256 gcd, uint256 inverse) = Aux.xgcd(a, FIELD_MODULUS);
         require(gcd == 1, "gcd not 1");
@@ -330,7 +202,7 @@ library BN256G2 {
         return inverse;
     }
 
-    function _FQ1Div(uint256 a, uint256 b) internal view returns (uint256) {
+    function _FQ1Div(uint256 a, uint256 b) internal pure returns (uint256) {
         uint256 b_inv = _FQ1Inv(b);
         return _FQ1Mul(a, b_inv);
     }
@@ -339,10 +211,7 @@ library BN256G2 {
     // @returns the root was found.
     //
     // @notice reference: Algorithm 8 of https://eprint.iacr.org/2012/685.pdf
-    function FQ2Sqrt(
-        uint256 a0,
-        uint256 a1
-    ) public view returns (uint256, uint256) {
+    function FQ2Sqrt(uint256 a0, uint256 a1) public view returns (uint256, uint256) {
         if (a1 == 0) return (_FQ1Sqrt(a0), 0);
 
         // 4: alpha <- a_0^2 - beta * a_1^2
@@ -376,17 +245,15 @@ library BN256G2 {
         }
 
         // 15: x_0 <- SQRT(delta)
-        uint x0 = _FQ1Sqrt(delta);
+        uint256 x0 = _FQ1Sqrt(delta);
         // 16: x_1 <- (a1 / (2*x_0))
-        uint x1 = _FQ1Div(a1, _FQ1Mul(x0, 2));
+        uint256 x1 = _FQ1Div(a1, _FQ1Mul(x0, 2));
 
         // 17: x <- x_0 + x_1*y
         return (x0, x1);
     }
 
-    function G2Deserialize(
-        bytes memory input
-    ) internal view returns (BN254.G2Point memory point) {
+    function G2Deserialize(bytes memory input) internal view returns (BN254.G2Point memory point) {
         require(input.length == 64, "Compressed G2 point is not 64 bytes long");
         bytes memory x = UtilsExternal.reverseEndianness(input);
 
@@ -405,8 +272,8 @@ library BN256G2 {
         uint256 xx = 0;
         uint256 xy = 0;
 
-        for (uint i = 0; i < 32; i++) {
-            uint order = (32 - i - 1) * 8;
+        for (uint256 i = 0; i < 32; i++) {
+            uint256 order = (32 - i - 1) * 8;
             xy |= uint256(uint8(x[i])) << order;
             xx |= uint256(uint8(x[i + 32])) << order;
         }
@@ -444,12 +311,7 @@ library BN256G2 {
         return BN254.G2Point(xx, xy, yx, yy);
     }
 
-    function _isOnCurve(
-        uint256 xx,
-        uint256 xy,
-        uint256 yx,
-        uint256 yy
-    ) internal pure returns (bool) {
+    function _isOnCurve(uint256 xx, uint256 xy, uint256 yx, uint256 yy) internal pure returns (bool) {
         uint256 yyx;
         uint256 yyy;
         uint256 xxxx;
@@ -462,37 +324,19 @@ library BN256G2 {
         return yyx == 0 && yyy == 0;
     }
 
-    function _modInv(
-        uint256 a,
-        uint256 n
-    ) internal view returns (uint256 result) {
+    function _modInv(uint256 a, uint256 n) internal view returns (uint256 result) {
         uint256 length_of_base = 0x20;
         uint256 length_of_exponent = 0x20;
         uint256 length_of_modulus = 0x20;
 
-        (bool success, bytes memory result_bytes) = address(0x05).staticcall(
-            abi.encode(
-                length_of_base,
-                length_of_exponent,
-                length_of_modulus,
-                a,
-                n - 2,
-                n
-            )
-        );
+        (bool success, bytes memory result_bytes) =
+            address(0x05).staticcall(abi.encode(length_of_base, length_of_exponent, length_of_modulus, a, n - 2, n));
 
         result = abi.decode(result_bytes, (uint256));
         require(success, "BN256 _modInv staticcall failed");
     }
 
-    function _fromJacobian(
-        uint256 pt1xx,
-        uint256 pt1xy,
-        uint256 pt1yx,
-        uint256 pt1yy,
-        uint256 pt1zx,
-        uint256 pt1zy
-    )
+    function _fromJacobian(uint256 pt1xx, uint256 pt1xy, uint256 pt1yx, uint256 pt1yy, uint256 pt1zx, uint256 pt1zy)
         internal
         view
         returns (uint256 pt2xx, uint256 pt2xy, uint256 pt2yx, uint256 pt2yy)
@@ -519,24 +363,12 @@ library BN256G2 {
         uint256 pt2zy
     ) internal pure returns (uint256[6] memory pt3) {
         if (pt1zx == 0 && pt1zy == 0) {
-            (
-                pt3[PTXX],
-                pt3[PTXY],
-                pt3[PTYX],
-                pt3[PTYY],
-                pt3[PTZX],
-                pt3[PTZY]
-            ) = (pt2xx, pt2xy, pt2yx, pt2yy, pt2zx, pt2zy);
+            (pt3[PTXX], pt3[PTXY], pt3[PTYX], pt3[PTYY], pt3[PTZX], pt3[PTZY]) =
+                (pt2xx, pt2xy, pt2yx, pt2yy, pt2zx, pt2zy);
             return pt3;
         } else if (pt2zx == 0 && pt2zy == 0) {
-            (
-                pt3[PTXX],
-                pt3[PTXY],
-                pt3[PTYX],
-                pt3[PTYY],
-                pt3[PTZX],
-                pt3[PTZY]
-            ) = (pt1xx, pt1xy, pt1yx, pt1yy, pt1zx, pt1zy);
+            (pt3[PTXX], pt3[PTXY], pt3[PTYX], pt3[PTYY], pt3[PTZX], pt3[PTZY]) =
+                (pt1xx, pt1xy, pt1yx, pt1yy, pt1zx, pt1zy);
             return pt3;
         }
 
@@ -547,31 +379,11 @@ library BN256G2 {
 
         if (pt2xx == pt3[PTZX] && pt2xy == pt3[PTZY]) {
             if (pt2yx == pt3[PTYX] && pt2yy == pt3[PTYY]) {
-                (
-                    pt3[PTXX],
-                    pt3[PTXY],
-                    pt3[PTYX],
-                    pt3[PTYY],
-                    pt3[PTZX],
-                    pt3[PTZY]
-                ) = _ECTwistDoubleJacobian(
-                    pt1xx,
-                    pt1xy,
-                    pt1yx,
-                    pt1yy,
-                    pt1zx,
-                    pt1zy
-                );
+                (pt3[PTXX], pt3[PTXY], pt3[PTYX], pt3[PTYY], pt3[PTZX], pt3[PTZY]) =
+                    _ECTwistDoubleJacobian(pt1xx, pt1xy, pt1yx, pt1yy, pt1zx, pt1zy);
                 return pt3;
             }
-            (
-                pt3[PTXX],
-                pt3[PTXY],
-                pt3[PTYX],
-                pt3[PTYY],
-                pt3[PTZX],
-                pt3[PTZY]
-            ) = (1, 0, 1, 0, 0, 0);
+            (pt3[PTXX], pt3[PTXY], pt3[PTYX], pt3[PTYY], pt3[PTZX], pt3[PTZY]) = (1, 0, 1, 0, 0, 0);
             return pt3;
         }
 
@@ -604,14 +416,7 @@ library BN256G2 {
     )
         internal
         pure
-        returns (
-            uint256 pt2xx,
-            uint256 pt2xy,
-            uint256 pt2yx,
-            uint256 pt2yy,
-            uint256 pt2zx,
-            uint256 pt2zy
-        )
+        returns (uint256 pt2xx, uint256 pt2xy, uint256 pt2yx, uint256 pt2yy, uint256 pt2zx, uint256 pt2zy)
     {
         (pt2xx, pt2xy) = _FQ2Muc(pt1xx, pt1xy, 3); // 3 * x
         (pt2xx, pt2xy) = _FQ2Mul(pt2xx, pt2xy, pt1xx, pt1xy); // W = 3 * x * x
@@ -661,14 +466,8 @@ library BN256G2 {
                     pt1zy
                 );
             }
-            (pt1xx, pt1xy, pt1yx, pt1yy, pt1zx, pt1zy) = _ECTwistDoubleJacobian(
-                pt1xx,
-                pt1xy,
-                pt1yx,
-                pt1yy,
-                pt1zx,
-                pt1zy
-            );
+            (pt1xx, pt1xy, pt1yx, pt1yy, pt1zx, pt1zy) =
+                _ECTwistDoubleJacobian(pt1xx, pt1xy, pt1yx, pt1yy, pt1zx, pt1zy);
 
             d = d / 2;
         }
