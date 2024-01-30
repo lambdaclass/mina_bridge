@@ -7,19 +7,21 @@ import "../Commitment.sol";
 import "../Proof.sol";
 
 struct Sponge {
-    bytes state;
+    bytes pending;
 }
+
+using {BN254.isInfinity} for BN254.G1Point;
 
 library KeccakSponge {
     // Basic methods
 
     function reinit(Sponge storage self) external {
-        self.state = new bytes(0);
+        self.pending = new bytes(0);
     }
 
     function absorb(Sponge storage self, bytes memory b) external {
         for (uint256 i = 0; i < b.length; i++) {
-            self.state.push(b[i]);
+            self.pending.push(b[i]);
         }
     }
 
@@ -29,31 +31,39 @@ library KeccakSponge {
         returns (bytes memory digest)
     {
         digest = new bytes(byte_count);
-        bytes32 output;
 
-        for (uint256 i = 0; i < byte_count; i++) {
-            if (i % 32 == 0) {
-                output = keccak256(self.state);
-                self.state = abi.encode(output);
+        uint counter = 0;
+        while (counter < byte_count) {
+            bytes32 output = keccak256(self.pending);
+
+            for (uint i = 0; i < 32; i++) {
+                counter++;
+                if (counter >= byte_count) {
+                    break;
+                }
+                digest[counter] = output[i];
             }
 
-            digest[i] = output[i % 32];
+            // pending <- output
+            for (uint i = 0; i < 32; i++) {
+                self.pending[i] = output[i];
+            }
         }
     }
 
     // KZG methods
 
-    function absorb_base(Sponge storage self, Base.FE elem) external {
-        bytes memory b = abi.encode(elem);
+    function absorb_base(Sponge storage self, Base.FE elem) public {
+        bytes memory b = abi.encodePacked(elem);
         for (uint256 i = 0; i < b.length; i++) {
-            self.state.push(b[i]);
+            self.pending.push(b[i]);
         }
     }
 
     function absorb_scalar(Sponge storage self, Scalar.FE elem) external {
-        bytes memory b = abi.encode(elem);
+        bytes memory b = abi.encodePacked(elem);
         for (uint256 i = 0; i < b.length; i++) {
-            self.state.push(b[i]);
+            self.pending.push(b[i]);
         }
     }
 
@@ -61,28 +71,38 @@ library KeccakSponge {
         Sponge storage self,
         Scalar.FE[] memory elems
     ) external {
-        bytes memory b = abi.encode(elems);
+        bytes memory b = abi.encodePacked(elems);
         for (uint256 i = 0; i < b.length; i++) {
-            self.state.push(b[i]);
+            self.pending.push(b[i]);
         }
     }
 
-    function absorb_g(Sponge storage self, BN254.G1Point memory point)
-        external
+    function absorb_g(Sponge storage self, BN254.G1Point[] memory points)
+        public
     {
-        bytes memory b = abi.encode(point);
-        for (uint256 i = 0; i < b.length; i++) {
-            self.state.push(b[i]);
+        for (uint256 i = 0; i < points.length; i++) {
+            BN254.G1Point memory point = points[i];
+            if (point.isInfinity()) {
+                absorb_base(self, Base.zero());
+                absorb_base(self, Base.zero());
+            } else {
+                absorb_base(self, Base.from(point.x));
+                absorb_base(self, Base.from(point.y));
+            }
         }
     }
 
     function absorb_commitment(Sponge storage self, PolyComm memory comm)
         external
     {
-        bytes memory b = abi.encode(comm);
-        for (uint256 i = 0; i < b.length; i++) {
-            self.state.push(b[i]);
+        absorb_g(self, comm.unshifted);
+        if (!comm.shifted.isInfinity()) {
+            BN254.G1Point[] memory shifted = new BN254.G1Point[](1);
+            shifted[0] = comm.shifted;
+            absorb_g(self, shifted);
         }
+        // WARN: we should keep in mind that if the shifted part is assigned
+        // to the point at infinity then it means that there's no shifted part.
     }
 
     function absorb_evaluations(
@@ -95,7 +115,7 @@ library KeccakSponge {
             : abi.encode(0);
 
         for (uint256 i = 0; i < b.length; i++) {
-            self.state.push((b[0])[i]);
+            self.pending.push((b[0])[i]);
         }
     }
 
