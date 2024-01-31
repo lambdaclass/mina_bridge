@@ -279,6 +279,17 @@ library MsgPk {
         return "null";
     }
 
+    // @notice checks if `self` corresponds to the encoding of a `null` string.
+    function is_null(bytes memory self) public pure returns (bool) {
+        bytes memory null_encoded = abi.encode("null");
+        if (self.length != null_encoded.length) return false;
+
+        for (uint i = 0; i < self.length; i++) {
+            if (self[i] != null_encoded[i]) return false;
+        }
+        return true;
+    }
+
     function deser_bool(Stream memory self) public pure returns (bool) {
         bytes1 first = next(self);
         require(first == 0xc2 || first == 0xc3, "not a bool");
@@ -401,14 +412,24 @@ library MsgPk {
         // lookup commitments
         EncodedArray memory sorted_arr = abi.decode(find_value(lookup_map, abi.encode("sorted")), (EncodedArray));
         EncodedMap memory aggreg_map = abi.decode(find_value(lookup_map, abi.encode("aggreg")), (EncodedMap));
-        // EncodedMap memory runtime_map = abi.decode(find_value(lookup_map, abi.encode("runtime")), (EncodedMap)); // FIXME: this can be None or Some(x)
+
+        EncodedMap memory runtime_map;
+        bytes memory runtime_bytes = find_value(lookup_map, abi.encode("runtime"));
+        bool runtime_is_null = is_null(runtime_bytes);
+        if (!runtime_is_null) {
+            runtime_map = abi.decode(runtime_bytes, (EncodedMap));
+        }
 
         PolyComm[] memory lookup_sorted = new PolyComm[](sorted_arr.values.length);
         for (uint256 i = 0; i < lookup_sorted.length; i++) {
             lookup_sorted[i] = deser_poly_comm(abi.decode(sorted_arr.values[i], (EncodedMap)));
         }
         PolyComm memory lookup_aggreg = deser_poly_comm(aggreg_map);
-        //PolyComm memory lookup_runtime = deser_poly_comm(runtime_map); // FIXME: this can be None or Some(x)
+
+        PolyComm memory lookup_runtime;
+        if (!runtime_is_null) {
+            lookup_runtime = deser_poly_comm(runtime_map);
+        }
 
         prover_proof.commitments.w_comm = w_comm;
         prover_proof.commitments.z_comm = z_comm;
@@ -416,12 +437,12 @@ library MsgPk {
 
         prover_proof.commitments.lookup.sorted = lookup_sorted;
         prover_proof.commitments.lookup.aggreg = lookup_aggreg;
-        prover_proof.commitments.lookup.is_runtime_set = false;
-        //prover_proof.commitments.lookup.runtime = lookup_runtime;
-        // FIXME: for the current test proof this is None, but we need to check both possibilities.
-        // The blocker here is that, for checking what type this field is (null or PolyComm), we
-        // need to decode it (abi.decode()), but if we interpret the value wrongly the contract will revert.
-        // We need to find a workaround or having abi.decode() to not revert if that's possible.
+        if (!runtime_is_null) {
+            prover_proof.commitments.lookup.is_runtime_set = true;
+            prover_proof.commitments.lookup.runtime = lookup_runtime;
+        } else {
+            prover_proof.commitments.lookup.is_runtime_set = false;
+        }
 
         // deserialize opening proof
 
