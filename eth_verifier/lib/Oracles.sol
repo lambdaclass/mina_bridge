@@ -84,34 +84,65 @@ library Oracles {
             base_sponge.absorb_commitment(proof.commitments.w_comm[i]);
         }
 
-        // TODO: 6. If lookup is used:
+        // TODO: 6. If lookup is used, absorb runtime commitment
+        // INFO: this isn't needed for our current test proof
+
+        // TODO: 7. Calculate joint_combiner
+        // INFO: this isn't needed for our current test proof
+
+        // TODO: 8. If lookup is used, absorb commitments to the sorted polys:
         // WARN: is this necessary? (optional feature)
-        // INFO: For our current test proof, this isn't necessary.
+        // FIXME: For our current test proof, this IS necessary.
+        // we will hardcode it for now
+        base_sponge.absorb_g_single(BN254.G1Point(
+            0x1F282E94E64DB6A4561D40D28F4A9907F917715F8E39EFE39291738D904205A9,
+            0x2537703AC9B11FD3A03A63BE99CB875DDCFB92447F3FCAF6E5E95EEFBA02F65A
+        ));
+        base_sponge.absorb_g_single(BN254.G1Point(
+            0x09E5602033217DB9CBC9FB180B43E2D99B2EC7225EEDF72F48181B5426DD9E18,
+            0x06352C4CF90D97EB8FA408749FD9D1B81719E0CF231B38EE430C4F985F55C6C4
+        ));
+        base_sponge.absorb_g_single(BN254.G1Point(
+            0x081C7914829DB8C030A02EB6EA508D3D9718AE31F56CC321827F2E93E155ECA7,
+            0x2CD3D99342F426528859E2C4710BD4AE1F77FAE32CEB8E210CC852780F09C157
+        ));
+        base_sponge.absorb_g_single(BN254.G1Point(
+            0x2A866DD5BDEFD14888C757D5A1333F2FA76CD25E12BDFC733BAED47D60CFF3F4,
+            0x0739C1B896FF023AD0F64D957BF071B89807143D08D9B5722B29F8A32E0160C4
+        ));
+        base_sponge.absorb_g_single(BN254.G1Point(
+            0x02C1843F02843DD5F664B78B99CE64054E4E1D35D0C39DDEE2F8024A59EFA4FA,
+            0x0C2BBFA7AB8E35C685BAF4BE23FB5BCAB634989731DE500C592015CD0FDD4726
+        ));
 
-        // 7. Sample beta from the sponge
+        // 9. Sample beta from the sponge
         Scalar.FE beta = base_sponge.challenge_scalar();
-        // 8. Sample gamma from the sponge
+        //console.logBytes();
+        require(Scalar.FE.unwrap(beta) == 0x0000000000000000000000000000000000F906044A4BB47E9F4BB683FC26ACCB, "bad beta");
+        // 10. Sample gamma from the sponge
         Scalar.FE gamma = base_sponge.challenge_scalar();
+        require(Scalar.FE.unwrap(gamma) == 0x0000000000000000000000000000000000FD52D028905D0CB75C6DD8B4419E1D, "bad gamma");
 
-        // TODO: 9. If using lookup, absorb the commitment to the aggregation lookup polynomial.
+        // TODO: 11. If using lookup, absorb the commitment to the aggregation lookup polynomial.
         // WARN: is this necessary? (optional feature)
         // FIXME: For our current test proof, this IS necessary.
         // for now we'll hardcode the commitment
         base_sponge.absorb_g_single(BN254.G1Point(
-            0x2206AD2635ADB90123629DC4EC1FD25E5D3F6CD830E92D27E557F48ABD139DFB,
-            0x21D5BD2645F1738A3F1CEF4906398D0B7DD1EF0EC599C0F2C4F2966D42121BC3
+            0x0BC9EC8BAD1C0E5CB987316CEB5B02EF45D2854C195808F06F14F1DD40C5C205,
+            0x138C5DDEFA081284ECF96DB9773EC76F01B46167D0020675F5E234D6AECF50AF
         ));
 
-        // 10. Absorb the commitment to the permutation trace with the Fq-Sponge.
+        // 12. Absorb the commitment to the permutation trace with the Fq-Sponge.
         base_sponge.absorb_commitment(proof.commitments.z_comm);
 
-        // 11. Sample alpha prime
+        // 13. Sample alpha prime
         ScalarChallenge memory alpha_chal = ScalarChallenge(base_sponge.challenge_scalar());
 
-        // 12. Derive alpha using the endomorphism
+        // 14. Derive alpha using the endomorphism
         Scalar.FE alpha = alpha_chal.to_field(endo_r);
+        require(Scalar.FE.unwrap(alpha) == 0x19000699474F6587256A125E062D0117A432B46712F81CA697AB0B715D27D056, "bad alpha");
 
-        // 13. Enforce that the length of the $t$ commitment is of size 7.
+        // 15. Enforce that the length of the $t$ commitment is of size 7.
         if (proof.commitments.t_comm.unshifted.length > chunk_size * 7) {
             revert IncorrectCommitmentLength(
                 "t",
@@ -120,13 +151,14 @@ library Oracles {
             );
         }
 
-        // 14. Absorb commitment to the quotient polynomial $t$.
+        // 16. Absorb commitment to the quotient polynomial $t$.
         base_sponge.absorb_commitment(proof.commitments.t_comm);
 
-        // 15. Sample zeta prime
+        // 17. Sample zeta prime
         ScalarChallenge memory zeta_chal = ScalarChallenge(base_sponge.challenge_scalar());
-        // 16. Derive zeta using the endomorphism
+        // 18. Derive zeta using the endomorphism
         Scalar.FE zeta = zeta_chal.to_field(endo_r);
+        require(Scalar.FE.unwrap(zeta) == 0x15A5BD991130389F663A8DD55E473415DD6A82B94E6D338F19FF7A226088C95D, "bad zeta");
 
         // TODO: check the rest of the heuristic.
 

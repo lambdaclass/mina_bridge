@@ -117,6 +117,7 @@ contract KeccakSpongeTest is Test {
         );
         // INFO: reference value taken from analogous test in kzg_prover/sponge_tests.rs
     }
+
     function test_absorb_challenge_absorb_challenge_scalar() public {
         sponge.reinit();
         Scalar.FE[2] memory inputs = [Scalar.from(42), Scalar.from(24)];
@@ -132,6 +133,22 @@ contract KeccakSpongeTest is Test {
         assertEq(
             Scalar.FE.unwrap(challenge),
             0x0000000000000000000000000000000000D9E16B1DA42107514692CD8896E64F
+        );
+        // INFO: reference value taken from analogous test in kzg_prover/sponge_tests.rs
+    }
+
+    function test_challenge_challenge_scalar() public {
+        sponge.reinit();
+
+        Scalar.FE challenge = sponge.challenge_scalar();
+        assertEq(
+            Scalar.FE.unwrap(challenge),
+            0x0000000000000000000000000000000000C5D2460186F7233C927E7DB2DCC703
+        );
+        challenge = sponge.challenge_scalar();
+        assertEq(
+            Scalar.FE.unwrap(challenge),
+            0x000000000000000000000000000000000010CA3EFF73EBEC87D2394FC58560AF
         );
         // INFO: reference value taken from analogous test in kzg_prover/sponge_tests.rs
     }

@@ -76,15 +76,13 @@ type KeccakFrSponge = Keccak256FrSponge<ScalarField>;
 type KZGProof = PairingProof<ark_ec::bn::Bn<ark_bn254::Parameters>>;
 
 fn main() {
-    generate_test_proof_for_demo();
+    //generate_test_proof_for_demo();
     //generate_test_proof();
     generate_test_proof_for_evm_verifier();
 }
 
 fn generate_test_proof_for_evm_verifier() {
     let rng = &mut StdRng::from_seed([255u8; 32]);
-    println!("G1 endo_q: {}", G1::endos().0);
-    println!("G1 endo_r: {}", G1::endos().1);
 
     // Create range-check gadget
     let (mut next_row, mut gates) = CircuitGate::<ScalarField>::create_multi_range_check(0);
@@ -147,7 +145,6 @@ fn generate_test_proof_for_evm_verifier() {
         KZGProof,
     >(&index.verifier_index(), &proof, &public_inputs)
     .unwrap();
-    println!("domain_gen: {}", index.verifier_index().domain.group_gen);
 
     // Calculate numerator commitment
     let poly_commitment = create_poly_commitment(&agg_proof.evaluations, agg_proof.polyscale);
@@ -184,10 +181,6 @@ fn generate_test_proof_for_evm_verifier() {
     if !opening.verify(&srs, &evaluations, polyscale, &evaluation_points) {
         panic!();
     }
-
-    println!("verifier_srs.g[0]: {}", srs.verifier_srs.g[0]);
-    println!("verifier_srs.g[1]: {}", srs.verifier_srs.g[1]);
-    println!("verifier_srs.g[2]: {}", srs.verifier_srs.g[2]);
 
     // Serialize and write to binaries
     fs::write(

@@ -111,4 +111,20 @@ mod test {
             scalar_from_hex("0000000000000000000000000000000000D9E16B1DA42107514692CD8896E64F",)
         );
     }
+
+    #[test]
+    fn test_challenge_challenge_scalar() {
+        let mut sponge = KeccakFrSponge::new(G1::sponge_params());
+
+        let challenge = sponge.challenge();
+        assert_eq!(
+            challenge.0,
+            scalar_from_hex("0000000000000000000000000000000000C5D2460186F7233C927E7DB2DCC703",)
+        );
+        let challenge = sponge.challenge();
+        assert_eq!(
+            challenge.0,
+            scalar_from_hex("000000000000000000000000000000000010CA3EFF73EBEC87D2394FC58560AF",)
+        );
+    }
 }
