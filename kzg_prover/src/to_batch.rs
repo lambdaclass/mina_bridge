@@ -246,6 +246,8 @@ where
         }
     };
 
+    println!("public_comm: {}", public_comm.unshifted[0]);
+
     //~ 1. Run the [Fiat-Shamir argument](#fiat-shamir-argument).
     let OraclesResult {
         fq_sponge,

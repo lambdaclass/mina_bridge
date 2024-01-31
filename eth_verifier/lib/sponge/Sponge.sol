@@ -25,9 +25,8 @@ library KeccakSponge {
         }
     }
 
-    function squeeze(Sponge memory self, uint256 byte_count)
+    function squeeze(Sponge storage self, uint256 byte_count)
         public
-        pure
         returns (bytes memory digest)
     {
         digest = new bytes(byte_count);
@@ -45,6 +44,7 @@ library KeccakSponge {
             }
 
             // pending <- output
+            self.pending = new bytes(32);
             for (uint i = 0; i < 32; i++) {
                 self.pending[i] = output[i];
             }
@@ -74,6 +74,18 @@ library KeccakSponge {
         bytes memory b = abi.encodePacked(elems);
         for (uint256 i = 0; i < b.length; i++) {
             self.pending.push(b[i]);
+        }
+    }
+
+    function absorb_g_single(Sponge storage self, BN254.G1Point memory point)
+        public
+    {
+        if (point.isInfinity()) {
+            absorb_base(self, Base.zero());
+            absorb_base(self, Base.zero());
+        } else {
+            absorb_base(self, Base.from(point.x));
+            absorb_base(self, Base.from(point.y));
         }
     }
 
@@ -121,7 +133,6 @@ library KeccakSponge {
 
     function challenge_base(Sponge storage self)
         external
-        pure
         returns (Base.FE chal)
     {
         chal = Base.from_bytes_be(squeeze(self, 16));
@@ -129,7 +140,6 @@ library KeccakSponge {
 
     function challenge_scalar(Sponge storage self)
         external
-        pure
         returns (Scalar.FE chal)
     {
         chal = Scalar.from_bytes_be(squeeze(self, 16));
@@ -137,7 +147,6 @@ library KeccakSponge {
 
     function digest_base(Sponge storage self)
         external
-        pure
         returns (Base.FE digest)
     {
         digest = Base.from_bytes_be(squeeze(self, 32));
@@ -145,7 +154,6 @@ library KeccakSponge {
 
     function digest_scalar(Sponge storage self)
         external
-        pure
         returns (Scalar.FE digest)
     {
         digest = Scalar.from_bytes_be(squeeze(self, 32));

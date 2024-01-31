@@ -88,6 +88,18 @@ library BN254 {
         return G2Point(0, 0, 0, 0);
     }
 
+    function endo_coeffs_g1() internal pure returns (Base.FE endo_q, Scalar.FE endo_r) {
+        // INFO: values taken from Kimchi\'s Rust implementation.
+        return (
+            Base.from(
+                0x30644E72E131A0295E6DD9E7E0ACCCB0C28F069FBB966E3DE4BD44E5607CFD48
+            ),
+            Scalar.from(
+                0x30644E72E131A029048B6E193FD84104CC37A73FEC2BC5E9B8CA0B2D36636F23
+            )
+        );
+    }
+
     /// @dev check if a G1 point is Infinity
     /// @notice precompile bn256Add at address(6) takes (0, 0) as Point of Infinity,
     /// some crypto libraries (such as arkwork) uses a boolean flag to mark PoI, and
