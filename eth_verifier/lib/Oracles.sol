@@ -65,8 +65,6 @@ library Oracles {
         // WARN: is this necessary?
         // INFO: For our current test proof, this isn't necessary.
 
-        require(public_comm.unshifted[0].x == 0x259C9A9126385A54663D11F284944E91215DF44F4A502100B46BC91CCF373772);
-        require(public_comm.unshifted[0].y == 0x0EC1C952555B2D6978D2D39FA999D6469581ECF94F61262CDC9AA5C05FB8E70B);
         // 4. Absorb the commitment to the public inputs.
         base_sponge.absorb_commitment(public_comm);
 
