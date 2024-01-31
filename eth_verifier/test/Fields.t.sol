@@ -61,5 +61,6 @@ contract FieldsTest is Test {
             Scalar.FE.unwrap(chal.to_field(endo_r)),
             0x1B98C45C863AD2A1F4EB90EFBC8F1104AF5534B239720D63ECB7156E9347F622
         );
+        // INFO: reference value taken from analogous test in kzg_prover/misc_tests.rs
     }
 }

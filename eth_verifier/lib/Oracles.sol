@@ -79,6 +79,9 @@ library Oracles {
         // 4. Absorb the commitment to the public inputs.
         base_sponge.absorb_commitment(public_comm);
 
+        // INFO: up until this point, all previous values only depend on the verifier index which is fixed for a given
+        // constraint system.
+
         // 5. Absorb the commitments to the registers / witness columns
         for (uint i = 0; i < proof.commitments.w_comm.length; i++) {
             base_sponge.absorb_commitment(proof.commitments.w_comm[i]);
@@ -117,7 +120,6 @@ library Oracles {
 
         // 9. Sample beta from the sponge
         Scalar.FE beta = base_sponge.challenge_scalar();
-        //console.logBytes();
         require(Scalar.FE.unwrap(beta) == 0x0000000000000000000000000000000000F906044A4BB47E9F4BB683FC26ACCB, "bad beta");
         // 10. Sample gamma from the sponge
         Scalar.FE gamma = base_sponge.challenge_scalar();
@@ -161,6 +163,8 @@ library Oracles {
         require(Scalar.FE.unwrap(zeta) == 0x15A5BD991130389F663A8DD55E473415DD6A82B94E6D338F19FF7A226088C95D, "bad zeta");
 
         // TODO: check the rest of the heuristic.
+        // INFO: the calculation of the divisor polynomial only depends on the zeta challenge.
+        // The rest of the steps need to be debugged for calculating the numerator polynomial.
 
         scalar_sponge.reinit();
         scalar_sponge.absorb_scalar(base_sponge.digest_scalar());

@@ -89,7 +89,7 @@ library BN254 {
     }
 
     function endo_coeffs_g1() internal pure returns (Base.FE endo_q, Scalar.FE endo_r) {
-        // INFO: values taken from Kimchi\'s Rust impleentation.
+        // INFO: values taken from Kimchi\'s Rust implementation.
         return (
             Base.from(
                 0x30644E72E131A0295E6DD9E7E0ACCCB0C28F069FBB966E3DE4BD44E5607CFD48

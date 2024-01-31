@@ -506,7 +506,7 @@ library MsgPk {
     // first two points (in the final verification step, we need the `full_urs` for commitment a
     // evaluation polynomial, which seems to be always of degree 1).
     function deser_pairing_urs(Stream memory self, PairingURS storage urs) public {
-// full_srs and verifier_srs fields
+        // full_srs and verifier_srs fields
         EncodedMap memory urs_map = deser_fixmap(self);
 
         EncodedMap memory full_urs_serialized = abi.decode(find_value(urs_map, abi.encode("full_srs")), (EncodedMap));

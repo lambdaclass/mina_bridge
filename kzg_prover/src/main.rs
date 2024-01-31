@@ -76,7 +76,7 @@ type KeccakFrSponge = Keccak256FrSponge<ScalarField>;
 type KZGProof = PairingProof<ark_ec::bn::Bn<ark_bn254::Parameters>>;
 
 fn main() {
-    //generate_test_proof_for_demo();
+    generate_test_proof_for_demo();
     //generate_test_proof();
     generate_test_proof_for_evm_verifier();
 }
