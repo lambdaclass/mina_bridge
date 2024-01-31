@@ -84,30 +84,10 @@ library Oracles {
         // TODO: 7. Calculate joint_combiner
         // INFO: this isn't needed for our current test proof
 
-        // TODO: 8. If lookup is used, absorb commitments to the sorted polys:
-        // WARN: is this necessary? (optional feature)
-        // FIXME: For our current test proof, this IS necessary.
-        // we will hardcode it for now
-        base_sponge.absorb_g_single(BN254.G1Point(
-            0x1F282E94E64DB6A4561D40D28F4A9907F917715F8E39EFE39291738D904205A9,
-            0x2537703AC9B11FD3A03A63BE99CB875DDCFB92447F3FCAF6E5E95EEFBA02F65A
-        ));
-        base_sponge.absorb_g_single(BN254.G1Point(
-            0x09E5602033217DB9CBC9FB180B43E2D99B2EC7225EEDF72F48181B5426DD9E18,
-            0x06352C4CF90D97EB8FA408749FD9D1B81719E0CF231B38EE430C4F985F55C6C4
-        ));
-        base_sponge.absorb_g_single(BN254.G1Point(
-            0x081C7914829DB8C030A02EB6EA508D3D9718AE31F56CC321827F2E93E155ECA7,
-            0x2CD3D99342F426528859E2C4710BD4AE1F77FAE32CEB8E210CC852780F09C157
-        ));
-        base_sponge.absorb_g_single(BN254.G1Point(
-            0x2A866DD5BDEFD14888C757D5A1333F2FA76CD25E12BDFC733BAED47D60CFF3F4,
-            0x0739C1B896FF023AD0F64D957BF071B89807143D08D9B5722B29F8A32E0160C4
-        ));
-        base_sponge.absorb_g_single(BN254.G1Point(
-            0x02C1843F02843DD5F664B78B99CE64054E4E1D35D0C39DDEE2F8024A59EFA4FA,
-            0x0C2BBFA7AB8E35C685BAF4BE23FB5BCAB634989731DE500C592015CD0FDD4726
-        ));
+        // 8. If lookup is used, absorb commitments to the sorted polys:
+        for (uint i = 0; i < proof.commitments.lookup.sorted.length; i++) {
+            base_sponge.absorb_commitment(proof.commitments.lookup.sorted[i]);
+        }
 
         // 9. Sample beta from the sponge
         Scalar.FE beta = base_sponge.challenge_scalar();
@@ -116,14 +96,8 @@ library Oracles {
         Scalar.FE gamma = base_sponge.challenge_scalar();
         require(Scalar.FE.unwrap(gamma) == 0x0000000000000000000000000000000000FD52D028905D0CB75C6DD8B4419E1D, "bad gamma");
 
-        // TODO: 11. If using lookup, absorb the commitment to the aggregation lookup polynomial.
-        // WARN: is this necessary? (optional feature)
-        // FIXME: For our current test proof, this IS necessary.
-        // for now we'll hardcode the commitment
-        base_sponge.absorb_g_single(BN254.G1Point(
-            0x0BC9EC8BAD1C0E5CB987316CEB5B02EF45D2854C195808F06F14F1DD40C5C205,
-            0x138C5DDEFA081284ECF96DB9773EC76F01B46167D0020675F5E234D6AECF50AF
-        ));
+        // 11. If using lookup, absorb the commitment to the aggregation lookup polynomial.
+        base_sponge.absorb_commitment(proof.commitments.lookup.aggreg);
 
         // 12. Absorb the commitment to the permutation trace with the Fq-Sponge.
         base_sponge.absorb_commitment(proof.commitments.z_comm);

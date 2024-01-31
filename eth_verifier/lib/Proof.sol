@@ -55,6 +55,17 @@ struct ProverCommitments {
     PolyComm[15] w_comm; // TODO: use Constants.COLUMNS
     PolyComm z_comm;
     PolyComm t_comm;
+
+    bool is_lookup_set;
+    LookupCommitments lookup;
+}
+
+struct LookupCommitments {
+    PolyComm[] sorted;
+    PolyComm aggreg;
+
+    bool is_runtime_set;
+    PolyComm runtime; // INFO: optional
 }
 
 function combine_evals(ProofEvaluationsArray memory self, PointEvaluations memory pt)
