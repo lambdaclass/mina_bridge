@@ -70,8 +70,8 @@ contract KimchiVerifier {
         MsgPk.deser_pairing_urs(MsgPk.new_stream(urs_serialized), urs);
 
         // x is a seed used in the KZG prover for creating the trusted setup.
-        Scalar.FE x = Scalar.from(42);
-        uint256 max_domain_size = 16384;
+        // TODO Scalar.FE x = Scalar.from(42);
+        //uint256 max_domain_size = 16384;
 
         verifier_index.powers_of_alpha.register(ArgumentType.GateZero, 21);
         verifier_index.powers_of_alpha.register(ArgumentType.Permutation, 3);
@@ -81,10 +81,9 @@ contract KimchiVerifier {
         verifier_index.powers_of_alpha.register(ArgumentType.Permutation, Constants.PERMUTATION_CONSTRAINTS);
     }
 
-    function deserialize_proof(
-        bytes calldata verifier_index_serialized,
-        bytes calldata prover_proof_serialized
-    ) public {
+    function deserialize_proof(bytes calldata verifier_index_serialized, bytes calldata prover_proof_serialized)
+        public
+    {
         MsgPk.deser_verifier_index(MsgPk.new_stream(verifier_index_serialized), verifier_index);
         MsgPk.deser_prover_proof(MsgPk.new_stream(prover_proof_serialized), proof);
     }
@@ -107,8 +106,7 @@ contract KimchiVerifier {
         //    verifier_index.urs.lagrange_bases_unshifted
         //);
 
-        AggregatedEvaluationProof memory agg_proof =
-            partial_verify_stripped(new Scalar.FE[](0));
+        AggregatedEvaluationProof memory agg_proof = partial_verify_stripped(new Scalar.FE[](0));
 
         return final_verify(agg_proof, urs.verifier_urs, numerator);
     }
@@ -173,9 +171,7 @@ contract KimchiVerifier {
                 elm[i] = public_inputs[i].neg();
             }
             PolyComm memory public_comm_tmp = polycomm_msm(comm, elm);
-            Scalar.FE[] memory blinders = new Scalar.FE[](
-                public_comm_tmp.unshifted.length
-            );
+            Scalar.FE[] memory blinders = new Scalar.FE[](public_comm_tmp.unshifted.length);
             for (uint256 i = 0; i < public_comm_tmp.unshifted.length; i++) {
                 blinders[i] = Scalar.FE.wrap(1);
             }
@@ -245,7 +241,10 @@ contract KimchiVerifier {
 
     // @notice executes only the needed steps of partial verification for
     // @notice the current version of the final verification steps.
-    function partial_verify_stripped(Scalar.FE[] memory public_inputs) public returns (AggregatedEvaluationProof memory) {
+    function partial_verify_stripped(Scalar.FE[] memory public_inputs)
+        public
+        returns (AggregatedEvaluationProof memory)
+    {
         // Commit to the negated public input polynomial.
 
         uint256 chunk_size = verifier_index.domain_size < verifier_index.max_poly_size
@@ -277,9 +276,7 @@ contract KimchiVerifier {
                 elm[i] = public_inputs[i].neg();
             }
             PolyComm memory public_comm_tmp = polycomm_msm(comm, elm);
-            Scalar.FE[] memory blinders = new Scalar.FE[](
-                public_comm_tmp.unshifted.length
-            );
+            Scalar.FE[] memory blinders = new Scalar.FE[](public_comm_tmp.unshifted.length);
             for (uint256 i = 0; i < public_comm_tmp.unshifted.length; i++) {
                 blinders[i] = Scalar.FE.wrap(1);
             }
@@ -320,7 +317,7 @@ contract KimchiVerifier {
     /// The polynomial that evaluates to each of `evals` for the respective `elm`s.
     function evalPolynomial(Scalar.FE[] memory elm, Scalar.FE[] memory evals)
         public
-        view
+        pure
         returns (Polynomial.Dense memory)
     {
         require(elm.length == evals.length, "lengths don\'t match");
@@ -359,6 +356,7 @@ contract KimchiVerifier {
 
     function combineCommitments(Evaluation[] memory evaluations, Scalar.FE polyscale, Scalar.FE rand_base)
         internal
+        pure
         returns (BN254.G1Point[] memory, Scalar.FE[] memory)
     {
         uint256 vec_length = 0;

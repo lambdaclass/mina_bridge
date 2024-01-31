@@ -58,9 +58,7 @@ struct PairingURS {
 }
 
 function random_lagrange_bases(PairingURS storage urs, uint256 domain_size) {
-    uint256 n = domain_size;
-
-    uint256[] memory u_lengths = new uint[](1);
+    uint256[] memory u_lengths = new uint256[](1);
     u_lengths[0] = domain_size;
 
     BN254.G1Point[] memory unshifteds = new BN254.G1Point[](domain_size);
@@ -110,7 +108,7 @@ function poly_comm_unflat(PolyCommFlat memory com) pure returns (PolyComm[] memo
 
 function poly_comm_flat(PolyComm[] memory com) pure returns (PolyCommFlat memory) {
     uint256 total_length = 0;
-    uint256[] memory unshifted_lengths = new uint[](com.length);
+    uint256[] memory unshifted_lengths = new uint256[](com.length);
     for (uint256 i = 0; i < com.length; i++) {
         total_length += com[i].unshifted.length;
         unshifted_lengths[i] = com[i].unshifted.length;
@@ -201,9 +199,7 @@ function naive_msm(BN254.G2Point[] memory points, Scalar.FE[] memory scalars) vi
     BN254.G2Point memory result = BN254.point_at_inf_g2();
 
     for (uint256 i = 0; i < points.length; i++) {
-        BN254.G2Point memory p = BN256G2.ECTwistMul(
-            Scalar.FE.unwrap(scalars[i]), points[i]
-        );
+        BN254.G2Point memory p = BN256G2.ECTwistMul(Scalar.FE.unwrap(scalars[i]), points[i]);
         result = BN256G2.ECTwistAdd(result, p);
     }
 
@@ -299,7 +295,7 @@ function calculate_lagrange_bases(
     }
 
     PolyCommFlat storage bases_unshifted = lagrange_bases_unshifted[domain_size];
-    uint256[] memory unshifted_lengths = new uint[](num_unshifteds);
+    uint256[] memory unshifted_lengths = new uint256[](num_unshifteds);
     for (uint256 i = 0; i < num_unshifteds; i++) {
         unshifted_lengths[i] = 0;
     }
@@ -355,18 +351,17 @@ function combined_inner_product(
 
 /// @notice commits a polynomial using a URS in G2 of size `n`, splitting in at least
 /// @notice `num_chunks` unshifted chunks.
-function commit_non_hiding(
-    URSG2 memory self,
-    Polynomial.Dense memory plnm,
-    uint256 num_chunks
-) view returns (PolyCommG2 memory comm) {
+function commit_non_hiding(URSG2 memory self, Polynomial.Dense memory plnm, uint256 num_chunks)
+    view
+    returns (PolyCommG2 memory comm)
+{
     bool is_zero = plnm.is_zero();
 
-    uint basis_len = self.g.length;
-    uint coeffs_len = plnm.coeffs.length;
+    uint256 basis_len = self.g.length;
+    uint256 coeffs_len = plnm.coeffs.length;
 
-    uint unshifted_len = is_zero ? 1 : coeffs_len / basis_len;
-    uint odd_chunk_len = coeffs_len % basis_len;
+    uint256 unshifted_len = is_zero ? 1 : coeffs_len / basis_len;
+    uint256 odd_chunk_len = coeffs_len % basis_len;
     if (odd_chunk_len != 0) unshifted_len += 1;
     BN254.G2Point[] memory unshifted = new BN254.G2Point[](Utils.max(unshifted_len, num_chunks));
 
@@ -374,9 +369,9 @@ function commit_non_hiding(
         unshifted[0] = BN254.point_at_inf_g2();
     } else {
         // whole chunks
-        for (uint i = 0; i < coeffs_len / basis_len; i++) {
+        for (uint256 i = 0; i < coeffs_len / basis_len; i++) {
             Scalar.FE[] memory coeffs_chunk = new Scalar.FE[](basis_len);
-            for (uint j = 0; j < coeffs_chunk.length; j++) {
+            for (uint256 j = 0; j < coeffs_chunk.length; j++) {
                 coeffs_chunk[j] = plnm.coeffs[j + i * basis_len];
             }
 
@@ -386,10 +381,10 @@ function commit_non_hiding(
         // odd chunk
         if (odd_chunk_len != 0) {
             Scalar.FE[] memory coeffs_chunk = new Scalar.FE[](basis_len);
-            for (uint j = 0; j < odd_chunk_len; j++) {
+            for (uint256 j = 0; j < odd_chunk_len; j++) {
                 coeffs_chunk[j] = plnm.coeffs[j + (coeffs_len / basis_len) * basis_len];
             }
-            for (uint j = odd_chunk_len; j < coeffs_chunk.length; j++) {
+            for (uint256 j = odd_chunk_len; j < coeffs_chunk.length; j++) {
                 coeffs_chunk[j] = Scalar.zero();
             } // FIXME: fill with zeros so I don't have to modify the MSM algorithm
 
@@ -397,7 +392,7 @@ function commit_non_hiding(
         }
     }
 
-    for (uint i = unshifted_len; i < num_chunks; i++) {
+    for (uint256 i = unshifted_len; i < num_chunks; i++) {
         unshifted[i] = BN254.point_at_inf_g2();
     }
 

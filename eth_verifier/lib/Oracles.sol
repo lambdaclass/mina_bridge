@@ -13,15 +13,7 @@ import "./Constants.sol";
 
 library Oracles {
     using {to_field_with_length, to_field} for ScalarChallenge;
-    using {
-        Scalar.neg,
-        Scalar.add,
-        Scalar.sub,
-        Scalar.mul,
-        Scalar.inv,
-        Scalar.double,
-        Scalar.pow
-    } for Scalar.FE;
+    using {Scalar.neg, Scalar.add, Scalar.sub, Scalar.mul, Scalar.inv, Scalar.double, Scalar.pow} for Scalar.FE;
     using {AlphasLib.instantiate, AlphasLib.get_alphas} for Alphas;
     using {
         KeccakSponge.reinit,
@@ -56,8 +48,7 @@ library Oracles {
         Sponge storage base_sponge,
         Sponge storage scalar_sponge
     ) public returns (Result memory) {
-        uint chunk_size = index.domain_size < index.max_poly_size ?
-            1 : index.domain_size / index.max_poly_size;
+        uint256 chunk_size = index.domain_size < index.max_poly_size ? 1 : index.domain_size / index.max_poly_size;
 
         (Base.FE _endo_q, Scalar.FE endo_r) = BN254.endo_coeffs_g1();
 
@@ -175,11 +166,8 @@ library Oracles {
         Scalar.FE[] memory evaluation_points = new Scalar.FE[](2);
         evaluation_points[0] = zeta;
         evaluation_points[1] = zetaw;
-        PointEvaluations
-            memory powers_of_eval_points_for_chunks = PointEvaluations(
-                zeta.pow(index.max_poly_size),
-                zetaw.pow(index.max_poly_size)
-            );
+        PointEvaluations memory powers_of_eval_points_for_chunks =
+            PointEvaluations(zeta.pow(index.max_poly_size), zetaw.pow(index.max_poly_size));
 
         // TODO: Compute evaluations for the previous recursion challenges
 
@@ -199,8 +187,8 @@ library Oracles {
             // compute Lagrange base evaluation denominators
 
             Scalar.FE[] memory w = new Scalar.FE[](public_input.length);
-            Scalar.FE[] memory zeta_minus_x = new Scalar.FE[](public_input.length*2);
-            for (uint i = 0; i < public_input.length; i++) {
+            Scalar.FE[] memory zeta_minus_x = new Scalar.FE[](public_input.length * 2);
+            for (uint256 i = 0; i < public_input.length; i++) {
                 Scalar.FE w_i = index.domain_gen.pow(i);
                 w[i] = w_i;
                 zeta_minus_x[i] = zeta.sub(w_i).inv();
@@ -214,7 +202,7 @@ library Oracles {
                 public_evals = [zero, zero];
             } else {
                 Scalar.FE pe_zeta = Scalar.zero();
-                for (uint i = 0; i < public_input.length; i++) {
+                for (uint256 i = 0; i < public_input.length; i++) {
                     Scalar.FE p = public_input[i];
                     Scalar.FE l = zeta_minus_x[i];
                     Scalar.FE w_i = w[i];
@@ -226,16 +214,14 @@ library Oracles {
                 pe_zeta = pe_zeta.mul(zeta1.sub(Scalar.from(1))).mul(size_inv);
 
                 Scalar.FE pe_zetaOmega = Scalar.zero();
-                for (uint i = 0; i < public_input.length; i++) {
+                for (uint256 i = 0; i < public_input.length; i++) {
                     Scalar.FE p = public_input[i];
                     Scalar.FE l = zeta_minus_x[i + public_input.length];
                     Scalar.FE w_i = w[i];
 
                     pe_zetaOmega = pe_zetaOmega.add(l.neg().mul(p).mul(w_i));
                 }
-                pe_zetaOmega = pe_zetaOmega
-                    .mul(zetaw.pow(index.domain_size).sub(Scalar.from(1)))
-                    .mul(size_inv);
+                pe_zetaOmega = pe_zetaOmega.mul(zetaw.pow(index.domain_size).sub(Scalar.from(1))).mul(size_inv);
 
                 Scalar.FE[] memory pe_zeta_arr = new Scalar.FE[](1);
                 Scalar.FE[] memory pe_zetaOmega_arr = new Scalar.FE[](1);
@@ -266,32 +252,27 @@ library Oracles {
         Scalar.FE permutation_vanishing_poly = Scalar.from(1); // FIXME: evaluate poly in zeta
         Scalar.FE zeta1m1 = zeta1.sub(Scalar.from(1));
 
-        uint permutation_constraints = 3;
+        uint256 permutation_constraints = 3;
         Scalar.FE[] memory alpha_pows = all_alphas.get_alphas(ArgumentType.Permutation, permutation_constraints);
         Scalar.FE alpha0 = alpha_pows[0];
         Scalar.FE alpha1 = alpha_pows[1];
         Scalar.FE alpha2 = alpha_pows[2];
         // WARN: alpha_powers should be an iterator and alphai = alpha_powers.next(), for i = 0,1,2.
 
-        Scalar.FE ft_eval0 = evals.w[Constants.PERMUTS - 1].zeta.add(gamma)
-            .mul(evals.z.zeta_omega)
-            .mul(alpha0)
-            .mul(permutation_vanishing_poly);
+        Scalar.FE ft_eval0 = evals.w[Constants.PERMUTS - 1].zeta.add(gamma).mul(evals.z.zeta_omega).mul(alpha0).mul(
+            permutation_vanishing_poly
+        );
 
-        for (uint i = 0; i < Constants.PERMUTS - 1; i++) {
+        for (uint256 i = 0; i < Constants.PERMUTS - 1; i++) {
             PointEvaluations memory w = evals.w[i];
             PointEvaluations memory s = evals.s[i];
             ft_eval0 = ft_eval0.mul(beta.mul(s.zeta).add(w.zeta).add(gamma));
         }
 
-        ft_eval0 = ft_eval0.sub(
-            Polynomial.build_and_eval(
-                public_evals[0],
-                powers_of_eval_points_for_chunks.zeta
-        ));
+        ft_eval0 = ft_eval0.sub(Polynomial.build_and_eval(public_evals[0], powers_of_eval_points_for_chunks.zeta));
 
         Scalar.FE ev = alpha0.mul(permutation_vanishing_poly).mul(evals.z.zeta);
-        for (uint i = 0; i < Constants.PERMUTS; i++) {
+        for (uint256 i = 0; i < Constants.PERMUTS; i++) {
             PointEvaluations memory w = evals.w[i];
             Scalar.FE s = index.shift[i];
 
@@ -299,9 +280,9 @@ library Oracles {
         }
         ft_eval0 = ft_eval0.sub(ev);
 
-        Scalar.FE numerator = zeta1m1.mul(alpha1).mul(zeta.sub(index.w))
-            .add(zeta1m1.mul(alpha2).mul(zeta.sub(Scalar.from(1))))
-            .mul(Scalar.from(1).sub(evals.z.zeta));
+        Scalar.FE numerator = zeta1m1.mul(alpha1).mul(zeta.sub(index.w)).add(
+            zeta1m1.mul(alpha2).mul(zeta.sub(Scalar.from(1)))
+        ).mul(Scalar.from(1).sub(evals.z.zeta));
 
         Scalar.FE denominator = zeta.sub(index.w).mul(zeta.sub(Scalar.from(1))).inv();
 
@@ -309,10 +290,10 @@ library Oracles {
 
         // TODO: evaluate final polynomial (PolishToken)
 
-        uint matrix_count = 2;
-        uint total_length = 0;
-        uint[] memory rows = new uint[](matrix_count);
-        uint[] memory cols = new uint[](matrix_count);
+        uint256 matrix_count = 2;
+        uint256 total_length = 0;
+        uint256[] memory rows = new uint256[](matrix_count);
+        uint256[] memory cols = new uint256[](matrix_count);
 
         // public evals
         rows[0] = public_evals.length;
@@ -327,21 +308,21 @@ library Oracles {
         // save the data in a flat array in a column-major so there's no need
         // to transpose each matrix later.
         Scalar.FE[] memory es_data = new Scalar.FE[](total_length);
-        uint[] memory starts = new uint[](matrix_count);
-        uint curr = 0;
+        uint256[] memory starts = new uint256[](matrix_count);
+        uint256 curr = 0;
 
         starts[0] = curr;
-        for (uint i = 0; i < rows[0] * cols[0]; i++) {
-            uint col = i / rows[0];
-            uint row = i % rows[0];
+        for (uint256 i = 0; i < rows[0] * cols[0]; i++) {
+            uint256 col = i / rows[0];
+            uint256 row = i % rows[0];
             es_data[i] = public_evals[row][col];
             curr++;
         }
 
         starts[1] = curr;
-        for (uint i = 0; i < rows[1] * cols[1]; i++) {
-            uint col = i / rows[0];
-            uint row = i % rows[0];
+        for (uint256 i = 0; i < rows[1] * cols[1]; i++) {
+            uint256 col = i / rows[0];
+            uint256 row = i % rows[0];
             es_data[i] = [[ft_eval0]][row][col]; // TODO: ft_eval1;
             curr++;
         }
@@ -352,18 +333,8 @@ library Oracles {
         // TODO: add evaluations of all columns
 
         Scalar.FE combined_inner_prod = combined_inner_product(evaluation_points, v, u, es, index.max_poly_size);
-        RandomOracles memory oracles = RandomOracles(
-            beta,
-            gamma,
-            alpha_chal,
-            alpha,
-            zeta,
-            v,
-            u,
-            alpha_chal,
-            v_chal,
-            u_chal
-        );
+        RandomOracles memory oracles =
+            RandomOracles(beta, gamma, alpha_chal, alpha, zeta, v, u, alpha_chal, v_chal, u_chal);
 
         return Result(oracles, powers_of_eval_points_for_chunks);
     }
@@ -392,11 +363,11 @@ library Oracles {
         Scalar.FE chal;
     }
 
-    function to_field_with_length(
-        ScalarChallenge memory self,
-        uint length_in_bits,
-        Scalar.FE endo_coeff
-    ) internal pure returns (Scalar.FE) {
+    function to_field_with_length(ScalarChallenge memory self, uint256 length_in_bits, Scalar.FE endo_coeff)
+        internal
+        pure
+        returns (Scalar.FE)
+    {
         uint64[] memory r = get_limbs_64(Scalar.FE.unwrap(self.chal));
         Scalar.FE a = Scalar.from(2);
         Scalar.FE b = Scalar.from(2);
@@ -423,32 +394,24 @@ library Oracles {
         return a.mul(endo_coeff).add(b);
     }
 
-    function to_field(
-        ScalarChallenge memory self,
-        Scalar.FE endo_coeff
-    ) internal pure returns (Scalar.FE) {
+    function to_field(ScalarChallenge memory self, Scalar.FE endo_coeff) internal pure returns (Scalar.FE) {
         uint64 length_in_bits = 64 * CHALLENGE_LENGTH_IN_LIMBS;
         return self.to_field_with_length(length_in_bits, endo_coeff);
     }
 
-    function get_bit(
-        uint64[] memory limbs_lsb,
-        uint64 i
-    ) internal pure returns (uint64) {
+    function get_bit(uint64[] memory limbs_lsb, uint64 i) internal pure returns (uint64) {
         uint64 limb = i / 64;
         uint64 j = i % 64;
         return (limbs_lsb[limb] >> j) & 1;
     }
 
     /// @notice Decomposes `n` into 64 bit limbs, less significant first
-    function get_limbs_64(
-        uint256 n
-    ) internal pure returns (uint64[] memory limbs) {
-        uint len = 256 / 64;
+    function get_limbs_64(uint256 n) internal pure returns (uint64[] memory limbs) {
+        uint256 len = 256 / 64;
         uint128 mask_64 = (1 << 64) - 1;
 
         limbs = new uint64[](len);
-        for (uint i = 0; i < len; i++) {
+        for (uint256 i = 0; i < len; i++) {
             limbs[i] = uint64(n & mask_64);
             n >>= 64;
         }
@@ -457,11 +420,9 @@ library Oracles {
     }
 
     /// @notice Recomposes 64-bit `limbs` into a bigint, less significant first
-    function from_limbs_64(
-        uint64[] memory limbs
-    ) internal pure returns (uint256 n_rebuilt) {
+    function from_limbs_64(uint64[] memory limbs) internal pure returns (uint256 n_rebuilt) {
         n_rebuilt = 0;
-        for (uint i = 0; i < limbs.length; i++) {
+        for (uint64 i = 0; i < limbs.length; i++) {
             n_rebuilt += limbs[i] << (64 * i);
         }
     }

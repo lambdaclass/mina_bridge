@@ -34,17 +34,17 @@ library MsgPk {
     }
 
     /// @notice returns current byte and advances index.
-    function next(Stream memory self) public view returns (bytes1 b) {
+    function next(Stream memory self) public pure returns (bytes1 b) {
         b = self.data[self.curr_index];
         self.curr_index += 1;
     }
 
     /// @notice returns current byte without advancing index.
-    function curr(Stream memory self) public view returns (bytes1) {
+    function curr(Stream memory self) public pure returns (bytes1) {
         return self.data[self.curr_index];
     }
 
-    function next_n(Stream memory self, uint256 n) public view returns (bytes memory consumed) {
+    function next_n(Stream memory self, uint256 n) public pure returns (bytes memory consumed) {
         consumed = new bytes(n);
         for (uint256 i = 0; i < n; i++) {
             consumed[i] = self.data[self.curr_index + i];
@@ -107,7 +107,7 @@ library MsgPk {
         }
     }
 
-    function deser_str(Stream memory self) public view returns (string memory) {
+    function deser_str(Stream memory self) public pure returns (string memory) {
         bytes1 first = next(self);
         require(first >> 5 == 0x05 || first == 0xd9 || first == 0xda || first == 0xdb, "not a fixstr or strX");
 
@@ -136,7 +136,7 @@ library MsgPk {
         }
     }
 
-    function deser_bin8(Stream memory self) public view returns (bytes memory) {
+    function deser_bin8(Stream memory self) public pure returns (bytes memory) {
         require(next(self) == 0xC4, "not a stream of bin8 (bytes)");
 
         // next byte is the length of the stream in one byte
@@ -214,7 +214,7 @@ library MsgPk {
         }
     }
 
-    function deser_uint(Stream memory self) public view returns (uint256) {
+    function deser_uint(Stream memory self) public pure returns (uint256) {
         bytes1 first = next(self);
         require(first >> 2 == 0x33, "not a uint");
         // 110011XX are uints of 8,16,32,64 bits.
@@ -232,7 +232,7 @@ library MsgPk {
         }
     }
 
-    function deser_int(Stream memory self) public view returns (int256) {
+    function deser_int(Stream memory self) public pure returns (int256) {
         bytes1 first = next(self);
         require(first >> 2 == 0x34, "not a int");
         // 110100XX are ints of 8,16,32,64 bits.
@@ -265,21 +265,21 @@ library MsgPk {
         }
     }
 
-    function deser_posfixint(Stream memory self) public view returns (uint8) {
+    function deser_posfixint(Stream memory self) public pure returns (uint8) {
         bytes1 first = next(self);
         require(first >> 7 == 0x00, "not a positive fixint");
 
         return uint8(first);
     }
 
-    function deser_null(Stream memory self) public view returns (string memory) {
+    function deser_null(Stream memory self) public pure returns (string memory) {
         bytes1 first = next(self);
         require(first == 0xc0, "not null");
 
         return "null";
     }
 
-    function deser_bool(Stream memory self) public view returns (bool) {
+    function deser_bool(Stream memory self) public pure returns (bool) {
         bytes1 first = next(self);
         require(first == 0xc2 || first == 0xc3, "not a bool");
 
@@ -300,7 +300,7 @@ library MsgPk {
 
         // domain_size is 64 bit and the first element, so 8 bytes and no offset:
         index.domain_size = 0;
-        for (uint256 i = 0; i < 8; i++) {
+        for (uint64 i = 0; i < 8; i++) {
             index.domain_size += uint64(uint8(domain_b[i])) << (i * 8);
         }
 
@@ -516,8 +516,7 @@ library MsgPk {
         // get data from g and h fields (g is an array of bin8 and h is a bin8)
         EncodedArray memory full_urs_g_serialized =
             abi.decode(find_value(full_urs_serialized, abi.encode("g")), (EncodedArray));
-        bytes memory full_urs_h_serialized =
-            abi.decode(find_value(full_urs_serialized, abi.encode("h")), (bytes));
+        bytes memory full_urs_h_serialized = abi.decode(find_value(full_urs_serialized, abi.encode("h")), (bytes));
 
         EncodedArray memory verifier_urs_g_serialized =
             abi.decode(find_value(verifier_urs_serialized, abi.encode("g")), (EncodedArray));
@@ -567,7 +566,7 @@ library MsgPk {
         }
     }
 
-    function deser_column(bytes memory col) public view returns (Column memory) {
+    function deser_column(bytes memory col) public pure returns (Column memory) {
         // if col is an encoded string, then it may be a unit value. In this case the encoded bytes
         // must not be more than 32:
         if (col.length <= 32) {
@@ -634,7 +633,7 @@ library MsgPk {
         // TODO: remaining variants
     }
 
-    function deser_polishtoken(EncodedMap memory map) public view returns (PolishToken memory) {
+    function deser_polishtoken(EncodedMap memory map) public pure returns (PolishToken memory) {
         // if its a unit variant (meaning that it doesn't have associated data):
         (bytes memory unit_value, bool is_unit) = find_value_or_fail(map, abi.encode("variant"));
         if (is_unit) {
@@ -722,7 +721,7 @@ library MsgPk {
 
     function deserializeFinalCommitments(bytes calldata data)
         public
-        view
+        pure
         returns (BN254.G1Point memory numerator, BN254.G1Point memory quotient, BN254.G2Point memory divisor)
     {
         numerator = abi.decode(data[:64], (BN254.G1Point));
@@ -861,7 +860,7 @@ library MsgPk {
         final_i = _i;
     }
 
-    function deserializeState(bytes calldata data, uint256 i) public view returns (State memory) {
+    function deserializeState(bytes calldata data, uint256 i) public pure returns (State memory) {
         require(data[i] == 0x93, "not a fix array of three elements");
         i += 1;
 
