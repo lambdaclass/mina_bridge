@@ -32,6 +32,46 @@ struct VerifierIndex {
     PolyComm[7] sigma_comm; // TODO: use Constants.PERMUTS
     // coefficient commitment array
     PolyComm[15] coefficients_comm; // TODO: use Constants.COLUMNS
+    // TODO: doc
+    PolyComm generic_comm;
+
+    // poseidon constraint selector polynomial commitment
+    PolyComm psm_comm;
+
+    // ECC arithmetic polynomial commitments
+
+    // EC addition selector polynomial commitment
+    PolyComm complete_add_comm;
+    // EC variable base scalar multiplication selector polynomial commitment
+    PolyComm mul_comm;
+    // endoscalar multiplication selector polynomial commitment
+    PolyComm emul_comm;
+    // endoscalar multiplication scalar computation selector polynomial commitment
+    PolyComm endomul_scalar_comm;
+
+    // RangeCheck0 polynomial commitments
+    PolyComm range_check0_comm; // INFO: optional
+    bool is_range_check0_comm_set;
+
+    // RangeCheck1 polynomial commitments
+    PolyComm range_check1_comm; // INFO: optional
+    bool is_range_check1_comm_set;
+
+    // Foreign field addition gates polynomial commitments
+    PolyComm foreign_field_add_comm; // INFO: optional
+    bool is_foreign_field_add_comm_set;
+
+    // Foreign field multiplication gates polynomial commitments
+    PolyComm foreign_field_mul_comm; // INFO: optional
+    bool is_foreign_field_mul_comm_set;
+
+    // Xor commitments
+    PolyComm xor_comm; // INFO: optional
+    bool is_xor_comm_set;
+
+    // Rot commitments
+    PolyComm rot_comm; // INFO: optional
+    bool is_rot_comm_set;
 }
 
 function verifier_digest(VerifierIndex storage index) pure returns (Base.FE) {

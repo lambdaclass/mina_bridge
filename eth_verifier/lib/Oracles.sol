@@ -89,10 +89,8 @@ library Oracles {
 
         // 9. Sample beta from the sponge
         Scalar.FE beta = base_sponge.challenge_scalar();
-        require(Scalar.FE.unwrap(beta) == 0x0000000000000000000000000000000000F906044A4BB47E9F4BB683FC26ACCB, "bad beta");
         // 10. Sample gamma from the sponge
         Scalar.FE gamma = base_sponge.challenge_scalar();
-        require(Scalar.FE.unwrap(gamma) == 0x0000000000000000000000000000000000FD52D028905D0CB75C6DD8B4419E1D, "bad gamma");
 
         // 11. If using lookup, absorb the commitment to the aggregation lookup polynomial.
         base_sponge.absorb_commitment(proof.commitments.lookup.aggreg);
@@ -105,7 +103,6 @@ library Oracles {
 
         // 14. Derive alpha using the endomorphism
         Scalar.FE alpha = alpha_chal.to_field(endo_r);
-        require(Scalar.FE.unwrap(alpha) == 0x19000699474F6587256A125E062D0117A432B46712F81CA697AB0B715D27D056, "bad alpha");
 
         // 15. Enforce that the length of the $t$ commitment is of size 7.
         if (proof.commitments.t_comm.unshifted.length > chunk_size * 7) {
@@ -123,7 +120,6 @@ library Oracles {
         ScalarChallenge memory zeta_chal = ScalarChallenge(base_sponge.challenge_scalar());
         // 18. Derive zeta using the endomorphism
         Scalar.FE zeta = zeta_chal.to_field(endo_r);
-        require(Scalar.FE.unwrap(zeta) == 0x15A5BD991130389F663A8DD55E473415DD6A82B94E6D338F19FF7A226088C95D, "bad zeta");
 
         // TODO: check the rest of the heuristic.
         // INFO: the calculation of the divisor polynomial only depends on the zeta challenge.

@@ -337,19 +337,42 @@ library MsgPk {
         EncodedArray memory sigma_comm_arr = abi.decode(find_value(map, abi.encode("sigma_comm")), (EncodedArray));
         EncodedArray memory coefficients_comm_arr =
             abi.decode(find_value(map, abi.encode("coefficients_comm")), (EncodedArray));
+        EncodedMap memory generic_comm_map =
+            abi.decode(find_value(map, abi.encode("generic_comm")), (EncodedMap));
+        EncodedMap memory psm_comm_map =
+            abi.decode(find_value(map, abi.encode("psm_comm")), (EncodedMap));
+        EncodedMap memory complete_add_comm_map =
+            abi.decode(find_value(map, abi.encode("complete_add_comm")), (EncodedMap));
+        EncodedMap memory mul_comm_map =
+            abi.decode(find_value(map, abi.encode("mul_comm")), (EncodedMap));
+        EncodedMap memory emul_comm_map =
+            abi.decode(find_value(map, abi.encode("emul_comm")), (EncodedMap));
+        EncodedMap memory endomul_scalar_comm_map =
+            abi.decode(find_value(map, abi.encode("endomul_scalar_comm")), (EncodedMap));
 
         PolyComm[7] memory sigma_comm;
         for (uint256 i = 0; i < sigma_comm.length; i++) {
             sigma_comm[i] = deser_poly_comm(abi.decode(sigma_comm_arr.values[i], (EncodedMap)));
         }
-
         PolyComm[15] memory coefficients_comm;
         for (uint256 i = 0; i < coefficients_comm.length; i++) {
             coefficients_comm[i] = deser_poly_comm(abi.decode(coefficients_comm_arr.values[i], (EncodedMap)));
         }
+        PolyComm memory generic_comm = deser_poly_comm(generic_comm_map);
+        PolyComm memory psm_comm = deser_poly_comm(psm_comm_map);
+        PolyComm memory complete_add_comm = deser_poly_comm(complete_add_comm_map);
+        PolyComm memory mul_comm = deser_poly_comm(mul_comm_map);
+        PolyComm memory emul_comm = deser_poly_comm(emul_comm_map);
+        PolyComm memory endomul_scalar_comm = deser_poly_comm(endomul_scalar_comm_map);
 
         index.sigma_comm = sigma_comm;
         index.coefficients_comm = coefficients_comm;
+        index.generic_comm = generic_comm;
+        index.psm_comm = psm_comm;
+        index.complete_add_comm = complete_add_comm;
+        index.mul_comm = mul_comm;
+        index.emul_comm = emul_comm;
+        index.endomul_scalar_comm = endomul_scalar_comm;
     }
 
     function deser_poly_comm(EncodedMap memory map) public view returns (PolyComm memory) {
@@ -413,8 +436,8 @@ library MsgPk {
         EncodedArray memory sorted_arr = abi.decode(find_value(lookup_map, abi.encode("sorted")), (EncodedArray));
         EncodedMap memory aggreg_map = abi.decode(find_value(lookup_map, abi.encode("aggreg")), (EncodedMap));
 
-        EncodedMap memory runtime_map;
         bytes memory runtime_bytes = find_value(lookup_map, abi.encode("runtime"));
+        EncodedMap memory runtime_map;
         bool runtime_is_null = is_null(runtime_bytes);
         if (!runtime_is_null) {
             runtime_map = abi.decode(runtime_bytes, (EncodedMap));
