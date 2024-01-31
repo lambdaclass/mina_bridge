@@ -384,17 +384,44 @@ library MsgPk {
         EncodedArray memory w_comm_arr = abi.decode(find_value(comm_map, abi.encode("w_comm")), (EncodedArray));
         EncodedMap memory z_comm_map = abi.decode(find_value(comm_map, abi.encode("z_comm")), (EncodedMap));
         EncodedMap memory t_comm_map = abi.decode(find_value(comm_map, abi.encode("t_comm")), (EncodedMap));
+        EncodedMap memory lookup_map = abi.decode(find_value(comm_map, abi.encode("lookup")), (EncodedMap));
 
+        // witness commitments
         PolyComm[15] memory w_comm;
         for (uint256 i = 0; i < w_comm.length; i++) {
             w_comm[i] = deser_poly_comm(abi.decode(w_comm_arr.values[i], (EncodedMap)));
         }
+
+        // permutation commitments
         PolyComm memory z_comm = deser_poly_comm(z_comm_map);
+
+        // quotient commitments
         PolyComm memory t_comm = deser_poly_comm(t_comm_map);
+
+        // lookup commitments
+        EncodedArray memory sorted_arr = abi.decode(find_value(lookup_map, abi.encode("sorted")), (EncodedArray));
+        EncodedMap memory aggreg_map = abi.decode(find_value(lookup_map, abi.encode("aggreg")), (EncodedMap));
+        // EncodedMap memory runtime_map = abi.decode(find_value(lookup_map, abi.encode("runtime")), (EncodedMap)); // FIXME: this can be None or Some(x)
+
+        PolyComm[] memory lookup_sorted = new PolyComm[](sorted_arr.values.length);
+        for (uint256 i = 0; i < lookup_sorted.length; i++) {
+            lookup_sorted[i] = deser_poly_comm(abi.decode(sorted_arr.values[i], (EncodedMap)));
+        }
+        PolyComm memory lookup_aggreg = deser_poly_comm(aggreg_map);
+        //PolyComm memory lookup_runtime = deser_poly_comm(runtime_map); // FIXME: this can be None or Some(x)
 
         prover_proof.commitments.w_comm = w_comm;
         prover_proof.commitments.z_comm = z_comm;
         prover_proof.commitments.t_comm = t_comm;
+
+        prover_proof.commitments.lookup.sorted = lookup_sorted;
+        prover_proof.commitments.lookup.aggreg = lookup_aggreg;
+        prover_proof.commitments.lookup.is_runtime_set = false;
+        //prover_proof.commitments.lookup.runtime = lookup_runtime;
+        // FIXME: for the current test proof this is None, but we need to check both possibilities.
+        // The blocker here is that, for checking what type this field is (null or PolyComm), we
+        // need to decode it (abi.decode()), but if we interpret the value wrongly the contract will revert.
+        // We need to find a workaround or having abi.decode() to not revert if that's possible.
 
         // deserialize opening proof
 
