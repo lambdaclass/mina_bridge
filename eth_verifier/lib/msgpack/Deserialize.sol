@@ -297,6 +297,22 @@ library MsgPk {
         return first == 0xc3; // 0xc3 == true
     }
 
+    // @notice `map` is the parent map which contains the field with key `name` and value PolyComm.
+    function deser_poly_comm_from_map(EncodedMap memory map, string memory name) public view returns (PolyComm memory) {
+        EncodedMap memory poly_comm_map =
+            abi.decode(find_value(map, abi.encode(name)), (EncodedMap));
+        return deser_poly_comm(poly_comm_map);
+    }
+
+    // @notice if the poly comm is not null, then it is set into `comm_reference` and `true` is returned.
+    function deser_poly_comm_from_map_optional(EncodedMap memory map, string memory name) public view returns (bool, PolyComm memory) {
+        bytes memory poly_comm_bytes = find_value(map, abi.encode(name));
+        if (!is_null(poly_comm_bytes)) {
+            return (true, deser_poly_comm(abi.decode(poly_comm_bytes, (EncodedMap))));
+        }
+        return (false, PolyComm(new BN254.G1Point[](0), BN254.point_at_inf()));
+    }
+
     function deser_verifier_index(Stream memory self, VerifierIndex storage index) external {
         EncodedMap memory map = deser_map16(self);
         index.public_len = abi.decode(find_value(map, abi.encode("public")), (uint256));
@@ -334,45 +350,52 @@ library MsgPk {
         index.w = index.domain_gen.pow(index.domain_size - index.zk_rows);
 
         // commitments
-        EncodedArray memory sigma_comm_arr = abi.decode(find_value(map, abi.encode("sigma_comm")), (EncodedArray));
-        EncodedArray memory coefficients_comm_arr =
-            abi.decode(find_value(map, abi.encode("coefficients_comm")), (EncodedArray));
-        EncodedMap memory generic_comm_map =
-            abi.decode(find_value(map, abi.encode("generic_comm")), (EncodedMap));
-        EncodedMap memory psm_comm_map =
-            abi.decode(find_value(map, abi.encode("psm_comm")), (EncodedMap));
-        EncodedMap memory complete_add_comm_map =
-            abi.decode(find_value(map, abi.encode("complete_add_comm")), (EncodedMap));
-        EncodedMap memory mul_comm_map =
-            abi.decode(find_value(map, abi.encode("mul_comm")), (EncodedMap));
-        EncodedMap memory emul_comm_map =
-            abi.decode(find_value(map, abi.encode("emul_comm")), (EncodedMap));
-        EncodedMap memory endomul_scalar_comm_map =
-            abi.decode(find_value(map, abi.encode("endomul_scalar_comm")), (EncodedMap));
 
+        EncodedArray memory sigma_comm_arr = abi.decode(find_value(map, abi.encode("sigma_comm")), (EncodedArray));
         PolyComm[7] memory sigma_comm;
         for (uint256 i = 0; i < sigma_comm.length; i++) {
             sigma_comm[i] = deser_poly_comm(abi.decode(sigma_comm_arr.values[i], (EncodedMap)));
         }
+        EncodedArray memory coefficients_comm_arr =
+            abi.decode(find_value(map, abi.encode("coefficients_comm")), (EncodedArray));
         PolyComm[15] memory coefficients_comm;
         for (uint256 i = 0; i < coefficients_comm.length; i++) {
             coefficients_comm[i] = deser_poly_comm(abi.decode(coefficients_comm_arr.values[i], (EncodedMap)));
         }
-        PolyComm memory generic_comm = deser_poly_comm(generic_comm_map);
-        PolyComm memory psm_comm = deser_poly_comm(psm_comm_map);
-        PolyComm memory complete_add_comm = deser_poly_comm(complete_add_comm_map);
-        PolyComm memory mul_comm = deser_poly_comm(mul_comm_map);
-        PolyComm memory emul_comm = deser_poly_comm(emul_comm_map);
-        PolyComm memory endomul_scalar_comm = deser_poly_comm(endomul_scalar_comm_map);
-
         index.sigma_comm = sigma_comm;
         index.coefficients_comm = coefficients_comm;
-        index.generic_comm = generic_comm;
-        index.psm_comm = psm_comm;
-        index.complete_add_comm = complete_add_comm;
-        index.mul_comm = mul_comm;
-        index.emul_comm = emul_comm;
-        index.endomul_scalar_comm = endomul_scalar_comm;
+
+        index.generic_comm = deser_poly_comm_from_map(map, "generic_comm");
+        index.psm_comm = deser_poly_comm_from_map(map, "psm_comm");
+        index.complete_add_comm = deser_poly_comm_from_map(map, "complete_add_comm");
+        index.mul_comm = deser_poly_comm_from_map(map, "mul_comm");
+        index.emul_comm = deser_poly_comm_from_map(map, "emul_comm");
+        index.endomul_scalar_comm = deser_poly_comm_from_map(map, "endomul_scalar_comm");
+
+        (
+            index.is_range_check0_comm_set,
+            index.range_check0_comm
+        ) = deser_poly_comm_from_map_optional(map, "range_check0_comm");
+        (
+            index.is_range_check1_comm_set,
+            index.range_check1_comm
+        ) = deser_poly_comm_from_map_optional(map, "range_check1_comm");
+        (
+            index.is_foreign_field_add_comm_set,
+            index.foreign_field_add_comm
+        ) = deser_poly_comm_from_map_optional(map, "foreign_field_add_comm");
+        (
+            index.is_foreign_field_mul_comm_set,
+            index.foreign_field_mul_comm
+        ) = deser_poly_comm_from_map_optional(map, "foreign_field_mul_comm");
+        (
+            index.is_xor_comm_set,
+            index.xor_comm
+        ) = deser_poly_comm_from_map_optional(map, "xor_comm");
+        (
+            index.is_rot_comm_set,
+            index.rot_comm
+        ) = deser_poly_comm_from_map_optional(map, "rot_comm");
     }
 
     function deser_poly_comm(EncodedMap memory map) public view returns (PolyComm memory) {
