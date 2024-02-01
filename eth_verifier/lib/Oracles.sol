@@ -22,7 +22,6 @@ library Oracles {
         KeccakSponge.absorb_scalar_multiple,
         KeccakSponge.absorb_commitment,
         KeccakSponge.absorb_evaluations,
-        KeccakSponge.absorb_g_single,
         KeccakSponge.challenge_base,
         KeccakSponge.challenge_scalar,
         KeccakSponge.digest_base,
