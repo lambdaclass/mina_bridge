@@ -58,10 +58,10 @@ library AlphasLib {
         self.next_power += powers;
     }
 
-    /// Instantiates the ranges with an actual field element `alpha`.
-    /// Once you call this function, you cannot register new constraints.
+    /// @notice instantiates the ranges with an actual field element `alpha`.
+    /// @notice once you call this function, you cannot register new constraints.
     function instantiate(Alphas storage self, Scalar.FE alpha) internal {
-        Scalar.FE last_power = Scalar.from(1);
+        Scalar.FE last_power = Scalar.one();
         self.alphas.push(last_power);
 
         for (uint i = 1; i < self.next_power; i++) {

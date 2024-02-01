@@ -36,6 +36,7 @@ library Oracles {
         uint256 required_len,
         uint256 actual_len
     );
+    error MissingPublicInputEvaluation();
 
     // This takes Kimchi's `oracles()` as reference.
     function fiat_shamir(
@@ -122,8 +123,14 @@ library Oracles {
         // INFO: the calculation of the divisor polynomial only depends on the zeta challenge.
         // The rest of the steps need to be debugged for calculating the numerator polynomial.
 
+        // 19. Setup a scalar sponge
         scalar_sponge.reinit();
+
+        // 20. Absorb the digest of the previous sponge
         scalar_sponge.absorb_scalar(base_sponge.digest_scalar());
+
+        // TODO: 21. Absorb the previous recursion challenges
+        // INFO: this isn't necessary for our current test proof
 
         // often used values
         Scalar.FE zeta1 = zeta.pow(index.domain_size);
@@ -134,12 +141,14 @@ library Oracles {
         PointEvaluations memory powers_of_eval_points_for_chunks =
             PointEvaluations(zeta.pow(index.max_poly_size), zetaw.pow(index.max_poly_size));
 
-        // TODO: Compute evaluations for the previous recursion challenges
+        // TODO: 22. Compute evaluations for the previous recursion challenges
+        // INFO: this isn't necessary for our current test proof
 
         // retrieve ranges for the powers of alphas
         Alphas storage all_alphas = index.powers_of_alpha;
         all_alphas.instantiate(alpha);
-        // WARN: all_alphas should be a clone of index.powers_of_alpha.
+        // WARN: all_alphas should be a clone of index.powers_of_alpha, not a reference.
+        // in our case we can only have it storage because it contains a nested array.
 
         // evaluations of the public input
 
@@ -147,10 +156,12 @@ library Oracles {
         if (proof.evals.is_public_evals_set) {
             public_evals = [proof.evals.public_evals.zeta, proof.evals.public_evals.zeta_omega];
         } else if (chunk_size > 1) {
-            // FIXME: error missing public input evaluation
+            revert MissingPublicInputEvaluation();
         } else if (is_public_input_set) {
             // compute Lagrange base evaluation denominators
 
+            // INFO: w is an iterator over the elements of the domain, we want to take N elements
+            // where N is the length of the public input.
             Scalar.FE[] memory w = new Scalar.FE[](public_input.length);
             Scalar.FE[] memory zeta_minus_x = new Scalar.FE[](public_input.length * 2);
             for (uint256 i = 0; i < public_input.length; i++) {
