@@ -438,8 +438,14 @@ library MsgPk {
         ) = deser_poly_comm_from_map_optional(map, "rot_comm");
 
         // lookup index
-        EncodedMap memory lookup_index_map = abi.decode(find_value(map, abi.encode("lookup_index")), (EncodedMap));
-        deser_lookup_verifier_index(lookup_index_map, index.lookup_index);
+        bytes memory lookup_index_bytes = find_value(map, abi.encode("lookup_index"));
+        if (!is_null(lookup_index_bytes)) {
+            EncodedMap memory lookup_index_map = abi.decode(lookup_index_bytes, (EncodedMap));
+            deser_lookup_verifier_index(lookup_index_map, index.lookup_index);
+            index.is_lookup_index_set = true;
+        } else {
+            index.is_lookup_index_set = false;
+        }
     }
 
     function deser_poly_comm(EncodedMap memory map) public view returns (PolyComm memory) {

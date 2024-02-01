@@ -91,7 +91,8 @@ struct VerifierIndex {
     PolyComm rot_comm; // INFO: optional
     bool is_rot_comm_set;
 
-    LookupVerifierIndex lookup_index;
+    LookupVerifierIndex lookup_index; // INFO: optional
+    bool is_lookup_index_set;
 }
 
 struct LookupVerifierIndex {
