@@ -8,8 +8,26 @@ import "./Alphas.sol";
 import "./Evaluations.sol";
 import "./expr/Expr.sol";
 import "./Proof.sol";
+import "./sponge/Sponge.sol";
+
+using {
+    KeccakSponge.reinit,
+    KeccakSponge.absorb_base,
+    KeccakSponge.absorb_scalar,
+    KeccakSponge.absorb_scalar_multiple,
+    KeccakSponge.absorb_commitment,
+    KeccakSponge.absorb_evaluations,
+    KeccakSponge.absorb_g,
+    KeccakSponge.challenge_base,
+    KeccakSponge.challenge_scalar,
+    KeccakSponge.digest_base,
+    KeccakSponge.digest_scalar
+} for Sponge;
 
 struct VerifierIndex {
+    // this is used for generating the index's digest
+    Sponge sponge;
+
     // number of public inputs
     uint256 public_len;
     // maximal size of polynomial section
@@ -74,9 +92,51 @@ struct VerifierIndex {
     bool is_rot_comm_set;
 }
 
-function verifier_digest(VerifierIndex storage index) pure returns (Base.FE) {
-    // FIXME: todo!
-    return Base.from(42);
+function verifier_digest(VerifierIndex storage index) returns (Base.FE) {
+    index.sponge.reinit();
+
+    for (uint i = 0; i < index.sigma_comm.length; i++) {
+        index.sponge.absorb_g(index.sigma_comm[i].unshifted);
+    }
+    for (uint i = 0; i < index.coefficients_comm.length; i++) {
+        index.sponge.absorb_g(index.coefficients_comm[i].unshifted);
+    }
+    index.sponge.absorb_g(index.generic_comm.unshifted);
+    index.sponge.absorb_g(index.psm_comm.unshifted);
+    index.sponge.absorb_g(index.complete_add_comm.unshifted);
+    index.sponge.absorb_g(index.mul_comm.unshifted);
+    index.sponge.absorb_g(index.emul_comm.unshifted);
+    index.sponge.absorb_g(index.endomul_scalar_comm.unshifted);
+
+    // optional
+
+    if (index.is_range_check0_comm_set) {
+        index.sponge.absorb_g(index.range_check0_comm.unshifted);
+    }
+
+    if (index.is_range_check1_comm_set) {
+        index.sponge.absorb_g(index.range_check1_comm.unshifted);
+    }
+
+    if (index.is_foreign_field_add_comm_set) {
+        index.sponge.absorb_g(index.foreign_field_add_comm.unshifted);
+    }
+
+    if (index.is_foreign_field_mul_comm_set) {
+        index.sponge.absorb_g(index.foreign_field_mul_comm.unshifted);
+    }
+
+    if (index.is_xor_comm_set) {
+        index.sponge.absorb_g(index.xor_comm.unshifted);
+    }
+
+    if (index.is_rot_comm_set) {
+        index.sponge.absorb_g(index.rot_comm.unshifted);
+    }
+
+    return index.sponge.digest_base();
+
+    // TODO: lookup
 }
 
 error UnimplementedVariant(ColumnVariant variant);
