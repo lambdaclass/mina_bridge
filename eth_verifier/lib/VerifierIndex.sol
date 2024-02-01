@@ -149,12 +149,12 @@ function verifier_digest(VerifierIndex storage index) returns (Base.FE) {
         index.sponge.absorb_g(index.range_check1_comm.unshifted);
     }
 
-    if (index.is_foreign_field_add_comm_set) {
-        index.sponge.absorb_g(index.foreign_field_add_comm.unshifted);
-    }
-
     if (index.is_foreign_field_mul_comm_set) {
         index.sponge.absorb_g(index.foreign_field_mul_comm.unshifted);
+    }
+
+    if (index.is_foreign_field_add_comm_set) {
+        index.sponge.absorb_g(index.foreign_field_add_comm.unshifted);
     }
 
     if (index.is_xor_comm_set) {

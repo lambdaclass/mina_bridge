@@ -56,10 +56,8 @@ library Oracles {
         base_sponge.reinit();
 
         // 2. Absorb the digest of the VerifierIndex.
-        base_sponge.absorb_base(verifier_digest(index));
-        // TODO: verifier_digest() is a dummy function
-        // FIXME: hardcoding for now
-        //base_sponge.absorb_base(Base.from(0x0086C5805E91E448C36A3D4A624F285FB05F6A9DBD9E37C44629C3F12733D81B));
+        Base.FE verifier_index_digest = verifier_digest(index);
+        base_sponge.absorb_base(verifier_index_digest);
 
         // TODO: 3. Absorb the commitment to the previous challenges.
         // WARN: is this necessary?

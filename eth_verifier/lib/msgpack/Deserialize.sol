@@ -316,9 +316,10 @@ library MsgPk {
     function deser_lookup_verifier_index(EncodedMap memory map, LookupVerifierIndex storage index) public {
         // lookup table
         EncodedArray memory lookup_table_arr = abi.decode(find_value(map, abi.encode("lookup_table")), (EncodedArray));
-        PolyComm[] memory lookup_table = new PolyComm[](lookup_table_arr.values.length);
-        for (uint256 i = 0; i < lookup_table.length; i++) {
-            lookup_table[i] = deser_poly_comm(abi.decode(lookup_table_arr.values[i], (EncodedMap)));
+        uint lookup_table_len = lookup_table_arr.values.length;
+        index.lookup_table = new PolyComm[](lookup_table_len);
+        for (uint256 i = 0; i < lookup_table_len; i++) {
+            index.lookup_table[i] = deser_poly_comm(abi.decode(lookup_table_arr.values[i], (EncodedMap)));
         }
 
         // lookup selectors
