@@ -90,6 +90,36 @@ struct VerifierIndex {
     // Rot commitments
     PolyComm rot_comm; // INFO: optional
     bool is_rot_comm_set;
+
+    LookupVerifierIndex lookup_index;
+}
+
+struct LookupVerifierIndex {
+    PolyComm[] lookup_table;
+    LookupSelectors lookup_selectors;
+
+    // table IDs for the lookup values.
+    // this may be not set if all lookups originate from table 0.
+    PolyComm table_ids; // INFO: optional
+    bool is_table_ids_set;
+
+    // an optional selector polynomial for runtime tables
+    PolyComm runtime_tables_selector; // INFO: optional
+    bool is_runtime_tables_selector_set;
+}
+
+struct LookupSelectors {
+    PolyComm xor; // INFO: optional
+    bool is_xor_set;
+
+    PolyComm lookup; // INFO: optional
+    bool is_lookup_set;
+
+    PolyComm range_check; // INFO: optional
+    bool is_range_check_set;
+
+    PolyComm ffmul; // INFO: optional
+    bool is_ffmul_set;
 }
 
 function verifier_digest(VerifierIndex storage index) returns (Base.FE) {

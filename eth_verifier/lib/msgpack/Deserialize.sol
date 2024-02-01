@@ -313,6 +313,46 @@ library MsgPk {
         return (false, PolyComm(new BN254.G1Point[](0), BN254.point_at_inf()));
     }
 
+    function deser_lookup_verifier_index(EncodedMap memory map, LookupVerifierIndex storage index) public {
+        // lookup table
+        EncodedArray memory lookup_table_arr = abi.decode(find_value(map, abi.encode("lookup_table")), (EncodedArray));
+        PolyComm[] memory lookup_table = new PolyComm[](lookup_table_arr.values.length);
+        for (uint256 i = 0; i < lookup_table.length; i++) {
+            lookup_table[i] = deser_poly_comm(abi.decode(lookup_table_arr.values[i], (EncodedMap)));
+        }
+
+        // lookup selectors
+        EncodedMap memory selectors_map = abi.decode(find_value(map, abi.encode("lookup_selectors")), (EncodedMap));
+        (
+            index.lookup_selectors.is_xor_set,
+            index.lookup_selectors.xor
+        ) = deser_poly_comm_from_map_optional(selectors_map, "xor");
+        (
+            index.lookup_selectors.is_lookup_set,
+            index.lookup_selectors.lookup
+        ) = deser_poly_comm_from_map_optional(selectors_map, "lookup");
+        (
+            index.lookup_selectors.is_range_check_set,
+            index.lookup_selectors.range_check
+        ) = deser_poly_comm_from_map_optional(selectors_map, "range_check");
+        (
+            index.lookup_selectors.is_ffmul_set,
+            index.lookup_selectors.ffmul
+        ) = deser_poly_comm_from_map_optional(selectors_map, "ffmul");
+
+        // table ids
+        (
+            index.is_table_ids_set,
+            index.table_ids
+        ) = deser_poly_comm_from_map_optional(map, "table_ids");
+
+        // runtime table selectors
+        (
+            index.is_runtime_tables_selector_set,
+            index.runtime_tables_selector
+        ) = deser_poly_comm_from_map_optional(map, "runtime_tables_selector");
+    }
+
     function deser_verifier_index(Stream memory self, VerifierIndex storage index) external {
         EncodedMap memory map = deser_map16(self);
         index.public_len = abi.decode(find_value(map, abi.encode("public")), (uint256));
@@ -396,6 +436,10 @@ library MsgPk {
             index.is_rot_comm_set,
             index.rot_comm
         ) = deser_poly_comm_from_map_optional(map, "rot_comm");
+
+        // lookup index
+        EncodedMap memory lookup_index_map = abi.decode(find_value(map, abi.encode("lookup_index")), (EncodedMap));
+        deser_lookup_verifier_index(lookup_index_map, index.lookup_index);
     }
 
     function deser_poly_comm(EncodedMap memory map) public view returns (PolyComm memory) {
