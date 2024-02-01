@@ -279,11 +279,79 @@ library MsgPk {
         return "null";
     }
 
+    // @notice checks if `self` corresponds to the encoding of a `null` string.
+    function is_null(bytes memory self) public pure returns (bool) {
+        bytes memory null_encoded = abi.encode("null");
+        if (self.length != null_encoded.length) return false;
+
+        for (uint i = 0; i < self.length; i++) {
+            if (self[i] != null_encoded[i]) return false;
+        }
+        return true;
+    }
+
     function deser_bool(Stream memory self) public pure returns (bool) {
         bytes1 first = next(self);
         require(first == 0xc2 || first == 0xc3, "not a bool");
 
         return first == 0xc3; // 0xc3 == true
+    }
+
+    // @notice `map` is the parent map which contains the field with key `name` and value PolyComm.
+    function deser_poly_comm_from_map(EncodedMap memory map, string memory name) public view returns (PolyComm memory) {
+        EncodedMap memory poly_comm_map =
+            abi.decode(find_value(map, abi.encode(name)), (EncodedMap));
+        return deser_poly_comm(poly_comm_map);
+    }
+
+    // @notice if the poly comm is not null, then it is set into `comm_reference` and `true` is returned.
+    function deser_poly_comm_from_map_optional(EncodedMap memory map, string memory name) public view returns (bool, PolyComm memory) {
+        bytes memory poly_comm_bytes = find_value(map, abi.encode(name));
+        if (!is_null(poly_comm_bytes)) {
+            return (true, deser_poly_comm(abi.decode(poly_comm_bytes, (EncodedMap))));
+        }
+        return (false, PolyComm(new BN254.G1Point[](0), BN254.point_at_inf()));
+    }
+
+    function deser_lookup_verifier_index(EncodedMap memory map, LookupVerifierIndex storage index) public {
+        // lookup table
+        EncodedArray memory lookup_table_arr = abi.decode(find_value(map, abi.encode("lookup_table")), (EncodedArray));
+        uint lookup_table_len = lookup_table_arr.values.length;
+        index.lookup_table = new PolyComm[](lookup_table_len);
+        for (uint256 i = 0; i < lookup_table_len; i++) {
+            index.lookup_table[i] = deser_poly_comm(abi.decode(lookup_table_arr.values[i], (EncodedMap)));
+        }
+
+        // lookup selectors
+        EncodedMap memory selectors_map = abi.decode(find_value(map, abi.encode("lookup_selectors")), (EncodedMap));
+        (
+            index.lookup_selectors.is_xor_set,
+            index.lookup_selectors.xor
+        ) = deser_poly_comm_from_map_optional(selectors_map, "xor");
+        (
+            index.lookup_selectors.is_lookup_set,
+            index.lookup_selectors.lookup
+        ) = deser_poly_comm_from_map_optional(selectors_map, "lookup");
+        (
+            index.lookup_selectors.is_range_check_set,
+            index.lookup_selectors.range_check
+        ) = deser_poly_comm_from_map_optional(selectors_map, "range_check");
+        (
+            index.lookup_selectors.is_ffmul_set,
+            index.lookup_selectors.ffmul
+        ) = deser_poly_comm_from_map_optional(selectors_map, "ffmul");
+
+        // table ids
+        (
+            index.is_table_ids_set,
+            index.table_ids
+        ) = deser_poly_comm_from_map_optional(map, "table_ids");
+
+        // runtime table selectors
+        (
+            index.is_runtime_tables_selector_set,
+            index.runtime_tables_selector
+        ) = deser_poly_comm_from_map_optional(map, "runtime_tables_selector");
     }
 
     function deser_verifier_index(Stream memory self, VerifierIndex storage index) external {
@@ -323,22 +391,62 @@ library MsgPk {
         index.w = index.domain_gen.pow(index.domain_size - index.zk_rows);
 
         // commitments
-        EncodedArray memory sigma_comm_arr = abi.decode(find_value(map, abi.encode("sigma_comm")), (EncodedArray));
-        EncodedArray memory coefficients_comm_arr =
-            abi.decode(find_value(map, abi.encode("coefficients_comm")), (EncodedArray));
 
+        EncodedArray memory sigma_comm_arr = abi.decode(find_value(map, abi.encode("sigma_comm")), (EncodedArray));
         PolyComm[7] memory sigma_comm;
         for (uint256 i = 0; i < sigma_comm.length; i++) {
             sigma_comm[i] = deser_poly_comm(abi.decode(sigma_comm_arr.values[i], (EncodedMap)));
         }
-
+        EncodedArray memory coefficients_comm_arr =
+            abi.decode(find_value(map, abi.encode("coefficients_comm")), (EncodedArray));
         PolyComm[15] memory coefficients_comm;
         for (uint256 i = 0; i < coefficients_comm.length; i++) {
             coefficients_comm[i] = deser_poly_comm(abi.decode(coefficients_comm_arr.values[i], (EncodedMap)));
         }
-
         index.sigma_comm = sigma_comm;
         index.coefficients_comm = coefficients_comm;
+
+        index.generic_comm = deser_poly_comm_from_map(map, "generic_comm");
+        index.psm_comm = deser_poly_comm_from_map(map, "psm_comm");
+        index.complete_add_comm = deser_poly_comm_from_map(map, "complete_add_comm");
+        index.mul_comm = deser_poly_comm_from_map(map, "mul_comm");
+        index.emul_comm = deser_poly_comm_from_map(map, "emul_comm");
+        index.endomul_scalar_comm = deser_poly_comm_from_map(map, "endomul_scalar_comm");
+
+        (
+            index.is_range_check0_comm_set,
+            index.range_check0_comm
+        ) = deser_poly_comm_from_map_optional(map, "range_check0_comm");
+        (
+            index.is_range_check1_comm_set,
+            index.range_check1_comm
+        ) = deser_poly_comm_from_map_optional(map, "range_check1_comm");
+        (
+            index.is_foreign_field_add_comm_set,
+            index.foreign_field_add_comm
+        ) = deser_poly_comm_from_map_optional(map, "foreign_field_add_comm");
+        (
+            index.is_foreign_field_mul_comm_set,
+            index.foreign_field_mul_comm
+        ) = deser_poly_comm_from_map_optional(map, "foreign_field_mul_comm");
+        (
+            index.is_xor_comm_set,
+            index.xor_comm
+        ) = deser_poly_comm_from_map_optional(map, "xor_comm");
+        (
+            index.is_rot_comm_set,
+            index.rot_comm
+        ) = deser_poly_comm_from_map_optional(map, "rot_comm");
+
+        // lookup index
+        bytes memory lookup_index_bytes = find_value(map, abi.encode("lookup_index"));
+        if (!is_null(lookup_index_bytes)) {
+            EncodedMap memory lookup_index_map = abi.decode(lookup_index_bytes, (EncodedMap));
+            deser_lookup_verifier_index(lookup_index_map, index.lookup_index);
+            index.is_lookup_index_set = true;
+        } else {
+            index.is_lookup_index_set = false;
+        }
     }
 
     function deser_poly_comm(EncodedMap memory map) public view returns (PolyComm memory) {
@@ -401,14 +509,24 @@ library MsgPk {
         // lookup commitments
         EncodedArray memory sorted_arr = abi.decode(find_value(lookup_map, abi.encode("sorted")), (EncodedArray));
         EncodedMap memory aggreg_map = abi.decode(find_value(lookup_map, abi.encode("aggreg")), (EncodedMap));
-        // EncodedMap memory runtime_map = abi.decode(find_value(lookup_map, abi.encode("runtime")), (EncodedMap)); // FIXME: this can be None or Some(x)
+
+        bytes memory runtime_bytes = find_value(lookup_map, abi.encode("runtime"));
+        EncodedMap memory runtime_map;
+        bool runtime_is_null = is_null(runtime_bytes);
+        if (!runtime_is_null) {
+            runtime_map = abi.decode(runtime_bytes, (EncodedMap));
+        }
 
         PolyComm[] memory lookup_sorted = new PolyComm[](sorted_arr.values.length);
         for (uint256 i = 0; i < lookup_sorted.length; i++) {
             lookup_sorted[i] = deser_poly_comm(abi.decode(sorted_arr.values[i], (EncodedMap)));
         }
         PolyComm memory lookup_aggreg = deser_poly_comm(aggreg_map);
-        //PolyComm memory lookup_runtime = deser_poly_comm(runtime_map); // FIXME: this can be None or Some(x)
+
+        PolyComm memory lookup_runtime;
+        if (!runtime_is_null) {
+            lookup_runtime = deser_poly_comm(runtime_map);
+        }
 
         prover_proof.commitments.w_comm = w_comm;
         prover_proof.commitments.z_comm = z_comm;
@@ -416,12 +534,12 @@ library MsgPk {
 
         prover_proof.commitments.lookup.sorted = lookup_sorted;
         prover_proof.commitments.lookup.aggreg = lookup_aggreg;
-        prover_proof.commitments.lookup.is_runtime_set = false;
-        //prover_proof.commitments.lookup.runtime = lookup_runtime;
-        // FIXME: for the current test proof this is None, but we need to check both possibilities.
-        // The blocker here is that, for checking what type this field is (null or PolyComm), we
-        // need to decode it (abi.decode()), but if we interpret the value wrongly the contract will revert.
-        // We need to find a workaround or having abi.decode() to not revert if that's possible.
+        if (!runtime_is_null) {
+            prover_proof.commitments.lookup.is_runtime_set = true;
+            prover_proof.commitments.lookup.runtime = lookup_runtime;
+        } else {
+            prover_proof.commitments.lookup.is_runtime_set = false;
+        }
 
         // deserialize opening proof
 
