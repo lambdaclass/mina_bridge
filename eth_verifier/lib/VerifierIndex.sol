@@ -165,9 +165,34 @@ function verifier_digest(VerifierIndex storage index) returns (Base.FE) {
         index.sponge.absorb_g(index.rot_comm.unshifted);
     }
 
-    return index.sponge.digest_base();
+    if (index.is_lookup_index_set) {
+        LookupVerifierIndex storage l_index = index.lookup_index;
+        for (uint i = 0; i < l_index.lookup_table.length; i++) {
+            index.sponge.absorb_g(l_index.lookup_table[i].unshifted);
+        }
+        if (l_index.is_table_ids_set) {
+            index.sponge.absorb_g(l_index.table_ids.unshifted);
+        }
+        if (l_index.is_runtime_tables_selector_set) {
+            index.sponge.absorb_g(l_index.runtime_tables_selector.unshifted);
+        }
 
-    // TODO: lookup
+        LookupSelectors storage l_selectors = l_index.lookup_selectors;
+        if (l_selectors.is_xor_set) {
+            index.sponge.absorb_g(l_selectors.xor.unshifted);
+        }
+        if (l_selectors.is_lookup_set) {
+            index.sponge.absorb_g(l_selectors.lookup.unshifted);
+        }
+        if (l_selectors.is_range_check_set) {
+            index.sponge.absorb_g(l_selectors.range_check.unshifted);
+        }
+        if (l_selectors.is_ffmul_set) {
+            index.sponge.absorb_g(l_selectors.ffmul.unshifted);
+        }
+    }
+
+    return index.sponge.digest_base();
 }
 
 error UnimplementedVariant(ColumnVariant variant);

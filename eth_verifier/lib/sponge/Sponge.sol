@@ -104,6 +104,21 @@ library KeccakSponge {
         }
     }
 
+    function absorb_g_s(Sponge storage self, BN254.G1Point[] memory points)
+        public
+    {
+        for (uint256 i = 0; i < points.length; i++) {
+            BN254.G1Point memory point = points[i];
+            if (point.isInfinity()) {
+                absorb_base(self, Base.zero());
+                absorb_base(self, Base.zero());
+            } else {
+                absorb_base(self, Base.from(point.x));
+                absorb_base(self, Base.from(point.y));
+            }
+        }
+    }
+
     function absorb_commitment(Sponge storage self, PolyComm memory comm)
         external
     {
