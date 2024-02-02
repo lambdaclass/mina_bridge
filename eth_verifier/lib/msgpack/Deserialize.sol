@@ -63,6 +63,17 @@ library MsgPk {
         return self.values[i];
     }
 
+    /// @notice returns the bytes corresponding to the queried string key
+    function find_value_str(EncodedMap memory self, string memory string_key) public pure returns (bytes memory) {
+        uint256 i = 0;
+        bytes memory key = abi.encode(string_key);
+        while (i != self.keys.length && keccak256(self.keys[i]) != keccak256(key)) {
+            i++;
+        }
+        if (i == self.keys.length) revert EncodedMapKeyNotFound(key, self.keys);
+        return self.values[i];
+    }
+
     /// @notice like find_value() but returns a boolean that indicates if
     /// @notice the key exists. If not found, the resulted bytes will be empty.
     function find_value_or_fail(EncodedMap memory self, bytes memory key) public pure returns (bytes memory, bool) {
@@ -294,6 +305,10 @@ library MsgPk {
         require(first == 0xc2 || first == 0xc3, "not a bool");
 
         return first == 0xc3; // 0xc3 == true
+    }
+
+    function deser_scalar(bytes memory inner_bytes) public pure returns (Scalar.FE) {
+        return Scalar.from(uint256(bytes32(inner_bytes)));
     }
 
     // @notice `map` is the parent map which contains the field with key `name` and value PolyComm.
@@ -553,6 +568,10 @@ library MsgPk {
 
         prover_proof.opening.quotient.unshifted = quotient_unshifted;
         prover_proof.opening.blinding = blinding;
+
+        // deserialize ft_eval1
+
+        Scalar.FE ft_eval1 = deser_scalar(abi.decode(find_value_str(map, "ft_eval1"), (bytes)));
     }
 
     function deser_evals(EncodedMap memory all_evals_map, string memory name)

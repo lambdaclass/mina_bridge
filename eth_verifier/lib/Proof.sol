@@ -18,6 +18,8 @@ struct ProverProof {
     ProofEvaluationsArray evals;
     ProverCommitments commitments;
     PairingProof opening;
+
+    Scalar.FE ft_eval1;
 }
 
 struct AggregatedEvaluationProof {
