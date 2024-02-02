@@ -58,10 +58,10 @@ library AlphasLib {
         self.next_power += powers;
     }
 
-    /// Instantiates the ranges with an actual field element `alpha`.
-    /// Once you call this function, you cannot register new constraints.
+    /// @notice instantiates the ranges with an actual field element `alpha`.
+    /// @notice once you call this function, you cannot register new constraints.
     function instantiate(Alphas storage self, Scalar.FE alpha) internal {
-        Scalar.FE last_power = Scalar.from(1);
+        Scalar.FE last_power = Scalar.one();
         self.alphas.push(last_power);
 
         for (uint i = 1; i < self.next_power; i++) {
@@ -70,7 +70,8 @@ library AlphasLib {
         }
     }
 
-    error NotEnoughPowersOfAlpha();
+    error NotEnoughPowersOfAlpha(uint256 asked_for, uint256 available);
+    error NonInstantiatedPowersOfAlpha();
     /// @notice retrieves the powers of alpha, upperbounded by `num`
     function get_alphas(Alphas storage self, ArgumentType ty, uint num)
         external
@@ -101,15 +102,18 @@ library AlphasLib {
 
         uint[2] memory range = self.map[ty];
         if (num > range[1]) {
-            revert NotEnoughPowersOfAlpha();
-            // FIXME: panic! asked for num alphas but there aren't as many.
+            revert NotEnoughPowersOfAlpha(num, range[1]);
+        }
+
+        if (self.alphas.length == 0) {
+            revert NonInstantiatedPowersOfAlpha();
         }
 
         pows = new Scalar.FE[](num);
         for (uint i = 0; i < num; i++) {
             pows[i] = self.alphas[range[0]+i];
         }
-        // INFO: in kimchi this returns a "MustConsumeIterator", which warns you if
+        // FIXME: in kimchi this returns a "MustConsumeIterator", which warns you if
         // not consumed entirely.
     }
 }

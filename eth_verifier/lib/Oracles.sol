@@ -36,6 +36,7 @@ library Oracles {
         uint256 required_len,
         uint256 actual_len
     );
+    error MissingPublicInputEvaluation();
 
     // This takes Kimchi's `oracles()` as reference.
     function fiat_shamir(
@@ -122,8 +123,14 @@ library Oracles {
         // INFO: the calculation of the divisor polynomial only depends on the zeta challenge.
         // The rest of the steps need to be debugged for calculating the numerator polynomial.
 
+        // 19. Setup a scalar sponge
         scalar_sponge.reinit();
+
+        // 20. Absorb the digest of the previous sponge
         scalar_sponge.absorb_scalar(base_sponge.digest_scalar());
+
+        // TODO: 21. Absorb the previous recursion challenges
+        // INFO: this isn't necessary for our current test proof
 
         // often used values
         Scalar.FE zeta1 = zeta.pow(index.domain_size);
@@ -134,12 +141,14 @@ library Oracles {
         PointEvaluations memory powers_of_eval_points_for_chunks =
             PointEvaluations(zeta.pow(index.max_poly_size), zetaw.pow(index.max_poly_size));
 
-        // TODO: Compute evaluations for the previous recursion challenges
+        // TODO: 22. Compute evaluations for the previous recursion challenges
+        // INFO: this isn't necessary for our current test proof
 
         // retrieve ranges for the powers of alphas
         Alphas storage all_alphas = index.powers_of_alpha;
         all_alphas.instantiate(alpha);
-        // WARN: all_alphas should be a clone of index.powers_of_alpha.
+        // WARN: all_alphas should be a clone of index.powers_of_alpha, not a reference.
+        // in our case we can only have it storage because it contains a nested array.
 
         // evaluations of the public input
 
@@ -147,10 +156,12 @@ library Oracles {
         if (proof.evals.is_public_evals_set) {
             public_evals = [proof.evals.public_evals.zeta, proof.evals.public_evals.zeta_omega];
         } else if (chunk_size > 1) {
-            // FIXME: error missing public input evaluation
+            revert MissingPublicInputEvaluation();
         } else if (is_public_input_set) {
             // compute Lagrange base evaluation denominators
 
+            // INFO: w is an iterator over the elements of the domain, we want to take N elements
+            // where N is the length of the public input.
             Scalar.FE[] memory w = new Scalar.FE[](public_input.length);
             Scalar.FE[] memory zeta_minus_x = new Scalar.FE[](public_input.length * 2);
             for (uint256 i = 0; i < public_input.length; i++) {
@@ -160,11 +171,12 @@ library Oracles {
                 zeta_minus_x[i + public_input.length] = zetaw.sub(w_i).inv();
             }
 
-            // evaluate the negated public polynomial (if present) at $\zeta$ and $\zeta\omega$.
+            // 23. Evaluate the negated public polynomial (if present) at $\zeta$ and $\zeta\omega$.
+            // NOTE: this works only in the case when the poly segment size is not smaller than that of the domain.
             if (public_input.length == 0) {
-                Scalar.FE[] memory zero = new Scalar.FE[](1);
-                zero[0] = Scalar.zero();
-                public_evals = [zero, zero];
+                Scalar.FE[] memory zero_arr = new Scalar.FE[](1);
+                zero_arr[0] = Scalar.zero();
+                public_evals = [zero_arr, zero_arr];
             } else {
                 Scalar.FE pe_zeta = Scalar.zero();
                 for (uint256 i = 0; i < public_input.length; i++) {
@@ -172,11 +184,13 @@ library Oracles {
                     Scalar.FE l = zeta_minus_x[i];
                     Scalar.FE w_i = w[i];
 
+                    // pe_zeta = pe_zeta - l*p*w_i
                     pe_zeta = pe_zeta.add(l.neg().mul(p).mul(w_i));
                 }
 
+                // pe_zeta = pe_zeta * (zeta1 - 1) * domain_size_inv
                 Scalar.FE size_inv = Scalar.from(index.domain_size).inv();
-                pe_zeta = pe_zeta.mul(zeta1.sub(Scalar.from(1))).mul(size_inv);
+                pe_zeta = pe_zeta.mul(zeta1.sub(Scalar.one())).mul(size_inv);
 
                 Scalar.FE pe_zetaOmega = Scalar.zero();
                 for (uint256 i = 0; i < public_input.length; i++) {
@@ -184,9 +198,11 @@ library Oracles {
                     Scalar.FE l = zeta_minus_x[i + public_input.length];
                     Scalar.FE w_i = w[i];
 
+                    // pe_zetaOmega = pe_zetaOmega - l*p*w_i
                     pe_zetaOmega = pe_zetaOmega.add(l.neg().mul(p).mul(w_i));
                 }
-                pe_zetaOmega = pe_zetaOmega.mul(zetaw.pow(index.domain_size).sub(Scalar.from(1))).mul(size_inv);
+                // pe_zetaOmega = pe_zetaOmega * (zetaw^(domain_size) - 1) * domain_size_inv
+                pe_zetaOmega = pe_zetaOmega.mul(zetaw.pow(index.domain_size).sub(Scalar.one())).mul(size_inv);
 
                 Scalar.FE[] memory pe_zeta_arr = new Scalar.FE[](1);
                 Scalar.FE[] memory pe_zetaOmega_arr = new Scalar.FE[](1);
@@ -195,26 +211,39 @@ library Oracles {
                 public_evals = [pe_zeta_arr, pe_zetaOmega_arr];
             }
         } else {
-            // FIXME: error missing public input evaluation
+            revert MissingPublicInputEvaluation();
         }
 
-        // TODO: absorb the unique evaluation of ft
+        // TODO: 24. Absorb the unique evaluation of ft
 
-        // absorb the public evals
+        // 25. Absorb all the polynomial evaluations in $\zeta$ and $\zeta\omega$:
+        //~~ * the public polynomial
+        //~~ * z
+        //~~ * generic selector
+        //~~ * poseidon selector
+        //~~ * the 15 register/witness
+        //~~ * 6 sigmas evaluations (the last one is not evaluated)
+        // FIXME: requires re implementing absorb_evaluations() and testing the other fn.
         scalar_sponge.absorb_scalar_multiple(public_evals[0]);
         scalar_sponge.absorb_scalar_multiple(public_evals[1]);
         scalar_sponge.absorb_evaluations(proof.evals);
 
+        // 26. Sample v prime with the scalar sponge and derive v
         ScalarChallenge memory v_chal = ScalarChallenge(scalar_sponge.challenge_scalar());
         Scalar.FE v = v_chal.to_field(endo_r);
 
+        // 27. Sample u prime with the scalar sponge and derive u
         ScalarChallenge memory u_chal = ScalarChallenge(scalar_sponge.challenge_scalar());
         Scalar.FE u = u_chal.to_field(endo_r);
 
+        // 28. Create a list of all polynomials that have an evaluation proof
         ProofEvaluations memory evals = proof.evals.combine_evals(powers_of_eval_points_for_chunks);
 
-        // compute the evaluation of $ft(\zeta)$.
+        // 29. Compute the evaluation of $ft(\zeta)$.
         Scalar.FE permutation_vanishing_poly = Scalar.from(1); // FIXME: evaluate poly in zeta
+        // INFO: creating the poly is expensive, although what we want here is only an evaluation of the
+        // polynomial in the `zeta` point. It's way easier to evaluate than to construct the poly and evaluate
+        // after. There's even an implementation of this in Rust via `eval_vanishes_on_last_n_rows()`.
         Scalar.FE zeta1m1 = zeta1.sub(Scalar.from(1));
 
         uint256 permutation_constraints = 3;
@@ -222,38 +251,64 @@ library Oracles {
         Scalar.FE alpha0 = alpha_pows[0];
         Scalar.FE alpha1 = alpha_pows[1];
         Scalar.FE alpha2 = alpha_pows[2];
-        // WARN: alpha_powers should be an iterator and alphai = alpha_powers.next(), for i = 0,1,2.
+        // FIXME: alpha_powers should be an iterator and alphai = alpha_powers.next(), for i = 0,1,2.
 
-        Scalar.FE ft_eval0 = evals.w[Constants.PERMUTS - 1].zeta.add(gamma).mul(evals.z.zeta_omega).mul(alpha0).mul(
-            permutation_vanishing_poly
-        );
+        // initial value
+        Scalar.FE ft_eval0 = evals.w[Constants.PERMUTS - 1].zeta
+            .add(gamma)
+            .mul(evals.z.zeta_omega)
+            .mul(alpha0)
+            .mul(permutation_vanishing_poly);
 
+        // map and reduction
         for (uint256 i = 0; i < Constants.PERMUTS - 1; i++) {
             PointEvaluations memory w = evals.w[i];
             PointEvaluations memory s = evals.s[i];
-            ft_eval0 = ft_eval0.mul(beta.mul(s.zeta).add(w.zeta).add(gamma));
+
+            Scalar.FE current = beta.mul(s.zeta).add(w.zeta).add(gamma);
+            ft_eval0 = ft_eval0.mul(current); // reduction
         }
 
-        ft_eval0 = ft_eval0.sub(Polynomial.build_and_eval(public_evals[0], powers_of_eval_points_for_chunks.zeta));
+        ft_eval0 = ft_eval0.sub(
+            Polynomial.build_and_eval(public_evals[0], powers_of_eval_points_for_chunks.zeta)
+        );
 
-        Scalar.FE ev = alpha0.mul(permutation_vanishing_poly).mul(evals.z.zeta);
+        // initial value
+        Scalar.FE ev = alpha0
+            .mul(permutation_vanishing_poly)
+            .mul(evals.z.zeta);
+
+        // map and reduction
         for (uint256 i = 0; i < Constants.PERMUTS; i++) {
             PointEvaluations memory w = evals.w[i];
             Scalar.FE s = index.shift[i];
 
-            ev = ev.mul(gamma.add(beta.mul(zeta).mul(s)).add(w.zeta));
+            Scalar.FE current = gamma.add(beta.mul(zeta).mul(s)).add(w.zeta);
+            ev = ev.mul(current); // reduction
         }
         ft_eval0 = ft_eval0.sub(ev);
 
-        Scalar.FE numerator = zeta1m1.mul(alpha1).mul(zeta.sub(index.w)).add(
-            zeta1m1.mul(alpha2).mul(zeta.sub(Scalar.from(1)))
-        ).mul(Scalar.from(1).sub(evals.z.zeta));
+        Scalar.FE numerator = zeta1m1
+            .mul(alpha1)
+            .mul(zeta.sub(index.w))
+            .add(
+                zeta1m1
+                .mul(alpha2)
+                .mul(
+                    zeta.sub(Scalar.one())
+                )
+            )
+            .mul(Scalar.one().sub(evals.z.zeta));
 
-        Scalar.FE denominator = zeta.sub(index.w).mul(zeta.sub(Scalar.from(1))).inv();
+        Scalar.FE denominator = zeta
+            .sub(index.w)
+            .mul(zeta.sub(Scalar.one()))
+            .inv();
 
         ft_eval0 = ft_eval0.add(numerator.mul(denominator));
 
         // TODO: evaluate final polynomial (PolishToken)
+        // ft_eval0 - PolishToken.evaluate()
 
         uint256 matrix_count = 2;
         uint256 total_length = 0;

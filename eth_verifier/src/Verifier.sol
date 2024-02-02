@@ -140,7 +140,9 @@ contract KimchiVerifier {
 
     // This takes Kimchi's `to_batch()` as reference.
     function partial_verify(Scalar.FE[] memory public_inputs) public {
-        // Commit to the negated public input polynomial.
+        // TODO: 1. CHeck the length of evaluations insde the proof
+
+        // 2. Commit to the negated public input polynomial.
 
         uint256 chunk_size = verifier_index.domain_size < verifier_index.max_poly_size
             ? 1
@@ -178,17 +180,17 @@ contract KimchiVerifier {
             public_comm = mask_custom(urs.full_urs, public_comm_tmp, blinders).commitment;
         }
 
-        // Execute fiat-shamir with a Keccak sponge
+        // 3. Execute fiat-shamir with a Keccak sponge
 
         Oracles.Result memory oracles_res =
             Oracles.fiat_shamir(proof, verifier_index, public_comm, public_inputs, true, base_sponge, scalar_sponge);
         Oracles.RandomOracles memory oracles = oracles_res.oracles;
 
-        // Combine the chunked polynomials' evaluations
+        // 4. Combine the chunked polynomials' evaluations
 
         ProofEvaluations memory evals = proof.evals.combine_evals(oracles_res.powers_of_eval_points_for_chunks);
 
-        // Compute the commitment to the linearized polynomial $f$.
+        // 5. Compute the commitment to the linearized polynomial $f$.
         Scalar.FE permutation_vanishing_polynomial = Polynomial.vanishes_on_last_n_rows(
             verifier_index.domain_gen, verifier_index.domain_size, verifier_index.zk_rows
         ).evaluate(oracles.zeta);
@@ -233,10 +235,13 @@ contract KimchiVerifier {
 
         PolyComm memory f_comm = polycomm_msm(commitments, scalars);
 
-        // Compute the chunked commitment of ft
+        // 6. Compute the chunked commitment of ft
         Scalar.FE zeta_to_srs_len = oracles.zeta.pow(verifier_index.max_poly_size);
         PolyComm memory chunked_f_comm = f_comm.chunk_commitment(zeta_to_srs_len);
         PolyComm memory chunked_t_comm = proof.commitments.t_comm.chunk_commitment(zeta_to_srs_len);
+
+        // TODO: 7. List the polynomial commitments, and their associated evaluations,
+        // that are associated to the aggregated evaluation proof in the proof:
     }
 
     // @notice executes only the needed steps of partial verification for

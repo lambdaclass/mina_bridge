@@ -22,17 +22,19 @@ library Polynomial {
         return all_zero; // if coeffs is empty, this will return true too.
     }
 
+    // @notice evaluates via Horner's method.
     function evaluate(Dense memory self, Scalar.FE x) external pure returns (Scalar.FE result) {
         result = Scalar.zero();
-        for (uint256 i = 0; i < self.coeffs.length; i++) {
-            result = result.mul(x).add(self.coeffs[i]);
+        for (uint256 i = self.coeffs.length ; i > 0; i--) {
+            result = result.mul(x).add(self.coeffs[i - 1]);
         }
     }
 
+    // @notice evaluates via Horner's method.
     function build_and_eval(Scalar.FE[] memory coeffs, Scalar.FE x) external pure returns (Scalar.FE result) {
         result = Scalar.zero();
-        for (uint256 i = 0; i < coeffs.length; i++) {
-            result = result.mul(x).add(coeffs[i]);
+        for (uint256 i = coeffs.length ; i > 0; i--) {
+            result = result.mul(x).add(coeffs[i - 1]);
         }
     }
 
