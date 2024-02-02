@@ -732,7 +732,7 @@ export class ScalarChallenge {
         let result = ForeignScalar.from(0);
 
         Provable.asProverBn254(() => {
-            const rep = this.chal.toBigIntBn254();
+            const rep = this.chal.toBigInt();
             const rep_64_limbs = getLimbs64(rep);
 
             let a = ForeignScalar.from(2);

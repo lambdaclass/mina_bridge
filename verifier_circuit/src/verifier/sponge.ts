@@ -53,7 +53,7 @@ export class Sponge {
         } else {
             let high = ForeignField.from(0);
             Provable.asProverBn254(() => {
-                const s_bigint = s.toBigIntBn254();
+                const s_bigint = s.toBigInt();
                 const bits = BigInt(s_bigint.toString(2).length);
 
                 high = ForeignField.from((s_bigint >> 1n) & ((1n << (bits - 1n)) - 1n)); // remaining bits
@@ -61,7 +61,7 @@ export class Sponge {
 
             let low = ForeignField.from(0);
             Provable.asProverBn254(() => {
-                const s_bigint = s.toBigIntBn254();
+                const s_bigint = s.toBigInt();
 
                 low = ForeignField.from(s_bigint & 1n); // LSB
             });

@@ -1,4 +1,4 @@
-import { Field, FieldBn254, ForeignGroup, Scalar } from "o1js";
+import { Field, FieldBn254, ForeignGroup, Provable, Scalar } from "o1js";
 import { Sponge } from "../verifier/sponge";
 import { ForeignField } from "../foreign_fields/foreign_field.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
@@ -74,7 +74,12 @@ export class PolyComm<A> {
         for (let i = 0; i < points.length; i++) {
             let point = points[i];
             let scalar = scalars[i];
-            result = result.add(point.scale(scalar));
+            Provable.asProverBn254(() => {
+                console.log("point", point.x.toBigInt(), point.y.toBigInt());
+                console.log("scalar", scalar.toBigInt());
+            });
+            let scaled = point.scale(scalar);
+            result = result.add(scaled);
         }
 
         return result;
@@ -312,8 +317,8 @@ export class OpeningProof {
         return {
             lr,
             delta: ForeignGroup.fromFields(fields.slice(lrOffset, lrOffset + 6)),
-            z1: ForeignScalar.fromFieldsBn254(fields.slice(lrOffset + 6, lrOffset + 9)),
-            z2: ForeignScalar.fromFieldsBn254(fields.slice(lrOffset + 9, lrOffset + 12)),
+            z1: ForeignScalar.fromFields(fields.slice(lrOffset + 6, lrOffset + 9)),
+            z2: ForeignScalar.fromFields(fields.slice(lrOffset + 9, lrOffset + 12)),
             sg: ForeignGroup.fromFields(fields.slice(lrOffset + 12, lrOffset + 18)),
         };
     }
@@ -324,8 +329,8 @@ export class OpeningProof {
             lr = lr.concat(l.toFields());
             lr = lr.concat(r.toFields());
         }
-        let z1 = ForeignScalar.toFieldsBn254(this.z1);
-        let z2 = ForeignScalar.toFieldsBn254(this.z2);
+        let z1 = ForeignScalar.toFields(this.z1);
+        let z2 = ForeignScalar.toFields(this.z2);
 
         return [...lr, ...this.delta.toFields(), ...z1, ...z2, ...this.sg.toFields()];
     }
