@@ -570,7 +570,6 @@ library MsgPk {
         prover_proof.opening.blinding = blinding;
 
         // deserialize ft_eval1
-
         Scalar.FE ft_eval1 = deser_scalar(abi.decode(find_value_str(map, "ft_eval1"), (bytes)));
     }
 
