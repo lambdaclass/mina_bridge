@@ -38,6 +38,71 @@ struct ProofEvaluations {
     // permutation polynomials
     // (PERMUTS-1 evaluations because the last permutation is only used in commitment form)
     PointEvaluations[PERMUTS - 1] s;
+    // coefficient polynomials
+    PointEvaluations[COLUMNS] coefficients;
+    // evaluation of the generic selector polynomial
+    PointEvaluations generic_selector;
+    // evaluation of the poseidon selector polynomial
+    PointEvaluations poseidon_selector;
+    // evaluation of the EC addition selector polynomial
+    PointEvaluations complete_add_selector;
+    // evaluation of the EC variable base scalar multiplication selector polynomial
+    PointEvaluations mul_selector;
+    // evaluation of the EC endoscalar multiplication selector polynomial
+    PointEvaluations emul_selector;
+    // evaluation of the endoscalar multiplication scalar computation selector polynomial
+    PointEvaluations endomul_scalar_selector;
+
+    // Optional gates
+    // evaluation of the RangeCheck0 selector polynomial
+    PointEvaluations range_check0_selector;
+    bool is_range_check0_selector_set;
+    // evaluation of the RangeCheck1 selector polynomial
+    PointEvaluations range_check1_selector;
+    bool is_range_check1_selector_set;
+    // evaluation of the ForeignFieldAdd selector polynomial
+    PointEvaluations foreign_field_add_selector;
+    bool is_foreign_field_add_selector_set;
+    // evaluation of the ForeignFieldMul selector polynomial
+    PointEvaluations foreign_field_mul_selector;
+    bool is_foreign_field_mul_selector_set;
+    // evaluation of the Xor selector polynomial
+    PointEvaluations xor_selector;
+    bool is_xor_selector_set;
+    // evaluation of the Rot selector polynomial
+    PointEvaluations rot_selector;
+    bool is_rot_selector_set;
+
+    // lookup-related evaluations
+    // evaluation of lookup aggregation polynomial
+    PointEvaluations lookup_aggregation;
+    bool is_lookup_aggregation_set;
+    // evaluation of lookup table polynomial
+    PointEvaluations lookup_table;
+    bool is_lookup_table_set;
+    // evaluation of lookup sorted polynomials
+    PointEvaluations[5] lookup_sorted;
+    bool is_lookup_sorted_set;
+    // evaluation of runtime lookup table polynomial
+    PointEvaluations runtime_lookup_table;
+    bool is_runtime_lookup_table_set;
+
+    // lookup selectors
+    // evaluation of the runtime lookup table selector polynomial
+    PointEvaluations runtime_lookup_table_selector;
+    bool is_runtime_lookup_table_selector_set;
+    // evaluation of the Xor range check pattern selector polynomial
+    PointEvaluations xor_lookup_selector;
+    bool is_xor_lookup_selector_set;
+    // evaluation of the Lookup range check pattern selector polynomial
+    PointEvaluations lookup_gate_lookup_selector;
+    bool is_gate_lookup_selector_set;
+    // evaluation of the RangeCheck range check pattern selector polynomial
+    PointEvaluations range_check_lookup_selector;
+    bool is_range_check_lookup_selector_set;
+    // evaluation of the ForeignFieldMul range check pattern selector polynomial
+    PointEvaluations foreign_field_mul_lookup_selector;
+    bool is_foreign_field_mul_lookup_set;
 }
 
 struct ProofEvaluationsArray {
@@ -50,9 +115,73 @@ struct ProofEvaluationsArray {
     // permutation polynomials
     // (PERMUTS-1 evaluations because the last permutation is only used in commitment form)
     PointEvaluationsArray[PERMUTS - 1] s;
+    // coefficient polynomials
+    PointEvaluationsArray[COLUMNS] coefficients;
+    // evaluation of the generic selector polynomial
+    PointEvaluationsArray generic_selector;
+    // evaluation of the poseidon selector polynomial
+    PointEvaluationsArray poseidon_selector;
+    // evaluation of the EC addition selector polynomial
+    PointEvaluationsArray complete_add_selector;
+    // evaluation of the EC variable base scalar multiplication selector polynomial
+    PointEvaluationsArray mul_selector;
+    // evaluation of the EC endoscalar multiplication selector polynomial
+    PointEvaluationsArray emul_selector;
+    // evaluation of the endoscalar multiplication scalar computation selector polynomial
+    PointEvaluationsArray endomul_scalar_selector;
+
+    // Optional gates
+    // evaluation of the RangeCheck0 selector polynomial
+    PointEvaluationsArray range_check0_selector;
+    bool is_range_check0_selector_set;
+    // evaluation of the RangeCheck1 selector polynomial
+    PointEvaluationsArray range_check1_selector;
+    bool is_range_check1_selector_set;
+    // evaluation of the ForeignFieldAdd selector polynomial
+    PointEvaluationsArray foreign_field_add_selector;
+    bool is_foreign_field_add_selector_set;
+    // evaluation of the ForeignFieldMul selector polynomial
+    PointEvaluationsArray foreign_field_mul_selector;
+    bool is_foreign_field_mul_selector_set;
+    // evaluation of the Xor selector polynomial
+    PointEvaluationsArray xor_selector;
+    bool is_xor_selector_set;
+    // evaluation of the Rot selector polynomial
+    PointEvaluationsArray rot_selector;
+    bool is_rot_selector_set;
+
+    // lookup-related evaluations
+    // evaluation of lookup aggregation polynomial
+    PointEvaluationsArray lookup_aggregation;
+    bool is_lookup_aggregation_set;
+    // evaluation of lookup table polynomial
+    PointEvaluationsArray lookup_table;
+    bool is_lookup_table_set;
+    // evaluation of lookup sorted polynomials
+    PointEvaluationsArray[5] lookup_sorted;
+    bool is_lookup_sorted_set;
+    // evaluation of runtime lookup table polynomial
+    PointEvaluationsArray runtime_lookup_table;
+    bool is_runtime_lookup_table_set;
+
+    // lookup selectors
+    // evaluation of the runtime lookup table selector polynomial
+    PointEvaluationsArray runtime_lookup_table_selector;
+    bool is_runtime_lookup_table_selector_set;
+    // evaluation of the Xor range check pattern selector polynomial
+    PointEvaluationsArray xor_lookup_selector;
+    bool is_xor_lookup_selector_set;
+    // evaluation of the Lookup range check pattern selector polynomial
+    PointEvaluationsArray lookup_gate_lookup_selector;
+    bool is_gate_lookup_selector_set;
+    // evaluation of the RangeCheck range check pattern selector polynomial
+    PointEvaluationsArray range_check_lookup_selector;
+    bool is_range_check_lookup_selector_set;
+    // evaluation of the ForeignFieldMul range check pattern selector polynomial
+    PointEvaluationsArray foreign_field_mul_lookup_selector;
+    bool is_foreign_field_mul_lookup_set;
 }
 
-// TODO: add lookup commitments
 struct ProverCommitments {
     PolyComm[COLUMNS] w_comm;
     PolyComm z_comm;
