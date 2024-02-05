@@ -32,29 +32,29 @@ struct ProofEvaluations {
     PointEvaluations public_evals;
     bool is_public_evals_set; // public_evals is optional
     // witness polynomials
-    PointEvaluations[15] w; // TODO: use Constants.COLUMNS
+    PointEvaluations[COLUMNS] w;
     // permutation polynomial
     PointEvaluations z;
     // permutation polynomials
     // (PERMUTS-1 evaluations because the last permutation is only used in commitment form)
-    PointEvaluations[7 - 1] s; // TODO: use Constants.PERMUTS
+    PointEvaluations[PERMUTS - 1] s;
 }
 
 struct ProofEvaluationsArray {
     PointEvaluationsArray public_evals;
     bool is_public_evals_set; // public_evals is optional
     // witness polynomials
-    PointEvaluationsArray[15] w; // TODO: use Constants.COLUMNS
+    PointEvaluationsArray[COLUMNS] w;
     // permutation polynomial
     PointEvaluationsArray z;
     // permutation polynomials
     // (PERMUTS-1 evaluations because the last permutation is only used in commitment form)
-    PointEvaluationsArray[7 - 1] s; // TODO: use Constants.PERMUTS
+    PointEvaluationsArray[PERMUTS - 1] s;
 }
 
 // TODO: add lookup commitments
 struct ProverCommitments {
-    PolyComm[15] w_comm; // TODO: use Constants.COLUMNS
+    PolyComm[COLUMNS] w_comm;
     PolyComm z_comm;
     PolyComm t_comm;
 

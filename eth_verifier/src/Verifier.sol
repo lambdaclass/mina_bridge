@@ -48,8 +48,8 @@ contract KimchiVerifier {
         verifier_index.powers_of_alpha.register(ArgumentType.Permutation, 3);
 
         // TODO: Investigate about linearization and write a proper function for this
-        verifier_index.powers_of_alpha.register(ArgumentType.GateZero, Constants.VARBASEMUL_CONSTRAINTS);
-        verifier_index.powers_of_alpha.register(ArgumentType.Permutation, Constants.PERMUTATION_CONSTRAINTS);
+        verifier_index.powers_of_alpha.register(ArgumentType.GateZero, VARBASEMUL_CONSTRAINTS);
+        verifier_index.powers_of_alpha.register(ArgumentType.Permutation, PERMUTATION_CONSTRAINTS);
     }
 
     function deserialize_proof(bytes calldata verifier_index_serialized, bytes calldata prover_proof_serialized)
@@ -167,7 +167,7 @@ contract KimchiVerifier {
         ).evaluate(oracles.zeta);
 
         Scalar.FE[] memory alphas =
-            verifier_index.powers_of_alpha.get_alphas(ArgumentType.Permutation, Constants.PERMUTATION_CONSTRAINTS);
+            verifier_index.powers_of_alpha.get_alphas(ArgumentType.Permutation, PERMUTATION_CONSTRAINTS);
 
         Linearization memory linear = verifier_index.linearization;
 
