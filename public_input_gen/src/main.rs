@@ -2,6 +2,7 @@ use std::fs;
 
 use ark_ec::msm::VariableBaseMSM;
 use ark_ec::short_weierstrass_jacobian::GroupProjective;
+use ark_ec::ProjectiveCurve;
 use kimchi::mina_curves::pasta::{Fp, Fq, Pallas, PallasParameters};
 use kimchi::o1_utils::FieldHelpers;
 use kimchi::poly_commitment::srs::SRS;
@@ -90,7 +91,7 @@ fn prove_and_verify(srs: &SRS<Pallas>, opening: OpeningProof) {
         Fp::from_hex(&opening.sg.1[2..]).unwrap(),
         false,
     );
-    let value_to_compare = compute_msm_verification(srs, &sg, &z1);
+    let value_to_compare = compute_msm_verification(srs, &sg, &z1).into_affine();
 
     fs::write(
         "../verifier_circuit/src/inputs.json",
