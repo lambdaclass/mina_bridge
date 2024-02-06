@@ -173,13 +173,13 @@ struct ProofEvaluationsArray {
     bool is_xor_lookup_selector_set;
     // evaluation of the Lookup range check pattern selector polynomial
     PointEvaluationsArray lookup_gate_lookup_selector;
-    bool is_gate_lookup_selector_set;
+    bool is_lookup_gate_lookup_selector_set;
     // evaluation of the RangeCheck range check pattern selector polynomial
     PointEvaluationsArray range_check_lookup_selector;
     bool is_range_check_lookup_selector_set;
     // evaluation of the ForeignFieldMul range check pattern selector polynomial
     PointEvaluationsArray foreign_field_mul_lookup_selector;
-    bool is_foreign_field_mul_lookup_set;
+    bool is_foreign_field_mul_lookup_selector_set;
 }
 
 struct ProverCommitments {

@@ -484,19 +484,120 @@ library MsgPk {
 
         EncodedMap memory all_evals_map = abi.decode(find_value(map, abi.encode("evals")), (EncodedMap));
 
-        prover_proof.evals.public_evals = deser_evals(all_evals_map, "public");
-        prover_proof.evals.is_public_evals_set = true;
-
+        bytes memory public_evals = find_value(all_evals_map, "public_evals");
+        bool is_public_evals_set = is_null(public_evals);
+        prover_proof.evals.is_public_evals_set = is_public_evals_set;
+        if (is_public_evals_set) {
+            prover_proof.evals.public_evals = deser_evals(all_evals_map, "public_evals");
+        }
         prover_proof.evals.z = deser_evals(all_evals_map, "z");
-
         PointEvaluationsArray[] memory w = deser_evals_array(all_evals_map, "w");
-        for (uint256 i = 0; i < 15; i++) {
+        for (uint256 i = 0; i < w.length; i++) {
             prover_proof.evals.w[i] = w[i];
         }
-
         PointEvaluationsArray[] memory s = deser_evals_array(all_evals_map, "s");
-        for (uint256 i = 0; i < 6; i++) {
-            prover_proof.evals.w[i] = w[i];
+        for (uint256 i = 0; i < s.length; i++) {
+            prover_proof.evals.s[i] = s[i];
+        }
+        PointEvaluationsArray[] memory coefficients = deser_evals_array(all_evals_map, "coefficients");
+        for (uint256 i = 0; i < coefficients.length; i++) {
+            prover_proof.evals.coefficients[i] = coefficients[i];
+        }
+        prover_proof.evals.generic_selector = deser_evals(all_evals_map, "generic_selector");
+        prover_proof.evals.poseidon_selector = deser_evals(all_evals_map, "poseidon_selector");
+        prover_proof.evals.complete_add_selector = deser_evals(all_evals_map, "complete_add_selector");
+        prover_proof.evals.mul_selector = deser_evals(all_evals_map, "mul_selector");
+        prover_proof.evals.emul_selector = deser_evals(all_evals_map, "emul_selector");
+        prover_proof.evals.endomul_scalar_selector = deser_evals(all_evals_map, "endomul_scalar_selector");
+        // optional gates
+        bytes memory range_check0_selector = find_value(all_evals_map, "range_check0_selector");
+        bool is_range_check0_selector_set = is_null(range_check0_selector);
+        prover_proof.evals.is_range_check0_selector_set = is_range_check0_selector_set;
+        if (is_range_check0_selector_set) {
+            prover_proof.evals.range_check0_selector = deser_evals(all_evals_map, "range_check0_selector");
+        }
+        bytes memory range_check1_selector = find_value(all_evals_map, "range_check1_selector");
+        bool is_range_check1_selector_set = is_null(range_check1_selector);
+        prover_proof.evals.is_range_check1_selector_set = is_range_check1_selector_set;
+        if (is_range_check1_selector_set) {
+            prover_proof.evals.range_check1_selector = deser_evals(all_evals_map, "range_check1_selector");
+        }
+        bytes memory foreign_field_add_selector = find_value(all_evals_map, "foreign_field_add_selector");
+        bool is_foreign_field_add_selector_set = is_null(foreign_field_add_selector);
+        prover_proof.evals.is_foreign_field_add_selector_set = is_foreign_field_add_selector_set;
+        if (is_foreign_field_add_selector_set) {
+            prover_proof.evals.foreign_field_add_selector = deser_evals(all_evals_map, "foreign_field_add_selector");
+        }
+        bytes memory foreign_field_mul_selector = find_value(all_evals_map, "foreign_field_mul_selector");
+        bool is_foreign_field_mul_selector_set = is_null(foreign_field_mul_selector);
+        prover_proof.evals.is_foreign_field_mul_selector_set = is_foreign_field_mul_selector_set;
+        if (is_foreign_field_mul_selector_set) {
+            prover_proof.evals.foreign_field_mul_selector = deser_evals(all_evals_map, "foreign_field_mul_selector");
+        }
+        bytes memory xor_selector = find_value(all_evals_map, "xor_selector");
+        bool is_xor_selector_set = is_null(xor_selector);
+        prover_proof.evals.is_xor_selector_set = is_xor_selector_set;
+        if (is_xor_selector_set) {
+            prover_proof.evals.xor_selector = deser_evals(all_evals_map, "xor_selector");
+        }
+        bytes memory rot_selector = find_value(all_evals_map, "rot_selector");
+        bool is_rot_selector_set = is_null(rot_selector);
+        prover_proof.evals.is_rot_selector_set = is_rot_selector_set;
+        if (is_rot_selector_set) {
+            prover_proof.evals.rot_selector = deser_evals(all_evals_map, "rot_selector");
+        }
+
+        bytes memory lookup_aggregation = find_value(all_evals_map, "lookup_aggregation");
+        bool is_lookup_aggregation_set = is_null(lookup_aggregation);
+        prover_proof.evals.is_lookup_aggregation_set = is_lookup_aggregation_set;
+        if (is_lookup_aggregation_set) {
+            prover_proof.evals.lookup_aggregation = deser_evals(all_evals_map, "lookup_aggregation");
+        }
+        bytes memory lookup_table = find_value(all_evals_map, "lookup_table");
+        bool is_lookup_table_set = is_null(lookup_table);
+        prover_proof.evals.is_lookup_table_set = is_lookup_table_set;
+        if (is_lookup_table_set) {
+            prover_proof.evals.lookup_table = deser_evals(all_evals_map, "lookup_table");
+        }
+        bytes memory lookup_sorted = find_value(all_evals_map, "lookup_sorted");
+        bool is_lookup_sorted_set = is_null(lookup_sorted);
+        prover_proof.evals.is_lookup_sorted_set = is_lookup_sorted_set;
+        if (is_lookup_sorted_set) {
+            PointEvaluationsArray[] memory lookup_sorted_arr = deser_evals_array(all_evals_map, "lookup_sorted");
+            for (uint256 i = 0; i < lookup_sorted_arr.length; i++) {
+                prover_proof.evals.lookup_sorted[i] = lookup_sorted_arr[i];
+            }
+        }
+
+        bytes memory runtime_lookup_table_selector = find_value(all_evals_map, "runtime_lookup_table_selector");
+        bool is_runtime_lookup_table_selector_set = is_null(runtime_lookup_table_selector);
+        prover_proof.evals.is_runtime_lookup_table_selector_set = is_runtime_lookup_table_selector_set;
+        if (is_runtime_lookup_table_selector_set) {
+            prover_proof.evals.runtime_lookup_table_selector = deser_evals(all_evals_map, "runtime_lookup_table_selector");
+        }
+        bytes memory xor_lookup_selector = find_value(all_evals_map, "xor_lookup_selector");
+        bool is_xor_lookup_selector_set = is_null(xor_lookup_selector);
+        prover_proof.evals.is_xor_lookup_selector_set = is_xor_lookup_selector_set;
+        if (is_xor_lookup_selector_set) {
+            prover_proof.evals.xor_lookup_selector = deser_evals(all_evals_map, "xor_lookup_selector");
+        }
+        bytes memory lookup_gate_lookup_selector = find_value(all_evals_map, "lookup_gate_lookup_selector");
+        bool is_lookup_gate_lookup_selector_set = is_null(lookup_gate_lookup_selector);
+        prover_proof.evals.is_lookup_gate_lookup_selector_set = is_lookup_gate_lookup_selector_set;
+        if (is_lookup_gate_lookup_selector_set) {
+            prover_proof.evals.lookup_gate_lookup_selector = deser_evals(all_evals_map, "lookup_gate_lookup_selector");
+        }
+        bytes memory range_check_lookup_selector = find_value(all_evals_map, "range_check_lookup_selector");
+        bool is_range_check_lookup_selector_set = is_null(range_check_lookup_selector);
+        prover_proof.evals.is_range_check_lookup_selector_set = is_range_check_lookup_selector_set;
+        if (is_range_check_lookup_selector_set) {
+            prover_proof.evals.range_check_lookup_selector = deser_evals(all_evals_map, "range_check_lookup_selector");
+        }
+        bytes memory foreign_field_mul_lookup_selector = find_value(all_evals_map, "foreign_field_mul_lookup_selector");
+        bool is_foreign_field_mul_lookup_selector_set = is_null(foreign_field_mul_lookup_selector);
+        prover_proof.evals.is_foreign_field_mul_lookup_selector_set = is_foreign_field_mul_lookup_selector_set;
+        if (is_foreign_field_mul_lookup_selector_set) {
+            prover_proof.evals.foreign_field_mul_lookup_selector = deser_evals(all_evals_map, "foreign_field_mul_lookup_selector");
         }
 
         // deserialize commitments
@@ -531,9 +632,9 @@ library MsgPk {
             runtime_map = abi.decode(runtime_bytes, (EncodedMap));
         }
 
-        PolyComm[] memory lookup_sorted = new PolyComm[](sorted_arr.values.length);
-        for (uint256 i = 0; i < lookup_sorted.length; i++) {
-            lookup_sorted[i] = deser_poly_comm(abi.decode(sorted_arr.values[i], (EncodedMap)));
+        PolyComm[] memory lookup_sorted_comm = new PolyComm[](sorted_arr.values.length);
+        for (uint256 i = 0; i < lookup_sorted_comm.length; i++) {
+            lookup_sorted_comm[i] = deser_poly_comm(abi.decode(sorted_arr.values[i], (EncodedMap)));
         }
         PolyComm memory lookup_aggreg = deser_poly_comm(aggreg_map);
 
@@ -546,7 +647,7 @@ library MsgPk {
         prover_proof.commitments.z_comm = z_comm;
         prover_proof.commitments.t_comm = t_comm;
 
-        prover_proof.commitments.lookup.sorted = lookup_sorted;
+        prover_proof.commitments.lookup.sorted = lookup_sorted_comm;
         prover_proof.commitments.lookup.aggreg = lookup_aggreg;
         if (!runtime_is_null) {
             prover_proof.commitments.lookup.is_runtime_set = true;
@@ -994,32 +1095,6 @@ library MsgPk {
 
         eval = PointEvaluations(zeta, zeta_omega);
         final_i = i;
-    }
-
-    function deserializeProofEvaluationsArray(bytes calldata data, uint256 i)
-        public
-        pure
-        returns (ProofEvaluationsArray memory evals, uint256 final_i)
-    {
-        // WARN: This works because the test circuit evaluations have one elem per array.
-        (PointEvaluations memory evals_non_array, uint256 _i) = deserializePointEvals(data, i);
-
-        Scalar.FE[] memory zeta = new Scalar.FE[](1);
-        Scalar.FE[] memory zeta_omega = new Scalar.FE[](1);
-        zeta[0] = evals_non_array.zeta;
-        zeta_omega[0] = evals_non_array.zeta_omega;
-
-        PointEvaluationsArray memory public_evals = PointEvaluationsArray(zeta, zeta_omega);
-
-        PointEvaluationsArray[15] memory w;
-        Scalar.FE[] memory zero = new Scalar.FE[](1);
-        zero[0] = Scalar.zero();
-        PointEvaluationsArray memory z = PointEvaluationsArray(zero, zero);
-        PointEvaluationsArray[7 - 1] memory s;
-
-        // array needed to simulate an optional param
-        evals = ProofEvaluationsArray(public_evals, true, w, z, s);
-        final_i = _i;
     }
 
     function deserializeState(bytes calldata data, uint256 i) public pure returns (State memory) {
