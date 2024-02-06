@@ -125,7 +125,7 @@ struct ProofEvaluationsArray {
     PointEvaluationsArray complete_add_selector;
     // evaluation of the EC variable base scalar multiplication selector polynomial
     PointEvaluationsArray mul_selector;
-    // evaluation of the EC endoscalar multiplication selector polynomial
+    // evaluation of the EC endoscalar  emultiplication selector polynomial
     PointEvaluationsArray emul_selector;
     // evaluation of the endoscalar multiplication scalar computation selector polynomial
     PointEvaluationsArray endomul_scalar_selector;
@@ -201,40 +201,134 @@ struct LookupCommitments {
 
 function combine_evals(ProofEvaluationsArray memory self, PointEvaluations memory pt)
     pure
-    returns (ProofEvaluations memory)
+    returns (ProofEvaluations memory evals)
 {
-    PointEvaluations memory public_evals;
+    // public evals
     if (self.is_public_evals_set) {
-        public_evals = PointEvaluations(
+        evals.public_evals = PointEvaluations(
             Polynomial.build_and_eval(self.public_evals.zeta, pt.zeta),
             Polynomial.build_and_eval(self.public_evals.zeta_omega, pt.zeta_omega)
         );
     } else {
-        public_evals = PointEvaluations(Scalar.zero(), Scalar.zero());
+        evals.public_evals = PointEvaluations(Scalar.zero(), Scalar.zero());
     }
-
-    PointEvaluations[15] memory w;
-    for (uint256 i = 0; i < 15; i++) {
-        w[i] = PointEvaluations(
+    // w
+    //evals.w = new PointEvaluations[COLUMNS](COLUMNS);
+    for (uint256 i = 0; i < evals.w.length; i++) {
+        evals.w[i] = PointEvaluations(
             Polynomial.build_and_eval(self.w[i].zeta, pt.zeta),
             Polynomial.build_and_eval(self.w[i].zeta_omega, pt.zeta_omega)
         );
     }
-
-    PointEvaluations memory z;
-    z = PointEvaluations(
+    // z
+    evals.z = PointEvaluations(
         Polynomial.build_and_eval(self.z.zeta, pt.zeta), Polynomial.build_and_eval(self.z.zeta_omega, pt.zeta_omega)
     );
-
-    PointEvaluations[7 - 1] memory s;
-    for (uint256 i = 0; i < 7 - 1; i++) {
-        s[i] = PointEvaluations(
+    // s
+    //evals.s = new PointEvaluations[PERMUTS - 1](PERMUTS - 1);
+    for (uint256 i = 0; i < evals.s.length; i++) {
+        evals.s[i] = PointEvaluations(
             Polynomial.build_and_eval(self.s[i].zeta, pt.zeta),
             Polynomial.build_and_eval(self.s[i].zeta_omega, pt.zeta_omega)
         );
     }
+    // coefficients
+    //evals.coefficients = PointEvaluations[COLUMNS]();
+    for (uint256 i = 0; i < evals.coefficients.length; i++) {
+        evals.coefficients[i] = PointEvaluations(
+            Polynomial.build_and_eval(self.coefficients[i].zeta, pt.zeta),
+            Polynomial.build_and_eval(self.coefficients[i].zeta_omega, pt.zeta_omega)
+        );
+    }
+    // generic_selector
+    evals.generic_selector = PointEvaluations(
+        Polynomial.build_and_eval(self.generic_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.generic_selector.zeta_omega, pt.zeta_omega)
+    );
+    // poseidon_selector
+    evals.poseidon_selector = PointEvaluations(
+        Polynomial.build_and_eval(self.poseidon_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.poseidon_selector.zeta_omega, pt.zeta_omega)
+    );
+    // complete_add_selector
+    evals.complete_add_selector = PointEvaluations(
+        Polynomial.build_and_eval(self.complete_add_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.complete_add_selector.zeta_omega, pt.zeta_omega)
+    );
+    // mul_selector
+    evals.mul_selector = PointEvaluations(
+        Polynomial.build_and_eval(self.mul_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.mul_selector.zeta_omega, pt.zeta_omega)
+    );
+    // emul_selector
+    evals.emul_selector = PointEvaluations(
+        Polynomial.build_and_eval(self.emul_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.emul_selector.zeta_omega, pt.zeta_omega)
+    );
+    // endomul_scalar_selector
+    evals.endomul_scalar_selector = PointEvaluations(
+        Polynomial.build_and_eval(self.endomul_scalar_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.endomul_scalar_selector.zeta_omega, pt.zeta_omega)
+    );
 
-    return ProofEvaluations(public_evals, self.is_public_evals_set, w, z, s);
+    // range_check0_selector
+    if (self.is_range_check0_selector_set) {
+        evals.range_check0_selector = PointEvaluations(
+            Polynomial.build_and_eval(self.endomul_scalar_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.endomul_scalar_selector.zeta_omega, pt.zeta_omega)
+        );
+    }
+    // range_check1_selector
+    if (self.is_range_check1_selector_set) {
+        evals.range_check1_selector = PointEvaluations(
+            Polynomial.build_and_eval(self.endomul_scalar_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.endomul_scalar_selector.zeta_omega, pt.zeta_omega)
+        );
+    }
+    // foreign_field_add_selector
+    if (self.is_foreign_field_add_selector_set) {
+        evals.foreign_field_add_selector = PointEvaluations(
+            Polynomial.build_and_eval(self.endomul_scalar_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.endomul_scalar_selector.zeta_omega, pt.zeta_omega)
+        );
+    }
+    // foreign_field_mul_lookup_selector
+    if (self.is_foreign_field_mul_lookup_selector_set) {
+        evals.foreign_field_mul_lookup_selector = PointEvaluations(
+            Polynomial.build_and_eval(self.endomul_scalar_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.endomul_scalar_selector.zeta_omega, pt.zeta_omega)
+        );
+    }
+    // xor_selector
+    if (self.is_xor_selector_set) {
+        evals.xor_selector = PointEvaluations(
+            Polynomial.build_and_eval(self.endomul_scalar_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.endomul_scalar_selector.zeta_omega, pt.zeta_omega)
+        );
+    }
+    // rot_selector
+    if (self.is_rot_selector_set) {
+        evals.rot_selector = PointEvaluations(
+            Polynomial.build_and_eval(self.endomul_scalar_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.endomul_scalar_selector.zeta_omega, pt.zeta_omega)
+        );
+    }
+
+    // lookup_aggregation
+    if (self.is_lookup_aggregation_set) {
+        evals.lookup_aggregation = PointEvaluations(
+            Polynomial.build_and_eval(self.endomul_scalar_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.endomul_scalar_selector.zeta_omega, pt.zeta_omega)
+        );
+    }
+    // lookup_table
+    if (self.is_lookup_table_set) {
+        evals.lookup_table = PointEvaluations(
+            Polynomial.build_and_eval(self.endomul_scalar_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.endomul_scalar_selector.zeta_omega, pt.zeta_omega)
+        );
+    }
+    // lookup_sorted
+    //evals.lookup_sorted = new PointEvaluations[COLUMNS](COLUMNS);
+    for (uint256 i = 0; i < evals.lookup_sorted.length; i++) {
+        evals.lookup_sorted[i] = PointEvaluations(
+            Polynomial.build_and_eval(self.lookup_sorted[i].zeta, pt.zeta),
+            Polynomial.build_and_eval(self.lookup_sorted[i].zeta_omega, pt.zeta_omega)
+        );
+    }
+    // runtime_lookup_table
+    if (self.is_runtime_lookup_table_set) {
+        evals.runtime_lookup_table = PointEvaluations(
+            Polynomial.build_and_eval(self.endomul_scalar_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.endomul_scalar_selector.zeta_omega, pt.zeta_omega)
+        );
+    }
+
 }
 
 function evaluate_column(ProofEvaluations memory self, Column memory col) pure returns (PointEvaluations memory) {
