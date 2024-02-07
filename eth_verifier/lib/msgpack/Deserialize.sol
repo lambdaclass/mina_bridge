@@ -51,7 +51,8 @@ library MsgPk {
         self.curr_index += n;
     }
 
-    error EncodedMapKeyNotFound(bytes key, bytes[] stored_keys);
+    error EncodedMapKeyNotFound(bytes key);
+    error StringMapKeyNotFound(string key);
 
     /// @notice returns the bytes corresponding to the queried key
     function find_value(EncodedMap memory self, bytes memory key) public pure returns (bytes memory) {
@@ -59,7 +60,7 @@ library MsgPk {
         while (i != self.keys.length && keccak256(self.keys[i]) != keccak256(key)) {
             i++;
         }
-        if (i == self.keys.length) revert EncodedMapKeyNotFound(key, self.keys);
+        if (i == self.keys.length) revert EncodedMapKeyNotFound(key);
         return self.values[i];
     }
 
@@ -70,7 +71,7 @@ library MsgPk {
         while (i != self.keys.length && keccak256(self.keys[i]) != keccak256(key)) {
             i++;
         }
-        if (i == self.keys.length) revert EncodedMapKeyNotFound(key, self.keys);
+        if (i == self.keys.length) revert StringMapKeyNotFound(string_key);
         return self.values[i];
     }
 
@@ -484,11 +485,11 @@ library MsgPk {
 
         EncodedMap memory all_evals_map = abi.decode(find_value(map, abi.encode("evals")), (EncodedMap));
 
-        bytes memory public_evals = find_value(all_evals_map, "public_evals");
-        bool is_public_evals_set = is_null(public_evals);
+        bytes memory public_evals = find_value_str(all_evals_map, "public");
+        bool is_public_evals_set = !is_null(public_evals);
         prover_proof.evals.is_public_evals_set = is_public_evals_set;
         if (is_public_evals_set) {
-            prover_proof.evals.public_evals = deser_evals(all_evals_map, "public_evals");
+            prover_proof.evals.public_evals = deser_evals(all_evals_map, "public");
         }
         prover_proof.evals.z = deser_evals(all_evals_map, "z");
         PointEvaluationsArray[] memory w = deser_evals_array(all_evals_map, "w");
@@ -510,57 +511,57 @@ library MsgPk {
         prover_proof.evals.emul_selector = deser_evals(all_evals_map, "emul_selector");
         prover_proof.evals.endomul_scalar_selector = deser_evals(all_evals_map, "endomul_scalar_selector");
         // optional gates
-        bytes memory range_check0_selector = find_value(all_evals_map, "range_check0_selector");
-        bool is_range_check0_selector_set = is_null(range_check0_selector);
+        bytes memory range_check0_selector = find_value_str(all_evals_map, "range_check0_selector");
+        bool is_range_check0_selector_set = !is_null(range_check0_selector);
         prover_proof.evals.is_range_check0_selector_set = is_range_check0_selector_set;
         if (is_range_check0_selector_set) {
             prover_proof.evals.range_check0_selector = deser_evals(all_evals_map, "range_check0_selector");
         }
-        bytes memory range_check1_selector = find_value(all_evals_map, "range_check1_selector");
-        bool is_range_check1_selector_set = is_null(range_check1_selector);
+        bytes memory range_check1_selector = find_value_str(all_evals_map, "range_check1_selector");
+        bool is_range_check1_selector_set = !is_null(range_check1_selector);
         prover_proof.evals.is_range_check1_selector_set = is_range_check1_selector_set;
         if (is_range_check1_selector_set) {
             prover_proof.evals.range_check1_selector = deser_evals(all_evals_map, "range_check1_selector");
         }
-        bytes memory foreign_field_add_selector = find_value(all_evals_map, "foreign_field_add_selector");
-        bool is_foreign_field_add_selector_set = is_null(foreign_field_add_selector);
+        bytes memory foreign_field_add_selector = find_value_str(all_evals_map, "foreign_field_add_selector");
+        bool is_foreign_field_add_selector_set = !is_null(foreign_field_add_selector);
         prover_proof.evals.is_foreign_field_add_selector_set = is_foreign_field_add_selector_set;
         if (is_foreign_field_add_selector_set) {
             prover_proof.evals.foreign_field_add_selector = deser_evals(all_evals_map, "foreign_field_add_selector");
         }
-        bytes memory foreign_field_mul_selector = find_value(all_evals_map, "foreign_field_mul_selector");
-        bool is_foreign_field_mul_selector_set = is_null(foreign_field_mul_selector);
+        bytes memory foreign_field_mul_selector = find_value_str(all_evals_map, "foreign_field_mul_selector");
+        bool is_foreign_field_mul_selector_set = !is_null(foreign_field_mul_selector);
         prover_proof.evals.is_foreign_field_mul_selector_set = is_foreign_field_mul_selector_set;
         if (is_foreign_field_mul_selector_set) {
             prover_proof.evals.foreign_field_mul_selector = deser_evals(all_evals_map, "foreign_field_mul_selector");
         }
-        bytes memory xor_selector = find_value(all_evals_map, "xor_selector");
-        bool is_xor_selector_set = is_null(xor_selector);
+        bytes memory xor_selector = find_value_str(all_evals_map, "xor_selector");
+        bool is_xor_selector_set = !is_null(xor_selector);
         prover_proof.evals.is_xor_selector_set = is_xor_selector_set;
         if (is_xor_selector_set) {
             prover_proof.evals.xor_selector = deser_evals(all_evals_map, "xor_selector");
         }
-        bytes memory rot_selector = find_value(all_evals_map, "rot_selector");
-        bool is_rot_selector_set = is_null(rot_selector);
+        bytes memory rot_selector = find_value_str(all_evals_map, "rot_selector");
+        bool is_rot_selector_set = !is_null(rot_selector);
         prover_proof.evals.is_rot_selector_set = is_rot_selector_set;
         if (is_rot_selector_set) {
             prover_proof.evals.rot_selector = deser_evals(all_evals_map, "rot_selector");
         }
 
-        bytes memory lookup_aggregation = find_value(all_evals_map, "lookup_aggregation");
-        bool is_lookup_aggregation_set = is_null(lookup_aggregation);
+        bytes memory lookup_aggregation = find_value_str(all_evals_map, "lookup_aggregation");
+        bool is_lookup_aggregation_set = !is_null(lookup_aggregation);
         prover_proof.evals.is_lookup_aggregation_set = is_lookup_aggregation_set;
         if (is_lookup_aggregation_set) {
             prover_proof.evals.lookup_aggregation = deser_evals(all_evals_map, "lookup_aggregation");
         }
-        bytes memory lookup_table = find_value(all_evals_map, "lookup_table");
-        bool is_lookup_table_set = is_null(lookup_table);
+        bytes memory lookup_table = find_value_str(all_evals_map, "lookup_table");
+        bool is_lookup_table_set = !is_null(lookup_table);
         prover_proof.evals.is_lookup_table_set = is_lookup_table_set;
         if (is_lookup_table_set) {
             prover_proof.evals.lookup_table = deser_evals(all_evals_map, "lookup_table");
         }
-        bytes memory lookup_sorted = find_value(all_evals_map, "lookup_sorted");
-        bool is_lookup_sorted_set = is_null(lookup_sorted);
+        bytes memory lookup_sorted = find_value_str(all_evals_map, "lookup_sorted");
+        bool is_lookup_sorted_set = !is_null(lookup_sorted);
         prover_proof.evals.is_lookup_sorted_set = is_lookup_sorted_set;
         if (is_lookup_sorted_set) {
             PointEvaluationsArray[] memory lookup_sorted_arr = deser_evals_array(all_evals_map, "lookup_sorted");
@@ -568,33 +569,39 @@ library MsgPk {
                 prover_proof.evals.lookup_sorted[i] = lookup_sorted_arr[i];
             }
         }
+        bytes memory runtime_lookup_table = find_value_str(all_evals_map, "runtime_lookup_table");
+        bool is_runtime_lookup_table_set = !is_null(runtime_lookup_table);
+        prover_proof.evals.is_runtime_lookup_table_set = is_runtime_lookup_table_set;
+        if (is_runtime_lookup_table_set) {
+            prover_proof.evals.runtime_lookup_table = deser_evals(all_evals_map, "runtime_lookup_table");
+        }
 
-        bytes memory runtime_lookup_table_selector = find_value(all_evals_map, "runtime_lookup_table_selector");
-        bool is_runtime_lookup_table_selector_set = is_null(runtime_lookup_table_selector);
+        bytes memory runtime_lookup_table_selector = find_value_str(all_evals_map, "runtime_lookup_table_selector");
+        bool is_runtime_lookup_table_selector_set = !is_null(runtime_lookup_table_selector);
         prover_proof.evals.is_runtime_lookup_table_selector_set = is_runtime_lookup_table_selector_set;
         if (is_runtime_lookup_table_selector_set) {
             prover_proof.evals.runtime_lookup_table_selector = deser_evals(all_evals_map, "runtime_lookup_table_selector");
         }
-        bytes memory xor_lookup_selector = find_value(all_evals_map, "xor_lookup_selector");
-        bool is_xor_lookup_selector_set = is_null(xor_lookup_selector);
+        bytes memory xor_lookup_selector = find_value_str(all_evals_map, "xor_lookup_selector");
+        bool is_xor_lookup_selector_set = !is_null(xor_lookup_selector);
         prover_proof.evals.is_xor_lookup_selector_set = is_xor_lookup_selector_set;
         if (is_xor_lookup_selector_set) {
             prover_proof.evals.xor_lookup_selector = deser_evals(all_evals_map, "xor_lookup_selector");
         }
-        bytes memory lookup_gate_lookup_selector = find_value(all_evals_map, "lookup_gate_lookup_selector");
-        bool is_lookup_gate_lookup_selector_set = is_null(lookup_gate_lookup_selector);
+        bytes memory lookup_gate_lookup_selector = find_value_str(all_evals_map, "lookup_gate_lookup_selector");
+        bool is_lookup_gate_lookup_selector_set = !is_null(lookup_gate_lookup_selector);
         prover_proof.evals.is_lookup_gate_lookup_selector_set = is_lookup_gate_lookup_selector_set;
         if (is_lookup_gate_lookup_selector_set) {
             prover_proof.evals.lookup_gate_lookup_selector = deser_evals(all_evals_map, "lookup_gate_lookup_selector");
         }
-        bytes memory range_check_lookup_selector = find_value(all_evals_map, "range_check_lookup_selector");
-        bool is_range_check_lookup_selector_set = is_null(range_check_lookup_selector);
+        bytes memory range_check_lookup_selector = find_value_str(all_evals_map, "range_check_lookup_selector");
+        bool is_range_check_lookup_selector_set = !is_null(range_check_lookup_selector);
         prover_proof.evals.is_range_check_lookup_selector_set = is_range_check_lookup_selector_set;
         if (is_range_check_lookup_selector_set) {
             prover_proof.evals.range_check_lookup_selector = deser_evals(all_evals_map, "range_check_lookup_selector");
         }
-        bytes memory foreign_field_mul_lookup_selector = find_value(all_evals_map, "foreign_field_mul_lookup_selector");
-        bool is_foreign_field_mul_lookup_selector_set = is_null(foreign_field_mul_lookup_selector);
+        bytes memory foreign_field_mul_lookup_selector = find_value_str(all_evals_map, "foreign_field_mul_lookup_selector");
+        bool is_foreign_field_mul_lookup_selector_set = !is_null(foreign_field_mul_lookup_selector);
         prover_proof.evals.is_foreign_field_mul_lookup_selector_set = is_foreign_field_mul_lookup_selector_set;
         if (is_foreign_field_mul_lookup_selector_set) {
             prover_proof.evals.foreign_field_mul_lookup_selector = deser_evals(all_evals_map, "foreign_field_mul_lookup_selector");
@@ -679,10 +686,10 @@ library MsgPk {
         pure
         returns (PointEvaluationsArray memory)
     {
-        EncodedMap memory eval_map = abi.decode(find_value(all_evals_map, abi.encode(name)), (EncodedMap));
+        EncodedMap memory eval_map = abi.decode(find_value_str(all_evals_map, name), (EncodedMap));
 
-        EncodedArray memory zeta_arr = abi.decode(find_value(eval_map, abi.encode("zeta")), (EncodedArray));
-        EncodedArray memory zeta_omega_arr = abi.decode(find_value(eval_map, abi.encode("zeta_omega")), (EncodedArray));
+        EncodedArray memory zeta_arr = abi.decode(find_value_str(eval_map, "zeta"), (EncodedArray));
+        EncodedArray memory zeta_omega_arr = abi.decode(find_value_str(eval_map, "zeta_omega"), (EncodedArray));
         require(zeta_arr.values.length == zeta_omega_arr.values.length);
         uint256 length = zeta_arr.values.length;
 
@@ -707,16 +714,16 @@ library MsgPk {
         pure
         returns (PointEvaluationsArray[] memory evals)
     {
-        EncodedArray memory eval_array = abi.decode(find_value(all_evals_map, abi.encode(name)), (EncodedArray));
+        EncodedArray memory eval_array = abi.decode(find_value_str(all_evals_map, name), (EncodedArray));
         uint256 length = eval_array.values.length;
         evals = new PointEvaluationsArray[](length);
 
         for (uint256 eval = 0; eval < length; eval++) {
             EncodedMap memory eval_map = abi.decode(eval_array.values[eval], (EncodedMap));
 
-            EncodedArray memory zeta_arr = abi.decode(find_value(eval_map, abi.encode("zeta")), (EncodedArray));
+            EncodedArray memory zeta_arr = abi.decode(find_value_str(eval_map, "zeta"), (EncodedArray));
             EncodedArray memory zeta_omega_arr =
-                abi.decode(find_value(eval_map, abi.encode("zeta_omega")), (EncodedArray));
+                abi.decode(find_value_str(eval_map, "zeta_omega"), (EncodedArray));
             require(zeta_arr.values.length == zeta_omega_arr.values.length);
             uint256 length = zeta_arr.values.length;
 
@@ -772,19 +779,19 @@ library MsgPk {
         // full_srs and verifier_srs fields
         EncodedMap memory urs_map = deser_fixmap(self);
 
-        EncodedMap memory full_urs_serialized = abi.decode(find_value(urs_map, abi.encode("full_srs")), (EncodedMap));
+        EncodedMap memory full_urs_serialized = abi.decode(find_value_str(urs_map, "full_srs"), (EncodedMap));
         EncodedMap memory verifier_urs_serialized =
-            abi.decode(find_value(urs_map, abi.encode("verifier_srs")), (EncodedMap));
+            abi.decode(find_value_str(urs_map, "verifier_srs"), (EncodedMap));
 
         // get data from g and h fields (g is an array of bin8 and h is a bin8)
         EncodedArray memory full_urs_g_serialized =
-            abi.decode(find_value(full_urs_serialized, abi.encode("g")), (EncodedArray));
-        bytes memory full_urs_h_serialized = abi.decode(find_value(full_urs_serialized, abi.encode("h")), (bytes));
+            abi.decode(find_value_str(full_urs_serialized, "g"), (EncodedArray));
+        bytes memory full_urs_h_serialized = abi.decode(find_value_str(full_urs_serialized, "h"), (bytes));
 
         EncodedArray memory verifier_urs_g_serialized =
-            abi.decode(find_value(verifier_urs_serialized, abi.encode("g")), (EncodedArray));
+            abi.decode(find_value_str(verifier_urs_serialized, "g"), (EncodedArray));
         bytes memory verifier_urs_h_serialized =
-            abi.decode(find_value(verifier_urs_serialized, abi.encode("h")), (bytes));
+            abi.decode(find_value_str(verifier_urs_serialized, "h"), (bytes));
 
         // deserialized and save g for both URS
         // INFO: we only need the first two points
