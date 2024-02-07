@@ -70,7 +70,7 @@ library KeccakSponge {
     function absorb_scalar_multiple(
         Sponge storage self,
         Scalar.FE[] memory elems
-    ) external {
+    ) public {
         bytes memory b = abi.encodePacked(elems);
         for (uint256 i = 0; i < b.length; i++) {
             self.pending.push(b[i]);
@@ -121,13 +121,80 @@ library KeccakSponge {
         Sponge storage self,
         ProofEvaluationsArray memory evals
     ) external {
-        bytes[] memory b = new bytes[](1);
-        b[0] = evals.is_public_evals_set
-            ? abi.encode(evals.public_evals)
-            : abi.encode(0);
+        absorb_point_evaluation(self, evals.z);
+        absorb_point_evaluation(self, evals.generic_selector);
+        absorb_point_evaluation(self, evals.poseidon_selector);
+        absorb_point_evaluation(self, evals.complete_add_selector);
+        absorb_point_evaluation(self, evals.mul_selector);
+        absorb_point_evaluation(self, evals.emul_selector);
+        absorb_point_evaluation(self, evals.endomul_scalar_selector);
 
-        for (uint256 i = 0; i < b.length; i++) {
-            self.pending.push((b[0])[i]);
+        if (evals.is_range_check0_selector_set) {
+            absorb_point_evaluation(self, evals.range_check0_selector);
+        }
+        if (evals.is_range_check1_selector_set) {
+            absorb_point_evaluation(self, evals.range_check1_selector);
+        }
+        if (evals.is_foreign_field_add_selector_set) {
+            absorb_point_evaluation(self, evals.foreign_field_add_selector);
+        }
+        if (evals.is_foreign_field_mul_selector_set) {
+            absorb_point_evaluation(self, evals.foreign_field_mul_selector);
+        }
+        if (evals.is_xor_selector_set) {
+            absorb_point_evaluation(self, evals.xor_selector);
+        }
+        if (evals.is_rot_selector_set) {
+            absorb_point_evaluation(self, evals.rot_selector);
+        }
+
+        if (evals.is_lookup_aggregation_set) {
+            absorb_point_evaluation(self, evals.lookup_aggregation);
+        }
+        if (evals.is_lookup_table_set) {
+            absorb_point_evaluation(self, evals.lookup_table);
+        }
+        if (evals.is_lookup_sorted_set) {
+            for (uint i = 0; i < evals.lookup_sorted.length; i++) {
+                absorb_point_evaluation(self, evals.lookup_sorted[i]);
+            }
+        }
+        if (evals.is_runtime_lookup_table_set) {
+            absorb_point_evaluation(self, evals.runtime_lookup_table);
+        }
+
+        if (evals.is_runtime_lookup_table_selector_set) {
+            absorb_point_evaluation(self, evals.runtime_lookup_table_selector);
+        }
+        if (evals.is_xor_lookup_selector_set) {
+            absorb_point_evaluation(self, evals.xor_lookup_selector);
+        }
+        if (evals.is_lookup_gate_lookup_selector_set) {
+            absorb_point_evaluation(self, evals.lookup_gate_lookup_selector);
+        }
+        if (evals.is_range_check_lookup_selector_set) {
+            absorb_point_evaluation(self, evals.range_check_lookup_selector);
+        }
+        if (evals.is_foreign_field_mul_lookup_selector_set) {
+            absorb_point_evaluation(self, evals.foreign_field_mul_lookup_selector);
+        }
+    }
+
+    function absorb_point_evaluation(
+        Sponge storage self,
+        PointEvaluationsArray memory eval
+    ) public {
+        absorb_scalar_multiple(self, eval.zeta);
+        absorb_scalar_multiple(self, eval.zeta_omega);
+    }
+
+    function absorb_point_evaluations(
+        Sponge storage self,
+        PointEvaluationsArray[] memory evals
+    ) public {
+        for (uint i; i < evals.length; i++) {
+            absorb_scalar_multiple(self, evals[i].zeta);
+            absorb_scalar_multiple(self, evals[i].zeta_omega);
         }
     }
 
