@@ -15,11 +15,23 @@ contract KimchiVerifierTest is Test {
     bytes urs_serialized;
     bytes32 numerator_binary;
 
+    ProverProof test_prover_proof;
+    Sponge sponge;
+
     function setUp() public {
         verifier_index_serialized = vm.readFileBinary("verifier_index.mpk");
         prover_proof_serialized = vm.readFileBinary("prover_proof.mpk");
         urs_serialized = vm.readFileBinary("urs.mpk");
         numerator_binary = bytes32(vm.readFileBinary("numerator.bin"));
+
+        // we store deserialized structures mostly to run intermediate results
+        // tests.
+        MsgPk.deser_prover_proof(
+            MsgPk.new_stream(
+                vm.readFileBinary("unit_test_data/prover_proof.mpk")
+            ),
+            test_prover_proof
+        );
     }
 
     function test_verify_with_index() public {
@@ -40,7 +52,21 @@ contract KimchiVerifierTest is Test {
         KimchiVerifier verifier = new KimchiVerifier();
 
         verifier.setup(urs_serialized);
-        verifier.deserialize_proof(verifier_index_serialized, prover_proof_serialized);
+        verifier.deserialize_proof(
+            verifier_index_serialized,
+            prover_proof_serialized
+        );
         verifier.partial_verify(new Scalar.FE[](0));
+    }
+
+    function test_absorb_evaluations() public {
+        KeccakSponge.reinit(sponge);
+
+        KeccakSponge.absorb_evaluations(sponge, test_prover_proof.evals);
+        Scalar.FE scalar = KeccakSponge.challenge_scalar(sponge);
+        assertEq(
+            Scalar.FE.unwrap(scalar),
+            0x0000000000000000000000000000000000DC56216206DF842F824D14A6D87024
+        );
     }
 }

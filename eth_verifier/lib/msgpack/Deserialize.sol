@@ -691,6 +691,7 @@ library MsgPk {
 
         EncodedArray memory zeta_arr = abi.decode(find_value_str(eval_map, "zeta"), (EncodedArray));
         EncodedArray memory zeta_omega_arr = abi.decode(find_value_str(eval_map, "zeta_omega"), (EncodedArray));
+
         require(zeta_arr.values.length == zeta_omega_arr.values.length);
         uint256 length = zeta_arr.values.length;
 
@@ -700,11 +701,8 @@ library MsgPk {
             bytes memory zeta_bytes = abi.decode(zeta_arr.values[i], (bytes));
             bytes memory zeta_omega_bytes = abi.decode(zeta_omega_arr.values[i], (bytes));
 
-            uint256 zeta_inner = uint256(bytes32(zeta_bytes));
-            uint256 zeta_omega_inner = uint256(bytes32(zeta_omega_bytes));
-
-            zetas[i] = Scalar.from(zeta_inner);
-            zeta_omegas[i] = Scalar.from(zeta_omega_inner);
+            zetas[i] = deser_scalar(zeta_bytes);
+            zeta_omegas[i] = deser_scalar(zeta_omega_bytes);
         }
 
         return PointEvaluationsArray(zetas, zeta_omegas);
@@ -734,11 +732,8 @@ library MsgPk {
                 bytes memory zeta_bytes = abi.decode(zeta_arr.values[i], (bytes));
                 bytes memory zeta_omega_bytes = abi.decode(zeta_omega_arr.values[i], (bytes));
 
-                uint256 zeta_inner = uint256(bytes32(zeta_bytes));
-                uint256 zeta_omega_inner = uint256(bytes32(zeta_omega_bytes));
-
-                zetas[i] = Scalar.from(zeta_inner);
-                zeta_omegas[i] = Scalar.from(zeta_omega_inner);
+                zetas[i] = deser_scalar(zeta_bytes);
+                zeta_omegas[i] = deser_scalar(zeta_omega_bytes);
             }
             evals[eval] = PointEvaluationsArray(zetas, zeta_omegas);
         }

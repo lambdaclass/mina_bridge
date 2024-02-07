@@ -129,6 +129,16 @@ library KeccakSponge {
         absorb_point_evaluation(self, evals.emul_selector);
         absorb_point_evaluation(self, evals.endomul_scalar_selector);
 
+        for (uint i = 0; i < evals.w.length; i++) {
+            absorb_point_evaluation(self, evals.w[i]);
+        }
+        for (uint i = 0; i < evals.coefficients.length; i++) {
+            absorb_point_evaluation(self, evals.coefficients[i]);
+        }
+        for (uint i = 0; i < evals.s.length; i++) {
+            absorb_point_evaluation(self, evals.s[i]);
+        }
+
         if (evals.is_range_check0_selector_set) {
             absorb_point_evaluation(self, evals.range_check0_selector);
         }
