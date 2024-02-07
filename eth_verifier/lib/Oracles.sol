@@ -214,7 +214,8 @@ library Oracles {
             revert MissingPublicInputEvaluation();
         }
 
-        // TODO: 24. Absorb the unique evaluation of ft
+        // 24. Absorb the unique evaluation of ft
+        scalar_sponge.absorb_scalar(proof.ft_eval1);
 
         // 25. Absorb all the polynomial evaluations in $\zeta$ and $\zeta\omega$:
         //~~ * the public polynomial
@@ -254,14 +255,14 @@ library Oracles {
         // FIXME: alpha_powers should be an iterator and alphai = alpha_powers.next(), for i = 0,1,2.
 
         // initial value
-        Scalar.FE ft_eval0 = evals.w[Constants.PERMUTS - 1].zeta
+        Scalar.FE ft_eval0 = evals.w[PERMUTS - 1].zeta
             .add(gamma)
             .mul(evals.z.zeta_omega)
             .mul(alpha0)
             .mul(permutation_vanishing_poly);
 
         // map and reduction
-        for (uint256 i = 0; i < Constants.PERMUTS - 1; i++) {
+        for (uint256 i = 0; i < PERMUTS - 1; i++) {
             PointEvaluations memory w = evals.w[i];
             PointEvaluations memory s = evals.s[i];
 
@@ -279,7 +280,7 @@ library Oracles {
             .mul(evals.z.zeta);
 
         // map and reduction
-        for (uint256 i = 0; i < Constants.PERMUTS; i++) {
+        for (uint256 i = 0; i < PERMUTS; i++) {
             PointEvaluations memory w = evals.w[i];
             Scalar.FE s = index.shift[i];
 

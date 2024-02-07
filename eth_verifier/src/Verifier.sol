@@ -22,35 +22,6 @@ using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} f
 using {AlphasLib.get_alphas} for Alphas;
 using {Polynomial.evaluate} for Polynomial.Dense;
 
-library Kimchi {
-    struct Proof {
-        uint256 data;
-    }
-
-    struct ProofInput {
-        uint256[] serializedProof;
-    }
-
-    struct ProverProof {
-        // evals
-
-        // opening proof
-        BN254.G1Point opening_proof_quotient;
-        uint256 opening_proof_blinding;
-    }
-
-    struct Evals {
-        Base.FE zeta;
-        Base.FE zeta_omega;
-    }
-
-    /*
-    function deserializeEvals(
-        uint8[71] calldata serialized_evals
-    ) public view returns (Evals memory evals) {}
-    */
-}
-
 contract KimchiVerifier {
     using {AlphasLib.register} for Alphas;
     using {combine_evals} for ProofEvaluationsArray;
@@ -77,8 +48,8 @@ contract KimchiVerifier {
         verifier_index.powers_of_alpha.register(ArgumentType.Permutation, 3);
 
         // TODO: Investigate about linearization and write a proper function for this
-        verifier_index.powers_of_alpha.register(ArgumentType.GateZero, Constants.VARBASEMUL_CONSTRAINTS);
-        verifier_index.powers_of_alpha.register(ArgumentType.Permutation, Constants.PERMUTATION_CONSTRAINTS);
+        verifier_index.powers_of_alpha.register(ArgumentType.GateZero, VARBASEMUL_CONSTRAINTS);
+        verifier_index.powers_of_alpha.register(ArgumentType.Permutation, PERMUTATION_CONSTRAINTS);
     }
 
     function deserialize_proof(bytes calldata verifier_index_serialized, bytes calldata prover_proof_serialized)
@@ -196,7 +167,7 @@ contract KimchiVerifier {
         ).evaluate(oracles.zeta);
 
         Scalar.FE[] memory alphas =
-            verifier_index.powers_of_alpha.get_alphas(ArgumentType.Permutation, Constants.PERMUTATION_CONSTRAINTS);
+            verifier_index.powers_of_alpha.get_alphas(ArgumentType.Permutation, PERMUTATION_CONSTRAINTS);
 
         Linearization memory linear = verifier_index.linearization;
 
