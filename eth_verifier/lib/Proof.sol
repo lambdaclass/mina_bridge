@@ -213,7 +213,6 @@ function combine_evals(ProofEvaluationsArray memory self, PointEvaluations memor
         evals.public_evals = PointEvaluations(Scalar.zero(), Scalar.zero());
     }
     // w
-    //evals.w = new PointEvaluations[COLUMNS](COLUMNS);
     for (uint256 i = 0; i < evals.w.length; i++) {
         evals.w[i] = PointEvaluations(
             Polynomial.build_and_eval(self.w[i].zeta, pt.zeta),
@@ -225,7 +224,6 @@ function combine_evals(ProofEvaluationsArray memory self, PointEvaluations memor
         Polynomial.build_and_eval(self.z.zeta, pt.zeta), Polynomial.build_and_eval(self.z.zeta_omega, pt.zeta_omega)
     );
     // s
-    //evals.s = new PointEvaluations[PERMUTS - 1](PERMUTS - 1);
     for (uint256 i = 0; i < evals.s.length; i++) {
         evals.s[i] = PointEvaluations(
             Polynomial.build_and_eval(self.s[i].zeta, pt.zeta),
@@ -233,7 +231,6 @@ function combine_evals(ProofEvaluationsArray memory self, PointEvaluations memor
         );
     }
     // coefficients
-    //evals.coefficients = PointEvaluations[COLUMNS]();
     for (uint256 i = 0; i < evals.coefficients.length; i++) {
         evals.coefficients[i] = PointEvaluations(
             Polynomial.build_and_eval(self.coefficients[i].zeta, pt.zeta),
@@ -315,7 +312,6 @@ function combine_evals(ProofEvaluationsArray memory self, PointEvaluations memor
         );
     }
     // lookup_sorted
-    //evals.lookup_sorted = new PointEvaluations[COLUMNS](COLUMNS);
     for (uint256 i = 0; i < evals.lookup_sorted.length; i++) {
         evals.lookup_sorted[i] = PointEvaluations(
             Polynomial.build_and_eval(self.lookup_sorted[i].zeta, pt.zeta),
