@@ -214,6 +214,7 @@ library Oracles {
             revert MissingPublicInputEvaluation();
         }
 
+        // 24. Absorb the unique evaluation of ft
         scalar_sponge.absorb_scalar(proof.ft_eval1);
 
         // 25. Absorb all the polynomial evaluations in $\zeta$ and $\zeta\omega$:
