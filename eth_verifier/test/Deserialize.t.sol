@@ -231,4 +231,10 @@ contract DeserializeTest is Test {
         assertEq(test_urs.verifier_urs.g[2].y0, 0x227496FC46FCD4887801FE92F5D62804B7B26EAB126B4F4E7A5F255FAE7089E4, "y0 point 2");
         assertEq(test_urs.verifier_urs.g[2].y1, 0x1DAE1514DF395BF6B03BD82FE153C56D7419845B00D9592E637660BA8F4F339D, "y1 point 2");
     }
+
+    function test_deserialize_scalar() public {
+        bytes memory scalar_serialized = hex"550028f667d034768ec0a14ac5f5a24bbcad7117110fc65b7529e003a0708419";
+        Scalar.FE scalar = MsgPk.deser_scalar(scalar_serialized);
+        assertEq(Scalar.FE.unwrap(scalar), 0x198470A003E029755BC60F111771ADBC4BA2F5C54AA1C08E7634D067F6280055);
+    }
 }

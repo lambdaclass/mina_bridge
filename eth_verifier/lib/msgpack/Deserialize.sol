@@ -309,6 +309,7 @@ library MsgPk {
     }
 
     function deser_scalar(bytes memory inner_bytes) public pure returns (Scalar.FE) {
+        inner_bytes = UtilsExternal.reverseEndianness(inner_bytes);
         return Scalar.from(uint256(bytes32(inner_bytes)));
     }
 
