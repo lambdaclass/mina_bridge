@@ -678,7 +678,7 @@ library MsgPk {
         prover_proof.opening.blinding = blinding;
 
         // deserialize ft_eval1
-        Scalar.FE ft_eval1 = deser_scalar(abi.decode(find_value_str(map, "ft_eval1"), (bytes)));
+        prover_proof.ft_eval1 = deser_scalar(abi.decode(find_value_str(map, "ft_eval1"), (bytes)));
     }
 
     function deser_evals(EncodedMap memory all_evals_map, string memory name)
