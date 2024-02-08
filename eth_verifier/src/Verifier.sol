@@ -40,14 +40,7 @@ contract KimchiVerifier {
     function setup(bytes memory urs_serialized) public {
         MsgPk.deser_pairing_urs(MsgPk.new_stream(urs_serialized), urs);
 
-        // x is a seed used in the KZG prover for creating the trusted setup.
-        // TODO Scalar.FE x = Scalar.from(42);
-        //uint256 max_domain_size = 16384;
-
-        verifier_index.powers_of_alpha.register(ArgumentType.GateZero, 21);
-        verifier_index.powers_of_alpha.register(ArgumentType.Permutation, 3);
-
-        // TODO: Investigate about linearization and write a proper function for this
+        // INFO: powers of alpha are fixed for a given constraint system, so we can hard-code them.
         verifier_index.powers_of_alpha.register(ArgumentType.GateZero, VARBASEMUL_CONSTRAINTS);
         verifier_index.powers_of_alpha.register(ArgumentType.Permutation, PERMUTATION_CONSTRAINTS);
     }
