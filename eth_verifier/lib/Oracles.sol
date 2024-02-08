@@ -224,7 +224,6 @@ library Oracles {
         //~~ * poseidon selector
         //~~ * the 15 register/witness
         //~~ * 6 sigmas evaluations (the last one is not evaluated)
-        // FIXME: requires re implementing absorb_evaluations() and testing the other fn.
         scalar_sponge.absorb_scalar_multiple(public_evals[0]);
         scalar_sponge.absorb_scalar_multiple(public_evals[1]);
         scalar_sponge.absorb_evaluations(proof.evals);
