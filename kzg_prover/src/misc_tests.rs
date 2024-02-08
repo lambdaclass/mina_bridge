@@ -37,7 +37,7 @@ mod test {
 
     #[test]
     fn test_absorb_evaluations() {
-        let prover_proof_serialized = include_bytes!("../test_data/prover_proof.mpk");
+        let prover_proof_serialized = include_bytes!("../unit_test_data/prover_proof.mpk");
         let prover_proof: ProverProof<G1, KZGProof> =
             rmp_serde::from_slice(prover_proof_serialized).unwrap();
 
