@@ -43,9 +43,6 @@ mod test {
 
         let mut sponge = KeccakFrSponge::new(G1::sponge_params());
         sponge.absorb_evaluations(&prover_proof.evals);
-        println!("evals.z: {}", prover_proof.evals.z.zeta[0]);
-        println!("ft_eval1: {}", prover_proof.ft_eval1);
-        panic!();
         assert_eq!(
             sponge.challenge().0,
             scalar_from_hex("0000000000000000000000000000000000DC56216206DF842F824D14A6D87024"),
