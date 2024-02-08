@@ -240,10 +240,12 @@ library Oracles {
         ProofEvaluations memory evals = proof.evals.combine_evals(powers_of_eval_points_for_chunks);
 
         // 29. Compute the evaluation of $ft(\zeta)$.
-        Scalar.FE permutation_vanishing_poly = Scalar.from(1); // FIXME: evaluate poly in zeta
-        // INFO: creating the poly is expensive, although what we want here is only an evaluation of the
-        // polynomial in the `zeta` point. It's way easier to evaluate than to construct the poly and evaluate
-        // after. There's even an implementation of this in Rust via `eval_vanishes_on_last_n_rows()`.
+        Scalar.FE permutation_vanishing_poly = Polynomial.eval_vanishes_on_last_n_rows(
+            index.domain_gen,
+            index.domain_size,
+            index.zk_rows,
+            zeta
+        );
         Scalar.FE zeta1m1 = zeta1.sub(Scalar.from(1));
 
         uint256 permutation_constraints = 3;

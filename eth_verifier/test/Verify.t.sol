@@ -8,6 +8,7 @@ import "../src/Verifier.sol";
 import "../lib/msgpack/Deserialize.sol";
 import "../lib/Commitment.sol";
 import "../lib/Alphas.sol";
+import "../lib/Polynomial.sol";
 
 contract KimchiVerifierTest is Test {
     bytes verifier_index_serialized;
@@ -16,6 +17,7 @@ contract KimchiVerifierTest is Test {
     bytes32 numerator_binary;
 
     ProverProof test_prover_proof;
+    VerifierIndex test_verifier_index;
     Sponge sponge;
 
     function setUp() public {
@@ -31,6 +33,12 @@ contract KimchiVerifierTest is Test {
                 vm.readFileBinary("unit_test_data/prover_proof.mpk")
             ),
             test_prover_proof
+        );
+        MsgPk.deser_verifier_index(
+            MsgPk.new_stream(
+                vm.readFileBinary("unit_test_data/verifier_index.mpk")
+            ),
+            test_verifier_index
         );
     }
 
@@ -67,6 +75,25 @@ contract KimchiVerifierTest is Test {
         assertEq(
             Scalar.FE.unwrap(scalar),
             0x0000000000000000000000000000000000DC56216206DF842F824D14A6D87024
+        );
+    }
+
+    function test_eval_vanishing_poly_on_last_n_rows() public {
+        // hard-coded zeta is taken from executing the verifier in main.rs
+        // the value doesn't matter, as long as it matches the analogous test in Rust.
+        Scalar.FE zeta = Scalar.from(
+            0x1B427680FC915CB850FFF8701AD7E2D73B9F1349F713BFBE6B58E5D007988CD0
+        );
+        Scalar.FE permutation_vanishing_poly = Polynomial
+            .eval_vanishes_on_last_n_rows(
+                test_verifier_index.domain_gen,
+                test_verifier_index.domain_size,
+                test_verifier_index.zk_rows,
+                zeta
+            );
+        assertEq(
+            Scalar.FE.unwrap(permutation_vanishing_poly),
+            0x2C5ACDAC911B82AE9F3E0D0D792DFEAC4638C8F482B99116BDC080527F5DEB7E
         );
     }
 }
