@@ -96,13 +96,13 @@ struct ProofEvaluations {
     bool is_xor_lookup_selector_set;
     // evaluation of the Lookup range check pattern selector polynomial
     PointEvaluations lookup_gate_lookup_selector;
-    bool is_gate_lookup_selector_set;
+    bool is_lookup_gate_lookup_selector_set;
     // evaluation of the RangeCheck range check pattern selector polynomial
     PointEvaluations range_check_lookup_selector;
     bool is_range_check_lookup_selector_set;
     // evaluation of the ForeignFieldMul range check pattern selector polynomial
     PointEvaluations foreign_field_mul_lookup_selector;
-    bool is_foreign_field_mul_lookup_set;
+    bool is_foreign_field_mul_lookup_selector_set;
 }
 
 struct ProofEvaluationsArray {
@@ -327,6 +327,8 @@ function combine_evals(ProofEvaluationsArray memory self, PointEvaluations memor
 
 }
 
+error MissingIndexEvaluation(string col);
+
 // INFO: ref: berkeley_columns.rs
 function evaluate_column(ProofEvaluations memory self, Column memory col) pure returns (PointEvaluations memory) {
     if (col.variant == ColumnVariant.Witness) {
@@ -336,9 +338,128 @@ function evaluate_column(ProofEvaluations memory self, Column memory col) pure r
     if (col.variant == ColumnVariant.Z) {
         return self.z;
     }
+    if (col.variant == ColumnVariant.LookupSorted) {
+        if (!self.is_lookup_sorted_set) {
+            revert MissingIndexEvaluation("lookup_sorted");
+        }
+        uint256 i = abi.decode(col.data, (uint256));
+        return self.lookup_sorted[i];
+    }
+    if (col.variant == ColumnVariant.LookupAggreg) {
+        if (!self.is_lookup_aggregation_set) {
+            revert MissingIndexEvaluation("lookup_aggregation");
+        }
+        return self.lookup_aggregation;
+    }
+    if (col.variant == ColumnVariant.LookupTable) {
+        if (!self.is_lookup_table_set) {
+            revert MissingIndexEvaluation("lookup_table");
+        }
+        return self.lookup_table;
+    }
+    if (col.variant == ColumnVariant.LookupRuntimeTable) {
+        if (!self.is_runtime_lookup_table_set) {
+            revert MissingIndexEvaluation("runtime_lookup_table");
+        }
+        return self.runtime_lookup_table;
+    }
+    if (col.variant == ColumnVariant.Index) {
+        GateType gate_type = abi.decode(col.data, (GateType));
+        if (gate_type == GateType.Poseidon) {
+            return self.poseidon_selector;
+        }
+        if (gate_type == GateType.Generic) {
+            return self.generic_selector;
+        }
+        if (gate_type == GateType.CompleteAdd) {
+            return self.complete_add_selector;
+        }
+        if (gate_type == GateType.VarBaseMul) {
+            return self.mul_selector;
+        }
+        if (gate_type == GateType.EndoMul) {
+            return self.emul_selector;
+        }
+        if (gate_type == GateType.EndoMulScalar) {
+            return self.endomul_scalar_selector;
+        }
+        if (gate_type == GateType.RangeCheck0) {
+            if (!self.is_range_check0_selector_set) {
+                revert MissingIndexEvaluation("range_check0_selector");
+            }
+            return self.range_check0_selector;
+        }
+        if (gate_type == GateType.RangeCheck1) {
+            if (!self.is_range_check1_selector_set) {
+                revert MissingIndexEvaluation("range_check1_selector");
+            }
+            return self.range_check1_selector;
+        }
+        if (gate_type == GateType.ForeignFieldAdd) {
+            if (!self.is_foreign_field_add_selector_set) {
+                revert MissingIndexEvaluation("foreign_field_add_selector");
+            }
+            return self.foreign_field_add_selector;
+        }
+        if (gate_type == GateType.ForeignFieldMul) {
+            if (!self.is_foreign_field_mul_selector_set) {
+                revert MissingIndexEvaluation("foreign_field_mul_selector");
+            }
+            return self.foreign_field_mul_selector;
+        }
+        if (gate_type == GateType.Xor16) {
+            if (!self.is_xor_selector_set) {
+                revert MissingIndexEvaluation("xor_selector");
+            }
+            return self.xor_selector;
+        }
+        if (gate_type == GateType.Rot64) {
+            if (!self.is_rot_selector_set) {
+                revert MissingIndexEvaluation("rot_selector");
+            }
+            return self.rot_selector;
+        }
+    }
     if (col.variant == ColumnVariant.Permutation) {
         uint256 i = abi.decode(col.data, (uint256));
-        return self.w[i];
+        return self.s[i];
+    }
+    if (col.variant == ColumnVariant.Coefficient) {
+        uint256 i = abi.decode(col.data, (uint256));
+        return self.coefficients[i];
+    }
+    if (col.variant == ColumnVariant.LookupKindIndex) {
+        LookupPattern pattern = abi.decode(col.data, (LookupPattern));
+        if (pattern == LookupPattern.Xor) {
+            if (!self.is_xor_lookup_selector_set) {
+                revert MissingIndexEvaluation("xor_lookup_selector");
+            }
+            return self.xor_lookup_selector;
+        }
+        if (pattern == LookupPattern.Lookup) {
+            if (!self.is_lookup_gate_lookup_selector_set) {
+                revert MissingIndexEvaluation("lookup_gate_lookup_selector");
+            }
+            return self.lookup_gate_lookup_selector;
+        }
+        if (pattern == LookupPattern.RangeCheck) {
+            if (!self.is_range_check_lookup_selector_set) {
+                revert MissingIndexEvaluation("range_check_lookup_selector");
+            }
+            return self.range_check_lookup_selector;
+        }
+        if (pattern == LookupPattern.ForeignFieldMul) {
+            if (!self.is_foreign_field_mul_lookup_selector_set) {
+                revert MissingIndexEvaluation("foreign_field_mul_lookup_selector");
+            }
+            return self.foreign_field_mul_lookup_selector;
+        }
+    }
+    if (col.variant == ColumnVariant.LookupRuntimeSelector) {
+        if (!self.is_runtime_lookup_table_selector_set) {
+            revert MissingIndexEvaluation("runtime_lookup_table_selector");
+        }
+        return self.runtime_lookup_table_selector;
     }
     revert("unhandled column variant");
     // TODO: rest of variants, for this it's necessary to expand ProofEvaluations
