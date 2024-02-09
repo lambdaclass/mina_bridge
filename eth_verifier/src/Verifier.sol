@@ -20,6 +20,7 @@ import "../lib/expr/ExprConstants.sol";
 using {BN254.neg, BN254.scalarMul} for BN254.G1Point;
 using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
 using {AlphasLib.get_alphas} for Alphas;
+using {AlphasLib.it_next} for AlphasLib.Iterator;
 using {Polynomial.evaluate} for Polynomial.Dense;
 
 contract KimchiVerifier {
@@ -159,7 +160,7 @@ contract KimchiVerifier {
             verifier_index.domain_gen, verifier_index.domain_size, verifier_index.zk_rows
         ).evaluate(oracles.zeta);
 
-        Scalar.FE[] memory alphas =
+        AlphasLib.Iterator memory alphas =
             verifier_index.powers_of_alpha.get_alphas(ArgumentType.Permutation, PERMUTATION_CONSTRAINTS);
 
         Linearization memory linear = verifier_index.linearization;
@@ -172,7 +173,7 @@ contract KimchiVerifier {
             evals,
             oracles.beta,
             oracles.gamma,
-            alphas, // FIXME: change for iterator to take into account previous alphas
+            alphas,
             permutation_vanishing_polynomial
         );
 
@@ -270,17 +271,21 @@ contract KimchiVerifier {
         ProofEvaluations memory e,
         Scalar.FE beta,
         Scalar.FE gamma,
-        Scalar.FE[] memory alphas, // array with the next 3 powers
-        Scalar.FE zkp_zeta // TODO: make an AlphaIterator type.
+        AlphasLib.Iterator memory alphas,
+        Scalar.FE zkp_zeta
     ) internal pure returns (Scalar.FE res) {
-        require(alphas.length == 3, "not enough powers of alpha for permutation");
-        // TODO: alphas should be an iterator
+        require(alphas.powers.length - alphas.current_index == 3, "not enough powers of alpha for permutation");
 
-        res = e.z.zeta_omega.mul(beta).mul(alphas[0]).mul(zkp_zeta);
+        Scalar.FE alpha0 = alphas.it_next();
+        Scalar.FE _alpha1 = alphas.it_next();
+        Scalar.FE _alpha2 = alphas.it_next();
+
+        res = e.z.zeta_omega.mul(beta).mul(alpha0).mul(zkp_zeta);
         uint256 len = Utils.min(e.w.length, e.s.length);
         for (uint256 i = 0; i < len; i++) {
             res = res.mul(gamma.add(beta.mul(e.s[i].zeta)).add(e.w[i].zeta));
         }
+        res.neg();
     }
 
     /// The polynomial that evaluates to each of `evals` for the respective `elm`s.

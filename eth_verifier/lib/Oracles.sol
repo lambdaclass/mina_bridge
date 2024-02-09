@@ -15,6 +15,7 @@ library Oracles {
     using {to_field_with_length, to_field} for ScalarChallenge;
     using {Scalar.neg, Scalar.add, Scalar.sub, Scalar.mul, Scalar.inv, Scalar.double, Scalar.pow} for Scalar.FE;
     using {AlphasLib.instantiate, AlphasLib.get_alphas} for Alphas;
+    using {AlphasLib.it_next} for AlphasLib.Iterator;
     using {
         KeccakSponge.reinit,
         KeccakSponge.absorb_base,
@@ -249,11 +250,10 @@ library Oracles {
         Scalar.FE zeta1m1 = zeta1.sub(Scalar.from(1));
 
         uint256 permutation_constraints = 3;
-        Scalar.FE[] memory alpha_pows = all_alphas.get_alphas(ArgumentType.Permutation, permutation_constraints);
-        Scalar.FE alpha0 = alpha_pows[0];
-        Scalar.FE alpha1 = alpha_pows[1];
-        Scalar.FE alpha2 = alpha_pows[2];
-        // FIXME: alpha_powers should be an iterator and alphai = alpha_powers.next(), for i = 0,1,2.
+        AlphasLib.Iterator memory alpha_pows = all_alphas.get_alphas(ArgumentType.Permutation, permutation_constraints);
+        Scalar.FE alpha0 = alpha_pows.it_next();
+        Scalar.FE alpha1 = alpha_pows.it_next();
+        Scalar.FE alpha2 = alpha_pows.it_next();
 
         // initial value
         Scalar.FE ft_eval0 = evals.w[PERMUTS - 1].zeta

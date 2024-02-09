@@ -76,7 +76,7 @@ library AlphasLib {
     function get_alphas(Alphas storage self, ArgumentType ty, uint num)
         external
         view
-        returns (Scalar.FE[] memory pows) 
+        returns (Iterator memory)
     {
         if (ty == ArgumentType.GateZero ||
             ty == ArgumentType.GateGeneric ||
@@ -109,12 +109,24 @@ library AlphasLib {
             revert NonInstantiatedPowersOfAlpha();
         }
 
-        pows = new Scalar.FE[](num);
+        Scalar.FE[] memory powers = new Scalar.FE[](num);
         for (uint i = 0; i < num; i++) {
-            pows[i] = self.alphas[range[0]+i];
+            powers[i] = self.alphas[range[0]+i];
         }
-        // FIXME: in kimchi this returns a "MustConsumeIterator", which warns you if
-        // not consumed entirely.
+
+        return Iterator(powers, 0);
+    }
+
+    // @notice iterator for retrieving powers of alpha.
+    // @notice powers are already computed so this should always be entirely consumed.
+    struct Iterator {
+        Scalar.FE[] powers;
+        uint256 current_index;
+    }
+
+    function it_next(Iterator memory self) public pure returns (Scalar.FE) {
+        require(self.current_index < self.powers.length, "powers of alpha iterator out of bounds");
+        return self.powers[self.current_index++];
     }
 }
 
