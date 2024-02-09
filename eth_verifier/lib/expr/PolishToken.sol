@@ -38,7 +38,7 @@ function evaluate(
     uint256 stack_next = 0; // will keep track of last stack element's index
     Scalar.FE[] memory cache = new Scalar.FE[](toks.length);
     uint256 cache_next = 0; // will keep track of last cache element's index
-    // WARN: Both arrays allocate the maximum memory the'll ever use, but it's
+    // WARN: Both arrays allocate the maximum memory they will ever use, but it's
     // WARN: pretty unlikely they'll need it all.
 
     uint256 skip_count = 0;
@@ -76,25 +76,27 @@ function evaluate(
             stack_next += 1;
             continue;
         }
-        if (v == PolishTokenVariant.Mds) {
-            PolishTokenMds memory pos = abi.decode(v_data, (PolishTokenMds));
-            stack[stack_next] = c.mds[pos.row + pos.col]; // FIXME: determine order
-            stack_next += 1;
-            continue;
-        }
+        // INFO: The keccak sponge doesn't use an MDS, so this shouldn't ever execute
+        // They implement the keccak sponge with a "dummy" (unused) MDS.
+        // if (v == PolishTokenVariant.Mds) {
+        //     PolishTokenMds memory pos = abi.decode(v_data, (PolishTokenMds));
+        //     stack[stack_next] = c.mds[pos.row * c.mds_cols + pos.col];
+        //     stack_next += 1;
+        //     continue;
+        // }
         if (v == PolishTokenVariant.VanishesOnZeroKnowledgeAndPreviousRows) {
             stack[stack_next] = eval_vanishes_on_last_n_rows(domain_gen, domain_size, c.zk_rows + 1, pt);
             stack_next += 1;
             continue;
         }
         if (v == PolishTokenVariant.UnnormalizedLagrangeBasis) {
-            RowOffset memory i = abi.decode(v_data, (RowOffset));
+            RowOffset memory j = abi.decode(v_data, (RowOffset));
 
             int256 offset;
-            if (i.zk_rows) {
-                offset = i.offset - int256(uint256(c.zk_rows)); // 64 bit to 256 to signed 256
+            if (j.zk_rows) {
+                offset = j.offset - int256(uint256(c.zk_rows)); // 64 bit to 256 to signed 256
             } else {
-                offset = i.offset;
+                offset = j.offset;
             }
 
             stack[stack_next] = unnormalized_lagrange_basis(domain_gen, domain_size, offset, pt);
@@ -167,8 +169,8 @@ function evaluate(
             continue;
         }
         if (v == PolishTokenVariant.Load) {
-            uint256 i = abi.decode(v_data, (uint256)); // WARN: different types
-            Scalar.FE x = cache[i];
+            uint256 j = abi.decode(v_data, (uint256)); // WARN: different types
+            Scalar.FE x = cache[j];
 
             stack[stack_next] = x;
             stack_next += 1;

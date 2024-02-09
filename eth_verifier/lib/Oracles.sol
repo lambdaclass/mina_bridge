@@ -247,7 +247,7 @@ library Oracles {
             index.zk_rows,
             zeta
         );
-        Scalar.FE zeta1m1 = zeta1.sub(Scalar.from(1));
+        Scalar.FE zeta1m1 = zeta1.sub(Scalar.one());
 
         uint256 permutation_constraints = 3;
         AlphasLib.Iterator memory alpha_pows = all_alphas.get_alphas(ArgumentType.Permutation, permutation_constraints);

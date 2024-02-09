@@ -183,7 +183,6 @@ contract KimchiVerifier {
             oracles.gamma,
             Scalar.from(0), // FIXME: joint_combiner in fiat-shamir is missing
             Scalar.from(0), // FIXME: endo_coefficient in verifier_index is missing
-            new Scalar.FE[](0), // FIXME: keccak sponge mds is missing (can a MDS matrix be defined for the keccak sponge?)
             verifier_index.zk_rows
         );
 

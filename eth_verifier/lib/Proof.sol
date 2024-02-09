@@ -327,6 +327,7 @@ function combine_evals(ProofEvaluationsArray memory self, PointEvaluations memor
 
 }
 
+// INFO: ref: berkeley_columns.rs
 function evaluate_column(ProofEvaluations memory self, Column memory col) pure returns (PointEvaluations memory) {
     if (col.variant == ColumnVariant.Witness) {
         uint256 i = abi.decode(col.data, (uint256));
