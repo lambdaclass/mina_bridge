@@ -18,6 +18,7 @@ library MsgPk {
     error StringMapKeyNotFound(string key);
     error NotImplementedType(bytes1 prefix);
     error UnmatchedTypePrefix(string type_name, bytes1 prefix);
+    error UnmatchedGateType(string type_name);
 
     struct Stream {
         bytes data;
@@ -851,22 +852,55 @@ library MsgPk {
         index.linearization.constant_term = constant_term;
     }
 
-    function deser_column(bytes memory col) public pure returns (Column memory) {
+    function deser_column(bytes memory col) public view returns (Column memory) {
         // if col is an encoded string, then it may be a unit value. In this case the encoded bytes
-        // must not be more than 32:
-        if (col.length <= 32) {
+        // must not be more than 96 (this fact is based on seeing multiple encoded strings):
+        // FIXME: this is hacky.
+        if (col.length <= 96) {
             string memory variant = abi.decode(col, (string));
             if (Utils.str_cmp(variant, "Z")) {
                 return Column(ColumnVariant.Z, new bytes(0));
             }
+            if (Utils.str_cmp(variant, "LookupAggreg")) {
+                return Column(ColumnVariant.LookupAggreg, new bytes(0));
+            }
+            if (Utils.str_cmp(variant, "LookupTable")) {
+                return Column(ColumnVariant.LookupTable, new bytes(0));
+            }
+            if (Utils.str_cmp(variant, "LookupRuntimeSelector")) {
+                return Column(ColumnVariant.LookupRuntimeSelector, new bytes(0));
+            }
+            if (Utils.str_cmp(variant, "LookupRuntimeTable")) {
+                return Column(ColumnVariant.LookupRuntimeTable, new bytes(0));
+            }
+            revert UnmatchedGateType(variant);
         }
-        // FIXME: this is hacky.
 
         // else, its an EncodedMap:
         EncodedMap memory col_map = abi.decode(col, (EncodedMap));
         (bytes memory witness_value, bool is_witness) = find_value_or_fail(col_map, abi.encode("Witness"));
         if (is_witness) {
             return Column(ColumnVariant.Witness, witness_value);
+        }
+        (bytes memory lookup_sorted_value, bool is_lookup_sorted) = find_value_or_fail(col_map, abi.encode("LookupSorted"));
+        if (is_lookup_sorted) {
+            return Column(ColumnVariant.LookupSorted, lookup_sorted_value);
+        }
+        (bytes memory lookup_kind_index_value, bool is_lookup_kind_index) = find_value_or_fail(col_map, abi.encode("LookupKindIndex"));
+        if (is_lookup_kind_index) {
+            string memory lookup_pattern_variant = abi.decode(lookup_kind_index_value, (string));
+            if (Utils.str_cmp(lookup_pattern_variant, "Xor")) {
+                return Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.Xor));
+            }
+            if (Utils.str_cmp(lookup_pattern_variant, "Lookup")) {
+                return Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.Lookup));
+            }
+            if (Utils.str_cmp(lookup_pattern_variant, "RangeCheck")) {
+                return Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.RangeCheck));
+            }
+            if (Utils.str_cmp(lookup_pattern_variant, "ForeignFieldMul")) {
+                return Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.ForeignFieldMul));
+            }
         }
         (bytes memory index_value, bool is_index) = find_value_or_fail(col_map, abi.encode("Index"));
         if (is_index) {
@@ -895,13 +929,25 @@ library MsgPk {
             if (Utils.str_cmp(gate_type_variant, "Lookup")) {
                 return Column(ColumnVariant.Index, abi.encode(GateType.Lookup));
             }
+            if (Utils.str_cmp(gate_type_variant, "RangeCheck0")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.RangeCheck0));
+            }
+            if (Utils.str_cmp(gate_type_variant, "RangeCheck1")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.RangeCheck1));
+            }
             if (Utils.str_cmp(gate_type_variant, "ForeignFieldAdd")) {
                 return Column(ColumnVariant.Index, abi.encode(GateType.ForeignFieldAdd));
             }
             if (Utils.str_cmp(gate_type_variant, "ForeignFieldMul")) {
                 return Column(ColumnVariant.Index, abi.encode(GateType.ForeignFieldMul));
             }
-            revert("Couldn't match any GateType variant while deserializing a column.");
+            if (Utils.str_cmp(gate_type_variant, "Xor16")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.Xor16));
+            }
+            if (Utils.str_cmp(gate_type_variant, "Rot64")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.Rot64));
+            }
+            revert UnmatchedGateType(gate_type_variant);
             // TODO: match remaining variants
         }
         (bytes memory coefficient_value, bool is_coefficient) = find_value_or_fail(col_map, abi.encode("Coefficient"));
@@ -918,7 +964,7 @@ library MsgPk {
         // TODO: remaining variants
     }
 
-    function deser_polishtoken(EncodedMap memory map) public pure returns (PolishToken memory) {
+    function deser_polishtoken(EncodedMap memory map) public view returns (PolishToken memory) {
         // if its a unit variant (meaning that it doesn't have associated data):
         (bytes memory unit_value, bool is_unit) = find_value_or_fail(map, abi.encode("variant"));
         if (is_unit) {
