@@ -14,6 +14,11 @@ import "forge-std/console.sol";
 library MsgPk {
     using {Scalar.pow} for Scalar.FE;
 
+    error EncodedMapKeyNotFound(bytes key);
+    error StringMapKeyNotFound(string key);
+    error NotImplementedType(bytes1 prefix);
+    error UnmatchedTypePrefix(string type_name, bytes1 prefix);
+
     struct Stream {
         bytes data;
         uint256 curr_index;
@@ -51,9 +56,6 @@ library MsgPk {
         self.curr_index += n;
     }
 
-    error EncodedMapKeyNotFound(bytes key);
-    error StringMapKeyNotFound(string key);
-
     /// @notice returns the bytes corresponding to the queried key
     function find_value(EncodedMap memory self, bytes memory key) public pure returns (bytes memory) {
         uint256 i = 0;
@@ -86,8 +88,6 @@ library MsgPk {
         return (self.values[i], true);
     }
 
-    error NotImplementedType(bytes1 prefix);
-
     /// @notice deserializes the next type and returns the encoded data.
     function deser_encode(Stream memory self) public view returns (bytes memory) {
         bytes1 prefix = curr(self);
@@ -109,6 +109,8 @@ library MsgPk {
             return abi.encode(deser_int(self));
         } else if (prefix >> 7 == 0x00) {
             return abi.encode(deser_posfixint(self));
+        } else if (prefix >> 5 == 0x07) {
+            return abi.encode(deser_negfixint(self));
         } else if (prefix == 0xc2 || prefix == 0xc3) {
             return abi.encode(deser_bool(self));
         } else if (prefix == 0xc0) {
@@ -201,7 +203,7 @@ library MsgPk {
         require(first == 0xdd, "not an arr32");
         // size is next two bytes:
 
-        uint16 n = uint16(bytes2(next_n(self, 4)));
+        uint32 n = uint32(bytes4(next_n(self, 4)));
 
         arr = EncodedArray(new bytes[](n));
 
@@ -227,7 +229,13 @@ library MsgPk {
 
     function deser_uint(Stream memory self) public pure returns (uint256) {
         bytes1 first = next(self);
-        require(first >> 2 == 0x33, "not a uint");
+        if (first == 0) {
+            return 0;
+        }
+
+        if (first >> 2 != 0x33) {
+            revert UnmatchedTypePrefix("uint", first);
+        }
         // 110011XX are uints of 8,16,32,64 bits.
 
         uint256 byte_count = 1 << uint8(first & 0x03); // mask with 11b
@@ -281,6 +289,15 @@ library MsgPk {
         require(first >> 7 == 0x00, "not a positive fixint");
 
         return uint8(first);
+    }
+
+    function deser_negfixint(Stream memory self) public pure returns (int8) {
+        bytes1 first = next(self);
+        require(first >> 5 == 0x07, "not a negative fixint");
+
+        first = first & 0x1F; // mask 5 lsb
+
+        return int8(uint8(first)) * -1;
     }
 
     function deser_null(Stream memory self) public pure returns (string memory) {
@@ -821,7 +838,7 @@ library MsgPk {
         // deser_lagrange_bases(lagrange_b_serialized, urs.lagrange_bases_unshifted);
     }
 
-    function deser_linearization(Stream memory self) public view returns (Linearization memory) {
+    function deser_linearization(Stream memory self, VerifierIndex storage index) public {
         // TODO: only constant_term is deserialized right now.
         EncodedArray memory arr = deser_arr32(self);
 
@@ -830,6 +847,8 @@ library MsgPk {
             EncodedMap memory value_map = abi.decode(arr.values[i], (EncodedMap));
             constant_term[i] = deser_polishtoken(value_map);
         }
+
+        index.linearization.constant_term = constant_term;
     }
 
     function deser_column(bytes memory col) public pure returns (Column memory) {

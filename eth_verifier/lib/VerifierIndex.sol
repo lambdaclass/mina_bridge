@@ -93,6 +93,8 @@ struct VerifierIndex {
 
     LookupVerifierIndex lookup_index; // INFO: optional
     bool is_lookup_index_set;
+
+    Scalar.FE endo;
 }
 
 struct LookupVerifierIndex {

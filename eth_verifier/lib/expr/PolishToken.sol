@@ -115,7 +115,7 @@ function evaluate(
             continue;
         }
         if (v == PolishTokenVariant.Cell) {
-            Variable memory x = abi.decode(v_data, (Variable)); // WARN: different types
+            Variable memory x = abi.decode(v_data, (Variable));
             stack[stack_next] = evaluate_variable(x, evals);
             stack_next += 1;
             continue;

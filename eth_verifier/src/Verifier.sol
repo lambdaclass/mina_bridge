@@ -44,21 +44,30 @@ contract KimchiVerifier {
         // INFO: powers of alpha are fixed for a given constraint system, so we can hard-code them.
         verifier_index.powers_of_alpha.register(ArgumentType.GateZero, VARBASEMUL_CONSTRAINTS);
         verifier_index.powers_of_alpha.register(ArgumentType.Permutation, PERMUTATION_CONSTRAINTS);
+
+        // INFO: endo coefficient is fixed for a given constraint system
+        verifier_index.endo = Scalar.zero();
     }
 
-    function deserialize_proof(bytes calldata verifier_index_serialized, bytes calldata prover_proof_serialized)
+    function deserialize_proof(
+        bytes calldata verifier_index_serialized,
+        bytes calldata prover_proof_serialized,
+        bytes calldata linearization_serialized
+    )
         public
     {
         MsgPk.deser_verifier_index(MsgPk.new_stream(verifier_index_serialized), verifier_index);
         MsgPk.deser_prover_proof(MsgPk.new_stream(prover_proof_serialized), proof);
+        MsgPk.deser_linearization(MsgPk.new_stream(linearization_serialized), verifier_index);
     }
 
     function verify_with_index(
         bytes calldata verifier_index_serialized,
         bytes calldata prover_proof_serialized,
+        bytes calldata linearization_serialized,
         bytes32 numerator_serialized
     ) public returns (bool) {
-        deserialize_proof(verifier_index_serialized, prover_proof_serialized);
+        deserialize_proof(verifier_index_serialized, prover_proof_serialized, linearization_serialized);
         // The numerator was "manually" serialized so we can't use deser_g1point();
         BN254.G1Point memory numerator = BN254.g1Deserialize(numerator_serialized);
         // "numerator" is a fake commitment that should be calculated after running

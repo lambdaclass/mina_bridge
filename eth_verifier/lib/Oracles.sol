@@ -309,8 +309,23 @@ library Oracles {
 
         ft_eval0 = ft_eval0.add(numerator.mul(denominator));
 
-        // TODO: evaluate final polynomial (PolishToken)
-        // ft_eval0 - PolishToken.evaluate()
+        ExprConstants memory constants = ExprConstants(
+            alpha,
+            beta,
+            gamma,
+            Scalar.zero(), // FIXME: joint_combiner
+            index.endo,
+            index.zk_rows
+        );
+
+        ft_eval0 = ft_eval0.sub(evaluate(
+            index.linearization.constant_term,
+            index.domain_gen,
+            index.domain_size,
+            zeta,
+            evals,
+            constants
+        ));
 
         uint256 matrix_count = 2;
         uint256 total_length = 0;

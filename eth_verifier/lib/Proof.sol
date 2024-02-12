@@ -462,7 +462,6 @@ function evaluate_column(ProofEvaluations memory self, Column memory col) pure r
         return self.runtime_lookup_table_selector;
     }
     revert("unhandled column variant");
-    // TODO: rest of variants, for this it's necessary to expand ProofEvaluations
 }
 
 function evaluate_variable(Variable memory self, ProofEvaluations memory evals) pure returns (Scalar.FE) {

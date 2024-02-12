@@ -8,6 +8,7 @@ fs_permissions = [
     { access = "read", path = "./urs.mpk"},
     { access = "read", path = "./verifier_index.mpk"},
     { access = "read", path = "./prover_proof.mpk"},
+    { access = "read", path = "./linearization.mpk"},
     { access = "read", path = "./numerator.bin"},
     { access = "read", path = "./unit_test_data/"}
 ]
