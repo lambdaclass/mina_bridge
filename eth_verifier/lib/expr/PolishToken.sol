@@ -6,6 +6,7 @@ import "./ExprConstants.sol";
 import "../bn254/Fields.sol";
 import "../Permutation.sol";
 import "../Proof.sol";
+import "../sponge/Sponge.sol";
 
 using {Scalar.add, Scalar.mul, Scalar.sub, Scalar.pow, Scalar.inv} for Scalar.FE;
 
@@ -33,7 +34,7 @@ function evaluate(
     Scalar.FE pt,
     ProofEvaluations memory evals,
     ExprConstants memory c
-) pure returns (Scalar.FE) {
+) view returns (Scalar.FE) {
     Scalar.FE[] memory stack = new Scalar.FE[](toks.length);
     uint256 stack_next = 0; // will keep track of last stack element's index
     Scalar.FE[] memory cache = new Scalar.FE[](toks.length);
@@ -76,14 +77,12 @@ function evaluate(
             stack_next += 1;
             continue;
         }
-        // INFO: The keccak sponge doesn't use an MDS, so this shouldn't ever execute
-        // They implement the keccak sponge with a "dummy" (unused) MDS.
-        // if (v == PolishTokenVariant.Mds) {
-        //     PolishTokenMds memory pos = abi.decode(v_data, (PolishTokenMds));
-        //     stack[stack_next] = c.mds[pos.row * c.mds_cols + pos.col];
-        //     stack_next += 1;
-        //     continue;
-        // }
+        if (v == PolishTokenVariant.Mds) {
+            PolishTokenMds memory pos = abi.decode(v_data, (PolishTokenMds));
+            stack[stack_next] = KeccakSponge.mds()[pos.row][pos.col];
+            stack_next += 1;
+            continue;
+        }
         if (v == PolishTokenVariant.VanishesOnZeroKnowledgeAndPreviousRows) {
             stack[stack_next] = eval_vanishes_on_last_n_rows(domain_gen, domain_size, c.zk_rows + 1, pt);
             stack_next += 1;

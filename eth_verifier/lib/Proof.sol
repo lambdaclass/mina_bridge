@@ -18,7 +18,6 @@ struct ProverProof {
     ProofEvaluationsArray evals;
     ProverCommitments commitments;
     PairingProof opening;
-
     Scalar.FE ft_eval1;
 }
 
@@ -52,7 +51,6 @@ struct ProofEvaluations {
     PointEvaluations emul_selector;
     // evaluation of the endoscalar multiplication scalar computation selector polynomial
     PointEvaluations endomul_scalar_selector;
-
     // Optional gates
     // evaluation of the RangeCheck0 selector polynomial
     PointEvaluations range_check0_selector;
@@ -72,7 +70,6 @@ struct ProofEvaluations {
     // evaluation of the Rot selector polynomial
     PointEvaluations rot_selector;
     bool is_rot_selector_set;
-
     // lookup-related evaluations
     // evaluation of lookup aggregation polynomial
     PointEvaluations lookup_aggregation;
@@ -86,7 +83,6 @@ struct ProofEvaluations {
     // evaluation of runtime lookup table polynomial
     PointEvaluations runtime_lookup_table;
     bool is_runtime_lookup_table_set;
-
     // lookup selectors
     // evaluation of the runtime lookup table selector polynomial
     PointEvaluations runtime_lookup_table_selector;
@@ -129,7 +125,6 @@ struct ProofEvaluationsArray {
     PointEvaluationsArray emul_selector;
     // evaluation of the endoscalar multiplication scalar computation selector polynomial
     PointEvaluationsArray endomul_scalar_selector;
-
     // Optional gates
     // evaluation of the RangeCheck0 selector polynomial
     PointEvaluationsArray range_check0_selector;
@@ -149,7 +144,6 @@ struct ProofEvaluationsArray {
     // evaluation of the Rot selector polynomial
     PointEvaluationsArray rot_selector;
     bool is_rot_selector_set;
-
     // lookup-related evaluations
     // evaluation of lookup aggregation polynomial
     PointEvaluationsArray lookup_aggregation;
@@ -163,7 +157,6 @@ struct ProofEvaluationsArray {
     // evaluation of runtime lookup table polynomial
     PointEvaluationsArray runtime_lookup_table;
     bool is_runtime_lookup_table_set;
-
     // lookup selectors
     // evaluation of the runtime lookup table selector polynomial
     PointEvaluationsArray runtime_lookup_table_selector;
@@ -186,7 +179,6 @@ struct ProverCommitments {
     PolyComm[COLUMNS] w_comm;
     PolyComm z_comm;
     PolyComm t_comm;
-
     bool is_lookup_set;
     LookupCommitments lookup;
 }
@@ -194,21 +186,24 @@ struct ProverCommitments {
 struct LookupCommitments {
     PolyComm[] sorted;
     PolyComm aggreg;
-
     bool is_runtime_set;
     PolyComm runtime; // INFO: optional
 }
 
-function combine_evals(ProofEvaluationsArray memory self, PointEvaluations memory pt)
-    pure
-    returns (ProofEvaluations memory evals)
-{
+function combine_evals(
+    ProofEvaluationsArray memory self,
+    PointEvaluations memory pt
+) pure returns (ProofEvaluations memory evals) {
     // public evals
     if (self.is_public_evals_set) {
         evals.public_evals = PointEvaluations(
             Polynomial.build_and_eval(self.public_evals.zeta, pt.zeta),
-            Polynomial.build_and_eval(self.public_evals.zeta_omega, pt.zeta_omega)
+            Polynomial.build_and_eval(
+                self.public_evals.zeta_omega,
+                pt.zeta_omega
+            )
         );
+        evals.is_public_evals_set = true;
     } else {
         evals.public_evals = PointEvaluations(Scalar.zero(), Scalar.zero());
     }
@@ -221,7 +216,8 @@ function combine_evals(ProofEvaluationsArray memory self, PointEvaluations memor
     }
     // z
     evals.z = PointEvaluations(
-        Polynomial.build_and_eval(self.z.zeta, pt.zeta), Polynomial.build_and_eval(self.z.zeta_omega, pt.zeta_omega)
+        Polynomial.build_and_eval(self.z.zeta, pt.zeta),
+        Polynomial.build_and_eval(self.z.zeta_omega, pt.zeta_omega)
     );
     // s
     for (uint256 i = 0; i < evals.s.length; i++) {
@@ -234,103 +230,279 @@ function combine_evals(ProofEvaluationsArray memory self, PointEvaluations memor
     for (uint256 i = 0; i < evals.coefficients.length; i++) {
         evals.coefficients[i] = PointEvaluations(
             Polynomial.build_and_eval(self.coefficients[i].zeta, pt.zeta),
-            Polynomial.build_and_eval(self.coefficients[i].zeta_omega, pt.zeta_omega)
+            Polynomial.build_and_eval(
+                self.coefficients[i].zeta_omega,
+                pt.zeta_omega
+            )
         );
     }
     // generic_selector
     evals.generic_selector = PointEvaluations(
-        Polynomial.build_and_eval(self.generic_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.generic_selector.zeta_omega, pt.zeta_omega)
+        Polynomial.build_and_eval(self.generic_selector.zeta, pt.zeta),
+        Polynomial.build_and_eval(
+            self.generic_selector.zeta_omega,
+            pt.zeta_omega
+        )
     );
     // poseidon_selector
     evals.poseidon_selector = PointEvaluations(
-        Polynomial.build_and_eval(self.poseidon_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.poseidon_selector.zeta_omega, pt.zeta_omega)
+        Polynomial.build_and_eval(self.poseidon_selector.zeta, pt.zeta),
+        Polynomial.build_and_eval(
+            self.poseidon_selector.zeta_omega,
+            pt.zeta_omega
+        )
     );
     // complete_add_selector
     evals.complete_add_selector = PointEvaluations(
-        Polynomial.build_and_eval(self.complete_add_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.complete_add_selector.zeta_omega, pt.zeta_omega)
+        Polynomial.build_and_eval(self.complete_add_selector.zeta, pt.zeta),
+        Polynomial.build_and_eval(
+            self.complete_add_selector.zeta_omega,
+            pt.zeta_omega
+        )
     );
     // mul_selector
     evals.mul_selector = PointEvaluations(
-        Polynomial.build_and_eval(self.mul_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.mul_selector.zeta_omega, pt.zeta_omega)
+        Polynomial.build_and_eval(self.mul_selector.zeta, pt.zeta),
+        Polynomial.build_and_eval(self.mul_selector.zeta_omega, pt.zeta_omega)
     );
     // emul_selector
     evals.emul_selector = PointEvaluations(
-        Polynomial.build_and_eval(self.emul_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.emul_selector.zeta_omega, pt.zeta_omega)
+        Polynomial.build_and_eval(self.emul_selector.zeta, pt.zeta),
+        Polynomial.build_and_eval(self.emul_selector.zeta_omega, pt.zeta_omega)
     );
     // endomul_scalar_selector
     evals.endomul_scalar_selector = PointEvaluations(
-        Polynomial.build_and_eval(self.endomul_scalar_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.endomul_scalar_selector.zeta_omega, pt.zeta_omega)
+        Polynomial.build_and_eval(self.endomul_scalar_selector.zeta, pt.zeta),
+        Polynomial.build_and_eval(
+            self.endomul_scalar_selector.zeta_omega,
+            pt.zeta_omega
+        )
     );
 
     // range_check0_selector
     if (self.is_range_check0_selector_set) {
         evals.range_check0_selector = PointEvaluations(
-            Polynomial.build_and_eval(self.endomul_scalar_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.endomul_scalar_selector.zeta_omega, pt.zeta_omega)
+            Polynomial.build_and_eval(
+                self.range_check0_selector.zeta,
+                pt.zeta
+            ),
+            Polynomial.build_and_eval(
+                self.range_check0_selector.zeta_omega,
+                pt.zeta_omega
+            )
         );
+        evals.is_range_check0_selector_set = true;
     }
     // range_check1_selector
     if (self.is_range_check1_selector_set) {
         evals.range_check1_selector = PointEvaluations(
-            Polynomial.build_and_eval(self.endomul_scalar_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.endomul_scalar_selector.zeta_omega, pt.zeta_omega)
+            Polynomial.build_and_eval(
+                self.range_check1_selector.zeta,
+                pt.zeta
+            ),
+            Polynomial.build_and_eval(
+                self.range_check1_selector.zeta_omega,
+                pt.zeta_omega
+            )
         );
+        evals.is_range_check1_selector_set = true;
     }
     // foreign_field_add_selector
     if (self.is_foreign_field_add_selector_set) {
         evals.foreign_field_add_selector = PointEvaluations(
-            Polynomial.build_and_eval(self.endomul_scalar_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.endomul_scalar_selector.zeta_omega, pt.zeta_omega)
+            Polynomial.build_and_eval(
+                self.foreign_field_add_selector.zeta,
+                pt.zeta
+            ),
+            Polynomial.build_and_eval(
+                self.foreign_field_add_selector.zeta_omega,
+                pt.zeta_omega
+            )
         );
+        evals.is_foreign_field_add_selector_set = true;
     }
-    // foreign_field_mul_lookup_selector
-    if (self.is_foreign_field_mul_lookup_selector_set) {
-        evals.foreign_field_mul_lookup_selector = PointEvaluations(
-            Polynomial.build_and_eval(self.endomul_scalar_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.endomul_scalar_selector.zeta_omega, pt.zeta_omega)
+    // foreign_field_mul_selector
+    if (self.is_foreign_field_mul_selector_set) {
+        evals.foreign_field_mul_selector = PointEvaluations(
+            Polynomial.build_and_eval(
+                self.foreign_field_mul_selector.zeta,
+                pt.zeta
+            ),
+            Polynomial.build_and_eval(
+                self.foreign_field_mul_selector.zeta_omega,
+                pt.zeta_omega
+            )
         );
+        evals.is_foreign_field_mul_selector_set = true;
     }
     // xor_selector
     if (self.is_xor_selector_set) {
         evals.xor_selector = PointEvaluations(
-            Polynomial.build_and_eval(self.endomul_scalar_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.endomul_scalar_selector.zeta_omega, pt.zeta_omega)
+            Polynomial.build_and_eval(
+                self.xor_selector.zeta,
+                pt.zeta
+            ),
+            Polynomial.build_and_eval(
+                self.xor_selector.zeta_omega,
+                pt.zeta_omega
+            )
         );
+        evals.is_xor_selector_set = true;
     }
     // rot_selector
     if (self.is_rot_selector_set) {
         evals.rot_selector = PointEvaluations(
-            Polynomial.build_and_eval(self.endomul_scalar_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.endomul_scalar_selector.zeta_omega, pt.zeta_omega)
+            Polynomial.build_and_eval(
+                self.rot_selector.zeta,
+                pt.zeta
+            ),
+            Polynomial.build_and_eval(
+                self.rot_selector.zeta_omega,
+                pt.zeta_omega
+            )
         );
+        evals.is_rot_selector_set = true;
     }
 
     // lookup_aggregation
     if (self.is_lookup_aggregation_set) {
         evals.lookup_aggregation = PointEvaluations(
-            Polynomial.build_and_eval(self.endomul_scalar_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.endomul_scalar_selector.zeta_omega, pt.zeta_omega)
+            Polynomial.build_and_eval(
+                self.lookup_aggregation.zeta,
+                pt.zeta
+            ),
+            Polynomial.build_and_eval(
+                self.lookup_aggregation.zeta_omega,
+                pt.zeta_omega
+            )
         );
+        evals.is_lookup_aggregation_set = true;
     }
     // lookup_table
     if (self.is_lookup_table_set) {
         evals.lookup_table = PointEvaluations(
-            Polynomial.build_and_eval(self.endomul_scalar_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.endomul_scalar_selector.zeta_omega, pt.zeta_omega)
+            Polynomial.build_and_eval(
+                self.lookup_table.zeta,
+                pt.zeta
+            ),
+            Polynomial.build_and_eval(
+                self.lookup_table.zeta_omega,
+                pt.zeta_omega
+            )
         );
+        evals.is_lookup_table_set = true;
     }
     // lookup_sorted
-    for (uint256 i = 0; i < evals.lookup_sorted.length; i++) {
-        evals.lookup_sorted[i] = PointEvaluations(
-            Polynomial.build_and_eval(self.lookup_sorted[i].zeta, pt.zeta),
-            Polynomial.build_and_eval(self.lookup_sorted[i].zeta_omega, pt.zeta_omega)
-        );
+    if (self.is_lookup_sorted_set) {
+        for (uint256 i = 0; i < evals.lookup_sorted.length; i++) {
+            evals.lookup_sorted[i] = PointEvaluations(
+                Polynomial.build_and_eval(self.lookup_sorted[i].zeta, pt.zeta),
+                Polynomial.build_and_eval(
+                    self.lookup_sorted[i].zeta_omega,
+                    pt.zeta_omega
+                )
+            );
+            evals.is_lookup_sorted_set = true;
+        }
     }
     // runtime_lookup_table
     if (self.is_runtime_lookup_table_set) {
         evals.runtime_lookup_table = PointEvaluations(
-            Polynomial.build_and_eval(self.endomul_scalar_selector.zeta, pt.zeta), Polynomial.build_and_eval(self.endomul_scalar_selector.zeta_omega, pt.zeta_omega)
+            Polynomial.build_and_eval(
+                self.runtime_lookup_table.zeta,
+                pt.zeta
+            ),
+            Polynomial.build_and_eval(
+                self.runtime_lookup_table.zeta_omega,
+                pt.zeta_omega
+            )
         );
+        evals.is_runtime_lookup_table_set = true;
     }
 
+    // runtime_lookup_table_selector
+    if (self.is_runtime_lookup_table_selector_set) {
+        evals.runtime_lookup_table_selector = PointEvaluations(
+            Polynomial.build_and_eval(
+                self.runtime_lookup_table_selector.zeta,
+                pt.zeta
+            ),
+            Polynomial.build_and_eval(
+                self.runtime_lookup_table_selector.zeta_omega,
+                pt.zeta_omega
+            )
+        );
+        evals.is_runtime_lookup_table_selector_set = true;
+    }
+
+    // xor_lookup_selector
+    if (self.is_xor_lookup_selector_set) {
+        evals.xor_lookup_selector = PointEvaluations(
+            Polynomial.build_and_eval(
+                self.xor_lookup_selector.zeta,
+                pt.zeta
+            ),
+            Polynomial.build_and_eval(
+                self.xor_lookup_selector.zeta_omega,
+                pt.zeta_omega
+            )
+        );
+        evals.is_xor_lookup_selector_set = true;
+    }
+
+    // lookup_gate_lookup_selector
+    if (self.is_lookup_gate_lookup_selector_set) {
+        evals.lookup_gate_lookup_selector = PointEvaluations(
+            Polynomial.build_and_eval(
+                self.lookup_gate_lookup_selector.zeta,
+                pt.zeta
+            ),
+            Polynomial.build_and_eval(
+                self.lookup_gate_lookup_selector.zeta_omega,
+                pt.zeta_omega
+            )
+        );
+        evals.is_lookup_gate_lookup_selector_set = true;
+    }
+
+    // range_check_lookup_selector
+    if (self.is_range_check_lookup_selector_set) {
+        evals.range_check_lookup_selector = PointEvaluations(
+            Polynomial.build_and_eval(
+                self.range_check_lookup_selector.zeta,
+                pt.zeta
+            ),
+            Polynomial.build_and_eval(
+                self.range_check_lookup_selector.zeta_omega,
+                pt.zeta_omega
+            )
+        );
+        evals.is_range_check_lookup_selector_set = true;
+    }
+
+    // foreign_field_mul_lookup_selector
+    if (self.is_foreign_field_mul_lookup_selector_set) {
+        evals.foreign_field_mul_lookup_selector = PointEvaluations(
+            Polynomial.build_and_eval(
+                self.foreign_field_mul_lookup_selector.zeta,
+                pt.zeta
+            ),
+            Polynomial.build_and_eval(
+                self.foreign_field_mul_lookup_selector.zeta_omega,
+                pt.zeta_omega
+            )
+        );
+        evals.is_foreign_field_mul_lookup_selector_set = true;
+    }
 }
 
 error MissingIndexEvaluation(string col);
 
 // INFO: ref: berkeley_columns.rs
-function evaluate_column(ProofEvaluations memory self, Column memory col) pure returns (PointEvaluations memory) {
+function evaluate_column(
+    ProofEvaluations memory self,
+    Column memory col
+) view returns (PointEvaluations memory) {
     if (col.variant == ColumnVariant.Witness) {
         uint256 i = abi.decode(col.data, (uint256));
         return self.w[i];
@@ -450,7 +622,9 @@ function evaluate_column(ProofEvaluations memory self, Column memory col) pure r
         }
         if (pattern == LookupPattern.ForeignFieldMul) {
             if (!self.is_foreign_field_mul_lookup_selector_set) {
-                revert MissingIndexEvaluation("foreign_field_mul_lookup_selector");
+                revert MissingIndexEvaluation(
+                    "foreign_field_mul_lookup_selector"
+                );
             }
             return self.foreign_field_mul_lookup_selector;
         }
@@ -464,7 +638,10 @@ function evaluate_column(ProofEvaluations memory self, Column memory col) pure r
     revert("unhandled column variant");
 }
 
-function evaluate_variable(Variable memory self, ProofEvaluations memory evals) pure returns (Scalar.FE) {
+function evaluate_variable(
+    Variable memory self,
+    ProofEvaluations memory evals
+) view returns (Scalar.FE) {
     PointEvaluations memory point_evals = evaluate_column(evals, self.col);
     if (self.row == CurrOrNext.Curr) {
         return point_evals.zeta;
