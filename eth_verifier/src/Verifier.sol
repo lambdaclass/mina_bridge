@@ -19,12 +19,12 @@ import "../lib/expr/ExprConstants.sol";
 
 using {BN254.neg, BN254.scalarMul} for BN254.G1Point;
 using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
-using {AlphasLib.get_alphas} for Alphas;
-using {AlphasLib.it_next} for AlphasLib.Iterator;
+using {get_alphas} for Alphas;
+using {it_next} for AlphasIterator;
 using {Polynomial.evaluate} for Polynomial.Dense;
 
 contract KimchiVerifier {
-    using {AlphasLib.register} for Alphas;
+    using {register} for Alphas;
     using {combine_evals} for ProofEvaluationsArray;
     using {chunk_commitment} for PolyComm;
 
@@ -169,7 +169,7 @@ contract KimchiVerifier {
             verifier_index.domain_gen, verifier_index.domain_size, verifier_index.zk_rows
         ).evaluate(oracles.zeta);
 
-        AlphasLib.Iterator memory alphas =
+        AlphasIterator memory alphas =
             verifier_index.powers_of_alpha.get_alphas(ArgumentType.Permutation, PERMUTATION_CONSTRAINTS);
 
         Linearization memory linear = verifier_index.linearization;
@@ -279,9 +279,9 @@ contract KimchiVerifier {
         ProofEvaluations memory e,
         Scalar.FE beta,
         Scalar.FE gamma,
-        AlphasLib.Iterator memory alphas,
+        AlphasIterator memory alphas,
         Scalar.FE zkp_zeta
-    ) internal pure returns (Scalar.FE res) {
+    ) internal view returns (Scalar.FE res) {
         require(alphas.powers.length - alphas.current_index == 3, "not enough powers of alpha for permutation");
 
         Scalar.FE alpha0 = alphas.it_next();

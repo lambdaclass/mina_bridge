@@ -417,8 +417,7 @@ library MsgPk {
         EncodedArray memory shift_arr = abi.decode(find_value(map, abi.encode("shift")), (EncodedArray));
         require(shift_arr.values.length == 7, "shift array is not of length 7");
         for (uint256 i = 0; i < 7; i++) {
-            uint256 inner = uint256(bytes32(abi.decode(shift_arr.values[i], (bytes))));
-            index.shift[i] = Scalar.from(inner);
+            index.shift[i] = deser_scalar(abi.decode(shift_arr.values[i], (bytes)));
         }
 
         // domain offset for zero-knowledge

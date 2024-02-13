@@ -26,108 +26,107 @@ struct Alphas {
     Scalar.FE[] alphas;
 }
 
-library AlphasLib {
-    error CantRegisterNewConstraints();
-    function register(Alphas storage self, ArgumentType ty, uint powers) public {
-        if (self.alphas.length != 0) {
-            revert CantRegisterNewConstraints();
-        }
-
-        if (ty == ArgumentType.GateGeneric ||
-            ty == ArgumentType.GatePoseidon ||
-            ty == ArgumentType.GateCompleteAdd ||
-            ty == ArgumentType.GateVarBaseMul ||
-            ty == ArgumentType.GateEndoMul ||
-            ty == ArgumentType.GateEndoMulScalar ||
-            ty == ArgumentType.GateLookup ||
-            ty == ArgumentType.GateCairoClaim ||
-            ty == ArgumentType.GateCairoInstruction ||
-            ty == ArgumentType.GateCairoFlags ||
-            ty == ArgumentType.GateCairoTransition ||
-            ty == ArgumentType.GateRangeCheck0 ||
-            ty == ArgumentType.GateRangeCheck1 ||
-            ty == ArgumentType.GateForeignFieldAdd ||
-            ty == ArgumentType.GateForeignFieldMul ||
-            ty == ArgumentType.GateXor16 ||
-            ty == ArgumentType.GateRot64)
-        {
-            ty = ArgumentType.GateZero;
-        }
-
-        self.map[ty] = [self.next_power, powers];
-        self.next_power += powers;
+error CantRegisterNewConstraints();
+function register(Alphas storage self, ArgumentType ty, uint powers) {
+    if (self.alphas.length != 0) {
+        revert CantRegisterNewConstraints();
     }
 
-    /// @notice instantiates the ranges with an actual field element `alpha`.
-    /// @notice once you call this function, you cannot register new constraints.
-    function instantiate(Alphas storage self, Scalar.FE alpha) internal {
-        Scalar.FE last_power = Scalar.one();
-        self.alphas.push(last_power);
-
-        for (uint i = 1; i < self.next_power; i++) {
-            last_power = last_power.mul(alpha);
-            self.alphas.push(last_power);
-        }
-    }
-
-    error NotEnoughPowersOfAlpha(uint256 asked_for, uint256 available);
-    error NonInstantiatedPowersOfAlpha();
-    /// @notice retrieves the powers of alpha, upperbounded by `num`
-    function get_alphas(Alphas storage self, ArgumentType ty, uint num)
-        external
-        view
-        returns (Iterator memory)
+    if (ty == ArgumentType.GateGeneric ||
+        ty == ArgumentType.GatePoseidon ||
+        ty == ArgumentType.GateCompleteAdd ||
+        ty == ArgumentType.GateVarBaseMul ||
+        ty == ArgumentType.GateEndoMul ||
+        ty == ArgumentType.GateEndoMulScalar ||
+        ty == ArgumentType.GateLookup ||
+        ty == ArgumentType.GateCairoClaim ||
+        ty == ArgumentType.GateCairoInstruction ||
+        ty == ArgumentType.GateCairoFlags ||
+        ty == ArgumentType.GateCairoTransition ||
+        ty == ArgumentType.GateRangeCheck0 ||
+        ty == ArgumentType.GateRangeCheck1 ||
+        ty == ArgumentType.GateForeignFieldAdd ||
+        ty == ArgumentType.GateForeignFieldMul ||
+        ty == ArgumentType.GateXor16 ||
+        ty == ArgumentType.GateRot64)
     {
-        if (ty == ArgumentType.GateZero ||
-            ty == ArgumentType.GateGeneric ||
-            ty == ArgumentType.GatePoseidon ||
-            ty == ArgumentType.GateCompleteAdd ||
-            ty == ArgumentType.GateVarBaseMul ||
-            ty == ArgumentType.GateEndoMul ||
-            ty == ArgumentType.GateEndoMulScalar ||
-            ty == ArgumentType.GateLookup ||
-            ty == ArgumentType.GateCairoClaim ||
-            ty == ArgumentType.GateCairoInstruction ||
-            ty == ArgumentType.GateCairoFlags ||
-            ty == ArgumentType.GateCairoTransition ||
-            ty == ArgumentType.GateRangeCheck0 ||
-            ty == ArgumentType.GateRangeCheck1 ||
-            ty == ArgumentType.GateForeignFieldAdd ||
-            ty == ArgumentType.GateForeignFieldMul ||
-            ty == ArgumentType.GateXor16 ||
-            ty == ArgumentType.GateRot64)
-        {
-            ty = ArgumentType.GateZero;
-        }
-
-        uint[2] memory range = self.map[ty];
-        if (num > range[1]) {
-            revert NotEnoughPowersOfAlpha(num, range[1]);
-        }
-
-        if (self.alphas.length == 0) {
-            revert NonInstantiatedPowersOfAlpha();
-        }
-
-        Scalar.FE[] memory powers = new Scalar.FE[](num);
-        for (uint i = 0; i < num; i++) {
-            powers[i] = self.alphas[range[0]+i];
-        }
-
-        return Iterator(powers, 0);
+        ty = ArgumentType.GateZero;
     }
 
-    // @notice iterator for retrieving powers of alpha.
-    // @notice powers are already computed so this should always be entirely consumed.
-    struct Iterator {
-        Scalar.FE[] powers;
-        uint256 current_index;
+    self.map[ty] = [self.next_power, powers];
+    self.next_power += powers;
+}
+
+/// @notice instantiates the ranges with an actual field element `alpha`.
+/// @notice once you call this function, you cannot register new constraints.
+function instantiate(Alphas storage self, Scalar.FE alpha) {
+    Scalar.FE last_power = Scalar.one();
+    Scalar.FE[] memory alphas = new Scalar.FE[](self.next_power);
+    alphas[0] = last_power;
+
+    for (uint i = 1; i < self.next_power; i++) {
+        last_power = last_power.mul(alpha);
+        alphas[i] = last_power;
+    }
+    self.alphas = alphas;
+}
+
+error NotEnoughPowersOfAlpha(uint256 asked_for, uint256 available);
+error NonInstantiatedPowersOfAlpha();
+/// @notice retrieves the powers of alpha, upperbounded by `num`
+function get_alphas(Alphas storage self, ArgumentType ty, uint num)
+    view
+    returns (AlphasIterator memory)
+{
+    if (ty == ArgumentType.GateZero ||
+        ty == ArgumentType.GateGeneric ||
+        ty == ArgumentType.GatePoseidon ||
+        ty == ArgumentType.GateCompleteAdd ||
+        ty == ArgumentType.GateVarBaseMul ||
+        ty == ArgumentType.GateEndoMul ||
+        ty == ArgumentType.GateEndoMulScalar ||
+        ty == ArgumentType.GateLookup ||
+        ty == ArgumentType.GateCairoClaim ||
+        ty == ArgumentType.GateCairoInstruction ||
+        ty == ArgumentType.GateCairoFlags ||
+        ty == ArgumentType.GateCairoTransition ||
+        ty == ArgumentType.GateRangeCheck0 ||
+        ty == ArgumentType.GateRangeCheck1 ||
+        ty == ArgumentType.GateForeignFieldAdd ||
+        ty == ArgumentType.GateForeignFieldMul ||
+        ty == ArgumentType.GateXor16 ||
+        ty == ArgumentType.GateRot64)
+    {
+        ty = ArgumentType.GateZero;
     }
 
-    function it_next(Iterator memory self) public pure returns (Scalar.FE) {
-        require(self.current_index < self.powers.length, "powers of alpha iterator out of bounds");
-        return self.powers[self.current_index++];
+    uint[2] memory range = self.map[ty];
+    if (num > range[1]) {
+        revert NotEnoughPowersOfAlpha(num, range[1]);
     }
+
+    if (self.alphas.length == 0) {
+        revert NonInstantiatedPowersOfAlpha();
+    }
+
+    Scalar.FE[] memory powers = new Scalar.FE[](num);
+    for (uint i = 0; i < num; i++) {
+        powers[i] = self.alphas[range[0]+i];
+    }
+
+    return AlphasIterator(powers, 0);
+}
+
+// @notice iterator for retrieving powers of alpha.
+// @notice powers are already computed so this should always be entirely consumed.
+struct AlphasIterator {
+    Scalar.FE[] powers;
+    uint256 current_index;
+}
+
+function it_next(AlphasIterator memory self) view returns (Scalar.FE) {
+    require(self.current_index < self.powers.length, "powers of alpha iterator out of bounds");
+    return self.powers[self.current_index++];
 }
 
 enum ArgumentType {

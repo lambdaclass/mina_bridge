@@ -14,8 +14,8 @@ import "./Constants.sol";
 library Oracles {
     using {to_field_with_length, to_field} for ScalarChallenge;
     using {Scalar.neg, Scalar.add, Scalar.sub, Scalar.mul, Scalar.inv, Scalar.double, Scalar.pow} for Scalar.FE;
-    using {AlphasLib.instantiate, AlphasLib.get_alphas} for Alphas;
-    using {AlphasLib.it_next} for AlphasLib.Iterator;
+    using {instantiate, get_alphas} for Alphas;
+    using {it_next} for AlphasIterator;
     using {
         KeccakSponge.reinit,
         KeccakSponge.absorb_base,
@@ -148,6 +148,7 @@ library Oracles {
         // retrieve ranges for the powers of alphas
         Alphas storage all_alphas = index.powers_of_alpha;
         all_alphas.instantiate(alpha);
+        console.log("alpha: ", Scalar.FE.unwrap(alpha));
         // WARN: all_alphas should be a clone of index.powers_of_alpha, not a reference.
         // in our case we can only have it storage because it contains a nested array.
 
@@ -249,12 +250,14 @@ library Oracles {
         );
         Scalar.FE zeta1m1 = zeta1.sub(Scalar.one());
 
-        uint256 permutation_constraints = 3;
-        AlphasLib.Iterator memory alpha_pows = all_alphas.get_alphas(ArgumentType.Permutation, permutation_constraints);
+        AlphasIterator memory alpha_pows = all_alphas.get_alphas(ArgumentType.Permutation, PERMUTATION_CONSTRAINTS);
         Scalar.FE alpha0 = alpha_pows.it_next();
         Scalar.FE alpha1 = alpha_pows.it_next();
         Scalar.FE alpha2 = alpha_pows.it_next();
 
+        console.log("alpha0: ", Scalar.FE.unwrap(alpha0));
+        console.log("alpha1: ", Scalar.FE.unwrap(alpha1));
+        console.log("alpha2: ", Scalar.FE.unwrap(alpha2));
         // initial value
         Scalar.FE ft_eval0 = evals.w[PERMUTS - 1].zeta
             .add(gamma)
@@ -271,24 +274,29 @@ library Oracles {
             ft_eval0 = ft_eval0.mul(current); // reduction
         }
 
+        console.log("ft_eval0 first: ", Scalar.FE.unwrap(ft_eval0)); // INFO: this is ok
+
         ft_eval0 = ft_eval0.sub(
             Polynomial.build_and_eval(public_evals[0], powers_of_eval_points_for_chunks.zeta)
         );
+
+        console.log("ft_eval0 second: ", Scalar.FE.unwrap(ft_eval0)); // INFO: this is ok
 
         // initial value
         Scalar.FE ev = alpha0
             .mul(permutation_vanishing_poly)
             .mul(evals.z.zeta);
 
-        // map and reduction
-        for (uint256 i = 0; i < PERMUTS; i++) {
+        // zip w and shift, map and reduction
+        for (uint256 i = 0; i < Utils.min(evals.w.length, index.shift.length); i++) {
             PointEvaluations memory w = evals.w[i];
             Scalar.FE s = index.shift[i];
-
             Scalar.FE current = gamma.add(beta.mul(zeta).mul(s)).add(w.zeta);
             ev = ev.mul(current); // reduction
         }
         ft_eval0 = ft_eval0.sub(ev);
+
+        console.log("ft_eval0 third: ", Scalar.FE.unwrap(ft_eval0)); // INFO: this is ok
 
         Scalar.FE numerator = zeta1m1
             .mul(alpha1)
@@ -309,6 +317,8 @@ library Oracles {
 
         ft_eval0 = ft_eval0.add(numerator.mul(denominator));
 
+        console.log("ft_eval0 fourth: ", Scalar.FE.unwrap(ft_eval0)); // INFO: this is ok
+
         ExprConstants memory constants = ExprConstants(
             alpha,
             beta,
@@ -326,6 +336,8 @@ library Oracles {
             evals,
             constants
         ));
+
+        console.log("ft_eval0 fifth: ", Scalar.FE.unwrap(ft_eval0));
 
         uint256 matrix_count = 2;
         uint256 total_length = 0;
