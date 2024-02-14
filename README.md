@@ -11,14 +11,16 @@
 This project introduces the proof generation, posting and verification of the validity of [Mina](https://minaprotocol.com/) states into a EVM chain, which will serve as a foundation for token bridging.
 
 We are working on delivering an MVP for mid March 2024. This MVP verifies Mina state opening proofs in Ethereum without taking into account consensus validation and Pickles verification.
-* Circuit for verification algorithm. :no_entry_sign: All the tasks described below can be started once the new circuit framework and its API in Rust is ready to be used
+* **Circuit for verification algorithm.** :no_entry_sign: All the tasks described below can be started once the new circuit framework and its API in Rust is ready to be used
     * Integrate current Kimchi partial verification in o1js with the verifier circuit. The rework in Rust should take 2 weeks, depending on the new API.
     * Complete Kimchi verifier circuit: final verification. (2 weeks)
-* KZG Prover (state proof wrapper):
+* **KZG Prover** (state proof wrapper):
     * Connect Kimchi + KZG prover with current verifier circuit. We are working on this. :hammer::ladder: (3 weeks)
-* Verifier Smart Contract:Inputs deserialization. We are working on this. :hammer::ladder: (2 weeks)
+* **Verifier Smart Contract:** Inputs deserialization. We are working on this. :hammer::ladder: (2 weeks)
     * Partial verification, final steps. We are working on this. :hammer::ladder: (2 weeks)
     * Final verification. We are working on this. :hammer::ladder: (3 weeks)
+* **Account state utility:**
+    * A user will be able to query its account state and check that the retrieved state corresponds to the last verified Mina state in Ethereum.
 
 ## Design objectives
 
@@ -71,6 +73,8 @@ Note that, in the second diagram, the Verification key taken from the Mina node 
 
 ## Usage
 
+### Integration test
+
 On root folder run:
 
 ```sh
@@ -84,6 +88,16 @@ This will:
 - The circuit will verify the proof and output the gate system to a KZG prover.
 - The KZG prover will generate another proof (BN254+KZG) of this verification. This makes it suitable to verify in an Ethereum smart contract. The final proof including the embedded state will be sent to the Solidity verifier.
 - The verifier will be deployed in Anvil (a local test blockchain) and a bash script will send a transaction with the state+proof data for running the final verification. If successful, the contract will store the state data and will expose an API for the user to retrieve it, knowing that this data was zk-verified.
+
+### Account state utility
+
+On root folder run:
+
+```sh
+sh state_utility/run.sh <public_key>
+```
+
+This will return the balance of the account associated with the `<public_key>` passed as argument.
 
 
 ## Components of this Repo
