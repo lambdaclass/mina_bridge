@@ -79,7 +79,10 @@ library Oracles {
         // INFO: this isn't needed for our current test proof
 
         // TODO: 7. Calculate joint_combiner
-        // INFO: this isn't needed for our current test proof
+        // INFO: for our test proof this will be zero.
+        ScalarChallenge memory joint_combiner = ScalarChallenge(Scalar.zero());
+        Scalar.FE joint_combiner_field = joint_combiner.to_field(endo_r);
+
 
         // 8. If lookup is used, absorb commitments to the sorted polys:
         for (uint i = 0; i < proof.commitments.lookup.sorted.length; i++) {
@@ -323,7 +326,7 @@ library Oracles {
             alpha,
             beta,
             gamma,
-            Scalar.zero(), // FIXME: joint_combiner
+            joint_combiner_field,
             index.endo,
             index.zk_rows
         );

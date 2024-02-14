@@ -126,9 +126,9 @@ function evaluate(
         }
         if (v == PolishTokenVariant.Add) {
             // pop x and y
-            Scalar.FE x = stack[stack_next - 1];
-            stack_next -= 1;
             Scalar.FE y = stack[stack_next - 1];
+            stack_next -= 1;
+            Scalar.FE x = stack[stack_next - 1];
             stack_next -= 1;
 
             // push result
@@ -138,9 +138,9 @@ function evaluate(
         }
         if (v == PolishTokenVariant.Mul) {
             // pop x and y
-            Scalar.FE x = stack[stack_next - 1];
-            stack_next -= 1;
             Scalar.FE y = stack[stack_next - 1];
+            stack_next -= 1;
+            Scalar.FE x = stack[stack_next - 1];
             stack_next -= 1;
 
             // push result
@@ -150,9 +150,9 @@ function evaluate(
         }
         if (v == PolishTokenVariant.Sub) {
             // pop x and y
-            Scalar.FE x = stack[stack_next - 1];
-            stack_next -= 1;
             Scalar.FE y = stack[stack_next - 1];
+            stack_next -= 1;
+            Scalar.FE x = stack[stack_next - 1];
             stack_next -= 1;
 
             // push result
@@ -228,7 +228,7 @@ type PolishTokenSkipIf is uint256;
 // @notice Compute the ith unnormalized lagrange basis
 function unnormalized_lagrange_basis(Scalar.FE domain_gen, uint256 domain_size, int256 i, Scalar.FE pt)
     pure
-    returns (Scalar.FE)
+    returns (Scalar.FE result)
 {
     Scalar.FE omega_i;
     if (i < 0) {
@@ -237,5 +237,16 @@ function unnormalized_lagrange_basis(Scalar.FE domain_gen, uint256 domain_size, 
         omega_i = domain_gen.pow(uint256(i));
     }
 
-    return pt.pow(domain_size).sub(Scalar.one()).mul((pt.sub(omega_i)).inv());
+    result = evaluate_vanishing_polynomial(domain_gen, domain_size, pt);
+    Scalar.FE sub_m_omega = pt.sub(omega_i);
+    result = result.mul(sub_m_omega.inv());
+}
+
+// @notice evaluates the vanishing polynomial for this domain at tau.
+// @notice for multiplicative subgroups, this polynomial is `z(X) = X^self.size - 1
+function evaluate_vanishing_polynomial(Scalar.FE domain_gen, uint256 domain_size, Scalar.FE tau) 
+    pure
+    returns (Scalar.FE)
+{
+    return tau.pow(domain_size).sub(Scalar.one());
 }

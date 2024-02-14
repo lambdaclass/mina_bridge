@@ -46,7 +46,8 @@ contract KimchiVerifier {
         verifier_index.powers_of_alpha.register(ArgumentType.Permutation, PERMUTATION_CONSTRAINTS);
 
         // INFO: endo coefficient is fixed for a given constraint system
-        verifier_index.endo = Scalar.zero();
+        (Base.FE _endo_q, Scalar.FE endo_r) = BN254.endo_coeffs_g1();
+        verifier_index.endo = endo_r;
     }
 
     function deserialize_proof(

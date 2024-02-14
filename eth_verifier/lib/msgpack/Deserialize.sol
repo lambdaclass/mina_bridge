@@ -296,9 +296,8 @@ library MsgPk {
         bytes1 first = next(self);
         require(first >> 5 == 0x07, "not a negative fixint");
 
-        first = first & 0x1F; // mask 5 lsb
-
-        return int8(uint8(first)) * -1;
+        // two's complement
+        return int8(~(uint8(first) - 1)) * -1;
     }
 
     function deser_null(Stream memory self) public pure returns (string memory) {
@@ -1001,8 +1000,9 @@ library MsgPk {
             }
             (bytes memory literal_value, bool is_literal) = find_value_or_fail(map, abi.encode("literal"));
             if (is_literal) {
+                // literal serializes as an array
                 EncodedArray memory literal_arr = abi.decode(literal_value, (EncodedArray));
-                uint256 inner_int = Utils.padded_bytes_array_to_uint256(literal_arr.values);
+                uint256 inner_int = Utils.padded_le_bytes_array_to_uint256(literal_arr.values);
                 return PolishToken(PolishTokenVariant.Literal, abi.encode(inner_int));
             }
             (bytes memory cell_value, bool is_cell) = find_value_or_fail(map, abi.encode("variable"));
@@ -1024,10 +1024,10 @@ library MsgPk {
             }
             (bytes memory pow_value, bool is_pow) = find_value_or_fail(map, abi.encode("pow"));
             if (is_pow) {
-                uint256 pow = deser_uint(new_stream(pow_value));
+                uint256 pow = abi.decode(pow_value, (uint256));
                 return PolishToken(PolishTokenVariant.Pow, abi.encode(pow));
             }
-            (bytes memory ulag_value, bool is_ulag) = find_value_or_fail(map, abi.encode("unnormalizedlagrangebasis"));
+            (bytes memory ulag_value, bool is_ulag) = find_value_or_fail(map, abi.encode("rowoffset"));
             if (is_ulag) {
                 EncodedMap memory rowoffset_map = abi.decode(ulag_value, (EncodedMap));
                 bool zk_rows = abi.decode(find_value(rowoffset_map, abi.encode("zk_rows")), (bool));
@@ -1037,7 +1037,7 @@ library MsgPk {
             }
             (bytes memory load_value, bool is_load) = find_value_or_fail(map, abi.encode("load"));
             if (is_load) {
-                uint256 i = deser_uint(new_stream(load_value));
+                uint256 i = abi.decode(load_value, (uint256));
                 return PolishToken(PolishTokenVariant.Load, abi.encode(i));
             }
         }
