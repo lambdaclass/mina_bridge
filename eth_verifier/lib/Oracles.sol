@@ -437,14 +437,28 @@ library Oracles {
         }
         Scalar.FE combined_inner_prod = combined_inner_product(evaluation_points, v, u, es, index.max_poly_size);
         console.log("combined_inner_prod:", Scalar.FE.unwrap(combined_inner_prod));
-        RandomOracles memory oracles =
-            RandomOracles(beta, gamma, alpha_chal, alpha, zeta, v, u, alpha_chal, v_chal, u_chal);
+        RandomOracles memory oracles = RandomOracles(
+            joint_combiner,
+            beta,
+            gamma,
+            alpha_chal,
+            alpha,
+            zeta,
+            v,
+            u,
+            alpha_chal,
+            v_chal,
+            u_chal
+        );
 
-        return Result(oracles, powers_of_eval_points_for_chunks);
+        return Result(
+            oracles,
+            powers_of_eval_points_for_chunks
+        );
     }
 
     struct RandomOracles {
-        // joint_combiner
+        ScalarChallenge joint_combiner;
         Scalar.FE beta;
         Scalar.FE gamma;
         ScalarChallenge alpha_chal;
