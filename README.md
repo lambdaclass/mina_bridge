@@ -99,6 +99,28 @@ sh state_utility/run.sh <public_key>
 
 This will return the balance of the account associated with the `<public_key>` passed as argument.
 
+#### Roadmap
+
+For the Bridge MVP, the utility will be implemented as a CLI that will receive a public key as an argument. The development stages are defined below:
+
+1. User queries the balance of one of its accounts. The service queries the Mina node without validating the state in Ethereum.
+1. User queries the balance of one of its accounts. The service queries the Mina node and the related Mina state opening proof. The service queries the Bridge to fetch its stored opening proof to compare the proofs and check that the retrieved Mina state was validated in Ethereum. If the Mina state is valid, the service returns the balance.
+
+The diagram below shows the sequence of a user sending a request to the service implemented as stated in the development stage 2:
+
+```mermaid
+sequenceDiagram
+	User->>Utility: balance?
+	Utility->>Mina: balance?
+	Mina->>Utility: balance
+	Utility->>Mina: related proof?
+	Mina->>Utility: related proof
+	Utility->>Bridge: stored proof?
+	Bridge->>Utility: stored proof
+	Utility->>Bridge: are proofs equal?
+	Bridge->>Utility: yes/no
+	Utility->>User: balance (if yes)
+```
 
 ## Components of this Repo
 
