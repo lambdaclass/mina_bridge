@@ -385,6 +385,11 @@ library MsgPk {
             index.is_runtime_tables_selector_set,
             index.runtime_tables_selector
         ) = deser_poly_comm_from_map_optional(map, "runtime_tables_selector");
+
+        // lookup info
+        EncodedMap memory lookup_info_map = abi.decode(find_value_str(map, "lookup_info"), (EncodedMap));
+        index.lookup_info.max_per_row = abi.decode(find_value_str(lookup_info_map, "max_per_row"), (uint256));
+        index.lookup_info.max_joint_size = abi.decode(find_value_str(lookup_info_map, "max_joint_size"), (uint256));
     }
 
     function deser_verifier_index(Stream memory self, VerifierIndex storage index) external {

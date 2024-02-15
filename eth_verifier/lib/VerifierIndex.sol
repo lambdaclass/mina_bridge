@@ -100,6 +100,7 @@ struct VerifierIndex {
 struct LookupVerifierIndex {
     PolyComm[] lookup_table;
     LookupSelectors lookup_selectors;
+    LookupInfo lookup_info;
 
     // table IDs for the lookup values.
     // this may be not set if all lookups originate from table 0.
@@ -123,6 +124,12 @@ struct LookupSelectors {
 
     PolyComm ffmul; // INFO: optional
     bool is_ffmul_set;
+}
+
+struct LookupInfo {
+    uint256 max_per_row;
+    uint256 max_joint_size;
+    // TODO: lookup features
 }
 
 function verifier_digest(VerifierIndex storage index) returns (Base.FE) {

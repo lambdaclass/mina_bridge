@@ -317,7 +317,7 @@ function combined_inner_product(
     Scalar.FE[] memory evaluation_points,
     Scalar.FE polyscale,
     Scalar.FE evalscale,
-    PolyMatrices memory polys,
+    Scalar.FE[][2][] memory polys,
     //uint[] poly_shifted, // TODO: not necessary for fiat-shamir
     uint256 srs_length
 ) pure returns (Scalar.FE res) {
@@ -326,12 +326,8 @@ function combined_inner_product(
 
     //require(poly_matrices.length == poly_shifted.length);
     for (uint256 i = 0; i < polys.length; i++) {
-        uint256 cols = polys.cols[i];
-        uint256 rows = polys.rows[i];
-
-        if (cols == 0) {
-            continue;
-        }
+        uint256 cols = 2; // WARN: magic number, this is because we only have two evaluation points in our case.
+        uint256 rows = 1; // WARN: magic number, this is because we only have one segment per poly (non-linearized).
 
         for (uint256 col = 0; col < cols; col++) {
             Scalar.FE[] memory eval = new Scalar.FE[](rows); // column that stores the segment

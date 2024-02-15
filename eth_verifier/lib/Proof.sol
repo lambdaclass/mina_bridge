@@ -9,6 +9,11 @@ import "./Commitment.sol";
 import "./bn254/BN254.sol";
 import "./bn254/Fields.sol";
 
+error MissingIndexEvaluation(string col);
+error MissingColumnEvaluation(ColumnVariant variant);
+error MissingLookupColumnEvaluation(LookupPattern pattern);
+error MissingIndexColumnEvaluation(GateType gate);
+
 struct PairingProof {
     PolyComm quotient;
     Scalar.FE blinding;
@@ -496,8 +501,6 @@ function combine_evals(
     }
 }
 
-error MissingIndexEvaluation(string col);
-
 // INFO: ref: berkeley_columns.rs
 function evaluate_column(
     ProofEvaluations memory self,
@@ -648,4 +651,57 @@ function evaluate_variable(
     }
     // self.row == CurrOrNext.Next
     return point_evals.zeta_omega;
+}
+
+function get_column_eval(
+    ProofEvaluationsArray memory evals,
+    Column memory col
+) pure returns (PointEvaluationsArray memory) {
+    ColumnVariant variant = col.variant;
+    bytes memory data = col.data;
+    if (variant == ColumnVariant.Witness) {
+        uint256 i = abi.decode(data, (uint256));
+        return evals.w[i];
+    } else if (variant == ColumnVariant.Z) {
+        return evals.z;
+    } else if (variant == ColumnVariant.LookupSorted) {
+        uint256 i = abi.decode(data, (uint256));
+        return evals.lookup_sorted[i];
+    } else if (variant == ColumnVariant.LookupAggreg) {
+        return evals.lookup_aggregation;
+    } else if (variant == ColumnVariant.LookupTable) {
+        return evals.lookup_table;
+    } else if (variant == ColumnVariant.LookupKindIndex) {
+        LookupPattern pattern = abi.decode(data, (LookupPattern));
+        if (pattern == LookupPattern.Xor) { return evals.xor_lookup_selector; }
+        else if (pattern == LookupPattern.Lookup) { return evals.lookup_gate_lookup_selector; }
+        else if (pattern == LookupPattern.RangeCheck) { return evals.range_check_lookup_selector; }
+        else if (pattern == LookupPattern.ForeignFieldMul) { return evals.foreign_field_mul_lookup_selector; }
+        else { revert MissingLookupColumnEvaluation(pattern); }
+    } else if (variant == ColumnVariant.LookupRuntimeSelector) {
+        return evals.runtime_lookup_table_selector;
+    } else if (variant == ColumnVariant.Index) {
+        GateType gate = abi.decode(data, (GateType));
+        if (gate == GateType.Generic) { return evals.generic_selector; }
+        else if (gate == GateType.Poseidon) { return evals.poseidon_selector; } 
+        else if (gate == GateType.CompleteAdd) { return evals.complete_add_selector; } 
+        else if (gate == GateType.VarBaseMul) { return evals.mul_selector; }
+        else if (gate == GateType.EndoMul) { return evals.emul_selector; } 
+        else if (gate == GateType.EndoMulScalar) { return evals.endomul_scalar_selector; }
+        else if (gate == GateType.RangeCheck0) { return evals.range_check0_selector; }
+        else if (gate == GateType.RangeCheck1) { return evals.range_check1_selector; }
+        else if (gate == GateType.ForeignFieldAdd) { return evals.foreign_field_add_selector; }
+        else if (gate == GateType.ForeignFieldMul) { return evals.foreign_field_mul_selector; }
+        else if (gate == GateType.Xor16) { return evals.xor_selector; }
+        else if (gate == GateType.Rot64) { return evals.rot_selector; }
+        else { revert MissingIndexColumnEvaluation(gate); }
+    } else if (variant == ColumnVariant.Coefficient) {
+        uint256 i = abi.decode(data, (uint256));
+        return evals.coefficients[i];
+    } else if (variant == ColumnVariant.Permutation) {
+        uint256 i = abi.decode(data, (uint256));
+        return evals.s[i];
+    } else {
+        revert MissingColumnEvaluation(variant);
+    }
 }

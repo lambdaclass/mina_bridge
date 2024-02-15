@@ -28,7 +28,7 @@ library Oracles {
         KeccakSponge.digest_base,
         KeccakSponge.digest_scalar
     } for Sponge;
-    using {combine_evals} for ProofEvaluationsArray;
+    using {combine_evals, get_column_eval} for ProofEvaluationsArray;
 
     uint64 internal constant CHALLENGE_LENGTH_IN_LIMBS = 2;
 
@@ -151,7 +151,6 @@ library Oracles {
         // retrieve ranges for the powers of alphas
         Alphas storage all_alphas = index.powers_of_alpha;
         all_alphas.instantiate(alpha);
-        console.log("alpha: ", Scalar.FE.unwrap(alpha));
         // WARN: all_alphas should be a clone of index.powers_of_alpha, not a reference.
         // in our case we can only have it storage because it contains a nested array.
 
@@ -258,9 +257,6 @@ library Oracles {
         Scalar.FE alpha1 = alpha_pows.it_next();
         Scalar.FE alpha2 = alpha_pows.it_next();
 
-        console.log("alpha0: ", Scalar.FE.unwrap(alpha0));
-        console.log("alpha1: ", Scalar.FE.unwrap(alpha1));
-        console.log("alpha2: ", Scalar.FE.unwrap(alpha2));
         // initial value
         Scalar.FE ft_eval0 = evals.w[PERMUTS - 1].zeta
             .add(gamma)
@@ -277,13 +273,9 @@ library Oracles {
             ft_eval0 = ft_eval0.mul(current); // reduction
         }
 
-        console.log("ft_eval0 first: ", Scalar.FE.unwrap(ft_eval0)); // INFO: this is ok
-
         ft_eval0 = ft_eval0.sub(
             Polynomial.build_and_eval(public_evals[0], powers_of_eval_points_for_chunks.zeta)
         );
-
-        console.log("ft_eval0 second: ", Scalar.FE.unwrap(ft_eval0)); // INFO: this is ok
 
         // initial value
         Scalar.FE ev = alpha0
@@ -298,8 +290,6 @@ library Oracles {
             ev = ev.mul(current); // reduction
         }
         ft_eval0 = ft_eval0.sub(ev);
-
-        console.log("ft_eval0 third: ", Scalar.FE.unwrap(ft_eval0)); // INFO: this is ok
 
         Scalar.FE numerator = zeta1m1
             .mul(alpha1)
@@ -320,8 +310,6 @@ library Oracles {
 
         ft_eval0 = ft_eval0.add(numerator.mul(denominator));
 
-        console.log("ft_eval0 fourth: ", Scalar.FE.unwrap(ft_eval0)); // INFO: this is ok
-
         ExprConstants memory constants = ExprConstants(
             alpha,
             beta,
@@ -340,51 +328,115 @@ library Oracles {
             constants
         ));
 
-        console.log("ft_eval0 fifth: ", Scalar.FE.unwrap(ft_eval0));
+        console.log("ft_eval0 fifth: ", Scalar.FE.unwrap(ft_eval0)); // INFO: this is ok
 
-        uint256 matrix_count = 2;
-        uint256 total_length = 0;
-        uint256[] memory rows = new uint256[](matrix_count);
-        uint256[] memory cols = new uint256[](matrix_count);
+        uint256 evals_length = 55; // WARN: the amount of evals in the test proof
+        Scalar.FE[][2][] memory es = new Scalar.FE[][2][](evals_length); // "es" stands for evaluation segments?
+        // INFO: dynamic array of a 2xn matrix, where n = 1 in the test proof's case.
+        // so this is:
+        // dyn array { fixed array [dyn array{scalar}, dyn array{scalar}] }
+
+        // INFO: this is an array of matrices each one corresponding to a polynomial.
+        // The rows represent the number of evaluation points (2 in this case) and
+        // the columns every segment of each polynomial, in the case that they were split
+        // (linearization). In this case there's no linearization so n = 1.
 
         // public evals
-        rows[0] = public_evals.length;
-        cols[0] = public_evals[0].length;
-        total_length += rows[0] * cols[0];
+        es[0] = public_evals;
 
         // ft evals
-        rows[1] = [[ft_eval0]].length;
-        cols[1] = [[ft_eval0]][0].length;
-        total_length += rows[1] * cols[1];
+        Scalar.FE[] memory ft_eval0_arr = new Scalar.FE[](1);
+        Scalar.FE[] memory ft_eval1_arr = new Scalar.FE[](1);
+        ft_eval0_arr[0] = ft_eval0;
+        ft_eval1_arr[0] = proof.ft_eval1;
+        es[1] = [ft_eval0_arr, ft_eval1_arr];
 
-        // save the data in a flat array in a column-major so there's no need
-        // to transpose each matrix later.
-        Scalar.FE[] memory es_data = new Scalar.FE[](total_length);
-        uint256[] memory starts = new uint256[](matrix_count);
-        uint256 curr = 0;
+        // columns
+        Column[] memory columns = new Column[](evals_length - 2);
+        columns[0] = Column(ColumnVariant.Z, new bytes(0));
+        columns[1] = Column(ColumnVariant.Index, abi.encode(GateType.Generic));
+        columns[2] = Column(ColumnVariant.Index, abi.encode(GateType.Poseidon));
+        columns[3] = Column(ColumnVariant.Index, abi.encode(GateType.CompleteAdd));
+        columns[4] = Column(ColumnVariant.Index, abi.encode(GateType.VarBaseMul));
+        columns[5] = Column(ColumnVariant.Index, abi.encode(GateType.EndoMul));
+        columns[6] = Column(ColumnVariant.Index, abi.encode(GateType.EndoMulScalar));
+        uint col_index = 7;
+        for (uint i = 0; i < COLUMNS; i++) {
+            columns[col_index] = Column(ColumnVariant.Witness, abi.encode(i));
+            col_index += 1;
+        }
+        for (uint i = 0; i < COLUMNS; i++) {
+            columns[col_index] = Column(ColumnVariant.Coefficient, abi.encode(i));
+            col_index += 1;
+        }
+        for (uint i = 0; i < PERMUTS - 1; i++) {
+            columns[col_index] = Column(ColumnVariant.Coefficient, abi.encode(i));
+            col_index += 1;
+        }
+        if (index.is_range_check0_comm_set) {
+            columns[col_index] = Column(ColumnVariant.Index, abi.encode(GateType.RangeCheck0));
+            col_index += 1;
+        }
+        if (index.is_range_check1_comm_set) {
+            columns[col_index] = Column(ColumnVariant.Index, abi.encode(GateType.RangeCheck1));
+            col_index += 1;
+        }
+        if (index.is_foreign_field_add_comm_set) {
+            columns[col_index] = Column(ColumnVariant.Index, abi.encode(GateType.ForeignFieldAdd));
+            col_index += 1;
+        }
+        if (index.is_foreign_field_mul_comm_set) {
+            columns[col_index] = Column(ColumnVariant.Index, abi.encode(GateType.ForeignFieldMul));
+            col_index += 1;
+        }
+        if (index.is_xor_comm_set) {
+            columns[col_index] = Column(ColumnVariant.Index, abi.encode(GateType.Xor16));
+            col_index += 1;
+        }
+        if (index.is_rot_comm_set) {
+            columns[col_index] = Column(ColumnVariant.Index, abi.encode(GateType.Rot64));
+            col_index += 1;
+        }
+        if (index.is_lookup_index_set) {
+            LookupVerifierIndex memory li = index.lookup_index;
+            for (uint i = 0; i < li.lookup_info.max_per_row + 1; i++) {
+                columns[col_index] = Column(ColumnVariant.LookupSorted, abi.encode(i));
+                col_index += 1;
+            }
+            columns[col_index] = Column(ColumnVariant.LookupAggreg, new bytes(0));
+            col_index += 1;
+            columns[col_index] = Column(ColumnVariant.LookupTable, new bytes(0));
+            col_index += 1;
 
-        starts[0] = curr;
-        for (uint256 i = 0; i < rows[0] * cols[0]; i++) {
-            uint256 col = i / rows[0];
-            uint256 row = i % rows[0];
-            es_data[i] = public_evals[row][col];
-            curr++;
+            if (li.is_runtime_tables_selector_set) {
+                columns[col_index] = Column(ColumnVariant.LookupRuntimeTable, new bytes(0));
+                col_index += 1;
+            }
+            if (proof.evals.is_runtime_lookup_table_selector_set) {
+                columns[col_index] = Column(ColumnVariant.LookupRuntimeSelector, new bytes(0));
+                col_index += 1;
+            }
+            if (proof.evals.is_xor_lookup_selector_set) {
+                columns[col_index] = Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.Xor));
+                col_index += 1;
+            }
+            if (proof.evals.is_range_check_lookup_selector_set) {
+                columns[col_index] = Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.RangeCheck));
+                col_index += 1;
+            }
+            if (proof.evals.is_foreign_field_mul_lookup_selector_set) {
+                columns[col_index] = Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.ForeignFieldMul));
+                col_index += 1;
+            }
         }
 
-        starts[1] = curr;
-        for (uint256 i = 0; i < rows[1] * cols[1]; i++) {
-            uint256 col = i / rows[0];
-            uint256 row = i % rows[0];
-            es_data[i] = [[ft_eval0]][row][col]; // TODO: ft_eval1;
-            curr++;
+        // push all evals corresponding to each column
+        for (uint i = 2; i < col_index + 1; i++) {
+            PointEvaluationsArray memory eval = proof.evals.get_column_eval(columns[i - 2]);
+            es[i] = [eval.zeta, eval.zeta_omega];
         }
-
-        // TODO: is this necessary? doc is available in its definition.
-        PolyMatrices memory es = PolyMatrices(es_data, matrix_count, rows, cols, starts);
-
-        // TODO: add evaluations of all columns
-
         Scalar.FE combined_inner_prod = combined_inner_product(evaluation_points, v, u, es, index.max_poly_size);
+        console.log("combined_inner_prod:", Scalar.FE.unwrap(combined_inner_prod));
         RandomOracles memory oracles =
             RandomOracles(beta, gamma, alpha_chal, alpha, zeta, v, u, alpha_chal, v_chal, u_chal);
 
