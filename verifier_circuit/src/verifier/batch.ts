@@ -103,6 +103,8 @@ export class Batch {
 
         // FIXME: hardcoded for now, should be a sponge parameter.
         // this was generated from the verifier_circuit_tests/ crate.
+        //
+        // FIXME: this should be somewhere in the o1js' Poseidon sponge implementation
         const mds = [
             [
                 "4e59dd23f06c2400f3ba607d02926badee7add77d3544a307e7af417ddf7283e",
