@@ -45,8 +45,8 @@ library Polynomial {
         Scalar.FE x
     ) external pure returns (Scalar.FE result) {
         result = Scalar.zero();
-        for (uint256 i = coeffs.length; i > 0; i--) {
-            result = result.mul(x).add(coeffs[i - 1]);
+        for (uint256 i = 0; i < coeffs.length; i++) {
+            result = result.mul(x).add(coeffs[coeffs.length - i - 1]);
         }
     }
 

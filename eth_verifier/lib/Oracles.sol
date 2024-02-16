@@ -123,10 +123,6 @@ library Oracles {
         // 18. Derive zeta using the endomorphism
         Scalar.FE zeta = zeta_chal.to_field(endo_r);
 
-        // TODO: check the rest of the heuristic.
-        // INFO: the calculation of the divisor polynomial only depends on the zeta challenge.
-        // The rest of the steps need to be debugged for calculating the numerator polynomial.
-
         // 19. Setup a scalar sponge
         scalar_sponge.reinit();
 
@@ -134,7 +130,9 @@ library Oracles {
         scalar_sponge.absorb_scalar(base_sponge.digest_scalar());
 
         // TODO: 21. Absorb the previous recursion challenges
-        // INFO: this isn't necessary for our current test proof
+        // INFO: our proofs won't have recursion for now, so we only need
+        // to absorb the digest of an empty sponge. This will be hardcoded:
+        scalar_sponge.absorb_scalar(Scalar.from(0x00C5D2460186F7233C927E7DB2DCC703C0E500B653CA82273B7BFAD8045D85A4));
 
         // often used values
         Scalar.FE zeta1 = zeta.pow(index.domain_size);
@@ -370,7 +368,7 @@ library Oracles {
             col_index += 1;
         }
         for (uint i = 0; i < PERMUTS - 1; i++) {
-            columns[col_index] = Column(ColumnVariant.Coefficient, abi.encode(i));
+            columns[col_index] = Column(ColumnVariant.Permutation, abi.encode(i));
             col_index += 1;
         }
         if (index.is_range_check0_comm_set) {
@@ -420,6 +418,10 @@ library Oracles {
                 columns[col_index] = Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.Xor));
                 col_index += 1;
             }
+            if (proof.evals.is_lookup_gate_lookup_selector_set) {
+                columns[col_index] = Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.Lookup));
+                col_index += 1;
+            }
             if (proof.evals.is_range_check_lookup_selector_set) {
                 columns[col_index] = Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.RangeCheck));
                 col_index += 1;
@@ -431,9 +433,9 @@ library Oracles {
         }
 
         // push all evals corresponding to each column
-        for (uint i = 2; i < col_index + 1; i++) {
-            PointEvaluationsArray memory eval = proof.evals.get_column_eval(columns[i - 2]);
-            es[i] = [eval.zeta, eval.zeta_omega];
+        for (uint i = 0; i < col_index; i++) {
+            PointEvaluationsArray memory eval = proof.evals.get_column_eval(columns[i]);
+            es[i + 2] = [eval.zeta, eval.zeta_omega];
         }
         Scalar.FE combined_inner_prod = combined_inner_product(evaluation_points, v, u, es, index.max_poly_size);
         console.log("combined_inner_prod:", Scalar.FE.unwrap(combined_inner_prod));
