@@ -127,7 +127,8 @@ library Oracles {
         scalar_sponge.reinit();
 
         // 20. Absorb the digest of the previous sponge
-        scalar_sponge.absorb_scalar(base_sponge.digest_scalar());
+        Scalar.FE digest = base_sponge.digest_scalar();
+        scalar_sponge.absorb_scalar(digest);
 
         // TODO: 21. Absorb the previous recursion challenges
         // INFO: our proofs won't have recursion for now, so we only need
@@ -326,8 +327,6 @@ library Oracles {
             constants
         ));
 
-        console.log("ft_eval0 fifth: ", Scalar.FE.unwrap(ft_eval0)); // INFO: this is ok
-
         uint256 evals_length = 55; // WARN: the amount of evals in the test proof
         Scalar.FE[][2][] memory es = new Scalar.FE[][2][](evals_length); // "es" stands for evaluation segments?
         // INFO: dynamic array of a 2xn matrix, where n = 1 in the test proof's case.
@@ -438,7 +437,8 @@ library Oracles {
             es[i + 2] = [eval.zeta, eval.zeta_omega];
         }
         Scalar.FE combined_inner_prod = combined_inner_product(evaluation_points, v, u, es, index.max_poly_size);
-        console.log("combined_inner_prod:", Scalar.FE.unwrap(combined_inner_prod));
+        // FIXME: do we actually need this?
+
         RandomOracles memory oracles = RandomOracles(
             joint_combiner,
             beta,
@@ -454,8 +454,12 @@ library Oracles {
         );
 
         return Result(
+            digest,
             oracles,
-            powers_of_eval_points_for_chunks
+            public_evals,
+            powers_of_eval_points_for_chunks,
+            zeta1,
+            ft_eval0
         );
     }
 
@@ -474,9 +478,20 @@ library Oracles {
     }
 
     struct Result {
-        // sponges are stored in storage
+        // INFO: sponges and all_alphas are stored in storage
+
+        // the digest of the scalar sponge
+        Scalar.FE digest;
+        // challenges produced
         RandomOracles oracles;
+        // public polynomial evaluations
+        Scalar.FE[][2] public_evals;
+        // zeta^n and (zeta * omega)^n
         PointEvaluations powers_of_eval_points_for_chunks;
+        // pre-computed zeta^n
+        Scalar.FE zeta1;
+        // the evaluation f(zeta) - t(zeta) * Z_H(zeta)
+        Scalar.FE ft_eval0;
     }
 
     struct ScalarChallenge {
