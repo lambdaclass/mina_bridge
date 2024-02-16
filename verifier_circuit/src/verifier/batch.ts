@@ -103,6 +103,8 @@ export class Batch {
 
         // FIXME: hardcoded for now, should be a sponge parameter.
         // this was generated from the verifier_circuit_tests/ crate.
+        //
+        // FIXME: this should be somewhere in the o1js' Poseidon sponge implementation
         const mds = [
             [
                 "4e59dd23f06c2400f3ba607d02926badee7add77d3544a307e7af417ddf7283e",
@@ -181,6 +183,187 @@ export class Batch {
             evaluations.push(new Evaluation(context.getColumn(col)!, [eva?.zeta, eva?.zetaOmega]));
         }
 
+        /*
+            //~~ * optional gate commitments
+            .chain(
+                verifier_index
+                    .range_check0_comm
+                    .as_ref()
+                    .map(|_| Column::Index(GateType::RangeCheck0)),
+            )
+            .chain(
+                verifier_index
+                    .range_check1_comm
+                    .as_ref()
+                    .map(|_| Column::Index(GateType::RangeCheck1)),
+            )
+            .chain(
+                verifier_index
+                    .foreign_field_add_comm
+                    .as_ref()
+                    .map(|_| Column::Index(GateType::ForeignFieldAdd)),
+            )
+            .chain(
+                verifier_index
+                    .foreign_field_mul_comm
+                    .as_ref()
+                    .map(|_| Column::Index(GateType::ForeignFieldMul)),
+            )
+            .chain(
+                verifier_index
+                    .xor_comm
+                    .as_ref()
+                    .map(|_| Column::Index(GateType::Xor16)),
+            )
+            .chain(
+                verifier_index
+                    .rot_comm
+                    .as_ref()
+                    .map(|_| Column::Index(GateType::Rot64)),
+            )
+            //~~ * lookup commitments
+            //~
+            .chain(
+                verifier_index
+                    .lookup_index
+                    .as_ref()
+                    .map(|li| {
+                        // add evaluations of sorted polynomials
+                        (0..li.lookup_info.max_per_row + 1)
+                            .map(Column::LookupSorted)
+                            // add evaluations of the aggreg polynomial
+                            .chain([Column::LookupAggreg].into_iter())
+                    })
+                    .into_iter()
+                    .flatten(),
+            ) {
+                let evals = proof
+                    .evals
+                    .get_column(col)
+                    .ok_or(VerifyError::MissingEvaluation(col))?;
+                evaluations.push(Evaluation {
+                    commitment: context
+                        .get_column(col)
+                        .ok_or(VerifyError::MissingCommitment(col))?
+                        .clone(),
+                    evaluations: vec![evals.zeta.clone(), evals.zeta_omega.clone()],
+                    degree_bound: None,
+                });
+            }
+
+            if let Some(li) = &verifier_index.lookup_index {
+                let lookup_comms = proof
+                    .commitments
+                    .lookup
+                    .as_ref()
+                    .ok_or(VerifyError::LookupCommitmentMissing)?;
+
+                let lookup_table = proof
+                    .evals
+                    .lookup_table
+                    .as_ref()
+                    .ok_or(VerifyError::LookupEvalsMissing)?;
+                let runtime_lookup_table = proof.evals.runtime_lookup_table.as_ref();
+
+                // compute table commitment
+                let table_comm = {
+                    let joint_combiner = oracles
+                        .joint_combiner
+                        .expect("joint_combiner should be present if lookups are used");
+                    let table_id_combiner = joint_combiner
+                        .1
+                        .pow([u64::from(li.lookup_info.max_joint_size)]);
+                    let lookup_table: Vec<_> = li.lookup_table.iter().collect();
+                    let runtime = lookup_comms.runtime.as_ref();
+
+                    combine_table(
+                        &lookup_table,
+                        joint_combiner.1,
+                        table_id_combiner,
+                        li.table_ids.as_ref(),
+                        runtime,
+                    )
+                };
+
+                // add evaluation of the table polynomial
+                evaluations.push(Evaluation {
+                    commitment: table_comm,
+                    evaluations: vec![lookup_table.zeta.clone(), lookup_table.zeta_omega.clone()],
+                    degree_bound: None,
+                });
+
+                // add evaluation of the runtime table polynomial
+                if li.runtime_tables_selector.is_some() {
+                    let runtime = lookup_comms
+                        .runtime
+                        .as_ref()
+                        .ok_or(VerifyError::IncorrectRuntimeProof)?;
+                    let runtime_eval = runtime_lookup_table
+                        .as_ref()
+                        .map(|x| x.map_ref(&|x| x.clone()))
+                        .ok_or(VerifyError::IncorrectRuntimeProof)?;
+
+                    evaluations.push(Evaluation {
+                        commitment: runtime.clone(),
+                        evaluations: vec![runtime_eval.zeta, runtime_eval.zeta_omega],
+                        degree_bound: None,
+                    });
+                }
+            }
+
+            for col in verifier_index
+                .lookup_index
+                .as_ref()
+                .map(|li| {
+                    (li.runtime_tables_selector
+                        .as_ref()
+                        .map(|_| Column::LookupRuntimeSelector))
+                    .into_iter()
+                    .chain(
+                        li.lookup_selectors
+                            .xor
+                            .as_ref()
+                            .map(|_| Column::LookupKindIndex(LookupPattern::Xor)),
+                    )
+                    .chain(
+                        li.lookup_selectors
+                            .lookup
+                            .as_ref()
+                            .map(|_| Column::LookupKindIndex(LookupPattern::Lookup)),
+                    )
+                    .chain(
+                        li.lookup_selectors
+                            .range_check
+                            .as_ref()
+                            .map(|_| Column::LookupKindIndex(LookupPattern::RangeCheck)),
+                    )
+                    .chain(
+                        li.lookup_selectors
+                            .ffmul
+                            .as_ref()
+                            .map(|_| Column::LookupKindIndex(LookupPattern::ForeignFieldMul)),
+                    )
+                })
+                .into_iter()
+                .flatten()
+            {
+                let evals = proof
+                    .evals
+                    .get_column(col)
+                    .ok_or(VerifyError::MissingEvaluation(col))?;
+                evaluations.push(Evaluation {
+                    commitment: context
+                        .get_column(col)
+                        .ok_or(VerifyError::MissingCommitment(col))?
+                        .clone(),
+                    evaluations: vec![evals.zeta.clone(), evals.zeta_omega.clone()],
+                    degree_bound: None,
+                });
+            }
+
+        */
+
+
         // prepare for the opening proof verification
         let evaluation_points = [oracles.zeta, oracles.zeta.mul(verifier_index.domain_gen)];
         const agg_proof: AggregatedEvaluationProof = {
@@ -194,6 +377,70 @@ export class Batch {
         };
         return agg_proof;
     }
+
+    /*
+
+/// This function verifies the batch of zk-proofs
+///     proofs: vector of Plonk proofs
+///     RETURN: verification status
+///
+/// # Errors
+///
+/// Will give error if `srs` of `proof` is invalid or `verify` process fails.
+pub fn batch_verify<G, EFqSponge, EFrSponge, OpeningProof: OpenProof<G>>(
+    group_map: &G::Map,
+    proofs: &[Context<G, OpeningProof>],
+) -> Result<()>
+where
+    G: KimchiCurve,
+    G::BaseField: PrimeField,
+    EFqSponge: Clone + FqSponge<G::BaseField, G, G::ScalarField>,
+    EFrSponge: FrSponge<G::ScalarField>,
+{
+    //~ #### Batch verification of proofs
+    //~
+    //~ Below, we define the steps to verify a number of proofs
+    //~ (each associated to a [verifier index](#verifier-index)).
+    //~ You can, of course, use it to verify a single proof.
+    //~
+
+    //~ 1. If there's no proof to verify, the proof validates trivially.
+    if proofs.is_empty() {
+        return Ok(());
+    }
+
+    //~ 1. Ensure that all the proof's verifier index have a URS of the same length. (TODO: do they have to be the same URS though? should we check for that?)
+    // TODO: Account for the different SRS lengths
+    let srs = proofs[0].verifier_index.srs();
+    for &Context { verifier_index, .. } in proofs {
+        if verifier_index.srs().max_poly_size() != srs.max_poly_size() {
+            return Err(VerifyError::DifferentSRS);
+        }
+    }
+
+    //~ 1. Validate each proof separately following the [partial verification](#partial-verification) steps.
+    let mut batch = vec![];
+    for &Context {
+        verifier_index,
+        proof,
+        public_input,
+    } in proofs
+    {
+        batch.push(to_batch::<G, EFqSponge, EFrSponge, OpeningProof>(
+            verifier_index,
+            proof,
+            public_input,
+        )?);
+    }
+
+    //~ 1. Use the [`PolyCom.verify`](#polynomial-commitments) to verify the partially evaluated proofs.
+    if OpeningProof::verify(srs, group_map, &mut batch, &mut thread_rng()) {
+        Ok(())
+    } else {
+        Err(VerifyError::OpenProof)
+    }
+}
+
 
     /*
     * Enforce the length of evaluations inside the `proof`.
