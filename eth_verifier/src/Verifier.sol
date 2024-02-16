@@ -157,8 +157,15 @@ contract KimchiVerifier {
 
         // 3. Execute fiat-shamir with a Keccak sponge
 
-        Oracles.Result memory oracles_res =
-            Oracles.fiat_shamir(proof, verifier_index, public_comm, public_inputs, true, base_sponge, scalar_sponge);
+        Oracles.Result memory oracles_res = Oracles.fiat_shamir(
+            proof,
+            verifier_index,
+            public_comm,
+            public_inputs,
+            true,
+            base_sponge,
+            scalar_sponge
+        );
         Oracles.RandomOracles memory oracles = oracles_res.oracles;
 
         // 4. Combine the chunked polynomials' evaluations
@@ -166,9 +173,8 @@ contract KimchiVerifier {
         ProofEvaluations memory evals = proof.evals.combine_evals(oracles_res.powers_of_eval_points_for_chunks);
 
         // 5. Compute the commitment to the linearized polynomial $f$.
-        Scalar.FE permutation_vanishing_polynomial = Polynomial.vanishes_on_last_n_rows(
-            verifier_index.domain_gen, verifier_index.domain_size, verifier_index.zk_rows
-        ).evaluate(oracles.zeta);
+        Scalar.FE permutation_vanishing_polynomial = Polynomial.eval_vanishes_on_last_n_rows(
+            verifier_index.domain_gen, verifier_index.domain_size, verifier_index.zk_rows, oracles.zeta);
 
         AlphasIterator memory alphas =
             verifier_index.powers_of_alpha.get_alphas(ArgumentType.Permutation, PERMUTATION_CONSTRAINTS);
@@ -176,8 +182,7 @@ contract KimchiVerifier {
         Linearization memory linear = verifier_index.linearization;
 
         PolyComm[] memory commitments = new PolyComm[](linear.index_terms.length + 1);
-        // FIXME: todo! initialize `commitments` with sigma_comm
-
+        commitments[0] = verifier_index.sigma_comm[PERMUTS - 1];
         Scalar.FE[] memory scalars = new Scalar.FE[](linear.index_terms.length + 1);
         scalars[0] = perm_scalars(
             evals,
@@ -185,14 +190,14 @@ contract KimchiVerifier {
             oracles.gamma,
             alphas,
             permutation_vanishing_polynomial
-        );
+        ); // TODO: review/test this
 
         ExprConstants memory constants = ExprConstants(
             oracles.alpha,
             oracles.beta,
             oracles.gamma,
-            Scalar.from(0), // FIXME: joint_combiner in fiat-shamir is missing
-            Scalar.from(0), // FIXME: endo_coefficient in verifier_index is missing
+            oracles.joint_combiner_field,
+            verifier_index.endo,
             verifier_index.zk_rows
         );
 
@@ -200,22 +205,31 @@ contract KimchiVerifier {
             Column memory col = linear.index_terms[i].col;
             PolishToken[] memory tokens = linear.index_terms[i].coeff;
 
-            Scalar.FE scalar =
-                evaluate(tokens, verifier_index.domain_gen, verifier_index.domain_size, oracles.zeta, evals, constants);
+            Scalar.FE scalar = evaluate(
+                tokens,
+                verifier_index.domain_gen,
+                verifier_index.domain_size,
+                oracles.zeta,
+                evals,
+                constants
+            );
 
             scalars[i + 1] = scalar;
             commitments[i + 1] = get_column(verifier_index, proof, col);
         }
 
-        PolyComm memory f_comm = polycomm_msm(commitments, scalars);
+        PolyComm memory f_comm = polycomm_msm(commitments, scalars); // TODO: review/test this
 
         // 6. Compute the chunked commitment of ft
         Scalar.FE zeta_to_srs_len = oracles.zeta.pow(verifier_index.max_poly_size);
         PolyComm memory chunked_f_comm = f_comm.chunk_commitment(zeta_to_srs_len);
         PolyComm memory chunked_t_comm = proof.commitments.t_comm.chunk_commitment(zeta_to_srs_len);
+        // TODO: implement polycomm substraction and scalar product
 
         // TODO: 7. List the polynomial commitments, and their associated evaluations,
         // that are associated to the aggregated evaluation proof in the proof:
+        // 
+        // INFO: the code is really similar to the computation of the combined inner product
     }
 
     // @notice executes only the needed steps of partial verification for

@@ -441,6 +441,7 @@ library Oracles {
 
         RandomOracles memory oracles = RandomOracles(
             joint_combiner,
+            joint_combiner_field,
             beta,
             gamma,
             alpha_chal,
@@ -465,6 +466,7 @@ library Oracles {
 
     struct RandomOracles {
         ScalarChallenge joint_combiner;
+        Scalar.FE joint_combiner_field;
         Scalar.FE beta;
         Scalar.FE gamma;
         ScalarChallenge alpha_chal;
