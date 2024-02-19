@@ -14,6 +14,8 @@ error MissingColumnEvaluation(ColumnVariant variant);
 error MissingLookupColumnEvaluation(LookupPattern pattern);
 error MissingIndexColumnEvaluation(GateType gate);
 
+using {Scalar.mul} for Scalar.FE;
+
 struct PairingProof {
     PolyComm quotient;
     Scalar.FE blinding;
@@ -704,4 +706,43 @@ function get_column_eval(
     } else {
         revert MissingColumnEvaluation(variant);
     }
+}
+
+function combine_table(
+    PolyComm[] memory columns,
+    Scalar.FE column_combiner,
+    Scalar.FE table_id_combiner,
+    bool is_table_id_vector_set,
+    PolyComm memory table_id_vector,
+    bool is_runtime_vector_set,
+    PolyComm memory runtime_vector
+) view returns (PolyComm memory) {
+    require(columns.length != 0, "column commitments are empty");
+    uint256 total_len = columns.length
+        + (is_table_id_vector_set ? 1 : 0)
+        + (is_runtime_vector_set ? 1 : 0);
+
+    Scalar.FE j = Scalar.one();
+    Scalar.FE[] memory scalars = new Scalar.FE[](columns.length - 1);
+    PolyComm[] memory commitments = new PolyComm[](columns.length - 1);
+    uint256 index = 0;
+    scalars[index++] = j;
+    commitments[index++] = columns[0];
+
+    for (uint i = 1; i < columns.length; i++) {
+        j = j.mul(column_combiner);
+        scalars[index++] = j;
+        commitments[index++] = columns[i];
+    }
+
+    if (is_table_id_vector_set) {
+        scalars[index++] = table_id_combiner;
+        commitments[index++] = table_id_vector;
+    }
+    if (is_runtime_vector_set) {
+        scalars[index++] = column_combiner;
+        commitments[index++] = runtime_vector;
+    }
+
+    return polycomm_msm(commitments, scalars);
 }

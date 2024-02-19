@@ -216,7 +216,7 @@ contract KimchiVerifier {
             );
 
             scalars[i + 1] = scalar;
-            commitments[i + 1] = get_column(verifier_index, proof, col);
+            commitments[i + 1] = get_column_commitment(verifier_index, proof, col);
         }
 
         PolyComm memory f_comm = polycomm_msm(commitments, scalars);
@@ -230,10 +230,109 @@ contract KimchiVerifier {
                 chunked_t_comm.scale_polycomm(oracles_res.zeta1.sub(Scalar.one()))
             );
 
-        // TODO: 7. List the polynomial commitments, and their associated evaluations,
+        // 7. List the polynomial commitments, and their associated evaluations,
         // that are associated to the aggregated evaluation proof in the proof:
-        // 
-        // INFO: the code is really similar to the computation of the combined inner product
+
+        uint256 evaluation_len = 55; // INFO: hard-coded for the test proof
+        Evaluation[] memory evaluations = new Evaluation[](55);
+
+        uint256 eval_index = 0;
+
+        // public input commitment
+        evaluations[eval_index++] = Evaluation(
+            public_comm,
+            oracles_res.public_evals,
+            0
+        );
+
+        // ft commitment
+        Scalar.FE[] memory ft_eval0 = new Scalar.FE[](1);
+        Scalar.FE[] memory ft_eval1 = new Scalar.FE[](1);
+        ft_eval0[0] = oracles_res.ft_eval0;
+        ft_eval1[0] = proof.ft_eval1;
+        evaluations[eval_index++] = Evaluation(
+            ft_comm,
+            [ft_eval0, ft_eval1],
+            0
+        );
+
+        // columns
+        // INFO: almost the same as in fiat-shamir
+        Column[] memory columns = new Column[](evaluation_len);
+        columns[0] = Column(ColumnVariant.Z, new bytes(0));
+        columns[1] = Column(ColumnVariant.Index, abi.encode(GateType.Generic));
+        columns[2] = Column(ColumnVariant.Index, abi.encode(GateType.Poseidon));
+        columns[3] = Column(ColumnVariant.Index, abi.encode(GateType.CompleteAdd));
+        columns[4] = Column(ColumnVariant.Index, abi.encode(GateType.VarBaseMul));
+        columns[5] = Column(ColumnVariant.Index, abi.encode(GateType.EndoMul));
+        columns[6] = Column(ColumnVariant.Index, abi.encode(GateType.EndoMulScalar));
+        uint col_index = 7;
+        for (uint i = 0; i < COLUMNS; i++) {
+            columns[col_index++] = Column(ColumnVariant.Witness, abi.encode(i));
+        }
+        for (uint i = 0; i < COLUMNS; i++) {
+            columns[col_index++] = Column(ColumnVariant.Coefficient, abi.encode(i));
+        }
+        for (uint i = 0; i < PERMUTS - 1; i++) {
+            columns[col_index++] = Column(ColumnVariant.Permutation, abi.encode(i));
+        }
+        if (verifier_index.is_range_check0_comm_set) {
+            columns[col_index++] = Column(ColumnVariant.Index, abi.encode(GateType.RangeCheck0));
+        }
+        if (verifier_index.is_range_check1_comm_set) {
+            columns[col_index++] = Column(ColumnVariant.Index, abi.encode(GateType.RangeCheck1));
+        }
+        if (verifier_index.is_foreign_field_add_comm_set) {
+            columns[col_index++] = Column(ColumnVariant.Index, abi.encode(GateType.ForeignFieldAdd));
+        }
+        if (verifier_index.is_foreign_field_mul_comm_set) {
+            columns[col_index++] = Column(ColumnVariant.Index, abi.encode(GateType.ForeignFieldMul));
+        }
+        if (verifier_index.is_xor_comm_set) {
+            columns[col_index++] = Column(ColumnVariant.Index, abi.encode(GateType.Xor16));
+        }
+        if (verifier_index.is_rot_comm_set) {
+            columns[col_index++] = Column(ColumnVariant.Index, abi.encode(GateType.Rot64));
+        }
+        if (verifier_index.is_lookup_index_set) {
+            LookupVerifierIndex memory li = verifier_index.lookup_index;
+            for (uint i = 0; i < li.lookup_info.max_per_row + 1; i++) {
+                columns[col_index++] = Column(ColumnVariant.LookupSorted, abi.encode(i));
+            }
+            columns[col_index++] = Column(ColumnVariant.LookupAggreg, new bytes(0));
+            columns[col_index++] = Column(ColumnVariant.LookupTable, new bytes(0));
+        }
+        // push all commitments corresponding to each column
+        for (uint i = 0; i < col_index; i++) {
+            PointEvaluationsArray memory eval = get_column_eval(proof.evals, columns[i]);
+            evaluations[eval_index++] = Evaluation(
+                get_column_commitment(verifier_index, proof, columns[i]),
+                [eval.zeta, eval.zeta_omega],
+                0
+            );
+        }
+
+        if (verifier_index.is_lookup_index_set) {
+            LookupVerifierIndex memory li = verifier_index.lookup_index;
+            if (!proof.commitments.is_lookup_set) {
+                revert(); // TODO: error
+            }
+            LookupCommitments memory lookup_comms = proof.commitments.lookup;
+            PointEvaluationsArray memory lookup_evals = proof.evals.lookup_table;
+
+            Scalar.FE joint_combiner = oracles.joint_combiner.chal;
+            Scalar.FE table_id_combiner = joint_combiner.pow(li.lookup_info.max_joint_size);
+
+            PolyComm memory table_comm = combine_table(
+                li.lookup_table,
+                joint_combiner,
+                table_id_combiner,
+                li.is_table_ids_set,
+                li.table_ids,
+                lookup_comms.is_runtime_set,
+                lookup_comms.runtime
+            );
+        }
     }
 
     // @notice executes only the needed steps of partial verification for
