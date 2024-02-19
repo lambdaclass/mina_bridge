@@ -22,6 +22,7 @@ using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} f
 using {get_alphas} for Alphas;
 using {it_next} for AlphasIterator;
 using {Polynomial.evaluate} for Polynomial.Dense;
+using {sub_polycomms, scale_polycomm} for PolyComm;
 
 contract KimchiVerifier {
     using {register} for Alphas;
@@ -218,13 +219,16 @@ contract KimchiVerifier {
             commitments[i + 1] = get_column(verifier_index, proof, col);
         }
 
-        PolyComm memory f_comm = polycomm_msm(commitments, scalars); // TODO: review/test this
+        PolyComm memory f_comm = polycomm_msm(commitments, scalars);
 
         // 6. Compute the chunked commitment of ft
         Scalar.FE zeta_to_srs_len = oracles.zeta.pow(verifier_index.max_poly_size);
         PolyComm memory chunked_f_comm = f_comm.chunk_commitment(zeta_to_srs_len);
         PolyComm memory chunked_t_comm = proof.commitments.t_comm.chunk_commitment(zeta_to_srs_len);
-        // TODO: implement polycomm substraction and scalar product
+        PolyComm memory ft_comm = chunked_f_comm
+            .sub_polycomms(
+                chunked_t_comm.scale_polycomm(oracles_res.zeta1.sub(Scalar.one()))
+            );
 
         // TODO: 7. List the polynomial commitments, and their associated evaluations,
         // that are associated to the aggregated evaluation proof in the proof:

@@ -7,7 +7,7 @@ import "./bn254/Fields.sol";
 import "./Utils.sol";
 import "./Polynomial.sol";
 
-using {BN254.add, BN254.scale_scalar} for BN254.G1Point;
+using {BN254.add, BN254.scale_scalar, BN254.neg} for BN254.G1Point;
 using {Scalar.neg, Scalar.add, Scalar.sub, Scalar.mul, Scalar.inv, Scalar.double, Scalar.pow} for Scalar.FE;
 using {Polynomial.is_zero} for Polynomial.Dense;
 
@@ -258,8 +258,33 @@ function chunk_commitment(PolyComm memory self, Scalar.FE zeta_n) view returns (
 }
 
 // @notice substracts two polynomial commitments
-function sub_polycomms(PolyComm memory self, PolyComm memory other) pure returns (PolyComm memory) {
-    // TODO: implement this!
+function sub_polycomms(PolyComm memory self, PolyComm memory other) view returns (PolyComm memory res) {
+    uint256 n_self = self.unshifted.length;
+    uint256 n_other = other.unshifted.length;
+    uint256 n = Utils.max(n_self, n_other);
+    res.unshifted = new BN254.G1Point[](n);
+
+    for (uint i = 0; i < n; i++) {
+        if (i < n_self && i < n_other) {
+            res.unshifted[i] = self.unshifted[i].add(other.unshifted[i].neg());
+        } else if (i < n_self) {
+            res.unshifted[i] = self.unshifted[i];
+        } else {
+            res.unshifted[i] = other.unshifted[i];
+        }
+    }
+
+    // TODO: shifted part, need to create a flag that determines if shifted is set.
+}
+
+// @notice substracts two polynomial commitments
+function scale_polycomm(PolyComm memory self, Scalar.FE c) view returns (PolyComm memory res) {
+    uint256 n = self.unshifted.length;
+    res.unshifted = new BN254.G1Point[](n);
+
+    for (uint i = 0; i < n; i++) {
+        res.unshifted[i] = res.unshifted[i].scale_scalar(c);
+    }
 }
 
 // Reference: Kimchi
