@@ -191,7 +191,7 @@ contract KimchiVerifier {
             oracles.gamma,
             alphas,
             permutation_vanishing_polynomial
-        ); // TODO: review/test this
+        );
 
         ExprConstants memory constants = ExprConstants(
             oracles.alpha,
@@ -310,9 +310,10 @@ contract KimchiVerifier {
         res = e.z.zeta_omega.mul(beta).mul(alpha0).mul(zkp_zeta);
         uint256 len = Utils.min(e.w.length, e.s.length);
         for (uint256 i = 0; i < len; i++) {
-            res = res.mul(gamma.add(beta.mul(e.s[i].zeta)).add(e.w[i].zeta));
+            Scalar.FE current = gamma.add(beta.mul(e.s[i].zeta)).add(e.w[i].zeta);
+            res = res.mul(current);
         }
-        res.neg();
+        res = res.neg();
     }
 
     /// The polynomial that evaluates to each of `evals` for the respective `elm`s.
