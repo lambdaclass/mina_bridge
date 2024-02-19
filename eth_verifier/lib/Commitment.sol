@@ -273,7 +273,6 @@ function sub_polycomms(PolyComm memory self, PolyComm memory other) view returns
             res.unshifted[i] = other.unshifted[i];
         }
     }
-
     // TODO: shifted part, need to create a flag that determines if shifted is set.
 }
 
@@ -283,8 +282,9 @@ function scale_polycomm(PolyComm memory self, Scalar.FE c) view returns (PolyCom
     res.unshifted = new BN254.G1Point[](n);
 
     for (uint i = 0; i < n; i++) {
-        res.unshifted[i] = res.unshifted[i].scale_scalar(c);
+        res.unshifted[i] = self.unshifted[i].scale_scalar(c);
     }
+    // TODO: shifted part, need to create a flag that determines if shifted is set.
 }
 
 // Reference: Kimchi
