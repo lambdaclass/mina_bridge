@@ -232,13 +232,6 @@ contract DeserializeTest is Test {
         assertEq(test_urs.verifier_urs.g[2].y1, 0x1DAE1514DF395BF6B03BD82FE153C56D7419845B00D9592E637660BA8F4F339D, "y1 point 2");
     }
 
-    // WARN: this doesn't assert anything, it only executes this deserialization
-    // for gas profiling.
-    function test_deserialize_linearization_profiling_only() public {
-        bytes memory linearization_serialized = vm.readFileBinary("unit_test_data/linearization.mpk");
-        MsgPk.deser_linearization(MsgPk.new_stream(linearization_serialized), index);
-    }
-
     function test_deserialize_scalar() public {
         bytes memory scalar_serialized = hex"550028f667d034768ec0a14ac5f5a24bbcad7117110fc65b7529e003a0708419";
         Scalar.FE scalar = MsgPk.deser_scalar(scalar_serialized);

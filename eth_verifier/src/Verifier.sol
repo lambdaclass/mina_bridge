@@ -55,22 +55,22 @@ contract KimchiVerifier {
     function deserialize_proof(
         bytes calldata verifier_index_serialized,
         bytes calldata prover_proof_serialized,
-        bytes calldata linearization_serialized
+        bytes calldata linearization_serialized_rlp
     )
         public
     {
         MsgPk.deser_verifier_index(MsgPk.new_stream(verifier_index_serialized), verifier_index);
         MsgPk.deser_prover_proof(MsgPk.new_stream(prover_proof_serialized), proof);
-        MsgPk.deser_linearization(MsgPk.new_stream(linearization_serialized), verifier_index);
+        verifier_index.linearization = abi.decode(linearization_serialized_rlp, (Linearization));
     }
 
     function verify_with_index(
         bytes calldata verifier_index_serialized,
         bytes calldata prover_proof_serialized,
-        bytes calldata linearization_serialized,
+        bytes calldata linearization_serialized_rlp,
         bytes32 numerator_serialized
     ) public returns (bool) {
-        deserialize_proof(verifier_index_serialized, prover_proof_serialized, linearization_serialized);
+        deserialize_proof(verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp);
         // The numerator was "manually" serialized so we can't use deser_g1point();
         BN254.G1Point memory numerator = BN254.g1Deserialize(numerator_serialized);
         // "numerator" is a fake commitment that should be calculated after running
@@ -83,7 +83,7 @@ contract KimchiVerifier {
         //    verifier_index.urs.lagrange_bases_unshifted
         //);
 
-        AggregatedEvaluationProof memory agg_proof = partial_verify_stripped(new Scalar.FE[](0));
+        AggregatedEvaluationProof memory agg_proof = partial_verify(new Scalar.FE[](0));
 
         return final_verify(agg_proof, urs.verifier_urs, numerator);
     }
@@ -116,7 +116,7 @@ contract KimchiVerifier {
     error IncorrectPublicInputLength();
 
     // This takes Kimchi's `to_batch()` as reference.
-    function partial_verify(Scalar.FE[] memory public_inputs) public {
+    function partial_verify(Scalar.FE[] memory public_inputs) public returns (AggregatedEvaluationProof memory ){
         // TODO: 1. CHeck the length of evaluations insde the proof
 
         // 2. Commit to the negated public input polynomial.
@@ -413,69 +413,14 @@ contract KimchiVerifier {
             }
         }
 
-        Scalar.FE[2] memory evaluation_points = [
-            oracles.zeta,
-            oracles.zeta.mul(verifier_index.domain_gen)
-        ];
-
-        // TODO: return
-    }
-
-    // @notice executes only the needed steps of partial verification for
-    // @notice the current version of the final verification steps.
-    function partial_verify_stripped(Scalar.FE[] memory public_inputs)
-        public
-        returns (AggregatedEvaluationProof memory)
-    {
-        // Commit to the negated public input polynomial.
-
-        uint256 chunk_size = verifier_index.domain_size < verifier_index.max_poly_size
-            ? 1
-            : verifier_index.domain_size / verifier_index.max_poly_size;
-
-        if (public_inputs.length != verifier_index.public_len) {
-            revert IncorrectPublicInputLength();
-        }
-        PolyCommFlat memory lgr_comm_flat = urs.lagrange_bases_unshifted[verifier_index.domain_size];
-        PolyComm[] memory comm = new PolyComm[](verifier_index.public_len);
-        PolyComm[] memory lgr_comm = poly_comm_unflat(lgr_comm_flat);
-        // INFO: can use unchecked on for loops to save gas
-        for (uint256 i = 0; i < verifier_index.public_len; i++) {
-            comm[i] = lgr_comm[i];
-        }
-        PolyComm memory public_comm;
-        if (public_inputs.length == 0) {
-            BN254.G1Point[] memory blindings = new BN254.G1Point[](chunk_size);
-            for (uint256 i = 0; i < chunk_size; i++) {
-                blindings[i] = urs.full_urs.h;
-            }
-            // TODO: shifted is fixed to infinity
-            BN254.G1Point memory shifted = BN254.point_at_inf();
-            public_comm = PolyComm(blindings, shifted);
-        } else {
-            Scalar.FE[] memory elm = new Scalar.FE[](public_inputs.length);
-            for (uint256 i = 0; i < elm.length; i++) {
-                elm[i] = public_inputs[i].neg();
-            }
-            PolyComm memory public_comm_tmp = polycomm_msm(comm, elm);
-            Scalar.FE[] memory blinders = new Scalar.FE[](public_comm_tmp.unshifted.length);
-            for (uint256 i = 0; i < public_comm_tmp.unshifted.length; i++) {
-                blinders[i] = Scalar.FE.wrap(1);
-            }
-            public_comm = mask_custom(urs.full_urs, public_comm_tmp, blinders).commitment;
-        }
-
-        // Execute fiat-shamir with a Keccak sponge
-        // WARN: we don't need to execute the whole heuristic, we only need the first 'zeta' challenge.
-
-        Oracles.Result memory oracles_res =
-            Oracles.fiat_shamir(proof, verifier_index, public_comm, public_inputs, true, base_sponge, scalar_sponge);
-        Oracles.RandomOracles memory oracles = oracles_res.oracles;
+        // Scalar.FE[2] memory evaluation_points = [
+        //     oracles.zeta,
+        //     oracles.zeta.mul(verifier_index.domain_gen)
+        // ];
 
         Scalar.FE[] memory evaluation_points = new Scalar.FE[](2);
         evaluation_points[0] = oracles.zeta;
         evaluation_points[1] = oracles.zeta.mul(verifier_index.domain_gen);
-
         return AggregatedEvaluationProof(evaluation_points, proof.opening);
     }
 

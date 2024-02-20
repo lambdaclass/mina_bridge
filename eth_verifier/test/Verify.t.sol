@@ -65,18 +65,6 @@ contract KimchiVerifierTest is Test {
         require(success, "Verification failed!");
     }
 
-    function test_partial_verify() public {
-        KimchiVerifier verifier = new KimchiVerifier();
-
-        verifier.setup(urs_serialized);
-        verifier.deserialize_proof(
-            verifier_index_serialized,
-            prover_proof_serialized,
-            linearization_serialized
-        );
-        verifier.partial_verify(new Scalar.FE[](0));
-    }
-
     function test_absorb_evaluations() public {
         KeccakSponge.reinit(sponge);
 
