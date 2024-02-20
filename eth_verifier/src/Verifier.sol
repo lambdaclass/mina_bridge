@@ -410,6 +410,7 @@ contract KimchiVerifier {
             }
         }
 
+        // TODO: change evaluation_points type into a Scalar.FE[2]
         // Scalar.FE[2] memory evaluation_points = [
         //     oracles.zeta,
         //     oracles.zeta.mul(verifier_index.domain_gen)
