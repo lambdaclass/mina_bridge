@@ -636,7 +636,13 @@ library MsgPk {
         EncodedArray memory w_comm_arr = abi.decode(find_value(comm_map, abi.encode("w_comm")), (EncodedArray));
         EncodedMap memory z_comm_map = abi.decode(find_value(comm_map, abi.encode("z_comm")), (EncodedMap));
         EncodedMap memory t_comm_map = abi.decode(find_value(comm_map, abi.encode("t_comm")), (EncodedMap));
-        EncodedMap memory lookup_map = abi.decode(find_value(comm_map, abi.encode("lookup")), (EncodedMap));
+        bytes memory lookup_bytes = find_value(comm_map, abi.encode("lookup"));
+        EncodedMap memory lookup_map;
+        bool lookup_is_null = is_null(lookup_bytes);
+        if (!lookup_is_null) {
+            lookup_map = abi.decode(lookup_bytes, (EncodedMap));
+        }
+        prover_proof.commitments.is_lookup_set = !lookup_is_null;
 
         // witness commitments
         PolyComm[15] memory w_comm;

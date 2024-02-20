@@ -224,7 +224,6 @@ function get_column_commitment(VerifierIndex storage verifier_index, ProverProof
         uint256 i = abi.decode(data, (uint256));
         return verifier_index.sigma_comm[i];
     } else if (variant == ColumnVariant.Z) {
-        uint256 i = abi.decode(data, (uint256));
         return proof.commitments.z_comm;
     } else if (variant == ColumnVariant.LookupSorted) {
         uint256 i = abi.decode(data, (uint256));

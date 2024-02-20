@@ -256,9 +256,6 @@ contract KimchiVerifier {
             [ft_eval0, ft_eval1],
             0
         );
-
-        // columns
-        // INFO: almost the same as in fiat-shamir
         Column[] memory columns = new Column[](evaluation_len);
         columns[0] = Column(ColumnVariant.Z, new bytes(0));
         columns[1] = Column(ColumnVariant.Index, abi.encode(GateType.Generic));
@@ -301,7 +298,6 @@ contract KimchiVerifier {
                 columns[col_index++] = Column(ColumnVariant.LookupSorted, abi.encode(i));
             }
             columns[col_index++] = Column(ColumnVariant.LookupAggreg, new bytes(0));
-            columns[col_index++] = Column(ColumnVariant.LookupTable, new bytes(0));
         }
         // push all commitments corresponding to each column
         for (uint i = 0; i < col_index; i++) {

@@ -14,7 +14,7 @@ contract KimchiVerifierTest is Test {
     bytes verifier_index_serialized;
     bytes prover_proof_serialized;
     bytes urs_serialized;
-    bytes linearization_serialized;
+    bytes linearization_serialized_rlp;
     bytes32 numerator_binary;
 
     ProverProof test_prover_proof;
@@ -25,7 +25,7 @@ contract KimchiVerifierTest is Test {
         verifier_index_serialized = vm.readFileBinary("verifier_index.mpk");
         prover_proof_serialized = vm.readFileBinary("prover_proof.mpk");
         urs_serialized = vm.readFileBinary("urs.mpk");
-        linearization_serialized = vm.readFileBinary("linearization.mpk");
+        linearization_serialized_rlp = vm.readFileBinary("linearization.rlp");
         numerator_binary = bytes32(vm.readFileBinary("numerator.bin"));
 
         // we store deserialized structures mostly to run intermediate results
@@ -42,12 +42,6 @@ contract KimchiVerifierTest is Test {
             ),
             test_verifier_index
         );
-        MsgPk.deser_linearization(
-            MsgPk.new_stream(
-                vm.readFileBinary("unit_test_data/linearization.mpk")
-            ),
-            test_verifier_index
-        );
     }
 
     function test_verify_with_index() public {
@@ -58,7 +52,7 @@ contract KimchiVerifierTest is Test {
         bool success = verifier.verify_with_index(
             verifier_index_serialized,
             prover_proof_serialized,
-            linearization_serialized,
+            linearization_serialized_rlp,
             numerator_binary
         );
 

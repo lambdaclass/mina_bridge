@@ -2,6 +2,8 @@
 src = "src"
 out = "out"
 libs = ["lib"]
+test = "test"
+optimizer = false
 fs_permissions = [
     { access = "read", path = "./proof.mpk"},
     { access = "read", path = "./state.mpk"},
@@ -13,5 +15,4 @@ fs_permissions = [
     { access = "read", path = "./unit_test_data/"},
     { access = "read-write", path = "./linearization.rlp"}
 ]
-
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

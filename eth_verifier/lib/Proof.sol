@@ -723,25 +723,30 @@ function combine_table(
         + (is_runtime_vector_set ? 1 : 0);
 
     Scalar.FE j = Scalar.one();
-    Scalar.FE[] memory scalars = new Scalar.FE[](columns.length - 1);
-    PolyComm[] memory commitments = new PolyComm[](columns.length - 1);
-    uint256 index = 0;
-    scalars[index++] = j;
-    commitments[index++] = columns[0];
+    Scalar.FE[] memory scalars = new Scalar.FE[](total_len);
+    PolyComm[] memory commitments = new PolyComm[](total_len);
 
+    uint256 index = 0;
+
+    scalars[index] = j;
+    commitments[index] = columns[0];
+    index += 1;
     for (uint i = 1; i < columns.length; i++) {
         j = j.mul(column_combiner);
-        scalars[index++] = j;
-        commitments[index++] = columns[i];
+        scalars[index] = j;
+        commitments[index] = columns[i];
+        index += 1;
     }
 
     if (is_table_id_vector_set) {
-        scalars[index++] = table_id_combiner;
-        commitments[index++] = table_id_vector;
+        scalars[index] = table_id_combiner;
+        commitments[index] = table_id_vector;
+        index += 1;
     }
     if (is_runtime_vector_set) {
-        scalars[index++] = column_combiner;
-        commitments[index++] = runtime_vector;
+        scalars[index] = column_combiner;
+        commitments[index] = runtime_vector;
+        index += 1;
     }
 
     return polycomm_msm(commitments, scalars);
