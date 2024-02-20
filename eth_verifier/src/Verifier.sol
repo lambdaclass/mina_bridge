@@ -67,25 +67,11 @@ contract KimchiVerifier {
     function verify_with_index(
         bytes calldata verifier_index_serialized,
         bytes calldata prover_proof_serialized,
-        bytes calldata linearization_serialized_rlp,
-        bytes32 numerator_serialized
+        bytes calldata linearization_serialized_rlp
     ) public returns (bool) {
         deserialize_proof(verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp);
-        // The numerator was "manually" serialized so we can't use deser_g1point();
-        BN254.G1Point memory numerator = BN254.g1Deserialize(numerator_serialized);
-        // "numerator" is a fake commitment that should be calculated after running
-        // all the partial verifier.
-
-        //calculate_lagrange_bases(
-        //    verifier_index.urs.g,
-        //    verifier_index.urs.h,
-        //    verifier_index.domain_size,
-        //    verifier_index.urs.lagrange_bases_unshifted
-        //);
-
         AggregatedEvaluationProof memory agg_proof = partial_verify(new Scalar.FE[](0));
-
-        return final_verify(agg_proof, urs.verifier_urs, numerator);
+        return final_verify(agg_proof, urs.verifier_urs);
     }
 
     /// @notice this is currently deprecated but remains as to not break
@@ -568,8 +554,7 @@ contract KimchiVerifier {
 
     function final_verify(
         AggregatedEvaluationProof memory agg_proof,
-        URSG2 memory verifier_urs,
-        BN254.G1Point memory numerator // this is faked
+        URSG2 memory verifier_urs
     ) public view returns (bool) {
         Evaluation[] memory evaluations = agg_proof.evaluations;
         Scalar.FE[2] memory evaluation_points = agg_proof.evaluation_points;
@@ -604,12 +589,9 @@ contract KimchiVerifier {
         );
 
         // numerator commitment
-        BN254.G1Point memory numerator_calc = poly_commitment
+        BN254.G1Point memory numerator = poly_commitment
             .sub(eval_commitment)
             .sub(blinding_commitment);
-
-        require(numerator_calc.x == numerator.x, "wrong numerator x");
-        require(numerator_calc.y == numerator.y, "wrong numerator y");
 
         // quotient commitment needs to be negated. See the doc of pairingProd2().
         return BN254.pairingProd2(numerator, BN254.P2(), quotient.neg(), divisor);
