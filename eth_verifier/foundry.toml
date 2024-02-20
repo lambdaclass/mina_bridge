@@ -2,7 +2,6 @@
 src = "src"
 out = "out"
 libs = ["lib"]
-test = "test"
 optimizer = false
 fs_permissions = [
     { access = "read", path = "./proof.mpk"},
