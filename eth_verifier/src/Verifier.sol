@@ -322,7 +322,7 @@ contract KimchiVerifier {
             }
             PointEvaluationsArray memory lookup_table = proof.evals.lookup_table;
 
-            Scalar.FE joint_combiner = oracles.joint_combiner.chal;
+            Scalar.FE joint_combiner = oracles.joint_combiner_field;
             Scalar.FE table_id_combiner = joint_combiner.pow(li.lookup_info.max_joint_size);
 
             PolyComm memory table_comm = combine_table(

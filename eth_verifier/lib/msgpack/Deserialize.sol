@@ -700,7 +700,7 @@ library MsgPk {
         BN254.G1Point[] memory quotient_unshifted = new BN254.G1Point[](1);
         quotient_unshifted[0] = BN254.g1Deserialize(bytes32(quotient_bytes));
 
-        Scalar.FE blinding = Scalar.from(uint256(bytes32(blinding_bytes)));
+        Scalar.FE blinding = deser_scalar(blinding_bytes);
 
         prover_proof.opening.quotient.unshifted = quotient_unshifted;
         prover_proof.opening.blinding = blinding;

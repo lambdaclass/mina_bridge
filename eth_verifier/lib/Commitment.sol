@@ -436,14 +436,16 @@ function combine_commitments(
 
     scalars = new Scalar.FE[](evaluations.length);
     points = new BN254.G1Point[](evaluations.length);
-    // TODO: the actual length might be less than evaluations.length
+    // WARN: the actual length might be more than evaluations.length
+    // but for our test proof it will not.
+
     uint256 index = 0;
 
     for (uint256 i = 0; i < evaluations.length; i++) {
         if (evaluations[i].commitment.unshifted.length == 0) continue;
         PolyComm memory commitment = evaluations[i].commitment;
 
-        for (uint256 j = 0; j < evaluations.length; j++) {
+        for (uint256 j = 0; j < commitment.unshifted.length; j++) {
             BN254.G1Point memory comm_ch = commitment.unshifted[j];
             scalars[index] = rand_base.mul(xi_i);
             points[index] = comm_ch;
@@ -474,8 +476,8 @@ function combine_evaluations(
         for (uint256 j = 0; j < evaluations[0].length; j++) {
             for (uint256 k = 0; k < evaluations.length; k++) {
                 acc[k] = acc[k].add(evaluations[k][j].mul(xi_i));
-                xi_i = xi_i.mul(polyscale);
             }
+            xi_i = xi_i.mul(polyscale);
         }
         // TODO: degree bound, shifted part
     }
