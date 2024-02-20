@@ -29,7 +29,9 @@ struct ProverProof {
 }
 
 struct AggregatedEvaluationProof {
-    Scalar.FE[] evaluation_points;
+    Evaluation[] evaluations;
+    Scalar.FE[2] evaluation_points;
+    Scalar.FE polyscale;
     PairingProof opening;
 }
 
