@@ -19,11 +19,12 @@ import "../lib/expr/ExprConstants.sol";
 
 using {BN254.neg, BN254.scalarMul} for BN254.G1Point;
 using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
-using {AlphasLib.get_alphas} for Alphas;
+using {get_alphas} for Alphas;
+using {it_next} for AlphasIterator;
 using {Polynomial.evaluate} for Polynomial.Dense;
 
 contract KimchiVerifier {
-    using {AlphasLib.register} for Alphas;
+    using {register} for Alphas;
     using {combine_evals} for ProofEvaluationsArray;
     using {chunk_commitment} for PolyComm;
 
@@ -40,31 +41,34 @@ contract KimchiVerifier {
     function setup(bytes memory urs_serialized) public {
         MsgPk.deser_pairing_urs(MsgPk.new_stream(urs_serialized), urs);
 
-        // x is a seed used in the KZG prover for creating the trusted setup.
-        // TODO Scalar.FE x = Scalar.from(42);
-        //uint256 max_domain_size = 16384;
-
-        verifier_index.powers_of_alpha.register(ArgumentType.GateZero, 21);
-        verifier_index.powers_of_alpha.register(ArgumentType.Permutation, 3);
-
-        // TODO: Investigate about linearization and write a proper function for this
+        // INFO: powers of alpha are fixed for a given constraint system, so we can hard-code them.
         verifier_index.powers_of_alpha.register(ArgumentType.GateZero, VARBASEMUL_CONSTRAINTS);
         verifier_index.powers_of_alpha.register(ArgumentType.Permutation, PERMUTATION_CONSTRAINTS);
+
+        // INFO: endo coefficient is fixed for a given constraint system
+        (Base.FE _endo_q, Scalar.FE endo_r) = BN254.endo_coeffs_g1();
+        verifier_index.endo = endo_r;
     }
 
-    function deserialize_proof(bytes calldata verifier_index_serialized, bytes calldata prover_proof_serialized)
+    function deserialize_proof(
+        bytes calldata verifier_index_serialized,
+        bytes calldata prover_proof_serialized,
+        bytes calldata linearization_serialized
+    )
         public
     {
         MsgPk.deser_verifier_index(MsgPk.new_stream(verifier_index_serialized), verifier_index);
         MsgPk.deser_prover_proof(MsgPk.new_stream(prover_proof_serialized), proof);
+        MsgPk.deser_linearization(MsgPk.new_stream(linearization_serialized), verifier_index);
     }
 
     function verify_with_index(
         bytes calldata verifier_index_serialized,
         bytes calldata prover_proof_serialized,
+        bytes calldata linearization_serialized,
         bytes32 numerator_serialized
     ) public returns (bool) {
-        deserialize_proof(verifier_index_serialized, prover_proof_serialized);
+        deserialize_proof(verifier_index_serialized, prover_proof_serialized, linearization_serialized);
         // The numerator was "manually" serialized so we can't use deser_g1point();
         BN254.G1Point memory numerator = BN254.g1Deserialize(numerator_serialized);
         // "numerator" is a fake commitment that should be calculated after running
@@ -166,7 +170,7 @@ contract KimchiVerifier {
             verifier_index.domain_gen, verifier_index.domain_size, verifier_index.zk_rows
         ).evaluate(oracles.zeta);
 
-        Scalar.FE[] memory alphas =
+        AlphasIterator memory alphas =
             verifier_index.powers_of_alpha.get_alphas(ArgumentType.Permutation, PERMUTATION_CONSTRAINTS);
 
         Linearization memory linear = verifier_index.linearization;
@@ -179,7 +183,7 @@ contract KimchiVerifier {
             evals,
             oracles.beta,
             oracles.gamma,
-            alphas, // FIXME: change for iterator to take into account previous alphas
+            alphas,
             permutation_vanishing_polynomial
         );
 
@@ -189,7 +193,6 @@ contract KimchiVerifier {
             oracles.gamma,
             Scalar.from(0), // FIXME: joint_combiner in fiat-shamir is missing
             Scalar.from(0), // FIXME: endo_coefficient in verifier_index is missing
-            new Scalar.FE[](0), // FIXME: keccak sponge mds is missing (can a MDS matrix be defined for the keccak sponge?)
             verifier_index.zk_rows
         );
 
@@ -277,17 +280,21 @@ contract KimchiVerifier {
         ProofEvaluations memory e,
         Scalar.FE beta,
         Scalar.FE gamma,
-        Scalar.FE[] memory alphas, // array with the next 3 powers
-        Scalar.FE zkp_zeta // TODO: make an AlphaIterator type.
-    ) internal pure returns (Scalar.FE res) {
-        require(alphas.length == 3, "not enough powers of alpha for permutation");
-        // TODO: alphas should be an iterator
+        AlphasIterator memory alphas,
+        Scalar.FE zkp_zeta
+    ) internal view returns (Scalar.FE res) {
+        require(alphas.powers.length - alphas.current_index == 3, "not enough powers of alpha for permutation");
 
-        res = e.z.zeta_omega.mul(beta).mul(alphas[0]).mul(zkp_zeta);
+        Scalar.FE alpha0 = alphas.it_next();
+        Scalar.FE _alpha1 = alphas.it_next();
+        Scalar.FE _alpha2 = alphas.it_next();
+
+        res = e.z.zeta_omega.mul(beta).mul(alpha0).mul(zkp_zeta);
         uint256 len = Utils.min(e.w.length, e.s.length);
         for (uint256 i = 0; i < len; i++) {
             res = res.mul(gamma.add(beta.mul(e.s[i].zeta)).add(e.w[i].zeta));
         }
+        res.neg();
     }
 
     /// The polynomial that evaluates to each of `evals` for the respective `elm`s.

@@ -9,23 +9,18 @@ struct Column {
 }
 
 enum ColumnVariant {
-    Witness,
+    Witness, // (uint)
     Z,
-    Index,
-    Coefficient,
-    Permutation
-    // TODO:
-    // LookupSorted(usize),
-    // LookupAggreg,
-    // LookupTable,
-    // LookupKindIndex(LookupPattern),
-    // LookupRuntimeSelector,
-    // LookupRuntimeTable,
+    LookupSorted, // (uint)
+    LookupAggreg,
+    LookupTable,
+    LookupKindIndex, // (LookupPattern)
+    LookupRuntimeSelector,
+    LookupRuntimeTable,
+    Index, // (GateType)
+    Coefficient, // (uint)
+    Permutation // (uint)
 }
-type ColumnWitness is uint;
-//type ColumnIndex is GateType; // can't set an alias for an enum :(
-type ColumnCoefficient is uint;
-type ColumnPermutation is uint;
 
 enum CurrOrNext {
     Curr,
@@ -40,6 +35,13 @@ struct Variable {
 struct RowOffset {
     bool zk_rows;
     int offset;
+}
+
+enum LookupPattern {
+    Xor,
+    Lookup,
+    RangeCheck,
+    ForeignFieldMul
 }
 
 // Variants like LookupPattern and TableWidth have data associated to them.

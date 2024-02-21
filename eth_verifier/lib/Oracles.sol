@@ -14,7 +14,8 @@ import "./Constants.sol";
 library Oracles {
     using {to_field_with_length, to_field} for ScalarChallenge;
     using {Scalar.neg, Scalar.add, Scalar.sub, Scalar.mul, Scalar.inv, Scalar.double, Scalar.pow} for Scalar.FE;
-    using {AlphasLib.instantiate, AlphasLib.get_alphas} for Alphas;
+    using {instantiate, get_alphas} for Alphas;
+    using {it_next} for AlphasIterator;
     using {
         KeccakSponge.reinit,
         KeccakSponge.absorb_base,
@@ -27,7 +28,7 @@ library Oracles {
         KeccakSponge.digest_base,
         KeccakSponge.digest_scalar
     } for Sponge;
-    using {combine_evals} for ProofEvaluationsArray;
+    using {combine_evals, get_column_eval} for ProofEvaluationsArray;
 
     uint64 internal constant CHALLENGE_LENGTH_IN_LIMBS = 2;
 
@@ -78,7 +79,10 @@ library Oracles {
         // INFO: this isn't needed for our current test proof
 
         // TODO: 7. Calculate joint_combiner
-        // INFO: this isn't needed for our current test proof
+        // INFO: for our test proof this will be zero.
+        ScalarChallenge memory joint_combiner = ScalarChallenge(Scalar.zero());
+        Scalar.FE joint_combiner_field = joint_combiner.to_field(endo_r);
+
 
         // 8. If lookup is used, absorb commitments to the sorted polys:
         for (uint i = 0; i < proof.commitments.lookup.sorted.length; i++) {
@@ -119,18 +123,17 @@ library Oracles {
         // 18. Derive zeta using the endomorphism
         Scalar.FE zeta = zeta_chal.to_field(endo_r);
 
-        // TODO: check the rest of the heuristic.
-        // INFO: the calculation of the divisor polynomial only depends on the zeta challenge.
-        // The rest of the steps need to be debugged for calculating the numerator polynomial.
-
         // 19. Setup a scalar sponge
         scalar_sponge.reinit();
 
         // 20. Absorb the digest of the previous sponge
-        scalar_sponge.absorb_scalar(base_sponge.digest_scalar());
+        Scalar.FE digest = base_sponge.digest_scalar();
+        scalar_sponge.absorb_scalar(digest);
 
         // TODO: 21. Absorb the previous recursion challenges
-        // INFO: this isn't necessary for our current test proof
+        // INFO: our proofs won't have recursion for now, so we only need
+        // to absorb the digest of an empty sponge. This will be hardcoded:
+        scalar_sponge.absorb_scalar(Scalar.from(0x00C5D2460186F7233C927E7DB2DCC703C0E500B653CA82273B7BFAD8045D85A4));
 
         // often used values
         Scalar.FE zeta1 = zeta.pow(index.domain_size);
@@ -224,7 +227,6 @@ library Oracles {
         //~~ * poseidon selector
         //~~ * the 15 register/witness
         //~~ * 6 sigmas evaluations (the last one is not evaluated)
-        // FIXME: requires re implementing absorb_evaluations() and testing the other fn.
         scalar_sponge.absorb_scalar_multiple(public_evals[0]);
         scalar_sponge.absorb_scalar_multiple(public_evals[1]);
         scalar_sponge.absorb_evaluations(proof.evals);
@@ -241,18 +243,18 @@ library Oracles {
         ProofEvaluations memory evals = proof.evals.combine_evals(powers_of_eval_points_for_chunks);
 
         // 29. Compute the evaluation of $ft(\zeta)$.
-        Scalar.FE permutation_vanishing_poly = Scalar.from(1); // FIXME: evaluate poly in zeta
-        // INFO: creating the poly is expensive, although what we want here is only an evaluation of the
-        // polynomial in the `zeta` point. It's way easier to evaluate than to construct the poly and evaluate
-        // after. There's even an implementation of this in Rust via `eval_vanishes_on_last_n_rows()`.
-        Scalar.FE zeta1m1 = zeta1.sub(Scalar.from(1));
+        Scalar.FE permutation_vanishing_poly = Polynomial.eval_vanishes_on_last_n_rows(
+            index.domain_gen,
+            index.domain_size,
+            index.zk_rows,
+            zeta
+        );
+        Scalar.FE zeta1m1 = zeta1.sub(Scalar.one());
 
-        uint256 permutation_constraints = 3;
-        Scalar.FE[] memory alpha_pows = all_alphas.get_alphas(ArgumentType.Permutation, permutation_constraints);
-        Scalar.FE alpha0 = alpha_pows[0];
-        Scalar.FE alpha1 = alpha_pows[1];
-        Scalar.FE alpha2 = alpha_pows[2];
-        // FIXME: alpha_powers should be an iterator and alphai = alpha_powers.next(), for i = 0,1,2.
+        AlphasIterator memory alpha_pows = all_alphas.get_alphas(ArgumentType.Permutation, PERMUTATION_CONSTRAINTS);
+        Scalar.FE alpha0 = alpha_pows.it_next();
+        Scalar.FE alpha1 = alpha_pows.it_next();
+        Scalar.FE alpha2 = alpha_pows.it_next();
 
         // initial value
         Scalar.FE ft_eval0 = evals.w[PERMUTS - 1].zeta
@@ -279,11 +281,10 @@ library Oracles {
             .mul(permutation_vanishing_poly)
             .mul(evals.z.zeta);
 
-        // map and reduction
-        for (uint256 i = 0; i < PERMUTS; i++) {
+        // zip w and shift, map and reduction
+        for (uint256 i = 0; i < Utils.min(evals.w.length, index.shift.length); i++) {
             PointEvaluations memory w = evals.w[i];
             Scalar.FE s = index.shift[i];
-
             Scalar.FE current = gamma.add(beta.mul(zeta).mul(s)).add(w.zeta);
             ev = ev.mul(current); // reduction
         }
@@ -308,60 +309,162 @@ library Oracles {
 
         ft_eval0 = ft_eval0.add(numerator.mul(denominator));
 
-        // TODO: evaluate final polynomial (PolishToken)
-        // ft_eval0 - PolishToken.evaluate()
+        ExprConstants memory constants = ExprConstants(
+            alpha,
+            beta,
+            gamma,
+            joint_combiner_field,
+            index.endo,
+            index.zk_rows
+        );
 
-        uint256 matrix_count = 2;
-        uint256 total_length = 0;
-        uint256[] memory rows = new uint256[](matrix_count);
-        uint256[] memory cols = new uint256[](matrix_count);
+        ft_eval0 = ft_eval0.sub(evaluate(
+            index.linearization.constant_term,
+            index.domain_gen,
+            index.domain_size,
+            zeta,
+            evals,
+            constants
+        ));
+
+        uint256 evals_length = 55; // WARN: the amount of evals in the test proof
+        Scalar.FE[][2][] memory es = new Scalar.FE[][2][](evals_length); // "es" stands for evaluation segments?
+        // INFO: dynamic array of a 2xn matrix, where n = 1 in the test proof's case.
+        // so this is:
+        // dyn array { fixed array [dyn array{scalar}, dyn array{scalar}] }
+
+        // INFO: this is an array of matrices each one corresponding to a polynomial.
+        // The rows represent the number of evaluation points (2 in this case) and
+        // the columns every segment of each polynomial, in the case that they were split
+        // (linearization). In this case there's no linearization so n = 1.
 
         // public evals
-        rows[0] = public_evals.length;
-        cols[0] = public_evals[0].length;
-        total_length += rows[0] * cols[0];
+        es[0] = public_evals;
 
         // ft evals
-        rows[1] = [[ft_eval0]].length;
-        cols[1] = [[ft_eval0]][0].length;
-        total_length += rows[1] * cols[1];
+        Scalar.FE[] memory ft_eval0_arr = new Scalar.FE[](1);
+        Scalar.FE[] memory ft_eval1_arr = new Scalar.FE[](1);
+        ft_eval0_arr[0] = ft_eval0;
+        ft_eval1_arr[0] = proof.ft_eval1;
+        es[1] = [ft_eval0_arr, ft_eval1_arr];
 
-        // save the data in a flat array in a column-major so there's no need
-        // to transpose each matrix later.
-        Scalar.FE[] memory es_data = new Scalar.FE[](total_length);
-        uint256[] memory starts = new uint256[](matrix_count);
-        uint256 curr = 0;
+        // columns
+        Column[] memory columns = new Column[](evals_length - 2);
+        columns[0] = Column(ColumnVariant.Z, new bytes(0));
+        columns[1] = Column(ColumnVariant.Index, abi.encode(GateType.Generic));
+        columns[2] = Column(ColumnVariant.Index, abi.encode(GateType.Poseidon));
+        columns[3] = Column(ColumnVariant.Index, abi.encode(GateType.CompleteAdd));
+        columns[4] = Column(ColumnVariant.Index, abi.encode(GateType.VarBaseMul));
+        columns[5] = Column(ColumnVariant.Index, abi.encode(GateType.EndoMul));
+        columns[6] = Column(ColumnVariant.Index, abi.encode(GateType.EndoMulScalar));
+        uint col_index = 7;
+        for (uint i = 0; i < COLUMNS; i++) {
+            columns[col_index] = Column(ColumnVariant.Witness, abi.encode(i));
+            col_index += 1;
+        }
+        for (uint i = 0; i < COLUMNS; i++) {
+            columns[col_index] = Column(ColumnVariant.Coefficient, abi.encode(i));
+            col_index += 1;
+        }
+        for (uint i = 0; i < PERMUTS - 1; i++) {
+            columns[col_index] = Column(ColumnVariant.Permutation, abi.encode(i));
+            col_index += 1;
+        }
+        if (index.is_range_check0_comm_set) {
+            columns[col_index] = Column(ColumnVariant.Index, abi.encode(GateType.RangeCheck0));
+            col_index += 1;
+        }
+        if (index.is_range_check1_comm_set) {
+            columns[col_index] = Column(ColumnVariant.Index, abi.encode(GateType.RangeCheck1));
+            col_index += 1;
+        }
+        if (index.is_foreign_field_add_comm_set) {
+            columns[col_index] = Column(ColumnVariant.Index, abi.encode(GateType.ForeignFieldAdd));
+            col_index += 1;
+        }
+        if (index.is_foreign_field_mul_comm_set) {
+            columns[col_index] = Column(ColumnVariant.Index, abi.encode(GateType.ForeignFieldMul));
+            col_index += 1;
+        }
+        if (index.is_xor_comm_set) {
+            columns[col_index] = Column(ColumnVariant.Index, abi.encode(GateType.Xor16));
+            col_index += 1;
+        }
+        if (index.is_rot_comm_set) {
+            columns[col_index] = Column(ColumnVariant.Index, abi.encode(GateType.Rot64));
+            col_index += 1;
+        }
+        if (index.is_lookup_index_set) {
+            LookupVerifierIndex memory li = index.lookup_index;
+            for (uint i = 0; i < li.lookup_info.max_per_row + 1; i++) {
+                columns[col_index] = Column(ColumnVariant.LookupSorted, abi.encode(i));
+                col_index += 1;
+            }
+            columns[col_index] = Column(ColumnVariant.LookupAggreg, new bytes(0));
+            col_index += 1;
+            columns[col_index] = Column(ColumnVariant.LookupTable, new bytes(0));
+            col_index += 1;
 
-        starts[0] = curr;
-        for (uint256 i = 0; i < rows[0] * cols[0]; i++) {
-            uint256 col = i / rows[0];
-            uint256 row = i % rows[0];
-            es_data[i] = public_evals[row][col];
-            curr++;
+            if (li.is_runtime_tables_selector_set) {
+                columns[col_index] = Column(ColumnVariant.LookupRuntimeTable, new bytes(0));
+                col_index += 1;
+            }
+            if (proof.evals.is_runtime_lookup_table_selector_set) {
+                columns[col_index] = Column(ColumnVariant.LookupRuntimeSelector, new bytes(0));
+                col_index += 1;
+            }
+            if (proof.evals.is_xor_lookup_selector_set) {
+                columns[col_index] = Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.Xor));
+                col_index += 1;
+            }
+            if (proof.evals.is_lookup_gate_lookup_selector_set) {
+                columns[col_index] = Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.Lookup));
+                col_index += 1;
+            }
+            if (proof.evals.is_range_check_lookup_selector_set) {
+                columns[col_index] = Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.RangeCheck));
+                col_index += 1;
+            }
+            if (proof.evals.is_foreign_field_mul_lookup_selector_set) {
+                columns[col_index] = Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.ForeignFieldMul));
+                col_index += 1;
+            }
         }
 
-        starts[1] = curr;
-        for (uint256 i = 0; i < rows[1] * cols[1]; i++) {
-            uint256 col = i / rows[0];
-            uint256 row = i % rows[0];
-            es_data[i] = [[ft_eval0]][row][col]; // TODO: ft_eval1;
-            curr++;
+        // push all evals corresponding to each column
+        for (uint i = 0; i < col_index; i++) {
+            PointEvaluationsArray memory eval = proof.evals.get_column_eval(columns[i]);
+            es[i + 2] = [eval.zeta, eval.zeta_omega];
         }
-
-        // TODO: is this necessary? doc is available in its definition.
-        PolyMatrices memory es = PolyMatrices(es_data, matrix_count, rows, cols, starts);
-
-        // TODO: add evaluations of all columns
-
         Scalar.FE combined_inner_prod = combined_inner_product(evaluation_points, v, u, es, index.max_poly_size);
-        RandomOracles memory oracles =
-            RandomOracles(beta, gamma, alpha_chal, alpha, zeta, v, u, alpha_chal, v_chal, u_chal);
+        // FIXME: do we actually need this?
 
-        return Result(oracles, powers_of_eval_points_for_chunks);
+        RandomOracles memory oracles = RandomOracles(
+            joint_combiner,
+            beta,
+            gamma,
+            alpha_chal,
+            alpha,
+            zeta,
+            v,
+            u,
+            alpha_chal,
+            v_chal,
+            u_chal
+        );
+
+        return Result(
+            digest,
+            oracles,
+            public_evals,
+            powers_of_eval_points_for_chunks,
+            zeta1,
+            ft_eval0
+        );
     }
 
     struct RandomOracles {
-        // joint_combiner
+        ScalarChallenge joint_combiner;
         Scalar.FE beta;
         Scalar.FE gamma;
         ScalarChallenge alpha_chal;
@@ -375,9 +478,20 @@ library Oracles {
     }
 
     struct Result {
-        // sponges are stored in storage
+        // INFO: sponges and all_alphas are stored in storage
+
+        // the digest of the scalar sponge
+        Scalar.FE digest;
+        // challenges produced
         RandomOracles oracles;
+        // public polynomial evaluations
+        Scalar.FE[][2] public_evals;
+        // zeta^n and (zeta * omega)^n
         PointEvaluations powers_of_eval_points_for_chunks;
+        // pre-computed zeta^n
+        Scalar.FE zeta1;
+        // the evaluation f(zeta) - t(zeta) * Z_H(zeta)
+        Scalar.FE ft_eval0;
     }
 
     struct ScalarChallenge {

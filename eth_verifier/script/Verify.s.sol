@@ -9,12 +9,14 @@ contract Verify is Script {
     bytes verifier_index_serialized;
     bytes prover_proof_serialized;
     bytes urs_serialized;
+    bytes linearization_serialized;
     bytes32 numerator_binary;
 
     function run() public {
         urs_serialized = vm.readFileBinary("urs.mpk");
         verifier_index_serialized = vm.readFileBinary("verifier_index.mpk");
         prover_proof_serialized = vm.readFileBinary("prover_proof.mpk");
+        linearization_serialized = vm.readFileBinary("linearization.mpk");
         numerator_binary = bytes32(vm.readFileBinary("numerator.bin"));
 
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
@@ -26,6 +28,7 @@ contract Verify is Script {
         bool success = verifier.verify_with_index(
             verifier_index_serialized,
             prover_proof_serialized,
+            linearization_serialized,
             numerator_binary
         );
 

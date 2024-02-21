@@ -14,6 +14,12 @@ import "forge-std/console.sol";
 library MsgPk {
     using {Scalar.pow} for Scalar.FE;
 
+    error EncodedMapKeyNotFound(bytes key);
+    error StringMapKeyNotFound(string key);
+    error NotImplementedType(bytes1 prefix);
+    error UnmatchedTypePrefix(string type_name, bytes1 prefix);
+    error UnmatchedGateType(string type_name);
+
     struct Stream {
         bytes data;
         uint256 curr_index;
@@ -51,9 +57,6 @@ library MsgPk {
         self.curr_index += n;
     }
 
-    error EncodedMapKeyNotFound(bytes key);
-    error StringMapKeyNotFound(string key);
-
     /// @notice returns the bytes corresponding to the queried key
     function find_value(EncodedMap memory self, bytes memory key) public pure returns (bytes memory) {
         uint256 i = 0;
@@ -86,8 +89,6 @@ library MsgPk {
         return (self.values[i], true);
     }
 
-    error NotImplementedType(bytes1 prefix);
-
     /// @notice deserializes the next type and returns the encoded data.
     function deser_encode(Stream memory self) public view returns (bytes memory) {
         bytes1 prefix = curr(self);
@@ -109,6 +110,8 @@ library MsgPk {
             return abi.encode(deser_int(self));
         } else if (prefix >> 7 == 0x00) {
             return abi.encode(deser_posfixint(self));
+        } else if (prefix >> 5 == 0x07) {
+            return abi.encode(deser_negfixint(self));
         } else if (prefix == 0xc2 || prefix == 0xc3) {
             return abi.encode(deser_bool(self));
         } else if (prefix == 0xc0) {
@@ -201,7 +204,7 @@ library MsgPk {
         require(first == 0xdd, "not an arr32");
         // size is next two bytes:
 
-        uint16 n = uint16(bytes2(next_n(self, 4)));
+        uint32 n = uint32(bytes4(next_n(self, 4)));
 
         arr = EncodedArray(new bytes[](n));
 
@@ -227,7 +230,13 @@ library MsgPk {
 
     function deser_uint(Stream memory self) public pure returns (uint256) {
         bytes1 first = next(self);
-        require(first >> 2 == 0x33, "not a uint");
+        if (first == 0) {
+            return 0;
+        }
+
+        if (first >> 2 != 0x33) {
+            revert UnmatchedTypePrefix("uint", first);
+        }
         // 110011XX are uints of 8,16,32,64 bits.
 
         uint256 byte_count = 1 << uint8(first & 0x03); // mask with 11b
@@ -281,6 +290,14 @@ library MsgPk {
         require(first >> 7 == 0x00, "not a positive fixint");
 
         return uint8(first);
+    }
+
+    function deser_negfixint(Stream memory self) public pure returns (int8) {
+        bytes1 first = next(self);
+        require(first >> 5 == 0x07, "not a negative fixint");
+
+        // two's complement
+        return int8(~(uint8(first) - 1)) * -1;
     }
 
     function deser_null(Stream memory self) public pure returns (string memory) {
@@ -368,6 +385,11 @@ library MsgPk {
             index.is_runtime_tables_selector_set,
             index.runtime_tables_selector
         ) = deser_poly_comm_from_map_optional(map, "runtime_tables_selector");
+
+        // lookup info
+        EncodedMap memory lookup_info_map = abi.decode(find_value_str(map, "lookup_info"), (EncodedMap));
+        index.lookup_info.max_per_row = abi.decode(find_value_str(lookup_info_map, "max_per_row"), (uint256));
+        index.lookup_info.max_joint_size = abi.decode(find_value_str(lookup_info_map, "max_joint_size"), (uint256));
     }
 
     function deser_verifier_index(Stream memory self, VerifierIndex storage index) external {
@@ -399,8 +421,7 @@ library MsgPk {
         EncodedArray memory shift_arr = abi.decode(find_value(map, abi.encode("shift")), (EncodedArray));
         require(shift_arr.values.length == 7, "shift array is not of length 7");
         for (uint256 i = 0; i < 7; i++) {
-            uint256 inner = uint256(bytes32(abi.decode(shift_arr.values[i], (bytes))));
-            index.shift[i] = Scalar.from(inner);
+            index.shift[i] = deser_scalar(abi.decode(shift_arr.values[i], (bytes)));
         }
 
         // domain offset for zero-knowledge
@@ -821,7 +842,7 @@ library MsgPk {
         // deser_lagrange_bases(lagrange_b_serialized, urs.lagrange_bases_unshifted);
     }
 
-    function deser_linearization(Stream memory self) public view returns (Linearization memory) {
+    function deser_linearization(Stream memory self, VerifierIndex storage index) public {
         // TODO: only constant_term is deserialized right now.
         EncodedArray memory arr = deser_arr32(self);
 
@@ -830,24 +851,59 @@ library MsgPk {
             EncodedMap memory value_map = abi.decode(arr.values[i], (EncodedMap));
             constant_term[i] = deser_polishtoken(value_map);
         }
+
+        index.linearization.constant_term = constant_term;
     }
 
-    function deser_column(bytes memory col) public pure returns (Column memory) {
+    function deser_column(bytes memory col) public view returns (Column memory) {
         // if col is an encoded string, then it may be a unit value. In this case the encoded bytes
-        // must not be more than 32:
-        if (col.length <= 32) {
+        // must not be more than 96 (this fact is based on seeing multiple encoded strings):
+        // FIXME: this is hacky.
+        if (col.length <= 96) {
             string memory variant = abi.decode(col, (string));
             if (Utils.str_cmp(variant, "Z")) {
                 return Column(ColumnVariant.Z, new bytes(0));
             }
+            if (Utils.str_cmp(variant, "LookupAggreg")) {
+                return Column(ColumnVariant.LookupAggreg, new bytes(0));
+            }
+            if (Utils.str_cmp(variant, "LookupTable")) {
+                return Column(ColumnVariant.LookupTable, new bytes(0));
+            }
+            if (Utils.str_cmp(variant, "LookupRuntimeSelector")) {
+                return Column(ColumnVariant.LookupRuntimeSelector, new bytes(0));
+            }
+            if (Utils.str_cmp(variant, "LookupRuntimeTable")) {
+                return Column(ColumnVariant.LookupRuntimeTable, new bytes(0));
+            }
+            revert UnmatchedGateType(variant);
         }
-        // FIXME: this is hacky.
 
         // else, its an EncodedMap:
         EncodedMap memory col_map = abi.decode(col, (EncodedMap));
         (bytes memory witness_value, bool is_witness) = find_value_or_fail(col_map, abi.encode("Witness"));
         if (is_witness) {
             return Column(ColumnVariant.Witness, witness_value);
+        }
+        (bytes memory lookup_sorted_value, bool is_lookup_sorted) = find_value_or_fail(col_map, abi.encode("LookupSorted"));
+        if (is_lookup_sorted) {
+            return Column(ColumnVariant.LookupSorted, lookup_sorted_value);
+        }
+        (bytes memory lookup_kind_index_value, bool is_lookup_kind_index) = find_value_or_fail(col_map, abi.encode("LookupKindIndex"));
+        if (is_lookup_kind_index) {
+            string memory lookup_pattern_variant = abi.decode(lookup_kind_index_value, (string));
+            if (Utils.str_cmp(lookup_pattern_variant, "Xor")) {
+                return Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.Xor));
+            }
+            if (Utils.str_cmp(lookup_pattern_variant, "Lookup")) {
+                return Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.Lookup));
+            }
+            if (Utils.str_cmp(lookup_pattern_variant, "RangeCheck")) {
+                return Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.RangeCheck));
+            }
+            if (Utils.str_cmp(lookup_pattern_variant, "ForeignFieldMul")) {
+                return Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.ForeignFieldMul));
+            }
         }
         (bytes memory index_value, bool is_index) = find_value_or_fail(col_map, abi.encode("Index"));
         if (is_index) {
@@ -876,13 +932,25 @@ library MsgPk {
             if (Utils.str_cmp(gate_type_variant, "Lookup")) {
                 return Column(ColumnVariant.Index, abi.encode(GateType.Lookup));
             }
+            if (Utils.str_cmp(gate_type_variant, "RangeCheck0")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.RangeCheck0));
+            }
+            if (Utils.str_cmp(gate_type_variant, "RangeCheck1")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.RangeCheck1));
+            }
             if (Utils.str_cmp(gate_type_variant, "ForeignFieldAdd")) {
                 return Column(ColumnVariant.Index, abi.encode(GateType.ForeignFieldAdd));
             }
             if (Utils.str_cmp(gate_type_variant, "ForeignFieldMul")) {
                 return Column(ColumnVariant.Index, abi.encode(GateType.ForeignFieldMul));
             }
-            revert("Couldn't match any GateType variant while deserializing a column.");
+            if (Utils.str_cmp(gate_type_variant, "Xor16")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.Xor16));
+            }
+            if (Utils.str_cmp(gate_type_variant, "Rot64")) {
+                return Column(ColumnVariant.Index, abi.encode(GateType.Rot64));
+            }
+            revert UnmatchedGateType(gate_type_variant);
             // TODO: match remaining variants
         }
         (bytes memory coefficient_value, bool is_coefficient) = find_value_or_fail(col_map, abi.encode("Coefficient"));
@@ -899,7 +967,7 @@ library MsgPk {
         // TODO: remaining variants
     }
 
-    function deser_polishtoken(EncodedMap memory map) public pure returns (PolishToken memory) {
+    function deser_polishtoken(EncodedMap memory map) public view returns (PolishToken memory) {
         // if its a unit variant (meaning that it doesn't have associated data):
         (bytes memory unit_value, bool is_unit) = find_value_or_fail(map, abi.encode("variant"));
         if (is_unit) {
@@ -937,8 +1005,9 @@ library MsgPk {
             }
             (bytes memory literal_value, bool is_literal) = find_value_or_fail(map, abi.encode("literal"));
             if (is_literal) {
+                // literal serializes as an array
                 EncodedArray memory literal_arr = abi.decode(literal_value, (EncodedArray));
-                uint256 inner_int = Utils.padded_bytes_array_to_uint256(literal_arr.values);
+                uint256 inner_int = Utils.padded_le_bytes_array_to_uint256(literal_arr.values);
                 return PolishToken(PolishTokenVariant.Literal, abi.encode(inner_int));
             }
             (bytes memory cell_value, bool is_cell) = find_value_or_fail(map, abi.encode("variable"));
@@ -960,10 +1029,10 @@ library MsgPk {
             }
             (bytes memory pow_value, bool is_pow) = find_value_or_fail(map, abi.encode("pow"));
             if (is_pow) {
-                uint256 pow = deser_uint(new_stream(pow_value));
+                uint256 pow = abi.decode(pow_value, (uint256));
                 return PolishToken(PolishTokenVariant.Pow, abi.encode(pow));
             }
-            (bytes memory ulag_value, bool is_ulag) = find_value_or_fail(map, abi.encode("unnormalizedlagrangebasis"));
+            (bytes memory ulag_value, bool is_ulag) = find_value_or_fail(map, abi.encode("rowoffset"));
             if (is_ulag) {
                 EncodedMap memory rowoffset_map = abi.decode(ulag_value, (EncodedMap));
                 bool zk_rows = abi.decode(find_value(rowoffset_map, abi.encode("zk_rows")), (bool));
@@ -973,7 +1042,7 @@ library MsgPk {
             }
             (bytes memory load_value, bool is_load) = find_value_or_fail(map, abi.encode("load"));
             if (is_load) {
-                uint256 i = deser_uint(new_stream(load_value));
+                uint256 i = abi.decode(load_value, (uint256));
                 return PolishToken(PolishTokenVariant.Load, abi.encode(i));
             }
         }

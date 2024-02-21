@@ -343,6 +343,8 @@ fn generate_test_proof_for_demo() {
         .build()
         .unwrap();
 
+    println!("cs endo: {}", cs.endo);
+
     const ZK_ROWS: usize = 3;
     let domain_size = cs.gates.len() + ZK_ROWS;
     let domain = EvaluationDomains::create(domain_size).unwrap();

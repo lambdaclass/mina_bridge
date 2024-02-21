@@ -317,28 +317,30 @@ function combined_inner_product(
     Scalar.FE[] memory evaluation_points,
     Scalar.FE polyscale,
     Scalar.FE evalscale,
-    PolyMatrices memory polys,
+    Scalar.FE[][2][] memory polys,
     //uint[] poly_shifted, // TODO: not necessary for fiat-shamir
-    uint256 srs_length
+    uint256 _srs_length
 ) pure returns (Scalar.FE res) {
     res = Scalar.zero();
     Scalar.FE xi_i = Scalar.from(1);
 
-    //require(poly_matrices.length == poly_shifted.length);
     for (uint256 i = 0; i < polys.length; i++) {
-        uint256 cols = polys.cols[i];
-        uint256 rows = polys.rows[i];
+        Scalar.FE[][2] memory matrix = polys[i];
+        if (matrix[0].length == 0 || matrix[1].length == 0) continue; // skip empty evaluations
 
-        if (cols == 0) {
-            continue;
-        }
+        uint256 rows = 2; // WARN: magic number, this is because we only have two evaluation points in our case.
+        uint256 cols = 1; // WARN: magic number, this is because we only have one segment per poly (non-linearized).
+
+        require(matrix.length == rows, "rows are not of the expected size");
+        require(matrix[0].length == 1, "cols are not of the expected size");
+        require(matrix[1].length == 1, "cols are not of the expected size");
 
         for (uint256 col = 0; col < cols; col++) {
             Scalar.FE[] memory eval = new Scalar.FE[](rows); // column that stores the segment
-
-            for (uint256 j = 0; j < rows; j++) {
-                eval[j] = polys.data[polys.starts[i] + col * rows + j];
+            for (uint256 row = 0; row < rows; row++) {
+                eval[row] = matrix[row][col];
             }
+
             Scalar.FE term = Polynomial.build_and_eval(eval, evalscale);
 
             res = res.add(xi_i.mul(term));

@@ -5,7 +5,13 @@ import "./bn254/Fields.sol";
 import "./Utils.sol";
 
 library Polynomial {
-    using {Scalar.add, Scalar.mul, Scalar.sub, Scalar.pow, Scalar.neg} for Scalar.FE;
+    using {
+        Scalar.add,
+        Scalar.mul,
+        Scalar.sub,
+        Scalar.pow,
+        Scalar.neg
+    } for Scalar.FE;
 
     struct Dense {
         Scalar.FE[] coeffs;
@@ -23,18 +29,24 @@ library Polynomial {
     }
 
     // @notice evaluates via Horner's method.
-    function evaluate(Dense memory self, Scalar.FE x) external pure returns (Scalar.FE result) {
+    function evaluate(
+        Dense memory self,
+        Scalar.FE x
+    ) external pure returns (Scalar.FE result) {
         result = Scalar.zero();
-        for (uint256 i = self.coeffs.length ; i > 0; i--) {
+        for (uint256 i = self.coeffs.length; i > 0; i--) {
             result = result.mul(x).add(self.coeffs[i - 1]);
         }
     }
 
     // @notice evaluates via Horner's method.
-    function build_and_eval(Scalar.FE[] memory coeffs, Scalar.FE x) external pure returns (Scalar.FE result) {
+    function build_and_eval(
+        Scalar.FE[] memory coeffs,
+        Scalar.FE x
+    ) external pure returns (Scalar.FE result) {
         result = Scalar.zero();
-        for (uint256 i = coeffs.length ; i > 0; i--) {
-            result = result.mul(x).add(coeffs[i - 1]);
+        for (uint256 i = 0; i < coeffs.length; i++) {
+            result = result.mul(x).add(coeffs[coeffs.length - i - 1]);
         }
     }
 
@@ -44,14 +56,20 @@ library Polynomial {
         return Dense(coeffs);
     }
 
-    function binomial(Scalar.FE first_coeff, Scalar.FE second_coeff) public pure returns (Dense memory) {
+    function binomial(
+        Scalar.FE first_coeff,
+        Scalar.FE second_coeff
+    ) public pure returns (Dense memory) {
         Scalar.FE[] memory coeffs = new Scalar.FE[](2);
         coeffs[0] = first_coeff;
         coeffs[1] = second_coeff;
         return Dense(coeffs);
     }
 
-    function sub(Dense memory self, Dense memory other) public pure returns (Dense memory) {
+    function sub(
+        Dense memory self,
+        Dense memory other
+    ) public pure returns (Dense memory) {
         uint256 n = Utils.min(self.coeffs.length, other.coeffs.length);
         Scalar.FE[] memory coeffs_self_sub_other = new Scalar.FE[](n);
         for (uint256 i = 0; i < n; i++) {
@@ -61,14 +79,20 @@ library Polynomial {
         return Dense(coeffs_self_sub_other);
     }
 
-    function mul(Dense memory self, Dense memory other) public pure returns (Dense memory) {
+    function mul(
+        Dense memory self,
+        Dense memory other
+    ) public pure returns (Dense memory) {
         // evaluate both polys with FFT and 2n degree bound (degree of the result poly)
         uint256 count = Utils.max(self.coeffs.length, other.coeffs.length) * 2;
         Scalar.FE[] memory evals_self = Utils.fft_resized(self.coeffs, count);
         Scalar.FE[] memory evals_other = Utils.fft_resized(other.coeffs, count);
         // padding with zeros results in more evaluations of the same polys
 
-        require(evals_self.length == evals_other.length, "poly mul evals are not of the same length");
+        require(
+            evals_self.length == evals_other.length,
+            "poly mul evals are not of the same length"
+        );
         uint256 n = evals_self.length;
 
         // point-wise multiplication
@@ -82,11 +106,11 @@ library Polynomial {
         return Dense(coeffs_res);
     }
 
-    function vanishes_on_last_n_rows(Scalar.FE domain_gen, uint256 domain_size, uint256 i)
-        external
-        pure
-        returns (Dense memory poly)
-    {
+    function vanishes_on_last_n_rows(
+        Scalar.FE domain_gen,
+        uint256 domain_size,
+        uint256 i
+    ) external pure returns (Dense memory poly) {
         if (i == 0) {
             Scalar.FE[] memory const = new Scalar.FE[](1);
             const[0] = Scalar.from(1);
@@ -108,8 +132,30 @@ library Polynomial {
         return acc;
     }
 
+    // @notice evaluates the polynomial
+    // @notice (x - w^{n - i}) * (x - w^{n - i + 1}) * ... * (x - w^{n - 1})
+    function eval_vanishes_on_last_n_rows(
+        Scalar.FE domain_gen,
+        uint256 domain_size,
+        uint256 i,
+        Scalar.FE x
+    ) public pure returns (Scalar.FE) {
+        if (i == 0) {
+            return Scalar.one();
+        }
+        Scalar.FE term = domain_gen.pow(domain_size - i);
+        Scalar.FE acc = x.sub(term);
+        for (uint256 _j = 0; _j < i - 1; _j++) {
+            term = term.mul(domain_gen);
+            acc = acc.mul(x.sub(term));
+        }
+        return acc;
+    }
+
     /// @notice the polynomial that evaluates to `0` at the evaluation points.
-    function divisor_polynomial(Scalar.FE[] memory elm) public pure returns (Dense memory result) {
+    function divisor_polynomial(
+        Scalar.FE[] memory elm
+    ) public pure returns (Dense memory result) {
         result = binomial(elm[0].neg(), Scalar.one());
         for (uint256 i = 1; i < elm.length; i++) {
             result = mul(result, binomial(elm[i].neg(), Scalar.one()));
