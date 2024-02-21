@@ -40,7 +40,7 @@ fn main() {
 
     // Export for typescript tests
     fs::write(
-        "../verifier_circuit/test_data/verifier_index.json",
+        "../verifier_circuit/test/verifier_index.json",
         serde_json::to_string_pretty(&VerifierIndexTS::from(&verifier_index)).unwrap(),
     )
     .unwrap();
@@ -59,7 +59,7 @@ fn main() {
 
     // Export proof
     fs::write(
-        "../verifier_circuit/test_data/proof.json",
+        "../verifier_circuit/test/proof.json",
         serde_json::to_string_pretty(&ProverProofTS::from(&proof)).unwrap(),
     )
     .unwrap();
@@ -79,7 +79,7 @@ fn main() {
         })
         .collect();
     fs::write(
-        "../verifier_circuit/test_data/lagrange_bases.json",
+        "../verifier_circuit/test/lagrange_bases.json",
         serde_json::to_string_pretty(&uncompressed_lagrange_bases).unwrap(),
     )
     .unwrap();
