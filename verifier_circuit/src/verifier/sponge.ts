@@ -43,8 +43,8 @@ export class Sponge {
     /** Will do an operation over the scalar to make it suitable for absorbing */
     absorbScalar(s: ForeignScalar) {
         // this operation was extracted from Kimchi FqSponge's`absorb_fr()`.
-        if (Scalar.ORDER < Field.ORDER) {
-            const f = ForeignField.fromFields(s.toFields());
+        if (ForeignScalar.modulus < ForeignField.modulus) {
+            const f = ForeignField.from(s.toBigInt());
             this.absorb(f);
 
             // INFO: in reality the scalar field is known to be bigger so this won't ever
