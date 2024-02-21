@@ -441,6 +441,7 @@ library Oracles {
 
         RandomOracles memory oracles = RandomOracles(
             joint_combiner,
+            joint_combiner_field,
             beta,
             gamma,
             alpha_chal,
