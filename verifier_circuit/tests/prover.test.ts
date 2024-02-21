@@ -1,5 +1,5 @@
-import { ScalarChallenge } from "./prover"
-import { ForeignScalar } from "../foreign_fields/foreign_scalar";
+import { ScalarChallenge } from "../src/prover/prover"
+import { ForeignScalar } from "../src/foreign_fields/foreign_scalar";
 
 // This test has a twin in the 'verifier_circuit_tests' Rust crate.
 test("toFieldWithLength", () => {

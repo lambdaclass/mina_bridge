@@ -1,6 +1,5 @@
-import { Scalar } from "o1js"
-import { bPoly, bPolyCoefficients } from "./commitment";
-import { ForeignScalar } from "../foreign_fields/foreign_scalar";
+import { bPoly, bPolyCoefficients } from "../src/poly_commitment/commitment";
+import { ForeignScalar } from "../src/foreign_fields/foreign_scalar";
 
 test("bPoly", () => {
     const coeffs = [42, 25, 420].map(ForeignScalar.from);
