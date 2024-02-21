@@ -14,7 +14,7 @@ export class Sponge {
     static readonly CHALLENGE_LENGTH_IN_LIMBS: number = 2;
 
     #internalSponge
-    lastSqueezed: bigint[]
+    lastSqueezed: bigint[] // these are 64 bit limbs
 
     constructor() {
         this.#internalSponge = new Poseidon.ForeignSponge(ForeignField.modulus);
@@ -46,36 +46,23 @@ export class Sponge {
         if (ForeignScalar.modulus < ForeignField.modulus) {
             const f = ForeignField.from(s.toBigInt());
             this.absorb(f);
-
-            // INFO: in reality the scalar field is known to be bigger so this won't ever
-            // execute, but the code persists for when we have a generic implementation
-            // so recursiveness can be achieved.
         } else {
-            const high = Provable.witnessBn254(ForeignField, () => {
-                const s_bigint = s.toBigInt();
-                const bits = BigInt(s_bigint.toString(2).length);
-
-                const high = ForeignField.from((s_bigint >> 1n) & ((1n << (bits - 1n)) - 1n)); // remaining bits
-
-                return high;
+            const high_bits = Provable.witnessBn254(ForeignField, () => {
+                return ForeignField.from(s.toBigInt() >> 1n);
+                // WARN:  >> is the "sign-propagating left shift" operator, so if the number is negative,
+                // it'll add 1s instead of 0s to the most significant end of the integer.
+                // >>>, the "zero-fill left shift" operator should be used instead here, but it isnt
+                // defined for BigInt as it's always signed (and can't be coarced into an unsigned int).
+                // In any way, the integers are always positive, so there's no problem here.
             });
 
-            const low = Provable.witnessBn254(ForeignField, () => {
-                const s_bigint = s.toBigInt();
-
-                const low = ForeignField.from(s_bigint & 1n); // LSB
-
-                return low;
+            const low_bit = Provable.witnessBn254(ForeignField, () => {
+                return ForeignField.from(s.toBigInt() & 1n);
             });
 
-            // WARN: be careful when s_bigint is negative, because >> is the "sign-propagating
-            // left shift" operator, so if the number is negative, it'll add 1s instead of 0s.
-            // >>>, the "zero-fill left shift" operator should be used instead, but it isnt
-            // defined for BigInt as it's always signed (and can't be coarced into an unsigned int).
-            // TODO: test that the mask works correctly.
 
-            this.absorb(high);
-            this.absorb(low);
+            this.absorb(high_bits);
+            this.absorb(low_bit);
         }
     }
 
@@ -126,7 +113,7 @@ export class Sponge {
     squeezeLimbs(numLimbs: number): bigint[] { // will return limbs of 64 bits.
         if (this.lastSqueezed.length >= numLimbs) {
             const limbs = this.lastSqueezed.slice(0, numLimbs);
-            const remaining = this.lastSqueezed.slice(0, numLimbs);
+            const remaining = this.lastSqueezed.slice(numLimbs + 1, this.lastSqueezed.length);
 
             this.lastSqueezed = remaining;
             return limbs;
