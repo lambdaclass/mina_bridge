@@ -1,5 +1,5 @@
-import { Polynomial } from "./polynomial.js";
-import { ForeignScalar } from "./foreign_fields/foreign_scalar.js";
+import { Polynomial } from "../src/polynomial.js";
+import { ForeignScalar } from "../src/foreign_fields/foreign_scalar.js";
 
 test("Evaluate polynomial", () => {
     const coef = [ForeignScalar.from(1), ForeignScalar.from(2), ForeignScalar.from(3)];
