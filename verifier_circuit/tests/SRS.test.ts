@@ -1,6 +1,5 @@
-import { ForeignGroup } from "o1js";
-import { SRS } from "./SRS.js";
-import { ForeignField } from "./foreign_fields/foreign_field.js";
+import { SRS } from "../src/SRS.js";
+import { ForeignField } from "../src/foreign_fields/foreign_field.js";
 
 test("Deserialize SRS and check fields", () => {
     let srs = SRS.createFromJSON();
