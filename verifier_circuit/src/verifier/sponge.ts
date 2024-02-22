@@ -3,6 +3,105 @@ import { PolyComm } from "../poly_commitment/commitment";
 import { PointEvaluations, ProofEvaluations } from "../prover/prover";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { ForeignField } from "../foreign_fields/foreign_field.js";
+import { assert } from "console";
+
+type UnionForeignField = ForeignField | ForeignScalar;
+type UnionForeignFieldArr = ForeignField[] | ForeignScalar[];
+type UnionForeignFieldMatrix = ForeignField[][] | ForeignScalar[][];
+
+enum SpongeMode {
+    Squeezing,
+    Absorbing
+}
+
+export class ArithmeticSponge {
+    params: ArithmeticSpongeParams
+    state: UnionForeignFieldArr
+    mode: SpongeMode
+    offset: number
+
+    constructor(params: ArithmeticSpongeParams) {
+        this.params = params;
+        this.state = new Array(params.rate);
+        this.offset = 0;
+    }
+
+    absorb(elem: UnionForeignField) {
+        if (this.mode === SpongeMode.Squeezing) {
+            this.mode = SpongeMode.Absorbing;
+            this.offset = 0;
+        } else if (this.offset === this.params.rate) {
+            this.#permutation();
+            this.offset = 0;
+        }
+
+        this.state[this.offset] = this.state[this.offset].add(elem);
+        this.offset++;
+    }
+
+    squeeze(): UnionForeignField {
+        if (this.mode == SpongeMode.Absorbing || this.offset === this.params.rate) {
+            this.mode = SpongeMode.Squeezing;
+            this.#permutation();
+            this.offset = 0;
+        }
+
+        return this.state[this.offset++];
+    }
+
+    // permutation algorithms
+
+    #sbox(element: UnionForeignField): UnionForeignField {
+        // return element^7
+        let element_squared = element.mul(element); // ^2
+        let element_fourth = element_squared.mul(element_squared); // ^4
+        let element_sixth = element_fourth.mul(element_squared); // ^6
+        return element_sixth.mul(element);
+    }
+
+    #applyMds(): UnionForeignFieldArr {
+        let n = this.params.mds[0].length;
+        assert(n == this.state.length);
+
+        // matrix-vector product: mds * state
+        return this.params.mds.map((row) =>
+            this.state.reduce((acc, s, i) => acc.add(s.mul(row[i])))
+        );
+    }
+
+    #applyRound(round: number) {
+        // sbox
+        this.state = this.state.map(this.#sbox);
+
+        // apply mds
+        this.state = this.#applyMds();
+
+        // add round constant
+        this.state = this.state.map((s, i) => s.add(this.params.round_constants[round][i]));
+    }
+
+    #permutation() {
+        let round_offset = 0;
+        if (this.params.ark_initial) {
+            let constant = this.params.round_constants[0];
+            this.state = this.state.map((s, i) => s.add(constant[i]));
+            round_offset = 1;
+        }
+
+        for (let round = 0; round < this.params.rounds; round++) {
+            this.#applyRound(round + round_offset);
+        }
+    }
+}
+
+
+export class ArithmeticSpongeParams {
+    mds: UnionForeignFieldMatrix
+    round_constants: UnionForeignFieldMatrix
+    ark_initial: boolean
+    rounds: number
+    rate: number
+}
 
 /**
  * Wrapper over o1js' poseidon `Sponge` class which extends its functionality.
