@@ -57,7 +57,7 @@ fn write_srs_into_file(srs: &SRS<Pallas>) {
         srs.h.y.to_biguint()
     );
     let srs_json = format!("{{\"g\":[{}],\"h\":{}}}", g, h);
-    fs::write("../verifier_circuit/test/srs.json", srs_json).unwrap();
+    fs::write("../verifier_circuit/test_data/srs.json", srs_json).unwrap();
 }
 
 fn prove_and_verify(srs: &SRS<Pallas>, opening: OpeningProof) {
