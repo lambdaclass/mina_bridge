@@ -709,7 +709,6 @@ function get_column_eval(
         revert MissingColumnEvaluation(variant);
     }
 }
-
 function combine_table(
     PolyComm[] memory columns,
     Scalar.FE column_combiner,

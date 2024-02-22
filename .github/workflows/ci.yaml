@@ -14,13 +14,13 @@ jobs:
             directory: public_input_gen
 
     verifier_circuit_tests:
-        name: Verifying circuit Rust tests
+        name: Execute o1js verifier circuit Rust tests for comparison
         uses: ./.github/workflows/rust_ci.yaml
         with:
             directory: verifier_circuit_tests
 
     verifier_circuit:
-        name: Build and test EVM bridge
+        name: Build and test o1js verifier circuit
         runs-on: ubuntu-selfhosted
         defaults:
             run:

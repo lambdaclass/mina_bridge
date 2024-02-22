@@ -13,14 +13,14 @@ import {
     LookupInfo
 } from '../lookups/lookups.js';
 import { Batch } from './batch.js';
-import proof_json from "../../test/proof.json" assert { type: "json" };
-import verifier_index_json from "../../test/verifier_index.json" assert { type: "json" };
+import proof_json from "../../test_data/proof.json" assert { type: "json" };
+import verifier_index_json from "../../test_data/verifier_index.json" assert { type: "json" };
 import { deserVerifierIndex } from "../serde/serde_index.js";
 import { deserProverProof } from '../serde/serde_proof.js';
 
 let steps: bigint[][];
 try {
-    steps = JSON.parse(readFileSync("./test/steps.json", "utf-8"));
+    steps = JSON.parse(readFileSync("./test_data/steps.json", "utf-8"));
 } catch (e) {
     steps = [];
 }
