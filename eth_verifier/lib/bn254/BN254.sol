@@ -139,6 +139,11 @@ library BN254 {
         require(success, "Bn254: group addition failed!");
     }
 
+    /// @return r the substraction of two points of G1
+    function sub(G1Point memory p1, G1Point memory p2) internal view returns (G1Point memory) {
+        return add(p1, neg(p2));
+    }
+
     /// @return r the product of a point on G1 and a scalar, i.e.
     /// p == p.mul(1) and p.add(p) == p.mul(2) for all points p.
     function scalarMul(G1Point memory p, uint256 s) internal view returns (G1Point memory r) {

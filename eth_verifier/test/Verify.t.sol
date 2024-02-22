@@ -15,7 +15,6 @@ contract KimchiVerifierTest is Test {
     bytes prover_proof_serialized;
     bytes urs_serialized;
     bytes linearization_serialized_rlp;
-    bytes32 numerator_binary;
 
     ProverProof test_prover_proof;
     VerifierIndex test_verifier_index;
@@ -26,7 +25,6 @@ contract KimchiVerifierTest is Test {
         prover_proof_serialized = vm.readFileBinary("prover_proof.mpk");
         urs_serialized = vm.readFileBinary("urs.mpk");
         linearization_serialized_rlp = vm.readFileBinary("linearization.rlp");
-        numerator_binary = bytes32(vm.readFileBinary("numerator.bin"));
 
         // we store deserialized structures mostly to run intermediate results
         // tests.
@@ -52,8 +50,7 @@ contract KimchiVerifierTest is Test {
         bool success = verifier.verify_with_index(
             verifier_index_serialized,
             prover_proof_serialized,
-            linearization_serialized_rlp,
-            numerator_binary
+            linearization_serialized_rlp
         );
 
         require(success, "Verification failed!");

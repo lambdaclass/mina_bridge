@@ -55,8 +55,8 @@ jobs:
                 export GOPATH="/root/go"
                 make
 
-    demo_eth_verifier:
-        name: Test demo's Solidity verifier
+    eth_verifier:
+        name: Test EVM verifier
         runs-on: ubuntu-selfhosted
         defaults:
             run:

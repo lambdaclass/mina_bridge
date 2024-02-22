@@ -6,6 +6,7 @@ import "./bn254/BN256G2.sol";
 import "./bn254/Fields.sol";
 import "./Utils.sol";
 import "./Polynomial.sol";
+import "./Evaluations.sol";
 
 using {BN254.add, BN254.scale_scalar, BN254.neg} for BN254.G1Point;
 using {Scalar.neg, Scalar.add, Scalar.sub, Scalar.mul, Scalar.inv, Scalar.double, Scalar.pow} for Scalar.FE;
@@ -426,18 +427,58 @@ function commit_non_hiding(URSG2 memory self, Polynomial.Dense memory plnm, uint
     comm.unshifted = unshifted;
 }
 
-// this represents an array of matrices of polynomial commitments
-// evaluations, in a flat manner. This was made to temporarily speed up
-// development and ignore details. In reality I think that there're only two
-// possible evaluations for every commitment so there's a fixed dimension. This
-// might me implementable as a 3D array composed of a fixed-length one and two
-// variable length.
-// TODO: could be replaced, needs a bit of research
-// relevant: https://github.com/o1-labs/proof-systems/blob/a27270040c08eb2c99e37f90833ee7bfb1fd22f5/kimchi/src/verifier.rs#L566
-struct PolyMatrices {
-    Scalar.FE[] data;
-    uint256 length;
-    uint256[] rows; // row count per matrix
-    uint256[] cols; // col count per matrix
-    uint256[] starts; // index at which every matrix starts
+function combine_commitments(
+    Evaluation[] memory evaluations,
+    Scalar.FE polyscale,
+    Scalar.FE rand_base
+) pure returns (Scalar.FE[] memory scalars, BN254.G1Point[] memory points) {
+    Scalar.FE xi_i = Scalar.one();
+
+    scalars = new Scalar.FE[](evaluations.length);
+    points = new BN254.G1Point[](evaluations.length);
+    // WARN: the actual length might be more than evaluations.length
+    // but for our test proof it will not.
+
+    uint256 index = 0;
+
+    for (uint256 i = 0; i < evaluations.length; i++) {
+        if (evaluations[i].commitment.unshifted.length == 0) continue;
+        PolyComm memory commitment = evaluations[i].commitment;
+
+        for (uint256 j = 0; j < commitment.unshifted.length; j++) {
+            BN254.G1Point memory comm_ch = commitment.unshifted[j];
+            scalars[index] = rand_base.mul(xi_i);
+            points[index] = comm_ch;
+
+            xi_i = xi_i.mul(polyscale);
+            index += 1;
+        }
+        // TODO: degree bound, shifted part
+    }
+}
+
+function combine_evaluations(
+    Evaluation[] memory evaluations,
+    Scalar.FE polyscale
+) pure returns (Scalar.FE[] memory acc) {
+    Scalar.FE xi_i = Scalar.one();
+
+    uint256 num_evals = evaluations.length != 0 ? evaluations[0].evaluations.length : 0;
+    acc = new Scalar.FE[](num_evals);
+    for (uint256 i = 0; i < num_evals; i++) {
+        acc[i] = Scalar.zero();
+    }
+
+    for (uint256 i = 0; i < evaluations.length; i++) {
+        if (evaluations[i].commitment.unshifted.length == 0) continue;
+        Scalar.FE[][2] memory evaluations = evaluations[i].evaluations;
+
+        for (uint256 j = 0; j < evaluations[0].length; j++) {
+            for (uint256 k = 0; k < evaluations.length; k++) {
+                acc[k] = acc[k].add(evaluations[k][j].mul(xi_i));
+            }
+            xi_i = xi_i.mul(polyscale);
+        }
+        // TODO: degree bound, shifted part
+    }
 }

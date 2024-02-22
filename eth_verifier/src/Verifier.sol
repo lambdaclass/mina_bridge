@@ -17,7 +17,7 @@ import "../lib/expr/Expr.sol";
 import "../lib/expr/PolishToken.sol";
 import "../lib/expr/ExprConstants.sol";
 
-using {BN254.neg, BN254.scalarMul} for BN254.G1Point;
+using {BN254.neg, BN254.scale_scalar, BN254.sub} for BN254.G1Point;
 using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
 using {get_alphas} for Alphas;
 using {it_next} for AlphasIterator;
@@ -67,25 +67,11 @@ contract KimchiVerifier {
     function verify_with_index(
         bytes calldata verifier_index_serialized,
         bytes calldata prover_proof_serialized,
-        bytes calldata linearization_serialized_rlp,
-        bytes32 numerator_serialized
+        bytes calldata linearization_serialized_rlp
     ) public returns (bool) {
         deserialize_proof(verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp);
-        // The numerator was "manually" serialized so we can't use deser_g1point();
-        BN254.G1Point memory numerator = BN254.g1Deserialize(numerator_serialized);
-        // "numerator" is a fake commitment that should be calculated after running
-        // all the partial verifier.
-
-        //calculate_lagrange_bases(
-        //    verifier_index.urs.g,
-        //    verifier_index.urs.h,
-        //    verifier_index.domain_size,
-        //    verifier_index.urs.lagrange_bases_unshifted
-        //);
-
         AggregatedEvaluationProof memory agg_proof = partial_verify(new Scalar.FE[](0));
-
-        return final_verify(agg_proof, urs.verifier_urs, numerator);
+        return final_verify(agg_proof, urs.verifier_urs);
     }
 
     /// @notice this is currently deprecated but remains as to not break
@@ -322,7 +308,7 @@ contract KimchiVerifier {
             }
             PointEvaluationsArray memory lookup_table = proof.evals.lookup_table;
 
-            Scalar.FE joint_combiner = oracles.joint_combiner.chal;
+            Scalar.FE joint_combiner = oracles.joint_combiner_field;
             Scalar.FE table_id_combiner = joint_combiner.pow(li.lookup_info.max_joint_size);
 
             PolyComm memory table_comm = combine_table(
@@ -410,16 +396,17 @@ contract KimchiVerifier {
             }
         }
 
-        // TODO: change evaluation_points type into a Scalar.FE[2]
-        // Scalar.FE[2] memory evaluation_points = [
-        //     oracles.zeta,
-        //     oracles.zeta.mul(verifier_index.domain_gen)
-        // ];
+        Scalar.FE[2] memory evaluation_points = [
+            oracles.zeta,
+            oracles.zeta.mul(verifier_index.domain_gen)
+        ];
 
-        Scalar.FE[] memory evaluation_points = new Scalar.FE[](2);
-        evaluation_points[0] = oracles.zeta;
-        evaluation_points[1] = oracles.zeta.mul(verifier_index.domain_gen);
-        return AggregatedEvaluationProof(evaluation_points, proof.opening);
+        return AggregatedEvaluationProof(
+            evaluations,
+            evaluation_points,
+            oracles.v,
+            proof.opening
+        );
     }
 
     function perm_scalars(
@@ -567,26 +554,61 @@ contract KimchiVerifier {
 
     function final_verify(
         AggregatedEvaluationProof memory agg_proof,
-        URSG2 memory verifier_urs,
-        BN254.G1Point memory numerator // this is faked
+        URSG2 memory verifier_urs
     ) public view returns (bool) {
-        // We'll do an incomplete verification in which we'll receive a faked
-        // numerator commitment, with the objective of skipping most of the
-        // partial verification for now.
+        Evaluation[] memory evaluations = agg_proof.evaluations;
+        Scalar.FE[2] memory evaluation_points = agg_proof.evaluation_points;
+        Scalar.FE polyscale = agg_proof.polyscale;
+        PairingProof memory opening = agg_proof.opening;
 
+        // poly commitment
+        (
+            Scalar.FE[] memory scalars,
+            BN254.G1Point[] memory points
+        ) = combine_commitments(evaluations, polyscale, Scalar.one());
+        BN254.G1Point memory poly_commitment = naive_msm(points, scalars);
+
+        // blinding commitment
+        BN254.G1Point memory blinding_commitment = urs.full_urs.h.scale_scalar(opening.blinding);
+
+        // quotient commitment
         BN254.G1Point memory quotient = agg_proof.opening.quotient.unshifted[0];
 
-        // The evaluation points are calculated executing a small part of the partial
-        // verification (we only need to squeeze a challenge in the fiat-shamir step).
+        // divisor commitment
+        BN254.G2Point memory divisor = divisor_commitment(
+            evaluation_points,
+            verifier_urs
+        );
 
+        // eval commitment
+        Scalar.FE[] memory evals = combine_evaluations(evaluations, polyscale);
+        BN254.G1Point memory eval_commitment = eval_commitment(
+            evaluation_points,
+            evals,
+            urs.full_urs
+        );
+
+        // numerator commitment
+        BN254.G1Point memory numerator = poly_commitment
+            .sub(eval_commitment)
+            .sub(blinding_commitment);
+
+        // quotient commitment needs to be negated. See the doc of pairingProd2().
+        return BN254.pairingProd2(numerator, BN254.P2(), quotient.neg(), divisor);
+    }
+
+    function divisor_commitment(
+        Scalar.FE[2] memory evaluation_points,
+        URSG2 memory verifier_urs
+    ) internal view returns (BN254.G2Point memory) {
         Scalar.FE[] memory divisor_poly_coeffs = new Scalar.FE[](3);
 
         // The divisor polynomial is the poly that evaluates to 0 in the evaluation
         // points. Used for proving that the numerator is divisible by it.
         // So, this is: (x-a)(x-b) = x^2 - (a + b)x + ab
         // (there're only two evaluation points: a and b).
-        Scalar.FE a = agg_proof.evaluation_points[0];
-        Scalar.FE b = agg_proof.evaluation_points[1];
+        Scalar.FE a = evaluation_points[0];
+        Scalar.FE b = evaluation_points[1];
 
         divisor_poly_coeffs[0] = a.mul(b);
         divisor_poly_coeffs[1] = a.add(b).neg();
@@ -594,18 +616,39 @@ contract KimchiVerifier {
 
         require(verifier_urs.g.length == 3, "verifier_urs doesn\'t have 3 of points");
 
-        BN254.G2Point memory divisor = naive_msm(verifier_urs.g, divisor_poly_coeffs);
-
-        // quotient commitment needs to be negated. See the doc of pairingProd2().
-        return BN254.pairingProd2(numerator, BN254.P2(), quotient.neg(), divisor);
+        return naive_msm(verifier_urs.g, divisor_poly_coeffs);
     }
 
-    /* TODO WIP
-    function deserialize_proof(
-        uint256[] calldata public_inputs,
-        uint256[] calldata serialized_proof
-    ) returns (Proof memory) {}
-    */
+    function eval_commitment(
+        Scalar.FE[2] memory evaluation_points,
+        Scalar.FE[] memory evals,
+        URS memory full_urs
+    ) internal view returns (BN254.G1Point memory) {
+        Scalar.FE[] memory eval_poly_coeffs = new Scalar.FE[](3);
+
+        // The evaluation polynomial e(x) is the poly that evaluates to evals[i]
+        // in the evaluation point i, for all i. Used for making the numerator
+        // evaluate to zero at the evaluation points (by substraction).
+
+        require(evals.length == 2, "more than two evals");
+
+        Scalar.FE x1 = evaluation_points[0];
+        Scalar.FE x2 = evaluation_points[1];
+        Scalar.FE y1 = evals[0];
+        Scalar.FE y2 = evals[1];
+
+        // So, this is: e(x) = ax + b, with:
+        // a = (y2-y1)/(x2-x1)
+        // b = y1 - a*x1
+
+        Scalar.FE a = (y2.sub(y1)).mul(x2.sub(x1).inv());
+        Scalar.FE b = y1.sub(a.mul(x1));
+
+        eval_poly_coeffs[0] = b;
+        eval_poly_coeffs[1] = a;
+
+        return naive_msm(full_urs.g, eval_poly_coeffs);
+    }
 
     /// @notice This is used exclusively in `test_PartialVerify()`.
     function set_verifier_index_for_testing() public {
