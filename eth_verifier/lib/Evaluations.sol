@@ -24,7 +24,7 @@ struct Evaluation {
     /// The commitment of the polynomial being evaluated
     PolyComm commitment; // TODO: Dense
     /// Contains an evaluation table
-    Scalar.FE[][] evaluations;
+    Scalar.FE[][2] evaluations;
     /// optional degree bound
     uint128 degree_bound;
 }

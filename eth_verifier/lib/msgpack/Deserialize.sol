@@ -636,7 +636,13 @@ library MsgPk {
         EncodedArray memory w_comm_arr = abi.decode(find_value(comm_map, abi.encode("w_comm")), (EncodedArray));
         EncodedMap memory z_comm_map = abi.decode(find_value(comm_map, abi.encode("z_comm")), (EncodedMap));
         EncodedMap memory t_comm_map = abi.decode(find_value(comm_map, abi.encode("t_comm")), (EncodedMap));
-        EncodedMap memory lookup_map = abi.decode(find_value(comm_map, abi.encode("lookup")), (EncodedMap));
+        bytes memory lookup_bytes = find_value(comm_map, abi.encode("lookup"));
+        EncodedMap memory lookup_map;
+        bool lookup_is_null = is_null(lookup_bytes);
+        if (!lookup_is_null) {
+            lookup_map = abi.decode(lookup_bytes, (EncodedMap));
+        }
+        prover_proof.commitments.is_lookup_set = !lookup_is_null;
 
         // witness commitments
         PolyComm[15] memory w_comm;
@@ -694,7 +700,7 @@ library MsgPk {
         BN254.G1Point[] memory quotient_unshifted = new BN254.G1Point[](1);
         quotient_unshifted[0] = BN254.g1Deserialize(bytes32(quotient_bytes));
 
-        Scalar.FE blinding = Scalar.from(uint256(bytes32(blinding_bytes)));
+        Scalar.FE blinding = deser_scalar(blinding_bytes);
 
         prover_proof.opening.quotient.unshifted = quotient_unshifted;
         prover_proof.opening.blinding = blinding;

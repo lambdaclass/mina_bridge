@@ -4,7 +4,6 @@ pragma solidity >=0.4.16 <0.9.0;
 import "./Expr.sol";
 import "./ExprConstants.sol";
 import "../bn254/Fields.sol";
-import "../Permutation.sol";
 import "../Proof.sol";
 import "../sponge/Sponge.sol";
 
@@ -84,7 +83,7 @@ function evaluate(
             continue;
         }
         if (v == PolishTokenVariant.VanishesOnZeroKnowledgeAndPreviousRows) {
-            stack[stack_next] = eval_vanishes_on_last_n_rows(domain_gen, domain_size, c.zk_rows + 1, pt);
+            stack[stack_next] = Polynomial.eval_vanishes_on_last_n_rows(domain_gen, domain_size, c.zk_rows + 1, pt);
             stack_next += 1;
             continue;
         }
