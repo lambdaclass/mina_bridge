@@ -6,8 +6,9 @@ import "./bn254/BN256G2.sol";
 import "./bn254/Fields.sol";
 import "./Utils.sol";
 import "./Polynomial.sol";
+import "./Evaluations.sol";
 
-using {BN254.add, BN254.scale_scalar} for BN254.G1Point;
+using {BN254.add, BN254.scale_scalar, BN254.neg} for BN254.G1Point;
 using {Scalar.neg, Scalar.add, Scalar.sub, Scalar.mul, Scalar.inv, Scalar.double, Scalar.pow} for Scalar.FE;
 using {Polynomial.is_zero} for Polynomial.Dense;
 
@@ -258,8 +259,33 @@ function chunk_commitment(PolyComm memory self, Scalar.FE zeta_n) view returns (
 }
 
 // @notice substracts two polynomial commitments
-function sub_polycomms(PolyComm memory self, PolyComm memory other) pure returns (PolyComm memory) {
-    // TODO: implement this!
+function sub_polycomms(PolyComm memory self, PolyComm memory other) view returns (PolyComm memory res) {
+    uint256 n_self = self.unshifted.length;
+    uint256 n_other = other.unshifted.length;
+    uint256 n = Utils.max(n_self, n_other);
+    res.unshifted = new BN254.G1Point[](n);
+
+    for (uint i = 0; i < n; i++) {
+        if (i < n_self && i < n_other) {
+            res.unshifted[i] = self.unshifted[i].add(other.unshifted[i].neg());
+        } else if (i < n_self) {
+            res.unshifted[i] = self.unshifted[i];
+        } else {
+            res.unshifted[i] = other.unshifted[i];
+        }
+    }
+    // TODO: shifted part, need to create a flag that determines if shifted is set.
+}
+
+// @notice substracts two polynomial commitments
+function scale_polycomm(PolyComm memory self, Scalar.FE c) view returns (PolyComm memory res) {
+    uint256 n = self.unshifted.length;
+    res.unshifted = new BN254.G1Point[](n);
+
+    for (uint i = 0; i < n; i++) {
+        res.unshifted[i] = self.unshifted[i].scale_scalar(c);
+    }
+    // TODO: shifted part, need to create a flag that determines if shifted is set.
 }
 
 // Reference: Kimchi
@@ -317,28 +343,30 @@ function combined_inner_product(
     Scalar.FE[] memory evaluation_points,
     Scalar.FE polyscale,
     Scalar.FE evalscale,
-    PolyMatrices memory polys,
+    Scalar.FE[][2][] memory polys,
     //uint[] poly_shifted, // TODO: not necessary for fiat-shamir
-    uint256 srs_length
+    uint256 _srs_length
 ) pure returns (Scalar.FE res) {
     res = Scalar.zero();
     Scalar.FE xi_i = Scalar.from(1);
 
-    //require(poly_matrices.length == poly_shifted.length);
     for (uint256 i = 0; i < polys.length; i++) {
-        uint256 cols = polys.cols[i];
-        uint256 rows = polys.rows[i];
+        Scalar.FE[][2] memory matrix = polys[i];
+        if (matrix[0].length == 0 || matrix[1].length == 0) continue; // skip empty evaluations
 
-        if (cols == 0) {
-            continue;
-        }
+        uint256 rows = 2; // WARN: magic number, this is because we only have two evaluation points in our case.
+        uint256 cols = 1; // WARN: magic number, this is because we only have one segment per poly (non-linearized).
+
+        require(matrix.length == rows, "rows are not of the expected size");
+        require(matrix[0].length == 1, "cols are not of the expected size");
+        require(matrix[1].length == 1, "cols are not of the expected size");
 
         for (uint256 col = 0; col < cols; col++) {
             Scalar.FE[] memory eval = new Scalar.FE[](rows); // column that stores the segment
-
-            for (uint256 j = 0; j < rows; j++) {
-                eval[j] = polys.data[polys.starts[i] + col * rows + j];
+            for (uint256 row = 0; row < rows; row++) {
+                eval[row] = matrix[row][col];
             }
+
             Scalar.FE term = Polynomial.build_and_eval(eval, evalscale);
 
             res = res.add(xi_i.mul(term));
@@ -399,18 +427,58 @@ function commit_non_hiding(URSG2 memory self, Polynomial.Dense memory plnm, uint
     comm.unshifted = unshifted;
 }
 
-// this represents an array of matrices of polynomial commitments
-// evaluations, in a flat manner. This was made to temporarily speed up
-// development and ignore details. In reality I think that there're only two
-// possible evaluations for every commitment so there's a fixed dimension. This
-// might me implementable as a 3D array composed of a fixed-length one and two
-// variable length.
-// TODO: could be replaced, needs a bit of research
-// relevant: https://github.com/o1-labs/proof-systems/blob/a27270040c08eb2c99e37f90833ee7bfb1fd22f5/kimchi/src/verifier.rs#L566
-struct PolyMatrices {
-    Scalar.FE[] data;
-    uint256 length;
-    uint256[] rows; // row count per matrix
-    uint256[] cols; // col count per matrix
-    uint256[] starts; // index at which every matrix starts
+function combine_commitments(
+    Evaluation[] memory evaluations,
+    Scalar.FE polyscale,
+    Scalar.FE rand_base
+) pure returns (Scalar.FE[] memory scalars, BN254.G1Point[] memory points) {
+    Scalar.FE xi_i = Scalar.one();
+
+    scalars = new Scalar.FE[](evaluations.length);
+    points = new BN254.G1Point[](evaluations.length);
+    // WARN: the actual length might be more than evaluations.length
+    // but for our test proof it will not.
+
+    uint256 index = 0;
+
+    for (uint256 i = 0; i < evaluations.length; i++) {
+        if (evaluations[i].commitment.unshifted.length == 0) continue;
+        PolyComm memory commitment = evaluations[i].commitment;
+
+        for (uint256 j = 0; j < commitment.unshifted.length; j++) {
+            BN254.G1Point memory comm_ch = commitment.unshifted[j];
+            scalars[index] = rand_base.mul(xi_i);
+            points[index] = comm_ch;
+
+            xi_i = xi_i.mul(polyscale);
+            index += 1;
+        }
+        // TODO: degree bound, shifted part
+    }
+}
+
+function combine_evaluations(
+    Evaluation[] memory evaluations,
+    Scalar.FE polyscale
+) pure returns (Scalar.FE[] memory acc) {
+    Scalar.FE xi_i = Scalar.one();
+
+    uint256 num_evals = evaluations.length != 0 ? evaluations[0].evaluations.length : 0;
+    acc = new Scalar.FE[](num_evals);
+    for (uint256 i = 0; i < num_evals; i++) {
+        acc[i] = Scalar.zero();
+    }
+
+    for (uint256 i = 0; i < evaluations.length; i++) {
+        if (evaluations[i].commitment.unshifted.length == 0) continue;
+        Scalar.FE[][2] memory evaluations = evaluations[i].evaluations;
+
+        for (uint256 j = 0; j < evaluations[0].length; j++) {
+            for (uint256 k = 0; k < evaluations.length; k++) {
+                acc[k] = acc[k].add(evaluations[k][j].mul(xi_i));
+            }
+            xi_i = xi_i.mul(polyscale);
+        }
+        // TODO: degree bound, shifted part
+    }
 }

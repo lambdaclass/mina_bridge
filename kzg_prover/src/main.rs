@@ -117,8 +117,9 @@ fn generate_test_proof_for_evm_verifier() {
     let mut srs = create_srs(x, cs.gates.len(), cs.domain);
     srs.full_srs.add_lagrange_basis(cs.domain.d1);
 
-    let (_endo_r, endo_q) = G1::endos();
-    let index = ProverIndex::<G1, KZGProof>::create(cs, *endo_q, Arc::new(srs.clone()));
+    let (_endo_q, endo_r) = G1::endos();
+    let index = ProverIndex::<G1, KZGProof>::create(cs, *endo_r, Arc::new(srs.clone()));
+    println!("cs endo: {}", endo_r); // ProverIndex::create() sets cs endo to endo_r
 
     let group_map = <G1 as CommitmentCurve>::Map::setup();
     let proof = ProverProof::create_recursive::<KeccakFqSponge, KeccakFrSponge>(
@@ -145,28 +146,6 @@ fn generate_test_proof_for_evm_verifier() {
         KZGProof,
     >(&index.verifier_index(), &proof, &public_inputs)
     .unwrap();
-
-    // Calculate numerator commitment
-    let poly_commitment = create_poly_commitment(&agg_proof.evaluations, agg_proof.polyscale);
-    let evals = combine_evaluations(&agg_proof.evaluations, agg_proof.polyscale);
-    let blinding_commitment = srs.full_srs.h.mul(proof.proof.blinding);
-    let eval_commitment = srs
-        .full_srs
-        .commit_non_hiding(
-            &eval_polynomial(&agg_proof.evaluation_points, &evals),
-            1,
-            None,
-        )
-        .unshifted[0]
-        .into_projective();
-
-    let numerator_commitment =
-        (poly_commitment - eval_commitment - blinding_commitment).into_affine();
-    let mut numerator_serialized = vec![];
-    numerator_serialized.reverse();
-    numerator_commitment
-        .serialize(&mut numerator_serialized)
-        .unwrap();
 
     // Final verify
     let BatchEvaluationProof {
@@ -211,9 +190,6 @@ fn generate_test_proof_for_evm_verifier() {
         &serialize_linearization(index.linearization),
     )
     .unwrap();
-    numerator_commitment
-        .serialize(&mut File::create("../eth_verifier/numerator.bin").unwrap())
-        .unwrap();
 }
 
 #[derive(Serialize)]

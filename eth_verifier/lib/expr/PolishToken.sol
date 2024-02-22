@@ -4,8 +4,8 @@ pragma solidity >=0.4.16 <0.9.0;
 import "./Expr.sol";
 import "./ExprConstants.sol";
 import "../bn254/Fields.sol";
-import "../Permutation.sol";
 import "../Proof.sol";
+import "../sponge/Sponge.sol";
 
 using {Scalar.add, Scalar.mul, Scalar.sub, Scalar.pow, Scalar.inv} for Scalar.FE;
 
@@ -33,12 +33,12 @@ function evaluate(
     Scalar.FE pt,
     ProofEvaluations memory evals,
     ExprConstants memory c
-) pure returns (Scalar.FE) {
+) view returns (Scalar.FE) {
     Scalar.FE[] memory stack = new Scalar.FE[](toks.length);
     uint256 stack_next = 0; // will keep track of last stack element's index
     Scalar.FE[] memory cache = new Scalar.FE[](toks.length);
     uint256 cache_next = 0; // will keep track of last cache element's index
-    // WARN: Both arrays allocate the maximum memory the'll ever use, but it's
+    // WARN: Both arrays allocate the maximum memory they will ever use, but it's
     // WARN: pretty unlikely they'll need it all.
 
     uint256 skip_count = 0;
@@ -78,23 +78,23 @@ function evaluate(
         }
         if (v == PolishTokenVariant.Mds) {
             PolishTokenMds memory pos = abi.decode(v_data, (PolishTokenMds));
-            stack[stack_next] = c.mds[pos.row + pos.col]; // FIXME: determine order
+            stack[stack_next] = KeccakSponge.mds()[pos.row][pos.col];
             stack_next += 1;
             continue;
         }
         if (v == PolishTokenVariant.VanishesOnZeroKnowledgeAndPreviousRows) {
-            stack[stack_next] = eval_vanishes_on_last_n_rows(domain_gen, domain_size, c.zk_rows + 1, pt);
+            stack[stack_next] = Polynomial.eval_vanishes_on_last_n_rows(domain_gen, domain_size, c.zk_rows + 1, pt);
             stack_next += 1;
             continue;
         }
         if (v == PolishTokenVariant.UnnormalizedLagrangeBasis) {
-            RowOffset memory i = abi.decode(v_data, (RowOffset));
+            RowOffset memory j = abi.decode(v_data, (RowOffset));
 
             int256 offset;
-            if (i.zk_rows) {
-                offset = i.offset - int256(uint256(c.zk_rows)); // 64 bit to 256 to signed 256
+            if (j.zk_rows) {
+                offset = j.offset - int256(uint256(c.zk_rows)); // 64 bit to 256 to signed 256
             } else {
-                offset = i.offset;
+                offset = j.offset;
             }
 
             stack[stack_next] = unnormalized_lagrange_basis(domain_gen, domain_size, offset, pt);
@@ -113,7 +113,7 @@ function evaluate(
             continue;
         }
         if (v == PolishTokenVariant.Cell) {
-            Variable memory x = abi.decode(v_data, (Variable)); // WARN: different types
+            Variable memory x = abi.decode(v_data, (Variable));
             stack[stack_next] = evaluate_variable(x, evals);
             stack_next += 1;
             continue;
@@ -125,9 +125,9 @@ function evaluate(
         }
         if (v == PolishTokenVariant.Add) {
             // pop x and y
-            Scalar.FE x = stack[stack_next - 1];
-            stack_next -= 1;
             Scalar.FE y = stack[stack_next - 1];
+            stack_next -= 1;
+            Scalar.FE x = stack[stack_next - 1];
             stack_next -= 1;
 
             // push result
@@ -137,9 +137,9 @@ function evaluate(
         }
         if (v == PolishTokenVariant.Mul) {
             // pop x and y
-            Scalar.FE x = stack[stack_next - 1];
-            stack_next -= 1;
             Scalar.FE y = stack[stack_next - 1];
+            stack_next -= 1;
+            Scalar.FE x = stack[stack_next - 1];
             stack_next -= 1;
 
             // push result
@@ -149,9 +149,9 @@ function evaluate(
         }
         if (v == PolishTokenVariant.Sub) {
             // pop x and y
-            Scalar.FE x = stack[stack_next - 1];
-            stack_next -= 1;
             Scalar.FE y = stack[stack_next - 1];
+            stack_next -= 1;
+            Scalar.FE x = stack[stack_next - 1];
             stack_next -= 1;
 
             // push result
@@ -167,8 +167,8 @@ function evaluate(
             continue;
         }
         if (v == PolishTokenVariant.Load) {
-            uint256 i = abi.decode(v_data, (uint256)); // WARN: different types
-            Scalar.FE x = cache[i];
+            uint256 j = abi.decode(v_data, (uint256)); // WARN: different types
+            Scalar.FE x = cache[j];
 
             stack[stack_next] = x;
             stack_next += 1;
@@ -227,7 +227,7 @@ type PolishTokenSkipIf is uint256;
 // @notice Compute the ith unnormalized lagrange basis
 function unnormalized_lagrange_basis(Scalar.FE domain_gen, uint256 domain_size, int256 i, Scalar.FE pt)
     pure
-    returns (Scalar.FE)
+    returns (Scalar.FE result)
 {
     Scalar.FE omega_i;
     if (i < 0) {
@@ -236,5 +236,16 @@ function unnormalized_lagrange_basis(Scalar.FE domain_gen, uint256 domain_size, 
         omega_i = domain_gen.pow(uint256(i));
     }
 
-    return pt.pow(domain_size).sub(Scalar.one()).mul((pt.sub(omega_i)).inv());
+    result = evaluate_vanishing_polynomial(domain_gen, domain_size, pt);
+    Scalar.FE sub_m_omega = pt.sub(omega_i);
+    result = result.mul(sub_m_omega.inv());
+}
+
+// @notice evaluates the vanishing polynomial for this domain at tau.
+// @notice for multiplicative subgroups, this polynomial is `z(X) = X^self.size - 1
+function evaluate_vanishing_polynomial(Scalar.FE domain_gen, uint256 domain_size, Scalar.FE tau) 
+    pure
+    returns (Scalar.FE)
+{
+    return tau.pow(domain_size).sub(Scalar.one());
 }
