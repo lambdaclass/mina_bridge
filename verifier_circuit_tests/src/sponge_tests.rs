@@ -3,7 +3,7 @@ mod tests {
     use ark_ec::AffineCurve;
     use kimchi::{
         curve::KimchiCurve,
-        mina_curves::pasta::{Fq, Pallas, PallasParameters},
+        mina_curves::pasta::{Fq, Pallas, PallasParameters, VestaParameters},
         mina_poseidon::{
             constants::PlonkSpongeConstantsKimchi, poseidon::Sponge, sponge::{DefaultFqSponge, DefaultFrSponge}, FqSponge
         },
@@ -17,8 +17,8 @@ mod tests {
     type PallasPointEvals = PointEvaluations<Vec<PallasScalar>>;
 
     type SpongeParams = PlonkSpongeConstantsKimchi;
-    type BaseSponge = DefaultFqSponge<PallasParameters, SpongeParams>;
-    type ScalarSponge = DefaultFrSponge<Fq, SpongeParams>;
+    type FqTestSponge = DefaultFqSponge<PallasParameters, SpongeParams>;
+    type FrTestSponge = DefaultFrSponge<PallasScalar, SpongeParams>;
 
     fn scalar_from_hex(hex: &str) -> PallasScalar {
         PallasScalar::from(BigUint::from_str_radix(hex, 16).unwrap())
@@ -29,7 +29,7 @@ mod tests {
 
     #[test]
     fn test_squeeze_internal() {
-        let mut sponge = BaseSponge::new(Pallas::other_curve_sponge_params());
+        let mut sponge = FqTestSponge::new(Pallas::other_curve_sponge_params());
         let digest = sponge.sponge.squeeze();
 
         assert_eq!(
@@ -40,7 +40,7 @@ mod tests {
 
     #[test]
     fn test_absorb_squeeze_internal() {
-        let mut sponge = BaseSponge::new(Pallas::other_curve_sponge_params());
+        let mut sponge = FqTestSponge::new(Pallas::other_curve_sponge_params());
         sponge.sponge.absorb(&[base_from_hex("36FB00AD544E073B92B4E700D9C49DE6FC93536CAE0C612C18FBE5F6D8E8EEF2")]);
         let digest = sponge.sponge.squeeze();
 
@@ -52,7 +52,7 @@ mod tests {
 
     #[test]
     fn test_absorb_digest_scalar() {
-        let mut sponge = BaseSponge::new(Pallas::other_curve_sponge_params());
+        let mut sponge = FqTestSponge::new(Pallas::other_curve_sponge_params());
         let input = PallasScalar::from(42);
         sponge.absorb_fr(&[input]);
         let digest = sponge.digest();

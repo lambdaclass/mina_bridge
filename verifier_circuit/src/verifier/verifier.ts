@@ -2,7 +2,7 @@ import { readFileSync } from 'fs';
 import { circuitMain, Circuit, Group, Scalar, public_, Field, ForeignGroup } from 'o1js';
 import { OpeningProof, PolyComm } from '../poly_commitment/commitment.js';
 import { SRS } from '../SRS.js';
-import { Sponge } from './sponge.js';
+import { fq_sponge_initial_state, fq_sponge_params, Sponge } from './sponge.js';
 import { Alphas } from '../alphas.js';
 import { Polynomial } from '../polynomial.js';
 import { Linearization, PolishToken } from '../prover/expr.js';
@@ -161,7 +161,7 @@ export class VerifierIndex {
     * Compute the digest of the VerifierIndex, which can be used for the Fiat-Shamir transform.
     */
     digest(): ForeignField {
-        let fq_sponge = new Sponge();
+        let fq_sponge = new Sponge(fq_sponge_params(), fq_sponge_initial_state());
 
         this.sigma_comm.forEach((g) => fq_sponge.absorbGroups(g.unshifted));
         this.coefficients_comm.forEach((g) => fq_sponge.absorbGroups(g.unshifted));

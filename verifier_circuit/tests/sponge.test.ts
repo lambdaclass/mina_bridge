@@ -1,9 +1,9 @@
 import { ForeignField } from "../src/foreign_fields/foreign_field";
-import { fq_sponge_params, ArithmeticSponge, fq_sponge_initial_state } from "../src/verifier/sponge";
+import { ArithmeticSponge, fp_sponge_initial_state, fp_sponge_params } from "../src/verifier/sponge";
 
 test("squeeze_internal", () => {
-    let sponge = new ArithmeticSponge(fq_sponge_params());
-    sponge.init(fq_sponge_initial_state());
+    let sponge = new ArithmeticSponge(fp_sponge_params());
+    sponge.init(fp_sponge_initial_state());
 
     let digest = sponge.squeeze();
     let expected = 0x2FADBE2852044D028597455BC2ABBD1BC873AF205DFABB8A304600F3E09EEBA8n;
@@ -12,8 +12,8 @@ test("squeeze_internal", () => {
 })
 
 test("absorb_squeeze_internal", () => {
-    let sponge = new ArithmeticSponge(fq_sponge_params());
-    sponge.init(fq_sponge_initial_state());
+    let sponge = new ArithmeticSponge(fp_sponge_params());
+    sponge.init(fp_sponge_initial_state());
 
     sponge.absorb(ForeignField.from(0x36FB00AD544E073B92B4E700D9C49DE6FC93536CAE0C612C18FBE5F6D8E8EEF2n));
 
