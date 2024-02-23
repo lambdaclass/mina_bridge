@@ -3,7 +3,7 @@ mod tests {
     use ark_ec::AffineCurve;
     use kimchi::{
         curve::KimchiCurve,
-        mina_curves::pasta::{Fq, Pallas, PallasParameters, VestaParameters},
+        mina_curves::pasta::{Pallas, PallasParameters},
         mina_poseidon::{
             constants::PlonkSpongeConstantsKimchi,
             poseidon::Sponge,
@@ -17,11 +17,9 @@ mod tests {
 
     type PallasScalar = <Pallas as AffineCurve>::ScalarField;
     type PallasBase = <Pallas as AffineCurve>::BaseField;
-    type PallasPointEvals = PointEvaluations<Vec<PallasScalar>>;
 
     type SpongeParams = PlonkSpongeConstantsKimchi;
     type FqTestSponge = DefaultFqSponge<PallasParameters, SpongeParams>;
-    type FrTestSponge = DefaultFrSponge<PallasScalar, SpongeParams>;
 
     fn scalar_from_hex(hex: &str) -> PallasScalar {
         PallasScalar::from(BigUint::from_str_radix(hex, 16).unwrap())
