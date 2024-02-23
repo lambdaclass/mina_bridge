@@ -22,8 +22,12 @@ export class ArithmeticSponge {
 
     constructor(params: ArithmeticSpongeParams) {
         this.params = params;
-        this.state = new Array(params.rate);
+        this.mode = SpongeMode.Absorbing
         this.offset = 0;
+    }
+
+    init(state: UnionForeignFieldArr) {
+        this.state = state;
     }
 
     absorb(elem: UnionForeignField) {
@@ -65,7 +69,9 @@ export class ArithmeticSponge {
 
         // matrix-vector product: mds * state
         return this.params.mds.map((row) =>
-            this.state.reduce((acc, s, i) => acc.add(s.mul(row[i])))
+            this.state.reduce(
+                (acc, s, i) => acc.add(s.mul(row[i])),
+                ForeignField.from(0))
         );
     }
 
