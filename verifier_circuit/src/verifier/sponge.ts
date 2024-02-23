@@ -132,6 +132,7 @@ export class Sponge {
     }
 
     squeezeField(): ForeignField {
+        this.lastSqueezed = [];
         return this.#internalSponge.squeeze();
     }
 
@@ -164,7 +165,6 @@ export class Sponge {
             const low_bit = Provable.witnessBn254(ForeignField, () => {
                 return ForeignField.from(s.toBigInt() & 1n);
             });
-
 
             this.absorb(high_bits);
             this.absorb(low_bit);
@@ -257,7 +257,7 @@ export class Sponge {
     digest(): ForeignScalar {
         return Provable.witnessBn254(ForeignScalar, () => {
             const x = this.squeezeField().toBigInt();
-            const result = x < Scalar.ORDER ? x : 0;
+            const result = x < ForeignScalar.modulus ? x : 0;
             // Comment copied from Kimchi's codebase:
             //
             // Returns zero for values that are too large.
