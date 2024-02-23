@@ -1,4 +1,4 @@
-import { Field, FieldBn254, ForeignGroup, Provable, Scalar } from "o1js";
+import { FieldBn254, ForeignGroup, Provable, Scalar } from "o1js";
 import { Sponge } from "../verifier/sponge";
 import { ForeignField } from "../foreign_fields/foreign_field.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
@@ -74,10 +74,6 @@ export class PolyComm<A> {
         for (let i = 0; i < points.length; i++) {
             let point = points[i];
             let scalar = scalars[i];
-            Provable.asProverBn254(() => {
-                console.log("point", point.x.toBigInt(), point.y.toBigInt());
-                console.log("scalar", scalar.toBigInt());
-            });
             let scaled = point.scale(scalar);
             result = result.add(scaled);
         }
