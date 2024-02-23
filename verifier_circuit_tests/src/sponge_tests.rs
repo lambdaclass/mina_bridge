@@ -5,7 +5,10 @@ mod tests {
         curve::KimchiCurve,
         mina_curves::pasta::{Fq, Pallas, PallasParameters, VestaParameters},
         mina_poseidon::{
-            constants::PlonkSpongeConstantsKimchi, poseidon::Sponge, sponge::{DefaultFqSponge, DefaultFrSponge}, FqSponge
+            constants::PlonkSpongeConstantsKimchi,
+            poseidon::Sponge,
+            sponge::{DefaultFqSponge, DefaultFrSponge},
+            FqSponge,
         },
         proof::PointEvaluations,
     };
@@ -41,7 +44,9 @@ mod tests {
     #[test]
     fn test_absorb_squeeze_internal() {
         let mut sponge = FqTestSponge::new(Pallas::other_curve_sponge_params());
-        sponge.sponge.absorb(&[base_from_hex("36FB00AD544E073B92B4E700D9C49DE6FC93536CAE0C612C18FBE5F6D8E8EEF2")]);
+        sponge.sponge.absorb(&[base_from_hex(
+            "36FB00AD544E073B92B4E700D9C49DE6FC93536CAE0C612C18FBE5F6D8E8EEF2",
+        )]);
         let digest = sponge.sponge.squeeze();
 
         assert_eq!(
