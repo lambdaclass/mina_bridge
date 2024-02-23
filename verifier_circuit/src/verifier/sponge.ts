@@ -109,7 +109,7 @@ export class ArithmeticSpongeParams {
 }
 
 /**
- * Wrapper over o1js' poseidon `Sponge` class which extends its functionality.
+ * Wrapper over the poseidon `ArithmeticSponge` class which extends its functionality.
  * Currently the sponge operates over the emulated base field (whose elements are 
  * represented with the `ForeignField` type).
  */
