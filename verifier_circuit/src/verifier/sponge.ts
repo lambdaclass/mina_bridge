@@ -150,7 +150,10 @@ export class Sponge {
     absorbScalar(s: ForeignScalar) {
         // this operation was extracted from Kimchi FqSponge's`absorb_fr()`.
         if (ForeignScalar.modulus < ForeignField.modulus) {
-            const f = ForeignField.from(s.toBigInt());
+            let f = ForeignField.from(0);
+            Provable.asProverBn254(() => {
+                f = ForeignField.from(s.toBigInt());
+            });
             this.absorb(f);
         } else {
             let high_bits = ForeignField.from(0);
