@@ -53,7 +53,7 @@ export class ProverProof {
         const zk_rows = index.zk_rows;
 
         //~ 1. Setup the Fq-Sponge.
-        let fq_sponge = new Sponge(fq_sponge_params(), fq_sponge_initial_state());
+        let fq_sponge = new Sponge(fp_sponge_params(), fp_sponge_initial_state());
 
         //~ 2. Absorb the digest of the VerifierIndex.
         fq_sponge.absorb(index.digest());
@@ -160,7 +160,7 @@ export class ProverProof {
         const zeta = zeta_chal.toField(endo_r);
 
         //~ 17. Setup the Fr-Sponge.
-        let fr_sponge = new Sponge(fp_sponge_params(), fp_sponge_initial_state());
+        let fr_sponge = new Sponge(fq_sponge_params(), fq_sponge_initial_state());
         const digest = fq_sponge.digest();
 
         //~ 18. Squeeze the Fq-sponge and absorb the result with the Fr-Sponge.

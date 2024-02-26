@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from "fs";
 import { ForeignGroup, Provable } from "o1js";
 import { Verifier } from "./verifier/verifier.js";
 import { deserOpeningProof } from "./serde/serde_proof.js";
-import { ForeignField } from "./foreign_fields/foreign_field.js";
+import { ForeignBase } from "./foreign_fields/foreign_field.js";
 
 let inputs;
 try {
