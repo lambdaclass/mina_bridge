@@ -9,9 +9,8 @@ test("squeeze_internal", () => {
         sponge.init(fp_sponge_initial_state());
 
         let digest = sponge.squeeze();
-        let expected = 0x2FADBE2852044D028597455BC2ABBD1BC873AF205DFABB8A304600F3E09EEBA8n;
 
-        digest.assertEquals(expected);
+        digest.assertEquals(0x2FADBE2852044D028597455BC2ABBD1BC873AF205DFABB8A304600F3E09EEBA8n);
     });
 })
 
@@ -23,9 +22,8 @@ test("absorb_squeeze_internal", () => {
         sponge.absorb(ForeignField.from(0x36FB00AD544E073B92B4E700D9C49DE6FC93536CAE0C612C18FBE5F6D8E8EEF2n));
 
         let digest = sponge.squeeze();
-        let expected = 0x3D4F050775295C04619E72176746AD1290D391D73FF4955933F9075CF69259FBn;
 
-        digest.assertEquals(expected);
+        digest.assertEquals(0x3D4F050775295C04619E72176746AD1290D391D73FF4955933F9075CF69259FBn);
     });
 })
 
