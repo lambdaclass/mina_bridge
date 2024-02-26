@@ -52,7 +52,7 @@ mod tests {
 
     #[test]
     fn test_digest_scalar() {
-        let mut sponge = FqTestSponge::new(Pallas::other_curve_sponge_params());
+        let sponge = FqTestSponge::new(Pallas::other_curve_sponge_params());
         let digest = sponge.digest();
 
         assert_eq!(
