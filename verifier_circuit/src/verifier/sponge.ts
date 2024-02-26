@@ -44,13 +44,15 @@ export class ArithmeticSponge {
     }
 
     squeeze(): UnionForeignField {
-        if (this.mode == SpongeMode.Absorbing || this.offset === this.params.rate) {
-            this.mode = SpongeMode.Squeezing;
-            this.#permutation();
-            this.offset = 0;
-        }
+        return Provable.witnessBn254(ForeignScalar, () => {
+            if (this.mode == SpongeMode.Absorbing || this.offset === this.params.rate) {
+                this.mode = SpongeMode.Squeezing;
+                this.#permutation();
+                this.offset = 0;
+            }
 
-        return this.state[this.offset++];
+            return this.state[this.offset++];
+        });
     }
 
     // permutation algorithms
@@ -245,14 +247,12 @@ export class Sponge {
     * Calls `squeezeLimbs()` and composes them into a scalar.
     */
     squeeze(numLimbs: number): ForeignScalar {
-        return Provable.witnessBn254(ForeignScalar, () => {
-            let squeezed = 0n;
-            const squeezedLimbs = this.squeezeLimbs(numLimbs);
-            for (const i in this.squeezeLimbs(numLimbs)) {
-                squeezed += squeezedLimbs[i] << (64n * BigInt(i));
-            }
-            return ForeignScalar.from(squeezed);
-        });
+        let squeezed = 0n;
+        const squeezedLimbs = this.squeezeLimbs(numLimbs);
+        for (const i in this.squeezeLimbs(numLimbs)) {
+            squeezed += squeezedLimbs[i] << (64n * BigInt(i));
+        }
+        return ForeignScalar.from(squeezed);
     }
 
     challenge(): ForeignScalar {
