@@ -1,8 +1,8 @@
 import { Polynomial } from "../polynomial.js"
-import { Field, FieldBn254, ForeignGroup, Group, Provable, Scalar } from "o1js"
+import { ForeignGroup, Group, Provable, Scalar } from "o1js"
 import { PolyComm, bPoly, bPolyCoefficients, OpeningProof } from "../poly_commitment/commitment.js";
 import { getLimbs64 } from "../util/bigint.js";
-import { Sponge } from "../verifier/sponge.js";
+import { fp_sponge_initial_state, fp_sponge_params, fq_sponge_initial_state, fq_sponge_params, Sponge } from "../verifier/sponge.js";
 import { Verifier, VerifierIndex } from "../verifier/verifier.js";
 import { invScalar, powScalar } from "../util/scalar.js";
 import { GateType } from "../circuits/gate.js";
@@ -11,8 +11,6 @@ import { Column, PolishToken } from "./expr.js";
 import { deserHexScalar } from "../serde/serde_proof.js";
 import { range } from "../util/misc.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
-import { ForeignField } from "../foreign_fields/foreign_field.js";
-import { ProvableBn254 } from "o1js/dist/node/snarky.js";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
@@ -41,12 +39,6 @@ export class ProverProof {
      * Will run the random oracle argument for removing prover-verifier interaction (Fiat-Shamir transform)
      */
     oracles(index: VerifierIndex, public_comm: PolyComm<ForeignGroup>, public_input?: ForeignScalar[]): OraclesResult {
-        let sponge_test = new Sponge();
-        const fields = [ForeignField.from(1), ForeignField.from(2)];
-        fields.forEach((f) => {
-            sponge_test.absorb(f);
-        });
-
         const n = index.domain_size;
         const endo_r = ForeignScalar.from("0x397e65a7d7c1ad71aee24b27e308f0a61259527ec1d4752e619d1840af55f1b1");
         // FIXME: ^ currently hard-coded, refactor this in the future
@@ -61,7 +53,7 @@ export class ProverProof {
         const zk_rows = index.zk_rows;
 
         //~ 1. Setup the Fq-Sponge.
-        let fq_sponge = new Sponge();
+        let fq_sponge = new Sponge(fq_sponge_params(), fq_sponge_initial_state());
 
         //~ 2. Absorb the digest of the VerifierIndex.
         fq_sponge.absorb(index.digest());
@@ -96,7 +88,44 @@ export class ProverProof {
                 absorb_commitment(&mut fq_sponge, runtime_commit);
             }
         }
+
+        let joint_combiner = if let Some(l) = &index.lookup_index {
+            //~~ * If it involves queries to a multiple-column lookup table,
+            //~~   then squeeze the Fq-Sponge to obtain the joint combiner challenge $j'$,
+            //~~   otherwise set the joint combiner challenge $j'$ to $0$.
+            let joint_combiner = if l.joint_lookup_used {
+                panic!("challenge joint combiner");
+                fq_sponge.challenge()
+            } else {
+                G::ScalarField::zero()
+            };
+
+            //~~ * Derive the scalar joint combiner challenge $j$ from $j'$ using the endomorphism.
+            //~~   (TODO: specify endomorphism)
+            let joint_combiner = ScalarChallenge(joint_combiner);
+            let joint_combiner_field = joint_combiner.to_field(endo_r);
+            let joint_combiner = (joint_combiner, joint_combiner_field);
+
+            Some(joint_combiner)
+        } else {
+            None
+        };
+
+        if index.lookup_index.is_some() {
+            let lookup_commits = self
+                .commitments
+                .lookup
+                .as_ref()
+                .ok_or(VerifyError::LookupCommitmentMissing)?;
+
+            //~~ * absorb the commitments to the sorted polynomials.
+            for com in &lookup_commits.sorted {
+                println!("lookup_commits_sorted: {}", com.unshifted[0]);
+                absorb_commitment(&mut fq_sponge, com);
+            }
+        }
         */
+
 
         //~ 7. Sample $\beta$ with the Fq-Sponge.
         const beta = fq_sponge.challenge();
@@ -131,7 +160,7 @@ export class ProverProof {
         const zeta = zeta_chal.toField(endo_r);
 
         //~ 17. Setup the Fr-Sponge.
-        let fr_sponge = new Sponge();
+        let fr_sponge = new Sponge(fp_sponge_params(), fp_sponge_initial_state());
         const digest = fq_sponge.digest();
 
         //~ 18. Squeeze the Fq-sponge and absorb the result with the Fr-Sponge.
@@ -140,7 +169,7 @@ export class ProverProof {
         //~ 19. Absorb the previous recursion challenges.
         // Note: we absorb in a new sponge here to limit the scope in which we need the
         // more-expensive 'optional sponge'.
-        let fr_sponge_aux = new Sponge();
+        let fr_sponge_aux = new Sponge(fp_sponge_params(), fp_sponge_initial_state());
         this.prev_challenges.forEach((prev) => fr_sponge_aux.absorbScalars(prev.chals));
         fr_sponge.absorbScalar(fr_sponge_aux.digest());
 
@@ -178,6 +207,8 @@ export class ProverProof {
             // FIXME: missing public input eval error
         } else if (public_input) {
             // compute Lagrange base evaluation denominators
+
+            // take first n elements of the domain, where n = public_input.length
             let w = [ForeignScalar.from(1)];
             for (let i = 0; i < public_input.length; i++) {
                 w.push(powScalar(index.domain_gen, i));
@@ -266,24 +297,25 @@ export class ProverProof {
         const evals = ProofEvaluations.combine(this.evals, powers_of_eval_points_for_chunks);
 
         //~ 29. Compute the evaluation of $ft(\zeta)$.
-        const zkp = index.permutation_vanishing_polynomial_m.evaluate(zeta);
+        const permutation_vanishing_polynomial = index.permutation_vanishing_polynomial_m.evaluate(zeta);
         const zeta1m1 = zeta1.sub(ForeignScalar.from(1));
 
         let alpha_powers = all_alphas.getAlphas({ kind: "permutation" }, Verifier.PERMUTATION_CONSTRAINTS);
         const alpha0 = alpha_powers[0];
         const alpha1 = alpha_powers[1];
         const alpha2 = alpha_powers[2];
-        // WARN: alpha_powers should be an iterator and alphai = alpha_powers.next(), for i = 0,1,2.
+        // FIXME: alpha_powers should be an iterator and alphai = alpha_powers.next(), for i = 0,1,2.
 
         const init = (evals.w[Verifier.PERMUTS - 1].zeta.add(gamma))
             .mul(evals.z.zetaOmega)
             .mul(alpha0)
-            .mul(zkp);
+            .mul(permutation_vanishing_polynomial);
 
         let ft_eval0: ForeignScalar = evals.s
-            .map((s, i) => (beta.mul(s.zeta).add(evals.w[i].zetaOmega).add(gamma)))
+            .map((s, i) => (beta.mul(s.zeta).add(evals.w[i].zeta).add(gamma)))
             .reduce((acc, curr) => acc.mul(curr), init);
 
+        // FIXME: review this, should be the eval of a polynomial
         ft_eval0 = ft_eval0.sub(
             public_evals![0].length === 0 ? ForeignScalar.from(0) : public_evals![0][0]
         );
@@ -291,7 +323,7 @@ export class ProverProof {
         ft_eval0 = ft_eval0.sub(
             index.shift
                 .map((s, i) => gamma.add(beta.mul(zeta).mul(s)).add(evals.w[i].zeta))
-                .reduce((acc, curr) => acc.mul(curr), alpha0.mul(zkp).mul(evals.z.zeta))
+                .reduce((acc, curr) => acc.mul(curr), alpha0.mul(permutation_vanishing_polynomial).mul(evals.z.zeta))
         );
 
         const numerator = (zeta1m1.mul(alpha1).mul((zeta.sub(index.w))))
@@ -331,6 +363,7 @@ export class ProverProof {
             zk_rows
         }
 
+        // FIXME: review this
         ft_eval0 = ft_eval0.sub(PolishToken.evaluate(
             index.linearization.constant_term,
             zeta,
@@ -368,6 +401,7 @@ export class ProverProof {
             .forEach(push_column_eval);
         // FIXME: ignoring lookup
 
+        // FIXME: review this
         const combined_inner_product = combinedInnerProduct(
             evaluation_points,
             v,

@@ -2,7 +2,7 @@ import { readFileSync } from 'fs';
 import { circuitMainBn254, CircuitBn254, Group, public_, ForeignGroup, Provable } from 'o1js';
 import { OpeningProof, PolyComm } from '../poly_commitment/commitment.js';
 import { SRS } from '../SRS.js';
-import { Sponge } from './sponge.js';
+import { fq_sponge_initial_state, fq_sponge_params, Sponge } from './sponge.js';
 import { Alphas } from '../alphas.js';
 import { Polynomial } from '../polynomial.js';
 import { Linearization, PolishToken } from '../prover/expr.js';
@@ -13,14 +13,14 @@ import {
     LookupInfo
 } from '../lookups/lookups.js';
 import { Batch } from './batch.js';
-import proof_json from "../../test/proof.json" assert { type: "json" };
-import verifier_index_json from "../../test/verifier_index.json" assert { type: "json" };
+import proof_json from "../../test_data/proof.json" assert { type: "json" };
+import verifier_index_json from "../../test_data/verifier_index.json" assert { type: "json" };
 import { deserVerifierIndex } from "../serde/serde_index.js";
 import { deserProverProof } from '../serde/serde_proof.js';
 
 let steps: bigint[][];
 try {
-    steps = JSON.parse(readFileSync("./test/steps.json", "utf-8"));
+    steps = JSON.parse(readFileSync("./test_data/steps.json", "utf-8"));
 } catch (e) {
     steps = [];
 }
@@ -161,7 +161,7 @@ export class VerifierIndex {
     * Compute the digest of the VerifierIndex, which can be used for the Fiat-Shamir transform.
     */
     digest(): ForeignField {
-        let fq_sponge = new Sponge();
+        let fq_sponge = new Sponge(fq_sponge_params(), fq_sponge_initial_state());
 
         this.sigma_comm.forEach((g) => fq_sponge.absorbGroups(g.unshifted));
         this.coefficients_comm.forEach((g) => fq_sponge.absorbGroups(g.unshifted));

@@ -1,29 +1,26 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
+import "./PolishToken.sol";
+
 struct Column {
     ColumnVariant variant;
     bytes data;
 }
 
 enum ColumnVariant {
-    Witness,
+    Witness, // (uint)
     Z,
-    Index,
-    Coefficient,
-    Permutation
-    // TODO:
-    // LookupSorted(usize),
-    // LookupAggreg,
-    // LookupTable,
-    // LookupKindIndex(LookupPattern),
-    // LookupRuntimeSelector,
-    // LookupRuntimeTable,
+    LookupSorted, // (uint)
+    LookupAggreg,
+    LookupTable,
+    LookupKindIndex, // (LookupPattern)
+    LookupRuntimeSelector,
+    LookupRuntimeTable,
+    Index, // (GateType)
+    Coefficient, // (uint)
+    Permutation // (uint)
 }
-type ColumnWitness is uint;
-//type ColumnIndex is GateType; // can't set an alias for an enum :(
-type ColumnCoefficient is uint;
-type ColumnPermutation is uint;
 
 enum CurrOrNext {
     Curr,
@@ -40,8 +37,17 @@ struct RowOffset {
     int offset;
 }
 
+enum LookupPattern {
+    Xor,
+    Lookup,
+    RangeCheck,
+    ForeignFieldMul
+}
+
 // Variants like LookupPattern and TableWidth have data associated to them.
 // We will represent them as a contiguous array of `bytes`.
+//
+// For more info on this, see docs in PolishToken.sol
 struct FeatureFlag {
     FeatureFlagVariant variant;
     bytes data;
@@ -84,4 +90,16 @@ enum GateType {
     ForeignFieldMul,
     Xor16,
     Rot64
+}
+
+// @notice non-independent term of a linearization
+struct LinearTerm {
+    Column col;
+    PolishToken[] coeff;
+}
+
+// @notice a linear combination of coefficients and columns
+struct Linearization {
+    PolishToken[] constant_term;
+    LinearTerm[] index_terms;
 }

@@ -1,4 +1,4 @@
-import { getLimbs64 } from "./bigint";
+import { getLimbs64 } from "../src/util/bigint";
 
 test("getLimbs64", () => {
     // Create random bigint

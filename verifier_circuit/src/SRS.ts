@@ -1,4 +1,4 @@
-import lagrange_bases_json from "../test/lagrange_bases.json" assert { type: "json" };
+import lagrange_bases_json from "../test_data/lagrange_bases.json" assert { type: "json" };
 import { BlindedCommitment, PolyComm } from "./poly_commitment/commitment.js";
 import { readFileSync } from "fs";
 import { ForeignField } from "./foreign_fields/foreign_field.js";
