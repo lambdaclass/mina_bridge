@@ -24,6 +24,13 @@ test("absorb_squeeze_internal", () => {
     digest.assertEquals(expected);
 })
 
+test("digest_scalar", () => {
+    let fq_sponge = new Sponge(fp_sponge_params(), fp_sponge_initial_state());
+    let digest = fq_sponge.digest();
+
+    digest.assertEquals(0x2FADBE2852044D028597455BC2ABBD1BC873AF205DFABB8A304600F3E09EEBA8n);
+})
+
 test("absorb_digest_scalar", () => {
     let fq_sponge = new Sponge(fp_sponge_params(), fp_sponge_initial_state());
     fq_sponge.absorbScalar(ForeignScalar.from(42));

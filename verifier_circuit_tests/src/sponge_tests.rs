@@ -51,6 +51,17 @@ mod tests {
     }
 
     #[test]
+    fn test_digest_scalar() {
+        let mut sponge = FqTestSponge::new(Pallas::other_curve_sponge_params());
+        let digest = sponge.digest();
+
+        assert_eq!(
+            digest,
+            scalar_from_hex("2FADBE2852044D028597455BC2ABBD1BC873AF205DFABB8A304600F3E09EEBA8")
+        );
+    }
+
+    #[test]
     fn test_absorb_digest_scalar() {
         let mut sponge = FqTestSponge::new(Pallas::other_curve_sponge_params());
         let input = PallasScalar::from(42);
