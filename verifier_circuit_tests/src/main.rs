@@ -14,7 +14,7 @@ use kimchi::{
     proof::ProverProof,
     prover_index::testing::new_index_for_test_with_lookups,
 };
-use verifier_circuit_tests::{
+use verifier_circuit_tests::misc::{
     to_batch_step1, to_batch_step2, BaseSponge, ProverProofTS, ScalarSponge, UncompressedPolyComm,
     VerifierIndexTS,
 };
@@ -97,7 +97,7 @@ mod unit_tests {
         poly_commitment::commitment::{b_poly, b_poly_coefficients},
     };
     use num_bigint::BigUint;
-    use verifier_circuit_tests::PallasScalar;
+    use verifier_circuit_tests::misc::PallasScalar;
 
     #[test]
     fn to_field_with_length() {

@@ -1,8 +1,8 @@
 import { Polynomial } from "../polynomial.js"
-import { Field, ForeignGroup, Group, Provable, Scalar } from "o1js"
+import { ForeignGroup, Group, Provable, Scalar } from "o1js"
 import { PolyComm, bPoly, bPolyCoefficients, OpeningProof } from "../poly_commitment/commitment.js";
 import { getLimbs64 } from "../util/bigint.js";
-import { Sponge } from "../verifier/sponge.js";
+import { fp_sponge_initial_state, fp_sponge_params, fq_sponge_initial_state, fq_sponge_params, Sponge } from "../verifier/sponge.js";
 import { Verifier, VerifierIndex } from "../verifier/verifier.js";
 import { invScalar, powScalar } from "../util/scalar.js";
 import { GateType } from "../circuits/gate.js";
@@ -11,7 +11,6 @@ import { Column, PolishToken } from "./expr.js";
 import { deserHexScalar } from "../serde/serde_proof.js";
 import { range } from "../util/misc.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
-import { ForeignField } from "../foreign_fields/foreign_field.js";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
@@ -40,12 +39,6 @@ export class ProverProof {
      * Will run the random oracle argument for removing prover-verifier interaction (Fiat-Shamir transform)
      */
     oracles(index: VerifierIndex, public_comm: PolyComm<ForeignGroup>, public_input?: ForeignScalar[]): OraclesResult {
-        let sponge_test = new Sponge();
-        const fields = [ForeignField.from(1), ForeignField.from(2)];
-        fields.forEach((f) => {
-            sponge_test.absorb(f);
-        });
-
         const n = index.domain_size;
         const endo_r = ForeignScalar.from("0x397e65a7d7c1ad71aee24b27e308f0a61259527ec1d4752e619d1840af55f1b1");
         // FIXME: ^ currently hard-coded, refactor this in the future
@@ -60,7 +53,7 @@ export class ProverProof {
         const zk_rows = index.zk_rows;
 
         //~ 1. Setup the Fq-Sponge.
-        let fq_sponge = new Sponge();
+        let fq_sponge = new Sponge(fq_sponge_params(), fq_sponge_initial_state());
 
         //~ 2. Absorb the digest of the VerifierIndex.
         fq_sponge.absorb(index.digest());
@@ -167,7 +160,7 @@ export class ProverProof {
         const zeta = zeta_chal.toField(endo_r);
 
         //~ 17. Setup the Fr-Sponge.
-        let fr_sponge = new Sponge();
+        let fr_sponge = new Sponge(fp_sponge_params(), fp_sponge_initial_state());
         const digest = fq_sponge.digest();
 
         //~ 18. Squeeze the Fq-sponge and absorb the result with the Fr-Sponge.
@@ -176,7 +169,7 @@ export class ProverProof {
         //~ 19. Absorb the previous recursion challenges.
         // Note: we absorb in a new sponge here to limit the scope in which we need the
         // more-expensive 'optional sponge'.
-        let fr_sponge_aux = new Sponge();
+        let fr_sponge_aux = new Sponge(fp_sponge_params(), fp_sponge_initial_state());
         this.prev_challenges.forEach((prev) => fr_sponge_aux.absorbScalars(prev.chals));
         fr_sponge.absorbScalar(fr_sponge_aux.digest());
 
