@@ -184,7 +184,17 @@ export class Verifier extends CircuitBn254 {
     static readonly PERMUTATION_CONSTRAINTS: number = 3;
 
     @circuitMainBn254
-    static main(@public_ openingProof: OpeningProof, @public_ expected: ForeignGroup) {
+    static main(@public_ openingProof: OpeningProof) {
+        let result = this.verify(openingProof);
+
+        // Temporary until we have the complete Kimchi verification as a circuit.
+        // In that case, the expected point would be the point at infinity.
+        let expected = Provable.witnessBn254(ForeignGroup, () => this.verify(openingProof));
+
+        result.assertEquals(expected);
+    }
+
+    static verify(openingProof: OpeningProof) {
         let proverProof = deserProverProof(proof_json);
         proverProof.proof = openingProof;
         let evaluationProof = Batch.toBatch(deserVerifierIndex(verifier_index_json), proverProof, []);
@@ -199,9 +209,7 @@ export class Verifier extends CircuitBn254 {
         points.push(evaluationProof.opening.sg);
         scalars.push(negRandBase.mul(evaluationProof.opening.z1).sub(sgRandBase));
 
-        let result = Verifier.naiveMSM(points, scalars);
-
-        result.assertEquals(expected);
+        return Verifier.naiveMSM(points, scalars);
     }
 
     static naiveMSM(points: ForeignGroup[], scalars: ForeignScalar[]): ForeignGroup {

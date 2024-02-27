@@ -209,12 +209,8 @@ let keypair = await Verifier.generateKeypair();
 
 console.log("Proving...");
 let openingProof = deserOpeningProof(inputs);
-let expected_x = ForeignField.from(inputs.expected.x);
-let expected_y = ForeignField.from(inputs.expected.y);
-// FIXME: expected point does not match current verifier algorithm
-let expected = new ForeignGroup(expected_x, expected_y);
-// let proof = await Verifier.prove([], [openingProof, expected], keypair);
-// console.log(proof);
+let proof = await Verifier.prove([], [openingProof], keypair);
+console.log(proof);
 
 console.log("Writing circuit gates into file...");
 let gates = keypair.constraintSystem();
