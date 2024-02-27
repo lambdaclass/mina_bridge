@@ -6,7 +6,7 @@ import { PolishToken, CurrOrNext, Variable, Column, Linearization } from "../pro
 import { ArgumentType, GateType } from "../circuits/gate.js"
 import { Polynomial } from "../polynomial.js"
 import { Alphas } from "../alphas.js"
-import { ForeignField } from "../foreign_fields/foreign_field.js"
+import { ForeignBase } from "../foreign_fields/foreign_field.js"
 
 export interface PolyCommJSON {
     unshifted: GroupJSON[]
@@ -111,9 +111,9 @@ export interface GroupJSON {
 
 export function deserGroup(json: GroupJSON): ForeignGroup {
     if (json.x === "0" && json.y === "1") {
-        return new ForeignGroup(ForeignField.from(0), ForeignField.from(0))
+        return new ForeignGroup(ForeignBase.from(0), ForeignBase.from(0))
     } else {
-        return new ForeignGroup(ForeignField.from(json.x), ForeignField.from(json.y));
+        return new ForeignGroup(ForeignBase.from(json.x), ForeignBase.from(json.y));
     }
 }
 

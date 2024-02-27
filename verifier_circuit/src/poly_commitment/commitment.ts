@@ -1,6 +1,6 @@
 import { FieldBn254, ForeignGroup, Provable, Scalar } from "o1js";
 import { Sponge } from "../verifier/sponge";
-import { ForeignField } from "../foreign_fields/foreign_field.js";
+import { ForeignBase } from "../foreign_fields/foreign_field.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { SRS } from "../SRS.js";
 
@@ -69,7 +69,7 @@ export class PolyComm<A> {
     * Execute a simple multi-scalar multiplication
     */
     static naiveMSM(points: ForeignGroup[], scalars: ForeignScalar[]) {
-        let result = new ForeignGroup(ForeignField.from(0), ForeignField.from(0));
+        let result = new ForeignGroup(ForeignBase.from(0), ForeignBase.from(0));
 
         for (let i = 0; i < points.length; i++) {
             let point = points[i];
@@ -87,7 +87,7 @@ export class PolyComm<A> {
     */
     static msm(com: PolyComm<ForeignGroup>[], elm: ForeignScalar[]): PolyComm<ForeignGroup> {
         if (com.length === 0 || elm.length === 0) {
-            return new PolyComm<ForeignGroup>([new ForeignGroup(ForeignField.from(0), ForeignField.from(0))]);
+            return new PolyComm<ForeignGroup>([new ForeignGroup(ForeignBase.from(0), ForeignBase.from(0))]);
         }
 
         if (com.length != elm.length) {

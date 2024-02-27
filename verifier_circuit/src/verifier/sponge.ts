@@ -2,12 +2,12 @@ import { Field, ForeignGroup, Poseidon, Provable, Scalar } from "o1js"
 import { PolyComm } from "../poly_commitment/commitment";
 import { PointEvaluations, ProofEvaluations } from "../prover/prover";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
-import { ForeignField } from "../foreign_fields/foreign_field.js";
+import { ForeignBase } from "../foreign_fields/foreign_field.js";
 import { assert } from "console";
 
-type UnionForeignField = ForeignField | ForeignScalar;
-type UnionForeignFieldArr = ForeignField[] | ForeignScalar[];
-type UnionForeignFieldMatrix = ForeignField[][] | ForeignScalar[][];
+type UnionForeignField = ForeignBase | ForeignScalar;
+type UnionForeignFieldArr = ForeignBase[] | ForeignScalar[];
+type UnionForeignFieldMatrix = ForeignBase[][] | ForeignScalar[][];
 
 enum SpongeMode {
     Squeezing,
@@ -71,7 +71,7 @@ export class ArithmeticSponge {
         return this.params.mds.map((row) =>
             this.state.reduce(
                 (acc, s, i) => acc.add(s.mul(row[i])),
-                ForeignField.from(0))
+                ForeignBase.from(0))
         );
     }
 
@@ -126,12 +126,12 @@ export class Sponge {
         this.lastSqueezed = [];
     }
 
-    absorb(x: ForeignField) {
+    absorb(x: ForeignBase) {
         this.lastSqueezed = [];
         this.#internalSponge.absorb(x);
     }
 
-    squeezeField(): ForeignField {
+    squeezeField(): ForeignBase {
         this.lastSqueezed = [];
         return this.#internalSponge.squeeze();
     }
@@ -149,16 +149,16 @@ export class Sponge {
     /** Will do an operation over the scalar to make it suitable for absorbing */
     absorbScalar(s: ForeignScalar) {
         // this operation was extracted from Kimchi FqSponge's`absorb_fr()`.
-        if (ForeignScalar.modulus < ForeignField.modulus) {
-            let f = ForeignField.from(0);
+        if (ForeignScalar.modulus < ForeignBase.modulus) {
+            let f = ForeignBase.from(0);
             Provable.asProverBn254(() => {
-                f = ForeignField.from(s.toBigInt());
+                f = ForeignBase.from(s.toBigInt());
             });
             this.absorb(f);
         } else {
-            let high_bits = ForeignField.from(0);
+            let high_bits = ForeignBase.from(0);
             Provable.asProverBn254(() => {
-                high_bits = ForeignField.from(s.toBigInt() >> 1n);
+                high_bits = ForeignBase.from(s.toBigInt() >> 1n);
                 // WARN:  >> is the sign-propagating left shift operator, so if the number is negative,
                 // it'll add 1s instead of 0s to the most significant end of the integer.
                 // >>>, the zero-fill left shift operator should be used instead here, but it isnt
@@ -166,9 +166,9 @@ export class Sponge {
                 // In any way, the integers are always positive, so there's no problem here.
             });
 
-            let low_bit = ForeignField.from(0);
+            let low_bit = ForeignBase.from(0);
             Provable.asProverBn254(() => {
-                low_bit = ForeignField.from(s.toBigInt() & 1n);
+                low_bit = ForeignBase.from(s.toBigInt() & 1n);
             });
 
             this.absorb(high_bits);
@@ -597,7 +597,7 @@ export function fp_sponge_params(): ArithmeticSpongeParams {
                 27437632000253211280915908546961303399777448677029255413769125486614773776695n,
                 27566319851776897085443681456689352477426926500749993803132851225169606086988n,
             ],
-        ].map((arr) => arr.map(ForeignField.from)),
+        ].map((arr) => arr.map(ForeignBase.from)),
         round_constants: [
             [
                 21155079691556475130150866428468322463125560312786319980770950159250751855431n,
@@ -874,14 +874,14 @@ export function fp_sponge_params(): ArithmeticSpongeParams {
                 13815234633287489023151647353581705241145927054858922281829444557905946323248n,
                 10888828634279127981352133512429657747610298502219125571406085952954136470354n,
             ],
-        ].map((arr) => arr.map(ForeignField.from)),
+        ].map((arr) => arr.map(ForeignBase.from)),
     }
 }
 
-export function fq_sponge_initial_state(): ForeignField[] {
+export function fq_sponge_initial_state(): ForeignBase[] {
     return new Array(3).fill(ForeignScalar.from(0));
 }
 
-export function fp_sponge_initial_state(): ForeignField[] {
-    return new Array(3).fill(ForeignField.from(0));
+export function fp_sponge_initial_state(): ForeignBase[] {
+    return new Array(3).fill(ForeignBase.from(0));
 }

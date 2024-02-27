@@ -6,7 +6,7 @@ import { fp_sponge_initial_state, fp_sponge_params, fq_sponge_initial_state, fq_
 import { Alphas } from '../alphas.js';
 import { Polynomial } from '../polynomial.js';
 import { Linearization, PolishToken } from '../prover/expr.js';
-import { ForeignField } from '../foreign_fields/foreign_field.js';
+import { ForeignBase } from '../foreign_fields/foreign_field.js';
 import { ForeignScalar } from '../foreign_fields/foreign_scalar.js';
 import {
     //LookupSelectors,
@@ -160,7 +160,7 @@ export class VerifierIndex {
     /*
     * Compute the digest of the VerifierIndex, which can be used for the Fiat-Shamir transform.
     */
-    digest(): ForeignField {
+    digest(): ForeignBase {
         let fq_sponge = new Sponge(fp_sponge_params(), fp_sponge_initial_state());
 
         this.sigma_comm.forEach((g) => fq_sponge.absorbGroups(g.unshifted));
@@ -205,7 +205,7 @@ export class Verifier extends CircuitBn254 {
     }
 
     static naiveMSM(points: ForeignGroup[], scalars: ForeignScalar[]): ForeignGroup {
-        let result = new ForeignGroup(ForeignField.from(0), ForeignField.from(0));
+        let result = new ForeignGroup(ForeignBase.from(0), ForeignBase.from(0));
 
         for (let i = 0; i < points.length; i++) {
             let point = points[i];
