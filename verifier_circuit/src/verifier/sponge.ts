@@ -44,15 +44,13 @@ export class ArithmeticSponge {
     }
 
     squeeze(): UnionForeignField {
-        return Provable.witnessBn254(ForeignScalar, () => {
-            if (this.mode == SpongeMode.Absorbing || this.offset === this.params.rate) {
-                this.mode = SpongeMode.Squeezing;
-                this.#permutation();
-                this.offset = 0;
-            }
+        if (this.mode == SpongeMode.Absorbing || this.offset === this.params.rate) {
+            this.mode = SpongeMode.Squeezing;
+            this.#permutation();
+            this.offset = 0;
+        }
 
-            return this.state[this.offset++];
-        });
+        return this.state[this.offset++];
     }
 
     // permutation algorithms
