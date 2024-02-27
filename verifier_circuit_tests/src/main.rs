@@ -1,23 +1,32 @@
 use std::{array, collections::HashMap, fs};
 
+use ark_ec::AffineCurve;
 use ark_ff::Fp256;
 use kimchi::{
     circuits::{
         polynomials::generic::testing::{create_circuit, fill_in_witness},
         wires::COLUMNS,
     },
-    curve::KimchiCurve,
     groupmap::GroupMap,
-    mina_curves::pasta::{fields::FqParameters, Pallas},
-    o1_utils::FieldHelpers,
-    poly_commitment::commitment::CommitmentCurve,
+    mina_curves::pasta::{fields::FqParameters, Pallas, PallasParameters},
+    mina_poseidon::sponge::{DefaultFqSponge, DefaultFrSponge},
+    poly_commitment::{commitment::CommitmentCurve, evaluation_proof::OpeningProof},
     proof::ProverProof,
     prover_index::testing::new_index_for_test_with_lookups,
+    verifier::{batch_verify, Context},
 };
-use verifier_circuit_tests::misc::{
-    to_batch_step1, to_batch_step2, BaseSponge, ProverProofTS, ScalarSponge, UncompressedPolyComm,
-    VerifierIndexTS,
+use verifier_circuit_tests::{
+    misc::{
+        BaseSponge, ProverProofTS, ScalarSponge, SpongeParams, UncompressedPolyComm,
+        VerifierIndexTS,
+    },
+    verifier_steps::{to_batch_step1, to_batch_step2},
 };
+
+type PallasScalar = <Pallas as AffineCurve>::ScalarField;
+
+type FqSponge = DefaultFqSponge<PallasParameters, SpongeParams>;
+type FrSponge = DefaultFrSponge<PallasScalar, SpongeParams>;
 
 fn main() {
     // Create test circuit
@@ -30,13 +39,7 @@ fn main() {
 
     // Print values for hardcoding in verifier_circuit/
     let verifier_index = prover_index.verifier_index();
-    let mds = Pallas::sponge_params()
-        .mds
-        .iter()
-        .map(|arr| arr.iter().map(|e| e.to_hex()).collect::<Vec<_>>())
-        .collect::<Vec<_>>();
     println!("Powers of alpha: {:?}", verifier_index.powers_of_alpha);
-    println!("Sponge MDS: {:?}", mds);
 
     // Export for typescript tests
     fs::write(
@@ -46,14 +49,14 @@ fn main() {
     .unwrap();
 
     // Create proof
+    let group_map = <Pallas as CommitmentCurve>::Map::setup();
     let proof = {
-        let groupmap = <Pallas as CommitmentCurve>::Map::setup();
         // dummy array that will get filled
         let mut witness: [Vec<Fp256<FqParameters>>; COLUMNS] =
             array::from_fn(|_| vec![1u32.into(); num_gates]);
         fill_in_witness(0, &mut witness, &[]);
 
-        ProverProof::create::<BaseSponge, ScalarSponge>(&groupmap, witness, &[], &prover_index)
+        ProverProof::create::<BaseSponge, ScalarSponge>(&group_map, witness, &[], &prover_index)
             .unwrap()
     };
 
@@ -84,10 +87,18 @@ fn main() {
     )
     .unwrap();
 
-    let public_inputs = vec![];
+    let public_input = vec![];
 
     to_batch_step1(&proof, &verifier_index).unwrap();
-    to_batch_step2(&verifier_index, &public_inputs).unwrap();
+    to_batch_step2(&verifier_index, &public_input).unwrap();
+
+    let context = Context {
+        verifier_index: &verifier_index,
+        proof: &proof,
+        public_input: &public_input,
+    };
+    batch_verify::<Pallas, FqSponge, FrSponge, OpeningProof<Pallas>>(&group_map, &[context])
+        .unwrap();
 }
 
 #[cfg(test)]
