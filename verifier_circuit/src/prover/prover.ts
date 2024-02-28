@@ -424,7 +424,7 @@ export class ProverProof {
             u_chal
         }
 
-        const res: OraclesResult = {
+        const res: Oracles = {
             fq_sponge,
             digest,
             oracles,
@@ -835,7 +835,7 @@ export class RandomOracles {
 }
 
 /** The result of running the oracle protocol */
-export class OraclesResult {
+export class Oracles {
     /** A sponge that acts on the base field of a curve */
     fq_sponge: Sponge
     /** the last evaluation of the Fq-Sponge in this protocol */
@@ -857,3 +857,9 @@ export class OraclesResult {
     /** Used by the OCaml side */
     combined_inner_product: ForeignScalar
 }
+
+export class OraclesError {
+    error_message: string
+}
+
+type OraclesResult = Oracles | OraclesError;
