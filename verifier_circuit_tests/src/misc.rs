@@ -94,6 +94,18 @@ pub struct VerifierIndexTS {
     emul_comm: UncompressedPolyComm,
     endomul_scalar_comm: UncompressedPolyComm,
 
+    range_check0_comm: Option<UncompressedPolyComm>,
+
+    range_check1_comm: Option<UncompressedPolyComm>,
+
+    foreign_field_add_comm: Option<UncompressedPolyComm>,
+
+    foreign_field_mul_comm: Option<UncompressedPolyComm>,
+
+    xor_comm: Option<UncompressedPolyComm>,
+
+    rot_comm: Option<UncompressedPolyComm>,
+
     //powers_of_alpha: Alphas<String>,
     shift: Vec<String>,
     permutation_vanishing_polynomial_m: Vec<String>,
@@ -150,6 +162,12 @@ impl From<&VerifierIndex<Pallas, OpeningProof<Pallas>>> for VerifierIndexTS {
             mul_comm,
             emul_comm,
             endomul_scalar_comm,
+            range_check0_comm,
+            range_check1_comm,
+            foreign_field_add_comm,
+            foreign_field_mul_comm,
+            xor_comm,
+            rot_comm,
             //powers_of_alpha,
             shift,
             permutation_vanishing_polynomial_m,
@@ -193,6 +211,12 @@ impl From<&VerifierIndex<Pallas, OpeningProof<Pallas>>> for VerifierIndexTS {
             mul_comm: UncompressedPolyComm::from(mul_comm),
             emul_comm: UncompressedPolyComm::from(emul_comm),
             endomul_scalar_comm: UncompressedPolyComm::from(endomul_scalar_comm),
+            range_check0_comm: range_check0_comm.as_ref().map(UncompressedPolyComm::from),
+            range_check1_comm: range_check1_comm.as_ref().map(UncompressedPolyComm::from),
+            foreign_field_add_comm: foreign_field_add_comm.as_ref().map(UncompressedPolyComm::from),
+            foreign_field_mul_comm: foreign_field_mul_comm.as_ref().map(UncompressedPolyComm::from),
+            xor_comm: xor_comm.as_ref().map(UncompressedPolyComm::from),
+            rot_comm: rot_comm.as_ref().map(UncompressedPolyComm::from),
             //powers_of_alpha,
             shift: shift.iter().map(|e| e.to_hex()).collect::<Vec<_>>(),
             permutation_vanishing_polynomial_m: permutation_vanishing_polynomial_m

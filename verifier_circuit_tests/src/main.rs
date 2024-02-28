@@ -20,7 +20,7 @@ use verifier_circuit_tests::{
         BaseSponge, ProverProofTS, ScalarSponge, SpongeParams, UncompressedPolyComm,
         VerifierIndexTS,
     },
-    verifier_steps::{to_batch_step1, to_batch_step2},
+    verifier_steps::{to_batch_step1, to_batch_step2, to_batch_step3},
 };
 
 type PallasScalar = <Pallas as AffineCurve>::ScalarField;
@@ -90,7 +90,14 @@ fn main() {
     let public_input = vec![];
 
     to_batch_step1(&proof, &verifier_index).unwrap();
-    to_batch_step2(&verifier_index, &public_input).unwrap();
+    let public_comm = to_batch_step2(&verifier_index, &public_input).unwrap();
+    to_batch_step3::<Pallas, FqSponge, FrSponge, OpeningProof<Pallas>>(
+        &proof,
+        &verifier_index,
+        &public_comm,
+        Some(&public_input),
+    )
+    .unwrap();
 
     let context = Context {
         verifier_index: &verifier_index,
