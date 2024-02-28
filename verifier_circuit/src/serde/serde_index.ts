@@ -96,6 +96,13 @@ interface VerifierIndexJSON {
     emul_comm: PolyCommJSON
     endomul_scalar_comm: PolyCommJSON
 
+    range_check0_comm?: PolyCommJSON
+    range_check1_comm?: PolyCommJSON,
+    foreign_field_add_comm?: PolyCommJSON,
+    foreign_field_mul_comm?: PolyCommJSON,
+    xor_comm?: PolyCommJSON,
+    rot_comm?: PolyCommJSON,
+
     //powers_of_alpha: AlphasJSON
     shift: string[]
     permutation_vanishing_polynomial_m: PolynomialJSON
@@ -202,6 +209,12 @@ export function deserVerifierIndex(json: VerifierIndexJSON): VerifierIndex {
         mul_comm,
         emul_comm,
         endomul_scalar_comm,
+        range_check0_comm,
+        range_check1_comm,
+        foreign_field_add_comm,
+        foreign_field_mul_comm,
+        xor_comm,
+        rot_comm,
         //powers_of_alpha,
         shift,
         permutation_vanishing_polynomial_m,
@@ -240,6 +253,12 @@ export function deserVerifierIndex(json: VerifierIndexJSON): VerifierIndex {
         deserPolynomial(permutation_vanishing_polynomial_m),
         deserHexScalar(w),
         deserHexScalar(endo),
-        deserLinearization(linearization)
+        deserLinearization(linearization),
+        range_check0_comm ? deserPolyComm(range_check0_comm) : undefined,
+        range_check1_comm ? deserPolyComm(range_check1_comm!) : undefined,
+        foreign_field_add_comm ? deserPolyComm(foreign_field_add_comm) : undefined,
+        foreign_field_mul_comm ? deserPolyComm(foreign_field_mul_comm) : undefined,
+        xor_comm ? deserPolyComm(xor_comm) : undefined,
+        rot_comm ? deserPolyComm(rot_comm) : undefined,
     );
 }
