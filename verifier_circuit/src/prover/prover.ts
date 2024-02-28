@@ -53,7 +53,7 @@ export class ProverProof {
         const zk_rows = index.zk_rows;
 
         //~ 1. Setup the Fq-Sponge.
-        let fq_sponge = new Sponge(fq_sponge_params(), fq_sponge_initial_state());
+        let fq_sponge = new Sponge(fp_sponge_params(), fp_sponge_initial_state());
 
         //~ 2. Absorb the digest of the VerifierIndex.
         fq_sponge.absorb(index.digest());
@@ -160,7 +160,7 @@ export class ProverProof {
         const zeta = zeta_chal.toField(endo_r);
 
         //~ 17. Setup the Fr-Sponge.
-        let fr_sponge = new Sponge(fp_sponge_params(), fp_sponge_initial_state());
+        let fr_sponge = new Sponge(fq_sponge_params(), fq_sponge_initial_state());
         const digest = fq_sponge.digest();
 
         //~ 18. Squeeze the Fq-sponge and absorb the result with the Fr-Sponge.
@@ -169,7 +169,7 @@ export class ProverProof {
         //~ 19. Absorb the previous recursion challenges.
         // Note: we absorb in a new sponge here to limit the scope in which we need the
         // more-expensive 'optional sponge'.
-        let fr_sponge_aux = new Sponge(fp_sponge_params(), fp_sponge_initial_state());
+        let fr_sponge_aux = new Sponge(fq_sponge_params(), fq_sponge_initial_state());
         this.prev_challenges.forEach((prev) => fr_sponge_aux.absorbScalars(prev.chals));
         fr_sponge.absorbScalar(fr_sponge_aux.digest());
 
@@ -730,11 +730,11 @@ export class RecursionChallenge {
 */
 export class LookupCommitments {
     /// Commitments to the sorted lookup table polynomial (may have chunks)
-    sorted: PolyComm<Group>[]
+    sorted: PolyComm<ForeignGroup>[]
     /// Commitment to the lookup aggregation polynomial
-    aggreg: PolyComm<Group>
+    aggreg: PolyComm<ForeignGroup>
     /// Optional commitment to concatenated runtime tables
-    runtime?: PolyComm<Group>
+    runtime?: PolyComm<ForeignGroup>
 }
 
 export class ProverCommitments {

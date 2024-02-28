@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from "fs";
 import { ForeignGroup } from "o1js";
 import { Verifier } from "./verifier/verifier.js";
 import { deserOpeningProof } from "./serde/serde_proof.js";
-import { ForeignField } from "./foreign_fields/foreign_field.js";
+import { ForeignBase } from "./foreign_fields/foreign_field.js";
 
 let inputs;
 try {
@@ -209,8 +209,8 @@ let keypair = await Verifier.generateKeypair();
 
 console.log("Proving...");
 let openingProof = deserOpeningProof(inputs);
-let expected_x = ForeignField.from(inputs.expected.x);
-let expected_y = ForeignField.from(inputs.expected.y);
+let expected_x = ForeignBase.from(inputs.expected.x);
+let expected_y = ForeignBase.from(inputs.expected.y);
 // FIXME: expected point does not match current verifier algorithm
 let expected = new ForeignGroup(expected_x, expected_y);
 // let proof = await Verifier.prove([], [openingProof, expected], keypair);

@@ -1,7 +1,7 @@
 import lagrange_bases_json from "../test_data/lagrange_bases.json" assert { type: "json" };
 import { BlindedCommitment, PolyComm } from "./poly_commitment/commitment.js";
 import { readFileSync } from "fs";
-import { ForeignField } from "./foreign_fields/foreign_field.js";
+import { ForeignBase } from "./foreign_fields/foreign_field.js";
 import { Field, ForeignGroup } from "o1js";
 import { ForeignScalar } from "./foreign_fields/foreign_scalar.js";
 
@@ -51,7 +51,7 @@ export class SRS {
     }
 
     static #createGroupFromJSON(group_json: string[]) {
-        return new ForeignGroup(ForeignField.from(group_json[0]), ForeignField.from(group_json[1]));
+        return new ForeignGroup(ForeignBase.from(group_json[0]), ForeignBase.from(group_json[1]));
     }
     static #createLagrangeBasesFromJSON(json: LagrangeBaseJSON): Map<number, PolyComm<ForeignGroup>[]> {
         let map_unshifted = (unshifted: { x: string, y: string }[]) =>
