@@ -97,19 +97,19 @@ interface VerifierIndexJSON {
     emul_comm: PolyCommJSON
     endomul_scalar_comm: PolyCommJSON
 
-    range_check0_comm?: PolyCommJSON
-    range_check1_comm?: PolyCommJSON,
-    foreign_field_add_comm?: PolyCommJSON,
-    foreign_field_mul_comm?: PolyCommJSON,
-    xor_comm?: PolyCommJSON,
-    rot_comm?: PolyCommJSON,
+    range_check0_comm: PolyCommJSON | null
+    range_check1_comm: PolyCommJSON | null,
+    foreign_field_add_comm: PolyCommJSON | null,
+    foreign_field_mul_comm: PolyCommJSON | null,
+    xor_comm: PolyCommJSON | null,
+    rot_comm: PolyCommJSON | null,
 
     //powers_of_alpha: AlphasJSON
     shift: string[]
     permutation_vanishing_polynomial_m: PolynomialJSON
     w: string
     endo: string
-    lookup_index: LookupVerifierIndexJSON,
+    lookup_index: LookupVerifierIndexJSON | null,
     linearization: LinearizationJSON,
 }
 
@@ -118,18 +118,18 @@ export interface LookupVerifierIndexJSON {
     lookup_table: PolyCommJSON[],
     lookup_selectors: LookupSelectorsJSON
 
-    table_ids?: PolyCommJSON,
+    table_ids: PolyCommJSON | null,
 
     lookup_info: LookupInfoJSON,
 
-    runtime_tables_selector?: PolyCommJSON
+    runtime_tables_selector: PolyCommJSON | null
 }
 
 export interface LookupSelectorsJSON {
-    xor?: PolyCommJSON,
-    lookup?: PolyCommJSON,
-    range_check?: PolyCommJSON,
-    ffmul?: PolyCommJSON
+    xor: PolyCommJSON | null,
+    lookup: PolyCommJSON | null,
+    range_check: PolyCommJSON | null,
+    ffmul: PolyCommJSON | null
 }
 
 export interface LookupInfoJSON {
