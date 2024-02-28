@@ -1,8 +1,28 @@
 use ark_ec::AffineCurve;
-use ark_ff::{One, PrimeField};
-use ark_poly::EvaluationDomain;
+use ark_ff::{Field, One, PrimeField, Zero};
+use ark_poly::{univariate::DensePolynomial, EvaluationDomain, Polynomial};
 use kimchi::{
-    curve::KimchiCurve, error::VerifyError, mina_poseidon::FqSponge, plonk_sponge::FrSponge, poly_commitment::{OpenProof, PolyComm, SRS}, proof::{PointEvaluations, ProofEvaluations, ProverProof}, verifier_index::VerifierIndex
+    circuits::{
+        argument::ArgumentType,
+        expr::{Column, Constants, PolishToken},
+        gate::GateType,
+        lookup::lookups::LookupPattern,
+        polynomials::permutation,
+        scalars::RandomOracles,
+        wires::{COLUMNS, PERMUTS},
+    },
+    curve::KimchiCurve,
+    error::VerifyError,
+    mina_poseidon::{sponge::ScalarChallenge, FqSponge},
+    o1_utils::ExtendedDensePolynomial,
+    oracles::OraclesResult,
+    plonk_sponge::FrSponge,
+    poly_commitment::{
+        commitment::{absorb_commitment, combined_inner_product},
+        OpenProof, PolyComm, SRS,
+    },
+    proof::{PointEvaluations, ProofEvaluations, ProverProof, RecursionChallenge},
+    verifier_index::VerifierIndex,
 };
 
 /// Enforce the length of evaluations inside [`Proof`].
@@ -175,7 +195,7 @@ where
 pub fn to_batch_step2<G, OpeningProof: OpenProof<G>>(
     verifier_index: &VerifierIndex<G, OpeningProof>,
     public_input: &[<G as AffineCurve>::ScalarField],
-) -> Result<(), VerifyError>
+) -> Result<PolyComm<G>, VerifyError>
 where
     G: KimchiCurve,
     G::BaseField: PrimeField,
@@ -210,19 +230,22 @@ where
         "Done, public_comm: {:?}",
         public_comm.unshifted[0].to_string()
     );
-    Ok(())
+    Ok(public_comm)
 }
 
-fn to_batch_step3<
-    G: KimchiCurve,
-    EFqSponge: Clone + FqSponge<G::BaseField, G, G::ScalarField>,
-    EFrSponge: FrSponge<G::ScalarField>,
->(
-    proof: ProverProof,
+pub fn to_batch_step3<G, EFqSponge, EFrSponge, OpeningProof>(
+    proof: &ProverProof<G, OpeningProof>,
     index: &VerifierIndex<G, OpeningProof>,
     public_comm: &PolyComm<G>,
     public_input: Option<&[G::ScalarField]>,
-) {
+) -> Result<OraclesResult<G, EFqSponge>, VerifyError>
+where
+    G: KimchiCurve,
+    G::BaseField: PrimeField,
+    EFqSponge: Clone + FqSponge<G::BaseField, G, G::ScalarField>,
+    EFrSponge: FrSponge<G::ScalarField>,
+    OpeningProof: OpenProof<G>,
+{
     //~
     //~ #### Fiat-Shamir argument
     //~
@@ -258,7 +281,8 @@ fn to_batch_step3<
     absorb_commitment(&mut fq_sponge, public_comm);
 
     //~ 1. Absorb the commitments to the registers / witness columns with the Fq-Sponge.
-    proof.commitments
+    proof
+        .commitments
         .w_comm
         .iter()
         .for_each(|c| absorb_commitment(&mut fq_sponge, c));
@@ -633,19 +657,22 @@ fn to_batch_step3<
                                         .flatten(),
                                 )
                                 .chain(
-                                    proof.evals
+                                    proof
+                                        .evals
                                         .runtime_lookup_table_selector
                                         .as_ref()
                                         .map(|_| Column::LookupRuntimeSelector),
                                 )
                                 .chain(
-                                    proof.evals
+                                    proof
+                                        .evals
                                         .xor_lookup_selector
                                         .as_ref()
                                         .map(|_| Column::LookupKindIndex(LookupPattern::Xor)),
                                 )
                                 .chain(
-                                    proof.evals
+                                    proof
+                                        .evals
                                         .lookup_gate_lookup_selector
                                         .as_ref()
                                         .map(|_| Column::LookupKindIndex(LookupPattern::Lookup)),
