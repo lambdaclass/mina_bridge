@@ -2,7 +2,7 @@ import lagrange_bases_json from "../test_data/lagrange_bases.json" assert { type
 import { BlindedCommitment, PolyComm } from "./poly_commitment/commitment.js";
 import { readFileSync } from "fs";
 import { ForeignField } from "./foreign_fields/foreign_field.js";
-import { ForeignGroup } from "o1js";
+import { Field, ForeignGroup } from "o1js";
 import { ForeignScalar } from "./foreign_fields/foreign_scalar.js";
 
 let srs_json;

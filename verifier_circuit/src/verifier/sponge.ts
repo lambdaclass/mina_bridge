@@ -150,11 +150,15 @@ export class Sponge {
     absorbScalar(s: ForeignScalar) {
         // this operation was extracted from Kimchi FqSponge's`absorb_fr()`.
         if (ForeignScalar.modulus < ForeignField.modulus) {
-            const f = ForeignField.from(s.toBigInt());
+            let f = ForeignField.from(0);
+            Provable.asProverBn254(() => {
+                f = ForeignField.from(s.toBigInt());
+            });
             this.absorb(f);
         } else {
-            const high_bits = Provable.witnessBn254(ForeignField, () => {
-                return ForeignField.from(s.toBigInt() >> 1n);
+            let high_bits = ForeignField.from(0);
+            Provable.asProverBn254(() => {
+                high_bits = ForeignField.from(s.toBigInt() >> 1n);
                 // WARN:  >> is the sign-propagating left shift operator, so if the number is negative,
                 // it'll add 1s instead of 0s to the most significant end of the integer.
                 // >>>, the zero-fill left shift operator should be used instead here, but it isnt
@@ -162,8 +166,9 @@ export class Sponge {
                 // In any way, the integers are always positive, so there's no problem here.
             });
 
-            const low_bit = Provable.witnessBn254(ForeignField, () => {
-                return ForeignField.from(s.toBigInt() & 1n);
+            let low_bit = ForeignField.from(0);
+            Provable.asProverBn254(() => {
+                low_bit = ForeignField.from(s.toBigInt() & 1n);
             });
 
             this.absorb(high_bits);
@@ -240,14 +245,12 @@ export class Sponge {
     * Calls `squeezeLimbs()` and composes them into a scalar.
     */
     squeeze(numLimbs: number): ForeignScalar {
-        return Provable.witnessBn254(ForeignScalar, () => {
-            let squeezed = 0n;
-            const squeezedLimbs = this.squeezeLimbs(numLimbs);
-            for (const i in this.squeezeLimbs(numLimbs)) {
-                squeezed += squeezedLimbs[i] << (64n * BigInt(i));
-            }
-            return ForeignScalar.from(squeezed);
-        });
+        let squeezed = 0n;
+        const squeezedLimbs = this.squeezeLimbs(numLimbs);
+        for (const i in this.squeezeLimbs(numLimbs)) {
+            squeezed += squeezedLimbs[i] << (64n * BigInt(i));
+        }
+        return ForeignScalar.from(squeezed);
     }
 
     challenge(): ForeignScalar {

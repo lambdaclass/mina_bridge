@@ -239,7 +239,7 @@ export class ProverProof {
                     pe_zeta = pe_zeta.add(l.neg().mul(p).mul(w_i));
                 }
                 const size_inv = invScalar(ForeignScalar.from(index.domain_size));
-                pe_zeta = pe_zeta.mul(zeta1.sub(Scalar.from(1))).mul(size_inv);
+                pe_zeta = pe_zeta.mul(zeta1.sub(ForeignScalar.from(1))).mul(size_inv);
 
                 let pe_zetaOmega = ForeignScalar.from(0);
                 const min_lenOmega = Math.min(
@@ -255,7 +255,7 @@ export class ProverProof {
                     pe_zetaOmega = pe_zetaOmega.add(l.neg().mul(p).mul(w_i));
                 }
                 pe_zetaOmega = pe_zetaOmega
-                    .mul(powScalar(zetaw, n).sub(Scalar.from(1)))
+                    .mul(powScalar(zetaw, n).sub(ForeignScalar.from(1)))
                     .mul(size_inv);
 
                 public_evals = [[pe_zeta], [pe_zetaOmega]];
@@ -763,7 +763,9 @@ export class ScalarChallenge {
     }
 
     toFieldWithLength(length_in_bits: number, endo_coeff: ForeignScalar): ForeignScalar {
-        return Provable.witnessBn254(ForeignScalar, () => {
+        let result = ForeignScalar.from(0);
+
+        Provable.asProverBn254(() => {
             const rep = this.chal.toBigInt();
             const rep_64_limbs = getLimbs64(rep);
 
@@ -786,8 +788,10 @@ export class ScalarChallenge {
                 }
             }
 
-            return a.mul(endo_coeff).add(b);
+            result = a.mul(endo_coeff).add(b);
         });
+
+        return result;
     }
 
     toField(endo_coeff: ForeignScalar): ForeignScalar {

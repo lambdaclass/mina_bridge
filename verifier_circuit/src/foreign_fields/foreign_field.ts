@@ -1,3 +1,3 @@
-import { Field, createForeignField } from "o1js";
+import { Field, createForeignFieldBn254 } from "o1js";
 
-export class ForeignField extends createForeignField(Field.ORDER) { }
+export class ForeignField extends createForeignFieldBn254(Field.ORDER) { }
