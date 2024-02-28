@@ -260,6 +260,12 @@
     ],
     "shifted": null
   },
+  "range_check0_comm": null,
+  "range_check1_comm": null,
+  "foreign_field_add_comm": null,
+  "foreign_field_mul_comm": null,
+  "xor_comm": null,
+  "rot_comm": null,
   "shift": [
     "0100000000000000000000000000000000000000000000000000000000000000",
     "e3a214e91334d0caf1eb85df5bd7524d73d5eb7aaf742a7eb2d40bfdc8cdb900",
@@ -277,6 +283,7 @@
   ],
   "w": "3183020efb8ea7613009a36ed0d08c0617310f9d09eadc2f0e502e5fc7242c39",
   "endo": "4f0eaa50e0d2a92aaf33c0477d46ed0f5a0ff71cd8b41d518e523e28589a8106",
+  "lookup_index": null,
   "linearization": {
     "constant_term": [
       {
