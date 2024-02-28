@@ -730,11 +730,11 @@ export class RecursionChallenge {
 */
 export class LookupCommitments {
     /// Commitments to the sorted lookup table polynomial (may have chunks)
-    sorted: PolyComm<Group>[]
+    sorted: PolyComm<ForeignGroup>[]
     /// Commitment to the lookup aggregation polynomial
-    aggreg: PolyComm<Group>
+    aggreg: PolyComm<ForeignGroup>
     /// Optional commitment to concatenated runtime tables
-    runtime?: PolyComm<Group>
+    runtime?: PolyComm<ForeignGroup>
 }
 
 export class ProverCommitments {
