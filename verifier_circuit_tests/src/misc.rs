@@ -1,7 +1,13 @@
 use ark_ec::AffineCurve;
 use ark_poly::{domain::EvaluationDomain, UVPolynomial};
 use kimchi::{
-    circuits::expr::{Linearization, PolishToken},
+    circuits::{
+        expr::{Linearization, PolishToken},
+        lookup::{
+            index::LookupSelectors,
+            lookups::{LookupFeatures, LookupInfo, LookupPatterns},
+        },
+    },
     mina_curves::pasta::{Fq, Pallas, PallasParameters},
     mina_poseidon::{
         constants::PlonkSpongeConstantsKimchi,
@@ -13,7 +19,7 @@ use kimchi::{
         LookupCommitments, PointEvaluations, ProofEvaluations, ProverCommitments, ProverProof,
         RecursionChallenge,
     },
-    verifier_index::VerifierIndex,
+    verifier_index::{LookupVerifierIndex, VerifierIndex},
 };
 use serde::Serialize;
 
@@ -58,6 +64,19 @@ impl From<&Pallas> for UncompressedPoint {
 pub struct UncompressedPolyComm {
     pub unshifted: Vec<UncompressedPoint>,
     pub shifted: Option<UncompressedPoint>,
+}
+
+impl From<PolyComm<Pallas>> for UncompressedPolyComm {
+    fn from(value: PolyComm<Pallas>) -> Self {
+        Self {
+            unshifted: value
+                .unshifted
+                .iter()
+                .map(UncompressedPoint::from)
+                .collect(),
+            shifted: value.shifted.map(|s| UncompressedPoint::from(&s)),
+        }
+    }
 }
 
 impl From<&PolyComm<Pallas>> for UncompressedPolyComm {
@@ -106,12 +125,60 @@ pub struct VerifierIndexTS {
 
     rot_comm: Option<UncompressedPolyComm>,
 
-    //powers_of_alpha: Alphas<String>,
     shift: Vec<String>,
     permutation_vanishing_polynomial_m: Vec<String>,
+
     w: String,
+
     endo: String,
+
+    lookup_index: Option<LookupVerifierIndexTS>,
+
     linearization: Linearization<Vec<PolishToken<String>>>,
+    //powers_of_alpha: Alphas<String>,
+}
+
+#[derive(Serialize, Debug)]
+pub struct LookupVerifierIndexTS {
+    joint_lookup_used: bool,
+    lookup_table: Vec<UncompressedPolyComm>,
+    lookup_selectors: LookupSelectorsTS,
+
+    table_ids: Option<UncompressedPolyComm>,
+
+    lookup_info: LookupInfoTS,
+
+    runtime_tables_selector: Option<UncompressedPolyComm>,
+}
+
+#[derive(Serialize, Debug)]
+pub struct LookupSelectorsTS {
+    xor: Option<UncompressedPolyComm>,
+    lookup: Option<UncompressedPolyComm>,
+    range_check: Option<UncompressedPolyComm>,
+    ffmul: Option<UncompressedPolyComm>,
+}
+
+#[derive(Serialize, Debug)]
+pub struct LookupInfoTS {
+    max_per_row: usize,
+    max_joint_size: u32,
+    features: LookupFeaturesTS,
+}
+
+#[derive(Serialize, Debug)]
+pub struct LookupFeaturesTS {
+    patterns: LookupPatternsTS,
+    joint_lookup_used: bool,
+    uses_runtime_tables: bool,
+}
+
+#[derive(Serialize, Debug)]
+pub struct LookupPatternsTS {
+    xor: bool,
+    lookup: bool,
+    range_check: bool,
+    foreign_field_mul: bool,
 }
 
 fn token_to_hex(value: &PolishToken<PallasScalar>) -> PolishToken<String> {
@@ -173,6 +240,7 @@ impl From<&VerifierIndex<Pallas, OpeningProof<Pallas>>> for VerifierIndexTS {
             permutation_vanishing_polynomial_m,
             w,
             endo,
+            lookup_index,
             linearization,
             ..
         } = value;
@@ -194,6 +262,82 @@ impl From<&VerifierIndex<Pallas, OpeningProof<Pallas>>> for VerifierIndexTS {
             }
         };
 
+        let lookup_index = lookup_index.as_ref().map(|index| {
+            let LookupVerifierIndex {
+                joint_lookup_used,
+                lookup_table,
+                lookup_selectors,
+                table_ids,
+                lookup_info,
+                runtime_tables_selector,
+            } = index;
+            let lookup_selectors = {
+                let LookupSelectors {
+                    xor,
+                    lookup,
+                    range_check,
+                    ffmul,
+                } = lookup_selectors.clone();
+                LookupSelectorsTS {
+                    xor: xor.map(UncompressedPolyComm::from),
+                    lookup: lookup.map(UncompressedPolyComm::from),
+                    range_check: range_check.map(UncompressedPolyComm::from),
+                    ffmul: ffmul.map(UncompressedPolyComm::from),
+                }
+            };
+            let lookup_info = {
+                let LookupInfo {
+                    max_per_row,
+                    max_joint_size,
+                    features,
+                } = *lookup_info;
+                let features = {
+                    let LookupFeatures {
+                        patterns,
+                        joint_lookup_used,
+                        uses_runtime_tables,
+                    } = features;
+                    let patterns = {
+                        let LookupPatterns {
+                            xor,
+                            lookup,
+                            range_check,
+                            foreign_field_mul,
+                        } = patterns;
+                        LookupPatternsTS {
+                            xor,
+                            lookup,
+                            range_check,
+                            foreign_field_mul,
+                        }
+                    };
+                    LookupFeaturesTS {
+                        patterns,
+                        joint_lookup_used,
+                        uses_runtime_tables,
+                    }
+                };
+                LookupInfoTS {
+                    max_per_row,
+                    max_joint_size,
+                    features,
+                }
+            };
+            LookupVerifierIndexTS {
+                joint_lookup_used: *joint_lookup_used,
+                lookup_table: lookup_table
+                    .iter()
+                    .map(UncompressedPolyComm::from)
+                    .collect(),
+                lookup_selectors,
+                table_ids: table_ids.clone().map(UncompressedPolyComm::from),
+                lookup_info,
+                runtime_tables_selector: runtime_tables_selector
+                    .clone()
+                    .map(UncompressedPolyComm::from),
+            }
+        });
+
         VerifierIndexTS {
             domain_size: domain.size(),
             domain_gen: domain.group_gen.to_hex(),
@@ -213,11 +357,14 @@ impl From<&VerifierIndex<Pallas, OpeningProof<Pallas>>> for VerifierIndexTS {
             endomul_scalar_comm: UncompressedPolyComm::from(endomul_scalar_comm),
             range_check0_comm: range_check0_comm.as_ref().map(UncompressedPolyComm::from),
             range_check1_comm: range_check1_comm.as_ref().map(UncompressedPolyComm::from),
-            foreign_field_add_comm: foreign_field_add_comm.as_ref().map(UncompressedPolyComm::from),
-            foreign_field_mul_comm: foreign_field_mul_comm.as_ref().map(UncompressedPolyComm::from),
+            foreign_field_add_comm: foreign_field_add_comm
+                .as_ref()
+                .map(UncompressedPolyComm::from),
+            foreign_field_mul_comm: foreign_field_mul_comm
+                .as_ref()
+                .map(UncompressedPolyComm::from),
             xor_comm: xor_comm.as_ref().map(UncompressedPolyComm::from),
             rot_comm: rot_comm.as_ref().map(UncompressedPolyComm::from),
-            //powers_of_alpha,
             shift: shift.iter().map(|e| e.to_hex()).collect::<Vec<_>>(),
             permutation_vanishing_polynomial_m: permutation_vanishing_polynomial_m
                 .get()
@@ -228,7 +375,9 @@ impl From<&VerifierIndex<Pallas, OpeningProof<Pallas>>> for VerifierIndexTS {
                 .collect::<Vec<_>>(),
             w: w.get().unwrap().to_hex(),
             endo: endo.to_hex(),
+            lookup_index,
             linearization,
+            //powers_of_alpha,
         }
     }
 }
