@@ -53,18 +53,18 @@ pub struct LookupVerifierIndex<G: CommitmentCurve> {
 
 export class LookupVerifierIndex {
     joint_lookup_used: boolean
-    lookup_table: PolyComm<Group>[]
+    lookup_table: PolyComm<ForeignGroup>[]
     // TODO !!! lookup_selectors: LookupSelectors<PolyComm<Group>>
 
     /// Table IDs for the lookup values.
     /// This may be `None` if all lookups originate from table 0.
-    table_ids?: PolyComm<Group>
+    table_ids?: PolyComm<ForeignGroup>
 
     /// Information about the specific lookups used
     lookup_info: LookupInfo
 
     /// An optional selector polynomial for runtime tables
-    runtime_tables_selector?: PolyComm<Group>
+    runtime_tables_selector?: PolyComm<ForeignGroup>
 }
 
 /**

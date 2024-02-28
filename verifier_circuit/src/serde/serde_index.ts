@@ -1,12 +1,13 @@
 import { ForeignGroup, Group, Scalar } from "o1js"
 import { PolyComm } from "../poly_commitment/commitment.js"
-import { VerifierIndex } from "../verifier/verifier.js"
+import { LookupVerifierIndex, VerifierIndex } from "../verifier/verifier.js"
 import { deserHexScalar } from "./serde_proof.js"
 import { PolishToken, CurrOrNext, Variable, Column, Linearization } from "../prover/expr.js"
 import { ArgumentType, GateType } from "../circuits/gate.js"
 import { Polynomial } from "../polynomial.js"
 import { Alphas } from "../alphas.js"
 import { ForeignBase } from "../foreign_fields/foreign_field.js"
+import { LookupFeatures, LookupInfo, LookupPatterns } from "../lookups/lookups.js"
 
 export interface PolyCommJSON {
     unshifted: GroupJSON[]
@@ -108,7 +109,46 @@ interface VerifierIndexJSON {
     permutation_vanishing_polynomial_m: PolynomialJSON
     w: string
     endo: string
+    lookup_index: LookupVerifierIndexJSON,
     linearization: LinearizationJSON,
+}
+
+export interface LookupVerifierIndexJSON {
+    joint_lookup_used: boolean,
+    lookup_table: PolyCommJSON[],
+    lookup_selectors: LookupSelectorsJSON
+
+    table_ids?: PolyCommJSON,
+
+    lookup_info: LookupInfoJSON,
+
+    runtime_tables_selector?: PolyCommJSON
+}
+
+export interface LookupSelectorsJSON {
+    xor?: PolyCommJSON,
+    lookup?: PolyCommJSON,
+    range_check?: PolyCommJSON,
+    ffmul?: PolyCommJSON
+}
+
+export interface LookupInfoJSON {
+    max_per_row: number,
+    max_joint_size: number,
+    features: LookupFeaturesJSON
+}
+
+export interface LookupFeaturesJSON {
+    patterns: LookupPatternsJSON,
+    joint_lookup_used: boolean,
+    uses_runtime_tables: boolean
+}
+
+export interface LookupPatternsJSON {
+    xor: boolean,
+    lookup: boolean,
+    range_check: boolean,
+    foreign_field_mul: boolean,
 }
 
 export interface GroupJSON {
@@ -223,6 +263,35 @@ export function deserVerifierIndex(json: VerifierIndexJSON): VerifierIndex {
         linearization,
     } = json;
 
+    let lookup_index: LookupVerifierIndex | undefined = undefined;
+    if (json.lookup_index) {
+        const patterns: LookupPatterns = json.lookup_index.lookup_info.features.patterns;
+        const features: LookupFeatures = {
+            ...json.lookup_index.lookup_info.features,
+            patterns
+        };
+        const lookup_info: LookupInfo = {
+            ...json.lookup_index.lookup_info,
+            features
+        };
+
+        const lookup_table = json.lookup_index.lookup_table.map(deserPolyComm);
+        const table_ids = json.lookup_index.table_ids
+            ? deserPolyComm(json.lookup_index.table_ids)
+            : undefined;
+        const runtime_tables_selector = json.lookup_index.runtime_tables_selector
+            ? deserPolyComm(json.lookup_index.runtime_tables_selector)
+            : undefined;
+
+        lookup_index = {
+            ...json.lookup_index,
+            lookup_table,
+            table_ids,
+            lookup_info,
+            runtime_tables_selector
+        };
+    }
+
     // FIXME: hardcoded because of the difficulty of serializing this in Rust.
     // Alphas { next_power: 24, mapping: {Gate(Zero): (0, 21), Permutation: (21, 3)}, alphas: None }
     // this was generated from the verifier_circuit_tests/ crate.
@@ -260,5 +329,6 @@ export function deserVerifierIndex(json: VerifierIndexJSON): VerifierIndex {
         foreign_field_mul_comm ? deserPolyComm(foreign_field_mul_comm) : undefined,
         xor_comm ? deserPolyComm(xor_comm) : undefined,
         rot_comm ? deserPolyComm(rot_comm) : undefined,
+        lookup_index
     );
 }
