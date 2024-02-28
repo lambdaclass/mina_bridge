@@ -70,61 +70,28 @@ export class ProverProof {
         this.commitments.wComm.forEach(fq_sponge.absorbCommitment.bind(fq_sponge));
 
         //~ 6. If lookup is used:
-        // WARN: omitted lookup-related for now
-        /*
-        if let Some(l) = &index.lookup_index {
-            let lookup_commits = self
-                .commitments
-                .lookup
-                .as_ref()
-                .ok_or(VerifyError::LookupCommitmentMissing)?;
-
-            // if runtime is used, absorb the commitment
-            if l.runtime_tables_selector.is_some() {
-                let runtime_commit = lookup_commits
-                    .runtime
-                    .as_ref()
-                    .ok_or(VerifyError::IncorrectRuntimeProof)?;
-                absorb_commitment(&mut fq_sponge, runtime_commit);
+        let joint_combiner = undefined;
+        if (index.lookup_index) {
+            const l = index.lookup_index;
+            const lookup_commits = this.commitments.lookup
+            if (!lookup_commits) return { error_message: "missing lookup commitments" };
+            if (l.runtime_tables_selector) {
+                const runtime_commit = lookup_commits.runtime;
+                if (!runtime_commit) return { error_message: "incorrect runtime proof" };
+                fq_sponge.absorbCommitment(runtime_commit);
             }
+
+            const zero = Provable.witnessBn254(ForeignScalar, () => ForeignScalar.from(0));
+            const joint_combiner_scalar = l.joint_lookup_used
+                ? fq_sponge.challenge()
+                : zero;
+            const joint_combiner_chal = new ScalarChallenge(joint_combiner_scalar);
+            const joint_combiner_field = joint_combiner_chal.toField(endo_r);
+            joint_combiner = [joint_combiner_scalar, joint_combiner_field];
+
+            lookup_commits.sorted.forEach(fq_sponge.absorbCommitment);
         }
-
-        let joint_combiner = if let Some(l) = &index.lookup_index {
-            //~~ * If it involves queries to a multiple-column lookup table,
-            //~~   then squeeze the Fq-Sponge to obtain the joint combiner challenge $j'$,
-            //~~   otherwise set the joint combiner challenge $j'$ to $0$.
-            let joint_combiner = if l.joint_lookup_used {
-                panic!("challenge joint combiner");
-                fq_sponge.challenge()
-            } else {
-                G::ScalarField::zero()
-            };
-
-            //~~ * Derive the scalar joint combiner challenge $j$ from $j'$ using the endomorphism.
-            //~~   (TODO: specify endomorphism)
-            let joint_combiner = ScalarChallenge(joint_combiner);
-            let joint_combiner_field = joint_combiner.to_field(endo_r);
-            let joint_combiner = (joint_combiner, joint_combiner_field);
-
-            Some(joint_combiner)
-        } else {
-            None
-        };
-
-        if index.lookup_index.is_some() {
-            let lookup_commits = self
-                .commitments
-                .lookup
-                .as_ref()
-                .ok_or(VerifyError::LookupCommitmentMissing)?;
-
-            //~~ * absorb the commitments to the sorted polynomials.
-            for com in &lookup_commits.sorted {
-                println!("lookup_commits_sorted: {}", com.unshifted[0]);
-                absorb_commitment(&mut fq_sponge, com);
-            }
-        }
-        */
+        // FIXME: check toField()
 
 
         //~ 7. Sample $\beta$ with the Fq-Sponge.
