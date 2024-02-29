@@ -1,4 +1,4 @@
-import { fromLimbs64, getLimbs64 } from "../src/util/bigint";
+import { fromLimbs64Rev, getLimbs64 } from "../src/util/bigint";
 
 test("getLimbs64", () => {
     // Create random bigint
@@ -19,7 +19,7 @@ test("getLimbs64", () => {
     expect(n_rebuilt).toEqual(n);
 })
 
-test("fromLimbs64", () => {
+test("fromLimbs64Rev", () => {
     // Create random bigint
     const rand_exp = BigInt(
         Math.floor(Math.random() * 512)
@@ -30,7 +30,7 @@ test("fromLimbs64", () => {
     const limbs = getLimbs64(n);
 
     // Rebuild the bigint
-    const n_rebuilt = fromLimbs64(limbs);
+    const n_rebuilt = fromLimbs64Rev(limbs);
 
     expect(n_rebuilt).toEqual(n);
 })
