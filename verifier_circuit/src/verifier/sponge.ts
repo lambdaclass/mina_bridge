@@ -1,10 +1,10 @@
-import { Field, ForeignGroup, Poseidon, Provable, Scalar } from "o1js"
+import { ForeignGroup, Provable } from "o1js"
 import { PolyComm } from "../poly_commitment/commitment";
 import { PointEvaluations, ProofEvaluations } from "../prover/prover";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { ForeignBase } from "../foreign_fields/foreign_field.js";
 import { assert } from "console";
-import { fromLimbs64, fromLimbs64Rev, getLimbs64 } from "../util/bigint";
+import { fromLimbs64Rev, getLimbs64 } from "../util/bigint.js";
 
 type UnionForeignField = ForeignBase | ForeignScalar;
 type UnionForeignFieldArr = ForeignBase[] | ForeignScalar[];
