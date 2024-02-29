@@ -4,6 +4,7 @@ import { PointEvaluations, ProofEvaluations } from "../prover/prover";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { ForeignBase } from "../foreign_fields/foreign_field.js";
 import { assert } from "console";
+import { fromLimbs64, fromLimbs64Rev, getLimbs64 } from "../util/bigint";
 
 type UnionForeignField = ForeignBase | ForeignScalar;
 type UnionForeignFieldArr = ForeignBase[] | ForeignScalar[];
@@ -223,19 +224,18 @@ export class Sponge {
     squeezeLimbs(numLimbs: number): bigint[] { // will return limbs of 64 bits.
         if (this.lastSqueezed.length >= numLimbs) {
             const limbs = this.lastSqueezed.slice(0, numLimbs);
-            const remaining = this.lastSqueezed.slice(numLimbs + 1, this.lastSqueezed.length);
+            const remaining = this.lastSqueezed.slice(numLimbs, undefined);
 
             this.lastSqueezed = remaining;
+            console.log("returned limbs:", limbs);
             return limbs;
         } else {
             let x = this.#internalSponge.squeeze().toBigInt();
+            console.log("x:", x);
+            let limbs = getLimbs64(x);
+            console.log("limbs:", limbs);
+            let xLimbs = getLimbs64(x).slice(0, Sponge.HIGH_ENTROPY_LIMBS);
 
-            let xLimbs = [];
-            let mask = (1n << 64n) - 1n; // highest 64 bit value
-            for (let _ = 0; _ <= Sponge.HIGH_ENTROPY_LIMBS; _++) {
-                xLimbs.push(x & mask); // 64 bits limbs, least significant first
-                x >>= 64n;
-            }
             this.lastSqueezed = this.lastSqueezed.concat(xLimbs);
             return this.squeezeLimbs(numLimbs);
         }
@@ -245,11 +245,7 @@ export class Sponge {
     * Calls `squeezeLimbs()` and composes them into a scalar.
     */
     squeeze(numLimbs: number): ForeignScalar {
-        let squeezed = 0n;
-        const squeezedLimbs = this.squeezeLimbs(numLimbs);
-        for (const i in this.squeezeLimbs(numLimbs)) {
-            squeezed += squeezedLimbs[i] << (64n * BigInt(i));
-        }
+        let squeezed = fromLimbs64Rev(this.squeezeLimbs(numLimbs));
         return ForeignScalar.from(squeezed);
     }
 

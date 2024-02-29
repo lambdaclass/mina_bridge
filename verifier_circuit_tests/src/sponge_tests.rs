@@ -73,4 +73,18 @@ mod tests {
             scalar_from_hex("176AFDF43CB26FAE41117BEADDE5BE80E5D06DD18817A7A8C11794A818965500")
         );
     }
+
+    #[test]
+    fn test_absorb_challenge() {
+        let mut sponge = FqTestSponge::new(Pallas::other_curve_sponge_params());
+        let input = PallasScalar::from(42);
+        sponge.absorb_fr(&[input]);
+        let challenge = sponge.challenge();
+
+        assert!(false);
+        assert_eq!(
+            challenge,
+            scalar_from_hex("00000000000000000000000000000000E5D06DD18817A7A8C11794A818965500")
+        );
+    }
 }
