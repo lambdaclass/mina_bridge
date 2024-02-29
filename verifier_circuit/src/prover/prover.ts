@@ -11,6 +11,7 @@ import { Column, PolishToken } from "./expr.js";
 import { deserHexScalar } from "../serde/serde_proof.js";
 import { range } from "../util/misc.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
+import { VerifierResult, verifierErr, verifierOk } from "../error.js";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
@@ -38,7 +39,7 @@ export class ProverProof {
     /**
      * Will run the random oracle argument for removing prover-verifier interaction (Fiat-Shamir transform)
      */
-    oracles(index: VerifierIndex, public_comm: PolyComm<ForeignGroup>, public_input?: ForeignScalar[]): OraclesResult {
+    oracles(index: VerifierIndex, public_comm: PolyComm<ForeignGroup>, public_input?: ForeignScalar[]): VerifierResult<Oracles> {
         const n = index.domain_size;
         const endo_r = ForeignScalar.from("0x397e65a7d7c1ad71aee24b27e308f0a61259527ec1d4752e619d1840af55f1b1");
         // FIXME: ^ currently hard-coded, refactor this in the future
@@ -74,10 +75,10 @@ export class ProverProof {
         if (index.lookup_index) {
             const l = index.lookup_index;
             const lookup_commits = this.commitments.lookup
-            if (!lookup_commits) return { error_message: "missing lookup commitments" };
+            if (!lookup_commits) return verifierErr("missing lookup commitments");
             if (l.runtime_tables_selector) {
                 const runtime_commit = lookup_commits.runtime;
-                if (!runtime_commit) return { error_message: "incorrect runtime proof" };
+                if (!runtime_commit) return verifierErr("incorrect runtime proof");
                 fq_sponge.absorbCommitment(runtime_commit);
             }
 
@@ -391,7 +392,7 @@ export class ProverProof {
             u_chal
         }
 
-        const res: Oracles = {
+        const result: Oracles = {
             fq_sponge,
             digest,
             oracles,
@@ -404,7 +405,7 @@ export class ProverProof {
             combined_inner_product
         }
 
-        return res;
+        return verifierOk(result);
     }
 }
 
@@ -824,9 +825,3 @@ export class Oracles {
     /** Used by the OCaml side */
     combined_inner_product: ForeignScalar
 }
-
-export class OraclesError {
-    error_message: string
-}
-
-type OraclesResult = Oracles | OraclesError;
