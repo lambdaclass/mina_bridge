@@ -227,13 +227,9 @@ export class Sponge {
             const remaining = this.lastSqueezed.slice(numLimbs, undefined);
 
             this.lastSqueezed = remaining;
-            console.log("returned limbs:", limbs);
             return limbs;
         } else {
             let x = this.#internalSponge.squeeze().toBigInt();
-            console.log("x:", x);
-            let limbs = getLimbs64(x);
-            console.log("limbs:", limbs);
             let xLimbs = getLimbs64(x).slice(0, Sponge.HIGH_ENTROPY_LIMBS);
 
             this.lastSqueezed = this.lastSqueezed.concat(xLimbs);
