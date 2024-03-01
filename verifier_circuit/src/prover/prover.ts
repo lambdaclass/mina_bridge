@@ -113,7 +113,8 @@ export class ProverProof {
         const alpha_chal = new ScalarChallenge(Provable.witnessBn254(ForeignScalar, () =>
             fq_sponge.challenge()
         ));
-        Provable.asProverBn254(() => {console.log("alpha_chal:", alpha_chal.chal.toBigInt())});
+        Provable.logBn254(alpha_chal.chal);
+        //Provable.asProverBn254(() => {console.log("alpha_chal:", alpha_chal.chal.toBigInt())});
 
         //~ 12. Derive $\alpha$ from $\alpha'$ using the endomorphism (TODO: details).
         const alpha = alpha_chal.toField(endo_r);
