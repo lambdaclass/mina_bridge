@@ -1,8 +1,9 @@
 import { readFileSync, writeFileSync } from "fs";
-import { ForeignGroup } from "o1js";
+import { FieldBn254, ForeignGroup } from "o1js";
 import { Verifier } from "./verifier/verifier.js";
 import { deserOpeningProof } from "./serde/serde_proof.js";
 import { ForeignField } from "./foreign_fields/foreign_field.js";
+import { TestCircuit } from "./test_circuit.js";
 
 let inputs;
 try {
@@ -203,6 +204,13 @@ try {
 console.log('O1JS loaded');
 
 // ----------------------------------------------------
+
+console.log("Generating test circuit keypair...");
+let testKeypair = await TestCircuit.generateKeypair();
+console.dir(testKeypair.constraintSystem(), { depth: null });
+console.log("Proving...");
+let testProof = await TestCircuit.prove([], [FieldBn254.from(5)], testKeypair);
+console.log(testProof);
 
 console.log("Generating circuit keypair...");
 let keypair = await Verifier.generateKeypair();
