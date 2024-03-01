@@ -94,7 +94,6 @@ export class ProverProof {
             lookup_commits.sorted.forEach(fq_sponge.absorbCommitment);
         }
 
-
         //~ 7. Sample $\beta$ with the Fq-Sponge.
         const beta = fq_sponge.challenge();
 
@@ -108,17 +107,12 @@ export class ProverProof {
 
         //~ 10. Absorb the commitment to the permutation trace with the Fq-Sponge.
         fq_sponge.absorbCommitment(this.commitments.zComm);
-        console.log("endo_r:", endo_r.toBigInt());
 
-            //~ 11. Sample $\alpha'$ with the Fq-Sponge.
-        const alpha_chal = new ScalarChallenge(Provable.witnessBn254(ForeignScalar, () =>
-            fq_sponge.challenge()
-        ));
-        logField("alpha_chal:", alpha_chal.chal);
+        //~ 11. Sample $\alpha'$ with the Fq-Sponge.
+        const alpha_chal = new ScalarChallenge(fq_sponge.challenge());
 
         //~ 12. Derive $\alpha$ from $\alpha'$ using the endomorphism (TODO: details).
         const alpha = alpha_chal.toField(endo_r);
-        console.log("alpha:", alpha.toBigInt());
 
         //~ 13. Enforce that the length of the $t$ commitment is of size `PERMUTS`.
         if (this.commitments.tComm.unshifted.length !== Verifier.PERMUTS) {

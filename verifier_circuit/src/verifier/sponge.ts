@@ -138,6 +138,7 @@ export class Sponge {
     }
 
     absorbGroup(g: ForeignGroup) {
+        this.lastSqueezed = [];
         this.#internalSponge.absorb(g.x);
         this.#internalSponge.absorb(g.y);
     }
