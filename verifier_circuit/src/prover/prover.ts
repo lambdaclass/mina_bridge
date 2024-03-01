@@ -12,6 +12,7 @@ import { deserHexScalar } from "../serde/serde_proof.js";
 import { range } from "../util/misc.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { VerifierResult, verifierErr, verifierOk } from "../error.js";
+import { logField } from "../util/log.js";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
@@ -113,8 +114,7 @@ export class ProverProof {
         const alpha_chal = new ScalarChallenge(Provable.witnessBn254(ForeignScalar, () =>
             fq_sponge.challenge()
         ));
-        Provable.logBn254(alpha_chal.chal);
-        //Provable.asProverBn254(() => {console.log("alpha_chal:", alpha_chal.chal.toBigInt())});
+        logField("alpha_chal:", alpha_chal.chal);
 
         //~ 12. Derive $\alpha$ from $\alpha'$ using the endomorphism (TODO: details).
         const alpha = alpha_chal.toField(endo_r);
