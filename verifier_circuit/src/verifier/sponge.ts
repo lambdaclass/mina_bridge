@@ -190,28 +190,67 @@ export class Sponge {
 
     absorbEvals(evals: ProofEvaluations<PointEvaluations<ForeignScalar[]>>) {
         const {
-            public_input,
             w,
             z,
             s,
             coefficients,
-            //lookup,
             genericSelector,
-            poseidonSelector
+            poseidonSelector,
+            completeAddSelector,
+            mulSelector,
+            emulSelector,
+            endomulScalarSelector,
+            rangeCheck0Selector,
+            rangeCheck1Selector,
+            foreignFieldAddSelector,
+            foreignFieldMulSelector,
+            xorSelector,
+            rotSelector,
+            lookupAggregation,
+            lookupTable,
+            lookupSorted,
+            runtimeLookupTable,
+            runtimeLookupTableSelector,
+            xorLookupSelector,
+            lookupGateLookupSelector,
+            rangeCheckLookupSelector,
+            foreignFieldMulLookupSelector,
         } = evals;
+
         let points = [
             z,
             genericSelector,
             poseidonSelector,
+            completeAddSelector,
+            mulSelector,
+            emulSelector,
+            endomulScalarSelector,
         ]
         // arrays:
         points = points.concat(w);
-        points = points.concat(s);
         points = points.concat(coefficients);
+        points = points.concat(s);
 
         // optional:
-        if (public_input) points.push(public_input);
-        //if (lookup) points.push(lookup); // FIXME: ignoring lookups
+        const add_optional = (evals?: PointEvaluations<ForeignScalar[]>) => {
+            if (evals) points.push(evals);
+        }
+
+        add_optional(rangeCheck0Selector);
+        add_optional(rangeCheck1Selector);
+        add_optional(foreignFieldAddSelector);
+        add_optional(foreignFieldMulSelector);
+        add_optional(xorSelector);
+        add_optional(rotSelector);
+        add_optional(lookupAggregation);
+        add_optional(lookupTable);
+        if(lookupSorted) lookupSorted.forEach(add_optional);
+        add_optional(runtimeLookupTable);
+        add_optional(runtimeLookupTableSelector);
+        add_optional(xorLookupSelector);
+        add_optional(lookupGateLookupSelector);
+        add_optional(rangeCheckLookupSelector);
+        add_optional(foreignFieldMulLookupSelector);
 
         points.forEach((p) => {
             this.absorbScalars.bind(this)(p.zeta);
