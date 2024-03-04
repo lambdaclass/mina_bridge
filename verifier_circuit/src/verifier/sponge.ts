@@ -245,7 +245,7 @@ export class Sponge {
         add_optional(rotSelector);
         add_optional(lookupAggregation);
         add_optional(lookupTable);
-        if(lookupSorted) lookupSorted.forEach(add_optional);
+        if (lookupSorted) lookupSorted.forEach(add_optional);
         add_optional(runtimeLookupTable);
         add_optional(runtimeLookupTableSelector);
         add_optional(xorLookupSelector);
