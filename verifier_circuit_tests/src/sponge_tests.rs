@@ -63,6 +63,18 @@ mod tests {
     }
 
     #[test]
+    fn test_fr_absorb_squeeze_internal() {
+        let mut sponge = FrTestSponge::new(Pallas::sponge_params());
+        sponge.sponge.absorb(&[scalar_from_hex("42")]);
+        let digest = sponge.sponge.squeeze();
+
+        assert_eq!(
+            digest,
+            scalar_from_hex("393DDD2CE7E8CC8F929F9D70F25257B924A085542E3C039DD8B04BEA0E885DCB")
+        );
+    }
+
+    #[test]
     fn test_digest_scalar() {
         let sponge = FqTestSponge::new(Pallas::other_curve_sponge_params());
         let digest = sponge.digest();
@@ -83,6 +95,19 @@ mod tests {
         assert_eq!(
             digest,
             scalar_from_hex("176AFDF43CB26FAE41117BEADDE5BE80E5D06DD18817A7A8C11794A818965500")
+        );
+    }
+
+    #[test]
+    fn test_fr_absorb_digest_scalar() {
+        let mut sponge = FrTestSponge::new(Pallas::sponge_params());
+        let input = PallasScalar::from(42);
+        sponge.absorb(&input);
+        let digest = sponge.digest();
+
+        assert_eq!(
+            digest,
+            scalar_from_hex("15D31425CD40BB52E708D4E85DF366F62A9194688826F6555035DC65497D5B26")
         );
     }
 

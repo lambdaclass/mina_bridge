@@ -45,6 +45,21 @@ test("absorb_squeeze_internal", () => {
     });
 })
 
+test("fr_absorb_squeeze_internal", () => {
+    Provable.runAndCheckBn254(() => {
+        let sponge = new ArithmeticSponge(fq_sponge_params());
+        sponge.init(fq_sponge_initial_state());
+
+        sponge.absorb(ForeignScalar.from(0x42));
+
+        let digest = Provable.witnessBn254(ForeignScalar, () => {
+            return sponge.squeeze();
+        });
+
+        digest.assertEquals(0x393DDD2CE7E8CC8F929F9D70F25257B924A085542E3C039DD8B04BEA0E885DCBn);
+    });
+})
+
 test("digest_scalar", () => {
     Provable.runAndCheckBn254(() => {
         let fq_sponge = new Sponge(fp_sponge_params(), fp_sponge_initial_state());
@@ -61,6 +76,16 @@ test("absorb_digest_scalar", () => {
         let digest = fq_sponge.digest();
 
         digest.assertEquals(0x176AFDF43CB26FAE41117BEADDE5BE80E5D06DD18817A7A8C11794A818965500n);
+    });
+})
+
+test("fr_absorb_digest_scalar", () => {
+    Provable.runAndCheckBn254(() => {
+        let fr_sponge = new Sponge(fq_sponge_params(), fq_sponge_initial_state());
+        fr_sponge.absorb(ForeignScalar.from(42));
+        let digest = fr_sponge.digest();
+
+        digest.assertEquals(0x15D31425CD40BB52E708D4E85DF366F62A9194688826F6555035DC65497D5B26n);
     });
 })
 
