@@ -5,9 +5,9 @@ mod tests {
         curve::KimchiCurve,
         mina_curves::pasta::{Pallas, PallasParameters},
         mina_poseidon::{
-            constants::PlonkSpongeConstantsKimchi, poseidon::Sponge, sponge::DefaultFqSponge,
+            constants::PlonkSpongeConstantsKimchi, poseidon::Sponge, sponge::{DefaultFqSponge, DefaultFrSponge},
             FqSponge,
-        },
+        }, plonk_sponge::FrSponge,
     };
     use num_bigint::BigUint;
     use num_traits::Num;
@@ -17,6 +17,7 @@ mod tests {
 
     type SpongeParams = PlonkSpongeConstantsKimchi;
     type FqTestSponge = DefaultFqSponge<PallasParameters, SpongeParams>;
+    type FrTestSponge = DefaultFrSponge<PallasScalar, SpongeParams>;
 
     fn scalar_from_hex(hex: &str) -> PallasScalar {
         PallasScalar::from(BigUint::from_str_radix(hex, 16).unwrap())
@@ -33,6 +34,17 @@ mod tests {
         assert_eq!(
             digest,
             base_from_hex("2FADBE2852044D028597455BC2ABBD1BC873AF205DFABB8A304600F3E09EEBA8")
+        );
+    }
+
+    #[test]
+    fn test_fr_squeeze_internal() {
+        let mut sponge = FrTestSponge::new(Pallas::sponge_params());
+        let digest = sponge.sponge.squeeze();
+
+        assert_eq!(
+            digest,
+            scalar_from_hex("3A3374A061464EC0AAC7E0FF04346926C579D542F9D205A670CE4C18C004E5C1")
         );
     }
 

@@ -72,7 +72,7 @@ export class ArithmeticSponge {
         return this.params.mds.map((row) =>
             this.state.reduce(
                 (acc, s, i) => acc.add(s.mul(row[i])),
-                ForeignBase.from(0))
+                this.params.zero)
         );
     }
 
@@ -107,6 +107,7 @@ export class ArithmeticSpongeParams {
     ark_initial: boolean
     rounds: number
     rate: number
+    zero: UnionForeignField
 }
 
 /**
@@ -311,6 +312,7 @@ export function fq_sponge_params(): ArithmeticSpongeParams {
         ark_initial: false,
         rounds: 55,
         rate: 2,
+        zero: ForeignScalar.from(0),
         mds: [
             [
                 28115781186772277486790024060542467295096710153315236019619365740021995624782n,
@@ -613,6 +615,7 @@ export function fp_sponge_params(): ArithmeticSpongeParams {
         ark_initial: false,
         rounds: 55,
         rate: 2,
+        zero: ForeignBase.from(0),
         mds: [
             [
                 12035446894107573964500871153637039653510326950134440362813193268448863222019n,

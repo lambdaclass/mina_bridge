@@ -16,6 +16,20 @@ test("squeeze_internal", () => {
     });
 })
 
+test("fr_squeeze_internal", () => {
+    Provable.runAndCheckBn254(() => {
+        let sponge = new ArithmeticSponge(fq_sponge_params());
+        sponge.init(fq_sponge_initial_state());
+
+        let digest = Provable.witnessBn254(ForeignBase, () => {
+            return sponge.squeeze();
+        });
+
+        digest.assertEquals(0x3A3374A061464EC0AAC7E0FF04346926C579D542F9D205A670CE4C18C004E5C1n);
+    });
+})
+
+
 test("absorb_squeeze_internal", () => {
     Provable.runAndCheckBn254(() => {
         let sponge = new ArithmeticSponge(fp_sponge_params());
