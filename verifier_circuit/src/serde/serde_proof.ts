@@ -11,24 +11,36 @@ interface PointEvalsJSON {
     zeta: string[]
     zeta_omega: string[]
 }
-interface LookupEvaluationsJSON {
-    sorted: PointEvalsJSON[]
-    aggreg: PointEvalsJSON
-    table: PointEvalsJSON
-    runtime?: PointEvalsJSON
-}
 interface ProofEvalsJSON {
     w: PointEvalsJSON[] // of size 15, total num of registers (columns)
     z: PointEvalsJSON
     s: PointEvalsJSON[] // of size 7 - 1, total num of wirable registers minus one
     coefficients: PointEvalsJSON[] // of size 15, total num of registers (columns)
-    //lookup?: LookupEvaluationsJSON
     generic_selector: PointEvalsJSON
     poseidon_selector: PointEvalsJSON
     complete_add_selector: PointEvalsJSON
     mul_selector: PointEvalsJSON
     emul_selector: PointEvalsJSON
     endomul_scalar_selector: PointEvalsJSON
+
+    range_check0_selector: PointEvalsJSON | null
+    range_check1_selector: PointEvalsJSON | null
+    foreign_field_add_selector: PointEvalsJSON | null
+    foreign_field_mul_selector: PointEvalsJSON | null
+    xor_selector: PointEvalsJSON | null
+    rot_selector: PointEvalsJSON | null
+
+    lookup_aggregation: PointEvalsJSON | null
+    lookup_table: PointEvalsJSON | null
+    lookup_sorted: PointEvalsJSON[] | null[] // fixed size of 5
+    runtime_lookup_table: PointEvalsJSON | null
+
+    runtime_lookup_table_selector: PointEvalsJSON | null
+    xor_lookup_selector: PointEvalsJSON | null
+    lookup_gate_lookup_selector: PointEvalsJSON | null
+    range_check_lookup_selector: PointEvalsJSON | null
+    foreign_field_mul_lookup_selector: PointEvalsJSON | null
+
 }
 
 interface ProverCommitmentsJSON {
@@ -98,20 +110,44 @@ export function deserProofEvals(json: ProofEvalsJSON): ProofEvaluations<PointEva
         json.endomul_scalar_selector
     ].map(deserPointEval);
 
-    // in the current json, there isn't a non-null lookup, so TS infers that it'll always be null.
-    let lookup = undefined;
-    // let lookup = undefined;
-    //   if (json.lookup) {
-    //       const sorted = json.lookup.sorted.map(deserPointEval);
-    //       const [aggreg, table] = [json.lookup.aggreg, json.lookup.table].map(deserPointEval);
+    const [
+        rangeCheck0Selector,
+        rangeCheck1Selector,
+        foreignFieldAddSelector,
+        foreignFieldMulSelector,
+        xorSelector,
+        rotSelector,
+        lookupAggregation,
+        lookupTable,
+        runtimeLookupTable,
+        runtimeLookupTableSelector,
+        xorLookupSelector,
+        lookupGateLookupSelector,
+        rangeCheckLookupSelector,
+        foreignFieldMulLookupSelector,
+    ] = [
+        json.range_check0_selector,
+        json.range_check1_selector,
+        json.foreign_field_add_selector,
+        json.foreign_field_mul_selector,
+        json.xor_selector,
+        json.rot_selector,
+        json.lookup_aggregation,
+        json.lookup_table,
+        json.runtime_lookup_table,
+        json.runtime_lookup_table_selector,
+        json.xor_lookup_selector,
+        json.lookup_gate_lookup_selector,
+        json.range_check_lookup_selector,
+        json.foreign_field_mul_lookup_selector,
+    ].map((evals) => {
+        if (evals) return deserPointEval(evals);
+        return undefined;
+    });
 
-    //       let runtime = undefined;
-    //       if (json.lookup.runtime) {
-    //           runtime = deserPointEval(json.lookup.runtime);
-    //       }
-
-    //       lookup = { sorted, aggreg, table, runtime };
-    //   }
+    const lookupSorted = json.lookup_sorted[0]
+        ? json.lookup_sorted.map((evals) => deserPointEval(evals!))
+        : undefined;
 
     return new ProofEvaluations(
         w,
@@ -124,7 +160,22 @@ export function deserProofEvals(json: ProofEvalsJSON): ProofEvaluations<PointEva
         mulSelector,
         emulSelector,
         endomulScalarSelector,
-        lookup
+        undefined,
+        rangeCheck0Selector,
+        rangeCheck1Selector,
+        foreignFieldAddSelector,
+        foreignFieldMulSelector,
+        xorSelector,
+        rotSelector,
+        lookupAggregation,
+        lookupTable,
+        lookupSorted,
+        runtimeLookupTable,
+        runtimeLookupTableSelector,
+        xorLookupSelector,
+        lookupGateLookupSelector,
+        rangeCheckLookupSelector,
+        foreignFieldMulLookupSelector,
     );
 }
 

@@ -478,8 +478,6 @@ export class ProofEvaluations<Evals> {
     s: Array<Evals> // of size 7 - 1, total num of wirable registers minus one
     /* coefficient polynomials */
     coefficients: Array<Evals> // of size 15, total num of registers (columns)
-    /* lookup-related evaluations */
-    lookup?: LookupEvaluations<Evals>
     /* evaluation of the generic selector polynomial */
     genericSelector: Evals
     /* evaluation of the poseidon selector polynomial */
@@ -493,6 +491,42 @@ export class ProofEvaluations<Evals> {
     /** evaluation of the endoscalar multiplication scalar computation selector polynomial */
     endomulScalarSelector: Evals
 
+    // Optional gates
+    /** evaluation of the RangeCheck0 selector polynomial **/
+    rangeCheck0Selector?: Evals
+    /** evaluation of the RangeCheck1 selector polynomial **/
+    rangeCheck1Selector?: Evals
+    /** evaluation of the ForeignFieldAdd selector polynomial **/
+    foreignFieldAddSelector?: Evals
+    /** evaluation of the ForeignFieldMul selector polynomial **/
+    foreignFieldMulSelector?: Evals
+    /** evaluation of the Xor selector polynomial **/
+    xorSelector?: Evals
+    /** evaluation of the Rot selector polynomial **/
+    rotSelector?: Evals
+
+    // lookup-related evaluations
+    /** evaluation of lookup aggregation polynomial **/
+    lookupAggregation?: Evals
+    /** evaluation of lookup table polynomial **/
+    lookupTable?: Evals
+    /** evaluation of lookup sorted polynomials **/
+    lookupSorted?: Evals[] // fixed size of 5
+    /** evaluation of runtime lookup table polynomial **/
+    runtimeLookupTable?: Evals
+
+    // lookup selectors
+    /** evaluation of the runtime lookup table selector polynomial **/
+    runtimeLookupTableSelector?: Evals
+    /** evaluation of the Xor range check pattern selector polynomial **/
+    xorLookupSelector?: Evals
+    /** evaluation of the Lookup range check pattern selector polynomial **/
+    lookupGateLookupSelector?: Evals
+    /** evaluation of the RangeCheck range check pattern selector polynomial **/
+    rangeCheckLookupSelector?: Evals
+    /** evaluation of the ForeignFieldMul range check pattern selector polynomial **/
+    foreignFieldMulLookupSelector?: Evals
+
     constructor(
         w: Array<Evals>,
         z: Evals,
@@ -504,14 +538,27 @@ export class ProofEvaluations<Evals> {
         mulSelector: Evals,
         emulSelector: Evals,
         endomulScalarSelector: Evals,
-        lookup?: LookupEvaluations<Evals>,
         public_input?: Evals,
+        rangeCheck0Selector?: Evals,
+        rangeCheck1Selector?: Evals,
+        foreignFieldAddSelector?: Evals,
+        foreignFieldMulSelector?: Evals,
+        xorSelector?: Evals,
+        rotSelector?: Evals,
+        lookupAggregation?: Evals,
+        lookupTable?: Evals,
+        lookupSorted?: Evals[], // fixed size of 5
+        runtimeLookupTable?: Evals,
+        runtimeLookupTableSelector?: Evals,
+        xorLookupSelector?: Evals,
+        lookupGateLookupSelector?: Evals,
+        rangeCheckLookupSelector?: Evals,
+        foreignFieldMulLookupSelector?: Evals,
     ) {
         this.w = w;
         this.z = z;
         this.s = s;
         this.coefficients = coefficients;
-        this.lookup = lookup;
         this.genericSelector = genericSelector;
         this.poseidonSelector = poseidonSelector;
         this.completeAddSelector = completeAddSelector;
@@ -519,6 +566,21 @@ export class ProofEvaluations<Evals> {
         this.emulSelector = emulSelector;
         this.endomulScalarSelector = endomulScalarSelector;
         this.public_input = public_input;
+        this.rangeCheck0Selector = rangeCheck0Selector;
+        this.rangeCheck1Selector = rangeCheck1Selector;
+        this.foreignFieldAddSelector = foreignFieldAddSelector;
+        this.foreignFieldMulSelector = foreignFieldMulSelector;
+        this.xorSelector = xorSelector;
+        this.rotSelector = rotSelector;
+        this.lookupAggregation = lookupAggregation;
+        this.lookupTable = lookupTable;
+        this.lookupSorted = lookupSorted;
+        this.runtimeLookupTable = runtimeLookupTable;
+        this.runtimeLookupTableSelector = runtimeLookupTableSelector;
+        this.xorLookupSelector = xorLookupSelector;
+        this.lookupGateLookupSelector = lookupGateLookupSelector;
+        this.rangeCheckLookupSelector = rangeCheckLookupSelector;
+        this.foreignFieldMulLookupSelector = foreignFieldMulLookupSelector;
         return this;
     }
 

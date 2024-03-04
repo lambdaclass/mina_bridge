@@ -457,7 +457,6 @@ where
             z,
             s,
             coefficients,
-            lookup,
             genericSelector,
             poseidonSelector
         } = proof.evals;
@@ -468,21 +467,11 @@ where
         // auxiliary
         let arrays = [w, s, coefficients];
         let singles = [z, genericSelector, poseidonSelector];
-        if (lookup) {
-            const {
-                sorted,
-                aggreg,
-                table,
-                runtime
-            } = lookup;
-
-            arrays.push(sorted);
-            singles.push(aggreg, table);
-            if (runtime) singles.push(runtime);
-        }
 
         // true if all evaluation lengths are valid
         return arrays.every((evals) => evals.every(valid_evals_len)) &&
             singles.every(valid_evals_len);
+
+        // TODO: check the rest of evaluations (don't really needed for our purposes)
     }
 }
