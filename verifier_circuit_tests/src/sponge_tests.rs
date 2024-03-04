@@ -81,7 +81,6 @@ mod tests {
         sponge.absorb_fr(&[input]);
         let challenge = sponge.challenge();
 
-        assert!(false);
         assert_eq!(
             challenge,
             scalar_from_hex("00000000000000000000000000000000E5D06DD18817A7A8C11794A818965500")
