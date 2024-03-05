@@ -29,7 +29,6 @@ test("fr_squeeze_internal", () => {
     });
 })
 
-
 test("absorb_squeeze_internal", () => {
     Provable.runAndCheckBn254(() => {
         let sponge = new ArithmeticSponge(fp_sponge_params());

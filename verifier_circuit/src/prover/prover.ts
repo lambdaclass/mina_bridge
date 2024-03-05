@@ -133,14 +133,14 @@ export class ProverProof {
         const digest = fq_sponge.digest();
 
         //~ 18. Squeeze the Fq-sponge and absorb the result with the Fr-Sponge.
-        fr_sponge.absorbScalar(digest);
+        fr_sponge.absorbFr(digest);
 
         //~ 19. Absorb the previous recursion challenges.
         // Note: we absorb in a new sponge here to limit the scope in which we need the
         // more-expensive 'optional sponge'.
         let fr_sponge_aux = new Sponge(fq_sponge_params(), fq_sponge_initial_state());
         this.prev_challenges.forEach((prev) => fr_sponge_aux.absorbScalars(prev.chals));
-        fr_sponge.absorbScalar(fr_sponge_aux.digest());
+        fr_sponge.absorbFr(fr_sponge_aux.digest());
 
         // prepare some often used values
 
@@ -173,7 +173,7 @@ export class ProverProof {
         if (this.evals.public_input) {
             public_evals = [this.evals.public_input.zeta, this.evals.public_input.zetaOmega];
         } else if (chunk_size > 1) {
-            // FIXME: missing public input eval error
+            return verifierErr("missing public input evaluation");
         } else if (public_input) {
             // compute Lagrange base evaluation denominators
 
@@ -230,12 +230,11 @@ export class ProverProof {
                 public_evals = [[pe_zeta], [pe_zetaOmega]];
             }
         } else {
-            public_evals = undefined;
-            // FIXME: missing public input eval error
+            return verifierErr("missing public input evaluation");
         }
 
         //~ 22. Absorb the unique evaluation of ft: $ft(\zeta\omega)$.
-        fr_sponge.absorbScalar(this.ft_eval1);
+        fr_sponge.absorbFr(this.ft_eval1);
 
         //~ 23. Absorb all the polynomial evaluations in $\zeta$ and $\zeta\omega$:
         //~~ * the public polynomial
@@ -245,18 +244,22 @@ export class ProverProof {
         //~~ * the 15 register/witness
         //~~ * 6 sigmas evaluations (the last one is not evaluated)
 
-        fr_sponge.absorbScalars(public_evals![0]);
-        fr_sponge.absorbScalars(public_evals![1]);
-        fr_sponge.absorbEvals(this.evals)
+        fr_sponge.absorbMultipleFr(public_evals![0]);
+        fr_sponge.absorbMultipleFr(public_evals![1]);
+        Provable.asProverBn254(() => fr_sponge.absorbEvals(this.evals));
 
         //~ 24. Sample $v'$ with the Fr-Sponge.
-        const v_chal = new ScalarChallenge(fr_sponge.challenge());
+        const v_chal = new ScalarChallenge(
+            Provable.witnessBn254(ForeignScalar, () => fr_sponge.challenge())
+        );
 
         //~ 25. Derive $v$ from $v'$ using the endomorphism (TODO: specify).
         const v = v_chal.toField(endo_r);
 
         //~ 26. Sample $u'$ with the Fr-Sponge.
-        const u_chal = new ScalarChallenge(fr_sponge.challenge());
+        const u_chal = new ScalarChallenge(
+            Provable.witnessBn254(ForeignScalar, () => fr_sponge.challenge())
+        );
 
         //~ 27. Derive $u$ from $u'$ using the endomorphism (TODO: specify).
         const u = u_chal.toField(endo_r);

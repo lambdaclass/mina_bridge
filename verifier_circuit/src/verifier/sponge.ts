@@ -5,6 +5,7 @@ import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { ForeignBase } from "../foreign_fields/foreign_field.js";
 import { assert } from "console";
 import { fromLimbs64Rev, getLimbs64 } from "../util/bigint.js";
+import { logField } from "../util/log.js";
 
 type UnionForeignField = ForeignBase | ForeignScalar;
 type UnionForeignFieldArr = ForeignBase[] | ForeignScalar[];
@@ -131,6 +132,16 @@ export class Sponge {
     absorb(x: ForeignBase) {
         this.lastSqueezed = [];
         this.#internalSponge.absorb(x);
+    }
+
+    absorbFr(x: ForeignScalar) {
+        this.lastSqueezed = [];
+        this.#internalSponge.absorb(x);
+    }
+
+    absorbMultipleFr(x: ForeignScalar[]) {
+        this.lastSqueezed = [];
+        x.forEach((elem) => this.#internalSponge.absorb(elem));
     }
 
     squeezeField(): ForeignBase {
