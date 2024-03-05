@@ -593,19 +593,35 @@ export class ProofEvaluations<Evals> {
             z,
             s,
             coefficients,
-            //lookup,
             genericSelector,
             poseidonSelector,
             completeAddSelector,
             mulSelector,
             emulSelector,
             endomulScalarSelector,
+            rangeCheck0Selector,
+            rangeCheck1Selector,
+            foreignFieldAddSelector,
+            foreignFieldMulSelector,
+            xorSelector,
+            rotSelector,
+            lookupAggregation,
+            lookupTable,
+            lookupSorted, // fixed size of 5
+            runtimeLookupTable,
+            runtimeLookupTableSelector,
+            xorLookupSelector,
+            lookupGateLookupSelector,
+            rangeCheckLookupSelector,
+            foreignFieldMulLookupSelector,
         } = this;
 
         let public_input = undefined;
         if (this.public_input) public_input = f(this.public_input);
 
-        return new ProofEvaluations(
+        const optional_f = (e?: Evals) => e ? f(e) : undefined;
+
+        return new ProofEvaluations<Evals2>(
             w.map(f),
             f(z),
             s.map(f),
@@ -616,8 +632,22 @@ export class ProofEvaluations<Evals> {
             f(mulSelector),
             f(emulSelector),
             f(endomulScalarSelector),
-            undefined, // FIXME: ignoring lookup
-            public_input
+            public_input,
+            optional_f(rangeCheck0Selector),
+            optional_f(rangeCheck1Selector),
+            optional_f(foreignFieldAddSelector),
+            optional_f(foreignFieldMulSelector),
+            optional_f(xorSelector),
+            optional_f(rotSelector),
+            optional_f(lookupAggregation),
+            optional_f(lookupTable),
+            lookupSorted ? lookupSorted!.map(f) : undefined, // fixed size of 5
+            optional_f(runtimeLookupTable),
+            optional_f(runtimeLookupTableSelector),
+            optional_f(xorLookupSelector),
+            optional_f(lookupGateLookupSelector),
+            optional_f(rangeCheckLookupSelector),
+            optional_f(foreignFieldMulLookupSelector),
         )
     }
 
