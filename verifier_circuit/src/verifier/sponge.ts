@@ -264,10 +264,11 @@ export class Sponge {
         add_optional(rangeCheckLookupSelector);
         add_optional(foreignFieldMulLookupSelector);
 
-        points.forEach((p) => {
-            this.absorbScalars.bind(this)(p.zeta);
-            this.absorbScalars.bind(this)(p.zetaOmega);
-        });
+        for (const p of points) {
+            for (const z of p.zeta) this.#internalSponge.absorb(z);
+            for (const zO of p.zetaOmega) this.#internalSponge.absorb(zO);
+        }
+        console.log(points.length);
     }
 
     /**
