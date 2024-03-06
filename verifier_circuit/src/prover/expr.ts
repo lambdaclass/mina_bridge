@@ -125,10 +125,9 @@ export namespace PolishToken {
     export type Gamma = {
         kind: "gamma"
     }
-    // FIXME: this is lookup related
-    //export type JointCombiner = {
-    //kind: "jointcombiner"
-    //}
+    export type JointCombiner = {
+        kind: "jointcombiner"
+    }
     export type EndoCoefficient = {
         kind: "endocoefficient"
     }
@@ -221,10 +220,10 @@ export namespace PolishToken {
                     stack.push(c.gamma);
                     break;
                 }
-                // case "jointcombiner": {
-                //     break;
-                // }
-                // FIXME: lookup related
+                case "jointcombiner": {
+                    stack.push(c.joint_combiner!);
+                    break;
+                }
                 case "endocoefficient": {
                     stack.push(c.endo_coefficient);
                     break;
@@ -320,6 +319,7 @@ export type PolishToken =
     | PolishToken.Alpha
     | PolishToken.Beta
     | PolishToken.Gamma
+    | PolishToken.JointCombiner
     | PolishToken.EndoCoefficient
     | PolishToken.Mds
     | PolishToken.Literal
