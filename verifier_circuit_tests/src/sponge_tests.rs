@@ -5,9 +5,12 @@ mod tests {
         curve::KimchiCurve,
         mina_curves::pasta::{Pallas, PallasParameters},
         mina_poseidon::{
-            constants::PlonkSpongeConstantsKimchi, poseidon::Sponge, sponge::{DefaultFqSponge, DefaultFrSponge},
+            constants::PlonkSpongeConstantsKimchi,
+            poseidon::Sponge,
+            sponge::{DefaultFqSponge, DefaultFrSponge},
             FqSponge,
-        }, plonk_sponge::FrSponge,
+        },
+        plonk_sponge::FrSponge,
     };
     use num_bigint::BigUint;
     use num_traits::Num;
