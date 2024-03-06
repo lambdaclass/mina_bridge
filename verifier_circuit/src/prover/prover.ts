@@ -8,11 +8,10 @@ import { invScalar, powScalar } from "../util/scalar.js";
 import { GateType } from "../circuits/gate.js";
 import { Alphas } from "../alphas.js";
 import { Column, PolishToken } from "./expr.js";
-import { deserHexScalar } from "../serde/serde_proof.js";
 import { range } from "../util/misc.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
-import { VerifierResult, verifierErr, verifierOk } from "../error.js";
-import { logField } from "../util/log.js";
+import { VerifierResult, verifierErr, verifierOk, isErr, unwrap } from "../error.js";
+import { LookupPattern } from "../lookups/lookups.js";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
@@ -133,14 +132,14 @@ export class ProverProof {
         const digest = fq_sponge.digest();
 
         //~ 18. Squeeze the Fq-sponge and absorb the result with the Fr-Sponge.
-        fr_sponge.absorbScalar(digest);
+        fr_sponge.absorbFr(digest);
 
         //~ 19. Absorb the previous recursion challenges.
         // Note: we absorb in a new sponge here to limit the scope in which we need the
         // more-expensive 'optional sponge'.
         let fr_sponge_aux = new Sponge(fq_sponge_params(), fq_sponge_initial_state());
         this.prev_challenges.forEach((prev) => fr_sponge_aux.absorbScalars(prev.chals));
-        fr_sponge.absorbScalar(fr_sponge_aux.digest());
+        fr_sponge.absorbFr(fr_sponge_aux.digest());
 
         // prepare some often used values
 
@@ -173,7 +172,7 @@ export class ProverProof {
         if (this.evals.public_input) {
             public_evals = [this.evals.public_input.zeta, this.evals.public_input.zetaOmega];
         } else if (chunk_size > 1) {
-            // FIXME: missing public input eval error
+            return verifierErr("missing public input evaluation");
         } else if (public_input) {
             // compute Lagrange base evaluation denominators
 
@@ -230,12 +229,11 @@ export class ProverProof {
                 public_evals = [[pe_zeta], [pe_zetaOmega]];
             }
         } else {
-            public_evals = undefined;
-            // FIXME: missing public input eval error
+            return verifierErr("missing public input evaluation");
         }
 
         //~ 22. Absorb the unique evaluation of ft: $ft(\zeta\omega)$.
-        fr_sponge.absorbScalar(this.ft_eval1);
+        fr_sponge.absorbFr(this.ft_eval1);
 
         //~ 23. Absorb all the polynomial evaluations in $\zeta$ and $\zeta\omega$:
         //~~ * the public polynomial
@@ -245,35 +243,41 @@ export class ProverProof {
         //~~ * the 15 register/witness
         //~~ * 6 sigmas evaluations (the last one is not evaluated)
 
-        fr_sponge.absorbScalars(public_evals![0]);
-        fr_sponge.absorbScalars(public_evals![1]);
-        fr_sponge.absorbEvals(this.evals)
+        fr_sponge.absorbMultipleFr(public_evals![0]);
+        fr_sponge.absorbMultipleFr(public_evals![1]);
+        Provable.asProverBn254(() => fr_sponge.absorbEvals(this.evals));
 
         //~ 24. Sample $v'$ with the Fr-Sponge.
-        const v_chal = new ScalarChallenge(fr_sponge.challenge());
+        const v_chal = new ScalarChallenge(
+            Provable.witnessBn254(ForeignScalar, () => fr_sponge.challenge())
+        );
 
         //~ 25. Derive $v$ from $v'$ using the endomorphism (TODO: specify).
         const v = v_chal.toField(endo_r);
 
         //~ 26. Sample $u'$ with the Fr-Sponge.
-        const u_chal = new ScalarChallenge(fr_sponge.challenge());
+        const u_chal = new ScalarChallenge(
+            Provable.witnessBn254(ForeignScalar, () => fr_sponge.challenge())
+        );
 
         //~ 27. Derive $u$ from $u'$ using the endomorphism (TODO: specify).
         const u = u_chal.toField(endo_r);
 
         //~ 28. Create a list of all polynomials that have an evaluation proof.
-
         const evals = ProofEvaluations.combine(this.evals, powers_of_eval_points_for_chunks);
+        // WARN: untested
 
         //~ 29. Compute the evaluation of $ft(\zeta)$.
         const permutation_vanishing_polynomial = index.permutation_vanishing_polynomial_m.evaluate(zeta);
         const zeta1m1 = zeta1.sub(ForeignScalar.from(1));
 
-        let alpha_powers = all_alphas.getAlphas({ kind: "permutation" }, Verifier.PERMUTATION_CONSTRAINTS);
-        const alpha0 = alpha_powers[0];
-        const alpha1 = alpha_powers[1];
-        const alpha2 = alpha_powers[2];
-        // FIXME: alpha_powers should be an iterator and alphai = alpha_powers.next(), for i = 0,1,2.
+        const alpha_powers_result = all_alphas.getAlphas({ kind: "permutation" }, Verifier.PERMUTATION_CONSTRAINTS);
+        if (isErr(alpha_powers_result)) return alpha_powers_result;
+        const alpha_powers = unwrap(alpha_powers_result);
+
+        const alpha0 = alpha_powers.next();
+        const alpha1 = alpha_powers.next();
+        const alpha2 = alpha_powers.next();
 
         const init = (evals.w[Verifier.PERMUTS - 1].zeta.add(gamma))
             .mul(evals.z.zetaOmega)
@@ -284,9 +288,10 @@ export class ProverProof {
             .map((s, i) => (beta.mul(s.zeta).add(evals.w[i].zeta).add(gamma)))
             .reduce((acc, curr) => acc.mul(curr), init);
 
-        // FIXME: review this, should be the eval of a polynomial
         ft_eval0 = ft_eval0.sub(
-            public_evals![0].length === 0 ? ForeignScalar.from(0) : public_evals![0][0]
+            public_evals![0].length === 0
+                ? ForeignScalar.from(0)
+                : new Polynomial(public_evals[0]).evaluate(powers_of_eval_points_for_chunks.zeta)
         );
 
         ft_eval0 = ft_eval0.sub(
@@ -304,35 +309,16 @@ export class ProverProof {
 
         ft_eval0 = ft_eval0.add(numerator.mul(denominator));
 
-        // FIXME: hardcoded for now, should be a sponge parameter.
-        // this was generated from the verifier_circuit_tests/ crate.
-        const mds = [
-            [
-                "4e59dd23f06c2400f3ba607d02926badee7add77d3544a307e7af417ddf7283e",
-                "0026c37744e275497518904a3d4bd83f3d89f414c28ab292cbfc96b6ab06db30",
-                "3a567f1bc5592630ba6ae6014d6c2e6efb3fab52815eff16608c051bbc104117"
-            ].map(deserHexScalar),
-            [
-                "0ceb4a2b7e38fea058a153e390439d2e0dd5bc481d5ac08069140335a86fd312",
-                "559c4de970165cd66fd0068edcbe3615c7af8b5e380c9f6ea7be69b38e7cb12a",
-                "37854a5bdac3b836763e2ec95d0ca6d9e5b908e127f16a98135c16285391cc00"
-            ].map(deserHexScalar),
-            [
-                "1bd343a1e09a4080831e5afbf0ca3d3a610c383b154643eb88666970d2a6d904",
-                "24c37437a332198bd134339acfab5fee7fd2e4ab157d1fae8b7c31e3ee05a802",
-                "bd7b2b50cd898d9badcb3d2787a7b98322bb00bc2ddfb6b11efddfc6e992b019"
-            ].map(deserHexScalar)
-        ];
         const constants: Constants<ForeignScalar> = {
             alpha,
             beta,
             gamma,
             endo_coefficient: index.endo,
-            mds,
+            joint_combiner: joint_combiner ? joint_combiner[1] : undefined,
+            mds: fq_sponge_params().mds,
             zk_rows
         }
 
-        // FIXME: review this
         ft_eval0 = ft_eval0.sub(PolishToken.evaluate(
             index.linearization.constant_term,
             zeta,
@@ -358,6 +344,10 @@ export class ProverProof {
         push_column_eval({ kind: "z" })
         push_column_eval({ kind: "index", typ: GateType.Generic })
         push_column_eval({ kind: "index", typ: GateType.Poseidon })
+        push_column_eval({ kind: "index", typ: GateType.CompleteAdd })
+        push_column_eval({ kind: "index", typ: GateType.VarBaseMul })
+        push_column_eval({ kind: "index", typ: GateType.EndoMul })
+        push_column_eval({ kind: "index", typ: GateType.EndoMulScalar })
 
         range(Verifier.COLUMNS)
             .map((i) => { return { kind: "witness", index: i } as Column })
@@ -368,9 +358,27 @@ export class ProverProof {
         range(Verifier.PERMUTS - 1)
             .map((i) => { return { kind: "permutation", index: i } as Column })
             .forEach(push_column_eval);
-        // FIXME: ignoring lookup
+        if (index.range_check0_comm) push_column_eval({ kind: "index", typ: GateType.RangeCheck0 });
+        if (index.range_check1_comm) push_column_eval({ kind: "index", typ: GateType.RangeCheck1 });
+        if (index.foreign_field_add_comm) push_column_eval({ kind: "index", typ: GateType.ForeignFieldAdd });
+        if (index.foreign_field_mul_comm) push_column_eval({ kind: "index", typ: GateType.ForeignFieldMul });
+        if (index.xor_comm) push_column_eval({ kind: "index", typ: GateType.Xor16 });
+        if (index.rot_comm) push_column_eval({ kind: "index", typ: GateType.Rot64 });
+        if (index.lookup_index) {
+            const li = index.lookup_index;
+            range(li.lookup_info.max_per_row + 1)
+                .map((index) => { return { kind: "lookupsorted", index } as Column })
+                .forEach(push_column_eval);
+            [{ kind: "lookupaggreg", } as Column, { kind: "lookuptable"} as Column]
+                .forEach(push_column_eval);
+            if (li.runtime_tables_selector) push_column_eval({ kind: "lookupruntimetable" });
+            if (this.evals.runtimeLookupTableSelector) push_column_eval({ kind: "lookupruntimeselector" });
+            if (this.evals.xorLookupSelector) push_column_eval({ kind: "lookupkindindex", pattern: LookupPattern.Xor });
+            if (this.evals.lookupGateLookupSelector) push_column_eval({ kind: "lookupkindindex", pattern: LookupPattern.Lookup });
+            if (this.evals.rangeCheckLookupSelector) push_column_eval({ kind: "lookupkindindex", pattern: LookupPattern.RangeCheck });
+            if (this.evals.foreignFieldMulLookupSelector) push_column_eval({ kind: "lookupkindindex", pattern: LookupPattern.ForeignFieldMul });
+        }
 
-        // FIXME: review this
         const combined_inner_product = combinedInnerProduct(
             evaluation_points,
             v,
@@ -380,7 +388,7 @@ export class ProverProof {
         );
 
         const oracles: RandomOracles = {
-            //joint_combiner // FIXME: ignoring lookups
+            joint_combiner,
             beta,
             gamma,
             alpha_chal,
@@ -478,8 +486,6 @@ export class ProofEvaluations<Evals> {
     s: Array<Evals> // of size 7 - 1, total num of wirable registers minus one
     /* coefficient polynomials */
     coefficients: Array<Evals> // of size 15, total num of registers (columns)
-    /* lookup-related evaluations */
-    lookup?: LookupEvaluations<Evals>
     /* evaluation of the generic selector polynomial */
     genericSelector: Evals
     /* evaluation of the poseidon selector polynomial */
@@ -493,6 +499,42 @@ export class ProofEvaluations<Evals> {
     /** evaluation of the endoscalar multiplication scalar computation selector polynomial */
     endomulScalarSelector: Evals
 
+    // Optional gates
+    /** evaluation of the RangeCheck0 selector polynomial **/
+    rangeCheck0Selector?: Evals
+    /** evaluation of the RangeCheck1 selector polynomial **/
+    rangeCheck1Selector?: Evals
+    /** evaluation of the ForeignFieldAdd selector polynomial **/
+    foreignFieldAddSelector?: Evals
+    /** evaluation of the ForeignFieldMul selector polynomial **/
+    foreignFieldMulSelector?: Evals
+    /** evaluation of the Xor selector polynomial **/
+    xorSelector?: Evals
+    /** evaluation of the Rot selector polynomial **/
+    rotSelector?: Evals
+
+    // lookup-related evaluations
+    /** evaluation of lookup aggregation polynomial **/
+    lookupAggregation?: Evals
+    /** evaluation of lookup table polynomial **/
+    lookupTable?: Evals
+    /** evaluation of lookup sorted polynomials **/
+    lookupSorted?: Evals[] // fixed size of 5
+    /** evaluation of runtime lookup table polynomial **/
+    runtimeLookupTable?: Evals
+
+    // lookup selectors
+    /** evaluation of the runtime lookup table selector polynomial **/
+    runtimeLookupTableSelector?: Evals
+    /** evaluation of the Xor range check pattern selector polynomial **/
+    xorLookupSelector?: Evals
+    /** evaluation of the Lookup range check pattern selector polynomial **/
+    lookupGateLookupSelector?: Evals
+    /** evaluation of the RangeCheck range check pattern selector polynomial **/
+    rangeCheckLookupSelector?: Evals
+    /** evaluation of the ForeignFieldMul range check pattern selector polynomial **/
+    foreignFieldMulLookupSelector?: Evals
+
     constructor(
         w: Array<Evals>,
         z: Evals,
@@ -504,14 +546,27 @@ export class ProofEvaluations<Evals> {
         mulSelector: Evals,
         emulSelector: Evals,
         endomulScalarSelector: Evals,
-        lookup?: LookupEvaluations<Evals>,
         public_input?: Evals,
+        rangeCheck0Selector?: Evals,
+        rangeCheck1Selector?: Evals,
+        foreignFieldAddSelector?: Evals,
+        foreignFieldMulSelector?: Evals,
+        xorSelector?: Evals,
+        rotSelector?: Evals,
+        lookupAggregation?: Evals,
+        lookupTable?: Evals,
+        lookupSorted?: Evals[], // fixed size of 5
+        runtimeLookupTable?: Evals,
+        runtimeLookupTableSelector?: Evals,
+        xorLookupSelector?: Evals,
+        lookupGateLookupSelector?: Evals,
+        rangeCheckLookupSelector?: Evals,
+        foreignFieldMulLookupSelector?: Evals,
     ) {
         this.w = w;
         this.z = z;
         this.s = s;
         this.coefficients = coefficients;
-        this.lookup = lookup;
         this.genericSelector = genericSelector;
         this.poseidonSelector = poseidonSelector;
         this.completeAddSelector = completeAddSelector;
@@ -519,6 +574,21 @@ export class ProofEvaluations<Evals> {
         this.emulSelector = emulSelector;
         this.endomulScalarSelector = endomulScalarSelector;
         this.public_input = public_input;
+        this.rangeCheck0Selector = rangeCheck0Selector;
+        this.rangeCheck1Selector = rangeCheck1Selector;
+        this.foreignFieldAddSelector = foreignFieldAddSelector;
+        this.foreignFieldMulSelector = foreignFieldMulSelector;
+        this.xorSelector = xorSelector;
+        this.rotSelector = rotSelector;
+        this.lookupAggregation = lookupAggregation;
+        this.lookupTable = lookupTable;
+        this.lookupSorted = lookupSorted;
+        this.runtimeLookupTable = runtimeLookupTable;
+        this.runtimeLookupTableSelector = runtimeLookupTableSelector;
+        this.xorLookupSelector = xorLookupSelector;
+        this.lookupGateLookupSelector = lookupGateLookupSelector;
+        this.rangeCheckLookupSelector = rangeCheckLookupSelector;
+        this.foreignFieldMulLookupSelector = foreignFieldMulLookupSelector;
         return this;
     }
 
@@ -528,19 +598,35 @@ export class ProofEvaluations<Evals> {
             z,
             s,
             coefficients,
-            //lookup,
             genericSelector,
             poseidonSelector,
             completeAddSelector,
             mulSelector,
             emulSelector,
             endomulScalarSelector,
+            rangeCheck0Selector,
+            rangeCheck1Selector,
+            foreignFieldAddSelector,
+            foreignFieldMulSelector,
+            xorSelector,
+            rotSelector,
+            lookupAggregation,
+            lookupTable,
+            lookupSorted, // fixed size of 5
+            runtimeLookupTable,
+            runtimeLookupTableSelector,
+            xorLookupSelector,
+            lookupGateLookupSelector,
+            rangeCheckLookupSelector,
+            foreignFieldMulLookupSelector,
         } = this;
 
         let public_input = undefined;
         if (this.public_input) public_input = f(this.public_input);
 
-        return new ProofEvaluations(
+        const optional_f = (e?: Evals) => e ? f(e) : undefined;
+
+        return new ProofEvaluations<Evals2>(
             w.map(f),
             f(z),
             s.map(f),
@@ -551,8 +637,22 @@ export class ProofEvaluations<Evals> {
             f(mulSelector),
             f(emulSelector),
             f(endomulScalarSelector),
-            undefined, // FIXME: ignoring lookup
-            public_input
+            public_input,
+            optional_f(rangeCheck0Selector),
+            optional_f(rangeCheck1Selector),
+            optional_f(foreignFieldAddSelector),
+            optional_f(foreignFieldMulSelector),
+            optional_f(xorSelector),
+            optional_f(rotSelector),
+            optional_f(lookupAggregation),
+            optional_f(lookupTable),
+            lookupSorted ? lookupSorted!.map(f) : undefined, // fixed size of 5
+            optional_f(runtimeLookupTable),
+            optional_f(runtimeLookupTableSelector),
+            optional_f(xorLookupSelector),
+            optional_f(lookupGateLookupSelector),
+            optional_f(rangeCheckLookupSelector),
+            optional_f(foreignFieldMulLookupSelector),
         )
     }
 
@@ -591,6 +691,28 @@ export class ProofEvaluations<Evals> {
             case "z": {
                 return this.z;
             }
+            case "lookupsorted": {
+                return this.lookupSorted?.[col.index];
+            }
+            case "lookupaggreg": {
+                return this.lookupAggregation;
+            }
+            case "lookuptable": {
+                return this.lookupTable;
+            }
+            case "lookupkindindex": {
+                if (col.pattern === LookupPattern.Xor) return this.xorLookupSelector;
+                if (col.pattern === LookupPattern.Lookup) return this.lookupGateLookupSelector;
+                if (col.pattern === LookupPattern.RangeCheck) return this.rangeCheckLookupSelector;
+                if (col.pattern === LookupPattern.ForeignFieldMul) return this.foreignFieldMulLookupSelector;
+                else return undefined
+            }
+            case "lookupruntimeselector": {
+                return this.runtimeLookupTableSelector;
+            }
+            case "lookupruntimetable": {
+                return this.runtimeLookupTable;
+            }
             case "index": {
                 if (col.typ === GateType.Generic) return this.genericSelector;
                 if (col.typ === GateType.Poseidon) return this.poseidonSelector;
@@ -598,6 +720,12 @@ export class ProofEvaluations<Evals> {
                 if (col.typ === GateType.VarBaseMul) return this.mulSelector;
                 if (col.typ === GateType.EndoMul) return this.emulSelector;
                 if (col.typ === GateType.EndoMulScalar) return this.endomulScalarSelector;
+                if (col.typ === GateType.RangeCheck0) return this.rangeCheck0Selector;
+                if (col.typ === GateType.RangeCheck1) return this.rangeCheck1Selector;
+                if (col.typ === GateType.ForeignFieldAdd) return this.foreignFieldAddSelector;
+                if (col.typ === GateType.ForeignFieldMul) return this.foreignFieldMulSelector;
+                if (col.typ === GateType.Xor16) return this.xorSelector;
+                if (col.typ === GateType.Rot64) return this.rotSelector;
                 else return undefined;
             }
             case "coefficient": {
@@ -780,7 +908,7 @@ export class Constants<F> {
      * The challenge joint_combiner which is used to combine
      * joint lookup tables.
      */
-    //joint_combiner?: F // WARN: skipped lookups
+    joint_combiner?: F
     /** The endomorphism coefficient */
     endo_coefficient: F
     /** The MDS matrix */
@@ -790,7 +918,7 @@ export class Constants<F> {
 }
 
 export class RandomOracles {
-    //joint_combiner // FIXME: ignoring for now
+    joint_combiner?: ForeignScalar[]
     beta: ForeignScalar
     gamma: ForeignScalar
     alpha_chal: ScalarChallenge

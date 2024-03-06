@@ -91,15 +91,17 @@ export class Batch {
         // Permutation constraints
         const permutation_vanishing_polynomial = verifier_index.permutation_vanishing_polynomial_m
             .evaluate(oracles.zeta);
-        const alphas = all_alphas.getAlphas(
+        const alpha_powers_result = all_alphas.getAlphas(
             { kind: "permutation" },
             Verifier.PERMUTATION_CONSTRAINTS
         );
+        if (isErr(alpha_powers_result)) return alpha_powers_result;
+        const alphas = unwrap(alpha_powers_result);
 
         let commitments = [verifier_index.sigma_comm[Verifier.PERMUTS - 1]];
         const init = evals.z.zetaOmega
             .mul(oracles.beta)
-            .mul(alphas[0])
+            .mul(alphas.next())
             .mul(permutation_vanishing_polynomial);
         let scalars: ForeignScalar[] = [evals.s
             .map((s, i) => oracles.gamma.add(oracles.beta.mul(s.zeta)).add(evals.w[i].zeta))
@@ -457,7 +459,6 @@ where
             z,
             s,
             coefficients,
-            lookup,
             genericSelector,
             poseidonSelector
         } = proof.evals;
@@ -468,21 +469,11 @@ where
         // auxiliary
         let arrays = [w, s, coefficients];
         let singles = [z, genericSelector, poseidonSelector];
-        if (lookup) {
-            const {
-                sorted,
-                aggreg,
-                table,
-                runtime
-            } = lookup;
-
-            arrays.push(sorted);
-            singles.push(aggreg, table);
-            if (runtime) singles.push(runtime);
-        }
 
         // true if all evaluation lengths are valid
         return arrays.every((evals) => evals.every(valid_evals_len)) &&
             singles.every(valid_evals_len);
+
+        // TODO: check the rest of evaluations (don't really needed for our purposes)
     }
 }

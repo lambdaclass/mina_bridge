@@ -203,6 +203,7 @@ export function deserPolishToken(json: PolishTokenJSON): PolishToken | undefined
             case "Alpha": return { kind: "alpha" }
             case "Beta": return { kind: "beta" }
             case "Gamma": return { kind: "gamma" }
+            case "JointCombiner": return { kind: "jointcombiner" }
             case "EndoCoefficient": return { kind: "endocoefficient" }
             case "Dup": return { kind: "dup" }
             case "Add": return { kind: "add" }

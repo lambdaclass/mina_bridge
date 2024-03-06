@@ -72,7 +72,7 @@ export class ArithmeticSponge {
         return this.params.mds.map((row) =>
             this.state.reduce(
                 (acc, s, i) => acc.add(s.mul(row[i])),
-                ForeignBase.from(0))
+                this.params.zero)
         );
     }
 
@@ -107,6 +107,7 @@ export class ArithmeticSpongeParams {
     ark_initial: boolean
     rounds: number
     rate: number
+    zero: UnionForeignField
 }
 
 /**
@@ -130,6 +131,16 @@ export class Sponge {
     absorb(x: ForeignBase) {
         this.lastSqueezed = [];
         this.#internalSponge.absorb(x);
+    }
+
+    absorbFr(x: ForeignScalar) {
+        this.lastSqueezed = [];
+        this.#internalSponge.absorb(x);
+    }
+
+    absorbMultipleFr(x: ForeignScalar[]) {
+        this.lastSqueezed = [];
+        x.forEach((elem) => this.#internalSponge.absorb(elem));
     }
 
     squeezeField(): ForeignBase {
@@ -190,33 +201,73 @@ export class Sponge {
 
     absorbEvals(evals: ProofEvaluations<PointEvaluations<ForeignScalar[]>>) {
         const {
-            public_input,
             w,
             z,
             s,
             coefficients,
-            //lookup,
             genericSelector,
-            poseidonSelector
+            poseidonSelector,
+            completeAddSelector,
+            mulSelector,
+            emulSelector,
+            endomulScalarSelector,
+            rangeCheck0Selector,
+            rangeCheck1Selector,
+            foreignFieldAddSelector,
+            foreignFieldMulSelector,
+            xorSelector,
+            rotSelector,
+            lookupAggregation,
+            lookupTable,
+            lookupSorted,
+            runtimeLookupTable,
+            runtimeLookupTableSelector,
+            xorLookupSelector,
+            lookupGateLookupSelector,
+            rangeCheckLookupSelector,
+            foreignFieldMulLookupSelector,
         } = evals;
+
         let points = [
             z,
             genericSelector,
             poseidonSelector,
+            completeAddSelector,
+            mulSelector,
+            emulSelector,
+            endomulScalarSelector,
         ]
         // arrays:
         points = points.concat(w);
-        points = points.concat(s);
         points = points.concat(coefficients);
+        points = points.concat(s);
 
         // optional:
-        if (public_input) points.push(public_input);
-        //if (lookup) points.push(lookup); // FIXME: ignoring lookups
+        const add_optional = (evals?: PointEvaluations<ForeignScalar[]>) => {
+            if (evals) points.push(evals);
+        }
 
-        points.forEach((p) => {
-            this.absorbScalars.bind(this)(p.zeta);
-            this.absorbScalars.bind(this)(p.zetaOmega);
-        });
+        add_optional(rangeCheck0Selector);
+        add_optional(rangeCheck1Selector);
+        add_optional(foreignFieldAddSelector);
+        add_optional(foreignFieldMulSelector);
+        add_optional(xorSelector);
+        add_optional(rotSelector);
+        add_optional(lookupAggregation);
+        add_optional(lookupTable);
+        if (lookupSorted) lookupSorted.forEach(add_optional);
+        add_optional(runtimeLookupTable);
+        add_optional(runtimeLookupTableSelector);
+        add_optional(xorLookupSelector);
+        add_optional(lookupGateLookupSelector);
+        add_optional(rangeCheckLookupSelector);
+        add_optional(foreignFieldMulLookupSelector);
+
+        for (const p of points) {
+            for (const z of p.zeta) this.#internalSponge.absorb(z);
+            for (const zO of p.zetaOmega) this.#internalSponge.absorb(zO);
+        }
+        console.log(points.length);
     }
 
     /**
@@ -272,6 +323,7 @@ export function fq_sponge_params(): ArithmeticSpongeParams {
         ark_initial: false,
         rounds: 55,
         rate: 2,
+        zero: ForeignScalar.from(0),
         mds: [
             [
                 28115781186772277486790024060542467295096710153315236019619365740021995624782n,
@@ -574,6 +626,7 @@ export function fp_sponge_params(): ArithmeticSpongeParams {
         ark_initial: false,
         rounds: 55,
         rate: 2,
+        zero: ForeignBase.from(0),
         mds: [
             [
                 12035446894107573964500871153637039653510326950134440362813193268448863222019n,

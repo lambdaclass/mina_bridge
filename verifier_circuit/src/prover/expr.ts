@@ -3,6 +3,7 @@ import { Constants, PointEvaluations, ProofEvaluations } from "./prover.js";
 import { invScalar, powScalar } from "../util/scalar.js";
 import { GateType } from "../circuits/gate.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
+import { LookupPattern, LookupPatterns } from "../lookups/lookups.js";
 
 /** A type representing one of the polynomials involved in the PLONK IOP */
 export namespace Column {
@@ -29,6 +30,32 @@ export namespace Column {
         kind: "permutation"
         index: number
     }
+
+    export type LookupSorted = {
+        kind: "lookupsorted"
+        index: number
+    }
+
+    export type LookupAggreg = {
+        kind: "lookupaggreg"
+    }
+
+    export type LookupTable = {
+        kind: "lookuptable"
+    }
+
+    export type LookupRuntimeTable = {
+        kind: "lookupruntimetable"
+    }
+
+    export type LookupRuntimeSelector = {
+        kind: "lookupruntimeselector"
+    }
+
+    export type LookupKindIndex = {
+        kind: "lookupkindindex"
+        pattern: LookupPattern
+    }
 }
 
 export type Column =
@@ -36,7 +63,13 @@ export type Column =
     | Column.Z
     | Column.Index
     | Column.Coefficient
-    | Column.Permutation;
+    | Column.Permutation
+    | Column.LookupSorted
+    | Column.LookupAggreg
+    | Column.LookupTable
+    | Column.LookupRuntimeTable
+    | Column.LookupRuntimeSelector
+    | Column.LookupKindIndex;
 
 /**
  * A row accessible from a given row, corresponds to the fact that we open all polynomials
@@ -125,10 +158,9 @@ export namespace PolishToken {
     export type Gamma = {
         kind: "gamma"
     }
-    // FIXME: this is lookup related
-    //export type JointCombiner = {
-    //kind: "jointcombiner"
-    //}
+    export type JointCombiner = {
+        kind: "jointcombiner"
+    }
     export type EndoCoefficient = {
         kind: "endocoefficient"
     }
@@ -221,10 +253,10 @@ export namespace PolishToken {
                     stack.push(c.gamma);
                     break;
                 }
-                // case "jointcombiner": {
-                //     break;
-                // }
-                // FIXME: lookup related
+                case "jointcombiner": {
+                    stack.push(c.joint_combiner!);
+                    break;
+                }
                 case "endocoefficient": {
                     stack.push(c.endo_coefficient);
                     break;
@@ -320,6 +352,7 @@ export type PolishToken =
     | PolishToken.Alpha
     | PolishToken.Beta
     | PolishToken.Gamma
+    | PolishToken.JointCombiner
     | PolishToken.EndoCoefficient
     | PolishToken.Mds
     | PolishToken.Literal

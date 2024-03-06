@@ -1,6 +1,7 @@
 import { ArgumentType, ArgumentTypeID, GateType } from "./circuits/gate.js"
 import { Scalar } from "o1js"
 import { ForeignScalar } from "./foreign_fields/foreign_scalar.js"
+import { VerifierResult, verifierErr, verifierOk } from "./error.js";
 
 /**
  * This type can be used to create a mapping between powers of alpha and constraint types.
@@ -55,18 +56,31 @@ export class Alphas {
     /**
      * Retrieves the powers of alpha, upperbounded by `num`
      */
-    getAlphas(ty: ArgumentType, num: number): ForeignScalar[] {
+    getAlphas(ty: ArgumentType, num: number): VerifierResult<AlphasIterator> {
         if (ty.kind === "gate") {
             ty.type = GateType.Zero;
         }
 
         const range = this.mapping.get(ArgumentType.id(ty))!;
         if (num > range[1]) {
-            // FIXME: panic! asked for num alphas but there aren't as many.
+            return verifierErr("asked for " + num + " alphas but there aren't as many.");
         }
 
-        return this.alphas!.slice(range[0], range[0] + num);
-        // INFO: in kimchi this returns a "MustConsumeIterator", which warns you if
-        // not consumed entirely.
+        const powers = this.alphas!.slice(range[0], range[0] + num);
+        return verifierOk(new AlphasIterator(powers));
+    }
+}
+
+export class AlphasIterator {
+    powers: ForeignScalar[]
+    curr_index: number
+
+    constructor(powers: ForeignScalar[]) {
+        this.powers = powers;
+        this.curr_index = 0;
+    }
+
+    next(): ForeignScalar {
+        return this.powers[this.curr_index++];
     }
 }
