@@ -1,5 +1,5 @@
 import { AggregatedEvaluationProof, Evaluation, PolyComm } from "../poly_commitment/commitment.js";
-import { ProverProof, PointEvaluations, ProofEvaluations, Constants } from "../prover/prover.js";
+import { ProverProof, PointEvaluations, ProofEvaluations, Constants, Oracles } from "../prover/prover.js";
 import { Verifier, VerifierIndex } from "./verifier.js";
 import { ForeignGroup } from "o1js";
 import { deserHexScalar } from "../serde/serde_proof.js";
@@ -8,6 +8,7 @@ import { GateType } from "../circuits/gate.js";
 import { powScalar } from "../util/scalar.js";
 import { range } from "../util/misc.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
+import { isErr, isOk, unwrap, verifierOk, VerifierResult} from "../error.js";
 
 export class Context {
     verifier_index: VerifierIndex
@@ -50,7 +51,7 @@ export class Batch {
      *
      * essentially will partial verify proofs so they can be batched verified later.
     */
-    static toBatch(verifier_index: VerifierIndex, proof: ProverProof, public_input: ForeignScalar[]) {
+    static toBatch(verifier_index: VerifierIndex, proof: ProverProof, public_input: ForeignScalar[]): VerifierResult<AggregatedEvaluationProof> {
         //~ 1. Check the length of evaluations inside the proof.
         this.#check_proof_evals_len(proof)
 
@@ -65,6 +66,9 @@ export class Batch {
                 new PolyComm([ForeignScalar.from(1)], undefined))?.commitment!;
 
         //~ 3. Run the Fiat-Shamir heuristic.
+        const oracles_result = proof.oracles(verifier_index, public_comm, public_input);
+        if (isErr(oracles_result)) return oracles_result;
+
         const {
             fq_sponge,
             oracles,
@@ -75,7 +79,7 @@ export class Batch {
             zeta1: zeta_to_domain_size,
             ft_eval0,
             combined_inner_product
-        } = proof.oracles(verifier_index, public_comm, public_input);
+        } = unwrap(oracles_result);
 
         //~ 4. Combine the chunked polynomials' evaluations
         const evals = ProofEvaluations.combine(proof.evals, powers_of_eval_points_for_chunks);
@@ -375,7 +379,7 @@ export class Batch {
             opening: proof.proof,
             combined_inner_product,
         };
-        return agg_proof;
+        return verifierOk(agg_proof);
     }
 
     /*

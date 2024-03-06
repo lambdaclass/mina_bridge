@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
 import { circuitMainBn254, CircuitBn254, Group, public_, ForeignGroup, Provable } from 'o1js';
-import { OpeningProof, PolyComm } from '../poly_commitment/commitment.js';
+import { AggregatedEvaluationProof, OpeningProof, PolyComm } from '../poly_commitment/commitment.js';
 import { SRS } from '../SRS.js';
 import { fp_sponge_initial_state, fp_sponge_params, fq_sponge_initial_state, fq_sponge_params, Sponge } from './sponge.js';
 import { Alphas } from '../alphas.js';
@@ -17,6 +17,7 @@ import proof_json from "../../test_data/proof.json" assert { type: "json" };
 import verifier_index_json from "../../test_data/verifier_index.json" assert { type: "json" };
 import { deserVerifierIndex } from "../serde/serde_index.js";
 import { deserProverProof } from '../serde/serde_proof.js';
+import { isErr, isOk, unwrap } from '../error.js';
 
 let steps: bigint[][];
 try {
@@ -221,7 +222,10 @@ export class Verifier extends CircuitBn254 {
     static main(@public_ openingProof: OpeningProof, @public_ expected: ForeignGroup) {
         let proverProof = deserProverProof(proof_json);
         proverProof.proof = openingProof;
-        let evaluationProof = Batch.toBatch(deserVerifierIndex(verifier_index_json), proverProof, []);
+        let evaluationProofResult = Batch.toBatch(deserVerifierIndex(verifier_index_json), proverProof, []);
+        if (isErr(evaluationProofResult)) return evaluationProofResult;
+
+        const evaluationProof = unwrap(evaluationProofResult);
 
         let points = [h];
         let scalars = [ForeignScalar.from(0)];
@@ -230,8 +234,8 @@ export class Verifier extends CircuitBn254 {
         let sgRandBase = ForeignScalar.from(1);
         let negRandBase = randBase.neg();
 
-        points.push(evaluationProof.opening.sg);
-        scalars.push(negRandBase.mul(evaluationProof.opening.z1).sub(sgRandBase));
+        points.push(evaluationProof!.opening.sg);
+        scalars.push(negRandBase.mul(evaluationProof!.opening.z1).sub(sgRandBase));
 
         let result = Verifier.naiveMSM(points, scalars);
 

@@ -41,8 +41,16 @@ interface ProverCommitmentsJSON {
  * Deserializes a scalar from a hex string, prefix doesn't matter
  */
 export function deserHexScalar(str: string): ForeignScalar {
-    if (!str.startsWith("0x")) str = "0x" + str;
-    return ForeignScalar.from(str);
+    if (str.startsWith("0x")) str = str.slice(1);
+
+    // reverse endianness
+    let rev_str = "0x";
+    for (let i = str.length - 1; i > 0; i -= 2) {
+        rev_str += str.charAt(i - 1);
+        rev_str += str.charAt(i);
+    }
+
+    return ForeignScalar.from(rev_str);
 }
 
 /**

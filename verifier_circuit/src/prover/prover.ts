@@ -11,6 +11,8 @@ import { Column, PolishToken } from "./expr.js";
 import { deserHexScalar } from "../serde/serde_proof.js";
 import { range } from "../util/misc.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
+import { VerifierResult, verifierErr, verifierOk } from "../error.js";
+import { logField } from "../util/log.js";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
@@ -38,7 +40,7 @@ export class ProverProof {
     /**
      * Will run the random oracle argument for removing prover-verifier interaction (Fiat-Shamir transform)
      */
-    oracles(index: VerifierIndex, public_comm: PolyComm<ForeignGroup>, public_input?: ForeignScalar[]): OraclesResult {
+    oracles(index: VerifierIndex, public_comm: PolyComm<ForeignGroup>, public_input?: ForeignScalar[]): VerifierResult<Oracles> {
         const n = index.domain_size;
         const endo_r = ForeignScalar.from("0x397e65a7d7c1ad71aee24b27e308f0a61259527ec1d4752e619d1840af55f1b1");
         // FIXME: ^ currently hard-coded, refactor this in the future
@@ -70,62 +72,27 @@ export class ProverProof {
         this.commitments.wComm.forEach(fq_sponge.absorbCommitment.bind(fq_sponge));
 
         //~ 6. If lookup is used:
-        // WARN: omitted lookup-related for now
-        /*
-        if let Some(l) = &index.lookup_index {
-            let lookup_commits = self
-                .commitments
-                .lookup
-                .as_ref()
-                .ok_or(VerifyError::LookupCommitmentMissing)?;
-
-            // if runtime is used, absorb the commitment
-            if l.runtime_tables_selector.is_some() {
-                let runtime_commit = lookup_commits
-                    .runtime
-                    .as_ref()
-                    .ok_or(VerifyError::IncorrectRuntimeProof)?;
-                absorb_commitment(&mut fq_sponge, runtime_commit);
+        let joint_combiner = undefined;
+        if (index.lookup_index) {
+            const l = index.lookup_index;
+            const lookup_commits = this.commitments.lookup
+            if (!lookup_commits) return verifierErr("missing lookup commitments");
+            if (l.runtime_tables_selector) {
+                const runtime_commit = lookup_commits.runtime;
+                if (!runtime_commit) return verifierErr("incorrect runtime proof");
+                fq_sponge.absorbCommitment(runtime_commit);
             }
+
+            const zero = Provable.witnessBn254(ForeignScalar, () => ForeignScalar.from(0));
+            const joint_combiner_scalar = l.joint_lookup_used
+                ? fq_sponge.challenge()
+                : zero;
+            const joint_combiner_chal = new ScalarChallenge(joint_combiner_scalar);
+            const joint_combiner_field = joint_combiner_chal.toField(endo_r);
+            joint_combiner = [joint_combiner_scalar, joint_combiner_field];
+
+            lookup_commits.sorted.forEach(fq_sponge.absorbCommitment);
         }
-
-        let joint_combiner = if let Some(l) = &index.lookup_index {
-            //~~ * If it involves queries to a multiple-column lookup table,
-            //~~   then squeeze the Fq-Sponge to obtain the joint combiner challenge $j'$,
-            //~~   otherwise set the joint combiner challenge $j'$ to $0$.
-            let joint_combiner = if l.joint_lookup_used {
-                panic!("challenge joint combiner");
-                fq_sponge.challenge()
-            } else {
-                G::ScalarField::zero()
-            };
-
-            //~~ * Derive the scalar joint combiner challenge $j$ from $j'$ using the endomorphism.
-            //~~   (TODO: specify endomorphism)
-            let joint_combiner = ScalarChallenge(joint_combiner);
-            let joint_combiner_field = joint_combiner.to_field(endo_r);
-            let joint_combiner = (joint_combiner, joint_combiner_field);
-
-            Some(joint_combiner)
-        } else {
-            None
-        };
-
-        if index.lookup_index.is_some() {
-            let lookup_commits = self
-                .commitments
-                .lookup
-                .as_ref()
-                .ok_or(VerifyError::LookupCommitmentMissing)?;
-
-            //~~ * absorb the commitments to the sorted polynomials.
-            for com in &lookup_commits.sorted {
-                println!("lookup_commits_sorted: {}", com.unshifted[0]);
-                absorb_commitment(&mut fq_sponge, com);
-            }
-        }
-        */
-
 
         //~ 7. Sample $\beta$ with the Fq-Sponge.
         const beta = fq_sponge.challenge();
@@ -134,7 +101,9 @@ export class ProverProof {
         const gamma = fq_sponge.challenge();
 
         //~ 9. If using lookup, absorb the commitment to the aggregation lookup polynomial.
-        // WARN: omitted lookup-related for now
+        if (this.commitments.lookup) {
+            fq_sponge.absorbCommitment(this.commitments.lookup.aggreg);
+        }
 
         //~ 10. Absorb the commitment to the permutation trace with the Fq-Sponge.
         fq_sponge.absorbCommitment(this.commitments.zComm);
@@ -424,7 +393,7 @@ export class ProverProof {
             u_chal
         }
 
-        const res: OraclesResult = {
+        const result: Oracles = {
             fq_sponge,
             digest,
             oracles,
@@ -437,7 +406,7 @@ export class ProverProof {
             combined_inner_product
         }
 
-        return res;
+        return verifierOk(result);
     }
 }
 
@@ -835,7 +804,7 @@ export class RandomOracles {
 }
 
 /** The result of running the oracle protocol */
-export class OraclesResult {
+export class Oracles {
     /** A sponge that acts on the base field of a curve */
     fq_sponge: Sponge
     /** the last evaluation of the Fq-Sponge in this protocol */
