@@ -8,11 +8,9 @@ import { invScalar, powScalar } from "../util/scalar.js";
 import { GateType } from "../circuits/gate.js";
 import { Alphas } from "../alphas.js";
 import { Column, PolishToken } from "./expr.js";
-import { deserHexScalar } from "../serde/serde_proof.js";
 import { range } from "../util/misc.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { VerifierResult, verifierErr, verifierOk, isErr, unwrap } from "../error.js";
-import { logField } from "../util/log.js";
 import { LookupPattern } from "../lookups/lookups.js";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */

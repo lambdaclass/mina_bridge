@@ -5,7 +5,6 @@ import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { ForeignBase } from "../foreign_fields/foreign_field.js";
 import { assert } from "console";
 import { fromLimbs64Rev, getLimbs64 } from "../util/bigint.js";
-import { logField } from "../util/log.js";
 
 type UnionForeignField = ForeignBase | ForeignScalar;
 type UnionForeignFieldArr = ForeignBase[] | ForeignScalar[];

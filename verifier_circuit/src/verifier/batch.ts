@@ -9,7 +9,6 @@ import { powScalar } from "../util/scalar.js";
 import { range } from "../util/misc.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { isErr, isOk, unwrap, verifierOk, VerifierResult} from "../error.js";
-import { logField } from "../util/log.js";
 
 export class Context {
     verifier_index: VerifierIndex
