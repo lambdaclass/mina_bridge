@@ -29,3 +29,10 @@ export class LookupInfo {
     /// The features enabled for this lookup configuration
     features: LookupFeatures
 }
+
+export enum LookupPattern {
+    Xor,
+    Lookup,
+    RangeCheck,
+    ForeignFieldMul
+}
