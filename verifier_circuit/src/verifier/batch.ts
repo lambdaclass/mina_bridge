@@ -91,15 +91,17 @@ export class Batch {
         // Permutation constraints
         const permutation_vanishing_polynomial = verifier_index.permutation_vanishing_polynomial_m
             .evaluate(oracles.zeta);
-        const alphas = all_alphas.getAlphas(
+        const alpha_powers_result = all_alphas.getAlphas(
             { kind: "permutation" },
             Verifier.PERMUTATION_CONSTRAINTS
         );
+        if (isErr(alpha_powers_result)) return alpha_powers_result;
+        const alphas = unwrap(alpha_powers_result);
 
         let commitments = [verifier_index.sigma_comm[Verifier.PERMUTS - 1]];
         const init = evals.z.zetaOmega
             .mul(oracles.beta)
-            .mul(alphas[0])
+            .mul(alphas.next())
             .mul(permutation_vanishing_polynomial);
         let scalars: ForeignScalar[] = [evals.s
             .map((s, i) => oracles.gamma.add(oracles.beta.mul(s.zeta)).add(evals.w[i].zeta))

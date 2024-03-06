@@ -11,7 +11,7 @@ import { Column, PolishToken } from "./expr.js";
 import { deserHexScalar } from "../serde/serde_proof.js";
 import { range } from "../util/misc.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
-import { VerifierResult, verifierErr, verifierOk } from "../error.js";
+import { VerifierResult, verifierErr, verifierOk, isErr, unwrap } from "../error.js";
 import { logField } from "../util/log.js";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */
@@ -265,18 +265,24 @@ export class ProverProof {
         const u = u_chal.toField(endo_r);
 
         //~ 28. Create a list of all polynomials that have an evaluation proof.
-
         const evals = ProofEvaluations.combine(this.evals, powers_of_eval_points_for_chunks);
+        // WARN: untested
 
         //~ 29. Compute the evaluation of $ft(\zeta)$.
         const permutation_vanishing_polynomial = index.permutation_vanishing_polynomial_m.evaluate(zeta);
+        // WARN: untested
         const zeta1m1 = zeta1.sub(ForeignScalar.from(1));
 
-        let alpha_powers = all_alphas.getAlphas({ kind: "permutation" }, Verifier.PERMUTATION_CONSTRAINTS);
-        const alpha0 = alpha_powers[0];
-        const alpha1 = alpha_powers[1];
-        const alpha2 = alpha_powers[2];
-        // FIXME: alpha_powers should be an iterator and alphai = alpha_powers.next(), for i = 0,1,2.
+        const alpha_powers_result = all_alphas.getAlphas({ kind: "permutation" }, Verifier.PERMUTATION_CONSTRAINTS);
+        if (isErr(alpha_powers_result)) return alpha_powers_result;
+        const alpha_powers = unwrap(alpha_powers_result);
+
+        const alpha0 = alpha_powers.next();
+        const alpha1 = alpha_powers.next();
+        const alpha2 = alpha_powers.next();
+        logField("alpha0: ", alpha0);
+        logField("alpha1: ", alpha1);
+        logField("alpha2: ", alpha2);
 
         const init = (evals.w[Verifier.PERMUTS - 1].zeta.add(gamma))
             .mul(evals.z.zetaOmega)
