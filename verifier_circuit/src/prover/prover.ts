@@ -13,6 +13,7 @@ import { range } from "../util/misc.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { VerifierResult, verifierErr, verifierOk, isErr, unwrap } from "../error.js";
 import { logField } from "../util/log.js";
+import { LookupPattern } from "../lookups/lookups.js";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
@@ -345,6 +346,10 @@ export class ProverProof {
         push_column_eval({ kind: "z" })
         push_column_eval({ kind: "index", typ: GateType.Generic })
         push_column_eval({ kind: "index", typ: GateType.Poseidon })
+        push_column_eval({ kind: "index", typ: GateType.CompleteAdd })
+        push_column_eval({ kind: "index", typ: GateType.VarBaseMul })
+        push_column_eval({ kind: "index", typ: GateType.EndoMul })
+        push_column_eval({ kind: "index", typ: GateType.EndoMulScalar })
 
         range(Verifier.COLUMNS)
             .map((i) => { return { kind: "witness", index: i } as Column })
@@ -355,9 +360,27 @@ export class ProverProof {
         range(Verifier.PERMUTS - 1)
             .map((i) => { return { kind: "permutation", index: i } as Column })
             .forEach(push_column_eval);
-        // FIXME: ignoring lookup
+        if (index.range_check0_comm) push_column_eval({ kind: "index", typ: GateType.RangeCheck0 });
+        if (index.range_check1_comm) push_column_eval({ kind: "index", typ: GateType.RangeCheck1 });
+        if (index.foreign_field_add_comm) push_column_eval({ kind: "index", typ: GateType.ForeignFieldAdd });
+        if (index.foreign_field_mul_comm) push_column_eval({ kind: "index", typ: GateType.ForeignFieldMul });
+        if (index.xor_comm) push_column_eval({ kind: "index", typ: GateType.Xor16 });
+        if (index.rot_comm) push_column_eval({ kind: "index", typ: GateType.Rot64 });
+        if (index.lookup_index) {
+            const li = index.lookup_index;
+            range(li.lookup_info.max_per_row + 1)
+                .map((index) => { return { kind: "lookupsorted", index } as Column })
+                .forEach(push_column_eval);
+            [{ kind: "lookupaggreg", } as Column, { kind: "lookuptable"} as Column]
+                .forEach(push_column_eval);
+            if (li.runtime_tables_selector) push_column_eval({ kind: "lookupruntimetable" });
+            if (this.evals.runtimeLookupTableSelector) push_column_eval({ kind: "lookupruntimeselector" });
+            if (this.evals.xorLookupSelector) push_column_eval({ kind: "lookupkindindex", pattern: LookupPattern.Xor });
+            if (this.evals.lookupGateLookupSelector) push_column_eval({ kind: "lookupkindindex", pattern: LookupPattern.Lookup });
+            if (this.evals.rangeCheckLookupSelector) push_column_eval({ kind: "lookupkindindex", pattern: LookupPattern.RangeCheck });
+            if (this.evals.foreignFieldMulLookupSelector) push_column_eval({ kind: "lookupkindindex", pattern: LookupPattern.ForeignFieldMul });
+        }
 
-        // FIXME: review this
         const combined_inner_product = combinedInnerProduct(
             evaluation_points,
             v,
@@ -367,7 +390,7 @@ export class ProverProof {
         );
 
         const oracles: RandomOracles = {
-            //joint_combiner // FIXME: ignoring lookups
+            joint_combiner,
             beta,
             gamma,
             alpha_chal,
@@ -670,6 +693,28 @@ export class ProofEvaluations<Evals> {
             case "z": {
                 return this.z;
             }
+            case "lookupsorted": {
+                return this.lookupSorted?.[col.index];
+            }
+            case "lookupaggreg": {
+                return this.lookupAggregation;
+            }
+            case "lookuptable": {
+                return this.lookupTable;
+            }
+            case "lookupkindindex": {
+                if (col.pattern === LookupPattern.Xor) return this.xorLookupSelector;
+                if (col.pattern === LookupPattern.Lookup) return this.lookupGateLookupSelector;
+                if (col.pattern === LookupPattern.RangeCheck) return this.rangeCheckLookupSelector;
+                if (col.pattern === LookupPattern.ForeignFieldMul) return this.foreignFieldMulLookupSelector;
+                else return undefined
+            }
+            case "lookupruntimeselector": {
+                return this.runtimeLookupTableSelector;
+            }
+            case "lookupruntimetable": {
+                return this.runtimeLookupTable;
+            }
             case "index": {
                 if (col.typ === GateType.Generic) return this.genericSelector;
                 if (col.typ === GateType.Poseidon) return this.poseidonSelector;
@@ -677,6 +722,12 @@ export class ProofEvaluations<Evals> {
                 if (col.typ === GateType.VarBaseMul) return this.mulSelector;
                 if (col.typ === GateType.EndoMul) return this.emulSelector;
                 if (col.typ === GateType.EndoMulScalar) return this.endomulScalarSelector;
+                if (col.typ === GateType.RangeCheck0) return this.rangeCheck0Selector;
+                if (col.typ === GateType.RangeCheck1) return this.rangeCheck1Selector;
+                if (col.typ === GateType.ForeignFieldAdd) return this.foreignFieldAddSelector;
+                if (col.typ === GateType.ForeignFieldMul) return this.foreignFieldMulSelector;
+                if (col.typ === GateType.Xor16) return this.xorSelector;
+                if (col.typ === GateType.Rot64) return this.rotSelector;
                 else return undefined;
             }
             case "coefficient": {
@@ -869,7 +920,7 @@ export class Constants<F> {
 }
 
 export class RandomOracles {
-    //joint_combiner // FIXME: ignoring for now
+    joint_combiner?: ForeignScalar[]
     beta: ForeignScalar
     gamma: ForeignScalar
     alpha_chal: ScalarChallenge
