@@ -214,7 +214,7 @@ export class Batch {
             const runtime_lookup_table = proof.evals.runtimeLookupTable!;
 
             const joint_combiner = oracles.joint_combiner!;
-            const table_id_combiner = joint_combiner[1].pow(li.lookup_info.max_joint_size);
+            const table_id_combiner = powScalar(joint_combiner[1], li.lookup_info.max_joint_size);
             const runtime = lookup_comms.runtime!;
 
             const table_comm = this.combineTable(
@@ -409,6 +409,6 @@ where
             commitments.push(runtime);
         }
 
-        return PolyComm.naiveMSM(commitments, scalars);
+        return PolyComm.msm(commitments, scalars);
     }
 }
