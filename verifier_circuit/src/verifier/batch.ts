@@ -9,6 +9,8 @@ import { powScalar } from "../util/scalar.js";
 import { range } from "../util/misc.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { isErr, isOk, unwrap, verifierOk, VerifierResult} from "../error.js";
+import { logField } from "../util/log.js";
+import { fq_sponge_params } from "./sponge.js";
 
 export class Context {
     verifier_index: VerifierIndex
@@ -107,34 +109,12 @@ export class Batch {
             .map((s, i) => oracles.gamma.add(oracles.beta.mul(s.zeta)).add(evals.w[i].zeta))
             .reduce((acc, curr) => acc.mul(curr), init)];
 
-        // FIXME: hardcoded for now, should be a sponge parameter.
-        // this was generated from the verifier_circuit_tests/ crate.
-        //
-        // FIXME: this should be somewhere in the o1js' Poseidon sponge implementation
-        const mds = [
-            [
-                "4e59dd23f06c2400f3ba607d02926badee7add77d3544a307e7af417ddf7283e",
-                "0026c37744e275497518904a3d4bd83f3d89f414c28ab292cbfc96b6ab06db30",
-                "3a567f1bc5592630ba6ae6014d6c2e6efb3fab52815eff16608c051bbc104117"
-            ].map(deserHexScalar),
-            [
-                "0ceb4a2b7e38fea058a153e390439d2e0dd5bc481d5ac08069140335a86fd312",
-                "559c4de970165cd66fd0068edcbe3615c7af8b5e380c9f6ea7be69b38e7cb12a",
-                "37854a5bdac3b836763e2ec95d0ca6d9e5b908e127f16a98135c16285391cc00"
-            ].map(deserHexScalar),
-            [
-                "1bd343a1e09a4080831e5afbf0ca3d3a610c383b154643eb88666970d2a6d904",
-                "24c37437a332198bd134339acfab5fee7fd2e4ab157d1fae8b7c31e3ee05a802",
-                "bd7b2b50cd898d9badcb3d2787a7b98322bb00bc2ddfb6b11efddfc6e992b019"
-            ].map(deserHexScalar)
-        ];
-
         const constants: Constants<ForeignScalar> = {
             alpha: oracles.alpha,
             beta: oracles.beta,
             gamma: oracles.gamma,
             endo_coefficient: verifier_index.endo,
-            mds: mds,
+            mds: fq_sponge_params().mds,
             zk_rows: verifier_index.zk_rows,
         }
 
