@@ -287,69 +287,6 @@ export class Batch {
         }
         return acc.neg();
     }
-    /*
-
-/// This function verifies the batch of zk-proofs
-///     proofs: vector of Plonk proofs
-///     RETURN: verification status
-///
-/// # Errors
-///
-/// Will give error if `srs` of `proof` is invalid or `verify` process fails.
-pub fn batch_verify<G, EFqSponge, EFrSponge, OpeningProof: OpenProof<G>>(
-    group_map: &G::Map,
-    proofs: &[Context<G, OpeningProof>],
-) -> Result<()>
-where
-    G: KimchiCurve,
-    G::BaseField: PrimeField,
-    EFqSponge: Clone + FqSponge<G::BaseField, G, G::ScalarField>,
-    EFrSponge: FrSponge<G::ScalarField>,
-{
-    //~ #### Batch verification of proofs
-    //~
-    //~ Below, we define the steps to verify a number of proofs
-    //~ (each associated to a [verifier index](#verifier-index)).
-    //~ You can, of course, use it to verify a single proof.
-    //~
-
-    //~ 1. If there's no proof to verify, the proof validates trivially.
-    if proofs.is_empty() {
-        return Ok(());
-    }
-
-    //~ 1. Ensure that all the proof's verifier index have a URS of the same length. (TODO: do they have to be the same URS though? should we check for that?)
-    // TODO: Account for the different SRS lengths
-    let srs = proofs[0].verifier_index.srs();
-    for &Context { verifier_index, .. } in proofs {
-        if verifier_index.srs().max_poly_size() != srs.max_poly_size() {
-            return Err(VerifyError::DifferentSRS);
-        }
-    }
-
-    //~ 1. Validate each proof separately following the [partial verification](#partial-verification) steps.
-    let mut batch = vec![];
-    for &Context {
-        verifier_index,
-        proof,
-        public_input,
-    } in proofs
-    {
-        batch.push(to_batch::<G, EFqSponge, EFrSponge, OpeningProof>(
-            verifier_index,
-            proof,
-            public_input,
-        )?);
-    }
-
-    //~ 1. Use the [`PolyCom.verify`](#polynomial-commitments) to verify the partially evaluated proofs.
-    if OpeningProof::verify(srs, group_map, &mut batch, &mut thread_rng()) {
-        Ok(())
-    } else {
-        Err(VerifyError::OpenProof)
-    }
-}
-
 
     /*
     * Enforce the length of evaluations inside the `proof`.
