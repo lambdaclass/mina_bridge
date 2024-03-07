@@ -1,3 +1,12 @@
+import { SRS } from '../SRS.js';
+
+function final_verify(
+    srs: SRS,
+    group_map: GroupMap,
+    rng: RNG
+): boolean {
+    return false;
+}
 /*
     /// This function verifies batch of batched polynomial commitment opening proofs
     ///     batch: batch of batched polynomial commitment opening proofs
