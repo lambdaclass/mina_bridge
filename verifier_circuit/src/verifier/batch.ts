@@ -11,6 +11,7 @@ import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { isErr, isOk, unwrap, verifierOk, VerifierResult} from "../error.js";
 import { logField } from "../util/log.js";
 import { fq_sponge_params } from "./sponge.js";
+import { AlphasIterator } from "../alphas.js";
 
 export class Context {
     verifier_index: VerifierIndex
@@ -101,13 +102,13 @@ export class Batch {
         const alphas = unwrap(alpha_powers_result);
 
         let commitments = [verifier_index.sigma_comm[Verifier.PERMUTS - 1]];
-        const init = evals.z.zetaOmega
-            .mul(oracles.beta)
-            .mul(alphas.next())
-            .mul(permutation_vanishing_polynomial);
-        let scalars: ForeignScalar[] = [evals.s
-            .map((s, i) => oracles.gamma.add(oracles.beta.mul(s.zeta)).add(evals.w[i].zeta))
-            .reduce((acc, curr) => acc.mul(curr), init)];
+        let scalars = [this.permScalars(
+            evals,
+            oracles.beta,
+            oracles.gamma,
+            alphas,
+            permutation_vanishing_polynomial
+        )];
 
         const constants: Constants<ForeignScalar> = {
             alpha: oracles.alpha,
@@ -364,6 +365,27 @@ export class Batch {
         return verifierOk(agg_proof);
     }
 
+    static permScalars(
+        e: ProofEvaluations<PointEvaluations<ForeignScalar>>,
+        beta: ForeignScalar,
+        gamma: ForeignScalar,
+        alphas: AlphasIterator,
+        zkp_zeta: ForeignScalar
+    ): ForeignScalar {
+        const alpha0 = alphas.next();
+        alphas.next();
+        alphas.next();
+
+        let acc = e.z.zetaOmega.mul(beta).mul(alpha0).mul(zkp_zeta);
+        for (let i = 0; i < Math.min(e.w.length, e.s.length); i++) {
+            const w = e.w[i];
+            const s = e.s[i];
+
+            const res = gamma.add(beta.mul(s.zeta)).add(w.zeta);
+            acc = acc.mul(res);
+        }
+        return acc.neg();
+    }
     /*
 
 /// This function verifies the batch of zk-proofs
