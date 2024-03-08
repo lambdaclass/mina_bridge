@@ -1,3 +1,4 @@
-import { Scalar, createForeignFieldBn254 } from "o1js";
+import { Scalar, createForeignField } from "o1js";
 
-export class ForeignScalar extends createForeignFieldBn254(Scalar.ORDER) { }
+export class ForeignScalar extends createForeignField(Scalar.ORDER).AlmostReduced { }
+

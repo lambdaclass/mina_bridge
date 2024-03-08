@@ -1,9 +1,9 @@
 import { readFileSync, writeFileSync } from "fs";
-import { Field, FieldBn254, ForeignGroup } from "o1js";
+import { Field } from "o1js";
 import { Verifier } from "./verifier/verifier.js";
 import { deserOpeningProof } from "./serde/serde_proof.js";
 import { ForeignField } from "./foreign_fields/foreign_field.js";
-import { TestCircuit, TestCircuitBn254 } from "./test_circuit.js";
+import { TestCircuit } from "./test_circuit.js";
 
 let inputs;
 try {
@@ -201,9 +201,9 @@ try {
 
 }
 
-console.log('O1JS loaded');
+// console.log('O1JS loaded');
 
-// ----------------------------------------------------
+// // ----------------------------------------------------
 
 console.log("Generating Pallas test circuit keypair...");
 let testKeypairPallas = await TestCircuit.generateKeypair();
@@ -212,24 +212,24 @@ console.log("Proving...");
 let testProofPallas = await TestCircuit.prove([], [Field.from(5)], testKeypairPallas);
 console.log(testProofPallas);
 
-console.log("Generating Bn254 test circuit keypair...");
-let testKeypairBn254 = await TestCircuitBn254.generateKeypair();
-console.dir(testKeypairBn254.constraintSystem(), { depth: null });
-console.log("Proving...");
-let testProofBn254 = await TestCircuitBn254.prove([], [FieldBn254.from(5)], testKeypairBn254);
-console.log(testProofBn254);
+// console.log("Generating Bn254 test circuit keypair...");
+// let testKeypairBn254 = await TestCircuitBn254.generateKeypair();
+// console.dir(testKeypairBn254.constraintSystem(), { depth: null });
+// console.log("Proving...");
+// let testProofBn254 = await TestCircuitBn254.prove([], [FieldBn254.from(5)], testKeypairBn254);
+// console.log(testProofBn254);
 
-console.log("Generating circuit keypair...");
-let keypair = await Verifier.generateKeypair();
+// console.log("Generating circuit keypair...");
+// let keypair = await Verifier.generateKeypair();
 
-console.log("Proving...");
-let openingProof = deserOpeningProof(inputs);
-let proof = await Verifier.prove([], [openingProof], keypair);
-console.log(proof);
+// console.log("Proving...");
+// let openingProof = deserOpeningProof(inputs);
+// let proof = await Verifier.prove([], [openingProof], keypair);
+// console.log(proof);
 
-console.log("Writing circuit gates into file...");
-let gates = keypair.constraintSystem();
-writeFileSync("../kzg_prover/gates.json", JSON.stringify(gates));
+// console.log("Writing circuit gates into file...");
+// let gates = keypair.constraintSystem();
+// writeFileSync("../kzg_prover/gates.json", JSON.stringify(gates));
 
 // ----------------------------------------------------
 console.log('Shutting down O1JS...');

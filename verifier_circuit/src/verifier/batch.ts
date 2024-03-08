@@ -1,13 +1,13 @@
 import { AggregatedEvaluationProof, Evaluation, PolyComm } from "../poly_commitment/commitment.js";
 import { ProverProof, PointEvaluations, ProofEvaluations, Constants } from "../prover/prover.js";
 import { Verifier, VerifierIndex } from "./verifier.js";
-import { ForeignGroup } from "o1js";
 import { deserHexScalar } from "../serde/serde_proof.js";
 import { Column, PolishToken } from "../prover/expr.js";
 import { GateType } from "../circuits/gate.js";
 import { powScalar } from "../util/scalar.js";
 import { range } from "../util/misc.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
+import { ForeignPallas } from "../foreign_fields/foreign_pallas.js";
 
 export class Context {
     verifier_index: VerifierIndex
@@ -20,7 +20,7 @@ export class Context {
         this.public_input = public_input;
     }
 
-    getColumn(col: Column): PolyComm<ForeignGroup> | undefined {
+    getColumn(col: Column): PolyComm<ForeignPallas> | undefined {
         switch (col.kind) {
             case "witness": return this.proof.commitments.wComm[col.index];
             case "coefficient": return this.verifier_index.coefficients_comm[col.index];
@@ -94,12 +94,12 @@ export class Batch {
 
         let commitments = [verifier_index.sigma_comm[Verifier.PERMUTS - 1]];
         const init = evals.z.zetaOmega
-            .mul(oracles.beta)
-            .mul(alphas[0])
-            .mul(permutation_vanishing_polynomial);
+            .mul(oracles.beta).assertAlmostReduced()
+            .mul(alphas[0]).assertAlmostReduced()
+            .mul(permutation_vanishing_polynomial).assertAlmostReduced();
         let scalars: ForeignScalar[] = [evals.s
             .map((s, i) => oracles.gamma.add(oracles.beta.mul(s.zeta)).add(evals.w[i].zeta))
-            .reduce((acc, curr) => acc.mul(curr), init)];
+            .reduce((acc, curr) => acc.assertAlmostReduced().mul(curr.assertAlmostReduced()), init).assertAlmostReduced()];
 
         // FIXME: hardcoded for now, should be a sponge parameter.
         // this was generated from the verifier_circuit_tests/ crate.
@@ -153,7 +153,7 @@ export class Batch {
             chunked_f_comm,
             PolyComm.scale(
                 chunked_t_comm,
-                zeta_to_domain_size.sub(ForeignScalar.from(1))));
+                zeta_to_domain_size.sub(ForeignScalar.from(1).assertAlmostReduced()).assertAlmostReduced()));
 
         //~ 7. List the polynomial commitments, and their associated evaluations,
         //~    that are associated to the aggregated evaluation proof in the proof:
@@ -365,7 +365,7 @@ export class Batch {
 
 
         // prepare for the opening proof verification
-        let evaluation_points = [oracles.zeta, oracles.zeta.mul(verifier_index.domain_gen)];
+        let evaluation_points = [oracles.zeta, oracles.zeta.mul(verifier_index.domain_gen).assertAlmostReduced()];
         const agg_proof: AggregatedEvaluationProof = {
             sponge: fq_sponge,
             evaluations,

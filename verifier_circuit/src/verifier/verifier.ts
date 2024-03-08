@@ -1,5 +1,5 @@
 import { readFileSync } from 'fs';
-import { circuitMainBn254, CircuitBn254, Group, public_, ForeignGroup, Provable } from 'o1js';
+import { Group, public_, Provable, circuitMain, Circuit } from 'o1js';
 import { OpeningProof, PolyComm } from '../poly_commitment/commitment.js';
 import { SRS } from '../SRS.js';
 import { fq_sponge_initial_state, fq_sponge_params, Sponge } from './sponge.js';
@@ -17,6 +17,7 @@ import proof_json from "../../test_data/proof.json" assert { type: "json" };
 import verifier_index_json from "../../test_data/verifier_index.json" assert { type: "json" };
 import { deserVerifierIndex } from "../serde/serde_index.js";
 import { deserProverProof } from '../serde/serde_proof.js';
+import { ForeignPallas } from '../foreign_fields/foreign_pallas.js';
 
 let steps: bigint[][];
 try {
@@ -82,21 +83,21 @@ export class VerifierIndex {
     zk_rows: number
 
     /** permutation commitments */
-    sigma_comm: PolyComm<ForeignGroup>[] // size PERMUTS
-    coefficients_comm: PolyComm<ForeignGroup>[] // size COLUMNS
-    generic_comm: PolyComm<ForeignGroup>
+    sigma_comm: PolyComm<ForeignPallas>[] // size PERMUTS
+    coefficients_comm: PolyComm<ForeignPallas>[] // size COLUMNS
+    generic_comm: PolyComm<ForeignPallas>
 
     /** poseidon constraint selector polynomial commitments */
-    psm_comm: PolyComm<ForeignGroup>
+    psm_comm: PolyComm<ForeignPallas>
 
     /** EC addition selector polynomial commitment */
-    complete_add_comm: PolyComm<ForeignGroup>
+    complete_add_comm: PolyComm<ForeignPallas>
     /** EC variable base scalar multiplication selector polynomial commitment */
-    mul_comm: PolyComm<ForeignGroup>
+    mul_comm: PolyComm<ForeignPallas>
     /** endoscalar multiplication selector polynomial commitment */
-    emul_comm: PolyComm<ForeignGroup>
+    emul_comm: PolyComm<ForeignPallas>
     /** endoscalar multiplication scalar computation selector polynomial commitment */
-    endomul_scalar_comm: PolyComm<ForeignGroup>
+    endomul_scalar_comm: PolyComm<ForeignPallas>
 
     /** The mapping between powers of alpha and constraints */
     powers_of_alpha: Alphas
@@ -120,14 +121,14 @@ export class VerifierIndex {
         max_poly_size: number,
         zk_rows: number,
         public_size: number,
-        sigma_comm: PolyComm<ForeignGroup>[],
-        coefficients_comm: PolyComm<ForeignGroup>[],
-        generic_comm: PolyComm<ForeignGroup>,
-        psm_comm: PolyComm<ForeignGroup>,
-        complete_add_comm: PolyComm<ForeignGroup>,
-        mul_comm: PolyComm<ForeignGroup>,
-        emul_comm: PolyComm<ForeignGroup>,
-        endomul_scalar_comm: PolyComm<ForeignGroup>,
+        sigma_comm: PolyComm<ForeignPallas>[],
+        coefficients_comm: PolyComm<ForeignPallas>[],
+        generic_comm: PolyComm<ForeignPallas>,
+        psm_comm: PolyComm<ForeignPallas>,
+        complete_add_comm: PolyComm<ForeignPallas>,
+        mul_comm: PolyComm<ForeignPallas>,
+        emul_comm: PolyComm<ForeignPallas>,
+        endomul_scalar_comm: PolyComm<ForeignPallas>,
         powers_of_alpha: Alphas,
         shift: ForeignScalar[],
         permutation_vanishing_polynomial_m: Polynomial,
@@ -176,44 +177,49 @@ export class VerifierIndex {
     }
 }
 
-export class Verifier extends CircuitBn254 {
+export class Verifier extends Circuit {
     /** Number of total registers */
     static readonly COLUMNS: number = 15;
     /** Number of registers that can be wired (participating in the permutation) */
     static readonly PERMUTS: number = 7;
     static readonly PERMUTATION_CONSTRAINTS: number = 3;
 
-    @circuitMainBn254
+    @circuitMain
     static main(@public_ openingProof: OpeningProof) {
-        let result = this.verify(openingProof);
+        let result = this.verifyProof(openingProof);
 
         // Temporary until we have the complete Kimchi verification as a circuit.
         // In that case, the expected point would be the point at infinity.
-        let expected = Provable.witnessBn254(ForeignGroup, () => this.verify(openingProof));
+        let expected = Provable.witness(ForeignPallas.provable, () => this.verifyProof(openingProof));
 
-        result.assertEquals(expected);
+        result.x.assertEquals(expected.x);
+        result.y.assertEquals(expected.y);
     }
 
-    static verify(openingProof: OpeningProof) {
+    static verifyProof(openingProof: OpeningProof) {
         let proverProof = deserProverProof(proof_json);
         proverProof.proof = openingProof;
         let evaluationProof = Batch.toBatch(deserVerifierIndex(verifier_index_json), proverProof, []);
 
         let points = [h];
-        let scalars = [ForeignScalar.from(0)];
+        let scalars = [ForeignScalar.from(0).assertAlmostReduced()];
 
-        let randBase = ForeignScalar.from(1);
-        let sgRandBase = ForeignScalar.from(1);
+        let randBase = ForeignScalar.from(1).assertAlmostReduced();
+        let sgRandBase = ForeignScalar.from(1).assertAlmostReduced();
         let negRandBase = randBase.neg();
 
         points.push(evaluationProof.opening.sg);
-        scalars.push(negRandBase.mul(evaluationProof.opening.z1).sub(sgRandBase));
+        scalars.push(
+            negRandBase.mul(evaluationProof.opening.z1).assertAlmostReduced()
+                .sub(sgRandBase).assertAlmostReduced()
+        );
 
         return Verifier.naiveMSM(points, scalars);
     }
 
-    static naiveMSM(points: ForeignGroup[], scalars: ForeignScalar[]): ForeignGroup {
-        let result = new ForeignGroup(ForeignField.from(0), ForeignField.from(0));
+    static naiveMSM(points: ForeignPallas[], scalars: ForeignScalar[]): ForeignPallas {
+        // This is hacky: it is the point at infinity
+        let result = ForeignPallas.generator.add(ForeignPallas.generator.negate());
 
         for (let i = 0; i < points.length; i++) {
             let point = points[i];

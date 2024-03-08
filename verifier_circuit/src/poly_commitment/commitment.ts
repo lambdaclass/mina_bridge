@@ -1,8 +1,9 @@
-import { FieldBn254, ForeignGroup, Provable, Scalar } from "o1js";
+import { Field, Provable, Scalar } from "o1js";
 import { Sponge } from "../verifier/sponge";
 import { ForeignField } from "../foreign_fields/foreign_field.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { SRS } from "../SRS.js";
+import { ForeignPallas } from "../foreign_fields/foreign_pallas";
 
 /**
 * A polynomial commitment
@@ -38,14 +39,14 @@ export class PolyComm<A> {
     /**
      * Substract two commitments
      */
-    static sub(lhs: PolyComm<ForeignGroup>, rhs: PolyComm<ForeignGroup>): PolyComm<ForeignGroup> {
+    static sub(lhs: PolyComm<ForeignPallas>, rhs: PolyComm<ForeignPallas>): PolyComm<ForeignPallas> {
         let unshifted = [];
         const n1 = lhs.unshifted.length;
         const n2 = rhs.unshifted.length;
 
         for (let i = 0; i < Math.max(n1, n2); i++) {
             const pt = i < n1 && i < n2 ?
-                lhs.unshifted[i].sub(rhs.unshifted[i]) :
+                lhs.unshifted[i].add(rhs.unshifted[i].negate()) :
                 i < n1 ? lhs.unshifted[i] : rhs.unshifted[i];
             unshifted.push(pt);
         }
@@ -53,7 +54,7 @@ export class PolyComm<A> {
         let shifted;
         if (lhs.shifted == undefined) shifted = rhs.shifted;
         else if (rhs.unshifted == undefined) shifted = lhs.shifted;
-        else shifted = rhs.shifted?.sub(lhs.shifted);
+        else shifted = rhs.shifted?.add(lhs.shifted.negate());
 
         return new PolyComm(unshifted, shifted);
     }
@@ -61,15 +62,15 @@ export class PolyComm<A> {
     /**
      * Scale a commitments
      */
-    static scale(v: PolyComm<ForeignGroup>, c: ForeignScalar) {
+    static scale(v: PolyComm<ForeignPallas>, c: ForeignScalar) {
         return new PolyComm(v.unshifted.map((u) => u.scale(c)), v.shifted?.scale(c));
     }
 
     /**
     * Execute a simple multi-scalar multiplication
     */
-    static naiveMSM(points: ForeignGroup[], scalars: ForeignScalar[]) {
-        let result = new ForeignGroup(ForeignField.from(0), ForeignField.from(0));
+    static naiveMSM(points: ForeignPallas[], scalars: ForeignScalar[]) {
+        let result = ForeignPallas.generator.add(ForeignPallas.generator.negate());
 
         for (let i = 0; i < points.length; i++) {
             let point = points[i];
@@ -85,9 +86,9 @@ export class PolyComm<A> {
     * Executes multi-scalar multiplication between scalars `elm` and commitments `com`.
     * If empty, returns a commitment with the point at infinity.
     */
-    static msm(com: PolyComm<ForeignGroup>[], elm: ForeignScalar[]): PolyComm<ForeignGroup> {
+    static msm(com: PolyComm<ForeignPallas>[], elm: ForeignScalar[]): PolyComm<ForeignPallas> {
         if (com.length === 0 || elm.length === 0) {
-            return new PolyComm<ForeignGroup>([new ForeignGroup(ForeignField.from(0), ForeignField.from(0))]);
+            return new PolyComm<ForeignPallas>([new ForeignPallas({ x: 0, y: 0 })]);
         }
 
         if (com.length != elm.length) {
@@ -99,10 +100,10 @@ export class PolyComm<A> {
 
         for (let chunk = 0; chunk < unshifted_len; chunk++) {
             let points_and_scalars = com
-                .map((c, i) => [c, elm[i]] as [PolyComm<ForeignGroup>, ForeignScalar]) // zip with scalars
+                .map((c, i) => [c, elm[i]] as [PolyComm<ForeignPallas>, ForeignScalar]) // zip with scalars
                 // get rid of scalars that don't have an associated chunk
                 .filter(([c, _]) => c.unshifted.length > chunk)
-                .map(([c, scalar]) => [c.unshifted[chunk], scalar] as [ForeignGroup, ForeignScalar]);
+                .map(([c, scalar]) => [c.unshifted[chunk], scalar] as [ForeignPallas, ForeignScalar]);
 
             // unzip
             let points = points_and_scalars.map(([c, _]) => c);
@@ -113,9 +114,9 @@ export class PolyComm<A> {
         }
 
         let shifted_pairs = com
-            .map((c, i) => [c.shifted, elm[i]] as [ForeignGroup | undefined, ForeignScalar]) // zip with scalars
+            .map((c, i) => [c.shifted, elm[i]] as [ForeignPallas | undefined, ForeignScalar]) // zip with scalars
             .filter(([shifted, _]) => shifted != null)
-            .map((zip) => zip as [ForeignGroup, ForeignScalar]); // zip with scalars
+            .map((zip) => zip as [ForeignPallas, ForeignScalar]); // zip with scalars
 
         let shifted = undefined;
         if (shifted_pairs.length != 0) {
@@ -125,10 +126,10 @@ export class PolyComm<A> {
             shifted = this.naiveMSM(points, scalars);
         }
 
-        return new PolyComm<ForeignGroup>(unshifted, shifted);
+        return new PolyComm<ForeignPallas>(unshifted, shifted);
     }
 
-    static chunk_commitment(comm: PolyComm<ForeignGroup>, zeta_n: ForeignScalar): PolyComm<ForeignGroup> {
+    static chunk_commitment(comm: PolyComm<ForeignPallas>, zeta_n: ForeignScalar): PolyComm<ForeignPallas> {
         let res = comm.unshifted[comm.unshifted.length - 1];
 
         // use Horner's to compute chunk[0] + z^n chunk[1] + z^2n chunk[2] + ...
@@ -153,7 +154,7 @@ export class BlindedCommitment<C, S> {
  * Returns the product of all elements of `xs`
  */
 export function product(xs: ForeignScalar[]): ForeignScalar {
-    return xs.reduce((acc, x) => acc.mul(x), ForeignScalar.from(1));
+    return xs.reduce((acc, x) => acc.mul(x).assertAlmostReduced(), ForeignScalar.from(1));
 }
 
 /**
@@ -165,8 +166,8 @@ export function bPoly(chals: ForeignScalar[], x: ForeignScalar): ForeignScalar {
     let prev_x_squared = x;
     let terms = [];
     for (let i = k - 1; i >= 0; i--) {
-        terms.push(ForeignScalar.from(1).add(chals[i].mul(prev_x_squared)));
-        prev_x_squared = prev_x_squared.mul(prev_x_squared);
+        terms.push(ForeignScalar.from(1).add(chals[i].mul(prev_x_squared)).assertAlmostReduced());
+        prev_x_squared = prev_x_squared.mul(prev_x_squared).assertAlmostReduced();
     }
 
     return product(terms);
@@ -182,7 +183,7 @@ export function bPolyCoefficients(chals: ForeignScalar[]) {
     for (let i = 1; i < s_length; i++) {
         k += i === pow ? 1 : 0;
         pow <<= i === pow ? 1 : 0;
-        s[i] = s[i - (pow >>> 1)].mul(chals[rounds - 1 - (k - 1)]);
+        s[i] = s[i - (pow >>> 1)].mul(chals[rounds - 1 - (k - 1)]).assertAlmostReduced();
     }
 
     return s;
@@ -191,31 +192,31 @@ export function bPolyCoefficients(chals: ForeignScalar[]) {
 function combineCommitments(
     evaluations: Evaluation[],
     scalars: ForeignScalar[],
-    points: ForeignGroup[],
+    points: ForeignPallas[],
     polyscale: ForeignScalar,
     randBase: ForeignScalar
 ): void {
-    let xi_i = ForeignScalar.from(1);
+    let xi_i = ForeignScalar.from(1).assertAlmostReduced();
 
     for (const { commitment, degree_bound, ...rest } of evaluations.filter(
         (x) => { return !(x.commitment.unshifted.length === 0) }
     )) {
         // iterating over the polynomial segments
         for (const commCh of commitment.unshifted) {
-            scalars.push(randBase.mul(xi_i));
+            scalars.push(randBase.mul(xi_i).assertAlmostReduced());
             points.push(commCh);
 
-            xi_i = xi_i.mul(polyscale);
+            xi_i = xi_i.mul(polyscale).assertAlmostReduced();
         }
 
         if (degree_bound !== undefined) {
             const commChShifted = commitment.shifted;
             if (commChShifted !== undefined && !commChShifted.x.equals(0)) {
                 // polyscale^i sum_j evalscale^j elm_j^{N - m} f(elm_j)
-                scalars.push(randBase.mul(xi_i));
+                scalars.push(randBase.mul(xi_i).assertAlmostReduced());
                 points.push(commChShifted);
 
-                xi_i = xi_i.mul(polyscale);
+                xi_i = xi_i.mul(polyscale).assertAlmostReduced();
             }
         }
     }
@@ -226,14 +227,14 @@ function combineCommitments(
  */
 export class Evaluation {
     /** The commitment of the polynomial being evaluated */
-    commitment: PolyComm<ForeignGroup>
+    commitment: PolyComm<ForeignPallas>
     /** Contains an evaluation table */
     evaluations: ForeignScalar[][]
     /** optional degree bound */
     degree_bound?: number
 
     constructor(
-        commitment: PolyComm<ForeignGroup>,
+        commitment: PolyComm<ForeignPallas>,
         evaluations: ForeignScalar[][],
         degree_bound?: number
     ) {
@@ -250,7 +251,7 @@ export class AggregatedEvaluationProof {
     sponge: Sponge
     evaluations: Evaluation[]
     /** vector of evaluation points */
-    evaluation_points: Scalar[]
+    evaluation_points: ForeignScalar[]
     /** scaling factor for evaluation point powers */
     polyscale: ForeignScalar
     /** scaling factor for polynomials */
@@ -262,13 +263,13 @@ export class AggregatedEvaluationProof {
 
 export class OpeningProof {
     /** vector of rounds of L & R commitments */
-    lr: [ForeignGroup, ForeignGroup][]
-    delta: ForeignGroup
+    lr: [ForeignPallas, ForeignPallas][]
+    delta: ForeignPallas
     z1: ForeignScalar
     z2: ForeignScalar
-    sg: ForeignGroup
+    sg: ForeignPallas
 
-    constructor(lr: [ForeignGroup, ForeignGroup][], delta: ForeignGroup, z1: ForeignScalar, z2: ForeignScalar, sg: ForeignGroup) {
+    constructor(lr: [ForeignPallas, ForeignPallas][], delta: ForeignPallas, z1: ForeignScalar, z2: ForeignScalar, sg: ForeignPallas) {
         this.lr = lr;
         this.delta = delta;
         this.z1 = z1;
@@ -281,6 +282,10 @@ export class OpeningProof {
         return Math.ceil(Math.log2(g.length));
     }
 
+    static #ForeignPallasSizeInFields() {
+        return
+    }
+
     /**
      * Part of the {@link Provable} interface.
      * 
@@ -288,15 +293,15 @@ export class OpeningProof {
      */
     static sizeInFields() {
         const lrSize = this.#rounds() * 2 * 6;
-        const deltaSize = ForeignGroup.sizeInFields();
-        const z1Size = ForeignScalar.sizeInFields();
-        const z2Size = ForeignScalar.sizeInFields();
-        const sgSize = ForeignGroup.sizeInFields();
+        const deltaSize = ForeignPallas.provable.sizeInFields();
+        const z1Size = ForeignScalar.provable.sizeInFields();
+        const z2Size = ForeignScalar.provable.sizeInFields();
+        const sgSize = ForeignPallas.provable.sizeInFields();
 
         return lrSize + deltaSize + z1Size + z2Size + sgSize;
     }
 
-    static fromFields(fields: FieldBn254[]) {
+    static fromFields(fields: Field[]) {
         let lr = [];
         // lr_0 = [0...6, 6...12]
         // lr_1 = [12...18, 18...24]
@@ -304,31 +309,31 @@ export class OpeningProof {
         // ...
         let rounds = this.#rounds();
         for (let i = 0; i < rounds; i++) {
-            let l = ForeignGroup.fromFields(fields.slice(i * 6 * 2, (i * 6 * 2) + 6));
-            let r = ForeignGroup.fromFields(fields.slice((i * 6 * 2) + 6, (i * 6 * 2) + (6 * 2)));
+            let l = ForeignPallas.provable.fromFields(fields.slice(i * 6 * 2, (i * 6 * 2) + 6));
+            let r = ForeignPallas.provable.fromFields(fields.slice((i * 6 * 2) + 6, (i * 6 * 2) + (6 * 2)));
             lr.push([l, r]);
         }
         let lrOffset = lr.length * 6 * 2;
 
         return {
             lr,
-            delta: ForeignGroup.fromFields(fields.slice(lrOffset, lrOffset + 6)),
-            z1: ForeignScalar.fromFields(fields.slice(lrOffset + 6, lrOffset + 9)),
-            z2: ForeignScalar.fromFields(fields.slice(lrOffset + 9, lrOffset + 12)),
-            sg: ForeignGroup.fromFields(fields.slice(lrOffset + 12, lrOffset + 18)),
+            delta: ForeignPallas.provable.fromFields(fields.slice(lrOffset, lrOffset + 6)),
+            z1: ForeignScalar.provable.fromFields(fields.slice(lrOffset + 6, lrOffset + 9)),
+            z2: ForeignScalar.provable.fromFields(fields.slice(lrOffset + 9, lrOffset + 12)),
+            sg: ForeignPallas.provable.fromFields(fields.slice(lrOffset + 12, lrOffset + 18)),
         };
     }
 
     toFields() {
-        let lr: FieldBn254[] = [];
+        let lr: Field[] = [];
         for (const [l, r] of this.lr) {
-            lr = lr.concat(l.toFields());
-            lr = lr.concat(r.toFields());
+            lr = lr.concat(ForeignPallas.provable.toFields(l));
+            lr = lr.concat(ForeignPallas.provable.toFields(r));
         }
-        let z1 = ForeignScalar.toFields(this.z1);
-        let z2 = ForeignScalar.toFields(this.z2);
+        let z1 = ForeignScalar.provable.toFields(this.z1);
+        let z2 = ForeignScalar.provable.toFields(this.z2);
 
-        return [...lr, ...this.delta.toFields(), ...z1, ...z2, ...this.sg.toFields()];
+        return [...lr, ...ForeignPallas.provable.toFields(this.delta), ...z1, ...z2, ...ForeignPallas.provable.toFields(this.sg)];
     }
 
     static toFields(x: OpeningProof) {
