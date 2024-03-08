@@ -1,8 +1,10 @@
-import { ForeignGroup } from 'o1js';
+import { ForeignGroup, Scalar } from 'o1js';
 import { ForeignBase } from '../foreign_fields/foreign_field.js';
 import { ForeignScalar } from '../foreign_fields/foreign_scalar.js';
 import { AggregatedEvaluationProof } from '../poly_commitment/commitment.js';
+import { ScalarChallenge } from '../prover/prover.js';
 import { SRS } from '../SRS.js';
+import { sqrtBase } from '../util/field.js';
 import { powScalar } from "../util/scalar.js";
 
 function final_verify(
@@ -43,7 +45,14 @@ function final_verify(
     sponge.absorbFr(combined_inner_product.sub( powScalar(ForeignScalar.from(2), MODULUS_BITS) ));
 
     const t = sponge.challengeFq();
-    const u = toGroup()
+    const u = this.toGroup(group_map, t);
+
+    const [chal, chal_inv] = opening.challenges(endo_r, sponge);
+
+    sponge.absorbGroup(opening.delta);
+    let c = new ScalarChallenge(sponge.challenge()).toField(endo_r);
+
+
 
     return false;
 }
@@ -64,7 +73,7 @@ export class BWParameters {
         this.invThreeUSquared = ForeignBase.from(0x2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC18465FD5B88A612661E209E00000001n);
     }
 
-    toGroup(t: ForeignScalar): ForeignGroup {
+    toGroup(t: ForeignScalar): ForeignGroup | undefined {
         const t2 = t.mul(t);
         let alpha_inv = t2;
         alpha_inv = alpha_inv.add(this.fu);
@@ -88,19 +97,14 @@ export class BWParameters {
         x3 = this.u.sub(x3);
 
         const xvec = [x1, x2, x3];
-        let y;
         for (const x of xvec) {
             // curve equation: y^2 = x^3 + 5
             const ysqrd = x.mul(x).mul(x).add(ForeignBase.from(5));
-            
+            const y = sqrtBase(ysqrd);
+            if (y) return ForeignGroup.fromFields([x, y]);
         }
 
-        for x in &xvec {
-            if let Some(y) = get_y::<G>(*x) {
-                return (*x, y);
-            }
-        }
-        panic!("get_xy")
+        return undefined;
     }
 }
 /*

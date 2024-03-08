@@ -1,10 +1,10 @@
 import { Provable } from "o1js";
 import { ForeignBase } from "../foreign_fields/foreign_field";
 
-export function baseSqrt(a: ForeignBase): ForeignBase | undefined {
+export function sqrtBase(a: ForeignBase): ForeignBase | undefined {
     // Euler's criterion:
     const leg_sym = legendre_symbol(a);
-    if (leg_sym.equals(-1)) return undefined;
+    if (leg_sym.equals(ForeignBase.modulus - 1n)) return undefined;
     return tonellishanks(a);
 }
 

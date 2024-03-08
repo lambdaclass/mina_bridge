@@ -3,6 +3,8 @@ import { Sponge } from "../verifier/sponge";
 import { ForeignBase } from "../foreign_fields/foreign_field.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { SRS } from "../SRS.js";
+import { ScalarChallenge } from "../prover/prover";
+import { invScalar } from "../util/scalar";
 
 /**
 * A polynomial commitment
@@ -333,5 +335,20 @@ export class OpeningProof {
 
     static toFields(x: OpeningProof) {
         return x.toFields();
+    }
+
+    challenges(
+        endo_r: ForeignScalar,
+        sponge: Sponge
+    ): [ForeignScalar[], ForeignScalar[]] {
+        const chal = this.lr.map(([l, r]) => {
+            sponge.absorbGroup(l);
+            sponge.absorbGroup(r);
+            return new ScalarChallenge(sponge.challenge()).toField(endo_r);
+        })
+
+        const chal_inv = chal.map(invScalar);
+
+        return [chal, chal_inv];
     }
 }
