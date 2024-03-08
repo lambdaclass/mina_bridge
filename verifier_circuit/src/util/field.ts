@@ -79,42 +79,6 @@ function get_t_and_s(): [bigint, number] {
     return [t, s];
 }
 
-function muller_algorithm(a: ForeignBase): ForeignBase {
-    let t = ForeignBase.from(1);
-    let a1 = legendre_symbol(a.mul(t).mul(t).sub(ForeignBase.from(4)));
-
-    // we need to sample a random element `u`.
-    // For this we're going to initialize `u` to a
-    // one and multiply it by a random power of `g`,
-    // where `g` is a generator of the field.
-    // This is because we can't generate random bigints
-    // without using external libraries.
-    let u = ForeignBase.from(1);
-
-    // https://github.com/o1-labs/proof-systems/blob/master/curves/src/pasta/fields/fp.rs
-    const g = ForeignBase.from(5);
-    while (a1.equals(1)) {
-        const rand_pow = Math.round(Math.random() * Number.MAX_SAFE_INTEGER);
-        u = u.mul(powBase(g, rand_pow));
-        if (u.equals(1)) continue;
-
-        t = u;
-
-        if (a.mul(t).mul(t).sub(ForeignBase.from(4)).equals(0)) {
-            return invBase(t).mul(2);
-        }
-
-        a1 = legendre_symbol(a.mul(t).mul(t).sub(ForeignBase.from(4)));
-    }
-
-    let alpha = a.mul(t).mul(t).sub(ForeignBase.from(2));
-
-}
-
-function lucas_sequence(a: ForeignBase, k: number): ForeignBase {
-
-}
-
 export function powBase(f: ForeignBase, exp: number): ForeignBase {
     if (exp === 0) return ForeignBase.from(1);
     else if (exp === 1) return f;
