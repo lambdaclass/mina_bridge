@@ -7,7 +7,7 @@ import { ArgumentType, GateType } from "../circuits/gate.js"
 import { Polynomial } from "../polynomial.js"
 import { Alphas } from "../alphas.js"
 import { ForeignBase } from "../foreign_fields/foreign_field.js"
-import { LookupFeatures, LookupInfo, LookupPatterns } from "../lookups/lookups.js"
+import { LookupFeatures, LookupInfo, LookupPatterns, LookupSelectors } from "../lookups/lookups.js"
 
 export interface PolyCommJSON {
     unshifted: GroupJSON[]
@@ -276,6 +276,14 @@ export function deserVerifierIndex(json: VerifierIndexJSON): VerifierIndex {
             features
         };
 
+        const json_selectors = json.lookup_index.lookup_selectors;
+        const lookup_selectors: LookupSelectors = {
+            xor: json_selectors.xor ? deserPolyComm(json_selectors.xor) : undefined,
+            lookup: json_selectors.lookup ? deserPolyComm(json_selectors.lookup) : undefined,
+            range_check: json_selectors.range_check ? deserPolyComm(json_selectors.range_check) : undefined,
+            ffmul: json_selectors.ffmul ? deserPolyComm(json_selectors.ffmul) : undefined,
+        }
+
         const lookup_table = json.lookup_index.lookup_table.map(deserPolyComm);
         const table_ids = json.lookup_index.table_ids
             ? deserPolyComm(json.lookup_index.table_ids)
@@ -287,6 +295,7 @@ export function deserVerifierIndex(json: VerifierIndexJSON): VerifierIndex {
         lookup_index = {
             ...json.lookup_index,
             lookup_table,
+            lookup_selectors,
             table_ids,
             lookup_info,
             runtime_tables_selector

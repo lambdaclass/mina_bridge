@@ -9,6 +9,10 @@ import { powScalar } from "../util/scalar.js";
 import { range } from "../util/misc.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { isErr, isOk, unwrap, verifierOk, VerifierResult} from "../error.js";
+import { logField } from "../util/log.js";
+import { fq_sponge_params } from "./sponge.js";
+import { AlphasIterator } from "../alphas.js";
+import { LookupPattern } from "../lookups/lookups.js";
 
 export class Context {
     verifier_index: VerifierIndex
@@ -27,15 +31,34 @@ export class Context {
             case "coefficient": return this.verifier_index.coefficients_comm[col.index];
             case "permutation": return this.verifier_index.sigma_comm[col.index];
             case "z": return this.proof.commitments.zComm;
+            case "lookupsorted": return this.proof.commitments.lookup?.sorted[col.index];
+            case "lookupaggreg": return this.proof.commitments.lookup?.aggreg;
+            case "lookupkindindex": {
+                if (col.pattern === LookupPattern.Xor) return this.verifier_index.lookup_index?.lookup_selectors.xor;
+                if (col.pattern === LookupPattern.Lookup) return this.verifier_index.lookup_index?.lookup_selectors.lookup;
+                if (col.pattern === LookupPattern.RangeCheck) return this.verifier_index.lookup_index?.lookup_selectors.range_check;
+                if (col.pattern === LookupPattern.ForeignFieldMul) return this.verifier_index.lookup_index?.lookup_selectors.ffmul;
+                else return undefined
+            }
+            case "lookuptable": return undefined;
+            case "lookupruntimeselector": return this.verifier_index.lookup_index?.runtime_tables_selector;
+            case "lookupruntimetable": return this.proof.commitments.lookup?.runtime;
             case "index": {
                 switch (col.typ) {
                     case GateType.Zero: return undefined;
                     case GateType.Generic: return this.verifier_index.generic_comm;
+                    case GateType.Lookup: return undefined;
                     case GateType.CompleteAdd: return this.verifier_index.complete_add_comm;
                     case GateType.VarBaseMul: return this.verifier_index.psm_comm;
                     case GateType.EndoMul: return this.verifier_index.emul_comm;
                     case GateType.EndoMulScalar: return this.verifier_index.endomul_scalar_comm;
                     case GateType.Poseidon: return this.verifier_index.psm_comm;
+                    case GateType.RangeCheck0: return this.verifier_index.range_check0_comm;
+                    case GateType.RangeCheck1: return this.verifier_index.range_check1_comm;
+                    case GateType.ForeignFieldAdd: return this.verifier_index.foreign_field_add_comm;
+                    case GateType.ForeignFieldMul: return this.verifier_index.foreign_field_mul_comm;
+                    case GateType.Xor16: return this.verifier_index.xor_comm;
+                    case GateType.Rot64: return this.verifier_index.rot_comm;
                 }
                 break;
             }
@@ -99,42 +122,20 @@ export class Batch {
         const alphas = unwrap(alpha_powers_result);
 
         let commitments = [verifier_index.sigma_comm[Verifier.PERMUTS - 1]];
-        const init = evals.z.zetaOmega
-            .mul(oracles.beta)
-            .mul(alphas.next())
-            .mul(permutation_vanishing_polynomial);
-        let scalars: ForeignScalar[] = [evals.s
-            .map((s, i) => oracles.gamma.add(oracles.beta.mul(s.zeta)).add(evals.w[i].zeta))
-            .reduce((acc, curr) => acc.mul(curr), init)];
-
-        // FIXME: hardcoded for now, should be a sponge parameter.
-        // this was generated from the verifier_circuit_tests/ crate.
-        //
-        // FIXME: this should be somewhere in the o1js' Poseidon sponge implementation
-        const mds = [
-            [
-                "4e59dd23f06c2400f3ba607d02926badee7add77d3544a307e7af417ddf7283e",
-                "0026c37744e275497518904a3d4bd83f3d89f414c28ab292cbfc96b6ab06db30",
-                "3a567f1bc5592630ba6ae6014d6c2e6efb3fab52815eff16608c051bbc104117"
-            ].map(deserHexScalar),
-            [
-                "0ceb4a2b7e38fea058a153e390439d2e0dd5bc481d5ac08069140335a86fd312",
-                "559c4de970165cd66fd0068edcbe3615c7af8b5e380c9f6ea7be69b38e7cb12a",
-                "37854a5bdac3b836763e2ec95d0ca6d9e5b908e127f16a98135c16285391cc00"
-            ].map(deserHexScalar),
-            [
-                "1bd343a1e09a4080831e5afbf0ca3d3a610c383b154643eb88666970d2a6d904",
-                "24c37437a332198bd134339acfab5fee7fd2e4ab157d1fae8b7c31e3ee05a802",
-                "bd7b2b50cd898d9badcb3d2787a7b98322bb00bc2ddfb6b11efddfc6e992b019"
-            ].map(deserHexScalar)
-        ];
+        let scalars = [this.permScalars(
+            evals,
+            oracles.beta,
+            oracles.gamma,
+            alphas,
+            permutation_vanishing_polynomial
+        )];
 
         const constants: Constants<ForeignScalar> = {
             alpha: oracles.alpha,
             beta: oracles.beta,
             gamma: oracles.gamma,
             endo_coefficient: verifier_index.endo,
-            mds: mds,
+            mds: fq_sponge_params().mds,
             zk_rows: verifier_index.zk_rows,
         }
 
@@ -172,7 +173,7 @@ export class Batch {
         // ft commitment (chunks)
         evaluations.push(new Evaluation(ft_comm, [[ft_eval0], [proof.ft_eval1]]));
 
-        for (const col of [
+        let cols = [
             { kind: "z" },
             { kind: "index", typ: GateType.Generic },
             { kind: "index", typ: GateType.Poseidon },
@@ -181,194 +182,75 @@ export class Batch {
             { kind: "index", typ: GateType.EndoMul },
             { kind: "index", typ: GateType.EndoMulScalar },
         ]
-            .concat(range(Verifier.COLUMNS).map((i) => { return { kind: "witness", index: i } }))
-            .concat(range(Verifier.COLUMNS).map((i) => { return { kind: "coefficient", index: i } }))
-            .concat(range(Verifier.PERMUTS - 1).map((i) => { return { kind: "permutation", index: i } })) as Column[]
-        ) {
-            const eva = proof.evals.getColumn(col)!;
-            evaluations.push(new Evaluation(context.getColumn(col)!, [eva?.zeta, eva?.zetaOmega]));
+        .concat(range(Verifier.COLUMNS).map((i) => { return { kind: "witness", index: i } }))
+        .concat(range(Verifier.COLUMNS).map((i) => { return { kind: "coefficient", index: i } }))
+        .concat(range(Verifier.PERMUTS - 1).map((i) => { return { kind: "permutation", index: i } })) as Column[];
+        if (verifier_index.range_check0_comm) cols.push({ kind: "index", typ: GateType.RangeCheck0});
+        if (verifier_index.range_check1_comm) cols.push({ kind: "index", typ: GateType.RangeCheck1});
+        if (verifier_index.foreign_field_add_comm) cols.push({ kind: "index", typ: GateType.ForeignFieldAdd});
+        if (verifier_index.foreign_field_mul_comm) cols.push({ kind: "index", typ: GateType.ForeignFieldMul});
+        if (verifier_index.xor_comm) cols.push({ kind: "index", typ: GateType.Xor16});
+        if (verifier_index.rot_comm) cols.push({ kind: "index", typ: GateType.Rot64});
+        if (verifier_index.lookup_index) {
+            const li = verifier_index.lookup_index!;
+            cols.concat(range(li.lookup_info.max_per_row + 1).map((index) => { return { kind: "lookupsorted", index}}));
+            cols.push({ kind: "lookupaggreg" });
         }
 
-        /*
-            //~~ * optional gate commitments
-            .chain(
-                verifier_index
-                    .range_check0_comm
-                    .as_ref()
-                    .map(|_| Column::Index(GateType::RangeCheck0)),
-            )
-            .chain(
-                verifier_index
-                    .range_check1_comm
-                    .as_ref()
-                    .map(|_| Column::Index(GateType::RangeCheck1)),
-            )
-            .chain(
-                verifier_index
-                    .foreign_field_add_comm
-                    .as_ref()
-                    .map(|_| Column::Index(GateType::ForeignFieldAdd)),
-            )
-            .chain(
-                verifier_index
-                    .foreign_field_mul_comm
-                    .as_ref()
-                    .map(|_| Column::Index(GateType::ForeignFieldMul)),
-            )
-            .chain(
-                verifier_index
-                    .xor_comm
-                    .as_ref()
-                    .map(|_| Column::Index(GateType::Xor16)),
-            )
-            .chain(
-                verifier_index
-                    .rot_comm
-                    .as_ref()
-                    .map(|_| Column::Index(GateType::Rot64)),
-            )
-            //~~ * lookup commitments
-            //~
-            .chain(
-                verifier_index
-                    .lookup_index
-                    .as_ref()
-                    .map(|li| {
-                        // add evaluations of sorted polynomials
-                        (0..li.lookup_info.max_per_row + 1)
-                            .map(Column::LookupSorted)
-                            // add evaluations of the aggreg polynomial
-                            .chain([Column::LookupAggreg].into_iter())
-                    })
-                    .into_iter()
-                    .flatten(),
-            ) {
-                let evals = proof
-                    .evals
-                    .get_column(col)
-                    .ok_or(VerifyError::MissingEvaluation(col))?;
-                evaluations.push(Evaluation {
-                    commitment: context
-                        .get_column(col)
-                        .ok_or(VerifyError::MissingCommitment(col))?
-                        .clone(),
-                    evaluations: vec![evals.zeta.clone(), evals.zeta_omega.clone()],
-                    degree_bound: None,
-                });
+        for (const col of cols)
+        {
+            const eva = proof.evals.getColumn(col)!;
+            evaluations.push(new Evaluation(
+                context.getColumn(col)!,
+                [eva?.zeta, eva?.zetaOmega]
+            ));
+        }
+
+        if (verifier_index.lookup_index) {
+            const li = verifier_index.lookup_index!;
+
+            const lookup_comms = proof.commitments.lookup!;
+            const lookup_table = proof.evals.lookupTable!;
+            const runtime_lookup_table = proof.evals.runtimeLookupTable!;
+
+            const joint_combiner = oracles.joint_combiner!;
+            const table_id_combiner = powScalar(joint_combiner[1], li.lookup_info.max_joint_size);
+            const runtime = lookup_comms.runtime!;
+
+            const table_comm = this.combineTable(
+                li.lookup_table,
+                joint_combiner[1],
+                table_id_combiner,
+                li.table_ids,
+                runtime
+            );
+
+            evaluations.push(new Evaluation(
+                table_comm,
+                [lookup_table.zeta, lookup_table.zetaOmega]
+            ))
+
+            if (li.runtime_tables_selector) {
+                evaluations.push(new Evaluation(
+                    lookup_comms.runtime!,
+                    [runtime_lookup_table.zeta, runtime_lookup_table.zetaOmega]
+                ));
             }
 
-            if let Some(li) = &verifier_index.lookup_index {
-                let lookup_comms = proof
-                    .commitments
-                    .lookup
-                    .as_ref()
-                    .ok_or(VerifyError::LookupCommitmentMissing)?;
-
-                let lookup_table = proof
-                    .evals
-                    .lookup_table
-                    .as_ref()
-                    .ok_or(VerifyError::LookupEvalsMissing)?;
-                let runtime_lookup_table = proof.evals.runtime_lookup_table.as_ref();
-
-                // compute table commitment
-                let table_comm = {
-                    let joint_combiner = oracles
-                        .joint_combiner
-                        .expect("joint_combiner should be present if lookups are used");
-                    let table_id_combiner = joint_combiner
-                        .1
-                        .pow([u64::from(li.lookup_info.max_joint_size)]);
-                    let lookup_table: Vec<_> = li.lookup_table.iter().collect();
-                    let runtime = lookup_comms.runtime.as_ref();
-
-                    combine_table(
-                        &lookup_table,
-                        joint_combiner.1,
-                        table_id_combiner,
-                        li.table_ids.as_ref(),
-                        runtime,
-                    )
-                };
-
-                // add evaluation of the table polynomial
-                evaluations.push(Evaluation {
-                    commitment: table_comm,
-                    evaluations: vec![lookup_table.zeta.clone(), lookup_table.zeta_omega.clone()],
-                    degree_bound: None,
-                });
-
-                // add evaluation of the runtime table polynomial
-                if li.runtime_tables_selector.is_some() {
-                    let runtime = lookup_comms
-                        .runtime
-                        .as_ref()
-                        .ok_or(VerifyError::IncorrectRuntimeProof)?;
-                    let runtime_eval = runtime_lookup_table
-                        .as_ref()
-                        .map(|x| x.map_ref(&|x| x.clone()))
-                        .ok_or(VerifyError::IncorrectRuntimeProof)?;
-
-                    evaluations.push(Evaluation {
-                        commitment: runtime.clone(),
-                        evaluations: vec![runtime_eval.zeta, runtime_eval.zeta_omega],
-                        degree_bound: None,
-                    });
-                }
+            const lookup_cols: Column[] = [];
+            if (li.runtime_tables_selector) lookup_cols.push({ kind: "lookupruntimeselector" });
+            if (li.lookup_selectors.xor) lookup_cols.push({ kind: "lookupkindindex", pattern: LookupPattern.Xor });
+            if (li.lookup_selectors.lookup) lookup_cols.push({ kind: "lookupkindindex", pattern: LookupPattern.Lookup });
+            if (li.lookup_selectors.range_check) lookup_cols.push({ kind: "lookupkindindex", pattern: LookupPattern.RangeCheck });
+            if (li.lookup_selectors.ffmul) lookup_cols.push({ kind: "lookupkindindex", pattern: LookupPattern.ForeignFieldMul });
+            for (const col of lookup_cols) {
+                const evals = proof.evals.getColumn(col)!;
+                evaluations.push(new Evaluation(
+                    context.getColumn(col)!,
+                    [evals.zeta, evals.zetaOmega]
+                ));
             }
-
-            for col in verifier_index
-                .lookup_index
-                .as_ref()
-                .map(|li| {
-                    (li.runtime_tables_selector
-                        .as_ref()
-                        .map(|_| Column::LookupRuntimeSelector))
-                    .into_iter()
-                    .chain(
-                        li.lookup_selectors
-                            .xor
-                            .as_ref()
-                            .map(|_| Column::LookupKindIndex(LookupPattern::Xor)),
-                    )
-                    .chain(
-                        li.lookup_selectors
-                            .lookup
-                            .as_ref()
-                            .map(|_| Column::LookupKindIndex(LookupPattern::Lookup)),
-                    )
-                    .chain(
-                        li.lookup_selectors
-                            .range_check
-                            .as_ref()
-                            .map(|_| Column::LookupKindIndex(LookupPattern::RangeCheck)),
-                    )
-                    .chain(
-                        li.lookup_selectors
-                            .ffmul
-                            .as_ref()
-                            .map(|_| Column::LookupKindIndex(LookupPattern::ForeignFieldMul)),
-                    )
-                })
-                .into_iter()
-                .flatten()
-            {
-                let evals = proof
-                    .evals
-                    .get_column(col)
-                    .ok_or(VerifyError::MissingEvaluation(col))?;
-                evaluations.push(Evaluation {
-                    commitment: context
-                        .get_column(col)
-                        .ok_or(VerifyError::MissingCommitment(col))?
-                        .clone(),
-                    evaluations: vec![evals.zeta.clone(), evals.zeta_omega.clone()],
-                    degree_bound: None,
-                });
-            }
-
-        */
-
+        }
 
         // prepare for the opening proof verification
         let evaluation_points = [oracles.zeta, oracles.zeta.mul(verifier_index.domain_gen)];
@@ -384,69 +266,27 @@ export class Batch {
         return verifierOk(agg_proof);
     }
 
-    /*
+    static permScalars(
+        e: ProofEvaluations<PointEvaluations<ForeignScalar>>,
+        beta: ForeignScalar,
+        gamma: ForeignScalar,
+        alphas: AlphasIterator,
+        zkp_zeta: ForeignScalar
+    ): ForeignScalar {
+        const alpha0 = alphas.next();
+        alphas.next();
+        alphas.next();
 
-/// This function verifies the batch of zk-proofs
-///     proofs: vector of Plonk proofs
-///     RETURN: verification status
-///
-/// # Errors
-///
-/// Will give error if `srs` of `proof` is invalid or `verify` process fails.
-pub fn batch_verify<G, EFqSponge, EFrSponge, OpeningProof: OpenProof<G>>(
-    group_map: &G::Map,
-    proofs: &[Context<G, OpeningProof>],
-) -> Result<()>
-where
-    G: KimchiCurve,
-    G::BaseField: PrimeField,
-    EFqSponge: Clone + FqSponge<G::BaseField, G, G::ScalarField>,
-    EFrSponge: FrSponge<G::ScalarField>,
-{
-    //~ #### Batch verification of proofs
-    //~
-    //~ Below, we define the steps to verify a number of proofs
-    //~ (each associated to a [verifier index](#verifier-index)).
-    //~ You can, of course, use it to verify a single proof.
-    //~
+        let acc = e.z.zetaOmega.mul(beta).mul(alpha0).mul(zkp_zeta);
+        for (let i = 0; i < Math.min(e.w.length, e.s.length); i++) {
+            const w = e.w[i];
+            const s = e.s[i];
 
-    //~ 1. If there's no proof to verify, the proof validates trivially.
-    if proofs.is_empty() {
-        return Ok(());
-    }
-
-    //~ 1. Ensure that all the proof's verifier index have a URS of the same length. (TODO: do they have to be the same URS though? should we check for that?)
-    // TODO: Account for the different SRS lengths
-    let srs = proofs[0].verifier_index.srs();
-    for &Context { verifier_index, .. } in proofs {
-        if verifier_index.srs().max_poly_size() != srs.max_poly_size() {
-            return Err(VerifyError::DifferentSRS);
+            const res = gamma.add(beta.mul(s.zeta)).add(w.zeta);
+            acc = acc.mul(res);
         }
+        return acc.neg();
     }
-
-    //~ 1. Validate each proof separately following the [partial verification](#partial-verification) steps.
-    let mut batch = vec![];
-    for &Context {
-        verifier_index,
-        proof,
-        public_input,
-    } in proofs
-    {
-        batch.push(to_batch::<G, EFqSponge, EFrSponge, OpeningProof>(
-            verifier_index,
-            proof,
-            public_input,
-        )?);
-    }
-
-    //~ 1. Use the [`PolyCom.verify`](#polynomial-commitments) to verify the partially evaluated proofs.
-    if OpeningProof::verify(srs, group_map, &mut batch, &mut thread_rng()) {
-        Ok(())
-    } else {
-        Err(VerifyError::OpenProof)
-    }
-}
-
 
     /*
     * Enforce the length of evaluations inside the `proof`.
@@ -475,5 +315,37 @@ where
             singles.every(valid_evals_len);
 
         // TODO: check the rest of evaluations (don't really needed for our purposes)
+    }
+
+    static combineTable(
+        columns: PolyComm<ForeignGroup>[],
+        column_combiner: ForeignScalar,
+        table_id_combiner: ForeignScalar,
+        table_id_vector?: PolyComm<ForeignGroup>,
+        runtime_vector?: PolyComm<ForeignGroup>,
+    ): PolyComm<ForeignGroup> {
+        let j = ForeignScalar.from(1);
+        let scalars = [j];
+        let commitments = [columns[0]];
+
+        for (const comm of columns.slice(1)) {
+            j = j.mul(column_combiner);
+            scalars.push(j);
+            commitments.push(comm);
+        }
+
+        if (table_id_vector) {
+            const table_id = table_id_vector!;
+            scalars.push(table_id_combiner);
+            commitments.push(table_id);
+        }
+
+        if (runtime_vector) {
+            const runtime = runtime_vector;
+            scalars.push(column_combiner);
+            commitments.push(runtime);
+        }
+
+        return PolyComm.msm(commitments, scalars);
     }
 }

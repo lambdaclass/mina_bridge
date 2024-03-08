@@ -10,7 +10,7 @@ import { ForeignBase } from '../foreign_fields/foreign_field.js';
 import { ForeignScalar } from '../foreign_fields/foreign_scalar.js';
 import {
     //LookupSelectors,
-    LookupInfo
+    LookupInfo, LookupSelectors
 } from '../lookups/lookups.js';
 import { Batch } from './batch.js';
 import proof_json from "../../test_data/proof.json" assert { type: "json" };
@@ -55,7 +55,7 @@ pub struct LookupVerifierIndex<G: CommitmentCurve> {
 export class LookupVerifierIndex {
     joint_lookup_used: boolean
     lookup_table: PolyComm<ForeignGroup>[]
-    // TODO !!! lookup_selectors: LookupSelectors<PolyComm<Group>>
+    lookup_selectors: LookupSelectors
 
     /// Table IDs for the lookup values.
     /// This may be `None` if all lookups originate from table 0.
