@@ -87,6 +87,14 @@ export class BWParameters {
         x3 = x3.mul(this.invThreeUSquared);
         x3 = this.u.sub(x3);
 
+        const xvec = [x1, x2, x3];
+        let y;
+        for (const x of xvec) {
+            // curve equation: y^2 = x^3 + 5
+            const ysqrd = x.mul(x).mul(x).add(ForeignBase.from(5));
+            
+        }
+
         for x in &xvec {
             if let Some(y) = get_y::<G>(*x) {
                 return (*x, y);
