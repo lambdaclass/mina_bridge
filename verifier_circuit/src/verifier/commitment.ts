@@ -1,11 +1,99 @@
+import { ForeignGroup } from 'o1js';
+import { ForeignBase } from '../foreign_fields/foreign_field.js';
+import { ForeignScalar } from '../foreign_fields/foreign_scalar.js';
+import { AggregatedEvaluationProof } from '../poly_commitment/commitment.js';
 import { SRS } from '../SRS.js';
+import { powScalar } from "../util/scalar.js";
 
 function final_verify(
     srs: SRS,
-    group_map: GroupMap,
-    rng: RNG
+    group_map: BWParameters,
+    batch: AggregatedEvaluationProof
 ): boolean {
+    const nonzero_length = srs.g.length;
+
+    const max_rounds = Math.ceil(Math.log2(nonzero_length));
+
+    const padded_length = 1 << max_rounds;
+
+    const endo_r = ForeignScalar.from("0x397e65a7d7c1ad71aee24b27e308f0a61259527ec1d4752e619d1840af55f1b1");
+
+    const padding = padded_length - nonzero_length;
+    let points = [srs.h];
+    points.concat(srs.g);
+    points.concat(new Array(padding).fill(ForeignGroup.fromFields([ForeignBase.from(0), ForeignBase.from(0)])));
+
+    let scalars = new Array(padded_length + 1).fill(ForeignGroup.fromFields([ForeignBase.from(0), ForeignBase.from(0)])));
+
+    const rand_base = ForeignScalar.from(0x068EC6E24481F548A1E59ED41FA4459C76A1220B34376903C5EC15D08B406378n);
+    const sg_rand_base = ForeignScalar.from(0x36AF07E9262ADDD8B4FA1CAB629745BD539B2546784D54686B5F6F2EDAA5C8A5n);
+
+    const {
+        sponge,
+        evaluation_points,
+        polyscale,
+        evalscale,
+        evaluations,
+        opening,
+        combined_inner_product,
+    } = batch;
+
+    // absorb x - 2^n where n is the bits used to represent the scalar field modulus
+    const MODULUS_BITS = 255;
+    sponge.absorbFr(combined_inner_product.sub( powScalar(ForeignScalar.from(2), MODULUS_BITS) ));
+
+    const t = sponge.challengeFq();
+    const u = toGroup()
+
     return false;
+}
+
+export class BWParameters {
+    u: ForeignBase
+    fu: ForeignBase
+    sqrtNegThreeUSquaredMinusUOver2: ForeignBase
+    sqrtNegThreeUSquared: ForeignBase
+    invThreeUSquared: ForeignBase
+
+    constructor() {
+        // constants which only depend on the group (Pallas). These were taken from the Rust implementation.
+        this.u = ForeignBase.from(0x0000000000000000000000000000000000000000000000000000000000000001n);
+        this.fu = ForeignBase.from(0x0000000000000000000000000000000000000000000000000000000000000006n);
+        this.sqrtNegThreeUSquaredMinusUOver2 = ForeignBase.from(0x12CCCA834ACDBA712CAAD5DC57AAB1B01D1F8BD237AD31491DAD5EBDFDFE4AB9n);
+        this.sqrtNegThreeUSquared = ForeignBase.from(0x25999506959B74E25955ABB8AF5563603A3F17A46F5A62923B5ABD7BFBFC9573n);
+        this.invThreeUSquared = ForeignBase.from(0x2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC18465FD5B88A612661E209E00000001n);
+    }
+
+    toGroup(t: ForeignScalar): ForeignGroup {
+        const t2 = t.mul(t);
+        let alpha_inv = t2;
+        alpha_inv = alpha_inv.add(this.fu);
+        alpha_inv = alpha_inv.mul(t2);
+
+        const alpha = alpha_inv.inv();
+
+        let x1 = t2;
+        x1 = x1.mul(x1);
+        x1 = x1.mul(alpha);
+        x1 = x1.mul(this.sqrtNegThreeUSquared);
+        x1 = this.sqrtNegThreeUSquaredMinusUOver2.sub(x1);
+
+        const x2 = this.u.neg().sub(x1);
+
+        const t2_plus_fu = t2.add(this.fu);
+        const t2_inv = alpha.mul(t2_plus_fu);
+        let x3 = t2_plus_fu.mul(t2_plus_fu);
+        x3 = x3.mul(t2_inv);
+        x3 = x3.mul(this.invThreeUSquared);
+        x3 = this.u.sub(x3);
+
+        for x in &xvec {
+            if let Some(y) = get_y::<G>(*x) {
+                return (*x, y);
+            }
+        }
+        panic!("get_xy")
+    }
 }
 /*
     /// This function verifies batch of batched polynomial commitment opening proofs

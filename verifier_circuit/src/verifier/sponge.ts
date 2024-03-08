@@ -301,6 +301,10 @@ export class Sponge {
         return this.squeeze(Sponge.CHALLENGE_LENGTH_IN_LIMBS);
     }
 
+    challengeFq(): ForeignBase {
+        return this.squeezeField();
+    }
+
     digest(): ForeignScalar {
         return Provable.witnessBn254(ForeignScalar, () => {
             const x = this.squeezeField().toBigInt();
