@@ -4,6 +4,7 @@ import { deserOpeningProof } from "./serde/serde_proof.js";
 import { ForeignField } from "./foreign_fields/foreign_field.js";
 import { TestCircuit } from "./test_circuit.js";
 import { ForeignPallas } from "./foreign_fields/foreign_pallas.js";
+import { ForeignScalar } from "./foreign_fields/foreign_scalar.js";
 
 let inputs;
 try {
@@ -205,13 +206,13 @@ try {
 
 // // ----------------------------------------------------
 
-console.log("Generating Pallas test circuit keypair...");
-let testKeypairPallas = await TestCircuit.generateKeypair();
-// console.dir(testKeypairPallas.constraintSystem(), { depth: null });
-console.log("Proving...");
-let openingProof = deserOpeningProof(inputs);
-let testProofPallas = await TestCircuit.prove([], [openingProof], testKeypairPallas);
-console.log(testProofPallas);
+// console.log("Generating Pallas test circuit keypair...");
+// let testKeypairPallas = await TestCircuit.generateKeypair();
+// // console.dir(testKeypairPallas.constraintSystem(), { depth: null });
+// console.log("Proving...");
+// let openingProof = deserOpeningProof(inputs);
+// let testProofPallas = await TestCircuit.prove([], [openingProof], testKeypairPallas);
+// console.log(testProofPallas);
 
 // console.log("Generating Bn254 test circuit keypair...");
 // let testKeypairBn254 = await TestCircuitBn254.generateKeypair();
@@ -220,13 +221,12 @@ console.log(testProofPallas);
 // let testProofBn254 = await TestCircuitBn254.prove([], [FieldBn254.from(5)], testKeypairBn254);
 // console.log(testProofBn254);
 
-// console.log("Generating verifier circuit keypair...");
-// let keypair = await Verifier.generateKeypair();
-
-// console.log("Proving...");
-// let openingProof = deserOpeningProof(inputs);
-// let proof = await Verifier.prove([], [openingProof], keypair);
-// console.log(proof);
+console.log("Generating verifier circuit keypair...");
+let keypair = await Verifier.generateKeypair();
+console.log("Proving...");
+let openingProof = deserOpeningProof(inputs);
+let proof = await Verifier.prove([], [openingProof], keypair);
+console.log(proof);
 
 // console.log("Writing circuit gates into file...");
 // let gates = keypair.constraintSystem();
