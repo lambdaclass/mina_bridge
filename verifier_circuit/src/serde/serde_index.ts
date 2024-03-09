@@ -111,7 +111,7 @@ export interface GroupJSON {
 
 export function deserGroup(json: GroupJSON): ForeignCurve {
     if (json.x === "0" && json.y === "1") {
-        return new ForeignPallas({ x: 0, y: 0 })
+        return ForeignPallas.generator.add(ForeignPallas.generator.negate());
     } else {
         return new ForeignPallas({ x: BigInt(json.x), y: BigInt(json.y) });
     }

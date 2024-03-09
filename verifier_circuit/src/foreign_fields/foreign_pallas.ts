@@ -1,4 +1,5 @@
-import { createForeignCurve } from 'o1js';
+import { Field, createForeignCurve } from 'o1js';
+import { ForeignScalar } from './foreign_scalar';
 
 const p = 0x40000000000000000000000000000000224698fc094cf91b992d30ed00000001n;
 const q = 0x40000000000000000000000000000000224698fc0994a8dd8c46eb2100000001n;
@@ -26,4 +27,21 @@ export class ForeignPallas extends createForeignCurve({
     a,
     endoBase: pallasEndoBase,
     endoScalar: pallasEndoScalar,
-}) { }
+}) {
+    static sizeInFields() {
+        return ForeignPallas.provable.sizeInFields();
+    }
+
+    static fromFields(fields: Field[]) {
+        return ForeignPallas.provable.fromFields(fields);
+    }
+
+    static toFields(one: ForeignPallas) {
+        return ForeignPallas.provable.toFields(one);
+    }
+
+    static assertEquals(one: ForeignPallas, other: ForeignPallas) {
+        one.x.assertEquals(other.x);
+        one.y.assertEquals(other.y);
+    }
+}

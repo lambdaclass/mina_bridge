@@ -2,7 +2,7 @@ import lagrange_bases_json from "../test_data/lagrange_bases.json" assert { type
 import { BlindedCommitment, PolyComm } from "./poly_commitment/commitment.js";
 import { readFileSync } from "fs";
 import { ForeignScalar } from "./foreign_fields/foreign_scalar.js";
-import { ForeignPallas } from "./foreign_fields/foreign_pallas";
+import { ForeignPallas } from "./foreign_fields/foreign_pallas.js";
 
 let srs_json;
 try {
@@ -78,7 +78,7 @@ export class SRS {
             .zip(blinders)
             .map(([g, b]) => {
                 let g_masked = this.h.scale(b);
-                return g_masked.add(g);
+                return g_masked.completeAdd(g);
             });
         return { commitment: commitment, blinders: blinders }
     }

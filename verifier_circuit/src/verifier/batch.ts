@@ -62,7 +62,7 @@ export class Batch {
         let public_comm = verifier_index
             .srs
             .maskCustom(non_hiding_public_comm,
-                new PolyComm([ForeignScalar.from(1)], undefined))?.commitment!;
+                new PolyComm([ForeignScalar.from(1).assertAlmostReduced()], undefined))?.commitment!;
 
         //~ 3. Run the Fiat-Shamir heuristic.
         const {

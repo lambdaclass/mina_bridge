@@ -1,9 +1,8 @@
-import { Field, Provable, Scalar } from "o1js";
+import { Field, Provable } from "o1js";
 import { Sponge } from "../verifier/sponge";
-import { ForeignField } from "../foreign_fields/foreign_field.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { SRS } from "../SRS.js";
-import { ForeignPallas } from "../foreign_fields/foreign_pallas";
+import { ForeignPallas } from "../foreign_fields/foreign_pallas.js";
 
 /**
 * A polynomial commitment
@@ -46,7 +45,7 @@ export class PolyComm<A> {
 
         for (let i = 0; i < Math.max(n1, n2); i++) {
             const pt = i < n1 && i < n2 ?
-                lhs.unshifted[i].add(rhs.unshifted[i].negate()) :
+                lhs.unshifted[i].completeAdd(rhs.unshifted[i].negate()) :
                 i < n1 ? lhs.unshifted[i] : rhs.unshifted[i];
             unshifted.push(pt);
         }
@@ -54,7 +53,7 @@ export class PolyComm<A> {
         let shifted;
         if (lhs.shifted == undefined) shifted = rhs.shifted;
         else if (rhs.unshifted == undefined) shifted = lhs.shifted;
-        else shifted = rhs.shifted?.add(lhs.shifted.negate());
+        else shifted = rhs.shifted?.completeAdd(lhs.shifted.negate());
 
         return new PolyComm(unshifted, shifted);
     }
@@ -70,13 +69,13 @@ export class PolyComm<A> {
     * Execute a simple multi-scalar multiplication
     */
     static naiveMSM(points: ForeignPallas[], scalars: ForeignScalar[]) {
-        let result = ForeignPallas.generator.add(ForeignPallas.generator.negate());
+        let result = new ForeignPallas({ x: 0, y: 0 });
 
         for (let i = 0; i < points.length; i++) {
             let point = points[i];
             let scalar = scalars[i];
-            let scaled = point.scale(scalar);
-            result = result.add(scaled);
+            let scaled = point.completeScale(scalar);
+            result = result.completeAdd(scaled);
         }
 
         return result;
@@ -135,8 +134,8 @@ export class PolyComm<A> {
         // use Horner's to compute chunk[0] + z^n chunk[1] + z^2n chunk[2] + ...
         // as ( chunk[-1] * z^n + chunk[-2] ) * z^n + chunk[-3]
         for (const chunk of comm.unshifted.reverse().slice(1)) {
-            res = res.scale(zeta_n);
-            res = res.add(chunk);
+            res = res.completeScale(zeta_n);
+            res = res.completeAdd(chunk);
         }
         return new PolyComm([res], comm.shifted);
     }
@@ -280,10 +279,6 @@ export class OpeningProof {
     static #rounds() {
         const { g } = SRS.createFromJSON();
         return Math.ceil(Math.log2(g.length));
-    }
-
-    static #ForeignPallasSizeInFields() {
-        return
     }
 
     /**

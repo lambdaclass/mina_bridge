@@ -774,7 +774,7 @@ export class ScalarChallenge {
     toFieldWithLength(length_in_bits: number, endo_coeff: ForeignScalar): ForeignScalar {
         let result = ForeignScalar.from(0).assertAlmostReduced();
 
-        Provable.asProverBn254(() => {
+        Provable.asProver(() => {
             const rep = this.chal.toBigInt();
             const rep_64_limbs = getLimbs64(rep);
 
