@@ -278,7 +278,7 @@ export class OpeningProof {
 
     static #rounds() {
         const { g } = SRS.createFromJSON();
-        return Math.ceil(Math.log2(g.length));
+        return Math.ceil(Math.log2(g.length)) + 1;
     }
 
     /**

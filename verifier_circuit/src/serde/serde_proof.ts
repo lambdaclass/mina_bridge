@@ -42,7 +42,7 @@ interface ProverCommitmentsJSON {
  */
 export function deserHexScalar(str: string): ForeignScalar {
     if (!str.startsWith("0x")) str = "0x" + str;
-    return ForeignScalar.from(str);
+    return ForeignScalar.from(str).assertAlmostReduced();
 }
 
 /**
