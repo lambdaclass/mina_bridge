@@ -92,8 +92,7 @@ export function powBase(f: ForeignBase, exp: number): ForeignBase {
 
         if (exp === 0) {
             return res;
-        }
-        else {
+        } else {
             let base = res;
             exp >>= 1;
 
