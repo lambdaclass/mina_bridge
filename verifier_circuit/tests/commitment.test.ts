@@ -2,7 +2,7 @@ import { bPoly, bPolyCoefficients } from "../src/poly_commitment/commitment";
 import { ForeignScalar } from "../src/foreign_fields/foreign_scalar";
 
 test("bPoly", () => {
-    const coeffs = [42, 25, 420].map(ForeignScalar.from);
+    const coeffs = [42, 25, 420].map((x) => ForeignScalar.from(x).assertAlmostReduced());
     const x = ForeignScalar.from(12);
 
     const res = bPoly(coeffs, x);
@@ -13,7 +13,7 @@ test("bPoly", () => {
 })
 
 test("bPolyCoefficients", () => {
-    const coeffs = [42, 25].map(ForeignScalar.from);
+    const coeffs = [42, 25].map((x) => ForeignScalar.from(x).assertAlmostReduced());
 
     const res = bPolyCoefficients(coeffs)
         .map((s) => s.toBigInt().toString()).toString();

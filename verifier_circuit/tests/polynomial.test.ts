@@ -8,5 +8,5 @@ test("Evaluate polynomial", () => {
 
     let evaluation = p.evaluate(x);
     let expected = ForeignScalar.from(27);
-    expect(expected).toEqual(evaluation);
+    expect(evaluation.toBigInt().toString()).toEqual(expected.toBigInt().toString())
 });
