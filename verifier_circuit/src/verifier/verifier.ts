@@ -190,17 +190,16 @@ export class Verifier extends Circuit {
 
         // Temporary until we have the complete Kimchi verification as a circuit.
         // In that case, the expected point would be the point at infinity.
-        // let expected = Provable.witness(ForeignPallas.provable, () => this.verifyProof(openingProof));
-        let expected = ForeignPallas.generator;
+        let expected = Provable.witness(ForeignPallas.provable, () => this.verifyProof(openingProof));
 
         result.x.assertEquals(expected.x);
         result.y.assertEquals(expected.y);
     }
 
     static verifyProof(openingProof: OpeningProof) {
-        // let proverProof = deserProverProof(proof_json);
-        // proverProof.proof = openingProof;
-        // let evaluationProof = Batch.toBatch(deserVerifierIndex(verifier_index_json), proverProof, []);
+        let proverProof = deserProverProof(proof_json);
+        proverProof.proof = openingProof;
+        let evaluationProof = Batch.toBatch(deserVerifierIndex(verifier_index_json), proverProof, []);
 
         let points = [h];
         let scalars = [ForeignScalar.from(0).assertAlmostReduced()];
@@ -209,14 +208,13 @@ export class Verifier extends Circuit {
         let sgRandBase = ForeignScalar.from(1).assertAlmostReduced();
         let negRandBase = randBase.neg();
 
-        points.push(openingProof.sg);
+        points.push(evaluationProof.opening.sg);
         scalars.push(
-            negRandBase.mul(openingProof.z1).assertAlmostReduced()
+            negRandBase.mul(evaluationProof.opening.z1).assertAlmostReduced()
                 .sub(sgRandBase).assertAlmostReduced()
         );
 
-        // return Verifier.naiveMSM(points, scalars);
-        return ForeignPallas.generator;
+        return Verifier.naiveMSM(points, scalars);
     }
 
     static naiveMSM(points: ForeignPallas[], scalars: ForeignScalar[]): ForeignPallas {
