@@ -228,9 +228,9 @@ let openingProof = deserOpeningProof(inputs);
 let proof = await Verifier.prove([], [openingProof], keypair);
 console.log(proof);
 
-// console.log("Writing circuit gates into file...");
-// let gates = keypair.constraintSystem();
-// writeFileSync("../kzg_prover/gates.json", JSON.stringify(gates));
+console.log("Writing circuit gates into file...");
+let gates = keypair.constraintSystem();
+writeFileSync("../kzg_prover/gates.json", JSON.stringify(gates));
 
 // ----------------------------------------------------
 console.log('Shutting down O1JS...');
