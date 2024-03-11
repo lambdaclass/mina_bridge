@@ -1,7 +1,7 @@
 import { ForeignGroup, Scalar } from 'o1js';
 import { ForeignBase } from '../foreign_fields/foreign_field.js';
 import { ForeignScalar } from '../foreign_fields/foreign_scalar.js';
-import { AggregatedEvaluationProof } from '../poly_commitment/commitment.js';
+import { AggregatedEvaluationProof, bPoly, bPolyCoefficients, combineCommitments } from '../poly_commitment/commitment.js';
 import { ScalarChallenge } from '../prover/prover.js';
 import { SRS } from '../SRS.js';
 import { sqrtBase } from '../util/field.js';
@@ -52,7 +52,62 @@ function final_verify(
     sponge.absorbGroup(opening.delta);
     let c = new ScalarChallenge(sponge.challenge()).toField(endo_r);
 
+    let scale = ForeignScalar.from(1);
+    let res = ForeignScalar.from(0);
+    for (const e of evaluation_points) {
+        const term = bPoly(chal, e);
+        res = res.add(scale.mul(term));
+        scale = scale.mul(evalscale);
+    }
+    const b0 = res;
 
+    const s = bPolyCoefficients(chal);
+
+    const neg_rand_base = rand_base.neg();
+
+    points.push(opening.sg);
+    scalars.push(neg_rand_base.mul(opening.z1).sub(sg_rand_base));
+
+    const terms = s.map((s) => sg_rand_base.mul(s));
+    for (const [i, term] of terms.entries()) {
+        scalars[i + 1] = scalars[i + 1].add(term);
+    }
+
+    scalars[0] = scalars[0].sub(rand_base.mul(opening.z2));
+
+    scalars.push(neg_rand_base.mul(opening.z1).mul(b0));
+    points.push(u);
+
+    const rand_base_c = c.mul(rand_base);
+    const length = Math.min(opening.lr.length, Math.min(chal_inv, chal));
+    for (let i = 0; i < length; i++) {
+        const l = opening.lr[i][0];
+        const r = opening.lr[i][1];
+        const u_inv = chal_inv[i];
+        const u = chal[i];
+
+        points.push(l);
+        scalars.push(rand_base_c.mul(u_inv));
+
+        points.push(r)
+        scalars.push(rand_base_c.mul(u));
+    }
+
+    combineCommitments(
+        evaluations,
+        scalars,
+        points,
+        polyscale,
+        rand_base_c
+    );
+
+    scalars.push(rand_base_c.mul(combined_inner_product));
+    points.push(u);
+
+    scalars.push(rand_base);
+    points.push(opening.delta);
+
+    // missing: final MSM
 
     return false;
 }

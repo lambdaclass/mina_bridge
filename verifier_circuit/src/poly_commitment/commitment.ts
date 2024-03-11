@@ -190,7 +190,7 @@ export function bPolyCoefficients(chals: ForeignScalar[]) {
     return s;
 }
 
-function combineCommitments(
+export function combineCommitments(
     evaluations: Evaluation[],
     scalars: ForeignScalar[],
     points: ForeignGroup[],
