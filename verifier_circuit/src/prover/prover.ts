@@ -1,5 +1,5 @@
 import { Polynomial } from "../polynomial.js"
-import { ForeignGroup, Group, Provable, Scalar } from "o1js"
+import { Group, Provable, Scalar } from "o1js"
 import { PolyComm, bPoly, bPolyCoefficients, OpeningProof } from "../poly_commitment/commitment.js";
 import { getLimbs64 } from "../util/bigint.js";
 import { fp_sponge_initial_state, fp_sponge_params, fq_sponge_initial_state, fq_sponge_params, Sponge } from "../verifier/sponge.js";
@@ -11,6 +11,7 @@ import { Column, PolishToken } from "./expr.js";
 import { deserHexScalar } from "../serde/serde_proof.js";
 import { range } from "../util/misc.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
+import { ForeignPallas } from "../foreign_fields/foreign_pallas.js";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
@@ -38,7 +39,7 @@ export class ProverProof {
     /**
      * Will run the random oracle argument for removing prover-verifier interaction (Fiat-Shamir transform)
      */
-    oracles(index: VerifierIndex, public_comm: PolyComm<ForeignGroup>, public_input?: ForeignScalar[]): OraclesResult {
+    oracles(index: VerifierIndex, public_comm: PolyComm<ForeignPallas>, public_input?: ForeignScalar[]): OraclesResult {
         const n = index.domain_size;
         const endo_r = ForeignScalar.from("0x397e65a7d7c1ad71aee24b27e308f0a61259527ec1d4752e619d1840af55f1b1");
         // FIXME: ^ currently hard-coded, refactor this in the future
@@ -176,7 +177,7 @@ export class ProverProof {
         // prepare some often used values
 
         let zeta1 = powScalar(zeta, n);
-        const zetaw = zeta.mul(index.domain_gen);
+        const zetaw = zeta.mul(index.domain_gen).assertAlmostReduced();
         const evaluation_points = [zeta, zetaw];
         const powers_of_eval_points_for_chunks: PointEvaluations<ForeignScalar> = {
             zeta: powScalar(zeta, index.max_poly_size),
@@ -184,7 +185,7 @@ export class ProverProof {
         };
 
         //~ 20. Compute evaluations for the previous recursion challenges.
-        const polys: [PolyComm<ForeignGroup>, ForeignScalar[][]][] = this.prev_challenges.map((chal) => {
+        const polys: [PolyComm<ForeignPallas>, ForeignScalar[][]][] = this.prev_challenges.map((chal) => {
             const evals = chal.evals(
                 index.max_poly_size,
                 evaluation_points,
@@ -209,14 +210,14 @@ export class ProverProof {
             // compute Lagrange base evaluation denominators
 
             // take first n elements of the domain, where n = public_input.length
-            let w = [ForeignScalar.from(1)];
+            let w = [ForeignScalar.from(1).assertAlmostReduced()];
             for (let i = 0; i < public_input.length; i++) {
                 w.push(powScalar(index.domain_gen, i));
             }
 
-            let zeta_minus_x = w.map((w_i) => zeta.sub(w_i));
+            let zeta_minus_x = w.map((w_i) => zeta.sub(w_i).assertAlmostReduced());
 
-            w.forEach((w_i) => zeta_minus_x.push(zetaw.sub(w_i)))
+            w.forEach((w_i) => zeta_minus_x.push(zetaw.sub(w_i).assertAlmostReduced()))
 
             zeta_minus_x = zeta_minus_x.map(invScalar);
 
@@ -225,7 +226,7 @@ export class ProverProof {
             if (public_input.length === 0) {
                 public_evals = [[ForeignScalar.from(0)], [ForeignScalar.from(0)]];
             } else {
-                let pe_zeta = ForeignScalar.from(0);
+                let pe_zeta = ForeignScalar.from(0).assertAlmostReduced();
                 const min_len = Math.min(
                     zeta_minus_x.length,
                     w.length,
@@ -236,12 +237,14 @@ export class ProverProof {
                     const l = zeta_minus_x[i];
                     const w_i = w[i];
 
-                    pe_zeta = pe_zeta.add(l.neg().mul(p).mul(w_i));
+                    pe_zeta = pe_zeta.add(l.neg().mul(p).assertAlmostReduced().mul(w_i)).assertAlmostReduced();
                 }
                 const size_inv = invScalar(ForeignScalar.from(index.domain_size));
-                pe_zeta = pe_zeta.mul(zeta1.sub(ForeignScalar.from(1))).mul(size_inv);
+                pe_zeta =
+                    pe_zeta.mul(zeta1.sub(ForeignScalar.from(1).assertAlmostReduced()).assertAlmostReduced()).assertAlmostReduced()
+                        .mul(size_inv).assertAlmostReduced();
 
-                let pe_zetaOmega = ForeignScalar.from(0);
+                let pe_zetaOmega = ForeignScalar.from(0).assertAlmostReduced();
                 const min_lenOmega = Math.min(
                     zeta_minus_x.length - public_input.length,
                     w.length,
@@ -252,11 +255,11 @@ export class ProverProof {
                     const l = zeta_minus_x[i + public_input.length];
                     const w_i = w[i];
 
-                    pe_zetaOmega = pe_zetaOmega.add(l.neg().mul(p).mul(w_i));
+                    pe_zetaOmega = pe_zetaOmega.add(l.neg().mul(p).assertAlmostReduced().mul(w_i)).assertAlmostReduced();
                 }
                 pe_zetaOmega = pe_zetaOmega
-                    .mul(powScalar(zetaw, n).sub(ForeignScalar.from(1)))
-                    .mul(size_inv);
+                    .mul(powScalar(zetaw, n).sub(ForeignScalar.from(1).assertAlmostReduced()).assertAlmostReduced()).assertAlmostReduced()
+                    .mul(size_inv).assertAlmostReduced();
 
                 public_evals = [[pe_zeta], [pe_zetaOmega]];
             }
@@ -298,7 +301,7 @@ export class ProverProof {
 
         //~ 29. Compute the evaluation of $ft(\zeta)$.
         const permutation_vanishing_polynomial = index.permutation_vanishing_polynomial_m.evaluate(zeta);
-        const zeta1m1 = zeta1.sub(ForeignScalar.from(1));
+        const zeta1m1 = zeta1.sub(ForeignScalar.from(1)).assertAlmostReduced();
 
         let alpha_powers = all_alphas.getAlphas({ kind: "permutation" }, Verifier.PERMUTATION_CONSTRAINTS);
         const alpha0 = alpha_powers[0];
@@ -306,34 +309,40 @@ export class ProverProof {
         const alpha2 = alpha_powers[2];
         // FIXME: alpha_powers should be an iterator and alphai = alpha_powers.next(), for i = 0,1,2.
 
-        const init = (evals.w[Verifier.PERMUTS - 1].zeta.add(gamma))
-            .mul(evals.z.zetaOmega)
-            .mul(alpha0)
-            .mul(permutation_vanishing_polynomial);
+        const init = (evals.w[Verifier.PERMUTS - 1].zeta.add(gamma)).assertAlmostReduced()
+            .mul(evals.z.zetaOmega).assertAlmostReduced()
+            .mul(alpha0).assertAlmostReduced()
+            .mul(permutation_vanishing_polynomial).assertAlmostReduced();
 
         let ft_eval0: ForeignScalar = evals.s
-            .map((s, i) => (beta.mul(s.zeta).add(evals.w[i].zeta).add(gamma)))
-            .reduce((acc, curr) => acc.mul(curr), init);
+            .map((s, i) => (beta.mul(s.zeta).add(evals.w[i].zeta).add(gamma).assertAlmostReduced()))
+            .reduce((acc, curr) => acc.mul(curr).assertAlmostReduced(), init);
 
         // FIXME: review this, should be the eval of a polynomial
         ft_eval0 = ft_eval0.sub(
             public_evals![0].length === 0 ? ForeignScalar.from(0) : public_evals![0][0]
-        );
+        ).assertAlmostReduced();
 
         ft_eval0 = ft_eval0.sub(
             index.shift
-                .map((s, i) => gamma.add(beta.mul(zeta).mul(s)).add(evals.w[i].zeta))
-                .reduce((acc, curr) => acc.mul(curr), alpha0.mul(permutation_vanishing_polynomial).mul(evals.z.zeta))
-        );
+                .map((s, i) => gamma.add(beta.mul(zeta).assertAlmostReduced().mul(s)).add(evals.w[i].zeta).assertAlmostReduced())
+                .reduce(
+                    (acc, curr) => acc.mul(curr).assertAlmostReduced(),
+                    alpha0.mul(permutation_vanishing_polynomial).assertAlmostReduced()
+                        .mul(evals.z.zeta).assertAlmostReduced()
+                )
+        ).assertAlmostReduced();
 
-        const numerator = (zeta1m1.mul(alpha1).mul((zeta.sub(index.w))))
-            .add(zeta1m1.mul(alpha2).mul(zeta.sub(ForeignScalar.from(1))))
-            .mul(ForeignScalar.from(1).sub(evals.z.zeta));
+        const numerator = (zeta1m1.mul(alpha1).assertAlmostReduced().mul((zeta.sub(index.w)).assertAlmostReduced()))
+            .add(zeta1m1.mul(alpha2).assertAlmostReduced().mul(zeta.sub(ForeignScalar.from(1)).assertAlmostReduced())).assertAlmostReduced()
+            .mul(ForeignScalar.from(1).sub(evals.z.zeta).assertAlmostReduced()).assertAlmostReduced();
 
-        const denominator = invScalar(zeta.sub(index.w).mul(zeta.sub(ForeignScalar.from(1))));
+        const denominator = invScalar(
+            zeta.sub(index.w).assertAlmostReduced()
+                .mul(zeta.sub(ForeignScalar.from(1)).assertAlmostReduced()).assertAlmostReduced());
         // FIXME: if error when inverting, "negligible probability"
 
-        ft_eval0 = ft_eval0.add(numerator.mul(denominator));
+        ft_eval0 = ft_eval0.add(numerator.mul(denominator)).assertAlmostReduced();
 
         // FIXME: hardcoded for now, should be a sponge parameter.
         // this was generated from the verifier_circuit_tests/ crate.
@@ -371,7 +380,7 @@ export class ProverProof {
             index.domain_gen,
             index.domain_size,
             constants
-        ));
+        )).assertAlmostReduced();
 
         const ft_eval0_a = [ft_eval0];
         const ft_eval1_a = [this.ft_eval1];
@@ -448,8 +457,8 @@ export function combinedInnerProduct(
     polys: [ForeignScalar[][], number | undefined][],
     srs_length: number
 ): ForeignScalar {
-    let res = ForeignScalar.from(0);
-    let xi_i = ForeignScalar.from(1);
+    let res = ForeignScalar.from(0).assertAlmostReduced();
+    let xi_i = ForeignScalar.from(1).assertAlmostReduced();
 
     for (const [evals_tr, shifted] of polys.filter(([evals_tr, _]) => evals_tr[0].length != 0)) {
         const evals = [...Array(evals_tr[0].length).keys()]
@@ -457,8 +466,8 @@ export function combinedInnerProduct(
 
         for (const evaluation of evals) {
             const term = Polynomial.buildAndEvaluate(evaluation, evalscale);
-            res = res.add(xi_i.mul(term));
-            xi_i = xi_i.mul(polyscale);
+            res = res.add(xi_i.mul(term)).assertAlmostReduced();
+            xi_i = xi_i.mul(polyscale).assertAlmostReduced();
         }
 
         if (shifted) {
@@ -470,10 +479,10 @@ export function combinedInnerProduct(
             }
 
             const shifted_evals = evaluation_points
-                .map((elm, i) => powScalar(elm, (srs_length - (shifted % srs_length))).mul(last_evals[i]))
+                .map((elm, i) => powScalar(elm, (srs_length - (shifted % srs_length))).mul(last_evals[i]).assertAlmostReduced())
 
-            res = res.add((xi_i.mul(Polynomial.buildAndEvaluate(shifted_evals, evalscale))));
-            xi_i = xi_i.mul(polyscale);
+            res = res.add((xi_i.mul(Polynomial.buildAndEvaluate(shifted_evals, evalscale)))).assertAlmostReduced();
+            xi_i = xi_i.mul(polyscale).assertAlmostReduced();
         }
     }
     return res;
@@ -680,7 +689,7 @@ export class PointEvaluations<Evals> {
  */
 export class RecursionChallenge {
     chals: ForeignScalar[]
-    comm: PolyComm<ForeignGroup>
+    comm: PolyComm<ForeignPallas>
 
     evals(
         max_poly_size: number,
@@ -701,8 +710,8 @@ export class RecursionChallenge {
                 return [full];
             }
 
-            let betacc = ForeignScalar.from(1);
-            let diffs: Scalar[] = [];
+            let betacc = ForeignScalar.from(1).assertAlmostReduced();
+            let diffs: ForeignScalar[] = [];
             for (let j = max_poly_size; j < b_len; j++) {
                 let b_j;
                 if (b) {
@@ -714,13 +723,13 @@ export class RecursionChallenge {
                     b_j = res;
                 }
 
-                const ret = betacc.mul(b_j);
-                betacc = betacc.mul(evaluation_points[i]);
+                const ret = betacc.mul(b_j).assertAlmostReduced();
+                betacc = betacc.mul(evaluation_points[i]).assertAlmostReduced();
                 diffs.push(ret);
             }
 
-            const diff = diffs.reduce((x, y) => x.add(y), ForeignScalar.from(0));
-            return [full.sub(diff.mul(powers_of_eval_points_for_chunks[i])), diff];
+            const diff = diffs.reduce((x, y) => x.add(y).assertAlmostReduced(), ForeignScalar.from(0).assertAlmostReduced());
+            return [full.sub(diff.mul(powers_of_eval_points_for_chunks[i])).assertAlmostReduced(), diff];
         });
     }
 }
@@ -739,11 +748,11 @@ export class LookupCommitments {
 
 export class ProverCommitments {
     /* Commitments to the witness (execution trace) */
-    wComm: PolyComm<ForeignGroup>[]
+    wComm: PolyComm<ForeignPallas>[]
     /* Commitment to the permutation */
-    zComm: PolyComm<ForeignGroup>
+    zComm: PolyComm<ForeignPallas>
     /* Commitment to the quotient polynomial */
-    tComm: PolyComm<ForeignGroup>
+    tComm: PolyComm<ForeignPallas>
     /// Commitments related to the lookup argument
     lookup?: LookupCommitments
 }
@@ -763,32 +772,32 @@ export class ScalarChallenge {
     }
 
     toFieldWithLength(length_in_bits: number, endo_coeff: ForeignScalar): ForeignScalar {
-        let result = ForeignScalar.from(0);
+        let result = ForeignScalar.from(0).assertAlmostReduced();
 
-        Provable.asProverBn254(() => {
+        Provable.asProver(() => {
             const rep = this.chal.toBigInt();
             const rep_64_limbs = getLimbs64(rep);
 
-            let a = ForeignScalar.from(2);
-            let b = ForeignScalar.from(2);
+            let a = ForeignScalar.from(2).assertAlmostReduced();
+            let b = ForeignScalar.from(2).assertAlmostReduced();
 
             const one = ForeignScalar.from(1);
             const negone = one.neg();
             for (let i = Math.floor(length_in_bits / 2) - 1; i >= 0; i--) {
-                a = a.add(a);
-                b = b.add(b);
+                a = a.add(a).assertAlmostReduced();
+                b = b.add(b).assertAlmostReduced();
 
                 const r_2i = getBit(rep_64_limbs, 2 * i);
                 const s = r_2i === 0n ? negone : one;
 
                 if (getBit(rep_64_limbs, 2 * i + 1) === 0n) {
-                    b = b.add(s);
+                    b = b.add(s).assertAlmostReduced();
                 } else {
-                    a = a.add(s);
+                    a = a.add(s).assertAlmostReduced();
                 }
             }
 
-            result = a.mul(endo_coeff).add(b);
+            result = a.mul(endo_coeff).add(b).assertAlmostReduced();
         });
 
         return result;
@@ -849,7 +858,7 @@ export class OraclesResult {
     /** zeta^n and (zeta * omega)^n */
     powers_of_eval_points_for_chunks: PointEvaluations<ForeignScalar>
     /** recursion data */
-    polys: [PolyComm<ForeignGroup>, ForeignScalar[][]][]
+    polys: [PolyComm<ForeignPallas>, ForeignScalar[][]][]
     /** pre-computed zeta^n */
     zeta1: ForeignScalar
     /** The evaluation f(zeta) - t(zeta) * Z_H(zeta) */

@@ -1,9 +1,10 @@
-import { Field, ForeignGroup, Poseidon, Provable, Scalar } from "o1js"
+import { Field, Poseidon, Provable, Scalar } from "o1js"
 import { PolyComm } from "../poly_commitment/commitment";
 import { PointEvaluations, ProofEvaluations } from "../prover/prover";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { ForeignField } from "../foreign_fields/foreign_field.js";
 import { assert } from "console";
+import { ForeignPallas } from "../foreign_fields/foreign_pallas";
 
 type UnionForeignField = ForeignField | ForeignScalar;
 type UnionForeignFieldArr = ForeignField[] | ForeignScalar[];
@@ -57,10 +58,10 @@ export class ArithmeticSponge {
 
     #sbox(element: UnionForeignField): UnionForeignField {
         // return element^7
-        let element_squared = element.mul(element); // ^2
-        let element_fourth = element_squared.mul(element_squared); // ^4
-        let element_sixth = element_fourth.mul(element_squared); // ^6
-        return element_sixth.mul(element);
+        let element_squared = element.assertAlmostReduced().mul(element.assertAlmostReduced()).assertAlmostReduced(); // ^2
+        let element_fourth = element_squared.mul(element_squared).assertAlmostReduced(); // ^4
+        let element_sixth = element_fourth.mul(element_squared).assertAlmostReduced(); // ^6
+        return element_sixth.mul(element.assertAlmostReduced());
     }
 
     #applyMds(): UnionForeignFieldArr {
@@ -68,10 +69,16 @@ export class ArithmeticSponge {
         assert(n == this.state.length);
 
         // matrix-vector product: mds * state
-        return this.params.mds.map((row) =>
-            this.state.reduce(
-                (acc, s, i) => acc.add(s.mul(row[i])),
-                ForeignField.from(0))
+        return this.params.mds.map((row) => {
+            let result = ForeignField.from(0).assertAlmostReduced();
+
+            for (let i = 0; i < row.length; i++) {
+                let s = this.state[i];
+                result = result.add(s.assertAlmostReduced().mul(row[i].assertAlmostReduced())).assertAlmostReduced();
+            }
+
+            return result;
+        }
         );
     }
 
@@ -136,12 +143,12 @@ export class Sponge {
         return this.#internalSponge.squeeze();
     }
 
-    absorbGroup(g: ForeignGroup) {
+    absorbGroup(g: ForeignPallas) {
         this.#internalSponge.absorb(g.x);
         this.#internalSponge.absorb(g.y);
     }
 
-    absorbGroups(gs: ForeignGroup[]) {
+    absorbGroups(gs: ForeignPallas[]) {
         gs.forEach(this.absorbGroup.bind(this));
         // bind is necessary for avoiding context loss
     }
@@ -151,13 +158,13 @@ export class Sponge {
         // this operation was extracted from Kimchi FqSponge's`absorb_fr()`.
         if (ForeignScalar.modulus < ForeignField.modulus) {
             let f = ForeignField.from(0);
-            Provable.asProverBn254(() => {
+            Provable.asProver(() => {
                 f = ForeignField.from(s.toBigInt());
             });
             this.absorb(f);
         } else {
             let high_bits = ForeignField.from(0);
-            Provable.asProverBn254(() => {
+            Provable.asProver(() => {
                 high_bits = ForeignField.from(s.toBigInt() >> 1n);
                 // WARN:  >> is the sign-propagating left shift operator, so if the number is negative,
                 // it'll add 1s instead of 0s to the most significant end of the integer.
@@ -167,7 +174,7 @@ export class Sponge {
             });
 
             let low_bit = ForeignField.from(0);
-            Provable.asProverBn254(() => {
+            Provable.asProver(() => {
                 low_bit = ForeignField.from(s.toBigInt() & 1n);
             });
 
@@ -181,7 +188,7 @@ export class Sponge {
         s.forEach(this.absorbScalar.bind(this));
     }
 
-    absorbCommitment(commitment: PolyComm<ForeignGroup>) {
+    absorbCommitment(commitment: PolyComm<ForeignPallas>) {
         this.absorbGroups(commitment.unshifted);
         if (commitment.shifted) this.absorbGroup(commitment.shifted);
     }
@@ -258,7 +265,7 @@ export class Sponge {
     }
 
     digest(): ForeignScalar {
-        return Provable.witnessBn254(ForeignScalar, () => {
+        return Provable.witness(ForeignScalar.Canonical.provable, () => {
             const x = this.squeezeField().toBigInt();
             const result = x < ForeignScalar.modulus ? x : 0;
             // Comment copied from Kimchi's codebase:
@@ -295,7 +302,7 @@ export function fq_sponge_params(): ArithmeticSpongeParams {
                 1201496953174589855481629688627002262719699487577300614284420648015658009380n,
                 11619800255560837597192574795389782851917036920101027584480912719351481334717n,
             ],
-        ].map((arr) => arr.map(ForeignScalar.from)),
+        ].map((arr) => arr.map(ForeignScalar.from)) as ForeignScalar[][],
         round_constants: [
             [
                 2517640872121921965298496967863234221143680281046699148760560696057284005606n,
@@ -572,7 +579,7 @@ export function fq_sponge_params(): ArithmeticSpongeParams {
                 57689402905128519605376551862931564078571458212398163192591670282543962941n,
                 4484359679395800410695081358212522306960518636189521201445105538223906998486n,
             ],
-        ].map((arr) => arr.map(ForeignScalar.from)),
+        ].map((arr) => arr.map(ForeignScalar.from)) as ForeignScalar[][],
     }
 }
 
@@ -597,7 +604,7 @@ export function fp_sponge_params(): ArithmeticSpongeParams {
                 27437632000253211280915908546961303399777448677029255413769125486614773776695n,
                 27566319851776897085443681456689352477426926500749993803132851225169606086988n,
             ],
-        ].map((arr) => arr.map(ForeignField.from)),
+        ].map((arr) => arr.map(ForeignField.from)) as ForeignScalar[][],
         round_constants: [
             [
                 21155079691556475130150866428468322463125560312786319980770950159250751855431n,
@@ -874,7 +881,7 @@ export function fp_sponge_params(): ArithmeticSpongeParams {
                 13815234633287489023151647353581705241145927054858922281829444557905946323248n,
                 10888828634279127981352133512429657747610298502219125571406085952954136470354n,
             ],
-        ].map((arr) => arr.map(ForeignField.from)),
+        ].map((arr) => arr.map(ForeignField.from)) as ForeignScalar[][],
     }
 }
 

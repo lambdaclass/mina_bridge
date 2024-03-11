@@ -41,12 +41,12 @@ export class Alphas {
      * Once you call this function, you cannot register new constraints.
      */
     instantiate(alpha: ForeignScalar) {
-        let last_power = ForeignScalar.from(1);
+        let last_power = ForeignScalar.from(1).assertAlmostReduced();
         let alphas = Array<ForeignScalar>();
         alphas.push(last_power);
 
         for (let _ = 1; _ < this.next_power; _++) {
-            last_power = last_power.mul(alpha);
+            last_power = last_power.mul(alpha).assertAlmostReduced();
             alphas.push(last_power);
         }
         this.alphas = alphas;

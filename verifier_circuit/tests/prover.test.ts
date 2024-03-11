@@ -10,7 +10,7 @@ test("toFieldWithLength", () => {
     const length_in_bits = 10;
 
     const result = chal.toFieldWithLength(length_in_bits, endo_coeff);
-    expect(result).toEqual(
-        ForeignScalar.from("0x388fcbe4fef56d15d1e08ce81471cd60b753819eae172506b7c7afb1f1801665")
+    expect(result.toBigInt().toString()).toEqual(
+        ForeignScalar.from("0x388fcbe4fef56d15d1e08ce81471cd60b753819eae172506b7c7afb1f1801665").toBigInt().toString()
     );
 })

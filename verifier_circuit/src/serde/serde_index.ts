@@ -1,4 +1,4 @@
-import { ForeignGroup, Group, Scalar } from "o1js"
+import { ForeignCurve, Group, Scalar } from "o1js"
 import { PolyComm } from "../poly_commitment/commitment.js"
 import { VerifierIndex } from "../verifier/verifier.js"
 import { deserHexScalar } from "./serde_proof.js"
@@ -6,7 +6,7 @@ import { PolishToken, CurrOrNext, Variable, Column, Linearization } from "../pro
 import { ArgumentType, GateType } from "../circuits/gate.js"
 import { Polynomial } from "../polynomial.js"
 import { Alphas } from "../alphas.js"
-import { ForeignField } from "../foreign_fields/foreign_field.js"
+import { ForeignPallas } from "../foreign_fields/foreign_pallas.js"
 
 export interface PolyCommJSON {
     unshifted: GroupJSON[]
@@ -109,21 +109,21 @@ export interface GroupJSON {
     y: string
 }
 
-export function deserGroup(json: GroupJSON): ForeignGroup {
+export function deserGroup(json: GroupJSON): ForeignCurve {
     if (json.x === "0" && json.y === "1") {
-        return new ForeignGroup(ForeignField.from(0), ForeignField.from(0))
+        return ForeignPallas.generator.add(ForeignPallas.generator.negate());
     } else {
-        return new ForeignGroup(ForeignField.from(json.x), ForeignField.from(json.y));
+        return new ForeignPallas({ x: BigInt(json.x), y: BigInt(json.y) });
     }
 }
 
-export function deserPolyComm(json: PolyCommJSON): PolyComm<ForeignGroup> {
+export function deserPolyComm(json: PolyCommJSON): PolyComm<ForeignCurve> {
     const unshifted = json.unshifted.map(deserGroup);
     let shifted = undefined;
     if (json.shifted != null) {
         shifted = json.shifted;
     }
-    return new PolyComm<ForeignGroup>(unshifted, shifted);
+    return new PolyComm<ForeignCurve>(unshifted, shifted);
 }
 
 export function deserGateType(json: GateTypeJSON): GateType {
