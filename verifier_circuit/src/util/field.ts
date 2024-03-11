@@ -110,9 +110,31 @@ export function powBase(f: ForeignBase, exp: number): ForeignBase {
 }
 
 export function powBaseBig(f: ForeignBase, exp: bigint): ForeignBase {
-    let res = f;
-    for (let _ = 1n; _ < exp; _++) {
-        res = res.mul(f);
+    if (exp === 0n) return ForeignBase.from(1);
+    else if (exp === 1n) return f;
+    else {
+        let res = f;
+
+        while ((exp & 1n) === 0n) {
+            res = res.mul(res);
+            exp >>= 1n;
+        }
+
+        if (exp === 0n) return res;
+        else {
+            let base = res;
+            exp >>= 1n;
+
+            while (exp !== 0n) {
+                base = base.mul(base);
+                if ((exp & 1n) === 1n) {
+                    res = res.mul(base);
+                }
+                exp >>= 1n;
+            }
+
+            return res;
+        }
     }
     return res
 }
