@@ -1,5 +1,5 @@
 import { Provable } from "o1js";
-import { ForeignBase } from "../foreign_fields/foreign_field";
+import { ForeignBase } from "../foreign_fields/foreign_field.js";
 
 export function sqrtBase(a: ForeignBase): ForeignBase | undefined {
     // Euler's criterion:
@@ -136,7 +136,6 @@ export function powBaseBig(f: ForeignBase, exp: bigint): ForeignBase {
             return res;
         }
     }
-    return res
 }
 
 /**

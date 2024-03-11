@@ -3,8 +3,8 @@ import { Sponge } from "../verifier/sponge";
 import { ForeignBase } from "../foreign_fields/foreign_field.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { SRS } from "../SRS.js";
-import { ScalarChallenge } from "../prover/prover";
-import { invScalar } from "../util/scalar";
+import { ScalarChallenge } from "../prover/prover.js";
+import { invScalar } from "../util/scalar.js";
 
 /**
 * A polynomial commitment
@@ -252,7 +252,7 @@ export class AggregatedEvaluationProof {
     sponge: Sponge
     evaluations: Evaluation[]
     /** vector of evaluation points */
-    evaluation_points: Scalar[]
+    evaluation_points: ForeignScalar[]
     /** scaling factor for evaluation point powers */
     polyscale: ForeignScalar
     /** scaling factor for polynomials */

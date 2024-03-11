@@ -7,11 +7,12 @@ import { SRS } from '../SRS.js';
 import { sqrtBase } from '../util/field.js';
 import { powScalar } from "../util/scalar.js";
 
-function final_verify(
+export function finalVerify(
     srs: SRS,
     group_map: BWParameters,
     batch: AggregatedEvaluationProof
 ): boolean {
+    console.log("start final verify");
     const nonzero_length = srs.g.length;
 
     const max_rounds = Math.ceil(Math.log2(nonzero_length));
@@ -20,12 +21,17 @@ function final_verify(
 
     const endo_r = ForeignScalar.from("0x397e65a7d7c1ad71aee24b27e308f0a61259527ec1d4752e619d1840af55f1b1");
 
+    console.log("start points");
+    const zero = ForeignBase.from(0);
     const padding = padded_length - nonzero_length;
     let points = [srs.h];
     points.concat(srs.g);
-    points.concat(new Array(padding).fill(ForeignGroup.fromFields([ForeignBase.from(0), ForeignBase.from(0)])));
+    points.concat(new Array(padding).fill(new ForeignGroup(zero, zero)));
+    console.log("finish points");
 
-    let scalars = new Array(padded_length + 1).fill(ForeignGroup.fromFields([ForeignBase.from(0), ForeignBase.from(0)])));
+    console.log("start scalars");
+    let scalars = new Array(padded_length + 1).fill(ForeignScalar.from(0));
+    console.log("finish scalars");
 
     const rand_base = ForeignScalar.from(0x068EC6E24481F548A1E59ED41FA4459C76A1220B34376903C5EC15D08B406378n);
     const sg_rand_base = ForeignScalar.from(0x36AF07E9262ADDD8B4FA1CAB629745BD539B2546784D54686B5F6F2EDAA5C8A5n);
@@ -45,13 +51,16 @@ function final_verify(
     sponge.absorbFr(combined_inner_product.sub( powScalar(ForeignScalar.from(2), MODULUS_BITS) ));
 
     const t = sponge.challengeFq();
-    const u = this.toGroup(group_map, t);
+    console.log("start togroup");
+    const u = group_map.toGroup(t);
+    console.log("fiish togroup");
 
     const [chal, chal_inv] = opening.challenges(endo_r, sponge);
 
     sponge.absorbGroup(opening.delta);
     let c = new ScalarChallenge(sponge.challenge()).toField(endo_r);
 
+    console.log("starting evalpoints");
     let scale = ForeignScalar.from(1);
     let res = ForeignScalar.from(0);
     for (const e of evaluation_points) {
@@ -68,18 +77,20 @@ function final_verify(
     points.push(opening.sg);
     scalars.push(neg_rand_base.mul(opening.z1).sub(sg_rand_base));
 
+    console.log("starting terms");
     const terms = s.map((s) => sg_rand_base.mul(s));
     for (const [i, term] of terms.entries()) {
         scalars[i + 1] = scalars[i + 1].add(term);
     }
+    console.log("finished terms");
 
     scalars[0] = scalars[0].sub(rand_base.mul(opening.z2));
 
     scalars.push(neg_rand_base.mul(opening.z1).mul(b0));
-    points.push(u);
+    points.push(u!);
 
     const rand_base_c = c.mul(rand_base);
-    const length = Math.min(opening.lr.length, Math.min(chal_inv, chal));
+    const length = Math.min(opening.lr.length, Math.min(chal_inv.length, chal.length));
     for (let i = 0; i < length; i++) {
         const l = opening.lr[i][0];
         const r = opening.lr[i][1];
@@ -102,10 +113,12 @@ function final_verify(
     );
 
     scalars.push(rand_base_c.mul(combined_inner_product));
-    points.push(u);
+    points.push(u!);
 
     scalars.push(rand_base);
     points.push(opening.delta);
+
+    console.log(points.length);
 
     // missing: final MSM
 
