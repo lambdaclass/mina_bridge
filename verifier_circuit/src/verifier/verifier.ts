@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs';
 import { circuitMainBn254, CircuitBn254, Group, public_, ForeignGroup, Provable } from 'o1js';
-import { OpeningProof, PolyComm } from '../poly_commitment/commitment.js';
+import { PolyComm } from '../poly_commitment/commitment.js';
+import { OpeningProof } from "../poly_commitment/opening_proof.js";
 import { SRS } from '../SRS.js';
 import { fp_sponge_initial_state, fp_sponge_params, fq_sponge_initial_state, fq_sponge_params, Sponge } from './sponge.js';
 import { Alphas } from '../alphas.js';
