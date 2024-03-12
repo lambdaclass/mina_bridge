@@ -1,5 +1,5 @@
 import { readFileSync } from 'fs';
-import { Group, public_, Provable, circuitMain, Circuit } from 'o1js';
+import { Group, public_, Provable, circuitMain, Circuit, CircuitBn254, circuitMainBn254, publicBn254 } from 'o1js';
 import { OpeningProof, PolyComm } from '../poly_commitment/commitment.js';
 import { SRS } from '../SRS.js';
 import { fq_sponge_initial_state, fq_sponge_params, Sponge } from './sponge.js';
@@ -177,15 +177,15 @@ export class VerifierIndex {
     }
 }
 
-export class Verifier extends Circuit {
+export class Verifier extends CircuitBn254 {
     /** Number of total registers */
     static readonly COLUMNS: number = 15;
     /** Number of registers that can be wired (participating in the permutation) */
     static readonly PERMUTS: number = 7;
     static readonly PERMUTATION_CONSTRAINTS: number = 3;
 
-    @circuitMain
-    static main(@public_ openingProof: OpeningProof) {
+    @circuitMainBn254
+    static main(@publicBn254 openingProof: OpeningProof) {
         let result = this.verifyProof(openingProof);
 
         // Temporary until we have the complete Kimchi verification as a circuit.

@@ -1,4 +1,4 @@
-import { Field, Poseidon, Provable, Scalar } from "o1js"
+import { ProvableBn254 } from "o1js"
 import { PolyComm } from "../poly_commitment/commitment";
 import { PointEvaluations, ProofEvaluations } from "../prover/prover";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
@@ -158,13 +158,13 @@ export class Sponge {
         // this operation was extracted from Kimchi FqSponge's`absorb_fr()`.
         if (ForeignScalar.modulus < ForeignField.modulus) {
             let f = ForeignField.from(0);
-            Provable.asProver(() => {
+            ProvableBn254.asProver(() => {
                 f = ForeignField.from(s.toBigInt());
             });
             this.absorb(f);
         } else {
             let high_bits = ForeignField.from(0);
-            Provable.asProver(() => {
+            ProvableBn254.asProver(() => {
                 high_bits = ForeignField.from(s.toBigInt() >> 1n);
                 // WARN:  >> is the sign-propagating left shift operator, so if the number is negative,
                 // it'll add 1s instead of 0s to the most significant end of the integer.
@@ -174,7 +174,7 @@ export class Sponge {
             });
 
             let low_bit = ForeignField.from(0);
-            Provable.asProver(() => {
+            ProvableBn254.asProver(() => {
                 low_bit = ForeignField.from(s.toBigInt() & 1n);
             });
 
@@ -265,7 +265,7 @@ export class Sponge {
     }
 
     digest(): ForeignScalar {
-        return Provable.witness(ForeignScalar.Canonical.provable, () => {
+        return ProvableBn254.witness(ForeignScalar.Canonical.provable, () => {
             const x = this.squeezeField().toBigInt();
             const result = x < ForeignScalar.modulus ? x : 0;
             // Comment copied from Kimchi's codebase:
