@@ -27,8 +27,6 @@ try {
     steps = [];
 }
 
-let { h } = SRS.createFromJSON();
-
 /*
 #[serde_as]
 #[derive(Serialize, Deserialize, Debug, Clone)]
