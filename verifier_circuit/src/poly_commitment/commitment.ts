@@ -347,7 +347,7 @@ export class OpeningProof {
             return new ScalarChallenge(sponge.challenge()).toField(endo_r);
         })
 
-        const chal_inv = chal.map(invScalar);
+        const chal_inv = chal.map(invScalar.bind(this));
 
         return [chal, chal_inv];
     }

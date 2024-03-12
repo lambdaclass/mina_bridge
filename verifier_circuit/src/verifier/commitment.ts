@@ -55,7 +55,9 @@ export function finalVerify(
     const u = group_map.toGroup(t);
     console.log("fiish togroup");
 
-    const [chal, chal_inv] = opening.challenges(endo_r, sponge);
+    const chal_tuple = opening.challenges(endo_r, sponge);
+    const chal = chal_tuple[0];
+    const chal_inv = chal_tuple[1];
 
     sponge.absorbGroup(opening.delta);
     let c = new ScalarChallenge(sponge.challenge()).toField(endo_r);
