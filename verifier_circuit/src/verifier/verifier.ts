@@ -222,7 +222,6 @@ export class Verifier extends CircuitBn254 {
     @circuitMainBn254
     static main(@public_ openingProof: OpeningProof, @public_ expected: ForeignGroup) {
         let proverProof = deserProverProof(proof_json);
-        proverProof.proof = openingProof;
 
         const verifierIndex = deserVerifierIndex(verifier_index_json);
         let evaluationProofResult = Batch.toBatch(verifierIndex, proverProof, []);

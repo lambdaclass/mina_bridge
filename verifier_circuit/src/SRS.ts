@@ -7,7 +7,7 @@ import { ForeignScalar } from "./foreign_fields/foreign_scalar.js";
 
 let srs_json;
 try {
-    srs_json = JSON.parse(readFileSync("./test/srs.json", "utf-8"));
+    srs_json = JSON.parse(readFileSync("./test_data/srs.json", "utf-8"));
 } catch (e) {
     console.log("Using test SRS");
     srs_json = {
