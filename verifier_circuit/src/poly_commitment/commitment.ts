@@ -299,7 +299,7 @@ export class OpeningProof {
     }
 
     static fromFields(fields: FieldBn254[]) {
-        let lr = [];
+        let lr: [ForeignGroup, ForeignGroup][] = [];
         // lr_0 = [0...6, 6...12]
         // lr_1 = [12...18, 18...24]
         // lr_2 = [24...30, 30...36]
@@ -312,13 +312,13 @@ export class OpeningProof {
         }
         let lrOffset = lr.length * 6 * 2;
 
-        return {
+        return new OpeningProof(
             lr,
-            delta: ForeignGroup.fromFields(fields.slice(lrOffset, lrOffset + 6)),
-            z1: ForeignScalar.fromFields(fields.slice(lrOffset + 6, lrOffset + 9)),
-            z2: ForeignScalar.fromFields(fields.slice(lrOffset + 9, lrOffset + 12)),
-            sg: ForeignGroup.fromFields(fields.slice(lrOffset + 12, lrOffset + 18)),
-        };
+            ForeignGroup.fromFields(fields.slice(lrOffset, lrOffset + 6)),
+            ForeignScalar.fromFields(fields.slice(lrOffset + 6, lrOffset + 9)),
+            ForeignScalar.fromFields(fields.slice(lrOffset + 9, lrOffset + 12)),
+            ForeignGroup.fromFields(fields.slice(lrOffset + 12, lrOffset + 18)),
+        );
     }
 
     toFields() {
