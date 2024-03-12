@@ -206,13 +206,13 @@ try {
 
 // // ----------------------------------------------------
 
-// console.log("Generating Pallas test circuit keypair...");
-// let testKeypairPallas = await TestCircuit.generateKeypair();
-// // console.dir(testKeypairPallas.constraintSystem(), { depth: null });
-// console.log("Proving...");
-// let openingProof = deserOpeningProof(inputs);
-// let testProofPallas = await TestCircuit.prove([], [openingProof], testKeypairPallas);
-// console.log(testProofPallas);
+console.log("Generating Pallas test circuit keypair...");
+let testKeypairPallas = await TestCircuit.generateKeypair();
+// console.dir(testKeypairPallas.constraintSystem(), { depth: null });
+console.log("Proving...");
+let openingProof = deserOpeningProof(inputs);
+let testProofPallas = await TestCircuit.prove([], [openingProof], testKeypairPallas);
+console.log(testProofPallas);
 
 console.log("Generating Bn254 test circuit keypair...");
 let testKeypairBn254 = await TestCircuitBn254.generateKeypair();
