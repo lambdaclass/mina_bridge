@@ -24,13 +24,13 @@ export class TestCircuitBn254 extends CircuitBn254 {
     static main(@publicBn254 z1: ForeignScalarBn254) {
         let scalars = [ForeignScalarBn254.from(0).assertAlmostReduced()];
 
-        // let randBase = ForeignScalarBn254.from(1).assertAlmostReduced();
-        // let sgRandBase = ForeignScalarBn254.from(1).assertAlmostReduced();
-        // let negRandBase = randBase.neg();
+        let randBase = ForeignScalarBn254.from(1).assertAlmostReduced();
+        let sgRandBase = ForeignScalarBn254.from(1).assertAlmostReduced();
+        let negRandBase = randBase.neg();
 
         scalars.push(
-            z1.mul(z1.assertAlmostReduced()).assertAlmostReduced()
-            // .sub(sgRandBase).assertAlmostReduced()
+            negRandBase.mul(z1.assertAlmostReduced()).assertAlmostReduced()
+                .sub(sgRandBase).assertAlmostReduced()
         );
     }
 }
