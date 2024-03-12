@@ -218,7 +218,7 @@ export class Verifier extends CircuitBn254 {
     static readonly PERMUTATION_CONSTRAINTS: number = 3;
 
     @circuitMainBn254
-    static main() {
+    static main(@public_ openingProof: OpeningProof, @public_ expected: ForeignGroup) {
         let proverProof = deserProverProof(proof_json);
 
         const verifierIndex = deserVerifierIndex(verifier_index_json);
