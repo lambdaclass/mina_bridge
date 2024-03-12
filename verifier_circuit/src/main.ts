@@ -213,7 +213,7 @@ let expected_x = ForeignBase.from(inputs.expected.x);
 let expected_y = ForeignBase.from(inputs.expected.y);
 // FIXME: expected point does not match current verifier algorithm
 let expected = new ForeignGroup(expected_x, expected_y);
-// let proof = await Verifier.prove([], [openingProof, expected], keypair);
+//let proof = await Verifier.prove([], [], keypair);
 // console.log(proof);
 
 console.log("Writing circuit gates into file...");

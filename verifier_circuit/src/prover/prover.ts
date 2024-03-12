@@ -1,6 +1,6 @@
 import { Polynomial } from "../polynomial.js"
 import { ForeignGroup, Group, Provable, Scalar } from "o1js"
-import { PolyComm, bPoly, bPolyCoefficients, OpeningProof } from "../poly_commitment/commitment.js";
+import { PolyComm, bPoly, bPolyCoefficients } from "../poly_commitment/commitment.js";
 import { getLimbs64 } from "../util/bigint.js";
 import { fp_sponge_initial_state, fp_sponge_params, fq_sponge_initial_state, fq_sponge_params, Sponge } from "../verifier/sponge.js";
 import { Verifier, VerifierIndex } from "../verifier/verifier.js";
@@ -12,6 +12,7 @@ import { range } from "../util/misc.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { VerifierResult, verifierErr, verifierOk, isErr, unwrap } from "../error.js";
 import { LookupPattern } from "../lookups/lookups.js";
+import { OpeningProof } from "../poly_commitment/opening_proof.js";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
@@ -369,7 +370,7 @@ export class ProverProof {
             range(li.lookup_info.max_per_row + 1)
                 .map((index) => { return { kind: "lookupsorted", index } as Column })
                 .forEach(push_column_eval);
-            [{ kind: "lookupaggreg", } as Column, { kind: "lookuptable"} as Column]
+            [{ kind: "lookupaggreg", } as Column, { kind: "lookuptable" } as Column]
                 .forEach(push_column_eval);
             if (li.runtime_tables_selector) push_column_eval({ kind: "lookupruntimetable" });
             if (this.evals.runtimeLookupTableSelector) push_column_eval({ kind: "lookupruntimeselector" });
