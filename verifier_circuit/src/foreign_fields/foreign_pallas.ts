@@ -1,5 +1,4 @@
-import { Field, createForeignCurve } from 'o1js';
-import { ForeignScalar } from './foreign_scalar';
+import { FieldBn254, createForeignCurveBn254 } from 'o1js';
 
 const p = 0x40000000000000000000000000000000224698fc094cf91b992d30ed00000001n;
 const q = 0x40000000000000000000000000000000224698fc0994a8dd8c46eb2100000001n;
@@ -18,7 +17,7 @@ const pallasEndoBase =
 const pallasEndoScalar =
     26005156700822196841419187675678338661165322343552424574062261873906994770353n;
 
-export class ForeignPallas extends createForeignCurve({
+export class ForeignPallas extends createForeignCurveBn254({
     name: 'Pallas',
     modulus: p,
     order: q,
@@ -32,7 +31,7 @@ export class ForeignPallas extends createForeignCurve({
         return ForeignPallas.provable.sizeInFields();
     }
 
-    static fromFields(fields: Field[]) {
+    static fromFields(fields: FieldBn254[]) {
         return ForeignPallas.provable.fromFields(fields);
     }
 

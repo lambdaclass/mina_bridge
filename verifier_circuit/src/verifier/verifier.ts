@@ -1,5 +1,5 @@
 import { readFileSync } from 'fs';
-import { Group, public_, Provable, circuitMain, Circuit } from 'o1js';
+import { Group, public_, Provable, circuitMain, Circuit, CircuitBn254, circuitMainBn254, publicBn254 } from 'o1js';
 import { OpeningProof, PolyComm } from '../poly_commitment/commitment.js';
 import { circuitMainBn254, CircuitBn254, Group, public_, ForeignGroup, Provable } from 'o1js';
 import { PolyComm } from '../poly_commitment/commitment.js';
@@ -219,8 +219,8 @@ export class Verifier extends CircuitBn254 {
     static readonly PERMUTS: number = 7;
     static readonly PERMUTATION_CONSTRAINTS: number = 3;
 
-    @circuitMain
-    static main(@public_ openingProof: OpeningProof) {
+    @circuitMainBn254
+    static main(@publicBn254 openingProof: OpeningProof) {
         let result = this.verifyProof(openingProof);
 
         // Temporary until we have the complete Kimchi verification as a circuit.
@@ -252,7 +252,9 @@ export class Verifier extends CircuitBn254 {
         for (let i = 0; i < points.length; i++) {
             let point = points[i];
             let scalar = scalars[i];
-            result = result.completeAdd(point.completeScale(scalar));
+            // FIXME: This should scale the point, but it is not working yet
+            // result = result.completeAdd(point.completeScale(scalar));
+            result = result.completeAdd(point);
         }
 
         return result;

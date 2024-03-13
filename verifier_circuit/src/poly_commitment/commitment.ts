@@ -1,4 +1,4 @@
-import { Field, Provable } from "o1js";
+import { FieldBn254, Provable } from "o1js";
 import { Sponge } from "../verifier/sponge";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { SRS } from "../SRS.js";
@@ -296,7 +296,7 @@ export class OpeningProof {
         return lrSize + deltaSize + z1Size + z2Size + sgSize;
     }
 
-    static fromFields(fields: Field[]) {
+    static fromFields(fields: FieldBn254[]) {
         let lr = [];
         // lr_0 = [0...6, 6...12]
         // lr_1 = [12...18, 18...24]
@@ -320,7 +320,7 @@ export class OpeningProof {
     }
 
     toFields() {
-        let lr: Field[] = [];
+        let lr: FieldBn254[] = [];
         for (const [l, r] of this.lr) {
             lr = lr.concat(ForeignPallas.provable.toFields(l));
             lr = lr.concat(ForeignPallas.provable.toFields(r));
