@@ -1,4 +1,4 @@
-import { Provable } from "o1js";
+import { Provable, ProvableBn254 } from "o1js";
 import { ForeignBase } from "../foreign_fields/foreign_field.js";
 
 export function sqrtBase(a: ForeignBase): ForeignBase | undefined {
@@ -42,7 +42,7 @@ function tonellishanks(a: ForeignBase): ForeignBase | undefined {
 
     let w = powBaseBig(a, (t - 1n) / 2n);
 
-    let a0 = powBase(a.assertAlmostReduced().mul(w.assertAlmostReduced()).assertAlmostReduced().mul(w.assertAlmostReduced()), 1 << (s - 1));
+    let a0 = powBase(a.assertAlmostReduced().mul(w.assertAlmostReduced()).assertAlmostReduced().mul(w.assertAlmostReduced()).assertAlmostReduced(), 1 << (s - 1));
 
     if (a0.assertCanonical().equals(ForeignBase.modulus - 1n)) {
         return undefined
@@ -58,7 +58,7 @@ function tonellishanks(a: ForeignBase): ForeignBase | undefined {
         let k = 0;
         while (!temp.assertCanonical().equals(1)) {
             k += 1;
-            temp = powBase(b, 1 << k);
+            temp = powBase(b.assertAlmostReduced(), 1 << k);
         }
 
         w = powBase(z, 1 << (v - k - 1));
@@ -86,7 +86,7 @@ export function powBase(f: ForeignBase, exp: number): ForeignBase {
         let res = f;
 
         while ((exp & 1) === 0) {
-            res = res.assertAlmostReduced().mul(res.assertAlmostReduced());
+            res = res.assertAlmostReduced().mul(res.assertAlmostReduced()).assertAlmostReduced();
             exp >>= 1;
         }
 
@@ -97,9 +97,9 @@ export function powBase(f: ForeignBase, exp: number): ForeignBase {
             exp >>= 1;
 
             while (exp !== 0) {
-                base = base.assertAlmostReduced().mul(base.assertAlmostReduced());
+                base = base.assertAlmostReduced().mul(base.assertAlmostReduced()).assertAlmostReduced();
                 if ((exp & 1) === 1) {
-                    res = res.assertAlmostReduced().mul(base.assertAlmostReduced());
+                    res = res.assertAlmostReduced().mul(base.assertAlmostReduced()).assertAlmostReduced();
                 }
                 exp >>= 1;
             }
@@ -116,7 +116,7 @@ export function powBaseBig(f: ForeignBase, exp: bigint): ForeignBase {
         let res = f;
 
         while ((exp & 1n) === 0n) {
-            res = res.assertAlmostReduced().mul(res.assertAlmostReduced());
+            res = res.assertAlmostReduced().mul(res.assertAlmostReduced()).assertAlmostReduced();
             exp >>= 1n;
         }
 
@@ -126,9 +126,9 @@ export function powBaseBig(f: ForeignBase, exp: bigint): ForeignBase {
             exp >>= 1n;
 
             while (exp !== 0n) {
-                base = base.assertAlmostReduced().mul(base.assertAlmostReduced());
+                base = base.assertAlmostReduced().mul(base.assertAlmostReduced()).assertAlmostReduced();
                 if ((exp & 1n) === 1n) {
-                    res = res.assertAlmostReduced().mul(base.assertAlmostReduced());
+                    res = res.assertAlmostReduced().mul(base.assertAlmostReduced()).assertAlmostReduced();
                 }
                 exp >>= 1n;
             }
@@ -166,7 +166,7 @@ function xgcd(
 
 export function invBase(f: ForeignBase): ForeignBase {
     let result = ForeignBase.from(0);
-    Provable.asProver(() => {
+    ProvableBn254.asProver(() => {
         const [gcd, inv, _] = xgcd(f.toBigInt(), ForeignBase.modulus);
         if (gcd !== 1n) {
             // FIXME: error

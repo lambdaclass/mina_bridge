@@ -168,7 +168,7 @@ export class BWParameters {
         for (const x of xvec) {
             // curve equation: y^2 = x^3 + 5
             const ysqrd = x.assertAlmostReduced().mul(x.assertAlmostReduced()).assertAlmostReduced().mul(x.assertAlmostReduced()).add(ForeignBase.from(5));
-            const y = sqrtBase(ysqrd);
+            const y = sqrtBase(ysqrd.assertAlmostReduced());
             if (y) return new ForeignPallas({ x: x.assertAlmostReduced(), y: y.assertAlmostReduced() });
         }
 

@@ -1,4 +1,4 @@
-import { Provable, Scalar } from "o1js";
+import { Provable, ProvableBn254, Scalar } from "o1js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 
 export function powScalar(f: ForeignScalar, exp: number): ForeignScalar {
@@ -66,7 +66,7 @@ function xgcd(
 
 export function invScalar(f: ForeignScalar): ForeignScalar {
     let result = ForeignScalar.from(0);
-    Provable.asProver(() => {
+    ProvableBn254.asProver(() => {
         const [gcd, inv, _] = xgcd(f.toBigInt(), Scalar.ORDER);
         if (gcd !== 1n) {
             // FIXME: error
