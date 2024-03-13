@@ -21,7 +21,7 @@ import verifier_index_json from "../../test_data/verifier_index.json" assert { t
 import { deserVerifierIndex } from "../serde/serde_index.js";
 import { deserProverProof } from '../serde/serde_proof.js';
 import { ForeignPallas } from '../foreign_fields/foreign_pallas.js';
-import { isErr, isOk, unwrap } from '../error.js';
+import { isErr, isOk, unwrap, VerifierResult, verifierOk } from '../error.js';
 import { finalVerify, BWParameters } from "./commitment.js";
 
 let steps: bigint[][];
@@ -221,17 +221,19 @@ export class Verifier extends CircuitBn254 {
 
     @circuitMainBn254
     static main(@publicBn254 openingProof: OpeningProof) {
-        let result = this.verifyProof(openingProof);
+        // if the proof is successful, this will be 1. Else will be 0.
+        let success = ForeignScalar.from(0).assertAlmostReduced();
 
-        // Temporary until we have the complete Kimchi verification as a circuit.
-        // In that case, the expected point would be the point at infinity.
-        let expected = Provable.witness(ForeignPallas.provable, () => this.verifyProof(openingProof));
+        const verifier_result = this.verifyProof(openingProof);
+        if (isOk(verifier_result)) {
+            const verifier_successful = unwrap(verifier_result);
+            if (verifier_successful) success = ForeignScalar.from(1).assertAlmostReduced();
+        }
 
-        result.x.assertEquals(expected.x);
-        result.y.assertEquals(expected.y);
+        success.assertEquals(ForeignScalar.from(1).assertAlmostReduced());
     }
 
-    static verifyProof(openingProof: OpeningProof) {
+    static verifyProof(openingProof: OpeningProof): VerifierResult<boolean> {
         let proverProof = deserProverProof(proof_json);
 
         const verifierIndex = deserVerifierIndex(verifier_index_json);
@@ -239,11 +241,11 @@ export class Verifier extends CircuitBn254 {
         if (isErr(evaluationProofResult)) return evaluationProofResult;
         const evaluationProof = unwrap(evaluationProofResult);
 
-        finalVerify(
+        return verifierOk(finalVerify(
             verifierIndex.srs,
             new BWParameters(),
             evaluationProof
-        );
+        ));
     }
 
     static naiveMSM(points: ForeignGroup[], scalars: ForeignScalar[]): ForeignGroup {
