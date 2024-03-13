@@ -1,5 +1,5 @@
 import { Polynomial } from "../polynomial.js"
-import { Provable, Scalar } from "o1js"
+import { ProvableBn254, Scalar } from "o1js"
 import { PolyComm, bPoly, bPolyCoefficients } from "../poly_commitment/commitment.js";
 import { getLimbs64 } from "../util/bigint.js";
 import { fp_sponge_initial_state, fp_sponge_params, fq_sponge_initial_state, fq_sponge_params, Sponge } from "../verifier/sponge.js";
@@ -84,7 +84,7 @@ export class ProverProof {
                 fq_sponge.absorbCommitment(runtime_commit);
             }
 
-            const zero = Provable.witness(ForeignScalar, () => ForeignScalar.from(0));
+            const zero = ProvableBn254.witness(ForeignScalar.provable, () => ForeignScalar.from(0).assertAlmostReduced());
             const joint_combiner_scalar = l.joint_lookup_used
                 ? fq_sponge.challenge()
                 : zero;
@@ -249,11 +249,11 @@ export class ProverProof {
 
         fr_sponge.absorbMultipleFr(public_evals![0]);
         fr_sponge.absorbMultipleFr(public_evals![1]);
-        Provable.asProver(() => fr_sponge.absorbEvals(this.evals));
+        ProvableBn254.asProver(() => fr_sponge.absorbEvals(this.evals));
 
         //~ 24. Sample $v'$ with the Fr-Sponge.
         const v_chal = new ScalarChallenge(
-            Provable.witness(ForeignScalar, () => fr_sponge.challenge())
+            ProvableBn254.witness(ForeignScalar.provable, () => fr_sponge.challenge())
         );
 
         //~ 25. Derive $v$ from $v'$ using the endomorphism (TODO: specify).
@@ -261,7 +261,7 @@ export class ProverProof {
 
         //~ 26. Sample $u'$ with the Fr-Sponge.
         const u_chal = new ScalarChallenge(
-            Provable.witness(ForeignScalar, () => fr_sponge.challenge())
+            ProvableBn254.witness(ForeignScalar.provable, () => fr_sponge.challenge())
         );
 
         //~ 27. Derive $u$ from $u'$ using the endomorphism (TODO: specify).
@@ -872,7 +872,7 @@ export class ScalarChallenge {
     toFieldWithLength(length_in_bits: number, endo_coeff: ForeignScalar): ForeignScalar {
         let result = ForeignScalar.from(0).assertAlmostReduced();
 
-        Provable.asProver(() => {
+        ProvableBn254.asProver(() => {
             const rep = this.chal.toBigInt();
             const rep_64_limbs = getLimbs64(rep);
 

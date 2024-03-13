@@ -1,4 +1,4 @@
-import { ForeignGroup } from "o1js"
+import { ForeignPallas } from "../foreign_fields/foreign_pallas"
 import { PolyComm } from "../poly_commitment/commitment"
 
 /**
@@ -40,8 +40,8 @@ export enum LookupPattern {
 }
 
 export class LookupSelectors {
-    xor?: PolyComm<ForeignGroup>
-    lookup?: PolyComm<ForeignGroup>
-    range_check?: PolyComm<ForeignGroup>
-    ffmul?: PolyComm<ForeignGroup>
+    xor?: PolyComm<ForeignPallas>
+    lookup?: PolyComm<ForeignPallas>
+    range_check?: PolyComm<ForeignPallas>
+    ffmul?: PolyComm<ForeignPallas>
 }

@@ -19,7 +19,7 @@ export class ForeignScalarBn254 extends createForeignFieldBn254(Scalar.ORDER).Al
         return ForeignScalarBn254.provable.sizeInFields();
     }
 
-    static fromFields(fields: Field[]) {
+    static fromFields(fields: FieldBn254[]) {
         return ForeignScalarBn254.provable.fromFields(fields);
     }
 
