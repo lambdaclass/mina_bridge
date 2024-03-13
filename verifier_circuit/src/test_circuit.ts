@@ -11,9 +11,10 @@ export class TestCircuit extends CircuitBn254 {
         let sgRandBase = ForeignScalar.from(1).assertAlmostReduced();
         let negRandBase = randBase.neg();
 
-        scalars.push(
-            negRandBase.mul(openingProof.z1).assertAlmostReduced()
-                .sub(sgRandBase).assertAlmostReduced()
-        );
+        const scalar = negRandBase
+            .add(openingProof.z1).assertAlmostReduced()
+            .sub(sgRandBase).assertAlmostReduced();
+
+        scalars.push(scalar);
     }
 }

@@ -129,9 +129,13 @@ export class ProverProof {
         //~ 16. Derive $\zeta$ from $\zeta'$ using the endomorphism (TODO: specify).
         const zeta = zeta_chal.toField(endo_r);
 
+
         //~ 17. Setup the Fr-Sponge.
         let fr_sponge = new Sponge(fq_sponge_params(), fq_sponge_initial_state());
+
         const digest = fq_sponge.digest();
+        return verifierErr("a");
+        /*
 
         //~ 18. Squeeze the Fq-sponge and absorb the result with the Fr-Sponge.
         fr_sponge.absorbFr(digest);
@@ -425,6 +429,7 @@ export class ProverProof {
         }
 
         return verifierOk(result);
+        */
     }
 }
 
