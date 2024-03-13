@@ -1,7 +1,6 @@
 import { AggregatedEvaluationProof, Evaluation, PolyComm } from "../poly_commitment/commitment.js";
 import { ProverProof, PointEvaluations, ProofEvaluations, Constants, Oracles } from "../prover/prover.js";
 import { Verifier, VerifierIndex } from "./verifier.js";
-import { deserHexScalar } from "../serde/serde_proof.js";
 import { Column, PolishToken } from "../prover/expr.js";
 import { GateType } from "../circuits/gate.js";
 import { powScalar } from "../util/scalar.js";
@@ -276,13 +275,13 @@ export class Batch {
         alphas.next();
         alphas.next();
 
-        let acc = e.z.zetaOmega.mul(beta).mul(alpha0).mul(zkp_zeta);
+        let acc = e.z.zetaOmega.mul(beta).assertAlmostReduced().mul(alpha0).assertAlmostReduced().mul(zkp_zeta);
         for (let i = 0; i < Math.min(e.w.length, e.s.length); i++) {
             const w = e.w[i];
             const s = e.s[i];
 
             const res = gamma.add(beta.mul(s.zeta)).add(w.zeta);
-            acc = acc.mul(res);
+            acc = acc.assertAlmostReduced().mul(res.assertAlmostReduced());
         }
         return acc.neg();
     }
@@ -317,18 +316,18 @@ export class Batch {
     }
 
     static combineTable(
-        columns: PolyComm<ForeignGroup>[],
+        columns: PolyComm<ForeignPallas>[],
         column_combiner: ForeignScalar,
         table_id_combiner: ForeignScalar,
-        table_id_vector?: PolyComm<ForeignGroup>,
-        runtime_vector?: PolyComm<ForeignGroup>,
-    ): PolyComm<ForeignGroup> {
-        let j = ForeignScalar.from(1);
+        table_id_vector?: PolyComm<ForeignPallas>,
+        runtime_vector?: PolyComm<ForeignPallas>,
+    ): PolyComm<ForeignPallas> {
+        let j = ForeignScalar.from(1).assertAlmostReduced();
         let scalars = [j];
         let commitments = [columns[0]];
 
         for (const comm of columns.slice(1)) {
-            j = j.mul(column_combiner);
+            j = j.mul(column_combiner).assertAlmostReduced();
             scalars.push(j);
             commitments.push(comm);
         }

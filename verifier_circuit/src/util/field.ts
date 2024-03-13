@@ -4,7 +4,7 @@ import { ForeignBase } from "../foreign_fields/foreign_field.js";
 export function sqrtBase(a: ForeignBase): ForeignBase | undefined {
     // Euler's criterion:
     const leg_sym = legendre_symbol(a);
-    if (leg_sym.equals(ForeignBase.modulus - 1n)) return undefined;
+    if (leg_sym.assertCanonical().equals(ForeignBase.modulus - 1n)) return undefined;
     return tonellishanks(a);
 }
 
@@ -33,42 +33,42 @@ function tonellishanks(a: ForeignBase): ForeignBase | undefined {
 
     while (c0.equals(1)) {
         const rand_pow = Math.round(Math.random() * Number.MAX_SAFE_INTEGER);
-        c = c.mul(powBase(g, rand_pow));
+        c = c.mul(powBase(g.assertCanonical(), rand_pow).assertCanonical()).assertCanonical();
 
-        z = powBaseBig(c, t);
+        z = powBaseBig(c, t).assertCanonical();
 
-        c0 = powBase(c, 1 << (s - 1));
+        c0 = powBase(c, 1 << (s - 1)).assertCanonical();
     }
 
     let w = powBaseBig(a, (t - 1n) / 2n);
 
-    let a0 = powBase(a.mul(w).mul(w), 1 << (s - 1));
+    let a0 = powBase(a.assertAlmostReduced().mul(w.assertAlmostReduced()).assertAlmostReduced().mul(w.assertAlmostReduced()), 1 << (s - 1));
 
-    if (a0.equals(ForeignBase.modulus - 1n)) {
+    if (a0.assertCanonical().equals(ForeignBase.modulus - 1n)) {
         return undefined
     }
 
     let v = s;
-    let x = a.mul(w);
-    let b = x.mul(w);
+    let x = a.assertAlmostReduced().mul(w.assertAlmostReduced());
+    let b = x.assertAlmostReduced().mul(w.assertAlmostReduced());
 
-    while (!b.equals(1)) {
+    while (!b.assertCanonical().equals(1)) {
         // find least integer k such taht b^(2^k) = 1:
         let temp = b;
         let k = 0;
-        while (!temp.equals(1)) {
+        while (!temp.assertCanonical().equals(1)) {
             k += 1;
             temp = powBase(b, 1 << k);
         }
 
         w = powBase(z, 1 << (v - k - 1));
-        z = w.mul(w);
-        b = b.mul(z);
-        x = x.mul(w);
+        z = w.assertAlmostReduced().mul(w.assertAlmostReduced()).assertCanonical();
+        b = b.assertAlmostReduced().mul(z.assertAlmostReduced());
+        x = x.assertAlmostReduced().mul(w.assertAlmostReduced());
         v = k;
     }
 
-    return ForeignBase.from(x);
+    return ForeignBase.from(x).assertAlmostReduced();
 }
 
 function get_t_and_s(): [bigint, number] {
@@ -86,7 +86,7 @@ export function powBase(f: ForeignBase, exp: number): ForeignBase {
         let res = f;
 
         while ((exp & 1) === 0) {
-            res = res.mul(res);
+            res = res.assertAlmostReduced().mul(res.assertAlmostReduced());
             exp >>= 1;
         }
 
@@ -97,9 +97,9 @@ export function powBase(f: ForeignBase, exp: number): ForeignBase {
             exp >>= 1;
 
             while (exp !== 0) {
-                base = base.mul(base);
+                base = base.assertAlmostReduced().mul(base.assertAlmostReduced());
                 if ((exp & 1) === 1) {
-                    res = res.mul(base);
+                    res = res.assertAlmostReduced().mul(base.assertAlmostReduced());
                 }
                 exp >>= 1;
             }
@@ -116,7 +116,7 @@ export function powBaseBig(f: ForeignBase, exp: bigint): ForeignBase {
         let res = f;
 
         while ((exp & 1n) === 0n) {
-            res = res.mul(res);
+            res = res.assertAlmostReduced().mul(res.assertAlmostReduced());
             exp >>= 1n;
         }
 
@@ -126,9 +126,9 @@ export function powBaseBig(f: ForeignBase, exp: bigint): ForeignBase {
             exp >>= 1n;
 
             while (exp !== 0n) {
-                base = base.mul(base);
+                base = base.assertAlmostReduced().mul(base.assertAlmostReduced());
                 if ((exp & 1n) === 1n) {
-                    res = res.mul(base);
+                    res = res.assertAlmostReduced().mul(base.assertAlmostReduced());
                 }
                 exp >>= 1n;
             }
@@ -166,7 +166,7 @@ function xgcd(
 
 export function invBase(f: ForeignBase): ForeignBase {
     let result = ForeignBase.from(0);
-    Provable.asProverBn254(() => {
+    Provable.asProver(() => {
         const [gcd, inv, _] = xgcd(f.toBigInt(), ForeignBase.modulus);
         if (gcd !== 1n) {
             // FIXME: error

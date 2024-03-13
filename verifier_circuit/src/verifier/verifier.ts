@@ -17,7 +17,7 @@ import proof_json from "../../test_data/proof.json" assert { type: "json" };
 import verifier_index_json from "../../test_data/verifier_index.json" assert { type: "json" };
 import { deserVerifierIndex } from "../serde/serde_index.js";
 import { deserProverProof } from '../serde/serde_proof.js';
-import { ForeignPallas } from '../foreign_fields/foreign_pallas.js';
+import { ForeignPallas, pallasZero } from '../foreign_fields/foreign_pallas.js';
 import { isErr, isOk, unwrap, VerifierResult, verifierOk } from '../error.js';
 import { finalVerify, BWParameters } from "./commitment.js";
 
@@ -246,7 +246,7 @@ export class Verifier extends CircuitBn254 {
     }
 
     static naiveMSM(points: ForeignPallas[], scalars: ForeignScalar[]): ForeignPallas {
-        let result = new ForeignPallas(ForeignBase.from(0), ForeignBase.from(0));
+        let result = pallasZero();
 
         for (let i = 0; i < points.length; i++) {
             let point = points[i];

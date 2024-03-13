@@ -68,13 +68,13 @@ export class OpeningProof {
     toFields() {
         let lr: FieldBn254[] = [];
         for (const [l, r] of this.lr) {
-            lr = lr.concat(l.toFields());
-            lr = lr.concat(r.toFields());
+            lr = lr.concat(ForeignPallas.toFields(l));
+            lr = lr.concat(ForeignPallas.toFields(r));
         }
         let z1 = ForeignScalar.toFields(this.z1);
         let z2 = ForeignScalar.toFields(this.z2);
 
-        return [...lr, ...this.delta.toFields(), ...z1, ...z2, ...this.sg.toFields()];
+        return [...lr, ...ForeignPallas.toFields(this.delta), ...z1, ...z2, ...ForeignPallas.toFields(this.sg)];
     }
 
     static toFields(x: OpeningProof) {

@@ -1,4 +1,4 @@
-import { ProvableBn254 } from "o1js"
+import { AlmostForeignFieldBn254, ForeignFieldBn254, ProvableBn254 } from "o1js"
 import { PolyComm } from "../poly_commitment/commitment";
 import { PointEvaluations, ProofEvaluations } from "../prover/prover";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
@@ -7,10 +7,6 @@ import { assert } from "console";
 import { ForeignPallas } from "../foreign_fields/foreign_pallas";
 import { fromLimbs64Rev, getLimbs64 } from "../util/bigint.js";
 
-type UnionForeignField = ForeignBase | ForeignScalar;
-type UnionForeignFieldArr = ForeignBase[] | ForeignScalar[];
-type UnionForeignFieldMatrix = ForeignBase[][] | ForeignScalar[][];
-
 enum SpongeMode {
     Squeezing,
     Absorbing
@@ -18,7 +14,7 @@ enum SpongeMode {
 
 export class ArithmeticSponge {
     params: ArithmeticSpongeParams
-    state: UnionForeignFieldArr
+    state: ForeignFieldBn254[]
     mode: SpongeMode
     offset: number
 
@@ -28,11 +24,11 @@ export class ArithmeticSponge {
         this.offset = 0;
     }
 
-    init(state: UnionForeignFieldArr) {
+    init(state: ForeignFieldBn254[]) {
         this.state = state;
     }
 
-    absorb(elem: UnionForeignField) {
+    absorb(elem: ForeignFieldBn254) {
         if (this.mode === SpongeMode.Squeezing) {
             this.mode = SpongeMode.Absorbing;
             this.offset = 0;
@@ -45,7 +41,7 @@ export class ArithmeticSponge {
         this.offset++;
     }
 
-    squeeze(): UnionForeignField {
+    squeeze(): ForeignFieldBn254 {
         if (this.mode == SpongeMode.Absorbing || this.offset === this.params.rate) {
             this.mode = SpongeMode.Squeezing;
             this.#permutation();
@@ -57,7 +53,7 @@ export class ArithmeticSponge {
 
     // permutation algorithms
 
-    #sbox(element: UnionForeignField): UnionForeignField {
+    #sbox(element: ForeignFieldBn254): ForeignFieldBn254 {
         // return element^7
         let element_squared = element.assertAlmostReduced().mul(element.assertAlmostReduced()).assertAlmostReduced(); // ^2
         let element_fourth = element_squared.mul(element_squared).assertAlmostReduced(); // ^4
@@ -65,7 +61,7 @@ export class ArithmeticSponge {
         return element_sixth.mul(element.assertAlmostReduced());
     }
 
-    #applyMds(): UnionForeignFieldArr {
+    #applyMds(): ForeignFieldBn254[] {
         let n = this.params.mds[0].length;
         assert(n == this.state.length);
 
@@ -109,12 +105,12 @@ export class ArithmeticSponge {
 }
 
 export class ArithmeticSpongeParams {
-    mds: UnionForeignFieldMatrix
-    round_constants: UnionForeignFieldMatrix
+    mds: AlmostForeignFieldBn254[][]
+    round_constants: ForeignFieldBn254[][]
     ark_initial: boolean
     rounds: number
     rate: number
-    zero: UnionForeignField
+    zero: ForeignFieldBn254
 }
 
 /**
@@ -129,7 +125,7 @@ export class Sponge {
     #internalSponge
     lastSqueezed: bigint[] // these are 64 bit limbs
 
-    constructor(params: ArithmeticSpongeParams, initial_state: UnionForeignFieldArr) {
+    constructor(params: ArithmeticSpongeParams, initial_state: ForeignFieldBn254[]) {
         this.#internalSponge = new ArithmeticSponge(params);
         this.#internalSponge.init(initial_state);
         this.lastSqueezed = [];
@@ -152,7 +148,7 @@ export class Sponge {
 
     squeezeField(): ForeignBase {
         this.lastSqueezed = [];
-        return this.#internalSponge.squeeze();
+        return this.#internalSponge.squeeze().assertAlmostReduced();
     }
 
     absorbGroup(g: ForeignPallas) {
@@ -351,7 +347,7 @@ export function fq_sponge_params(): ArithmeticSpongeParams {
                 1201496953174589855481629688627002262719699487577300614284420648015658009380n,
                 11619800255560837597192574795389782851917036920101027584480912719351481334717n,
             ],
-        ].map((arr) => arr.map(ForeignScalar.from)) as ForeignScalar[][],
+        ].map((arr) => arr.map((e) => ForeignScalar.from(e).assertAlmostReduced())),
         round_constants: [
             [
                 2517640872121921965298496967863234221143680281046699148760560696057284005606n,
@@ -485,7 +481,7 @@ export function fq_sponge_params(): ArithmeticSpongeParams {
             ],
             [
                 16525092684784199198745517563091041705366544303388462641935777835264970071331n,
-                27613372589672512522307803997948488817865025374001297632527692577079750053456n,
+                2761337258672512522307803997948488817865025374001297632527692577079750053456n,
                 23369674747888778238616865774843237791546925005553032792584302158017141634655n,
             ],
             [
@@ -509,7 +505,7 @@ export function fq_sponge_params(): ArithmeticSpongeParams {
                 4367251608666794961207658726914177158125339342277880902441218521648798930454n,
             ],
             [
-                14278046449956534912766622635951826857049583276976844525135170835571509013020n,
+                1427804644956534912766622635951826857049583276976844525135170835571509013020n,
                 11627801940273881243235293875277734806211947530882079339115454640100174268255n,
                 22853853581419894582873479603685652928885253184240650995805892818180355600894n,
             ],
@@ -654,7 +650,7 @@ export function fp_sponge_params(): ArithmeticSpongeParams {
                 27437632000253211280915908546961303399777448677029255413769125486614773776695n,
                 27566319851776897085443681456689352477426926500749993803132851225169606086988n,
             ],
-        ].map((arr) => arr.map(ForeignBase.from)),
+        ].map((arr) => arr.map((e) => ForeignBase.from(e).assertAlmostReduced())),
         round_constants: [
             [
                 21155079691556475130150866428468322463125560312786319980770950159250751855431n,

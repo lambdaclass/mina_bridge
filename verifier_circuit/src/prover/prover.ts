@@ -1,6 +1,6 @@
 import { Polynomial } from "../polynomial.js"
-import { Group, Provable, Scalar } from "o1js"
-import { PolyComm, bPoly, bPolyCoefficients, OpeningProof } from "../poly_commitment/commitment.js";
+import { Provable, Scalar } from "o1js"
+import { PolyComm, bPoly, bPolyCoefficients } from "../poly_commitment/commitment.js";
 import { getLimbs64 } from "../util/bigint.js";
 import { fp_sponge_initial_state, fp_sponge_params, fq_sponge_initial_state, fq_sponge_params, Sponge } from "../verifier/sponge.js";
 import { Verifier, VerifierIndex } from "../verifier/verifier.js";
@@ -41,7 +41,7 @@ export class ProverProof {
     /**
      * Will run the random oracle argument for removing prover-verifier interaction (Fiat-Shamir transform)
      */
-    oracles(index: VerifierIndex, public_comm: PolyComm<ForeignPallas>, public_input?: ForeignScalar[]): OraclesResult {
+    oracles(index: VerifierIndex, public_comm: PolyComm<ForeignPallas>, public_input?: ForeignScalar[]): VerifierResult<Oracles> {
         const n = index.domain_size;
         const endo_r = ForeignScalar.from("0x397e65a7d7c1ad71aee24b27e308f0a61259527ec1d4752e619d1840af55f1b1");
         // FIXME: ^ currently hard-coded, refactor this in the future
@@ -84,7 +84,7 @@ export class ProverProof {
                 fq_sponge.absorbCommitment(runtime_commit);
             }
 
-            const zero = Provable.witnessBn254(ForeignScalar, () => ForeignScalar.from(0));
+            const zero = Provable.witness(ForeignScalar, () => ForeignScalar.from(0));
             const joint_combiner_scalar = l.joint_lookup_used
                 ? fq_sponge.challenge()
                 : zero;
@@ -249,11 +249,11 @@ export class ProverProof {
 
         fr_sponge.absorbMultipleFr(public_evals![0]);
         fr_sponge.absorbMultipleFr(public_evals![1]);
-        Provable.asProverBn254(() => fr_sponge.absorbEvals(this.evals));
+        Provable.asProver(() => fr_sponge.absorbEvals(this.evals));
 
         //~ 24. Sample $v'$ with the Fr-Sponge.
         const v_chal = new ScalarChallenge(
-            Provable.witnessBn254(ForeignScalar, () => fr_sponge.challenge())
+            Provable.witness(ForeignScalar, () => fr_sponge.challenge())
         );
 
         //~ 25. Derive $v$ from $v'$ using the endomorphism (TODO: specify).
@@ -261,7 +261,7 @@ export class ProverProof {
 
         //~ 26. Sample $u'$ with the Fr-Sponge.
         const u_chal = new ScalarChallenge(
-            Provable.witnessBn254(ForeignScalar, () => fr_sponge.challenge())
+            Provable.witness(ForeignScalar, () => fr_sponge.challenge())
         );
 
         //~ 27. Derive $u$ from $u'$ using the endomorphism (TODO: specify).
@@ -837,11 +837,11 @@ export class RecursionChallenge {
 */
 export class LookupCommitments {
     /// Commitments to the sorted lookup table polynomial (may have chunks)
-    sorted: PolyComm<ForeignGroup>[]
+    sorted: PolyComm<ForeignPallas>[]
     /// Commitment to the lookup aggregation polynomial
-    aggreg: PolyComm<ForeignGroup>
+    aggreg: PolyComm<ForeignPallas>
     /// Optional commitment to concatenated runtime tables
-    runtime?: PolyComm<ForeignGroup>
+    runtime?: PolyComm<ForeignPallas>
 }
 
 export class ProverCommitments {
