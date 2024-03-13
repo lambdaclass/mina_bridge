@@ -1,7 +1,8 @@
 import { SRS } from "../SRS.js";
 import { ScalarChallenge } from "../prover/prover.js";
 import { invScalar } from "../util/scalar.js";
-import { FieldBn254, ForeignPallas, Provable, Scalar } from "o1js";
+import { FieldBn254, Provable }  from "o1js";
+import { ForeignPallas } from "../foreign_fields/foreign_pallas.js";
 import { Sponge } from "../verifier/sponge";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 

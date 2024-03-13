@@ -44,3 +44,7 @@ export class ForeignPallas extends createForeignCurveBn254({
         one.y.assertEquals(other.y);
     }
 }
+
+export function pallasZero(): ForeignPallas {
+    return new ForeignPallas({ x: BigInt(0), y: BigInt(0) });
+}
