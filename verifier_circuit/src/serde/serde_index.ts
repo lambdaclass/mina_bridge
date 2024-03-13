@@ -1,4 +1,4 @@
-import { ForeignCurve, Group, Scalar } from "o1js"
+import { ForeignCurveBn254, Group, Scalar } from "o1js"
 import { PolyComm } from "../poly_commitment/commitment.js"
 import { VerifierIndex } from "../verifier/verifier.js"
 import { deserHexScalar } from "./serde_proof.js"
@@ -109,7 +109,7 @@ export interface GroupJSON {
     y: string
 }
 
-export function deserGroup(json: GroupJSON): ForeignCurve {
+export function deserGroup(json: GroupJSON): ForeignCurveBn254 {
     if (json.x === "0" && json.y === "1") {
         return ForeignPallas.generator.add(ForeignPallas.generator.negate());
     } else {
@@ -117,13 +117,13 @@ export function deserGroup(json: GroupJSON): ForeignCurve {
     }
 }
 
-export function deserPolyComm(json: PolyCommJSON): PolyComm<ForeignCurve> {
+export function deserPolyComm(json: PolyCommJSON): PolyComm<ForeignCurveBn254> {
     const unshifted = json.unshifted.map(deserGroup);
     let shifted = undefined;
     if (json.shifted != null) {
         shifted = json.shifted;
     }
-    return new PolyComm<ForeignCurve>(unshifted, shifted);
+    return new PolyComm<ForeignCurveBn254>(unshifted, shifted);
 }
 
 export function deserGateType(json: GateTypeJSON): GateType {

@@ -1,14 +1,14 @@
-import { Provable } from "o1js";
+import { ProvableBn254 } from "o1js";
 import { ForeignField } from "../src/foreign_fields/foreign_field";
 import { ForeignScalar } from "../src/foreign_fields/foreign_scalar";
 import { ArithmeticSponge, fp_sponge_initial_state, fp_sponge_params, fq_sponge_initial_state, fq_sponge_params, Sponge } from "../src/verifier/sponge";
 
 test("squeeze_internal", () => {
-    Provable.runAndCheck(() => {
+    ProvableBn254.runAndCheck(() => {
         let sponge = new ArithmeticSponge(fp_sponge_params());
         sponge.init(fp_sponge_initial_state());
 
-        let digest = Provable.witness(ForeignField.provable, () => {
+        let digest = ProvableBn254.witness(ForeignField.provable, () => {
             return sponge.squeeze();
         });
 
@@ -17,13 +17,13 @@ test("squeeze_internal", () => {
 })
 
 test("absorb_squeeze_internal", () => {
-    Provable.runAndCheck(() => {
+    ProvableBn254.runAndCheck(() => {
         let sponge = new ArithmeticSponge(fp_sponge_params());
         sponge.init(fp_sponge_initial_state());
 
         sponge.absorb(ForeignField.from(0x36FB00AD544E073B92B4E700D9C49DE6FC93536CAE0C612C18FBE5F6D8E8EEF2n));
 
-        let digest = Provable.witness(ForeignField.provable, () => {
+        let digest = ProvableBn254.witness(ForeignField.provable, () => {
             return sponge.squeeze();
         });
 
@@ -32,7 +32,7 @@ test("absorb_squeeze_internal", () => {
 })
 
 test("digest_scalar", () => {
-    Provable.runAndCheck(() => {
+    ProvableBn254.runAndCheck(() => {
         let fq_sponge = new Sponge(fp_sponge_params(), fp_sponge_initial_state());
         let digest = fq_sponge.digest();
 
@@ -41,7 +41,7 @@ test("digest_scalar", () => {
 })
 
 test("absorb_digest_scalar", () => {
-    Provable.runAndCheck(() => {
+    ProvableBn254.runAndCheck(() => {
         let fq_sponge = new Sponge(fp_sponge_params(), fp_sponge_initial_state());
         fq_sponge.absorbScalar(ForeignScalar.from(42));
         let digest = fq_sponge.digest();
