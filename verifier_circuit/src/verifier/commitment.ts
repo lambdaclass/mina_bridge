@@ -2,7 +2,7 @@ import { ForeignBase } from '../foreign_fields/foreign_field.js';
 import { ForeignScalar } from '../foreign_fields/foreign_scalar.js';
 import { ForeignPallas, pallasZero } from '../foreign_fields/foreign_pallas.js';
 import { AggregatedEvaluationProof, bPoly, bPolyCoefficients, combineCommitments } from '../poly_commitment/commitment.js';
-import { ScalarChallenge } from '../prover/prover.js';
+import { ScalarChallenge } from "../verifier/scalar_challenge.js";
 import { SRS } from '../SRS.js';
 import { sqrtBase } from '../util/field.js';
 import { logField } from '../util/log.js';

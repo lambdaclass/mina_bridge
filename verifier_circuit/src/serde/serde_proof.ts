@@ -1,5 +1,3 @@
-import { Group, Proof, Scalar } from "o1js"
-import { PolyComm } from "../poly_commitment/commitment.js";
 import { OpeningProof } from "../poly_commitment/opening_proof.js";
 import { LookupEvaluations, PointEvaluations, ProofEvaluations, ProverCommitments, ProverProof, RecursionChallenge } from "../prover/prover.js"
 import { deserPolyComm, PolyCommJSON, deserGroup, GroupJSON } from "./serde_index.js";
