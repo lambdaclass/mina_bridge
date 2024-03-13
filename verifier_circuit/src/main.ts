@@ -1,10 +1,8 @@
 import { readFileSync, writeFileSync } from "fs";
-import { Verifier } from "./verifier/verifier.js";
 import { deserOpeningProof } from "./serde/serde_proof.js";
-import { ForeignField } from "./foreign_fields/foreign_field.js";
 import { TestCircuit, TestCircuitBn254 } from "./test_circuit.js";
-import { ForeignPallas } from "./foreign_fields/foreign_pallas.js";
 import { ForeignScalar, ForeignScalarBn254 } from "./foreign_fields/foreign_scalar.js";
+import { deserOpeningProof } from "./serde/serde_proof.js";
 
 let inputs;
 try {

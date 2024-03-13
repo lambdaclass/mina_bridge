@@ -2,13 +2,14 @@ import { Field, Poseidon, Provable, Scalar } from "o1js"
 import { PolyComm } from "../poly_commitment/commitment";
 import { PointEvaluations, ProofEvaluations } from "../prover/prover";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
-import { ForeignField } from "../foreign_fields/foreign_field.js";
+import { ForeignBase } from "../foreign_fields/foreign_field.js";
 import { assert } from "console";
 import { ForeignPallas } from "../foreign_fields/foreign_pallas";
+import { fromLimbs64Rev, getLimbs64 } from "../util/bigint.js";
 
-type UnionForeignField = ForeignField | ForeignScalar;
-type UnionForeignFieldArr = ForeignField[] | ForeignScalar[];
-type UnionForeignFieldMatrix = ForeignField[][] | ForeignScalar[][];
+type UnionForeignField = ForeignBase | ForeignScalar;
+type UnionForeignFieldArr = ForeignBase[] | ForeignScalar[];
+type UnionForeignFieldMatrix = ForeignBase[][] | ForeignScalar[][];
 
 enum SpongeMode {
     Squeezing,
@@ -70,7 +71,7 @@ export class ArithmeticSponge {
 
         // matrix-vector product: mds * state
         return this.params.mds.map((row) => {
-            let result = ForeignField.from(0).assertAlmostReduced();
+            let result = this.params.zero.assertAlmostReduced();
 
             for (let i = 0; i < row.length; i++) {
                 let s = this.state[i];
@@ -113,6 +114,7 @@ export class ArithmeticSpongeParams {
     ark_initial: boolean
     rounds: number
     rate: number
+    zero: UnionForeignField
 }
 
 /**
@@ -133,17 +135,28 @@ export class Sponge {
         this.lastSqueezed = [];
     }
 
-    absorb(x: ForeignField) {
+    absorb(x: ForeignBase) {
         this.lastSqueezed = [];
         this.#internalSponge.absorb(x);
     }
 
-    squeezeField(): ForeignField {
+    absorbFr(x: ForeignScalar) {
+        this.lastSqueezed = [];
+        this.#internalSponge.absorb(x);
+    }
+
+    absorbMultipleFr(x: ForeignScalar[]) {
+        this.lastSqueezed = [];
+        x.forEach((elem) => this.#internalSponge.absorb(elem));
+    }
+
+    squeezeField(): ForeignBase {
         this.lastSqueezed = [];
         return this.#internalSponge.squeeze();
     }
 
     absorbGroup(g: ForeignPallas) {
+        this.lastSqueezed = [];
         this.#internalSponge.absorb(g.x);
         this.#internalSponge.absorb(g.y);
     }
@@ -195,33 +208,73 @@ export class Sponge {
 
     absorbEvals(evals: ProofEvaluations<PointEvaluations<ForeignScalar[]>>) {
         const {
-            public_input,
             w,
             z,
             s,
             coefficients,
-            //lookup,
             genericSelector,
-            poseidonSelector
+            poseidonSelector,
+            completeAddSelector,
+            mulSelector,
+            emulSelector,
+            endomulScalarSelector,
+            rangeCheck0Selector,
+            rangeCheck1Selector,
+            foreignFieldAddSelector,
+            foreignFieldMulSelector,
+            xorSelector,
+            rotSelector,
+            lookupAggregation,
+            lookupTable,
+            lookupSorted,
+            runtimeLookupTable,
+            runtimeLookupTableSelector,
+            xorLookupSelector,
+            lookupGateLookupSelector,
+            rangeCheckLookupSelector,
+            foreignFieldMulLookupSelector,
         } = evals;
+
         let points = [
             z,
             genericSelector,
             poseidonSelector,
+            completeAddSelector,
+            mulSelector,
+            emulSelector,
+            endomulScalarSelector,
         ]
         // arrays:
         points = points.concat(w);
-        points = points.concat(s);
         points = points.concat(coefficients);
+        points = points.concat(s);
 
         // optional:
-        if (public_input) points.push(public_input);
-        //if (lookup) points.push(lookup); // FIXME: ignoring lookups
+        const add_optional = (evals?: PointEvaluations<ForeignScalar[]>) => {
+            if (evals) points.push(evals);
+        }
 
-        points.forEach((p) => {
-            this.absorbScalars.bind(this)(p.zeta);
-            this.absorbScalars.bind(this)(p.zetaOmega);
-        });
+        add_optional(rangeCheck0Selector);
+        add_optional(rangeCheck1Selector);
+        add_optional(foreignFieldAddSelector);
+        add_optional(foreignFieldMulSelector);
+        add_optional(xorSelector);
+        add_optional(rotSelector);
+        add_optional(lookupAggregation);
+        add_optional(lookupTable);
+        if (lookupSorted) lookupSorted.forEach(add_optional);
+        add_optional(runtimeLookupTable);
+        add_optional(runtimeLookupTableSelector);
+        add_optional(xorLookupSelector);
+        add_optional(lookupGateLookupSelector);
+        add_optional(rangeCheckLookupSelector);
+        add_optional(foreignFieldMulLookupSelector);
+
+        for (const p of points) {
+            for (const z of p.zeta) this.#internalSponge.absorb(z);
+            for (const zO of p.zetaOmega) this.#internalSponge.absorb(zO);
+        }
+        console.log(points.length);
     }
 
     /**
@@ -230,19 +283,14 @@ export class Sponge {
     squeezeLimbs(numLimbs: number): bigint[] { // will return limbs of 64 bits.
         if (this.lastSqueezed.length >= numLimbs) {
             const limbs = this.lastSqueezed.slice(0, numLimbs);
-            const remaining = this.lastSqueezed.slice(numLimbs + 1, this.lastSqueezed.length);
+            const remaining = this.lastSqueezed.slice(numLimbs, undefined);
 
             this.lastSqueezed = remaining;
             return limbs;
         } else {
             let x = this.#internalSponge.squeeze().toBigInt();
+            let xLimbs = getLimbs64(x).slice(0, Sponge.HIGH_ENTROPY_LIMBS);
 
-            let xLimbs = [];
-            let mask = (1n << 64n) - 1n; // highest 64 bit value
-            for (let _ = 0; _ <= Sponge.HIGH_ENTROPY_LIMBS; _++) {
-                xLimbs.push(x & mask); // 64 bits limbs, least significant first
-                x >>= 64n;
-            }
             this.lastSqueezed = this.lastSqueezed.concat(xLimbs);
             return this.squeezeLimbs(numLimbs);
         }
@@ -252,16 +300,16 @@ export class Sponge {
     * Calls `squeezeLimbs()` and composes them into a scalar.
     */
     squeeze(numLimbs: number): ForeignScalar {
-        let squeezed = 0n;
-        const squeezedLimbs = this.squeezeLimbs(numLimbs);
-        for (const i in this.squeezeLimbs(numLimbs)) {
-            squeezed += squeezedLimbs[i] << (64n * BigInt(i));
-        }
+        let squeezed = fromLimbs64Rev(this.squeezeLimbs(numLimbs));
         return ForeignScalar.from(squeezed);
     }
 
     challenge(): ForeignScalar {
         return this.squeeze(Sponge.CHALLENGE_LENGTH_IN_LIMBS);
+    }
+
+    challengeFq(): ForeignBase {
+        return this.squeezeField();
     }
 
     digest(): ForeignScalar {
@@ -286,6 +334,7 @@ export function fq_sponge_params(): ArithmeticSpongeParams {
         ark_initial: false,
         rounds: 55,
         rate: 2,
+        zero: ForeignScalar.from(0),
         mds: [
             [
                 28115781186772277486790024060542467295096710153315236019619365740021995624782n,
@@ -588,6 +637,7 @@ export function fp_sponge_params(): ArithmeticSpongeParams {
         ark_initial: false,
         rounds: 55,
         rate: 2,
+        zero: ForeignBase.from(0),
         mds: [
             [
                 12035446894107573964500871153637039653510326950134440362813193268448863222019n,
@@ -604,7 +654,7 @@ export function fp_sponge_params(): ArithmeticSpongeParams {
                 27437632000253211280915908546961303399777448677029255413769125486614773776695n,
                 27566319851776897085443681456689352477426926500749993803132851225169606086988n,
             ],
-        ].map((arr) => arr.map(ForeignField.from)) as ForeignScalar[][],
+        ].map((arr) => arr.map(ForeignBase.from)),
         round_constants: [
             [
                 21155079691556475130150866428468322463125560312786319980770950159250751855431n,
@@ -881,14 +931,14 @@ export function fp_sponge_params(): ArithmeticSpongeParams {
                 13815234633287489023151647353581705241145927054858922281829444557905946323248n,
                 10888828634279127981352133512429657747610298502219125571406085952954136470354n,
             ],
-        ].map((arr) => arr.map(ForeignField.from)) as ForeignScalar[][],
+        ].map((arr) => arr.map(ForeignBase.from)),
     }
 }
 
-export function fq_sponge_initial_state(): ForeignField[] {
+export function fq_sponge_initial_state(): ForeignBase[] {
     return new Array(3).fill(ForeignScalar.from(0));
 }
 
-export function fp_sponge_initial_state(): ForeignField[] {
-    return new Array(3).fill(ForeignField.from(0));
+export function fp_sponge_initial_state(): ForeignBase[] {
+    return new Array(3).fill(ForeignBase.from(0));
 }

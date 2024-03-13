@@ -29,5 +29,3 @@ export class ForeignScalarBn254 extends createForeignFieldBn254(Scalar.ORDER).Al
     }
 
 }
-
-

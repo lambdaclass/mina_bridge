@@ -1,3 +1,5 @@
+import { ForeignGroup } from "o1js"
+import { PolyComm } from "../poly_commitment/commitment"
 
 /**
 * Flags for each of the hard-coded lookup patterns.
@@ -28,4 +30,18 @@ export class LookupInfo {
     max_joint_size: number
     /// The features enabled for this lookup configuration
     features: LookupFeatures
+}
+
+export enum LookupPattern {
+    Xor,
+    Lookup,
+    RangeCheck,
+    ForeignFieldMul
+}
+
+export class LookupSelectors {
+    xor?: PolyComm<ForeignGroup>
+    lookup?: PolyComm<ForeignGroup>
+    range_check?: PolyComm<ForeignGroup>
+    ffmul?: PolyComm<ForeignGroup>
 }
