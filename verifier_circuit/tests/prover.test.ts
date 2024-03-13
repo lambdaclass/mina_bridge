@@ -1,4 +1,4 @@
-import { ScalarChallenge } from "../verifier/scalar_challenge.js";
+import { ScalarChallenge } from "../src/verifier/scalar_challenge.js";
 import { ForeignScalar } from "../src/foreign_fields/foreign_scalar";
 
 // This test has a twin in the 'verifier_circuit_tests' Rust crate.

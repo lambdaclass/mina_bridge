@@ -1,6 +1,6 @@
 import { CircuitBn254, circuitMainBn254, publicBn254 } from 'o1js';
 import { ForeignScalar } from './foreign_fields/foreign_scalar.js';
-import { OpeningProof } from './poly_commitment/commitment.js';
+import { OpeningProof } from './poly_commitment/opening_proof.js';
 
 export class TestCircuit extends CircuitBn254 {
     @circuitMainBn254
