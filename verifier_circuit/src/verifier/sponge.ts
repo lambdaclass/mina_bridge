@@ -120,7 +120,7 @@ export class ArithmeticSpongeParams {
 /**
  * Wrapper over the poseidon `ArithmeticSponge` class which extends its functionality.
  * Currently the sponge operates over the emulated base field (whose elements are 
- * represented with the `ForeignField` type).
+ * represented with the `ForeignBase` type).
  */
 export class Sponge {
     static readonly HIGH_ENTROPY_LIMBS: number = 2;
@@ -169,16 +169,16 @@ export class Sponge {
     /** Will do an operation over the scalar to make it suitable for absorbing */
     absorbScalar(s: ForeignScalar) {
         // this operation was extracted from Kimchi FqSponge's`absorb_fr()`.
-        if (ForeignScalar.modulus < ForeignField.modulus) {
-            let f = ForeignField.from(0);
+        if (ForeignScalar.modulus < ForeignBase.modulus) {
+            let f = ForeignBase.from(0);
             ProvableBn254.asProver(() => {
-                f = ForeignField.from(s.toBigInt());
+                f = ForeignBase.from(s.toBigInt());
             });
             this.absorb(f);
         } else {
-            let high_bits = ForeignField.from(0);
+            let high_bits = ForeignBase.from(0);
             ProvableBn254.asProver(() => {
-                high_bits = ForeignField.from(s.toBigInt() >> 1n);
+                high_bits = ForeignBase.from(s.toBigInt() >> 1n);
                 // WARN:  >> is the sign-propagating left shift operator, so if the number is negative,
                 // it'll add 1s instead of 0s to the most significant end of the integer.
                 // >>>, the zero-fill left shift operator should be used instead here, but it isnt
@@ -186,9 +186,9 @@ export class Sponge {
                 // In any way, the integers are always positive, so there's no problem here.
             });
 
-            let low_bit = ForeignField.from(0);
+            let low_bit = ForeignBase.from(0);
             ProvableBn254.asProver(() => {
-                low_bit = ForeignField.from(s.toBigInt() & 1n);
+                low_bit = ForeignBase.from(s.toBigInt() & 1n);
             });
 
             this.absorb(high_bits);
