@@ -1,19 +1,19 @@
 import { SRS } from "../SRS.js";
 import { ScalarChallenge } from "../prover/prover.js";
 import { invScalar } from "../util/scalar.js";
-import { FieldBn254, ForeignGroup, Provable, Scalar } from "o1js";
+import { FieldBn254, ForeignPallas, Provable, Scalar } from "o1js";
 import { Sponge } from "../verifier/sponge";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 
 export class OpeningProof {
     /** vector of rounds of L & R commitments */
-    lr: [ForeignGroup, ForeignGroup][]
-    delta: ForeignGroup
+    lr: [ForeignPallas, ForeignPallas][]
+    delta: ForeignPallas
     z1: ForeignScalar
     z2: ForeignScalar
-    sg: ForeignGroup
+    sg: ForeignPallas
 
-    constructor(lr: [ForeignGroup, ForeignGroup][], delta: ForeignGroup, z1: ForeignScalar, z2: ForeignScalar, sg: ForeignGroup) {
+    constructor(lr: [ForeignPallas, ForeignPallas][], delta: ForeignPallas, z1: ForeignScalar, z2: ForeignScalar, sg: ForeignPallas) {
         this.lr = lr;
         this.delta = delta;
         this.z1 = z1;
@@ -33,34 +33,34 @@ export class OpeningProof {
      */
     static sizeInFields() {
         const lrSize = this.#rounds() * 2 * 6;
-        const deltaSize = ForeignGroup.sizeInFields();
+        const deltaSize = ForeignPallas.sizeInFields();
         const z1Size = ForeignScalar.sizeInFields();
         const z2Size = ForeignScalar.sizeInFields();
-        const sgSize = ForeignGroup.sizeInFields();
+        const sgSize = ForeignPallas.sizeInFields();
 
         return lrSize + deltaSize + z1Size + z2Size + sgSize;
     }
 
     static fromFields(fields: FieldBn254[]) {
-        let lr: [ForeignGroup, ForeignGroup][] = [];
+        let lr: [ForeignPallas, ForeignPallas][] = [];
         // lr_0 = [0...6, 6...12]
         // lr_1 = [12...18, 18...24]
         // lr_2 = [24...30, 30...36]
         // ...
         let rounds = this.#rounds();
         for (let i = 0; i < rounds; i++) {
-            let l = ForeignGroup.fromFields(fields.slice(i * 6 * 2, (i * 6 * 2) + 6));
-            let r = ForeignGroup.fromFields(fields.slice((i * 6 * 2) + 6, (i * 6 * 2) + (6 * 2)));
+            let l = ForeignPallas.fromFields(fields.slice(i * 6 * 2, (i * 6 * 2) + 6));
+            let r = ForeignPallas.fromFields(fields.slice((i * 6 * 2) + 6, (i * 6 * 2) + (6 * 2)));
             lr.push([l, r]);
         }
         let lrOffset = lr.length * 6 * 2;
 
         return new OpeningProof(
             lr,
-            ForeignGroup.fromFields(fields.slice(lrOffset, lrOffset + 6)),
+            ForeignPallas.fromFields(fields.slice(lrOffset, lrOffset + 6)),
             ForeignScalar.fromFields(fields.slice(lrOffset + 6, lrOffset + 9)),
             ForeignScalar.fromFields(fields.slice(lrOffset + 9, lrOffset + 12)),
-            ForeignGroup.fromFields(fields.slice(lrOffset + 12, lrOffset + 18)),
+            ForeignPallas.fromFields(fields.slice(lrOffset + 12, lrOffset + 18)),
         );
     }
 
