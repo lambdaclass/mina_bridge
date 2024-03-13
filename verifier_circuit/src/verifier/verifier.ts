@@ -224,7 +224,9 @@ export class Verifier extends CircuitBn254 {
         for (let i = 0; i < points.length; i++) {
             let point = points[i];
             let scalar = scalars[i];
-            result = result.completeAdd(point.completeScale(scalar));
+            // FIXME: This should scale the point, but it is not working yet
+            // result = result.completeAdd(point.completeScale(scalar));
+            result = result.completeAdd(point);
         }
 
         return result;
