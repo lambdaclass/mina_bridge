@@ -29,8 +29,12 @@ export function finalVerify(
 
     let scalars = new Array(padded_length + 1).fill(zero);
 
-    const rand_base = ForeignScalar.from(0x068EC6E24481F548A1E59ED41FA4459C76A1220B34376903C5EC15D08B406378n);
-    const sg_rand_base = ForeignScalar.from(0x36AF07E9262ADDD8B4FA1CAB629745BD539B2546784D54686B5F6F2EDAA5C8A5n);
+    // INFO: because we are only verifying a single proof, we don't need a base
+    //const rand_base = ForeignScalar.from(...);
+    //const sg_rand_base = ForeignScalar.from(...);
+
+    const rand_base_i = ForeignScalar.from(1);
+    const sg_rand_base_i = ForeignScalar.from(1);
 
     const {
         sponge,
@@ -67,23 +71,23 @@ export function finalVerify(
 
     const s = bPolyCoefficients(chal);
 
-    const neg_rand_base = rand_base.neg();
+    const neg_rand_base_i = rand_base_i.neg();
 
     points.push(opening.sg);
-    scalars.push(neg_rand_base.mul(opening.z1).sub(sg_rand_base));
+    scalars.push(neg_rand_base_i.mul(opening.z1).sub(sg_rand_base_i));
 
-    const terms = s.map((s) => sg_rand_base.mul(s));
+    const terms = s.map((s) => sg_rand_base_i.mul(s));
     for (const [i, term] of terms.entries()) {
         scalars[i + 1] = scalars[i + 1].add(term);
     }
     console.log("finished terms");
 
-    scalars[0] = scalars[0].sub(rand_base.mul(opening.z2));
+    scalars[0] = scalars[0].sub(rand_base_i.mul(opening.z2));
 
-    scalars.push(neg_rand_base.mul(opening.z1).mul(b0));
+    scalars.push(neg_rand_base_i.mul(opening.z1).mul(b0));
     points.push(u!);
 
-    const rand_base_c = c.mul(rand_base);
+    const rand_base_i_c_i = c.mul(rand_base_i);
     const length = Math.min(opening.lr.length, Math.min(chal_inv.length, chal.length));
     console.log("start loop");
     for (let i = 0; i < length; i++) {
@@ -93,10 +97,10 @@ export function finalVerify(
         const u = chal[i];
 
         points.push(l);
-        scalars.push(rand_base_c.mul(u_inv));
+        scalars.push(rand_base_i_c_i.mul(u_inv));
 
         points.push(r)
-        scalars.push(rand_base_c.mul(u));
+        scalars.push(rand_base_i_c_i.mul(u));
     }
 
     combineCommitments(
@@ -104,20 +108,24 @@ export function finalVerify(
         scalars,
         points,
         polyscale,
-        rand_base_c
+        rand_base_i_c_i
     );
 
-    scalars.push(rand_base_c.mul(combined_inner_product));
+    scalars.push(rand_base_i_c_i.mul(combined_inner_product));
     points.push(u!);
 
-    scalars.push(rand_base);
+    scalars.push(rand_base_i);
     points.push(opening.delta);
 
     console.log("points len: ", points.length);
     console.log("scalars len: ", scalars.length);
 
-    logField("scalars last: ", scalars[scalars.length - 1]);
-    logField("points last: ", points[points.length - 1].x);
+    logField("scalars -1: ", scalars[scalars.length - 1]);
+    logField("scalars -2: ", scalars[scalars.length - 2]);
+    logField("scalars -3: ", scalars[scalars.length - 3]);
+    logField("points -1: ", points[points.length - 1].x);
+    //logField("points -2: ", points[points.length - 2].x);
+    //logField("points -3: ", points[points.length - 3].x);
 
     console.log("end of verifier");
     // missing: final MSM
