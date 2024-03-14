@@ -56,20 +56,27 @@ export class ProverProof {
 
         //~ 1. Setup the Fq-Sponge.
         let fq_sponge = new Sponge(fp_sponge_params(), fp_sponge_initial_state());
+        let fq_sponge_clone = new Sponge(fp_sponge_params(), fp_sponge_initial_state());
 
         //~ 2. Absorb the digest of the VerifierIndex.
         fq_sponge.absorb(index.digest());
+        fq_sponge_clone.absorb(index.digest());
 
         //~ 3. Absorb the commitments of the previous challenges with the Fq-sponge.
         this.prev_challenges.forEach(
             (challenge) => fq_sponge.absorbCommitment.bind(fq_sponge)(challenge.comm)
         );
+        this.prev_challenges.forEach(
+            (challenge) => fq_sponge_clone.absorbCommitment.bind(fq_sponge_clone)(challenge.comm)
+        );
 
         //~ 4. Absorb the commitment of the public input polynomial with the Fq-Sponge.
         fq_sponge.absorbCommitment(public_comm);
+        fq_sponge_clone.absorbCommitment(public_comm);
 
         //~ 5. Absorb the commitments to the registers / witness columns with the Fq-Sponge.
         this.commitments.wComm.forEach(fq_sponge.absorbCommitment.bind(fq_sponge));
+        this.commitments.wComm.forEach(fq_sponge_clone.absorbCommitment.bind(fq_sponge_clone));
 
         //~ 6. If lookup is used:
         let joint_combiner = undefined;
@@ -81,35 +88,45 @@ export class ProverProof {
                 const runtime_commit = lookup_commits.runtime;
                 if (!runtime_commit) return verifierErr("incorrect runtime proof");
                 fq_sponge.absorbCommitment(runtime_commit);
+                fq_sponge_clone.absorbCommitment(runtime_commit);
             }
 
             const zero = Provable.witnessBn254(ForeignScalar, () => ForeignScalar.from(0));
             const joint_combiner_scalar = l.joint_lookup_used
                 ? fq_sponge.challenge()
                 : zero;
+            const _joint_combiner_scalar = l.joint_lookup_used
+                ? fq_sponge_clone.challenge()
+                : zero;
             const joint_combiner_chal = new ScalarChallenge(joint_combiner_scalar);
             const joint_combiner_field = joint_combiner_chal.toField(endo_r);
             joint_combiner = [joint_combiner_scalar, joint_combiner_field];
 
             lookup_commits.sorted.forEach(fq_sponge.absorbCommitment);
+            lookup_commits.sorted.forEach(fq_sponge_clone.absorbCommitment);
         }
 
         //~ 7. Sample $\beta$ with the Fq-Sponge.
         const beta = fq_sponge.challenge();
+        fq_sponge_clone.challenge();
 
         //~ 8. Sample $\gamma$ with the Fq-Sponge.
         const gamma = fq_sponge.challenge();
+        fq_sponge_clone.challenge();
 
         //~ 9. If using lookup, absorb the commitment to the aggregation lookup polynomial.
         if (this.commitments.lookup) {
             fq_sponge.absorbCommitment(this.commitments.lookup.aggreg);
+            fq_sponge_clone.absorbCommitment(this.commitments.lookup.aggreg);
         }
 
         //~ 10. Absorb the commitment to the permutation trace with the Fq-Sponge.
         fq_sponge.absorbCommitment(this.commitments.zComm);
+        fq_sponge_clone.absorbCommitment(this.commitments.zComm);
 
         //~ 11. Sample $\alpha'$ with the Fq-Sponge.
         const alpha_chal = new ScalarChallenge(fq_sponge.challenge());
+        fq_sponge_clone.challenge();
 
         //~ 12. Derive $\alpha$ from $\alpha'$ using the endomorphism (TODO: details).
         const alpha = alpha_chal.toField(endo_r);
@@ -121,16 +138,19 @@ export class ProverProof {
 
         //~ 14. Absorb the commitment to the quotient polynomial $t$ into the argument.
         fq_sponge.absorbCommitment(this.commitments.tComm);
+        fq_sponge_clone.absorbCommitment(this.commitments.tComm);
 
         //~ 15. Sample $\zeta'$ with the Fq-Sponge.
         const zeta_chal = new ScalarChallenge(fq_sponge.challenge());
+        fq_sponge_clone.challenge();
 
         //~ 16. Derive $\zeta$ from $\zeta'$ using the endomorphism (TODO: specify).
         const zeta = zeta_chal.toField(endo_r);
 
         //~ 17. Setup the Fr-Sponge.
         let fr_sponge = new Sponge(fq_sponge_params(), fq_sponge_initial_state());
-        const digest = fq_sponge.digest();
+        //const fq_sponge_clone: Sponge = fq_sponge.clone();
+        const digest = fq_sponge_clone.digest();
 
         //~ 18. Squeeze the Fq-sponge and absorb the result with the Fr-Sponge.
         fr_sponge.absorbFr(digest);

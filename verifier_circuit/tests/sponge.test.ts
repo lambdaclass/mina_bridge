@@ -97,3 +97,13 @@ test("absorb_challenge", () => {
         digest.assertEquals(0x00000000000000000000000000000000E5D06DD18817A7A8C11794A818965500n);
     });
 })
+
+test("absorb_challengeFq", () => {
+    Provable.runAndCheckBn254(() => {
+        let fq_sponge = new Sponge(fp_sponge_params(), fp_sponge_initial_state());
+        fq_sponge.absorbScalar(ForeignScalar.from(42));
+        let digest = fq_sponge.challengeFq();
+
+        digest.assertEquals(0x176AFDF43CB26FAE41117BEADDE5BE80E5D06DD18817A7A8C11794A818965500n);
+    });
+})
