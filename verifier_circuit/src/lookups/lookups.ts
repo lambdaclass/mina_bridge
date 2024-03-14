@@ -1,3 +1,5 @@
+import { ForeignPallas } from "../foreign_fields/foreign_pallas"
+import { PolyComm } from "../poly_commitment/commitment"
 
 /**
 * Flags for each of the hard-coded lookup patterns.
@@ -28,4 +30,18 @@ export class LookupInfo {
     max_joint_size: number
     /// The features enabled for this lookup configuration
     features: LookupFeatures
+}
+
+export enum LookupPattern {
+    Xor,
+    Lookup,
+    RangeCheck,
+    ForeignFieldMul
+}
+
+export class LookupSelectors {
+    xor?: PolyComm<ForeignPallas>
+    lookup?: PolyComm<ForeignPallas>
+    range_check?: PolyComm<ForeignPallas>
+    ffmul?: PolyComm<ForeignPallas>
 }

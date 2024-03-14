@@ -3,6 +3,7 @@ import { Sponge } from "../verifier/sponge";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { SRS } from "../SRS.js";
 import { ForeignPallas } from "../foreign_fields/foreign_pallas.js";
+import { OpeningProof } from "./opening_proof";
 
 /**
 * A polynomial commitment
@@ -188,7 +189,7 @@ export function bPolyCoefficients(chals: ForeignScalar[]) {
     return s;
 }
 
-function combineCommitments(
+export function combineCommitments(
     evaluations: Evaluation[],
     scalars: ForeignScalar[],
     points: ForeignPallas[],
@@ -258,80 +259,4 @@ export class AggregatedEvaluationProof {
     /** batched opening proof */
     opening: OpeningProof
     combined_inner_product: ForeignScalar
-}
-
-export class OpeningProof {
-    /** vector of rounds of L & R commitments */
-    lr: [ForeignPallas, ForeignPallas][]
-    delta: ForeignPallas
-    z1: ForeignScalar
-    z2: ForeignScalar
-    sg: ForeignPallas
-
-    constructor(lr: [ForeignPallas, ForeignPallas][], delta: ForeignPallas, z1: ForeignScalar, z2: ForeignScalar, sg: ForeignPallas) {
-        this.lr = lr;
-        this.delta = delta;
-        this.z1 = z1;
-        this.z2 = z2;
-        this.sg = sg;
-    }
-
-    static #rounds() {
-        const { g } = SRS.createFromJSON();
-        return Math.ceil(Math.log2(g.length)) + 1;
-    }
-
-    /**
-     * Part of the {@link Provable} interface.
-     * 
-     * Returns the sum of `sizeInFields()` of all the class fields, which depends on `SRS.g` length.
-     */
-    static sizeInFields() {
-        const lrSize = this.#rounds() * 2 * 6;
-        const deltaSize = ForeignPallas.provable.sizeInFields();
-        const z1Size = ForeignScalar.provable.sizeInFields();
-        const z2Size = ForeignScalar.provable.sizeInFields();
-        const sgSize = ForeignPallas.provable.sizeInFields();
-
-        return lrSize + deltaSize + z1Size + z2Size + sgSize;
-    }
-
-    static fromFields(fields: FieldBn254[]) {
-        let lr = [];
-        // lr_0 = [0...6, 6...12]
-        // lr_1 = [12...18, 18...24]
-        // lr_2 = [24...30, 30...36]
-        // ...
-        let rounds = this.#rounds();
-        for (let i = 0; i < rounds; i++) {
-            let l = ForeignPallas.provable.fromFields(fields.slice(i * 6 * 2, (i * 6 * 2) + 6));
-            let r = ForeignPallas.provable.fromFields(fields.slice((i * 6 * 2) + 6, (i * 6 * 2) + (6 * 2)));
-            lr.push([l, r]);
-        }
-        let lrOffset = lr.length * 6 * 2;
-
-        return {
-            lr,
-            delta: ForeignPallas.provable.fromFields(fields.slice(lrOffset, lrOffset + 6)),
-            z1: ForeignScalar.provable.fromFields(fields.slice(lrOffset + 6, lrOffset + 9)),
-            z2: ForeignScalar.provable.fromFields(fields.slice(lrOffset + 9, lrOffset + 12)),
-            sg: ForeignPallas.provable.fromFields(fields.slice(lrOffset + 12, lrOffset + 18)),
-        };
-    }
-
-    toFields() {
-        let lr: FieldBn254[] = [];
-        for (const [l, r] of this.lr) {
-            lr = lr.concat(ForeignPallas.provable.toFields(l));
-            lr = lr.concat(ForeignPallas.provable.toFields(r));
-        }
-        let z1 = ForeignScalar.provable.toFields(this.z1);
-        let z2 = ForeignScalar.provable.toFields(this.z2);
-
-        return [...lr, ...ForeignPallas.provable.toFields(this.delta), ...z1, ...z2, ...ForeignPallas.provable.toFields(this.sg)];
-    }
-
-    static toFields(x: OpeningProof) {
-        return x.toFields();
-    }
 }

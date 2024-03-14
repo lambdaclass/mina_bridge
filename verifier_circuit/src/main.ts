@@ -1,11 +1,7 @@
 import { readFileSync, writeFileSync } from "fs";
-import { Verifier } from "./verifier/verifier.js";
 import { deserOpeningProof } from "./serde/serde_proof.js";
-import { ForeignField } from "./foreign_fields/foreign_field.js";
-import { TestCircuit } from "./test_circuit.js";
-import { ForeignPallas } from "./foreign_fields/foreign_pallas.js";
-import { ForeignScalar } from "./foreign_fields/foreign_scalar.js";
 import testInputs from "../test_data/inputs.json" assert { type: "json" };
+import { Verifier } from "./verifier/verifier.js";
 
 let inputs;
 try {
@@ -31,4 +27,3 @@ let gates = keypair.constraintSystem();
 writeFileSync("../kzg_prover/gates.json", JSON.stringify(gates));
 
 // ----------------------------------------------------
-console.log('Shutting down O1JS...');

@@ -9,7 +9,7 @@ export class Polynomial {
 
     evaluate(x: ForeignScalar): ForeignScalar {
         let result = ForeignScalar.from(0).assertAlmostReduced();
-        for (let i = 0; i < this.coef.length; i++) {
+        for (let i = this.coef.length - 1; i >= 0; i--) {
             result = result.mul(x).add(this.coef[i]).assertAlmostReduced();
         }
         return result
