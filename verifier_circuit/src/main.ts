@@ -2,6 +2,8 @@ import { readFileSync, writeFileSync } from "fs";
 import { deserOpeningProof } from "./serde/serde_proof.js";
 import testInputs from "../test_data/inputs.json" assert { type: "json" };
 import { Verifier } from "./verifier/verifier.js";
+import { MyScalar, ScalarAddCircuit } from "./test_circuit.js";
+import { ForeignScalar } from "./foreign_fields/foreign_scalar.js";
 
 let inputs;
 try {
@@ -13,6 +15,7 @@ try {
 
 // console.log('O1JS loaded');
 
+/*
 // ----------------------------------------------------
 
 console.log("Generating verifier circuit keypair...");
@@ -27,4 +30,15 @@ let gates = keypair.constraintSystem();
 writeFileSync("../kzg_prover/gates.json", JSON.stringify(gates));
 
 // ----------------------------------------------------
+*/
+
+console.log("Generate ScalarAddCircuit keypair");
+let keypair = await ScalarAddCircuit.generateKeypair();
+let myscalar = new MyScalar(ForeignScalar.from(1));
+
+console.log("Proving...");
+let proof = await ScalarAddCircuit.prove([], [myscalar], keypair);
+
+console.log("Success!");
+
 console.log('Shutting down O1JS...');
