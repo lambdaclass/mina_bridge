@@ -73,27 +73,31 @@ fn generate_proof() {
     let proof: ProverProof<G1, KZGProof> =
         serde_json::from_str(&fs::read_to_string("./prover_proof.json").unwrap()).unwrap();
 
-    let mut index: ProverIndex<G1, KZGProof> =
+    let index: ProverIndex<G1, KZGProof> =
         serde_json::from_str(&fs::read_to_string("./index.json").unwrap()).unwrap();
+
+    let mut srs: PairingSRS<Bn<ark_bn254::Parameters>> =
+        serde_json::from_str(&fs::read_to_string("./srs.json").unwrap()).unwrap();
 
     let (_endo_q, endo_r) = G1::endos();
     println!("cs endo: {}", endo_r); // ProverIndex::create() sets cs endo to endo_r
 
     // FIXME: this is hacky, this should be optimized to avoid cloning
-    let mut srs = (*index.srs).clone();
     srs.full_srs.add_lagrange_basis(index.cs.domain.d1);
+
     let index: ProverIndex<G1, KZGProof> =
         ProverIndex::create(index.cs.clone(), index.cs.endo, Arc::new(srs));
-
-    let verifier_index = index.verifier_index();
-
     println!(
-        "lagrange basis: {:?}",
+        "lagrange basis len: {:?}",
         index
             .srs
             .full_srs
             .get_lagrange_basis(index.cs.domain.d1.size())
+            .unwrap()
+            .len()
     );
+    let verifier_index = index.verifier_index();
+
     println!(
         "verifier_index digest: {}",
         verifier_index.digest::<KeccakFqSponge>()

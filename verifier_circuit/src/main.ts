@@ -27,8 +27,10 @@ let { value } = await Verifier.prove([], [openingProof], keypair);
 console.log("Writing proof into file...");
 let proof = (value as string[])[1];
 let index = (value as string[])[2];
+let srs = (value as string[])[3];
 writeFileSync("../kzg_prover/prover_proof.json", proof);
 writeFileSync("../kzg_prover/index.json", index);
+writeFileSync("../kzg_prover/srs.json", srs);
 
 console.log("Writing circuit gates into file...");
 let gates = keypair.constraintSystem();
