@@ -91,21 +91,6 @@ export class Batch {
         //~ 3. Run the Fiat-Shamir heuristic.
         const oracles_result = proof.oracles(verifier_index, public_comm, public_input);
 
-        let fq_sponge = new Sponge(fp_sponge_params(), fp_sponge_initial_state());
-        let evaluation_points = [ForeignScalar.from(0), ForeignScalar.from(0)];
-        let evaluations: Evaluation[] = [];
-        const agg_proof: AggregatedEvaluationProof = {
-            sponge: fq_sponge,
-            evaluations,
-            evaluation_points,
-            polyscale: ForeignScalar.from(0),
-            evalscale: ForeignScalar.from(0),
-            opening: proof.proof,
-            combined_inner_product: ForeignScalar.from(0),
-        };
-        return verifierOk(agg_proof);
-
-        /*
         if (isErr(oracles_result)) return oracles_result;
 
         const {
@@ -280,7 +265,6 @@ export class Batch {
             combined_inner_product,
         };
         return verifierOk(agg_proof);
-        */
     }
 
     static permScalars(

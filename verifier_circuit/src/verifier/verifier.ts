@@ -238,7 +238,6 @@ export class Verifier extends CircuitBn254 {
         if (isErr(evaluationProofResult)) return evaluationProofResult;
         const evaluationProof = unwrap(evaluationProofResult);
 
-        return verifierOk(true);
         return verifierOk(finalVerify(
             verifierIndex.srs,
             new BWParameters(),

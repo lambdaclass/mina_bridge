@@ -15,7 +15,6 @@ try {
 
 // console.log('O1JS loaded');
 
-/*
 // ----------------------------------------------------
 
 console.log("Generating verifier circuit keypair...");
@@ -30,8 +29,8 @@ let gates = keypair.constraintSystem();
 writeFileSync("../kzg_prover/gates.json", JSON.stringify(gates));
 
 // ----------------------------------------------------
-*/
 
+/*
 console.log("Generate ScalarAddCircuit keypair");
 let keypair = await ScalarAddCircuit.generateKeypair();
 let myscalar = new MyScalar(ForeignScalar.from(1));
@@ -42,3 +41,4 @@ let proof = await ScalarAddCircuit.prove([], [myscalar], keypair);
 console.log("Success!");
 
 console.log('Shutting down O1JS...');
+*/
