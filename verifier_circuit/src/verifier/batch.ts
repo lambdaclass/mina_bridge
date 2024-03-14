@@ -1,18 +1,18 @@
 import { AggregatedEvaluationProof, Evaluation, PolyComm } from "../poly_commitment/commitment.js";
 import { ProverProof, PointEvaluations, ProofEvaluations, Constants, Oracles } from "../prover/prover.js";
 import { Verifier, VerifierIndex } from "./verifier.js";
-import { ForeignGroup } from "o1js";
-import { deserHexScalar } from "../serde/serde_proof.js";
 import { Column, PolishToken } from "../prover/expr.js";
 import { GateType } from "../circuits/gate.js";
 import { powScalar } from "../util/scalar.js";
 import { range } from "../util/misc.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
+import { ForeignPallas } from "../foreign_fields/foreign_pallas.js";
 import { isErr, isOk, unwrap, verifierOk, VerifierResult} from "../error.js";
-import { logField } from "../util/log.js";
 import { fq_sponge_params } from "./sponge.js";
 import { AlphasIterator } from "../alphas.js";
 import { LookupPattern } from "../lookups/lookups.js";
+
+import { fp_sponge_initial_state, fp_sponge_params, fq_sponge_initial_state, Sponge } from "../verifier/sponge.js";
 
 export class Context {
     verifier_index: VerifierIndex
@@ -25,7 +25,7 @@ export class Context {
         this.public_input = public_input;
     }
 
-    getColumn(col: Column): PolyComm<ForeignGroup> | undefined {
+    getColumn(col: Column): PolyComm<ForeignPallas> | undefined {
         switch (col.kind) {
             case "witness": return this.proof.commitments.wComm[col.index];
             case "coefficient": return this.verifier_index.coefficients_comm[col.index];
@@ -86,10 +86,11 @@ export class Batch {
         let public_comm = verifier_index
             .srs
             .maskCustom(non_hiding_public_comm,
-                new PolyComm([ForeignScalar.from(1)], undefined))?.commitment!;
+                new PolyComm([ForeignScalar.from(1).assertAlmostReduced()], undefined))?.commitment!;
 
         //~ 3. Run the Fiat-Shamir heuristic.
         const oracles_result = proof.oracles(verifier_index, public_comm, public_input);
+
         if (isErr(oracles_result)) return oracles_result;
 
         const {
@@ -160,7 +161,7 @@ export class Batch {
             chunked_f_comm,
             PolyComm.scale(
                 chunked_t_comm,
-                zeta_to_domain_size.sub(ForeignScalar.from(1))));
+                zeta_to_domain_size.sub(ForeignScalar.from(1).assertAlmostReduced()).assertAlmostReduced()));
 
         //~ 7. List the polynomial commitments, and their associated evaluations,
         //~    that are associated to the aggregated evaluation proof in the proof:
@@ -253,7 +254,7 @@ export class Batch {
         }
 
         // prepare for the opening proof verification
-        let evaluation_points = [oracles.zeta, oracles.zeta.mul(verifier_index.domain_gen)];
+        let evaluation_points = [oracles.zeta, oracles.zeta.mul(verifier_index.domain_gen).assertAlmostReduced()];
         const agg_proof: AggregatedEvaluationProof = {
             sponge: fq_sponge,
             evaluations,
@@ -277,13 +278,13 @@ export class Batch {
         alphas.next();
         alphas.next();
 
-        let acc = e.z.zetaOmega.mul(beta).mul(alpha0).mul(zkp_zeta);
+        let acc = e.z.zetaOmega.mul(beta).assertAlmostReduced().mul(alpha0).assertAlmostReduced().mul(zkp_zeta);
         for (let i = 0; i < Math.min(e.w.length, e.s.length); i++) {
             const w = e.w[i];
             const s = e.s[i];
 
             const res = gamma.add(beta.mul(s.zeta)).add(w.zeta);
-            acc = acc.mul(res);
+            acc = acc.assertAlmostReduced().mul(res.assertAlmostReduced());
         }
         return acc.neg();
     }
@@ -318,18 +319,18 @@ export class Batch {
     }
 
     static combineTable(
-        columns: PolyComm<ForeignGroup>[],
+        columns: PolyComm<ForeignPallas>[],
         column_combiner: ForeignScalar,
         table_id_combiner: ForeignScalar,
-        table_id_vector?: PolyComm<ForeignGroup>,
-        runtime_vector?: PolyComm<ForeignGroup>,
-    ): PolyComm<ForeignGroup> {
-        let j = ForeignScalar.from(1);
+        table_id_vector?: PolyComm<ForeignPallas>,
+        runtime_vector?: PolyComm<ForeignPallas>,
+    ): PolyComm<ForeignPallas> {
+        let j = ForeignScalar.from(1).assertAlmostReduced();
         let scalars = [j];
         let commitments = [columns[0]];
 
         for (const comm of columns.slice(1)) {
-            j = j.mul(column_combiner);
+            j = j.mul(column_combiner).assertAlmostReduced();
             scalars.push(j);
             commitments.push(comm);
         }

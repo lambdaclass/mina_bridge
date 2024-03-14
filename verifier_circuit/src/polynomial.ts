@@ -1,4 +1,3 @@
-import { Scalar } from "o1js"
 import { ForeignScalar } from "./foreign_fields/foreign_scalar.js"
 
 export class Polynomial {
@@ -9,9 +8,9 @@ export class Polynomial {
     }
 
     evaluate(x: ForeignScalar): ForeignScalar {
-        let result = ForeignScalar.from(0)
+        let result = ForeignScalar.from(0).assertAlmostReduced();
         for (let i = this.coef.length - 1; i >= 0; i--) {
-            result = result.mul(x).add(this.coef[i])
+            result = result.mul(x).add(this.coef[i]).assertAlmostReduced();
         }
         return result
     }

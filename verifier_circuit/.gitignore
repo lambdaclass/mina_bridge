@@ -13,5 +13,5 @@ coverage
 keys
 
 proof.txt
-inputs.json
+src/inputs.json
 steps.json

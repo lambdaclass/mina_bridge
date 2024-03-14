@@ -1,11 +1,10 @@
-import { Scalar } from "o1js";
 import { invScalar, powScalar } from "../src/util/scalar";
 import { ForeignScalar } from "../src/foreign_fields/foreign_scalar";
 
 test("powScalar", () => {
     const n = ForeignScalar.from(42);
     const exp = 5;
-    const res = Scalar.from(130691232); // from python
+    const res = ForeignScalar.from(130691232); // from python
 
     expect(powScalar(n, exp).toBigInt().toString()).toEqual(res.toBigInt().toString());
 })

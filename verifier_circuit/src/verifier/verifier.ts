@@ -1,5 +1,5 @@
 import { readFileSync } from 'fs';
-import { circuitMainBn254, CircuitBn254, Group, public_, ForeignGroup, Provable } from 'o1js';
+import { CircuitBn254, circuitMainBn254, publicBn254 } from 'o1js';
 import { PolyComm } from '../poly_commitment/commitment.js';
 import { OpeningProof } from "../poly_commitment/opening_proof.js";
 import { SRS } from '../SRS.js';
@@ -10,7 +10,6 @@ import { Linearization, PolishToken } from '../prover/expr.js';
 import { ForeignBase } from '../foreign_fields/foreign_field.js';
 import { ForeignScalar } from '../foreign_fields/foreign_scalar.js';
 import {
-    //LookupSelectors,
     LookupInfo, LookupSelectors
 } from '../lookups/lookups.js';
 import { Batch } from './batch.js';
@@ -18,7 +17,8 @@ import proof_json from "../../test_data/proof.json" assert { type: "json" };
 import verifier_index_json from "../../test_data/verifier_index.json" assert { type: "json" };
 import { deserVerifierIndex } from "../serde/serde_index.js";
 import { deserProverProof } from '../serde/serde_proof.js';
-import { isErr, isOk, unwrap } from '../error.js';
+import { ForeignPallas, pallasZero } from '../foreign_fields/foreign_pallas.js';
+import { isErr, isOk, unwrap, VerifierResult, verifierOk } from '../error.js';
 import { finalVerify, BWParameters } from "./commitment.js";
 
 let steps: bigint[][];
@@ -54,18 +54,18 @@ pub struct LookupVerifierIndex<G: CommitmentCurve> {
 
 export class LookupVerifierIndex {
     joint_lookup_used: boolean
-    lookup_table: PolyComm<ForeignGroup>[]
+    lookup_table: PolyComm<ForeignPallas>[]
     lookup_selectors: LookupSelectors
 
     /// Table IDs for the lookup values.
     /// This may be `None` if all lookups originate from table 0.
-    table_ids?: PolyComm<ForeignGroup>
+    table_ids?: PolyComm<ForeignPallas>
 
     /// Information about the specific lookups used
     lookup_info: LookupInfo
 
     /// An optional selector polynomial for runtime tables
-    runtime_tables_selector?: PolyComm<ForeignGroup>
+    runtime_tables_selector?: PolyComm<ForeignPallas>
 }
 
 /**
@@ -85,37 +85,35 @@ export class VerifierIndex {
     prev_challenges: number
 
     /** permutation commitments */
-    sigma_comm: PolyComm<ForeignGroup>[] // size PERMUTS
-    /** coefficient commitment array */
-    coefficients_comm: PolyComm<ForeignGroup>[] // size COLUMNS
-    /** generic commitment */
-    generic_comm: PolyComm<ForeignGroup>
+    sigma_comm: PolyComm<ForeignPallas>[] // size PERMUTS
+    coefficients_comm: PolyComm<ForeignPallas>[] // size COLUMNS
+    generic_comm: PolyComm<ForeignPallas>
 
     /** poseidon constraint selector polynomial commitments */
-    psm_comm: PolyComm<ForeignGroup>
+    psm_comm: PolyComm<ForeignPallas>
 
     /** EC addition selector polynomial commitment */
-    complete_add_comm: PolyComm<ForeignGroup>
+    complete_add_comm: PolyComm<ForeignPallas>
     /** EC variable base scalar multiplication selector polynomial commitment */
-    mul_comm: PolyComm<ForeignGroup>
+    mul_comm: PolyComm<ForeignPallas>
     /** endoscalar multiplication selector polynomial commitment */
-    emul_comm: PolyComm<ForeignGroup>
+    emul_comm: PolyComm<ForeignPallas>
     /** endoscalar multiplication scalar computation selector polynomial commitment */
-    endomul_scalar_comm: PolyComm<ForeignGroup>
+    endomul_scalar_comm: PolyComm<ForeignPallas>
 
     /** RangeCheck0 polynomial commitments */
-    range_check0_comm?: PolyComm<ForeignGroup>
+    range_check0_comm?: PolyComm<ForeignPallas>
     /** RangeCheck1 polynomial commitments */
-    range_check1_comm?: PolyComm<ForeignGroup>
+    range_check1_comm?: PolyComm<ForeignPallas>
     /** Foreign field addition polynomial commitments */
-    foreign_field_add_comm?: PolyComm<ForeignGroup>
+    foreign_field_add_comm?: PolyComm<ForeignPallas>
     /** Foreign field multiplication polynomial commitments */
-    foreign_field_mul_comm?: PolyComm<ForeignGroup>
+    foreign_field_mul_comm?: PolyComm<ForeignPallas>
 
     /** Xor commitments */
-    xor_comm?: PolyComm<ForeignGroup>
+    xor_comm?: PolyComm<ForeignPallas>
     /** Rot commitments */
-    rot_comm?: PolyComm<ForeignGroup>
+    rot_comm?: PolyComm<ForeignPallas>
 
     /** Wire coordinate shifts */
     shift: ForeignScalar[] // of size PERMUTS
@@ -141,26 +139,26 @@ export class VerifierIndex {
         max_poly_size: number,
         zk_rows: number,
         public_size: number,
-        sigma_comm: PolyComm<ForeignGroup>[],
-        coefficients_comm: PolyComm<ForeignGroup>[],
-        generic_comm: PolyComm<ForeignGroup>,
-        psm_comm: PolyComm<ForeignGroup>,
-        complete_add_comm: PolyComm<ForeignGroup>,
-        mul_comm: PolyComm<ForeignGroup>,
-        emul_comm: PolyComm<ForeignGroup>,
-        endomul_scalar_comm: PolyComm<ForeignGroup>,
+        sigma_comm: PolyComm<ForeignPallas>[],
+        coefficients_comm: PolyComm<ForeignPallas>[],
+        generic_comm: PolyComm<ForeignPallas>,
+        psm_comm: PolyComm<ForeignPallas>,
+        complete_add_comm: PolyComm<ForeignPallas>,
+        mul_comm: PolyComm<ForeignPallas>,
+        emul_comm: PolyComm<ForeignPallas>,
+        endomul_scalar_comm: PolyComm<ForeignPallas>,
         powers_of_alpha: Alphas,
         shift: ForeignScalar[],
         permutation_vanishing_polynomial_m: Polynomial,
         w: ForeignScalar,
         endo: ForeignScalar,
         linearization: Linearization<PolishToken[]>,
-        range_check0_comm?: PolyComm<ForeignGroup>,
-        range_check1_comm?: PolyComm<ForeignGroup>,
-        foreign_field_add_comm?: PolyComm<ForeignGroup>,
-        foreign_field_mul_comm?: PolyComm<ForeignGroup>,
-        xor_comm?: PolyComm<ForeignGroup>,
-        rot_comm?: PolyComm<ForeignGroup>,
+        range_check0_comm?: PolyComm<ForeignPallas>,
+        range_check1_comm?: PolyComm<ForeignPallas>,
+        foreign_field_add_comm?: PolyComm<ForeignPallas>,
+        foreign_field_mul_comm?: PolyComm<ForeignPallas>,
+        xor_comm?: PolyComm<ForeignPallas>,
+        rot_comm?: PolyComm<ForeignPallas>,
         lookup_index?: LookupVerifierIndex
     ) {
         this.srs = SRS.createFromJSON();
@@ -219,7 +217,20 @@ export class Verifier extends CircuitBn254 {
     static readonly PERMUTATION_CONSTRAINTS: number = 3;
 
     @circuitMainBn254
-    static main(@public_ openingProof: OpeningProof, @public_ expected: ForeignGroup) {
+    static main(@publicBn254 openingProof: OpeningProof) {
+        // if the proof is successful, this will be 1. Else will be 0.
+        let success = ForeignScalar.from(0).assertAlmostReduced();
+
+        const verifier_result = this.verifyProof(openingProof);
+        if (isOk(verifier_result)) {
+            const verifier_successful = unwrap(verifier_result);
+            if (verifier_successful) success = ForeignScalar.from(1).assertAlmostReduced();
+        }
+
+        //success.assertEquals(ForeignScalar.from(1).assertAlmostReduced());
+    }
+
+    static verifyProof(openingProof: OpeningProof): VerifierResult<boolean> {
         let proverProof = deserProverProof(proof_json);
 
         const verifierIndex = deserVerifierIndex(verifier_index_json);
@@ -227,20 +238,22 @@ export class Verifier extends CircuitBn254 {
         if (isErr(evaluationProofResult)) return evaluationProofResult;
         const evaluationProof = unwrap(evaluationProofResult);
 
-        finalVerify(
+        return verifierOk(finalVerify(
             verifierIndex.srs,
             new BWParameters(),
             evaluationProof
-        );
+        ));
     }
 
-    static naiveMSM(points: ForeignGroup[], scalars: ForeignScalar[]): ForeignGroup {
-        let result = new ForeignGroup(ForeignBase.from(0), ForeignBase.from(0));
+    static naiveMSM(points: ForeignPallas[], scalars: ForeignScalar[]): ForeignPallas {
+        let result = pallasZero();
 
         for (let i = 0; i < points.length; i++) {
             let point = points[i];
             let scalar = scalars[i];
-            result = result.add(point.scale(scalar));
+            // FIXME: This should scale the point, but it is not working yet
+            // result = result.completeAdd(point.completeScale(scalar));
+            result = result.completeAdd(point);
         }
 
         return result;

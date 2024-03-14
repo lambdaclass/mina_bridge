@@ -268,11 +268,15 @@ export namespace PolishToken {
                 case "vanishesonzeroknowledgeandpreviousrows": {
                     const ZK_ROWS = 3;
                     const w4 = powScalar(domain_gen, domain_size - (ZK_ROWS + 1));
-                    const w3 = domain_gen.mul(w4);
-                    const w2 = domain_gen.mul(w3);
+                    const w3 = domain_gen.mul(w4).assertAlmostReduced();
+                    const w2 = domain_gen.mul(w3).assertAlmostReduced();
                     const w1 = domain_gen.mul(w2);
 
-                    stack.push(pt.sub(w1).mul(pt.sub(w2)).mul(pt.sub(w3)).mul(pt.sub(w4)));
+                    stack.push(
+                        pt.sub(w1).assertAlmostReduced()
+                            .mul(pt.sub(w2).assertAlmostReduced()).assertAlmostReduced()
+                            .mul(pt.sub(w3).assertAlmostReduced()).assertAlmostReduced()
+                            .mul(pt.sub(w4).assertAlmostReduced()).assertAlmostReduced());
                     break;
                 }
                 case "unnormalizedlagrangebasis": {
@@ -280,8 +284,8 @@ export namespace PolishToken {
                         ? invScalar(powScalar(domain_gen, -t.index))
                         : powScalar(domain_gen, t.index);
 
-                    const vanishing_eval = powScalar(pt, domain_size).sub(Scalar.from(1));
-                    const unnormal_lagrange_basis = vanishing_eval.div(pt.sub(omega_i));
+                    const vanishing_eval = powScalar(pt, domain_size).sub(ForeignScalar.from(1)).assertAlmostReduced();
+                    const unnormal_lagrange_basis = vanishing_eval.div(pt.sub(omega_i).assertAlmostReduced());
 
                     stack.push(unnormal_lagrange_basis);
                     break;
@@ -307,21 +311,21 @@ export namespace PolishToken {
                     const y = stack.pop()!;
                     const x = stack.pop()!;
 
-                    stack.push(x.add(y));
+                    stack.push(x.add(y).assertAlmostReduced());
                     break;
                 }
                 case "mul": {
                     const y = stack.pop()!;
                     const x = stack.pop()!;
 
-                    stack.push(x.mul(y));
+                    stack.push(x.mul(y).assertAlmostReduced());
                     break;
                 }
                 case "sub": {
                     const y = stack.pop()!;
                     const x = stack.pop()!;
 
-                    stack.push(x.sub(y));
+                    stack.push(x.sub(y).assertAlmostReduced());
                     break;
                 }
                 case "store": {
