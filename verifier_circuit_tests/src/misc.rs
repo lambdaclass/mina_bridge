@@ -1,22 +1,25 @@
 use ark_ec::AffineCurve;
-use ark_ff::{One, PrimeField};
 use ark_poly::{domain::EvaluationDomain, UVPolynomial};
 use kimchi::{
-    circuits::expr::{Linearization, PolishToken},
-    curve::KimchiCurve,
-    error::VerifyError,
+    circuits::{
+        expr::{Linearization, PolishToken},
+        lookup::{
+            index::LookupSelectors,
+            lookups::{LookupFeatures, LookupInfo, LookupPatterns},
+        },
+    },
     mina_curves::pasta::{Fq, Pallas, PallasParameters},
     mina_poseidon::{
         constants::PlonkSpongeConstantsKimchi,
         sponge::{DefaultFqSponge, DefaultFrSponge},
     },
     o1_utils::FieldHelpers,
-    poly_commitment::{evaluation_proof::OpeningProof, OpenProof, PolyComm, SRS},
+    poly_commitment::{evaluation_proof::OpeningProof, PolyComm},
     proof::{
         LookupCommitments, PointEvaluations, ProofEvaluations, ProverCommitments, ProverProof,
         RecursionChallenge,
     },
-    verifier_index::VerifierIndex,
+    verifier_index::{LookupVerifierIndex, VerifierIndex},
 };
 use serde::Serialize;
 
@@ -39,150 +42,6 @@ impl Serialize for SerializablePallasScalar {
 pub type SpongeParams = PlonkSpongeConstantsKimchi;
 pub type BaseSponge = DefaultFqSponge<PallasParameters, SpongeParams>;
 pub type ScalarSponge = DefaultFrSponge<Fq, SpongeParams>;
-
-/// Enforce the length of evaluations inside [`Proof`].
-/// Atm, the length of evaluations(both `zeta` and `zeta_omega`) SHOULD be 1.
-/// The length value is prone to future change.
-pub fn check_proof_evals_len<G, OpeningProof>(
-    proof: &ProverProof<G, OpeningProof>,
-    expected_size: usize,
-) -> Result<(), VerifyError>
-where
-    G: KimchiCurve,
-    G::BaseField: PrimeField,
-{
-    let ProofEvaluations {
-        public,
-        w,
-        z,
-        s,
-        coefficients,
-        generic_selector,
-        poseidon_selector,
-        complete_add_selector,
-        mul_selector,
-        emul_selector,
-        endomul_scalar_selector,
-        range_check0_selector,
-        range_check1_selector,
-        foreign_field_add_selector,
-        foreign_field_mul_selector,
-        xor_selector,
-        rot_selector,
-        lookup_aggregation,
-        lookup_table,
-        lookup_sorted,
-        runtime_lookup_table,
-        runtime_lookup_table_selector,
-        xor_lookup_selector,
-        lookup_gate_lookup_selector,
-        range_check_lookup_selector,
-        foreign_field_mul_lookup_selector,
-    } = &proof.evals;
-
-    let check_eval_len =
-        |eval: &PointEvaluations<Vec<_>>, str: &'static str| -> Result<(), VerifyError> {
-            if eval.zeta.len() != expected_size {
-                Err(VerifyError::IncorrectEvaluationsLength(
-                    expected_size,
-                    eval.zeta.len(),
-                    str,
-                ))
-            } else if eval.zeta_omega.len() != expected_size {
-                Err(VerifyError::IncorrectEvaluationsLength(
-                    expected_size,
-                    eval.zeta_omega.len(),
-                    str,
-                ))
-            } else {
-                Ok(())
-            }
-        };
-
-    if let Some(public) = public {
-        check_eval_len(public, "public input")?;
-    }
-
-    for w_i in w {
-        check_eval_len(w_i, "witness")?;
-    }
-    check_eval_len(z, "permutation accumulator")?;
-    for s_i in s {
-        check_eval_len(s_i, "permutation shifts")?;
-    }
-    for coeff in coefficients {
-        check_eval_len(coeff, "coefficients")?;
-    }
-
-    // Lookup evaluations
-    for sorted in lookup_sorted.iter().flatten() {
-        check_eval_len(sorted, "lookup sorted")?
-    }
-
-    if let Some(lookup_aggregation) = lookup_aggregation {
-        check_eval_len(lookup_aggregation, "lookup aggregation")?;
-    }
-    if let Some(lookup_table) = lookup_table {
-        check_eval_len(lookup_table, "lookup table")?;
-    }
-    if let Some(runtime_lookup_table) = runtime_lookup_table {
-        check_eval_len(runtime_lookup_table, "runtime lookup table")?;
-    }
-
-    check_eval_len(generic_selector, "generic selector")?;
-    check_eval_len(poseidon_selector, "poseidon selector")?;
-    check_eval_len(complete_add_selector, "complete add selector")?;
-    check_eval_len(mul_selector, "mul selector")?;
-    check_eval_len(emul_selector, "endomul selector")?;
-    check_eval_len(endomul_scalar_selector, "endomul scalar selector")?;
-
-    // Optional gates
-
-    if let Some(range_check0_selector) = range_check0_selector {
-        check_eval_len(range_check0_selector, "range check 0 selector")?
-    }
-    if let Some(range_check1_selector) = range_check1_selector {
-        check_eval_len(range_check1_selector, "range check 1 selector")?
-    }
-    if let Some(foreign_field_add_selector) = foreign_field_add_selector {
-        check_eval_len(foreign_field_add_selector, "foreign field add selector")?
-    }
-    if let Some(foreign_field_mul_selector) = foreign_field_mul_selector {
-        check_eval_len(foreign_field_mul_selector, "foreign field mul selector")?
-    }
-    if let Some(xor_selector) = xor_selector {
-        check_eval_len(xor_selector, "xor selector")?
-    }
-    if let Some(rot_selector) = rot_selector {
-        check_eval_len(rot_selector, "rot selector")?
-    }
-
-    // Lookup selectors
-
-    if let Some(runtime_lookup_table_selector) = runtime_lookup_table_selector {
-        check_eval_len(
-            runtime_lookup_table_selector,
-            "runtime lookup table selector",
-        )?
-    }
-    if let Some(xor_lookup_selector) = xor_lookup_selector {
-        check_eval_len(xor_lookup_selector, "xor lookup selector")?
-    }
-    if let Some(lookup_gate_lookup_selector) = lookup_gate_lookup_selector {
-        check_eval_len(lookup_gate_lookup_selector, "lookup gate lookup selector")?
-    }
-    if let Some(range_check_lookup_selector) = range_check_lookup_selector {
-        check_eval_len(range_check_lookup_selector, "range check lookup selector")?
-    }
-    if let Some(foreign_field_mul_lookup_selector) = foreign_field_mul_lookup_selector {
-        check_eval_len(
-            foreign_field_mul_lookup_selector,
-            "foreign field mul lookup selector",
-        )?
-    }
-
-    Ok(())
-}
 
 /// Useful for serializing into JSON and importing in Typescript tests.
 #[derive(Serialize, Debug)]
@@ -207,8 +66,8 @@ pub struct UncompressedPolyComm {
     pub shifted: Option<UncompressedPoint>,
 }
 
-impl From<&PolyComm<Pallas>> for UncompressedPolyComm {
-    fn from(value: &PolyComm<Pallas>) -> Self {
+impl From<PolyComm<Pallas>> for UncompressedPolyComm {
+    fn from(value: PolyComm<Pallas>) -> Self {
         Self {
             unshifted: value
                 .unshifted
@@ -220,68 +79,17 @@ impl From<&PolyComm<Pallas>> for UncompressedPolyComm {
     }
 }
 
-/// Execute step 1 of partial verification
-pub fn to_batch_step1<G, OpeningProof: OpenProof<G>>(
-    proof: &ProverProof<G, OpeningProof>,
-    verifier_index: &VerifierIndex<G, OpeningProof>,
-) -> Result<(), VerifyError>
-where
-    G: KimchiCurve,
-    G::BaseField: PrimeField,
-{
-    let chunk_size = {
-        let d1_size = verifier_index.domain.size();
-        if d1_size < verifier_index.max_poly_size {
-            1
-        } else {
-            d1_size / verifier_index.max_poly_size
+impl From<&PolyComm<Pallas>> for UncompressedPolyComm {
+    fn from(value: &PolyComm<Pallas>) -> Self {
+        Self {
+            unshifted: value
+                .unshifted
+                .iter()
+                .map(UncompressedPoint::from)
+                .collect(),
+            shifted: value.shifted.map(|s| UncompressedPoint::from(&s)),
         }
-    };
-    println!("to_batch(), step 1: Commit to the negated public input polynomial.");
-    check_proof_evals_len(proof, chunk_size)?;
-    Ok(())
-}
-
-/// Execute step 2 of partial verification
-pub fn to_batch_step2<G, OpeningProof: OpenProof<G>>(
-    verifier_index: &VerifierIndex<G, OpeningProof>,
-    public_input: &[<G as AffineCurve>::ScalarField],
-) -> Result<(), VerifyError>
-where
-    G: KimchiCurve,
-    G::BaseField: PrimeField,
-{
-    println!("to_batch(), step 2: Commit to the negated public input polynomial.");
-    let public_comm = {
-        if public_input.len() != verifier_index.public {
-            return Err(VerifyError::IncorrectPubicInputLength(
-                verifier_index.public,
-            ));
-        }
-        let lgr_comm = verifier_index
-            .srs()
-            .get_lagrange_basis(verifier_index.domain.size())
-            .expect("pre-computed committed lagrange bases not found");
-        let com: Vec<_> = lgr_comm.iter().take(verifier_index.public).collect();
-        let elm: Vec<_> = public_input.iter().map(|s| -*s).collect();
-        let public_comm = PolyComm::<G>::multi_scalar_mul(&com, &elm);
-        verifier_index
-            .srs()
-            .mask_custom(
-                public_comm,
-                &PolyComm {
-                    unshifted: vec![G::ScalarField::one(); 1],
-                    shifted: None,
-                },
-            )
-            .unwrap()
-            .commitment
-    };
-    println!(
-        "Done, public_comm: {:?}",
-        public_comm.unshifted[0].to_string()
-    );
-    Ok(())
+    }
 }
 
 /// A helper type for serializing the VerifierIndex data used in the verifier circuit.
@@ -305,12 +113,72 @@ pub struct VerifierIndexTS {
     emul_comm: UncompressedPolyComm,
     endomul_scalar_comm: UncompressedPolyComm,
 
-    //powers_of_alpha: Alphas<String>,
+    range_check0_comm: Option<UncompressedPolyComm>,
+
+    range_check1_comm: Option<UncompressedPolyComm>,
+
+    foreign_field_add_comm: Option<UncompressedPolyComm>,
+
+    foreign_field_mul_comm: Option<UncompressedPolyComm>,
+
+    xor_comm: Option<UncompressedPolyComm>,
+
+    rot_comm: Option<UncompressedPolyComm>,
+
     shift: Vec<String>,
     permutation_vanishing_polynomial_m: Vec<String>,
+
     w: String,
+
     endo: String,
+
+    lookup_index: Option<LookupVerifierIndexTS>,
+
     linearization: Linearization<Vec<PolishToken<String>>>,
+    //powers_of_alpha: Alphas<String>,
+}
+
+#[derive(Serialize, Debug)]
+pub struct LookupVerifierIndexTS {
+    joint_lookup_used: bool,
+    lookup_table: Vec<UncompressedPolyComm>,
+    lookup_selectors: LookupSelectorsTS,
+
+    table_ids: Option<UncompressedPolyComm>,
+
+    lookup_info: LookupInfoTS,
+
+    runtime_tables_selector: Option<UncompressedPolyComm>,
+}
+
+#[derive(Serialize, Debug)]
+pub struct LookupSelectorsTS {
+    xor: Option<UncompressedPolyComm>,
+    lookup: Option<UncompressedPolyComm>,
+    range_check: Option<UncompressedPolyComm>,
+    ffmul: Option<UncompressedPolyComm>,
+}
+
+#[derive(Serialize, Debug)]
+pub struct LookupInfoTS {
+    max_per_row: usize,
+    max_joint_size: u32,
+    features: LookupFeaturesTS,
+}
+
+#[derive(Serialize, Debug)]
+pub struct LookupFeaturesTS {
+    patterns: LookupPatternsTS,
+    joint_lookup_used: bool,
+    uses_runtime_tables: bool,
+}
+
+#[derive(Serialize, Debug)]
+pub struct LookupPatternsTS {
+    xor: bool,
+    lookup: bool,
+    range_check: bool,
+    foreign_field_mul: bool,
 }
 
 fn token_to_hex(value: &PolishToken<PallasScalar>) -> PolishToken<String> {
@@ -361,11 +229,18 @@ impl From<&VerifierIndex<Pallas, OpeningProof<Pallas>>> for VerifierIndexTS {
             mul_comm,
             emul_comm,
             endomul_scalar_comm,
+            range_check0_comm,
+            range_check1_comm,
+            foreign_field_add_comm,
+            foreign_field_mul_comm,
+            xor_comm,
+            rot_comm,
             //powers_of_alpha,
             shift,
             permutation_vanishing_polynomial_m,
             w,
             endo,
+            lookup_index,
             linearization,
             ..
         } = value;
@@ -387,6 +262,82 @@ impl From<&VerifierIndex<Pallas, OpeningProof<Pallas>>> for VerifierIndexTS {
             }
         };
 
+        let lookup_index = lookup_index.as_ref().map(|index| {
+            let LookupVerifierIndex {
+                joint_lookup_used,
+                lookup_table,
+                lookup_selectors,
+                table_ids,
+                lookup_info,
+                runtime_tables_selector,
+            } = index;
+            let lookup_selectors = {
+                let LookupSelectors {
+                    xor,
+                    lookup,
+                    range_check,
+                    ffmul,
+                } = lookup_selectors.clone();
+                LookupSelectorsTS {
+                    xor: xor.map(UncompressedPolyComm::from),
+                    lookup: lookup.map(UncompressedPolyComm::from),
+                    range_check: range_check.map(UncompressedPolyComm::from),
+                    ffmul: ffmul.map(UncompressedPolyComm::from),
+                }
+            };
+            let lookup_info = {
+                let LookupInfo {
+                    max_per_row,
+                    max_joint_size,
+                    features,
+                } = *lookup_info;
+                let features = {
+                    let LookupFeatures {
+                        patterns,
+                        joint_lookup_used,
+                        uses_runtime_tables,
+                    } = features;
+                    let patterns = {
+                        let LookupPatterns {
+                            xor,
+                            lookup,
+                            range_check,
+                            foreign_field_mul,
+                        } = patterns;
+                        LookupPatternsTS {
+                            xor,
+                            lookup,
+                            range_check,
+                            foreign_field_mul,
+                        }
+                    };
+                    LookupFeaturesTS {
+                        patterns,
+                        joint_lookup_used,
+                        uses_runtime_tables,
+                    }
+                };
+                LookupInfoTS {
+                    max_per_row,
+                    max_joint_size,
+                    features,
+                }
+            };
+            LookupVerifierIndexTS {
+                joint_lookup_used: *joint_lookup_used,
+                lookup_table: lookup_table
+                    .iter()
+                    .map(UncompressedPolyComm::from)
+                    .collect(),
+                lookup_selectors,
+                table_ids: table_ids.clone().map(UncompressedPolyComm::from),
+                lookup_info,
+                runtime_tables_selector: runtime_tables_selector
+                    .clone()
+                    .map(UncompressedPolyComm::from),
+            }
+        });
+
         VerifierIndexTS {
             domain_size: domain.size(),
             domain_gen: domain.group_gen.to_hex(),
@@ -404,7 +355,16 @@ impl From<&VerifierIndex<Pallas, OpeningProof<Pallas>>> for VerifierIndexTS {
             mul_comm: UncompressedPolyComm::from(mul_comm),
             emul_comm: UncompressedPolyComm::from(emul_comm),
             endomul_scalar_comm: UncompressedPolyComm::from(endomul_scalar_comm),
-            //powers_of_alpha,
+            range_check0_comm: range_check0_comm.as_ref().map(UncompressedPolyComm::from),
+            range_check1_comm: range_check1_comm.as_ref().map(UncompressedPolyComm::from),
+            foreign_field_add_comm: foreign_field_add_comm
+                .as_ref()
+                .map(UncompressedPolyComm::from),
+            foreign_field_mul_comm: foreign_field_mul_comm
+                .as_ref()
+                .map(UncompressedPolyComm::from),
+            xor_comm: xor_comm.as_ref().map(UncompressedPolyComm::from),
+            rot_comm: rot_comm.as_ref().map(UncompressedPolyComm::from),
             shift: shift.iter().map(|e| e.to_hex()).collect::<Vec<_>>(),
             permutation_vanishing_polynomial_m: permutation_vanishing_polynomial_m
                 .get()
@@ -415,7 +375,9 @@ impl From<&VerifierIndex<Pallas, OpeningProof<Pallas>>> for VerifierIndexTS {
                 .collect::<Vec<_>>(),
             w: w.get().unwrap().to_hex(),
             endo: endo.to_hex(),
+            lookup_index,
             linearization,
+            //powers_of_alpha,
         }
     }
 }

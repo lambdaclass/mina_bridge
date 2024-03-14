@@ -1,3 +1,180 @@
+import { ForeignBase } from '../foreign_fields/foreign_field.js';
+import { ForeignScalar } from '../foreign_fields/foreign_scalar.js';
+import { ForeignPallas, pallasZero } from '../foreign_fields/foreign_pallas.js';
+import { AggregatedEvaluationProof, bPoly, bPolyCoefficients, combineCommitments } from '../poly_commitment/commitment.js';
+import { ScalarChallenge } from "../verifier/scalar_challenge.js";
+import { SRS } from '../SRS.js';
+import { sqrtBase } from '../util/field.js';
+import { logField } from '../util/log.js';
+import { powScalar } from "../util/scalar.js";
+
+export function finalVerify(
+    srs: SRS,
+    group_map: BWParameters,
+    batch: AggregatedEvaluationProof
+): boolean {
+    const nonzero_length = srs.g.length;
+
+    const max_rounds = Math.ceil(Math.log2(nonzero_length));
+
+    const padded_length = 1 << max_rounds;
+
+    const endo_r = ForeignScalar.from("0x397e65a7d7c1ad71aee24b27e308f0a61259527ec1d4752e619d1840af55f1b1");
+
+    const zero = ForeignBase.from(0);
+    const padding = padded_length - nonzero_length;
+    let points = [srs.h];
+    points = points.concat(srs.g);
+    points.concat(new Array(padding).fill(pallasZero()));
+
+    let scalars = new Array(padded_length + 1).fill(zero);
+
+    const rand_base = ForeignScalar.from(0x068EC6E24481F548A1E59ED41FA4459C76A1220B34376903C5EC15D08B406378n);
+    const sg_rand_base = ForeignScalar.from(0x36AF07E9262ADDD8B4FA1CAB629745BD539B2546784D54686B5F6F2EDAA5C8A5n);
+
+    const {
+        sponge,
+        evaluation_points,
+        polyscale,
+        evalscale,
+        evaluations,
+        opening,
+        combined_inner_product,
+    } = batch;
+
+    // absorb x - 2^n where n is the bits used to represent the scalar field modulus
+    const MODULUS_BITS = 255;
+    sponge.absorbFr(combined_inner_product.sub(powScalar(ForeignScalar.from(2), MODULUS_BITS) ).assertAlmostReduced());
+
+    const t = sponge.challengeFq();
+    const u = group_map.toGroup(t.assertAlmostReduced());
+
+    const chal_tuple = opening.challenges(endo_r, sponge);
+    const chal = chal_tuple[0];
+    const chal_inv = chal_tuple[1];
+
+    sponge.absorbGroup(opening.delta);
+    let c = new ScalarChallenge(sponge.challenge()).toField(endo_r);
+
+    let scale = ForeignScalar.from(1);
+    let res = ForeignScalar.from(0);
+    for (const e of evaluation_points) {
+        const term = bPoly(chal, e);
+        res = res.add(scale.mul(term.assertCanonical()).assertCanonical()).assertCanonical();
+        scale = scale.mul(evalscale.assertCanonical()).assertCanonical();
+    }
+    const b0 = res;
+
+    const s = bPolyCoefficients(chal);
+
+    const neg_rand_base = rand_base.neg();
+
+    points.push(opening.sg);
+    scalars.push(neg_rand_base.mul(opening.z1).sub(sg_rand_base));
+
+    const terms = s.map((s) => sg_rand_base.mul(s));
+    for (const [i, term] of terms.entries()) {
+        scalars[i + 1] = scalars[i + 1].add(term);
+    }
+    console.log("finished terms");
+
+    scalars[0] = scalars[0].sub(rand_base.mul(opening.z2));
+
+    scalars.push(neg_rand_base.mul(opening.z1).assertCanonical().mul(b0));
+    points.push(u!);
+
+    const rand_base_c = c.mul(rand_base);
+    const length = Math.min(opening.lr.length, Math.min(chal_inv.length, chal.length));
+    console.log("start loop");
+    for (let i = 0; i < length; i++) {
+        const l = opening.lr[i][0];
+        const r = opening.lr[i][1];
+        const u_inv = chal_inv[i];
+        const u = chal[i];
+
+        points.push(l);
+        scalars.push(rand_base_c.assertAlmostReduced().mul(u_inv));
+
+        points.push(r)
+        scalars.push(rand_base_c.assertAlmostReduced().mul(u));
+    }
+
+    combineCommitments(
+        evaluations,
+        scalars,
+        points,
+        polyscale,
+        rand_base_c.assertAlmostReduced()
+    );
+
+    scalars.push(rand_base_c.assertAlmostReduced().mul(combined_inner_product));
+    points.push(u!);
+
+    scalars.push(rand_base);
+    points.push(opening.delta);
+
+    console.log("points len: ", points.length);
+    console.log("scalars len: ", scalars.length);
+
+    logField("scalars last: ", scalars[scalars.length - 1]);
+    logField("points last: ", points[points.length - 1].x);
+
+    console.log("end of verifier");
+    // missing: final MSM
+
+    return false;
+}
+
+export class BWParameters {
+    u: ForeignBase
+    fu: ForeignBase
+    sqrtNegThreeUSquaredMinusUOver2: ForeignBase
+    sqrtNegThreeUSquared: ForeignBase
+    invThreeUSquared: ForeignBase
+
+    constructor() {
+        // constants which only depend on the group (Pallas). These were taken from the Rust implementation.
+        this.u = ForeignBase.from(0x0000000000000000000000000000000000000000000000000000000000000001n);
+        this.fu = ForeignBase.from(0x0000000000000000000000000000000000000000000000000000000000000006n);
+        this.sqrtNegThreeUSquaredMinusUOver2 = ForeignBase.from(0x12CCCA834ACDBA712CAAD5DC57AAB1B01D1F8BD237AD31491DAD5EBDFDFE4AB9n);
+        this.sqrtNegThreeUSquared = ForeignBase.from(0x25999506959B74E25955ABB8AF5563603A3F17A46F5A62923B5ABD7BFBFC9573n);
+        this.invThreeUSquared = ForeignBase.from(0x2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC18465FD5B88A612661E209E00000001n);
+    }
+
+    toGroup(t: ForeignScalar): ForeignPallas | undefined {
+        const t2 = t.mul(t).assertAlmostReduced();
+        let alpha_inv = t2;
+        alpha_inv = alpha_inv.add(this.fu).assertAlmostReduced();
+        alpha_inv = alpha_inv.mul(t2).assertAlmostReduced();
+
+        const alpha = alpha_inv.inv();
+
+        let x1 = t2;
+        x1 = x1.mul(x1).assertAlmostReduced();
+        x1 = x1.mul(alpha).assertAlmostReduced();
+        x1 = x1.mul(this.sqrtNegThreeUSquared.assertAlmostReduced()).assertAlmostReduced();
+        x1 = this.sqrtNegThreeUSquaredMinusUOver2.sub(x1).assertAlmostReduced();
+
+        const x2 = this.u.neg().sub(x1);
+
+        const t2_plus_fu = t2.add(this.fu);
+        const t2_inv = alpha.mul(t2_plus_fu.assertAlmostReduced());
+        let x3 = t2_plus_fu.assertAlmostReduced().mul(t2_plus_fu.assertAlmostReduced());
+        x3 = x3.assertAlmostReduced().mul(t2_inv.assertAlmostReduced());
+        x3 = x3.assertAlmostReduced().mul(this.invThreeUSquared.assertAlmostReduced());
+        x3 = this.u.sub(x3);
+
+        const xvec = [x1, x2, x3];
+        for (const x of xvec) {
+            // curve equation: y^2 = x^3 + 5
+            const ysqrd = x.assertAlmostReduced().mul(x.assertAlmostReduced()).assertAlmostReduced().mul(x.assertAlmostReduced()).add(ForeignBase.from(5));
+            const y = sqrtBase(ysqrd.assertAlmostReduced());
+            if (y) return new ForeignPallas({ x: x.assertAlmostReduced(), y: y.assertAlmostReduced() });
+        }
+
+        return undefined;
+    }
+}
 /*
     /// This function verifies batch of batched polynomial commitment opening proofs
     ///     batch: batch of batched polynomial commitment opening proofs
