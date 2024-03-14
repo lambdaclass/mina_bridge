@@ -23,8 +23,12 @@ console.log("Generating verifier circuit keypair...");
 let openingProof = deserOpeningProof(inputs);
 let keypair = await Verifier.generateKeypair();
 console.log("Proving...");
-let proof = await Verifier.prove([], [openingProof], keypair);
-console.log(proof);
+let { value } = await Verifier.prove([], [openingProof], keypair);
+console.log("Writing proof into file...");
+let proof = (value as string[])[1];
+let index = (value as string[])[2];
+writeFileSync("../kzg_prover/prover_proof.json", proof);
+writeFileSync("../kzg_prover/index.json", index);
 
 console.log("Writing circuit gates into file...");
 let gates = keypair.constraintSystem();

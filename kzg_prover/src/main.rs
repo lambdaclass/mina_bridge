@@ -78,7 +78,123 @@ type KZGProof = PairingProof<ark_ec::bn::Bn<ark_bn254::Parameters>>;
 fn main() {
     generate_test_proof_for_demo();
     //generate_test_proof();
-    generate_test_proof_for_evm_verifier();
+    generate_proof();
+    // generate_test_proof_for_evm_verifier();
+}
+
+fn generate_proof() {
+    let rng = &mut StdRng::from_seed([255u8; 32]);
+
+    let prover_proof: ProverProof<G1, KZGProof> =
+        serde_json::from_str(&fs::read_to_string("./prover_proof.json").unwrap()).unwrap();
+    println!("{:?}", prover_proof);
+
+    // Create range-check gadget
+    let (mut next_row, mut gates) = CircuitGate::<ScalarField>::create_multi_range_check(0);
+
+    // Create witness
+    let witness = range_check::witness::create_multi::<ScalarField>(
+        rng.gen_biguint_range(&BigUint::zero(), &BigUint::two_to_limb())
+            .to_field()
+            .expect("failed to convert to field"),
+        rng.gen_biguint_range(&BigUint::zero(), &BigUint::two_to_limb())
+            .to_field()
+            .expect("failed to convert to field"),
+        rng.gen_biguint_range(&BigUint::zero(), &BigUint::two_to_limb())
+            .to_field()
+            .expect("failed to convert to field"),
+    );
+
+    // Temporary workaround for lookup-table/domain-size issue
+    for _ in 0..(1 << 13) {
+        gates.push(CircuitGate::zero(Wire::for_row(next_row)));
+        next_row += 1;
+    }
+
+    // Create constraint system
+    let cs = ConstraintSystem::<ScalarField>::create(gates)
+        //.lookup(vec![range_check::gadget::lookup_table()])
+        .build()
+        .unwrap();
+
+    // This seed (42) is also used for generating a trusted setup in Solidity.
+    let x = ark_bn254::Fr::from(42);
+    let mut srs = create_srs(x, cs.gates.len(), cs.domain);
+    srs.full_srs.add_lagrange_basis(cs.domain.d1);
+
+    let (_endo_q, endo_r) = G1::endos();
+    let index = ProverIndex::<G1, KZGProof>::create(cs, *endo_r, Arc::new(srs.clone()));
+    println!("cs endo: {}", endo_r); // ProverIndex::create() sets cs endo to endo_r
+
+    let group_map = <G1 as CommitmentCurve>::Map::setup();
+    let proof = ProverProof::create_recursive::<KeccakFqSponge, KeccakFrSponge>(
+        &group_map,
+        witness,
+        &[],
+        &index,
+        vec![],
+        None,
+    )
+    .unwrap();
+
+    println!(
+        "verifier_index digest: {}",
+        index.verifier_index().digest::<KeccakFqSponge>()
+    );
+
+    // Partially verify proof
+    let public_inputs = vec![];
+    let agg_proof = to_batch::<
+        G1Affine,
+        Keccak256FqSponge<BaseField, G1, ScalarField>,
+        Keccak256FrSponge<ScalarField>,
+        KZGProof,
+    >(&index.verifier_index(), &proof, &public_inputs)
+    .unwrap();
+
+    // Final verify
+    let BatchEvaluationProof {
+        sponge: _,
+        evaluations,
+        evaluation_points,
+        polyscale,
+        evalscale: _,
+        opening,
+        combined_inner_product: _,
+    } = agg_proof;
+    if !opening.verify(&srs, &evaluations, polyscale, &evaluation_points) {
+        panic!();
+    }
+
+    // Serialize and write to binaries
+    fs::write(
+        "../eth_verifier/prover_proof.mpk",
+        rmp_serde::to_vec_named(&proof).unwrap(),
+    )
+    .unwrap();
+    fs::write(
+        "../eth_verifier/verifier_index.mpk",
+        rmp_serde::to_vec_named(&index.verifier_index()).unwrap(),
+    )
+    .unwrap();
+    let srs_to_serialize = PairingSRS::<Bn<Parameters>> {
+        full_srs: SRS {
+            g: srs.full_srs.g[0..3].to_vec(),
+            h: srs.full_srs.h,
+            lagrange_bases: HashMap::new(),
+        },
+        verifier_srs: srs.verifier_srs,
+    };
+    fs::write(
+        "../eth_verifier/urs.mpk",
+        rmp_serde::to_vec_named(&srs_to_serialize).unwrap(),
+    )
+    .unwrap();
+    fs::write(
+        "../eth_verifier/linearization.mpk",
+        &serialize_linearization(index.linearization),
+    )
+    .unwrap();
 }
 
 fn generate_test_proof_for_evm_verifier() {

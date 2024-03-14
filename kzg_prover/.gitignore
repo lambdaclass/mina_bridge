@@ -1,2 +1,4 @@
 target/
 gates.json
+index.json
+prover_proof.json
