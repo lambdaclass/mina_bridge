@@ -33,7 +33,7 @@ export class OpeningProof {
      * Returns the sum of `sizeInFields()` of all the class fields, which depends on `SRS.g` length.
      */
     static sizeInFields() {
-        const lrSize = this.#rounds() * 2 * 6;
+        const lrSize = 2 * 17 * ForeignPallas.sizeInFields();
         const deltaSize = ForeignPallas.sizeInFields();
         const z1Size = ForeignScalar.sizeInFields();
         const z2Size = ForeignScalar.sizeInFields();
