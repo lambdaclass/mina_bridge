@@ -135,7 +135,7 @@ fn generate_proof() {
 
     // Serialize and write to binaries
     fs::write(
-        "../eth_verifier/prover_proof.mpk",
+        "../eth_verifier/proof.mpk",
         rmp_serde::to_vec_named(&proof).unwrap(),
     )
     .unwrap();
