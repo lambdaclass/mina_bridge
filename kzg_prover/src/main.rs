@@ -1,21 +1,16 @@
 mod snarky_gate;
 
-use std::{
-    array,
-    collections::HashMap,
-    fs::{self, File},
-    ops::Neg,
-    sync::Arc,
-};
+use std::{array, collections::HashMap, fs, ops::Neg, sync::Arc};
 
-use ark_bn254::{Bn254, G1Affine, G2Affine, Parameters};
+use ark_bn254::{G1Affine, G2Affine, Parameters};
 use ark_ec::{
     bn::Bn, msm::VariableBaseMSM, short_weierstrass_jacobian::GroupAffine, AffineCurve,
     ProjectiveCurve,
 };
 use ark_ff::PrimeField;
 use ark_poly::{
-    univariate::DensePolynomial, Evaluations, Polynomial, Radix2EvaluationDomain, UVPolynomial,
+    univariate::DensePolynomial, EvaluationDomain, Evaluations, Polynomial, Radix2EvaluationDomain,
+    UVPolynomial,
 };
 use ark_serialize::{CanonicalSerialize, SerializationError};
 use ark_std::{
@@ -38,12 +33,10 @@ use kimchi::{
     curve::KimchiCurve,
     groupmap::*,
     keccak_sponge::{Keccak256FqSponge, Keccak256FrSponge},
-    o1_utils::{foreign_field::BigUintForeignFieldHelpers, BigUintFieldHelpers, FieldHelpers},
+    o1_utils::{foreign_field::BigUintForeignFieldHelpers, BigUintFieldHelpers},
     proof::ProverProof,
-    prover,
-    prover_index::{self, ProverIndex},
+    prover_index::ProverIndex,
     verifier::{batch_verify, Context},
-    verifier_index,
 };
 use kzg_prover::to_batch::to_batch;
 use num::{bigint::RandBigInt, BigUint};
@@ -52,19 +45,13 @@ use poly_commitment::{
     commitment::{
         combine_commitments, combine_evaluations, BatchEvaluationProof, CommitmentCurve, Evaluation,
     },
-    evaluation_proof::{combine_polys, DensePolynomialOrEvaluations, OpeningProof},
+    evaluation_proof::DensePolynomialOrEvaluations,
     pairing_proof::{PairingProof, PairingSRS},
-    srs::{endos, SRS},
-    PolyComm, SRS as _,
+    srs::SRS,
+    SRS as _,
 };
 use serde::{ser::SerializeStruct, Serialize};
 use snarky_gate::SnarkyGate;
-
-type PolynomialsToCombine<'a> = &'a [(
-    DensePolynomialOrEvaluations<'a, ark_bn254::Fr, Radix2EvaluationDomain<ark_bn254::Fr>>,
-    Option<usize>,
-    PolyComm<ark_bn254::Fr>,
-)];
 
 type BaseField = ark_bn254::Fq;
 type ScalarField = ark_bn254::Fr;
@@ -76,70 +63,40 @@ type KeccakFrSponge = Keccak256FrSponge<ScalarField>;
 type KZGProof = PairingProof<ark_ec::bn::Bn<ark_bn254::Parameters>>;
 
 fn main() {
-    generate_test_proof_for_demo();
+    // generate_test_proof_for_demo();
     //generate_test_proof();
     generate_proof();
     // generate_test_proof_for_evm_verifier();
 }
 
 fn generate_proof() {
-    let rng = &mut StdRng::from_seed([255u8; 32]);
-
-    let prover_proof: ProverProof<G1, KZGProof> =
+    let proof: ProverProof<G1, KZGProof> =
         serde_json::from_str(&fs::read_to_string("./prover_proof.json").unwrap()).unwrap();
-    println!("{:?}", prover_proof);
 
-    // Create range-check gadget
-    let (mut next_row, mut gates) = CircuitGate::<ScalarField>::create_multi_range_check(0);
-
-    // Create witness
-    let witness = range_check::witness::create_multi::<ScalarField>(
-        rng.gen_biguint_range(&BigUint::zero(), &BigUint::two_to_limb())
-            .to_field()
-            .expect("failed to convert to field"),
-        rng.gen_biguint_range(&BigUint::zero(), &BigUint::two_to_limb())
-            .to_field()
-            .expect("failed to convert to field"),
-        rng.gen_biguint_range(&BigUint::zero(), &BigUint::two_to_limb())
-            .to_field()
-            .expect("failed to convert to field"),
-    );
-
-    // Temporary workaround for lookup-table/domain-size issue
-    for _ in 0..(1 << 13) {
-        gates.push(CircuitGate::zero(Wire::for_row(next_row)));
-        next_row += 1;
-    }
-
-    // Create constraint system
-    let cs = ConstraintSystem::<ScalarField>::create(gates)
-        //.lookup(vec![range_check::gadget::lookup_table()])
-        .build()
-        .unwrap();
-
-    // This seed (42) is also used for generating a trusted setup in Solidity.
-    let x = ark_bn254::Fr::from(42);
-    let mut srs = create_srs(x, cs.gates.len(), cs.domain);
-    srs.full_srs.add_lagrange_basis(cs.domain.d1);
+    let mut index: ProverIndex<G1, KZGProof> =
+        serde_json::from_str(&fs::read_to_string("./index.json").unwrap()).unwrap();
 
     let (_endo_q, endo_r) = G1::endos();
-    let index = ProverIndex::<G1, KZGProof>::create(cs, *endo_r, Arc::new(srs.clone()));
     println!("cs endo: {}", endo_r); // ProverIndex::create() sets cs endo to endo_r
 
-    let group_map = <G1 as CommitmentCurve>::Map::setup();
-    let proof = ProverProof::create_recursive::<KeccakFqSponge, KeccakFrSponge>(
-        &group_map,
-        witness,
-        &[],
-        &index,
-        vec![],
-        None,
-    )
-    .unwrap();
+    // FIXME: this is hacky, this should be optimized to avoid cloning
+    let mut srs = (*index.srs).clone();
+    srs.full_srs.add_lagrange_basis(index.cs.domain.d1);
+    let index: ProverIndex<G1, KZGProof> =
+        ProverIndex::create(index.cs.clone(), index.cs.endo, Arc::new(srs));
+
+    let verifier_index = index.verifier_index();
 
     println!(
+        "lagrange basis: {:?}",
+        index
+            .srs
+            .full_srs
+            .get_lagrange_basis(index.cs.domain.d1.size())
+    );
+    println!(
         "verifier_index digest: {}",
-        index.verifier_index().digest::<KeccakFqSponge>()
+        verifier_index.digest::<KeccakFqSponge>()
     );
 
     // Partially verify proof
@@ -149,7 +106,7 @@ fn generate_proof() {
         Keccak256FqSponge<BaseField, G1, ScalarField>,
         Keccak256FrSponge<ScalarField>,
         KZGProof,
-    >(&index.verifier_index(), &proof, &public_inputs)
+    >(&verifier_index, &proof, &public_inputs)
     .unwrap();
 
     // Final verify
@@ -162,7 +119,7 @@ fn generate_proof() {
         opening,
         combined_inner_product: _,
     } = agg_proof;
-    if !opening.verify(&srs, &evaluations, polyscale, &evaluation_points) {
+    if !opening.verify(&index.srs, &evaluations, polyscale, &evaluation_points) {
         panic!();
     }
 
@@ -174,16 +131,16 @@ fn generate_proof() {
     .unwrap();
     fs::write(
         "../eth_verifier/verifier_index.mpk",
-        rmp_serde::to_vec_named(&index.verifier_index()).unwrap(),
+        rmp_serde::to_vec_named(&verifier_index).unwrap(),
     )
     .unwrap();
     let srs_to_serialize = PairingSRS::<Bn<Parameters>> {
         full_srs: SRS {
-            g: srs.full_srs.g[0..3].to_vec(),
-            h: srs.full_srs.h,
+            g: index.srs.full_srs.g[0..3].to_vec(),
+            h: index.srs.full_srs.h,
             lagrange_bases: HashMap::new(),
         },
-        verifier_srs: srs.verifier_srs,
+        verifier_srs: index.srs.verifier_srs.clone(),
     };
     fs::write(
         "../eth_verifier/urs.mpk",
