@@ -25,10 +25,10 @@ let keypair = await Verifier.generateKeypair();
 console.log("Proving...");
 let { value } = await Verifier.prove([], [openingProof], keypair);
 console.log("Writing proof into file...");
-let proof = (value as string[])[1];
+let proof_with_public = (value as string[])[1];
 let index = (value as string[])[2];
 let srs = (value as string[])[3];
-writeFileSync("../kzg_prover/prover_proof.json", proof);
+writeFileSync("../kzg_prover/proof_with_public.json", proof_with_public);
 writeFileSync("../kzg_prover/index.json", index);
 writeFileSync("../kzg_prover/srs.json", srs);
 

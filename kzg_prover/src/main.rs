@@ -7,7 +7,7 @@ use ark_ec::{
     bn::Bn, msm::VariableBaseMSM, short_weierstrass_jacobian::GroupAffine, AffineCurve,
     ProjectiveCurve,
 };
-use ark_ff::PrimeField;
+use ark_ff::{BigInteger256, PrimeField};
 use ark_poly::{
     univariate::DensePolynomial, EvaluationDomain, Evaluations, Polynomial, Radix2EvaluationDomain,
     UVPolynomial,
@@ -41,6 +41,7 @@ use kimchi::{
 use kzg_prover::to_batch::to_batch;
 use num::{bigint::RandBigInt, BigUint};
 use num_traits::{One, Zero};
+use o1_utils::FieldHelpers;
 use poly_commitment::{
     commitment::{
         combine_commitments, combine_evaluations, BatchEvaluationProof, CommitmentCurve, Evaluation,
@@ -70,19 +71,20 @@ fn main() {
 }
 
 fn generate_proof() {
-    let proof: ProverProof<G1, KZGProof> =
-        serde_json::from_str(&fs::read_to_string("./prover_proof.json").unwrap()).unwrap();
+    let (proof, public_input): (ProverProof<G1, KZGProof>, Vec<[u64; 4]>) =
+        serde_json::from_str(&fs::read_to_string("./proof_with_public.json").unwrap()).unwrap();
 
     let index: ProverIndex<G1, KZGProof> =
         serde_json::from_str(&fs::read_to_string("./index.json").unwrap()).unwrap();
-
-    let mut srs: PairingSRS<Bn<ark_bn254::Parameters>> =
-        serde_json::from_str(&fs::read_to_string("./srs.json").unwrap()).unwrap();
+    println!("domain size: {}", index.cs.domain.d1.size);
 
     let (_endo_q, endo_r) = G1::endos();
     println!("cs endo: {}", endo_r); // ProverIndex::create() sets cs endo to endo_r
 
     // FIXME: this is hacky, this should be optimized to avoid cloning
+    // This seed (42) is also used for generating a trusted setup in Solidity.
+    let x = ark_bn254::Fr::from(42);
+    let mut srs = PairingSRS::create(x, index.cs.domain.d1.size as usize); // size is 8192
     srs.full_srs.add_lagrange_basis(index.cs.domain.d1);
 
     let index: ProverIndex<G1, KZGProof> =
@@ -103,14 +105,18 @@ fn generate_proof() {
         verifier_index.digest::<KeccakFqSponge>()
     );
 
+    let public_input: Vec<_> = public_input
+        .iter()
+        .map(|&p_i| ark_bn254::Fr::new(BigInteger256::new(p_i)))
+        .collect();
+
     // Partially verify proof
-    let public_inputs = vec![];
     let agg_proof = to_batch::<
         G1Affine,
         Keccak256FqSponge<BaseField, G1, ScalarField>,
         Keccak256FrSponge<ScalarField>,
         KZGProof,
-    >(&verifier_index, &proof, &public_inputs)
+    >(&verifier_index, &proof, &public_input)
     .unwrap();
 
     // Final verify
