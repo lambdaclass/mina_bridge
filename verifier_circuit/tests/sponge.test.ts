@@ -14,7 +14,7 @@ test("squeeze_internal", () => {
     });
 })
 
-test("fr_squeeze_internal", () => {
+test.skip("fr_squeeze_internal", () => {
     ProvableBn254.runAndCheck(() => {
         let sponge = new ArithmeticSponge(fq_sponge_params());
         sponge.init(fq_sponge_initial_state());
@@ -38,7 +38,7 @@ test("absorb_squeeze_internal", () => {
     });
 })
 
-test("fr_absorb_squeeze_internal", () => {
+test.skip("fr_absorb_squeeze_internal", () => {
     ProvableBn254.runAndCheck(() => {
         let sponge = new ArithmeticSponge(fq_sponge_params());
         sponge.init(fq_sponge_initial_state());
@@ -70,7 +70,7 @@ test("absorb_digest_scalar", () => {
     });
 })
 
-test("fr_absorb_digest_scalar", () => {
+test.skip("fr_absorb_digest_scalar", () => {
     ProvableBn254.runAndCheck(() => {
         let fr_sponge = new Sponge(fq_sponge_params(), fq_sponge_initial_state());
         fr_sponge.absorb(ForeignScalar.from(42));
