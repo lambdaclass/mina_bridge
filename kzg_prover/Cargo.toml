@@ -6,9 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-kimchi = { path = "proof-systems/kimchi", version = "0.1.0", features = ["bn254", "keccak-sponges"] }
-o1-utils = { path = "proof-systems/utils", version = "0.1.0" }
-poly-commitment = { path = "proof-systems/poly-commitment", version = "0.1.0" }
+kimchi = { path = "../verifier_circuit/o1js/src/mina/src/lib/crypto/proof-systems/kimchi", version = "0.1.0", features = ["bn254", "keccak-sponges"] }
+o1-utils = { path = "../verifier_circuit/o1js/src/mina/src/lib/crypto/proof-systems/utils", version = "0.1.0" }
+poly-commitment = { path = "../verifier_circuit/o1js/src/mina/src/lib/crypto/proof-systems/poly-commitment", version = "0.1.0" }
+mina-poseidon = { path = "../verifier_circuit/o1js/src/mina/src/lib/crypto/proof-systems/poseidon", version = "0.1.0" }
 ark-bn254 = "0.3.0"
 ark-ec = "0.3.0"
 ark-ff = "0.3.0"
@@ -23,4 +24,3 @@ num = "0.4.1"
 const-hex = "1.10.0"
 hex = "0.4.3"
 serde_with = "3.4.0"
-mina-poseidon = { path = "proof-systems/poseidon", version = "0.1.0" }

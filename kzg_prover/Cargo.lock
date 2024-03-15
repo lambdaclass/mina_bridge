@@ -689,6 +689,7 @@ dependencies = [
 name = "mina-curves"
 version = "0.1.0"
 dependencies = [
+ "ark-bn254",
  "ark-ec",
  "ark-ff",
 ]

@@ -19,10 +19,9 @@ use ark_std::{
 };
 use kimchi::{
     circuits::{
-        berkeley_columns::Column,
         constraints::ConstraintSystem,
         domains::EvaluationDomains,
-        expr::{Linearization, PolishToken, RowOffset, Variable},
+        expr::{Linearization, PolishToken, Variable},
         gate::{CircuitGate, GateType},
         polynomials::{
             generic::testing::{create_circuit, fill_in_witness},
@@ -36,12 +35,10 @@ use kimchi::{
     o1_utils::{foreign_field::BigUintForeignFieldHelpers, BigUintFieldHelpers},
     proof::ProverProof,
     prover_index::ProverIndex,
-    verifier::{batch_verify, Context},
+    verifier::{batch_verify, to_batch, Context},
 };
-use kzg_prover::to_batch::to_batch;
 use num::{bigint::RandBigInt, BigUint};
 use num_traits::{One, Zero};
-use o1_utils::FieldHelpers;
 use poly_commitment::{
     commitment::{
         combine_commitments, combine_evaluations, BatchEvaluationProof, CommitmentCurve, Evaluation,
@@ -310,7 +307,7 @@ impl Serialize for Literal {
 
 #[derive(Serialize)]
 struct Cell {
-    variable: Variable<Column>,
+    variable: Variable,
 }
 
 #[derive(Serialize)]
@@ -320,7 +317,7 @@ struct Pow {
 
 #[derive(Serialize)]
 struct UnnormalizedLagrangeBasis {
-    rowoffset: RowOffset,
+    rowoffset: i32,
 }
 
 #[derive(Serialize)]
@@ -328,9 +325,7 @@ struct Load {
     load: usize,
 }
 
-fn serialize_linearization(
-    linearization: Linearization<Vec<PolishToken<ScalarField, Column>>, Column>,
-) -> Vec<u8> {
+fn serialize_linearization(linearization: Linearization<Vec<PolishToken<ScalarField>>>) -> Vec<u8> {
     let constant_term_ser: Vec<_> = linearization
         .constant_term
         .iter()
