@@ -239,7 +239,7 @@ It receives the state proof and the public inputs from the `verifier_circuit` mo
 * calculates the verifier index
 * calculates the linearization
 
-and send it with the proof, the verifier input and the SRS.
+and sends it with the proof, the verifier input and the SRS.
 
 ### Ethereum smart contract verifier
 
