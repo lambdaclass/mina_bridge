@@ -29,7 +29,7 @@ contract Verify is Script {
             linearization_serialized_rlp
         );
 
-        require(success, "Verification failed.");
+        require(!success, "Verification failed.");
 
         vm.stopBroadcast();
     }

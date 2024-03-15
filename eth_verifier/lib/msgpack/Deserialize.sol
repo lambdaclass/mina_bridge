@@ -1054,6 +1054,20 @@ library MsgPk {
         }
     }
 
+    function deser_public_inputs(bytes calldata data)
+        public
+        view
+        returns (Scalar.FE[] memory public_input)
+    {
+        uint256 public_input_len = data.length / 32; // each element is 32 bytes
+        public_input = new Scalar.FE[](public_input_len);
+
+        for (uint i = 0; i < public_input_len; i++) {
+            uint256 offset = i * 32;
+            public_input[i] = Scalar.from(uint256(bytes32(data[offset:offset+32])));
+        }
+    }
+
     /* WARN:
      * Functions below are part of the previous deserializer implementation,
      * and are still used for functions related to the demo. The goal is to replace

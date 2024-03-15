@@ -183,6 +183,7 @@ fn generate_proof() {
         public_input_bytes,
     )
     .unwrap();
+    println!("third public input: {}", public_input[2]);
 }
 
 // #[serde_as]
