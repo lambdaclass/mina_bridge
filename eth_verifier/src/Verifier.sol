@@ -70,8 +70,8 @@ contract KimchiVerifier {
     function verify_with_index(
         bytes calldata verifier_index_serialized,
         bytes calldata prover_proof_serialized,
-        bytes calldata public_inputs_serialized,
-        bytes calldata linearization_serialized_rlp
+        bytes calldata linearization_serialized_rlp,
+        bytes calldata public_inputs_serialized
     ) public returns (bool) {
         deserialize_proof(
             verifier_index_serialized,
