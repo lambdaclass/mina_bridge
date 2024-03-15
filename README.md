@@ -237,7 +237,9 @@ This module contains a Rust crate for generating a KZG proof. This proof is used
 It receives the state proof and the public inputs from the `verifier_circuit` module and:
 
 * calculates the verifier index
-* linearization of the
+* calculates the linearization
+
+and send it with the proof, the verifier input and the SRS.
 
 ### Ethereum smart contract verifier
 
