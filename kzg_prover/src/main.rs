@@ -162,6 +162,20 @@ fn generate_proof() {
         &serialize_linearization(index.linearization),
     )
     .unwrap();
+
+    
+    // fs::write(
+    //     "../eth_verifier/public_inputs.mpk",
+    //     rmp_serde::to_vec_named(&public_input).unwrap(),
+    // )
+    // .unwrap();
+}
+
+#[serde_as]
+#[derive(Debug, Clone, Serialize)]
+struct PublicInputs {
+    #[serde_as(as = "Vec<kimchi::o1_utils::serialization::SerdeAs>")]
+    inputs: Vec<ScalarField>
 }
 
 fn generate_test_proof_for_evm_verifier() {
