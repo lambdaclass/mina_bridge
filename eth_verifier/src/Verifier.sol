@@ -33,6 +33,7 @@ contract KimchiVerifier {
     VerifierIndex verifier_index;
     ProverProof proof;
     PairingURS urs;
+    Scalar.FE[] public_inputs;
 
     Sponge base_sponge;
     Sponge scalar_sponge;
@@ -55,22 +56,30 @@ contract KimchiVerifier {
     function deserialize_proof(
         bytes calldata verifier_index_serialized,
         bytes calldata prover_proof_serialized,
-        bytes calldata linearization_serialized_rlp
+        bytes calldata linearization_serialized_rlp,
+        bytes calldata public_inputs_serialized
     )
         public
     {
         MsgPk.deser_verifier_index(MsgPk.new_stream(verifier_index_serialized), verifier_index);
         MsgPk.deser_prover_proof(MsgPk.new_stream(prover_proof_serialized), proof);
         verifier_index.linearization = abi.decode(linearization_serialized_rlp, (Linearization));
+        public_inputs = MsgPk.deser_public_inputs(public_inputs_serialized);
     }
 
     function verify_with_index(
         bytes calldata verifier_index_serialized,
         bytes calldata prover_proof_serialized,
+        bytes calldata public_inputs_serialized,
         bytes calldata linearization_serialized_rlp
     ) public returns (bool) {
-        deserialize_proof(verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp);
-        AggregatedEvaluationProof memory agg_proof = partial_verify(new Scalar.FE[](0));
+        deserialize_proof(
+            verifier_index_serialized,
+            prover_proof_serialized,
+            linearization_serialized_rlp,
+            public_inputs_serialized
+        );
+        AggregatedEvaluationProof memory agg_proof = partial_verify();
         return final_verify(agg_proof, urs.verifier_urs);
     }
 
@@ -102,7 +111,7 @@ contract KimchiVerifier {
     error IncorrectPublicInputLength();
 
     // This takes Kimchi's `to_batch()` as reference.
-    function partial_verify(Scalar.FE[] memory public_inputs) public returns (AggregatedEvaluationProof memory ){
+    function partial_verify() public returns (AggregatedEvaluationProof memory ){
         // TODO: 1. CHeck the length of evaluations insde the proof
 
         // 2. Commit to the negated public input polynomial.
