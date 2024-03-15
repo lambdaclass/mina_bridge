@@ -12,7 +12,7 @@ use ark_poly::{
     univariate::DensePolynomial, EvaluationDomain, Evaluations, Polynomial, Radix2EvaluationDomain,
     UVPolynomial,
 };
-use ark_serialize::{CanonicalSerialize, SerializationError};
+use ark_serialize::{CanonicalDeserialize, CanonicalSerialize, SerializationError};
 use ark_std::{
     rand::{rngs::StdRng, SeedableRng},
     UniformRand,
@@ -52,6 +52,7 @@ use poly_commitment::{
     SRS as _,
 };
 use serde::{ser::SerializeStruct, Serialize};
+use serde_with::serde_as;
 use snarky_gate::SnarkyGate;
 
 type BaseField = ark_bn254::Fq;
@@ -163,20 +164,34 @@ fn generate_proof() {
     )
     .unwrap();
 
-    
-    // fs::write(
-    //     "../eth_verifier/public_inputs.mpk",
-    //     rmp_serde::to_vec_named(&public_input).unwrap(),
-    // )
-    // .unwrap();
+    println!("public input len: {}", public_input.len());
+
+    let mut public_input_bytes = vec![vec![]; public_input.len()];
+    let _ = public_input
+        .iter()
+        .enumerate()
+        .for_each(|(i, x)| {
+            x.serialize(&mut public_input_bytes[i]);
+            public_input_bytes[i].reverse()
+            //println!("public input serialized: {:?}", public_input_bytes[i]);
+            //println!("public input: {:?}", x);
+        });
+
+    let public_input_bytes: Vec<_> = public_input_bytes.iter().cloned().flatten().collect();
+    fs::write(
+        "../eth_verifier/public_inputs.mpk",
+        public_input_bytes,
+    )
+    .unwrap();
 }
 
-#[serde_as]
-#[derive(Debug, Clone, Serialize)]
-struct PublicInputs {
-    #[serde_as(as = "Vec<kimchi::o1_utils::serialization::SerdeAs>")]
-    inputs: Vec<ScalarField>
-}
+// #[serde_as]
+// #[derive(Debug, Clone, Serialize)]
+// #[serde(bound = "ScalarField: CanonicalDeserialize + CanonicalSerialize")]
+// struct PublicInputs {
+//     #[serde_as(as = "Vec<kimchi::o1_utils::serialization::SerdeAs>")]
+//     inputs: Vec<ScalarField>,
+// }
 
 fn generate_test_proof_for_evm_verifier() {
     let rng = &mut StdRng::from_seed([255u8; 32]);
