@@ -2,7 +2,7 @@
 
 # mina_bridge 🌉
 
-### Zero-knowledge state bridge from Mina to Ethereum
+## Zero-knowledge state bridge from Mina to Ethereum
 
 </div>
 
@@ -11,16 +11,17 @@
 This project introduces the proof generation, posting and verification of the validity of [Mina](https://minaprotocol.com/) states into a EVM chain, which will serve as a foundation for token bridging.
 
 We are working on delivering an MVP for mid March 2024. This MVP verifies Mina state opening proofs in Ethereum without taking into account consensus validation and Pickles verification.
+
 * **Circuit for verification algorithm.** :no_entry_sign: All the tasks described below can be started once the new circuit framework and its API in Rust is ready to be used
-    * Integrate current Kimchi partial verification in o1js with the verifier circuit. The rework in Rust should take 2 weeks, depending on the new API.
-    * Complete Kimchi verifier circuit: final verification. (2 weeks)
+  * Integrate current Kimchi partial verification in o1js with the verifier circuit. The rework in Rust should take 2 weeks, depending on the new API.
+  * Complete Kimchi verifier circuit: final verification. (this will stay pending since we need some improvements in o1js for the MSM).
 * **KZG Prover** (state proof wrapper):
-    * Connect Kimchi + KZG prover with current verifier circuit. We are working on this. :hammer::ladder: (3 weeks)
-* **Verifier Smart Contract:** Inputs deserialization. We are working on this. :hammer::ladder: (2 weeks)
-    * Partial verification, final steps. We are working on this. :hammer::ladder: (2 weeks)
-    * Final verification. We are working on this. :hammer::ladder: (3 weeks)
+  * Connect Kimchi + KZG prover with current verifier circuit.
+* **Verifier Smart Contract:** Inputs deserialization.
+  * Partial verification, final steps. We are working on this.
+  * Final verification. We are working on this. :hammer::ladder: We are currently debugging the integration with the generated proof.
 * **Account state utility:**
-    * A user will be able to query its account state and check that the retrieved state corresponds to the last verified Mina state in Ethereum.
+  * A user will be able to query its account state and check that the retrieved state corresponds to the last verified Mina state in Ethereum.
 
 ## Design objectives
 
@@ -34,7 +35,17 @@ We are working on delivering an MVP for mid March 2024. This MVP verifies Mina s
 
 ## ⚠️ Disclaimer
 
-`mina_bridge` is in an early stage of development, currently it misses elemental features and correct functionality is not guaranteed.
+`mina_bridge` is a PoC, currently it misses elemental features and correct functionality is not guaranteed.
+
+## ⭐ How to run the PoC script ⭐
+
+In the root folder, run:
+
+```sh
+make
+```
+
+This command will run all the steps of the PoC, including the polling service, the verifier circuit, the KZG prover and the Ethereum smart contract verifier.
 
 ## Architecture
 
@@ -143,10 +154,10 @@ On `polling_service` run:
 ./run.sh
 ```
 
-This will:
+This script will:
 
 1. Fetch the latest Mina state proof from a Mina node
-1. Clone our [Mina 1.4.0 fork](https://github.com/lambdaclass/mina/tree/proof_to_json)
+1. Clone our [Mina mainnet fork](https://github.com/lambdaclass/mina/tree/proof_to_json) (1.4.0)
 1. Use the cloned fork to parse the fetched proof into a JSON file
 
 ### Verifier circuit
@@ -164,8 +175,14 @@ On `verifier_circuit/` run:
 make
 ```
 
-This will create the constraint system of the verification of a proof with fixed values.
-This will also clone the Monorepo version of Mina so that the bridge uses o1js from there.
+This command will create:
+
+* the KZG proof,
+* the public inputs,
+* the prover index and
+* the SRS
+
+The proof will be used in the next step.
 
 #### Testing
 
@@ -176,37 +193,24 @@ npm run testw # watch mod
 
 will execute Jest unit and integration tests of the module.
 
-#### Structure
+#### Verifier circuit Structure
 
-- `poly_commitment/`: Includes the `PolyComm` type and methods used for representing a polynomial commitment.
-- `prover/`: Proof data and associated methods necessary to the verifier. The Fiat-Shamir heuristic is included here (`ProverProof.oracles()`).
-- `serde/`: Mostly deserialization helpers for using data from the `verifier_circuit_tests/` module, like a proof made over a testing circuit.
-- `util/`: Miscellaneous utility functions.
-- `verifier/`: The protagonist code used for verifying a Kimchi + IPA + Pasta proof. Here:
-    - `batch.ts/` includes the partial verification code used for verifying a batch of proofs.
-    - `verifier.ts/` has the main circuit for verification, currently executes a minimal final verification over a batch of partially verified proofs.
-    - `sponge.ts/` has a custom sponge implementation which extends the `Poseidon.Sponge` type from [o1js](https://github.com/o1-labs/o1js).
-- `test/`: JSON data used for testing, which are derived from the `verifier_circuit_tests/`.
-- `SRS.ts` contains a type representing a [Universal Reference String](https://o1-labs.github.io/proof-systems/specs/urs.html?highlight=universal#universal-reference-string-urs) (but uses the old Structured Reference String name).
-- `polynomial.ts` contains a type used for representing and operating with polynomials.
-- `alphas.ts` contains a type representing a mapping between powers of a challenge (alpha) and different constraints. The linear combination resulting from these two will get you the
+* `poly_commitment/`: Includes the `PolyComm` type and methods used for representing a polynomial commitment.
+* `prover/`: Proof data and associated methods necessary to the verifier. The Fiat-Shamir heuristic is included here (`ProverProof.oracles()`).
+* `serde/`: Mostly deserialization helpers for using data from the `verifier_circuit_tests/` module, like a proof made over a testing circuit.
+* `util/`: Miscellaneous utility functions.
+* `verifier/`: The protagonist code used for verifying a Kimchi + IPA + Pasta proof. Here:
+  * `batch.ts/` includes the partial verification code used for verifying a batch of proofs.
+  * `verifier.ts/` has the main circuit for verification, currently executes a minimal final verification over a batch of partially verified proofs.
+  * `sponge.ts/` has a custom sponge implementation which extends the `Poseidon.Sponge` type from [o1js](https://github.com/o1-labs/o1js).
+* `test/`: JSON data used for testing, which are derived from the `verifier_circuit_tests/`.
+* `SRS.ts` contains a type representing a [Universal Reference String](https://o1-labs.github.io/proof-systems/specs/urs.html?highlight=universal#universal-reference-string-urs) (but uses the old Structured Reference String name).
+* `polynomial.ts` contains a type used for representing and operating with polynomials.
+* `alphas.ts` contains a type representing a mapping between powers of a challenge (alpha) and different constraints. The linear combination resulting from these two will get you the
 main polynomial of the circuit.
-- `main.ts` is the main entrypoint of the module.
+* `main.ts` is the main entrypoint of the module.
 
-#### Batch verification
-
-The arguments are the *verifier_index*, *proof* and *public inputs*. The output is a "batch evaluation proof".
-
-The steps are the following:
-- Check the length of evaluations inside the proof.
-- Commit to the negated public input polynomial.
-- Run the Fiat-Shamir heuristic  ([non-interaction with fiat-shamir](https://o1-labs.github.io/proof-systems/plonk/fiat_shamir.html?highlight=fiat%20shamir#non-interaction-with-fiat-shamir)).
-- Combine the chunked polynomials' evaluations.
-- Compute the commitment to the linearized polynomial $f$ by adding all constraints, in commitment form or evaluation if not present.
-- Compute the (chuncked) commitment of $ft$ [see Maller’s optimization](https://o1-labs.github.io/proof-systems/plonk/maller.html) .
-- List the polynomial commitments, and their associated evaluations, that are associated to the aggregated evaluation proof in the proof.
-
-### Verifier circuit tests
+#### Verifier circuit tests
 
 Contains a Rust crate with Kimchi as a dependency, and runs some components of it generating data for feeding and comparing tests inside the verifier circuit.
 
@@ -226,29 +230,45 @@ cargo test -- --nocapture
 
 this will execute some unit tests and output results that can be used as reference value in analogous reference tests inside the verifier circuit.
 
+### KZG Prover
+
+This module contains a Rust crate for generating a KZG proof. This proof is used in the `eth_verifier` module.
+
+It receives the state proof and the public inputs from the `verifier_circuit` module and:
+
+* calculates the verifier index
+* linearization of the
+
 ### Ethereum smart contract verifier
 
 `eth_verifier/` holds the Mina state verifier in solidity, implemented using [Foundry](https://book.getfoundry.sh/). The contract exposes an API for retrieving zk-verified data from the last Mina state.
 
 Install dependencies by running:
+
 ```bash
 make setup
 ```
 
 #### Local usage and deployment
+
 The contract will be deployed and verification should execute after running the whole project workflow (executing `make` in the root) to query, parse and serialize the last Mina state data and proof.
 
 To make this manually, you can follow the next steps. Files `proof.mpk` and `state.mpk` should be present in `eth_verifier/` for this.
 
 Start the local chain with:
+
 ```bash
 make run_node
 ```
+
 and then deploy and verify the data:
+
 ```bash
 make deploy_and_verify
 ```
+
 after deployment Anvil will return a list of deployed contracts, as it will also deploy needed libraries for the verifier:
+
 ```bash
 ...
 
