@@ -183,7 +183,14 @@ fn generate_proof() {
         public_input_bytes,
     )
     .unwrap();
+    // for tests purposes
     println!("third public input: {}", public_input[2]);
+
+    fs::write(
+        "../eth_verifier/lagrange_bases.mpk",
+        rmp_serde::to_vec_named(&index.srs.full_srs.lagrange_bases.clone()).unwrap(),
+    )
+    .unwrap();
 }
 
 // #[serde_as]

@@ -767,31 +767,16 @@ library MsgPk {
     }
 
     function deser_lagrange_bases(
-        EncodedMap memory map,
-        mapping(uint256 => PolyCommFlat) storage lagrange_bases_unshifted
-    ) public {
-        for (uint256 i = 0; i < map.keys.length; i++) {
-            EncodedArray memory comms = abi.decode(map.values[i], (EncodedArray));
-            PolyComm[] memory polycomms = new PolyComm[](comms.values.length);
+        bytes calldata data
+    ) public returns (PolyComm[] memory lagrange_bases){
+        EncodedMap memory map = deser_fixmap(new_stream(data));
+        EncodedArray memory arr = abi.decode(map.values[0], (EncodedArray));
 
-            for (uint256 j = 0; j < comms.values.length; j++) {
-                EncodedMap memory comm = abi.decode(comms.values[i], (EncodedMap));
-                EncodedArray memory unshifted_arr =
-                    abi.decode(find_value(comm, abi.encode("unshifted")), (EncodedArray));
-
-                uint256 unshifted_length = unshifted_arr.values.length;
-                BN254.G1Point[] memory unshifted = new BN254.G1Point[](unshifted_length);
-                for (uint256 k = 0; k < unshifted_length; k++) {
-                    bytes memory unshifted_bytes = abi.decode(unshifted_arr.values[k], (bytes));
-                    unshifted[k] = BN254.g1Deserialize(bytes32(unshifted_bytes));
-                }
-
-                // TODO: shifted is fixed to infinity
-                BN254.G1Point memory shifted = BN254.point_at_inf();
-                polycomms[j] = PolyComm(unshifted, shifted);
-            }
-
-            lagrange_bases_unshifted[abi.decode(map.keys[i], (uint256))] = poly_comm_flat(polycomms);
+        uint256 length = arr.values.length;
+        lagrange_bases = new PolyComm[](length);
+        for (uint i = 0; i < length; i++) {
+            EncodedMap memory comm_map = abi.decode(arr.values[i], (EncodedMap));
+            lagrange_bases[i] = deser_poly_comm(comm_map);
         }
     }
 

@@ -34,6 +34,7 @@ contract KimchiVerifier {
     ProverProof proof;
     PairingURS urs;
     Scalar.FE[] public_inputs;
+    PolyComm[] lagrange_bases;
 
     Sponge base_sponge;
     Sponge scalar_sponge;
@@ -57,7 +58,8 @@ contract KimchiVerifier {
         bytes calldata verifier_index_serialized,
         bytes calldata prover_proof_serialized,
         bytes calldata linearization_serialized_rlp,
-        bytes calldata public_inputs_serialized
+        bytes calldata public_inputs_serialized,
+        bytes calldata lagrange_bases_serialized
     )
         public
     {
@@ -65,19 +67,22 @@ contract KimchiVerifier {
         MsgPk.deser_prover_proof(MsgPk.new_stream(prover_proof_serialized), proof);
         verifier_index.linearization = abi.decode(linearization_serialized_rlp, (Linearization));
         public_inputs = MsgPk.deser_public_inputs(public_inputs_serialized);
+        lagrange_bases = MsgPk.deser_lagrange_bases(lagrange_bases_serialized);
     }
 
     function verify_with_index(
         bytes calldata verifier_index_serialized,
         bytes calldata prover_proof_serialized,
         bytes calldata linearization_serialized_rlp,
-        bytes calldata public_inputs_serialized
+        bytes calldata public_inputs_serialized,
+        bytes calldata lagrange_bases_serialized
     ) public returns (bool) {
         deserialize_proof(
             verifier_index_serialized,
             prover_proof_serialized,
             linearization_serialized_rlp,
-            public_inputs_serialized
+            public_inputs_serialized,
+            lagrange_bases_serialized
         );
         AggregatedEvaluationProof memory agg_proof = partial_verify();
         return final_verify(agg_proof, urs.verifier_urs);
@@ -123,12 +128,12 @@ contract KimchiVerifier {
         if (public_inputs.length != verifier_index.public_len) {
             revert IncorrectPublicInputLength();
         }
-        PolyCommFlat memory lgr_comm_flat = urs.lagrange_bases_unshifted[verifier_index.domain_size];
+        //PolyCommFlat memory lgr_comm_flat = urs.lagrange_bases_unshifted[verifier_index.domain_size];
+        //PolyComm[] memory lgr_comm = poly_comm_unflat(lgr_comm_flat);
         PolyComm[] memory comm = new PolyComm[](verifier_index.public_len);
-        PolyComm[] memory lgr_comm = poly_comm_unflat(lgr_comm_flat);
         // INFO: can use unchecked on for loops to save gas
         for (uint256 i = 0; i < verifier_index.public_len; i++) {
-            comm[i] = lgr_comm[i];
+            comm[i] = lagrange_bases[i];
         }
         PolyComm memory public_comm;
         if (public_inputs.length == 0) {
