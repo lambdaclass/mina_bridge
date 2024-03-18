@@ -37,6 +37,17 @@ mod test {
     }
 
     #[test]
+    fn test_digest_scalar() {
+        let sponge = KeccakFrSponge::new(G1::sponge_params());
+        let digest = sponge.digest();
+
+        assert_eq!(
+            digest,
+            scalar_from_hex("00C5D2460186F7233C927E7DB2DCC703C0E500B653CA82273B7BFAD8045D85A4",)
+        );
+    }
+
+    #[test]
     fn test_absorb_challenge_scalar() {
         let mut sponge = KeccakFrSponge::new(G1::sponge_params());
         let input = ScalarField::from(42);
