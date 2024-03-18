@@ -449,7 +449,7 @@ library Oracles {
             zeta,
             v,
             u,
-            alpha_chal,
+            zeta_chal,
             v_chal,
             u_chal
         );
