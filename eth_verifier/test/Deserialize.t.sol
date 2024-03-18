@@ -163,13 +163,13 @@ contract DeserializeTest is Test {
             MsgPk.new_stream(verifier_index_serialized),
             index
         );
-        assertEq(index.public_len, 0);
-        assertEq(index.max_poly_size, 16384);
+        assertEq(index.public_len, 222);
+        assertEq(index.max_poly_size, 8192);
         assertEq(index.zk_rows, 3);
-        assertEq(index.domain_size, 16384);
+        assertEq(index.domain_size, 8192);
         assertEq(
             Scalar.FE.unwrap(index.domain_gen),
-            20619701001583904760601357484951574588621083236087856586626117568842480512645
+            197302210312744933010843010704445784068657690384188106020011018676818793232
         );
     }
 
