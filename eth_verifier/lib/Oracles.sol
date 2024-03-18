@@ -327,7 +327,7 @@ library Oracles {
             constants
         ));
 
-        uint256 evals_length = 55; // WARN: the amount of evals in the test proof
+        uint256 evals_length = 56; // WARN: the amount of evals in the test proof
         Scalar.FE[][2][] memory es = new Scalar.FE[][2][](evals_length); // "es" stands for evaluation segments?
         // INFO: dynamic array of a 2xn matrix, where n = 1 in the test proof's case.
         // so this is:
