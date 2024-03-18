@@ -35,7 +35,7 @@ contract Verify is Script {
             lagrange_bases_serialized
         );
 
-        require(!success, "Verification failed.");
+        require(success, "Verification failed.");
 
         vm.stopBroadcast();
     }
