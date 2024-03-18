@@ -62,7 +62,7 @@ library Oracles {
 
         // TODO: 3. Absorb the commitment to the previous challenges.
         // WARN: is this necessary?
-        // INFO: For our current test proof, this isn't necessary.
+        // INFO: For our current o1js proof, this isn't necessary.
 
         // 4. Absorb the commitment to the public inputs.
         base_sponge.absorb_commitment(public_comm);
@@ -82,7 +82,6 @@ library Oracles {
         // INFO: for our test proof this will be zero.
         ScalarChallenge memory joint_combiner = ScalarChallenge(Scalar.zero());
         Scalar.FE joint_combiner_field = joint_combiner.to_field(endo_r);
-
 
         // 8. If lookup is used, absorb commitments to the sorted polys:
         for (uint i = 0; i < proof.commitments.lookup.sorted.length; i++) {
