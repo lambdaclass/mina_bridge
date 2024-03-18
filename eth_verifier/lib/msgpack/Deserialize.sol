@@ -950,7 +950,6 @@ library MsgPk {
         }
         (bytes memory permutation_value, bool is_permutation) = find_value_or_fail(col_map, abi.encode("Permutation"));
         if (is_permutation) {
-            uint256 i = abi.decode(permutation_value, (uint256));
             return Column(ColumnVariant.Permutation, permutation_value);
         }
         revert("Couldn't match any Column variant while deserializing a column.");
