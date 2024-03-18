@@ -234,7 +234,7 @@ contract KimchiVerifier {
         // 7. List the polynomial commitments, and their associated evaluations,
         // that are associated to the aggregated evaluation proof in the proof:
 
-        uint256 evaluations_len = 55; // INFO: hard-coded for the test proof
+        uint256 evaluations_len = 56; // INFO: hard-coded for the test proof
         Evaluation[] memory evaluations = new Evaluation[](evaluations_len);
 
         uint256 eval_index = 0;
@@ -256,7 +256,7 @@ contract KimchiVerifier {
             [ft_eval0, ft_eval1],
             0
         );
-        uint256 columns_len = 51; // INFO: hard-coded for the test proof
+        uint256 columns_len = 52; // INFO: hard-coded for the test proof
         Column[] memory columns = new Column[](columns_len);
         columns[0] = Column(ColumnVariant.Z, new bytes(0));
         columns[1] = Column(ColumnVariant.Index, abi.encode(GateType.Generic));
