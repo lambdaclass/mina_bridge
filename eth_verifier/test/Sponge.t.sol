@@ -40,6 +40,7 @@ contract KeccakSpongeTest is Test {
             Scalar.FE.unwrap(digest),
             0x00C5D2460186F7233C927E7DB2DCC703C0E500B653CA82273B7BFAD8045D85A4
         );
+        // INFO: reference value taken from analogous test in kzg_prover/sponge_tests.rs
     }
 
     function test_absorb_challenge_scalar() public {
