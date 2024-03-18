@@ -190,14 +190,6 @@ fn generate_proof() {
     .unwrap();
 }
 
-// #[serde_as]
-// #[derive(Debug, Clone, Serialize)]
-// #[serde(bound = "ScalarField: CanonicalDeserialize + CanonicalSerialize")]
-// struct PublicInputs {
-//     #[serde_as(as = "Vec<kimchi::o1_utils::serialization::SerdeAs>")]
-//     inputs: Vec<ScalarField>,
-// }
-
 fn generate_test_proof_for_evm_verifier() {
     let rng = &mut StdRng::from_seed([255u8; 32]);
 
