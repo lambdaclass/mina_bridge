@@ -70,7 +70,7 @@ jobs:
                 export HOME="/root/"
                 export PATH="/.foundry/bin:/root/.cargo/bin:$PATH"
                 export GOPATH="/root/go"
-                make test > gasreport.ansi
+                make test > foundry_gas_diff.gasreport.ansi
               env:
                 # make fuzzing semi-deterministic to avoid noisy gas cost estimation
                 # due to non-deterministic fuzzing (but still use pseudo-random fuzzing seeds)
