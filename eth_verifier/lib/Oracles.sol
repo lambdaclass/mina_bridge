@@ -326,7 +326,6 @@ library Oracles {
             constants
         ));
 
-
         RandomOracles memory oracles = RandomOracles(
             joint_combiner,
             joint_combiner_field,
