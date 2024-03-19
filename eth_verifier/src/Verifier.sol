@@ -128,8 +128,6 @@ contract KimchiVerifier {
         if (public_inputs.length != verifier_index.public_len) {
             revert IncorrectPublicInputLength();
         }
-        //PolyCommFlat memory lgr_comm_flat = urs.lagrange_bases_unshifted[verifier_index.domain_size];
-        //PolyComm[] memory lgr_comm = poly_comm_unflat(lgr_comm_flat);
         PolyComm[] memory comm = new PolyComm[](verifier_index.public_len);
         // INFO: can use unchecked on for loops to save gas
         for (uint256 i = 0; i < verifier_index.public_len; i++) {
