@@ -12,7 +12,7 @@ use ark_poly::{
     univariate::DensePolynomial, EvaluationDomain, Evaluations, Polynomial, Radix2EvaluationDomain,
     UVPolynomial,
 };
-use ark_serialize::{CanonicalSerialize, SerializationError};
+use ark_serialize::{CanonicalDeserialize, CanonicalSerialize, SerializationError};
 use ark_std::{
     rand::{rngs::StdRng, SeedableRng},
     UniformRand,
@@ -49,6 +49,7 @@ use poly_commitment::{
     SRS as _,
 };
 use serde::{ser::SerializeStruct, Serialize};
+use serde_with::serde_as;
 use snarky_gate::SnarkyGate;
 
 type BaseField = ark_bn254::Fq;
@@ -132,7 +133,7 @@ fn generate_proof() {
 
     // Serialize and write to binaries
     fs::write(
-        "../eth_verifier/proof.mpk",
+        "../eth_verifier/prover_proof.mpk",
         rmp_serde::to_vec_named(&proof).unwrap(),
     )
     .unwrap();
@@ -157,6 +158,34 @@ fn generate_proof() {
     fs::write(
         "../eth_verifier/linearization.mpk",
         &serialize_linearization(index.linearization),
+    )
+    .unwrap();
+
+    println!("public input len: {}", public_input.len());
+
+    let mut public_input_bytes = vec![vec![]; public_input.len()];
+    let _ = public_input
+        .iter()
+        .enumerate()
+        .for_each(|(i, x)| {
+            x.serialize(&mut public_input_bytes[i]);
+            public_input_bytes[i].reverse()
+            //println!("public input serialized: {:?}", public_input_bytes[i]);
+            //println!("public input: {:?}", x);
+        });
+
+    let public_input_bytes: Vec<_> = public_input_bytes.iter().cloned().flatten().collect();
+    fs::write(
+        "../eth_verifier/public_inputs.mpk",
+        public_input_bytes,
+    )
+    .unwrap();
+    // for tests purposes
+    println!("third public input: {}", public_input[2]);
+
+    fs::write(
+        "../eth_verifier/lagrange_bases.mpk",
+        rmp_serde::to_vec_named(&index.srs.full_srs.lagrange_bases.clone()).unwrap(),
     )
     .unwrap();
 }

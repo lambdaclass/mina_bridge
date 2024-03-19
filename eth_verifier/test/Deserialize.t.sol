@@ -15,6 +15,8 @@ contract DeserializeTest is Test {
 
     PairingURS test_urs;
 
+    bytes public_inputs_serialized;
+
     // Test to check that the destructuring of the message pack byte array is correct.
     // If we know that g1Deserialize() is correct, then this asserts that the whole
     // deserialization is working.
@@ -161,13 +163,13 @@ contract DeserializeTest is Test {
             MsgPk.new_stream(verifier_index_serialized),
             index
         );
-        assertEq(index.public_len, 0);
-        assertEq(index.max_poly_size, 16384);
+        assertEq(index.public_len, 222);
+        assertEq(index.max_poly_size, 8192);
         assertEq(index.zk_rows, 3);
-        assertEq(index.domain_size, 16384);
+        assertEq(index.domain_size, 8192);
         assertEq(
             Scalar.FE.unwrap(index.domain_gen),
-            20619701001583904760601357484951574588621083236087856586626117568842480512645
+            197302210312744933010843010704445784068657690384188106020011018676818793232
         );
     }
 
@@ -243,5 +245,11 @@ contract DeserializeTest is Test {
         bytes memory scalar_serialized = hex"550028f667d034768ec0a14ac5f5a24bbcad7117110fc65b7529e003a0708419";
         Scalar.FE scalar = MsgPk.deser_scalar(scalar_serialized);
         assertEq(Scalar.FE.unwrap(scalar), 0x198470A003E029755BC60F111771ADBC4BA2F5C54AA1C08E7634D067F6280055);
+    }
+
+    function test_deserialize_public_input() public {
+        public_inputs_serialized = vm.readFileBinary("public_inputs.mpk");
+        Scalar.FE[] memory public_inputs = MsgPk.deser_public_inputs(public_inputs_serialized);
+        assertEq(Scalar.FE.unwrap(public_inputs[2]), 0x000000000000000000000000000000000000000000002149A7476FD365F3E060);
     }
 }
