@@ -334,49 +334,6 @@ function calculate_lagrange_bases(
     }
 }
 
-// Computes the linearization of the evaluations of a (potentially split) polynomial.
-// Each given `poly` is associated to a matrix where the rows represent the number of evaluated points,
-// and the columns represent potential segments (if a polynomial was split in several parts).
-// Note that if one of the polynomial comes specified with a degree bound,
-// the evaluation for the last segment is potentially shifted to meet the proof.
-function combined_inner_product(
-    Scalar.FE[] memory evaluation_points,
-    Scalar.FE polyscale,
-    Scalar.FE evalscale,
-    Scalar.FE[][2][] memory polys,
-    //uint[] poly_shifted, // TODO: not necessary for fiat-shamir
-    uint256 _srs_length
-) pure returns (Scalar.FE res) {
-    res = Scalar.zero();
-    Scalar.FE xi_i = Scalar.from(1);
-
-    for (uint256 i = 0; i < polys.length; i++) {
-        Scalar.FE[][2] memory matrix = polys[i];
-        if (matrix[0].length == 0 || matrix[1].length == 0) continue; // skip empty evaluations
-
-        uint256 rows = 2; // WARN: magic number, this is because we only have two evaluation points in our case.
-        uint256 cols = 1; // WARN: magic number, this is because we only have one segment per poly (non-linearized).
-
-        require(matrix.length == rows, "rows are not of the expected size");
-        require(matrix[0].length == 1, "cols are not of the expected size");
-        require(matrix[1].length == 1, "cols are not of the expected size");
-
-        for (uint256 col = 0; col < cols; col++) {
-            Scalar.FE[] memory eval = new Scalar.FE[](rows); // column that stores the segment
-            for (uint256 row = 0; row < rows; row++) {
-                eval[row] = matrix[row][col];
-            }
-
-            Scalar.FE term = Polynomial.build_and_eval(eval, evalscale);
-
-            res = res.add(xi_i.mul(term));
-            xi_i = xi_i.mul(polyscale);
-        }
-
-        // TODO: shifted
-    }
-}
-
 /// @notice commits a polynomial using a URS in G2 of size `n`, splitting in at least
 /// @notice `num_chunks` unshifted chunks.
 function commit_non_hiding(URSG2 memory self, Polynomial.Dense memory plnm, uint256 num_chunks)
