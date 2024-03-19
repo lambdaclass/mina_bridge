@@ -7,7 +7,7 @@ import { powScalar } from "../util/scalar.js";
 import { range } from "../util/misc.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { ForeignPallas } from "../foreign_fields/foreign_pallas.js";
-import { isErr, isOk, unwrap, verifierOk, VerifierResult} from "../error.js";
+import { isErr, isOk, unwrap, verifierOk, VerifierResult } from "../error.js";
 import { fq_sponge_params } from "./sponge.js";
 import { AlphasIterator } from "../alphas.js";
 import { LookupPattern } from "../lookups/lookups.js";
@@ -183,23 +183,22 @@ export class Batch {
             { kind: "index", typ: GateType.EndoMul },
             { kind: "index", typ: GateType.EndoMulScalar },
         ]
-        .concat(range(Verifier.COLUMNS).map((i) => { return { kind: "witness", index: i } }))
-        .concat(range(Verifier.COLUMNS).map((i) => { return { kind: "coefficient", index: i } }))
-        .concat(range(Verifier.PERMUTS - 1).map((i) => { return { kind: "permutation", index: i } })) as Column[];
-        if (verifier_index.range_check0_comm) cols.push({ kind: "index", typ: GateType.RangeCheck0});
-        if (verifier_index.range_check1_comm) cols.push({ kind: "index", typ: GateType.RangeCheck1});
-        if (verifier_index.foreign_field_add_comm) cols.push({ kind: "index", typ: GateType.ForeignFieldAdd});
-        if (verifier_index.foreign_field_mul_comm) cols.push({ kind: "index", typ: GateType.ForeignFieldMul});
-        if (verifier_index.xor_comm) cols.push({ kind: "index", typ: GateType.Xor16});
-        if (verifier_index.rot_comm) cols.push({ kind: "index", typ: GateType.Rot64});
+            .concat(range(Verifier.COLUMNS).map((i) => { return { kind: "witness", index: i } }))
+            .concat(range(Verifier.COLUMNS).map((i) => { return { kind: "coefficient", index: i } }))
+            .concat(range(Verifier.PERMUTS - 1).map((i) => { return { kind: "permutation", index: i } })) as Column[];
+        if (verifier_index.range_check0_comm) cols.push({ kind: "index", typ: GateType.RangeCheck0 });
+        if (verifier_index.range_check1_comm) cols.push({ kind: "index", typ: GateType.RangeCheck1 });
+        if (verifier_index.foreign_field_add_comm) cols.push({ kind: "index", typ: GateType.ForeignFieldAdd });
+        if (verifier_index.foreign_field_mul_comm) cols.push({ kind: "index", typ: GateType.ForeignFieldMul });
+        if (verifier_index.xor_comm) cols.push({ kind: "index", typ: GateType.Xor16 });
+        if (verifier_index.rot_comm) cols.push({ kind: "index", typ: GateType.Rot64 });
         if (verifier_index.lookup_index) {
             const li = verifier_index.lookup_index!;
-            cols.concat(range(li.lookup_info.max_per_row + 1).map((index) => { return { kind: "lookupsorted", index}}));
+            cols.concat(range(li.lookup_info.max_per_row + 1).map((index) => { return { kind: "lookupsorted", index } }));
             cols.push({ kind: "lookupaggreg" });
         }
 
-        for (const col of cols)
-        {
+        for (const col of cols) {
             const eva = proof.evals.getColumn(col)!;
             evaluations.push(new Evaluation(
                 context.getColumn(col)!,

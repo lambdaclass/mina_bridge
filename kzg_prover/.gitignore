@@ -1,2 +1,5 @@
 target/
 gates.json
+srs.json
+index.json
+proof_with_public.json

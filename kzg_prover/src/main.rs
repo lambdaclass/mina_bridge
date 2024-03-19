@@ -1,33 +1,27 @@
 mod snarky_gate;
 
-use std::{
-    array,
-    collections::HashMap,
-    fs::{self, File},
-    ops::Neg,
-    sync::Arc,
-};
+use std::{array, collections::HashMap, fs, ops::Neg, sync::Arc};
 
-use ark_bn254::{Bn254, G1Affine, G2Affine, Parameters};
+use ark_bn254::{G1Affine, G2Affine, Parameters};
 use ark_ec::{
     bn::Bn, msm::VariableBaseMSM, short_weierstrass_jacobian::GroupAffine, AffineCurve,
     ProjectiveCurve,
 };
-use ark_ff::PrimeField;
+use ark_ff::{BigInteger256, PrimeField};
 use ark_poly::{
-    univariate::DensePolynomial, Evaluations, Polynomial, Radix2EvaluationDomain, UVPolynomial,
+    univariate::DensePolynomial, EvaluationDomain, Evaluations, Polynomial, Radix2EvaluationDomain,
+    UVPolynomial,
 };
-use ark_serialize::{CanonicalSerialize, SerializationError};
+use ark_serialize::{CanonicalDeserialize, CanonicalSerialize, SerializationError};
 use ark_std::{
     rand::{rngs::StdRng, SeedableRng},
     UniformRand,
 };
 use kimchi::{
     circuits::{
-        berkeley_columns::Column,
         constraints::ConstraintSystem,
         domains::EvaluationDomains,
-        expr::{Linearization, PolishToken, RowOffset, Variable},
+        expr::{Linearization, PolishToken, Variable},
         gate::{CircuitGate, GateType},
         polynomials::{
             generic::testing::{create_circuit, fill_in_witness},
@@ -38,33 +32,25 @@ use kimchi::{
     curve::KimchiCurve,
     groupmap::*,
     keccak_sponge::{Keccak256FqSponge, Keccak256FrSponge},
-    o1_utils::{foreign_field::BigUintForeignFieldHelpers, BigUintFieldHelpers, FieldHelpers},
+    o1_utils::{foreign_field::BigUintForeignFieldHelpers, BigUintFieldHelpers},
     proof::ProverProof,
-    prover,
-    prover_index::{self, ProverIndex},
-    verifier::{batch_verify, Context},
-    verifier_index,
+    prover_index::ProverIndex,
+    verifier::{batch_verify, to_batch, Context},
 };
-use kzg_prover::to_batch::to_batch;
 use num::{bigint::RandBigInt, BigUint};
 use num_traits::{One, Zero};
 use poly_commitment::{
     commitment::{
         combine_commitments, combine_evaluations, BatchEvaluationProof, CommitmentCurve, Evaluation,
     },
-    evaluation_proof::{combine_polys, DensePolynomialOrEvaluations, OpeningProof},
+    evaluation_proof::DensePolynomialOrEvaluations,
     pairing_proof::{PairingProof, PairingSRS},
-    srs::{endos, SRS},
-    PolyComm, SRS as _,
+    srs::SRS,
+    SRS as _,
 };
 use serde::{ser::SerializeStruct, Serialize};
+use serde_with::serde_as;
 use snarky_gate::SnarkyGate;
-
-type PolynomialsToCombine<'a> = &'a [(
-    DensePolynomialOrEvaluations<'a, ark_bn254::Fr, Radix2EvaluationDomain<ark_bn254::Fr>>,
-    Option<usize>,
-    PolyComm<ark_bn254::Fr>,
-)];
 
 type BaseField = ark_bn254::Fq;
 type ScalarField = ark_bn254::Fr;
@@ -76,9 +62,132 @@ type KeccakFrSponge = Keccak256FrSponge<ScalarField>;
 type KZGProof = PairingProof<ark_ec::bn::Bn<ark_bn254::Parameters>>;
 
 fn main() {
-    generate_test_proof_for_demo();
+    // generate_test_proof_for_demo();
     //generate_test_proof();
-    generate_test_proof_for_evm_verifier();
+    generate_proof();
+    // generate_test_proof_for_evm_verifier();
+}
+
+fn generate_proof() {
+    let (proof, public_input): (ProverProof<G1, KZGProof>, Vec<[u64; 4]>) =
+        serde_json::from_str(&fs::read_to_string("./proof_with_public.json").unwrap()).unwrap();
+
+    let index: ProverIndex<G1, KZGProof> =
+        serde_json::from_str(&fs::read_to_string("./index.json").unwrap()).unwrap();
+    println!("domain size: {}", index.cs.domain.d1.size);
+
+    let (_endo_q, endo_r) = G1::endos();
+    println!("cs endo: {}", endo_r); // ProverIndex::create() sets cs endo to endo_r
+
+    // FIXME: this is hacky, this should be optimized to avoid cloning
+    // This seed (42) is also used for generating a trusted setup in Solidity.
+    let x = ark_bn254::Fr::from(42);
+    let mut srs = PairingSRS::create(x, index.cs.domain.d1.size as usize); // size is 8192
+    srs.full_srs.add_lagrange_basis(index.cs.domain.d1);
+
+    let index: ProverIndex<G1, KZGProof> =
+        ProverIndex::create(index.cs.clone(), index.cs.endo, Arc::new(srs));
+    println!(
+        "lagrange basis len: {:?}",
+        index
+            .srs
+            .full_srs
+            .get_lagrange_basis(index.cs.domain.d1.size())
+            .unwrap()
+            .len()
+    );
+    let verifier_index = index.verifier_index();
+
+    println!(
+        "verifier_index digest: {}",
+        verifier_index.digest::<KeccakFqSponge>()
+    );
+
+    let public_input: Vec<_> = public_input
+        .iter()
+        .map(|&p_i| ark_bn254::Fr::new(BigInteger256::new(p_i)))
+        .collect();
+
+    // Partially verify proof
+    let agg_proof = to_batch::<
+        G1Affine,
+        Keccak256FqSponge<BaseField, G1, ScalarField>,
+        Keccak256FrSponge<ScalarField>,
+        KZGProof,
+    >(&verifier_index, &proof, &public_input)
+    .unwrap();
+
+    // Final verify
+    let BatchEvaluationProof {
+        sponge: _,
+        evaluations,
+        evaluation_points,
+        polyscale,
+        evalscale: _,
+        opening,
+        combined_inner_product: _,
+    } = agg_proof;
+    if !opening.verify(&index.srs, &evaluations, polyscale, &evaluation_points) {
+        panic!();
+    }
+
+    // Serialize and write to binaries
+    fs::write(
+        "../eth_verifier/prover_proof.mpk",
+        rmp_serde::to_vec_named(&proof).unwrap(),
+    )
+    .unwrap();
+    fs::write(
+        "../eth_verifier/verifier_index.mpk",
+        rmp_serde::to_vec_named(&verifier_index).unwrap(),
+    )
+    .unwrap();
+    let srs_to_serialize = PairingSRS::<Bn<Parameters>> {
+        full_srs: SRS {
+            g: index.srs.full_srs.g[0..3].to_vec(),
+            h: index.srs.full_srs.h,
+            lagrange_bases: HashMap::new(),
+        },
+        verifier_srs: index.srs.verifier_srs.clone(),
+    };
+    fs::write(
+        "../eth_verifier/urs.mpk",
+        rmp_serde::to_vec_named(&srs_to_serialize).unwrap(),
+    )
+    .unwrap();
+    fs::write(
+        "../eth_verifier/linearization.mpk",
+        &serialize_linearization(index.linearization),
+    )
+    .unwrap();
+
+    println!("public input len: {}", public_input.len());
+
+    let mut public_input_bytes = vec![vec![]; public_input.len()];
+    let _ = public_input
+        .iter()
+        .enumerate()
+        .for_each(|(i, x)| {
+            x.serialize(&mut public_input_bytes[i]);
+            public_input_bytes[i].reverse()
+            //println!("public input serialized: {:?}", public_input_bytes[i]);
+            //println!("public input: {:?}", x);
+        });
+
+    let public_input_bytes: Vec<_> = public_input_bytes.iter().cloned().flatten().collect();
+    fs::write(
+        "../eth_verifier/public_inputs.mpk",
+        public_input_bytes,
+    )
+    .unwrap();
+    // for tests purposes
+    println!("third public input: {}", public_input[2]);
+
+    fs::write(
+        "../eth_verifier/lagrange_bases.mpk",
+        rmp_serde::to_vec_named(&index.srs.full_srs.lagrange_bases.clone()).unwrap(),
+    )
+    .unwrap();
 }
 
 fn generate_test_proof_for_evm_verifier() {
@@ -227,7 +336,7 @@ impl Serialize for Literal {
 
 #[derive(Serialize)]
 struct Cell {
-    variable: Variable<Column>,
+    variable: Variable,
 }
 
 #[derive(Serialize)]
@@ -237,7 +346,7 @@ struct Pow {
 
 #[derive(Serialize)]
 struct UnnormalizedLagrangeBasis {
-    rowoffset: RowOffset,
+    rowoffset: i32,
 }
 
 #[derive(Serialize)]
@@ -245,9 +354,7 @@ struct Load {
     load: usize,
 }
 
-fn serialize_linearization(
-    linearization: Linearization<Vec<PolishToken<ScalarField, Column>>, Column>,
-) -> Vec<u8> {
+fn serialize_linearization(linearization: Linearization<Vec<PolishToken<ScalarField>>>) -> Vec<u8> {
     let constant_term_ser: Vec<_> = linearization
         .constant_term
         .iter()

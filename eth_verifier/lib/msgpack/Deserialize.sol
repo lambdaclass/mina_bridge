@@ -767,31 +767,16 @@ library MsgPk {
     }
 
     function deser_lagrange_bases(
-        EncodedMap memory map,
-        mapping(uint256 => PolyCommFlat) storage lagrange_bases_unshifted
-    ) public {
-        for (uint256 i = 0; i < map.keys.length; i++) {
-            EncodedArray memory comms = abi.decode(map.values[i], (EncodedArray));
-            PolyComm[] memory polycomms = new PolyComm[](comms.values.length);
+        bytes calldata data
+    ) public returns (PolyComm[] memory lagrange_bases){
+        EncodedMap memory map = deser_fixmap(new_stream(data));
+        EncodedArray memory arr = abi.decode(map.values[0], (EncodedArray));
 
-            for (uint256 j = 0; j < comms.values.length; j++) {
-                EncodedMap memory comm = abi.decode(comms.values[i], (EncodedMap));
-                EncodedArray memory unshifted_arr =
-                    abi.decode(find_value(comm, abi.encode("unshifted")), (EncodedArray));
-
-                uint256 unshifted_length = unshifted_arr.values.length;
-                BN254.G1Point[] memory unshifted = new BN254.G1Point[](unshifted_length);
-                for (uint256 k = 0; k < unshifted_length; k++) {
-                    bytes memory unshifted_bytes = abi.decode(unshifted_arr.values[k], (bytes));
-                    unshifted[k] = BN254.g1Deserialize(bytes32(unshifted_bytes));
-                }
-
-                // TODO: shifted is fixed to infinity
-                BN254.G1Point memory shifted = BN254.point_at_inf();
-                polycomms[j] = PolyComm(unshifted, shifted);
-            }
-
-            lagrange_bases_unshifted[abi.decode(map.keys[i], (uint256))] = poly_comm_flat(polycomms);
+        uint256 length = arr.values.length;
+        lagrange_bases = new PolyComm[](length);
+        for (uint i = 0; i < length; i++) {
+            EncodedMap memory comm_map = abi.decode(arr.values[i], (EncodedMap));
+            lagrange_bases[i] = deser_poly_comm(comm_map);
         }
     }
 
@@ -961,13 +946,11 @@ library MsgPk {
         }
         (bytes memory coefficient_value, bool is_coefficient) = find_value_or_fail(col_map, abi.encode("Coefficient"));
         if (is_coefficient) {
-            uint256 i = deser_uint(new_stream(coefficient_value));
-            return Column(ColumnVariant.Coefficient, abi.encode(i));
+            return Column(ColumnVariant.Coefficient, coefficient_value);
         }
         (bytes memory permutation_value, bool is_permutation) = find_value_or_fail(col_map, abi.encode("Permutation"));
         if (is_permutation) {
-            uint256 i = deser_uint(new_stream(permutation_value));
-            return Column(ColumnVariant.Permutation, abi.encode(i));
+            return Column(ColumnVariant.Permutation, permutation_value);
         }
         revert("Couldn't match any Column variant while deserializing a column.");
         // TODO: remaining variants
@@ -1040,17 +1023,27 @@ library MsgPk {
             }
             (bytes memory ulag_value, bool is_ulag) = find_value_or_fail(map, abi.encode("rowoffset"));
             if (is_ulag) {
-                EncodedMap memory rowoffset_map = abi.decode(ulag_value, (EncodedMap));
-                bool zk_rows = abi.decode(find_value(rowoffset_map, abi.encode("zk_rows")), (bool));
-                int256 offset = abi.decode(find_value(rowoffset_map, abi.encode("offset")), (int256));
-                RowOffset memory rowoffset = RowOffset(zk_rows, offset);
-                return PolishToken(PolishTokenVariant.UnnormalizedLagrangeBasis, abi.encode(rowoffset));
+                return PolishToken(PolishTokenVariant.UnnormalizedLagrangeBasis, ulag_value);
             }
             (bytes memory load_value, bool is_load) = find_value_or_fail(map, abi.encode("load"));
             if (is_load) {
                 uint256 i = abi.decode(load_value, (uint256));
                 return PolishToken(PolishTokenVariant.Load, abi.encode(i));
             }
+        }
+    }
+
+    function deser_public_inputs(bytes calldata data)
+        public
+        view
+        returns (Scalar.FE[] memory public_input)
+    {
+        uint256 public_input_len = data.length / 32; // each element is 32 bytes
+        public_input = new Scalar.FE[](public_input_len);
+
+        for (uint i = 0; i < public_input_len; i++) {
+            uint256 offset = i * 32;
+            public_input[i] = Scalar.from(uint256(bytes32(data[offset:offset+32])));
         }
     }
 
