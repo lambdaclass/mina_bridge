@@ -1023,11 +1023,7 @@ library MsgPk {
             }
             (bytes memory ulag_value, bool is_ulag) = find_value_or_fail(map, abi.encode("rowoffset"));
             if (is_ulag) {
-                EncodedMap memory rowoffset_map = abi.decode(ulag_value, (EncodedMap));
-                bool zk_rows = abi.decode(find_value(rowoffset_map, abi.encode("zk_rows")), (bool));
-                int256 offset = abi.decode(find_value(rowoffset_map, abi.encode("offset")), (int256));
-                RowOffset memory rowoffset = RowOffset(zk_rows, offset);
-                return PolishToken(PolishTokenVariant.UnnormalizedLagrangeBasis, abi.encode(rowoffset));
+                return PolishToken(PolishTokenVariant.UnnormalizedLagrangeBasis, ulag_value);
             }
             (bytes memory load_value, bool is_load) = find_value_or_fail(map, abi.encode("load"));
             if (is_load) {

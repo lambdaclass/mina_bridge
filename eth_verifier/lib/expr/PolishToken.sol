@@ -88,14 +88,7 @@ function evaluate(
             continue;
         }
         if (v == PolishTokenVariant.UnnormalizedLagrangeBasis) {
-            RowOffset memory j = abi.decode(v_data, (RowOffset));
-
-            int256 offset;
-            if (j.zk_rows) {
-                offset = j.offset - int256(uint256(c.zk_rows)); // 64 bit to 256 to signed 256
-            } else {
-                offset = j.offset;
-            }
+            int256 offset = abi.decode(v_data, (int256));
 
             stack[stack_next] = unnormalized_lagrange_basis(domain_gen, domain_size, offset, pt);
             stack_next += 1;
