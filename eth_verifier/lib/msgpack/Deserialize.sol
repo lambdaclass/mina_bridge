@@ -946,13 +946,11 @@ library MsgPk {
         }
         (bytes memory coefficient_value, bool is_coefficient) = find_value_or_fail(col_map, abi.encode("Coefficient"));
         if (is_coefficient) {
-            uint256 i = deser_uint(new_stream(coefficient_value));
-            return Column(ColumnVariant.Coefficient, abi.encode(i));
+            return Column(ColumnVariant.Coefficient, coefficient_value);
         }
         (bytes memory permutation_value, bool is_permutation) = find_value_or_fail(col_map, abi.encode("Permutation"));
         if (is_permutation) {
-            uint256 i = deser_uint(new_stream(permutation_value));
-            return Column(ColumnVariant.Permutation, abi.encode(i));
+            return Column(ColumnVariant.Permutation, permutation_value);
         }
         revert("Couldn't match any Column variant while deserializing a column.");
         // TODO: remaining variants
@@ -1025,11 +1023,7 @@ library MsgPk {
             }
             (bytes memory ulag_value, bool is_ulag) = find_value_or_fail(map, abi.encode("rowoffset"));
             if (is_ulag) {
-                EncodedMap memory rowoffset_map = abi.decode(ulag_value, (EncodedMap));
-                bool zk_rows = abi.decode(find_value(rowoffset_map, abi.encode("zk_rows")), (bool));
-                int256 offset = abi.decode(find_value(rowoffset_map, abi.encode("offset")), (int256));
-                RowOffset memory rowoffset = RowOffset(zk_rows, offset);
-                return PolishToken(PolishTokenVariant.UnnormalizedLagrangeBasis, abi.encode(rowoffset));
+                return PolishToken(PolishTokenVariant.UnnormalizedLagrangeBasis, ulag_value);
             }
             (bytes memory load_value, bool is_load) = find_value_or_fail(map, abi.encode("load"));
             if (is_load) {
