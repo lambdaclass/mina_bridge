@@ -5,7 +5,7 @@ setup:
 	foundryup
 
 test:
-	forge test -vv --via-ir
+	forge test -vv --via-ir --gas-report
 
 run_node:
 	anvil --gas-limit 18446744073709551615 --code-size-limit 32768
