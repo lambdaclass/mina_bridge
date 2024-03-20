@@ -50,7 +50,7 @@ jobs:
 
             - name: Install libz1
               run: |
-                apt-get install zlib1g-dev
+                apt-get install -y zlib1g-dev
 
             - name: Run integration test
               run: |
