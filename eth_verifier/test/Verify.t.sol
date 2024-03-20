@@ -56,7 +56,7 @@ contract KimchiVerifierTest is Test {
         require(success, "Verification failed!");
     }
 
-    function measure_partial_verify() public {
+    function test_partial_verify() public {
         KimchiVerifier verifier = new KimchiVerifier();
 
         verifier.setup(urs_serialized);
@@ -73,6 +73,42 @@ contract KimchiVerifierTest is Test {
 
         // Necessary so that the optimized compiler takes into account the partial verification
         require(keccak256(abi.encode(agg_proof)) > 0);
+    }
+
+    function test_eval_commitment() public {
+        KimchiVerifier verifier = new KimchiVerifier();
+
+        verifier.setup(urs_serialized);
+
+        verifier.deserialize_proof(
+            verifier_index_serialized,
+            prover_proof_serialized,
+            linearization_serialized_rlp,
+            public_inputs_serialized,
+            lagrange_bases_serialized
+        );
+
+        Scalar.FE[2] memory evaluation_points = [
+            Scalar.from(13611645662807726448009836376915752628632570551277086161653783406622791783728),
+            Scalar.from(3564135020345995638717498554909006524700441992279926422621219017070650554254)
+        ];
+
+        Scalar.FE[] memory evals = new Scalar.FE[](2);
+        evals[0] = Scalar.from(10120666028354925241544739361936737942150226600838550203372747067710839915497);
+        evals[1] = Scalar.from(15078030357868247450073031446158725935649265148599941249555157207050719642652);
+
+        BN254.G1Point[] memory g = new BN254.G1Point[](2);
+        g[0] = BN254.G1Point(1, 2);
+        g[1] = BN254.G1Point(
+            4312786488925573964619847916436127219510912864504589785209181363209026354996,
+            16161347681839669251864665467703281411292235435048747094987907712909939880451
+        );
+        URS memory full_urs = URS(g, BN254.point_at_inf());
+
+        BN254.G1Point memory eval_commitment = verifier.eval_commitment(evaluation_points, evals, full_urs);
+
+        // Necessary so that the optimized compiler takes into account the eval commitment
+        require(keccak256(abi.encode(eval_commitment)) > 0);
     }
 
     function test_absorb_evaluations() public {

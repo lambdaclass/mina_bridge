@@ -554,7 +554,7 @@ contract KimchiVerifier {
     }
 
     function eval_commitment(Scalar.FE[2] memory evaluation_points, Scalar.FE[] memory evals, URS memory full_urs)
-        internal
+        public
         view
         returns (BN254.G1Point memory)
     {
