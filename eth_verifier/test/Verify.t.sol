@@ -62,6 +62,28 @@ contract KimchiVerifierTest is Test {
         require(success, "Verification failed!");
     }
 
+    function test_partial_verify() public {
+        KimchiVerifier verifier = new KimchiVerifier();
+
+        verifier.setup(urs_serialized);
+
+        verifier.deserialize_proof(
+            verifier_index_serialized,
+            prover_proof_serialized,
+            linearization_serialized_rlp,
+            public_inputs_serialized,
+            lagrange_bases_serialized
+        );
+
+        AggregatedEvaluationProof memory agg_proof = verifier.partial_verify();
+
+        require(
+            keccak256(abi.encode(agg_proof)) ==
+                0xa412ae2c726f9f1a0178e2174ba467efaaf9b4be7710f837622692a9e1038a11,
+            "Partial verification failed!"
+        );
+    }
+
     function test_absorb_evaluations() public {
         KeccakSponge.reinit(sponge);
 
