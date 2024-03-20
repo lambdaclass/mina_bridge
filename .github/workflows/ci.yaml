@@ -48,6 +48,10 @@ jobs:
             - name: Checkout sources
               uses: actions/checkout@v4
 
+            - name: Install libz1
+              run: |
+                sudo apt install libz1-dev
+
             - name: Run integration test
               run: |
                 export HOME="/root/"
