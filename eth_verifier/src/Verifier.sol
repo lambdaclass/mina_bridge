@@ -531,7 +531,7 @@ contract KimchiVerifier {
     }
 
     function divisor_commitment(Scalar.FE[2] memory evaluation_points, URSG2 memory verifier_urs)
-        internal
+        public
         view
         returns (BN254.G2Point memory)
     {
