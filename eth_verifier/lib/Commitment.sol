@@ -384,13 +384,19 @@ function commit_non_hiding(URSG2 memory self, Polynomial.Dense memory plnm, uint
     comm.unshifted = unshifted;
 }
 
-function combine_commitments(Evaluation[] memory evaluations, Scalar.FE polyscale, Scalar.FE rand_base)
+function combine_commitments_and_evaluations(Evaluation[] memory evaluations, Scalar.FE polyscale, Scalar.FE rand_base)
     view
-    returns (BN254.G1Point memory poly_commitment)
+    returns (BN254.G1Point memory poly_commitment, Scalar.FE[] memory acc)
 {
-    Scalar.FE xi_i = Scalar.one();
-
     poly_commitment = BN254.point_at_inf();
+
+    uint256 num_evals = evaluations.length != 0 ? evaluations[0].evaluations.length : 0;
+    acc = new Scalar.FE[](num_evals);
+    for (uint256 i = 0; i < num_evals; i++) {
+        acc[i] = Scalar.zero();
+    }
+
+    Scalar.FE xi_i = Scalar.one();
 
     // WARN: the actual length might be more than evaluations.length
     // but for our test proof it will not.
@@ -408,29 +414,12 @@ function combine_commitments(Evaluation[] memory evaluations, Scalar.FE polyscal
             xi_i = xi_i.mul(polyscale);
             index += 1;
         }
-        // TODO: degree bound, shifted part
-    }
-}
 
-function combine_evaluations(Evaluation[] memory evaluations, Scalar.FE polyscale)
-    pure
-    returns (Scalar.FE[] memory acc)
-{
-    Scalar.FE xi_i = Scalar.one();
+        Scalar.FE[][2] memory inner_evaluations = evaluations[i].evaluations;
 
-    uint256 num_evals = evaluations.length != 0 ? evaluations[0].evaluations.length : 0;
-    acc = new Scalar.FE[](num_evals);
-    for (uint256 i = 0; i < num_evals; i++) {
-        acc[i] = Scalar.zero();
-    }
-
-    for (uint256 i = 0; i < evaluations.length; i++) {
-        if (evaluations[i].commitment.unshifted.length == 0) continue;
-        Scalar.FE[][2] memory evaluations = evaluations[i].evaluations;
-
-        for (uint256 j = 0; j < evaluations[0].length; j++) {
-            for (uint256 k = 0; k < evaluations.length; k++) {
-                acc[k] = acc[k].add(evaluations[k][j].mul(xi_i));
+        for (uint256 j = 0; j < inner_evaluations[0].length; j++) {
+            for (uint256 k = 0; k < inner_evaluations.length; k++) {
+                acc[k] = acc[k].add(inner_evaluations[k][j].mul(xi_i));
             }
             xi_i = xi_i.mul(polyscale);
         }
