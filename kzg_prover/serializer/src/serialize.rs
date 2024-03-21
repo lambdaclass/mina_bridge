@@ -2,15 +2,17 @@ use ark_ec::short_weierstrass_jacobian::GroupAffine;
 use o1_utils::FieldHelpers;
 use poly_commitment::pairing_proof::PairingProof;
 
+struct EVMSerializableType<T>(T);
+
 pub trait EVMSerializable {
     fn to_bytes(self) -> Vec<u8>;
 }
 
+/** Implementations **/
+
 type ScalarField = ark_bn254::Fr;
 type BN254PairingProof = PairingProof<ark_ec::bn::Bn<ark_bn254::Parameters>>;
 type G1Point = GroupAffine<ark_bn254::g1::Parameters>;
-
-struct EVMSerializableType<T>(T);
 
 impl EVMSerializable for EVMSerializableType<G1Point> {
     fn to_bytes(self) -> Vec<u8> {
