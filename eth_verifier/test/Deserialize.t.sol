@@ -241,6 +241,13 @@ contract DeserializeTest is Test {
         MsgPk.deser_linearization(MsgPk.new_stream(linearization_serialized), index);
     }
 
+    // WARN: this doesn't assert anything, it only executes this deserialization
+    // for gas profiling.
+    function test_deserialize_lagrange_bases_profiling_only() public {
+        bytes memory lagrange_bases_serialized = vm.readFileBinary("unit_test_data/lagrange_bases.mpk");
+        MsgPk.deser_lagrange_bases(lagrange_bases_serialized);
+    }
+
     function test_deserialize_scalar() public {
         bytes memory scalar_serialized = hex"550028f667d034768ec0a14ac5f5a24bbcad7117110fc65b7529e003a0708419";
         Scalar.FE scalar = MsgPk.deser_scalar(scalar_serialized);
