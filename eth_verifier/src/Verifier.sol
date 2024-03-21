@@ -506,8 +506,9 @@ contract KimchiVerifier {
         PairingProof memory opening = agg_proof.opening;
 
         // poly commitment
-        (BN254.G1Point memory poly_commitment, Scalar.FE[] memory evals) =
-            combine_commitments_and_evaluations(evaluations, polyscale, Scalar.one());
+        (Scalar.FE[] memory scalars, BN254.G1Point[] memory points) =
+            combine_commitments(evaluations, polyscale, Scalar.one());
+        BN254.G1Point memory poly_commitment = naive_msm(points, scalars);
 
         // blinding commitment
         BN254.G1Point memory blinding_commitment = urs.full_urs.h.scale_scalar(opening.blinding);
@@ -519,6 +520,7 @@ contract KimchiVerifier {
         BN254.G2Point memory divisor = divisor_commitment(evaluation_points, verifier_urs);
 
         // eval commitment
+        Scalar.FE[] memory evals = combine_evaluations(evaluations, polyscale);
         BN254.G1Point memory eval_commitment = eval_commitment(evaluation_points, evals, urs.full_urs);
 
         // numerator commitment

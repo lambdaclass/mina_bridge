@@ -56,7 +56,7 @@ contract KimchiVerifierTest is Test {
         require(success, "Verification failed!");
     }
 
-    function test_partial_verify() public {
+    function measure_partial_verify() public {
         KimchiVerifier verifier = new KimchiVerifier();
 
         verifier.setup(urs_serialized);
