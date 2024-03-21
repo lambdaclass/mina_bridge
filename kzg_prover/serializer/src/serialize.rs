@@ -2,8 +2,12 @@ use ark_ec::short_weierstrass_jacobian::GroupAffine;
 use o1_utils::FieldHelpers;
 use poly_commitment::pairing_proof::PairingProof;
 
+/// Newtype for types that can be serialized into bytes and sent directly to
+/// smart contract functions of the verifier.
 struct EVMSerializableType<T>(T);
 
+/// Trait for types that can be serialized into bytes and sent directly to
+/// smart contract functions of the verifier.
 pub trait EVMSerializable {
     fn to_bytes(self) -> Vec<u8>;
 }
@@ -16,7 +20,7 @@ type G1Point = GroupAffine<ark_bn254::g1::Parameters>;
 
 impl EVMSerializable for EVMSerializableType<ScalarField> {
     fn to_bytes(self) -> Vec<u8> {
-        self.0.to_bytes().into_iter().rev().collect()
+        self.0.to_bytes().into_iter().rev().collect() // flip endianness
     }
 }
 
