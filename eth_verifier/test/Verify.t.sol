@@ -155,6 +155,25 @@ contract KimchiVerifierTest is Test {
         require(keccak256(abi.encode(divisor_commitment)) > 0);
     }
 
+    function test_public_commitment() public {
+        KimchiVerifier verifier = new KimchiVerifier();
+
+        verifier.setup(urs_serialized);
+
+        verifier.deserialize_proof(
+            verifier_index_serialized,
+            prover_proof_serialized,
+            linearization_serialized_rlp,
+            public_inputs_serialized,
+            lagrange_bases_serialized
+        );
+
+        PolyComm memory public_commitment = verifier.public_commitment();
+
+        // Necessary so that the optimized compiler takes into account the public commitment
+        require(keccak256(abi.encode(public_commitment)) > 0);
+    }
+
     function test_absorb_evaluations() public {
         KeccakSponge.reinit(sponge);
 
