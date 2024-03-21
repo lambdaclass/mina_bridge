@@ -414,66 +414,6 @@ contract KimchiVerifier {
         return Polynomial.Dense(coeffs);
     }
 
-    function combineCommitments(Evaluation[] memory evaluations, Scalar.FE polyscale, Scalar.FE rand_base)
-        internal
-        pure
-        returns (BN254.G1Point[] memory, Scalar.FE[] memory)
-    {
-        uint256 vec_length = 0;
-        // Calculate the max length of the points and scalars vectors
-        // Iterate over the evaluations
-        for (uint256 i = 0; i < evaluations.length; i++) {
-            // Filter out evaluations with an empty commitment
-            if (evaluations[i].commitment.unshifted.length == 0) {
-                continue;
-            }
-
-            vec_length += evaluations[i].commitment.unshifted.length + 1;
-        }
-        BN254.G1Point[] memory points = new BN254.G1Point[](vec_length);
-        Scalar.FE[] memory scalars = new Scalar.FE[](vec_length);
-        uint256 index = 0; // index of the element to assign in the vectors
-
-        // Initialize xi_i to 1
-        Scalar.FE xi_i = Scalar.FE.wrap(1);
-
-        // Iterate over the evaluations
-        for (uint256 i = 0; i < evaluations.length; i++) {
-            // Filter out evaluations with an empty commitment
-            if (evaluations[i].commitment.unshifted.length == 0) {
-                continue;
-            }
-
-            // iterating over the polynomial segments
-            for (uint256 j = 0; j < evaluations[i].commitment.unshifted.length; j++) {
-                // Add the scalar rand_base * xi_i to the scalars vector
-                scalars[index] = rand_base.mul(xi_i);
-                // Add the point to the points vector
-                points[index] = evaluations[i].commitment.unshifted[j];
-
-                // Multiply xi_i by polyscale
-                xi_i = xi_i.mul(polyscale);
-
-                // Increment the index
-                index++;
-            }
-
-            // If the evaluation has a degree bound and a non-zero shifted commitment
-            if (evaluations[i].degree_bound > 0 && evaluations[i].commitment.shifted.x != 0) {
-                // Add the scalar rand_base * xi_i to the scalars vector
-                scalars[index] = rand_base.mul(xi_i);
-                // Add the point to the points vector
-                points[index] = evaluations[i].commitment.shifted;
-
-                // Multiply xi_i by polyscale
-                xi_i = xi_i.mul(polyscale);
-                // Increment the index
-                index++;
-            }
-        }
-        return (points, scalars);
-    }
-
     /*
     This is a list of steps needed for verification.
 
