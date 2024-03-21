@@ -39,6 +39,7 @@ impl EVMSerializable for EVMSerializableType<BN254PairingProof> {
     fn to_bytes(self) -> Vec<u8> {
         let BN254PairingProof { quotient, blinding } = self.0;
         let quotient = EVMSerializableType(quotient);
+        let blinding = EVMSerializableType(blinding);
         [quotient.to_bytes(), blinding.to_bytes()].concat()
     }
 }
