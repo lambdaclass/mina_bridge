@@ -50,4 +50,14 @@ mod test {
             vec![vec![0; 31], vec![1], vec![0; 31], vec![2]].concat()
         );
     }
+
+    #[test]
+    fn test_g1_point_at_infinity_ser() {
+        let point = G1Point::new(BaseField::from(1), BaseField::from(2), true);
+        let serialized = EVMSerializableType(point).to_bytes();
+        assert_eq!(
+            serialized,
+            vec![0; 64]
+        );
+    }
 }
