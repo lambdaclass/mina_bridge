@@ -1,10 +1,11 @@
 use ark_ec::short_weierstrass_jacobian::GroupAffine;
 use o1_utils::FieldHelpers;
-use poly_commitment::pairing_proof::PairingProof;
+
+use crate::type_aliases::{BN254PairingProof, G1Point, ScalarField};
 
 /// Newtype for types that can be serialized into bytes and sent directly to
 /// smart contract functions of the verifier.
-struct EVMSerializableType<T>(T);
+pub struct EVMSerializableType<T>(pub T);
 
 /// Trait for types that can be serialized into bytes and sent directly to
 /// smart contract functions of the verifier.
@@ -13,10 +14,6 @@ pub trait EVMSerializable {
 }
 
 /** Implementations **/
-
-type ScalarField = ark_bn254::Fr;
-type BN254PairingProof = PairingProof<ark_ec::bn::Bn<ark_bn254::Parameters>>;
-type G1Point = GroupAffine<ark_bn254::g1::Parameters>;
 
 impl EVMSerializable for EVMSerializableType<ScalarField> {
     fn to_bytes(self) -> Vec<u8> {
@@ -50,9 +47,9 @@ impl EVMSerializable for EVMSerializableType<BN254PairingProof> {
 
 #[cfg(test)]
 mod test {
-    use super::*;
+    use crate::type_aliases::BaseField;
 
-    type BaseField = ark_bn254::Fq;
+    use super::*;
 
     #[test]
     fn test_scalar_field_ser() {
