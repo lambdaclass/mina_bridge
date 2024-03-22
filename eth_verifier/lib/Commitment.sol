@@ -384,52 +384,39 @@ function commit_non_hiding(URSG2 memory self, Polynomial.Dense memory plnm, uint
     comm.unshifted = unshifted;
 }
 
-function combine_commitments(Evaluation[] memory evaluations, Scalar.FE polyscale, Scalar.FE rand_base)
+function combine_commitments_and_evaluations(Evaluation[] memory evaluations, Scalar.FE polyscale, Scalar.FE rand_base)
     view
-    returns (BN254.G1Point memory poly_commitment)
+    returns (BN254.G1Point memory poly_commitment, Scalar.FE[] memory acc)
 {
     Scalar.FE xi_i = Scalar.one();
     poly_commitment = BN254.point_at_inf();
-
-    // WARN: the actual length might be more than evaluations.length
-    // but for our test proof it will not.
-
-    uint256 index = 0;
-
-    for (uint256 i = 0; i < evaluations.length; i++) {
-        if (evaluations[i].commitment.unshifted.length == 0) continue;
-        PolyComm memory commitment = evaluations[i].commitment;
-
-        for (uint256 j = 0; j < commitment.unshifted.length; j++) {
-            BN254.G1Point memory comm_ch = commitment.unshifted[j];
-            poly_commitment = poly_commitment.add(comm_ch.scale_scalar(rand_base.mul(xi_i)));
-
-            xi_i = xi_i.mul(polyscale);
-            index += 1;
-        }
-        // TODO: degree bound, shifted part
-    }
-}
-
-function combine_evaluations(Evaluation[] memory evaluations, Scalar.FE polyscale)
-    pure
-    returns (Scalar.FE[] memory acc)
-{
-    Scalar.FE xi_i = Scalar.one();
-
     uint256 num_evals = evaluations.length != 0 ? evaluations[0].evaluations.length : 0;
     acc = new Scalar.FE[](num_evals);
     for (uint256 i = 0; i < num_evals; i++) {
         acc[i] = Scalar.zero();
     }
 
+    // WARN: the actual length might be more than evaluations.length
+    // but for our test proof it will not.
+
     for (uint256 i = 0; i < evaluations.length; i++) {
         if (evaluations[i].commitment.unshifted.length == 0) continue;
-        Scalar.FE[][2] memory evaluations = evaluations[i].evaluations;
 
-        for (uint256 j = 0; j < evaluations[0].length; j++) {
-            for (uint256 k = 0; k < evaluations.length; k++) {
-                acc[k] = acc[k].add(evaluations[k][j].mul(xi_i));
+        PolyComm memory commitment = evaluations[i].commitment;
+        Scalar.FE[][2] memory inner_evaluations = evaluations[i].evaluations;
+        uint256 commitment_steps = commitment.unshifted.length;
+        uint256 evaluation_steps = inner_evaluations[0].length;
+        uint256 steps = commitment_steps > evaluation_steps ? commitment_steps : evaluation_steps;
+
+        for (uint256 j = 0; j < steps; j++) {
+            if (j < commitment_steps) {
+                BN254.G1Point memory comm_ch = commitment.unshifted[j];
+                poly_commitment = poly_commitment.add(comm_ch.scale_scalar(rand_base.mul(xi_i)));
+            }
+            if (j < evaluation_steps) {
+                for (uint256 k = 0; k < inner_evaluations.length; k++) {
+                    acc[k] = acc[k].add(inner_evaluations[k][j].mul(xi_i));
+                }
             }
             xi_i = xi_i.mul(polyscale);
         }
