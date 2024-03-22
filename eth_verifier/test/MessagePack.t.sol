@@ -234,20 +234,6 @@ contract MessagePackTest is Test {
         assertEq(test_urs.verifier_urs.g[2].y1, 0x1DAE1514DF395BF6B03BD82FE153C56D7419845B00D9592E637660BA8F4F339D, "y1 point 2");
     }
 
-    // WARN: this doesn't assert anything, it only executes this deserialization
-    // for gas profiling.
-    function test_deserialize_linearization_profiling_only() public {
-        bytes memory linearization_serialized = vm.readFileBinary("unit_test_data/linearization.mpk");
-        MsgPk.deser_linearization(MsgPk.new_stream(linearization_serialized), index);
-    }
-
-    // WARN: this doesn't assert anything, it only executes this deserialization
-    // for gas profiling.
-    function test_deserialize_lagrange_bases_profiling_only() public {
-        bytes memory lagrange_bases_serialized = vm.readFileBinary("unit_test_data/lagrange_bases.mpk");
-        MsgPk.deser_lagrange_bases(lagrange_bases_serialized);
-    }
-
     function test_deserialize_scalar() public {
         bytes memory scalar_serialized = hex"550028f667d034768ec0a14ac5f5a24bbcad7117110fc65b7529e003a0708419";
         Scalar.FE scalar = MsgPk.deser_scalar(scalar_serialized);
@@ -258,5 +244,47 @@ contract MessagePackTest is Test {
         public_inputs_serialized = vm.readFileBinary("public_inputs.mpk");
         Scalar.FE[] memory public_inputs = MsgPk.deser_public_inputs(public_inputs_serialized);
         assertEq(Scalar.FE.unwrap(public_inputs[2]), 0x000000000000000000000000000000000000000000002149A7476FD365F3E060);
+    }
+
+    // INFO: this doesn't assert anything, it only executes this deserialization
+    // for gas profiling.
+    function test_deserialize_linearization_profiling_only() public {
+        bytes memory linearization_serialized = vm.readFileBinary("linearization.mpk");
+        MsgPk.deser_linearization(MsgPk.new_stream(linearization_serialized), index);
+    }
+
+    // INFO: this doesn't assert anything, it only executes this deserialization
+    // for gas profiling.
+    function test_decode_linearization_profiling_only() public {
+        bytes memory linearization_rlp = vm.readFileBinary("linearization.rlp");
+        abi.decode(linearization_rlp, (Linearization));
+    }
+
+    // INFO: this doesn't assert anything, it only executes this deserialization
+    // for gas profiling.
+    function test_deserialize_lagrange_bases_profiling_only() public {
+        bytes memory lagrange_bases_serialized = vm.readFileBinary("lagrange_bases.mpk");
+        MsgPk.deser_lagrange_bases(lagrange_bases_serialized);
+    }
+
+    // INFO: this doesn't assert anything, it only executes this deserialization
+    // for gas profiling.
+    function test_deserialize_verifier_index_profiling_only() public {
+        bytes memory verifier_index_serialized = vm.readFileBinary("verifier_index.mpk");
+        MsgPk.deser_verifier_index(MsgPk.new_stream(verifier_index_serialized), index);
+    }
+
+    // INFO: this doesn't assert anything, it only executes this deserialization
+    // for gas profiling.
+    function test_deserialize_prover_proof_profiling_only() public {
+        bytes memory prover_proof_serialized = vm.readFileBinary("prover_proof.mpk");
+        MsgPk.deser_prover_proof(MsgPk.new_stream(prover_proof_serialized), prover_proof);
+    }
+
+    // INFO: this doesn't assert anything, it only executes this deserialization
+    // for gas profiling.
+    function test_deserialize_public_inputs_profiling_only() public {
+        bytes memory public_inputs_serialized = vm.readFileBinary("public_inputs.mpk");
+        MsgPk.deser_public_inputs(public_inputs_serialized);
     }
 }
