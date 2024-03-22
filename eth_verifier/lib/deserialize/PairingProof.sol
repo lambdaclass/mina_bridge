@@ -4,6 +4,7 @@ pragma solidity >=0.4.16 <0.9.0;
 import "../Proof.sol";
 import "../bn254/BN254.sol";
 
+/// @notice demonstrates the "deserialization" of incoming PairingProof data.
 function deser_pairing_proof(
     bytes memory,
     NewPairingProof storage pairing_proof
