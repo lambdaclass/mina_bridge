@@ -506,9 +506,7 @@ contract KimchiVerifier {
         PairingProof memory opening = agg_proof.opening;
 
         // poly commitment
-        (Scalar.FE[] memory scalars, BN254.G1Point[] memory points) =
-            combine_commitments(evaluations, polyscale, Scalar.one());
-        BN254.G1Point memory poly_commitment = naive_msm(points, scalars);
+        BN254.G1Point memory poly_commitment = combine_commitments(evaluations, polyscale, Scalar.one());
 
         // blinding commitment
         BN254.G1Point memory blinding_commitment = urs.full_urs.h.scale_scalar(opening.blinding);
