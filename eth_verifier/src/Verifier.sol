@@ -128,27 +128,35 @@ contract KimchiVerifier {
         }
         PolyComm[] memory comm = new PolyComm[](verifier_index.public_len);
         // INFO: can use unchecked on for loops to save gas
-        for (uint256 i = 0; i < verifier_index.public_len; i++) {
+        uint256 i = verifier_index.public_len;
+        while (i > 0) {
+            --i;
             comm[i] = lagrange_bases[i];
         }
         PolyComm memory public_comm;
         if (public_inputs.length == 0) {
             BN254.G1Point[] memory blindings = new BN254.G1Point[](chunk_size);
-            for (uint256 i = 0; i < chunk_size; i++) {
-                blindings[i] = urs.full_urs.h;
+            uint256 j = chunk_size;
+            while (j > 0) {
+                --j;
+                blindings[j] = urs.full_urs.h;
             }
             // TODO: shifted is fixed to infinity
             BN254.G1Point memory shifted = BN254.point_at_inf();
             public_comm = PolyComm(blindings, shifted);
         } else {
             Scalar.FE[] memory elm = new Scalar.FE[](public_inputs.length);
-            for (uint256 i = 0; i < elm.length; i++) {
-                elm[i] = public_inputs[i].neg();
+            uint256 l = elm.length;
+            while (l > 0) {
+                --l;
+                elm[l] = public_inputs[l].neg();
             }
             PolyComm memory public_comm_tmp = polycomm_msm(comm, elm);
             Scalar.FE[] memory blinders = new Scalar.FE[](public_comm_tmp.unshifted.length);
-            for (uint256 i = 0; i < public_comm_tmp.unshifted.length; i++) {
-                blinders[i] = Scalar.FE.wrap(1);
+            uint256 j = public_comm_tmp.unshifted.length;
+            while (j > 0) {
+                --j;
+                blinders[j] = Scalar.FE.wrap(1);
             }
             public_comm = mask_custom(urs.full_urs, public_comm_tmp, blinders).commitment;
         }
