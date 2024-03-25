@@ -30,10 +30,9 @@ contract DeserializeTest is Test {
         assertEq(Scalar.FE.unwrap(pairing_proof.blinding), 1);
     }
 
-    function test_deser_proof_evals() public {
+    function test_deser_new_proof_evals() public {
         deser_proof_evals(proof_evals_bytes, proof_evals);
 
-        console.log(bitmap.unwrap(proof_evals.optional_field_flags));
         assertEq(
             bitmap.unwrap(proof_evals.optional_field_flags),
             (1 << 0) + (1 << 1) + (1 << 3)

@@ -14,7 +14,9 @@ function deser_proof_evals(
 
         // the first 32 bytes correspond to the optional field flags:
         let optional_field_flags := mload(addr)
+        sstore(slot, optional_field_flags)
         addr := add(addr, 0x20)
+        slot := add(slot, 1)
 
         // the non-optional evaluations are:
         // - w[15]

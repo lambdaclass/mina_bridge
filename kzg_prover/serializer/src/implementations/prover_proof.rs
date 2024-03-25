@@ -45,7 +45,7 @@ impl EVMSerializable for EVMSerializableType<BN254ProofEvaluations> {
         ]
         .map(|field| if field.is_some() { 1 } else { 0 });
         for (i, mut flag) in optional_field_flags.into_iter().enumerate() {
-            flag <<= 7 - (i % 8); // first flags are positioned on most significant bits
+            flag <<= i % 8; // first flags are positioned on least significant bits
             optional_field_flags_encoded[i / 8] |= flag;
         }
 
@@ -101,7 +101,11 @@ impl EVMSerializable for EVMSerializableType<BN254ProofEvaluations> {
             encode_eval_option(evals.rot_selector),
             encode_eval_option(evals.lookup_aggregation),
             encode_eval_option(evals.lookup_table),
-            evals.lookup_sorted.into_iter().flat_map(encode_eval_option).collect(),
+            evals
+                .lookup_sorted
+                .into_iter()
+                .flat_map(encode_eval_option)
+                .collect(),
             encode_eval_option(evals.runtime_lookup_table),
             encode_eval_option(evals.runtime_lookup_table_selector),
             encode_eval_option(evals.xor_lookup_selector),
