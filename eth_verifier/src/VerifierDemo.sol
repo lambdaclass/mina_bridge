@@ -26,8 +26,33 @@ using {sub_polycomms, scale_polycomm} for PolyComm;
 using {get_column_eval} for ProofEvaluationsArray;
 
 contract KimchiVerifierDemo {
+    using {register} for Alphas;
+    using {combine_evals} for ProofEvaluationsArray;
+    using {chunk_commitment} for PolyComm;
+
+    VerifierIndex verifier_index;
+    ProverProof proof;
+    PairingURS urs;
+    Scalar.FE[] public_inputs;
+    PolyComm[] lagrange_bases;
+
+    Sponge base_sponge;
+    Sponge scalar_sponge;
+
     State internal state;
     bool state_available;
+
+    function setup(bytes memory urs_serialized) public {
+        MsgPk.deser_pairing_urs(MsgPk.new_stream(urs_serialized), urs);
+
+        // INFO: powers of alpha are fixed for a given constraint system, so we can hard-code them.
+        verifier_index.powers_of_alpha.register(ArgumentType.GateZero, VARBASEMUL_CONSTRAINTS);
+        verifier_index.powers_of_alpha.register(ArgumentType.Permutation, PERMUTATION_CONSTRAINTS);
+
+        // INFO: endo coefficient is fixed for a given constraint system
+        (Base.FE _endo_q, Scalar.FE endo_r) = BN254.endo_coeffs_g1();
+        verifier_index.endo = endo_r;
+    }
 
     /// @notice this is currently deprecated but remains as to not break
     /// @notice the demo.

@@ -11,7 +11,7 @@ contract Deploy is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        new KimchiVerifier();
+        new KimchiVerifierDemo();
 
         vm.stopBroadcast();
     }
@@ -22,7 +22,7 @@ contract DeployAndVerify is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        KimchiVerifierDemo verifier = new KimchiVerifier();
+        KimchiVerifierDemo verifier = new KimchiVerifierDemo();
 
         bool success = verifier.verify_state(vm.readFileBinary("state.mpk"), vm.readFileBinary("proof.mpk"));
         console.log(success);
