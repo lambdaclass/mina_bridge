@@ -101,7 +101,6 @@ contract KimchiVerifier {
         if (public_inputs.length != verifier_index.public_len) {
             revert IncorrectPublicInputLength();
         }
-
         PolyComm memory public_comm;
         if (public_inputs.length == 0) {
             BN254.G1Point[] memory blindings = new BN254.G1Point[](chunk_size);
