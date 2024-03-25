@@ -3,6 +3,7 @@ pragma solidity >=0.4.16 <0.9.0;
 
 import "../lib/bn254/Fields.sol";
 import "../lib/bn254/BN254.sol";
+import "../lib/bn254/BN256G2.sol";
 import "../lib/VerifierIndex.sol";
 import "../lib/Commitment.sol";
 import "../lib/Oracles.sol";
@@ -18,6 +19,7 @@ import "../lib/expr/PolishToken.sol";
 import "../lib/expr/ExprConstants.sol";
 
 using {BN254.neg, BN254.scale_scalar, BN254.sub} for BN254.G1Point;
+using {BN256G2} for BN256G2;
 using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
 using {get_alphas} for Alphas;
 using {it_next} for AlphasIterator;
@@ -476,6 +478,22 @@ contract KimchiVerifier {
 
         // quotient commitment needs to be negated. See the doc of pairingProd2().
         return BN254.pairingProd2(numerator, BN254.P2(), quotient.neg(), divisor);
+    }
+
+    function divisor_commitment_bis(Scalar.FE[2] memory evaluation_points)
+        internal
+        view
+        returns (BN254.G2Point memory point3)
+    {
+        // TODO harcode coordinates @@@@@@@@@@@@@
+        BN254.G2Point memory point1 = BN254.G2Point(0, 0, 0, 0);
+        BN254.G2Point memory point2 = BN254.G2Point(0, 0, 0, 0);
+        BN254.G2Point memory point3 = BN254.G2Point(0, 0, 0, 0);
+
+        point1 = BN256G2.ECTwistMul(evaluation_points[0].mul(evaluation_points[1]), point1);
+        point2 = BN256G2.ECTwistMul(evaluation_points[0].add(evaluation_points[1]).neg(), point2);
+        point3 = BN256G2.ECTwistAdd(point3, point2);
+        point3 = BN256G2.ECTwistAdd(point3, point1);
     }
 
     function divisor_commitment(Scalar.FE[2] memory evaluation_points, URSG2 memory verifier_urs)
