@@ -55,7 +55,8 @@ function deser_proof_evaluations(
         // totalling 19 evaluations. In this case we'll index evaluations, not scalars:
         for { let i := 0 } lt(i, 19) { i := add(i, 1) } {
             let is_some := and(1, shr(optional_field_flags, i))
-            if is_some {
+            switch is_some
+            case 1 { // true
                 // zeta:
                 sstore(slot, mload(addr))
                 addr := add(addr, 0x20)
@@ -64,6 +65,10 @@ function deser_proof_evaluations(
                 sstore(slot, mload(addr))
                 addr := add(addr, 0x20)
                 slot := add(slot, 1)
+            }
+            default { // false
+                addr := add(addr, 0x40)
+                slot := add(slot, 2)
             }
         }
     }
