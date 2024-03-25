@@ -37,10 +37,10 @@ library Polynomial {
         if (coeffs.length == 1) {
             return result;
         }
-        uint256 i = coeffs.length - 2;
-        while (i > 0) {
-            result = result.mul(x).add(coeffs[i]);
+        uint256 i = coeffs.length - 1;
+        while (i != 0) {
             --i;
+            result = result.mul(x).add(coeffs[i]);
         }
     }
 
