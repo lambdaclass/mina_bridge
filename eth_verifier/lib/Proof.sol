@@ -21,6 +21,11 @@ struct PairingProof {
     Scalar.FE blinding;
 }
 
+struct NewPairingProof {
+    BN254.G1Point quotient;
+    Scalar.FE blinding;
+}
+
 struct ProverProof {
     ProofEvaluationsArray evals;
     ProverCommitments commitments;

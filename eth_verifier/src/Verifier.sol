@@ -88,31 +88,6 @@ contract KimchiVerifier {
         return final_verify(agg_proof, urs.verifier_urs);
     }
 
-    /// @notice this is currently deprecated but remains as to not break
-    /// @notice the demo.
-    function verify_state(bytes calldata state_serialized, bytes calldata proof_serialized) public returns (bool) {
-        // 1. Deserialize proof and setup
-
-        // For now, proof consists in the concatenation of the bytes that
-        // represent the numerator, quotient and divisor polynomial
-        // commitments (G1 and G2 points).
-
-        // BEWARE: quotient must be negated.
-
-        (BN254.G1Point memory numerator, BN254.G1Point memory quotient, BN254.G2Point memory divisor) =
-            MsgPk.deserializeFinalCommitments(proof_serialized);
-
-        bool success = BN254.pairingProd2(numerator, BN254.P2(), quotient, divisor);
-
-        // 3. If success, deserialize and store state
-        if (success) {
-            store_state(state_serialized);
-            state_available = true;
-        }
-
-        return success;
-    }
-
     error IncorrectPublicInputLength();
 
     // This takes Kimchi's `to_batch()` as reference.
@@ -130,10 +105,10 @@ contract KimchiVerifier {
         }
         PolyComm[] memory comm = new PolyComm[](verifier_index.public_len);
         // INFO: can use unchecked on for loops to save gas
-        uint256 i = verifier_index.public_len;
-        while (i > 0) {
-            --i;
-            comm[i] = lagrange_bases[i];
+        uint256 i_publiclen = verifier_index.public_len;
+        while (i_publiclen > 0) {
+            --i_publiclen;
+            comm[i_publiclen] = lagrange_bases[i_publiclen];
         }
         PolyComm memory public_comm;
         if (public_inputs.length == 0) {
