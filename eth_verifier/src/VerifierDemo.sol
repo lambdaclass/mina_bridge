@@ -89,6 +89,8 @@ contract KimchiVerifierDemo {
         return state_available;
     }
 
+    error UnavailableState();
+
     /// @notice retrieves the base58 encoded creator's public key
     function retrieve_state_creator() public view returns (string memory) {
         if (!state_available) {
