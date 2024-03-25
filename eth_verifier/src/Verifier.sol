@@ -165,17 +165,18 @@ contract KimchiVerifier {
             verifier_index.zk_rows
         );
 
-        for (uint256 i = 0; i < linear.index_terms.length; i++) {
-            Column memory col = linear.index_terms[i].col;
-            PolishToken[] memory tokens = linear.index_terms[i].coeff;
+        uint256 i_commitments = 0;
+        while (i_commitments < linear.index_terms.length) {
+            Column memory col = linear.index_terms[i_commitments].col;
+            PolishToken[] memory tokens = linear.index_terms[i_commitments].coeff;
 
             Scalar.FE scalar =
                 evaluate(tokens, verifier_index.domain_gen, verifier_index.domain_size, oracles.zeta, evals, constants);
 
-            scalars[i + 1] = scalar;
-            commitments[i + 1] = get_column_commitment(verifier_index, proof, col);
+            scalars[i_commitments + 1] = scalar;
+            commitments[i_commitments + 1] = get_column_commitment(verifier_index, proof, col);
+            ++i_commitments;
         }
-
         PolyComm memory f_comm = polycomm_msm(commitments, scalars);
 
         // 6. Compute the chunked commitment of ft
