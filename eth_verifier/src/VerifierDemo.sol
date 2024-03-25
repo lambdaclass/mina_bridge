@@ -88,4 +88,28 @@ contract KimchiVerifierDemo {
     function is_state_available() public view returns (bool) {
         return state_available;
     }
+
+    /// @notice retrieves the base58 encoded creator's public key
+    function retrieve_state_creator() public view returns (string memory) {
+        if (!state_available) {
+            revert UnavailableState();
+        }
+        return state.creator;
+    }
+
+    /// @notice retrieves the hash of the state after this block
+    function retrieve_state_hash() public view returns (uint256) {
+        if (!state_available) {
+            revert UnavailableState();
+        }
+        return state.hash;
+    }
+
+    /// @notice retrieves the block height
+    function retrieve_state_height() public view returns (uint256) {
+        if (!state_available) {
+            revert UnavailableState();
+        }
+        return state.block_height;
+    }
 }
