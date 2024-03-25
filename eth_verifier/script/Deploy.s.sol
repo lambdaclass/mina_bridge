@@ -11,7 +11,7 @@ contract Deploy is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        new KimchiVerifier();
+        new KimchiVerifierDemo();
 
         vm.stopBroadcast();
     }

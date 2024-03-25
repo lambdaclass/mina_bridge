@@ -11,7 +11,7 @@ contract StateTest is Test {
 
     function setUp() public virtual {
         bytes memory urs_serialized = vm.readFileBinary("urs.mpk");
-        verifier = new KimchiVerifier();
+        verifier = new KimchiVerifierDemo();
         verifier.setup(urs_serialized);
     }
 
