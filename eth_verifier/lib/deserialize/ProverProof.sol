@@ -3,7 +3,7 @@ pragma solidity >=0.4.16 <0.9.0;
 
 import "../Proof.sol";
 
-function deser_proof_evaluations(
+function deser_proof_evals(
     bytes memory,
     NewProofEvaluations storage evals
 ) {
