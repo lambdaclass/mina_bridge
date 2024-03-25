@@ -78,7 +78,6 @@ impl EVMSerializable for EVMSerializableType<BN254ProofEvaluations> {
         };
 
         let encoded_evals: Vec<u8> = vec![
-            encode_eval_option(evals.public),
             evals.w.into_iter().flat_map(encode_eval).collect(),
             encode_eval(evals.z),
             evals.s.into_iter().flat_map(encode_eval).collect(),
@@ -93,6 +92,7 @@ impl EVMSerializable for EVMSerializableType<BN254ProofEvaluations> {
             encode_eval(evals.mul_selector),
             encode_eval(evals.emul_selector),
             encode_eval(evals.endomul_scalar_selector),
+            encode_eval_option(evals.public),
             encode_eval_option(evals.range_check0_selector),
             encode_eval_option(evals.range_check1_selector),
             encode_eval_option(evals.foreign_field_add_selector),
