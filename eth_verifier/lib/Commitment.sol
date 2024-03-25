@@ -265,7 +265,7 @@ function sub_polycomms(PolyComm memory self, PolyComm memory other) view returns
     uint256 n = Utils.max(n_self, n_other);
     res.unshifted = new BN254.G1Point[](n);
 
-    for (uint i = 0; i < n; i++) {
+    for (uint256 i = 0; i < n; i++) {
         if (i < n_self && i < n_other) {
             res.unshifted[i] = self.unshifted[i].add(other.unshifted[i].neg());
         } else if (i < n_self) {
@@ -282,7 +282,7 @@ function scale_polycomm(PolyComm memory self, Scalar.FE c) view returns (PolyCom
     uint256 n = self.unshifted.length;
     res.unshifted = new BN254.G1Point[](n);
 
-    for (uint i = 0; i < n; i++) {
+    for (uint256 i = 0; i < n; i++) {
         res.unshifted[i] = self.unshifted[i].scale_scalar(c);
     }
     // TODO: shifted part, need to create a flag that determines if shifted is set.
@@ -384,11 +384,10 @@ function commit_non_hiding(URSG2 memory self, Polynomial.Dense memory plnm, uint
     comm.unshifted = unshifted;
 }
 
-function combine_commitments(
-    Evaluation[] memory evaluations,
-    Scalar.FE polyscale,
-    Scalar.FE rand_base
-) pure returns (Scalar.FE[] memory scalars, BN254.G1Point[] memory points) {
+function combine_commitments(Evaluation[] memory evaluations, Scalar.FE polyscale, Scalar.FE rand_base)
+    pure
+    returns (Scalar.FE[] memory scalars, BN254.G1Point[] memory points)
+{
     Scalar.FE xi_i = Scalar.one();
 
     scalars = new Scalar.FE[](evaluations.length);
@@ -414,10 +413,10 @@ function combine_commitments(
     }
 }
 
-function combine_evaluations(
-    Evaluation[] memory evaluations,
-    Scalar.FE polyscale
-) pure returns (Scalar.FE[] memory acc) {
+function combine_evaluations(Evaluation[] memory evaluations, Scalar.FE polyscale)
+    pure
+    returns (Scalar.FE[] memory acc)
+{
     Scalar.FE xi_i = Scalar.one();
 
     uint256 num_evals = evaluations.length != 0 ? evaluations[0].evaluations.length : 0;

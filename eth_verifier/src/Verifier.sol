@@ -126,7 +126,13 @@ contract KimchiVerifier {
                 --l;
                 elm[l] = public_inputs[l].neg();
             }
-            PolyComm memory public_comm_tmp = polycomm_msm(comm, elm);
+
+            BN254.G1Point[] memory unshifted = new BN254.G1Point[](1);
+            unshifted[0] = naive_msm(comm[0].unshifted, elm);
+            BN254.G1Point memory shifted = BN254.point_at_inf();
+
+            PolyComm memory public_comm_tmp = PolyComm(unshifted, shifted);
+
             Scalar.FE[] memory blinders = new Scalar.FE[](public_comm_tmp.unshifted.length);
             uint256 j = public_comm_tmp.unshifted.length;
             while (j > 0) {
