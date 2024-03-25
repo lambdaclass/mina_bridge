@@ -33,9 +33,31 @@ contract DeserializeTest is Test {
     function test_deser_new_proof_evals() public {
         deser_proof_evals(proof_evals_bytes, proof_evals);
 
+        // optional field flags
         assertEq(
             bitmap.unwrap(proof_evals.optional_field_flags),
             (1 << 0) + (1 << 1) + (1 << 3)
+        );
+
+        // will only test some fields:
+
+        // z
+        assertEq(Scalar.FE.unwrap(proof_evals.z.zeta), 1);
+        assertEq(Scalar.FE.unwrap(proof_evals.z.zeta_omega), 42);
+        // range_check0_selector
+        assertEq(Scalar.FE.unwrap(proof_evals.range_check0_selector.zeta), 1);
+        assertEq(
+            Scalar.FE.unwrap(proof_evals.range_check0_selector.zeta_omega),
+            42
+        );
+        // foreign_field_add_selector
+        assertEq(
+            Scalar.FE.unwrap(proof_evals.foreign_field_add_selector.zeta),
+            1
+        );
+        assertEq(
+            Scalar.FE.unwrap(proof_evals.foreign_field_add_selector.zeta_omega),
+            42
         );
     }
 }
