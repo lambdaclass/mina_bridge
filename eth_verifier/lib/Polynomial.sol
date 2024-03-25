@@ -31,8 +31,12 @@ library Polynomial {
     }
 
     // @notice evaluates via Horner's method.
+    // @warn this function can not be used with the empty polynomial.
     function build_and_eval(Scalar.FE[] memory coeffs, Scalar.FE x) external pure returns (Scalar.FE result) {
         result = coeffs[coeffs.length - 1];
+        if (coeffs.length == 1) {
+            return result;
+        }
         uint256 i = coeffs.length - 2;
         while (i > 0) {
             result = result.mul(x).add(coeffs[i]);
