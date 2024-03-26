@@ -101,13 +101,6 @@ contract KimchiVerifier {
         if (public_inputs.length != verifier_index.public_len) {
             revert IncorrectPublicInputLength();
         }
-        PolyComm[] memory comm = new PolyComm[](verifier_index.public_len);
-        // INFO: can use unchecked on for loops to save gas
-        uint256 i_publiclen = verifier_index.public_len;
-        while (i_publiclen > 0) {
-            --i_publiclen;
-            comm[i_publiclen] = lagrange_bases[i_publiclen];
-        }
         PolyComm memory public_comm;
         if (public_inputs.length == 0) {
             BN254.G1Point[] memory blindings = new BN254.G1Point[](chunk_size);
@@ -120,18 +113,13 @@ contract KimchiVerifier {
             BN254.G1Point memory shifted = BN254.point_at_inf();
             public_comm = PolyComm(blindings, shifted);
         } else {
-            Scalar.FE[] memory elm = new Scalar.FE[](public_inputs.length);
-            uint256 l = elm.length;
-            while (l > 0) {
-                --l;
-                elm[l] = public_inputs[l].neg();
+            PolyComm memory public_comm_tmp = polycomm_msm(lagrange_bases, public_inputs);
+            // negate the results of the MSM
+            uint256 i_unshifted = public_comm_tmp.unshifted.length;
+            while (i_unshifted > 0) {
+                --i_unshifted;
+                public_comm_tmp.unshifted[i_unshifted] = public_comm_tmp.unshifted[i_unshifted].neg();
             }
-
-            BN254.G1Point[] memory unshifted = new BN254.G1Point[](1);
-            unshifted[0] = naive_msm(comm[0].unshifted, elm);
-            BN254.G1Point memory shifted = BN254.point_at_inf();
-
-            PolyComm memory public_comm_tmp = PolyComm(unshifted, shifted);
 
             Scalar.FE[] memory blinders = new Scalar.FE[](public_comm_tmp.unshifted.length);
             uint256 j = public_comm_tmp.unshifted.length;
@@ -176,17 +164,18 @@ contract KimchiVerifier {
             verifier_index.zk_rows
         );
 
-        for (uint256 i = 0; i < linear.index_terms.length; i++) {
-            Column memory col = linear.index_terms[i].col;
-            PolishToken[] memory tokens = linear.index_terms[i].coeff;
+        uint256 i_commitments = 0;
+        while (i_commitments < linear.index_terms.length) {
+            Column memory col = linear.index_terms[i_commitments].col;
+            PolishToken[] memory tokens = linear.index_terms[i_commitments].coeff;
 
             Scalar.FE scalar =
                 evaluate(tokens, verifier_index.domain_gen, verifier_index.domain_size, oracles.zeta, evals, constants);
 
-            scalars[i + 1] = scalar;
-            commitments[i + 1] = get_column_commitment(verifier_index, proof, col);
+            scalars[i_commitments + 1] = scalar;
+            commitments[i_commitments + 1] = get_column_commitment(verifier_index, proof, col);
+            ++i_commitments;
         }
-
         PolyComm memory f_comm = polycomm_msm(commitments, scalars);
 
         // 6. Compute the chunked commitment of ft

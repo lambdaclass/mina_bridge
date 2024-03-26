@@ -153,31 +153,37 @@ function polycomm_msm(PolyComm[] memory com, Scalar.FE[] memory elm) view return
     }
 
     BN254.G1Point[] memory unshifted = new BN254.G1Point[](unshifted_len);
-    for (uint256 chunk = 0; chunk < unshifted_len; chunk++) {
+    uint256 chunk = 0;
+    while (chunk < unshifted_len) {
         // zip with elements and filter scalars that don't have an associated chunk.
 
         // first get the count of elements that have a chunk:
         uint256 chunk_length = 0;
-        for (uint256 i = 0; i < n; i++) {
-            if (com[i].unshifted.length > chunk) {
+        uint256 i1 = 0;
+        while (i1 < n) {
+            if (com[i1].unshifted.length > chunk) {
                 chunk_length++;
             }
+            ++i1;
         }
 
         // fill arrays
         BN254.G1Point[] memory points = new BN254.G1Point[](chunk_length);
         Scalar.FE[] memory scalars = new Scalar.FE[](chunk_length);
         uint256 index = 0;
-        for (uint256 i = 0; i < n; i++) {
-            if (com[i].unshifted.length > chunk) {
-                points[index] = (com[i].unshifted[chunk]);
-                scalars[index] = (elm[i]);
+        uint256 i2 = 0;
+        while (i2 < n) {
+            if (com[i2].unshifted.length > chunk) {
+                points[index] = (com[i2].unshifted[chunk]);
+                scalars[index] = (elm[i2]);
                 index++;
             }
+            ++i2;
         }
 
         BN254.G1Point memory chunk_msm = naive_msm(points, scalars);
         unshifted[chunk] = chunk_msm;
+        ++chunk;
     }
     // TODO: shifted is fixed to infinity
     BN254.G1Point memory shifted = BN254.point_at_inf();
