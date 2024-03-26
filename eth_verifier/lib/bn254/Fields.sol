@@ -66,35 +66,14 @@ library Base {
         }
     }
 
-    // Reference: Lambdaworks
-    // https://github.com/lambdaclass/lambdaworks/
     function pow(FE self, uint256 exponent) public pure returns (FE result) {
-        if (exponent == 0) {
-            return FE.wrap(1);
-        } else if (exponent == 1) {
-            return self;
-        } else {
-            result = self;
-
-            while (exponent & 1 == 0) {
-                result = square(result);
-                exponent = exponent >> 1;
+        result = FE.wrap(1);
+        while (exponent != 0) {
+            if (exponent & 1 == 1) {
+                result = mul(result, self);
             }
-
-            if (exponent == 0) {
-                return result;
-            } else {
-                FE base = result;
-                exponent = exponent >> 1;
-
-                while (exponent != 0) {
-                    base = square(base);
-                    if (exponent & 1 == 1) {
-                        result = mul(result, base);
-                    }
-                    exponent = exponent >> 1;
-                }
-            }
+            self = mul(self, self);
+            exponent = exponent >> 1;
         }
     }
 }

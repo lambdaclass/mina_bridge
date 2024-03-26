@@ -86,31 +86,6 @@ contract KimchiVerifier {
         return final_verify(agg_proof, urs.verifier_urs);
     }
 
-    /// @notice this is currently deprecated but remains as to not break
-    /// @notice the demo.
-    function verify_state(bytes calldata state_serialized, bytes calldata proof_serialized) public returns (bool) {
-        // 1. Deserialize proof and setup
-
-        // For now, proof consists in the concatenation of the bytes that
-        // represent the numerator, quotient and divisor polynomial
-        // commitments (G1 and G2 points).
-
-        // BEWARE: quotient must be negated.
-
-        (BN254.G1Point memory numerator, BN254.G1Point memory quotient, BN254.G2Point memory divisor) =
-            MsgPk.deserializeFinalCommitments(proof_serialized);
-
-        bool success = BN254.pairingProd2(numerator, BN254.P2(), quotient, divisor);
-
-        // 3. If success, deserialize and store state
-        if (success) {
-            store_state(state_serialized);
-            state_available = true;
-        }
-
-        return success;
-    }
-
     error IncorrectPublicInputLength();
 
     // This takes Kimchi's `to_batch()` as reference.
@@ -126,29 +101,31 @@ contract KimchiVerifier {
         if (public_inputs.length != verifier_index.public_len) {
             revert IncorrectPublicInputLength();
         }
-        PolyComm[] memory comm = new PolyComm[](verifier_index.public_len);
-        // INFO: can use unchecked on for loops to save gas
-        for (uint256 i = 0; i < verifier_index.public_len; i++) {
-            comm[i] = lagrange_bases[i];
-        }
         PolyComm memory public_comm;
         if (public_inputs.length == 0) {
             BN254.G1Point[] memory blindings = new BN254.G1Point[](chunk_size);
-            for (uint256 i = 0; i < chunk_size; i++) {
-                blindings[i] = urs.full_urs.h;
+            uint256 j = chunk_size;
+            while (j > 0) {
+                --j;
+                blindings[j] = urs.full_urs.h;
             }
             // TODO: shifted is fixed to infinity
             BN254.G1Point memory shifted = BN254.point_at_inf();
             public_comm = PolyComm(blindings, shifted);
         } else {
-            Scalar.FE[] memory elm = new Scalar.FE[](public_inputs.length);
-            for (uint256 i = 0; i < elm.length; i++) {
-                elm[i] = public_inputs[i].neg();
+            PolyComm memory public_comm_tmp = polycomm_msm(lagrange_bases, public_inputs);
+            // negate the results of the MSM
+            uint256 i_unshifted = public_comm_tmp.unshifted.length;
+            while (i_unshifted > 0) {
+                --i_unshifted;
+                public_comm_tmp.unshifted[i_unshifted] = public_comm_tmp.unshifted[i_unshifted].neg();
             }
-            PolyComm memory public_comm_tmp = polycomm_msm(comm, elm);
+
             Scalar.FE[] memory blinders = new Scalar.FE[](public_comm_tmp.unshifted.length);
-            for (uint256 i = 0; i < public_comm_tmp.unshifted.length; i++) {
-                blinders[i] = Scalar.FE.wrap(1);
+            uint256 j = public_comm_tmp.unshifted.length;
+            while (j > 0) {
+                --j;
+                blinders[j] = Scalar.FE.wrap(1);
             }
             public_comm = mask_custom(urs.full_urs, public_comm_tmp, blinders).commitment;
         }
@@ -187,17 +164,18 @@ contract KimchiVerifier {
             verifier_index.zk_rows
         );
 
-        for (uint256 i = 0; i < linear.index_terms.length; i++) {
-            Column memory col = linear.index_terms[i].col;
-            PolishToken[] memory tokens = linear.index_terms[i].coeff;
+        uint256 i_commitments = 0;
+        while (i_commitments < linear.index_terms.length) {
+            Column memory col = linear.index_terms[i_commitments].col;
+            PolishToken[] memory tokens = linear.index_terms[i_commitments].coeff;
 
             Scalar.FE scalar =
                 evaluate(tokens, verifier_index.domain_gen, verifier_index.domain_size, oracles.zeta, evals, constants);
 
-            scalars[i + 1] = scalar;
-            commitments[i + 1] = get_column_commitment(verifier_index, proof, col);
+            scalars[i_commitments + 1] = scalar;
+            commitments[i_commitments + 1] = get_column_commitment(verifier_index, proof, col);
+            ++i_commitments;
         }
-
         PolyComm memory f_comm = polycomm_msm(commitments, scalars);
 
         // 6. Compute the chunked commitment of ft
