@@ -3,7 +3,7 @@ use o1_utils::FieldHelpers;
 
 use crate::{
     serialize::{EVMSerializable, EVMSerializableType},
-    type_aliases::{G1Point, ScalarField},
+    type_aliases::{BN254PolyComm, G1Point, ScalarField},
 };
 
 impl EVMSerializable for EVMSerializableType<ScalarField> {
@@ -24,6 +24,16 @@ impl EVMSerializable for EVMSerializableType<G1Point> {
             ]
             .concat()
         }
+    }
+}
+
+impl EVMSerializable for EVMSerializableType<BN254PolyComm> {
+    fn to_bytes(self) -> Vec<u8> {
+        // We are assuming that `max_poly_size` is set so no poly gets chunked.
+        // In this case there's only one point per PolyComm.
+        //
+        // We are also ignoring the shifted point
+        EVMSerializableType(self.0.unshifted[0]).to_bytes()
     }
 }
 

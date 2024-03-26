@@ -1,8 +1,11 @@
-use kimchi::proof::PointEvaluations;
+use kimchi::{circuits::lookup, proof::PointEvaluations};
 
 use crate::{
     serialize::{EVMSerializable, EVMSerializableType},
-    type_aliases::{BN254PairingProof, BN254ProofEvaluations, ScalarField},
+    type_aliases::{
+        BN254PairingProof, BN254PolyComm, BN254ProofEvaluations, BN254ProverCommitments,
+        BN254ProverProof, ScalarField,
+    },
 };
 
 impl EVMSerializable for EVMSerializableType<BN254PairingProof> {
@@ -11,6 +14,64 @@ impl EVMSerializable for EVMSerializableType<BN254PairingProof> {
         let quotient = EVMSerializableType(quotient);
         let blinding = EVMSerializableType(blinding);
         [quotient.to_bytes(), blinding.to_bytes()].concat()
+    }
+}
+
+impl EVMSerializable for EVMSerializableType<BN254ProverCommitments> {
+    fn to_bytes(self) -> Vec<u8> {
+        let comms = self.0;
+
+        // There's only one optional field (LookupCommitments) but it has an
+        // optional field in it, so we'll flat out LookupCommitments and define
+        // a flag for each field, even if they're not optional:
+        let mut optional_field_flags_encoded = vec![0; 32];
+        if let Some(lookup_comms) = &comms.lookup {
+            // first two flags are always set as they correspond to non-optional fields:
+            if lookup_comms.runtime.is_some() {
+                optional_field_flags_encoded[31] = 0b111;
+            } else {
+                optional_field_flags_encoded[31] = 0b011;
+            }
+        }
+
+        // Then we encode every commitment. We'll flat out LookupCommitments:
+
+        let mut encoded_comms = vec![
+            comms
+                .w_comm
+                .into_iter()
+                .flat_map(|p| EVMSerializableType(p).to_bytes())
+                .collect(),
+            EVMSerializableType(comms.z_comm).to_bytes(),
+            EVMSerializableType(comms.t_comm).to_bytes(),
+        ]
+        .concat();
+        if let Some(lookup_comms) = comms.lookup {
+            // `sorted` contains an unspecified amount of commitments, so
+            // first we'll encode the length as a 256 bit integer:
+            let sorted_len_bytes = lookup_comms.sorted.len().to_be_bytes();
+            // pad with zeros and push bytes:
+            encoded_comms.extend(vec![0; 32 - sorted_len_bytes.len()]);
+            encoded_comms.extend(sorted_len_bytes);
+
+            encoded_comms.extend(
+                lookup_comms
+                    .sorted
+                    .into_iter()
+                    .flat_map(|p| EVMSerializableType(p).to_bytes())
+                    .collect::<Vec<_>>(),
+            );
+            encoded_comms.extend(EVMSerializableType(lookup_comms.aggreg).to_bytes());
+            if let Some(runtime) = lookup_comms.runtime {
+                encoded_comms.extend(EVMSerializableType(runtime).to_bytes());
+            }
+        }
+
+        [
+            optional_field_flags_encoded.into_iter().rev().collect(),
+            encoded_comms,
+        ]
+        .concat()
     }
 }
 
@@ -52,10 +113,7 @@ impl EVMSerializable for EVMSerializableType<BN254ProofEvaluations> {
         // Then we encode every eval.
         //
         // We should have one evaluation for each poly if `max_poly_size` is set
-        // accordingly. Nonetheless some vectors have many evaluations, these are
-        // `w` (15), `s` (6), `coefficients` (15) and `lookup_sorted` (5), but this is
-        // because there're many polynomials defined for each one of those (e.g. there
-        // is one coefficient poly for each column).
+        // accordingly and no polynomial gets chunked.
         //
         // An evaluation is composed of two scalars. So encoding the evaluations means
         // to concatenate each pair of scalars in a byte array.
