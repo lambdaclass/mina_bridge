@@ -358,7 +358,7 @@ contract KimchiVerifier {
         pure
         returns (Polynomial.Dense memory)
     {
-        require(elm.length == evals.length, "lengths don't match");
+        require(elm.length == evals.length, "lengths don\'t match");
         require(elm.length == 2, "length must be 2");
         Scalar.FE zeta = elm[0];
         Scalar.FE zeta_omega = elm[1];
