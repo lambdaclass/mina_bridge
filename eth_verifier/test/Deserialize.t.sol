@@ -44,12 +44,25 @@ contract DeserializeTest is Test {
         // z
         assertEq(Scalar.FE.unwrap(proof_evals.z.zeta), 1);
         assertEq(Scalar.FE.unwrap(proof_evals.z.zeta_omega), 42);
+
+        // public_evals
+        assertEq(Scalar.FE.unwrap(proof_evals.public_evals.zeta), 1);
+        assertEq(Scalar.FE.unwrap(proof_evals.public_evals.zeta_omega), 42);
+
         // range_check0_selector
         assertEq(Scalar.FE.unwrap(proof_evals.range_check0_selector.zeta), 1);
         assertEq(
             Scalar.FE.unwrap(proof_evals.range_check0_selector.zeta_omega),
             42
         );
+
+        // range_check1_selector
+        assertEq(Scalar.FE.unwrap(proof_evals.range_check1_selector.zeta), 0);
+        assertEq(
+            Scalar.FE.unwrap(proof_evals.range_check1_selector.zeta_omega),
+            0
+        );
+
         // foreign_field_add_selector
         assertEq(
             Scalar.FE.unwrap(proof_evals.foreign_field_add_selector.zeta),

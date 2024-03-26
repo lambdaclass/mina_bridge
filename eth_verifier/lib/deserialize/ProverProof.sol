@@ -56,7 +56,7 @@ function deser_proof_evals(
         // - foreign_field_mul_lookup_selector
         // totalling 19 evaluations. In this case we'll index evaluations, not scalars:
         for { let i := 0 } lt(i, 19) { i := add(i, 1) } {
-            let is_some := and(1, shr(optional_field_flags, i))
+            let is_some := and(1, shr(i, optional_field_flags))
             switch is_some
             case 1 { // true
                 // zeta:
@@ -69,7 +69,6 @@ function deser_proof_evals(
                 slot := add(slot, 1)
             }
             default { // false
-                addr := add(addr, 0x40)
                 slot := add(slot, 2)
             }
         }
