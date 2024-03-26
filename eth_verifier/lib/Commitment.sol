@@ -394,7 +394,6 @@ function combine_commitments_and_evaluations(Evaluation[] memory evaluations, Sc
     view
     returns (BN254.G1Point memory poly_commitment, Scalar.FE[] memory acc)
 {
-    Scalar.FE xi_i = Scalar.one();
     poly_commitment = BN254.point_at_inf();
     uint256 num_evals = evaluations.length != 0 ? evaluations[0].evaluations.length : 0;
     acc = new Scalar.FE[](num_evals);
@@ -404,8 +403,10 @@ function combine_commitments_and_evaluations(Evaluation[] memory evaluations, Sc
 
     // WARN: the actual length might be more than evaluations.length
     // but for our test proof it will not.
+    uint256 i = evaluations.length;
 
-    for (uint256 i = 0; i < evaluations.length; i++) {
+    while (i > 0) {
+        --i;
         if (evaluations[i].commitment.unshifted.length == 0) continue;
 
         PolyComm memory commitment = evaluations[i].commitment;
@@ -413,18 +414,19 @@ function combine_commitments_and_evaluations(Evaluation[] memory evaluations, Sc
         uint256 commitment_steps = commitment.unshifted.length;
         uint256 evaluation_steps = inner_evaluations[0].length;
         uint256 steps = commitment_steps > evaluation_steps ? commitment_steps : evaluation_steps;
+        uint256 j = steps;
 
-        for (uint256 j = 0; j < steps; j++) {
+        while (j > 0) {
+            --j;
             if (j < commitment_steps) {
                 BN254.G1Point memory comm_ch = commitment.unshifted[j];
-                poly_commitment = poly_commitment.add(comm_ch.scale_scalar(rand_base.mul(xi_i)));
+                poly_commitment = poly_commitment.add(comm_ch.scale_scalar(polyscale));
             }
             if (j < evaluation_steps) {
                 for (uint256 k = 0; k < inner_evaluations.length; k++) {
-                    acc[k] = acc[k].add(inner_evaluations[k][j].mul(xi_i));
+                    acc[k] = acc[k].add(inner_evaluations[k][j].mul(polyscale));
                 }
             }
-            xi_i = xi_i.mul(polyscale);
         }
         // TODO: degree bound, shifted part
     }
