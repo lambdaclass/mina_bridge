@@ -46,7 +46,7 @@ use poly_commitment::{
     evaluation_proof::DensePolynomialOrEvaluations,
     pairing_proof::{PairingProof, PairingSRS},
     srs::SRS,
-    SRS as _,
+    PolyComm, SRS as _,
 };
 use serde::{ser::SerializeStruct, Serialize};
 use serde_with::serde_as;
@@ -164,28 +164,33 @@ fn generate_proof() {
     println!("public input len: {}", public_input.len());
 
     let mut public_input_bytes = vec![vec![]; public_input.len()];
-    let _ = public_input
-        .iter()
-        .enumerate()
-        .for_each(|(i, x)| {
-            x.serialize(&mut public_input_bytes[i]);
-            public_input_bytes[i].reverse()
-            //println!("public input serialized: {:?}", public_input_bytes[i]);
-            //println!("public input: {:?}", x);
-        });
+    let _ = public_input.iter().enumerate().for_each(|(i, x)| {
+        x.serialize(&mut public_input_bytes[i]);
+        public_input_bytes[i].reverse()
+        //println!("public input serialized: {:?}", public_input_bytes[i]);
+        //println!("public input: {:?}", x);
+    });
 
     let public_input_bytes: Vec<_> = public_input_bytes.iter().cloned().flatten().collect();
-    fs::write(
-        "../eth_verifier/public_inputs.mpk",
-        public_input_bytes,
-    )
-    .unwrap();
+    fs::write("../eth_verifier/public_inputs.mpk", public_input_bytes).unwrap();
     // for tests purposes
     println!("third public input: {}", public_input[2]);
 
+    let empty_polycomm = PolyComm::new(
+        vec![G1::new(BaseField::from(0), BaseField::from(0), true)],
+        None,
+    );
+    let mut lagrange_bases = index.srs.full_srs.lagrange_bases.clone();
+    let lagrange_bases: HashMap<_, _> = lagrange_bases
+        .iter_mut()
+        .map(|(key, bases)| {
+            bases.resize(public_input.len(), empty_polycomm.clone());
+            (key, bases)
+        })
+        .collect();
     fs::write(
         "../eth_verifier/lagrange_bases.mpk",
-        rmp_serde::to_vec_named(&index.srs.full_srs.lagrange_bases.clone()).unwrap(),
+        rmp_serde::to_vec_named(&lagrange_bases).unwrap(),
     )
     .unwrap();
 }
