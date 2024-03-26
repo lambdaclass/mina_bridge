@@ -22,15 +22,15 @@ impl EVMSerializable for EVMSerializableType<BN254ProverCommitments> {
         let comms = self.0;
 
         // There's only one optional field (LookupCommitments) but it has an
-        // optional field in it, so we'll flat out LookupCommitments and define
-        // a flag for each field, even if they're not optional:
-        let mut optional_field_flags_encoded = vec![0; 32];
+        // optional field in it and two non-optional, so we'll flat out
+        // LookupCommitments and define only two flags.
+        let mut optional_field_flags_encoded = vec![0; 32]; // allocate a word for them
+        // The first flag will indicate if LookupCommitments is Some:
         if let Some(lookup_comms) = &comms.lookup {
-            // first two flags are always set as they correspond to non-optional fields:
+            optional_field_flags_encoded[31] |= 0b01;
+            // the other flag if lookup_comms.runtime is Some:
             if lookup_comms.runtime.is_some() {
-                optional_field_flags_encoded[31] = 0b111;
-            } else {
-                optional_field_flags_encoded[31] = 0b011;
+                optional_field_flags_encoded[31] |= 0b10;
             }
         }
 

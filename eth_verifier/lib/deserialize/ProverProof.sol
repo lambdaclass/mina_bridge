@@ -3,6 +3,93 @@ pragma solidity >=0.4.16 <0.9.0;
 
 import "../Proof.sol";
 
+function deser_proof_comms(
+    bytes memory,
+    NewProverCommitments storage comms
+) {
+    assembly {
+        let addr := 0xa0 // memory starts at 0x80,
+                         // first 32 bytes is the length of the bytes array.
+        let slot := comms.slot
+
+        // the first 32 bytes correspond to the optional field flags:
+        let optional_field_flags := mload(addr)
+        sstore(slot, optional_field_flags)
+        addr := add(addr, 0x20)
+        slot := add(slot, 1)
+
+        // the non-optional commitments are:
+        // - w[15]
+        // - z
+        // - t
+        // totalling 17 commitments, so 34 base field elements (each one is a G1 point):
+        for { let i := 0 } lt(i, 34) { i := add(i, 1) } {
+            sstore(slot, mload(addr))
+            addr := add(addr, 0x20)
+            slot := add(slot, 1)
+        }
+
+        // then we have optional commitments. We know which are set and which aren't
+        // thanks to the flags.
+        // the optional commitments are:
+        // - lookup_sorted[] (dynamic)
+        // - lookup_aggreg
+        // - lookup_runtime
+        // totalling 2 commitments + the length of `lookup_sorted`.
+
+        if and(1, optional_field_flags) { // if the lookup comms are present
+            // First we'll take care of lookup_sorted. The slot of
+            // the last element of a dynamic array is the keccak hash of
+            // the array slot. Also the array slot contains its length.
+
+            // Get the last element slot by hashing the array:
+            let free_mem_addr := mload(0x40)
+            mstore(free_mem_addr, slot)
+            let lookup_sorted_ptr := keccak256(free_mem_addr, 0x20)
+
+            // Store the length (first encoded word is the length):
+            let lookup_sorted_len := mload(addr)
+            sstore(slot, lookup_sorted_len)
+            addr := add(addr, 0x20)
+            slot := add(slot, 1)
+
+            // Now store every element
+            for { let i := 0 } lt(i, lookup_sorted_len) { i := add(i, 1) } {
+                // x:
+                sstore(lookup_sorted_ptr, mload(addr))
+                addr := add(addr, 0x20)
+                lookup_sorted_ptr := add(lookup_sorted_ptr, 1)
+                // y:
+                sstore(lookup_sorted_ptr, mload(addr))
+                addr := add(addr, 0x20)
+                lookup_sorted_ptr := add(lookup_sorted_ptr, 1)
+            }
+
+            // Now we store lookup_aggreg:
+            // x:
+            sstore(slot, mload(addr))
+            addr := add(addr, 0x20)
+            slot := add(slot, 1)
+            // y:
+            sstore(slot, mload(addr))
+            addr := add(addr, 0x20)
+            slot := add(slot, 1)
+
+            // Now lookup_runtime if it's present:
+            if and(1, shr(1, optional_field_flags)) {
+                // x:
+                sstore(slot, mload(addr))
+                addr := add(addr, 0x20)
+                slot := add(slot, 1)
+                // y:
+                sstore(slot, mload(addr))
+                addr := add(addr, 0x20)
+                slot := add(slot, 1)
+            }
+        }
+    }
+}
+
 function deser_proof_evals(
     bytes memory,
     NewProofEvaluations storage evals

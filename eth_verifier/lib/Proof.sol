@@ -280,6 +280,19 @@ struct ProverCommitments {
     LookupCommitments lookup;
 }
 
+struct NewProverCommitments {
+    bitmap optional_field_flags;
+
+    BN254.G1Point[COLUMNS] w_comm;
+    BN254.G1Point z_comm;
+    BN254.G1Point t_comm;
+
+    // optional commitments
+    BN254.G1Point[] lookup_sorted;
+    BN254.G1Point lookup_aggreg;
+    BN254.G1Point lookup_runtime;
+}
+
 struct LookupCommitments {
     PolyComm[] sorted;
     PolyComm aggreg;
