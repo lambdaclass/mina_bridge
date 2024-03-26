@@ -36,7 +36,10 @@ contract KimchiVerifierTest is Test {
             MsgPk.new_stream(vm.readFileBinary("unit_test_data/prover_proof.mpk")), test_prover_proof
         );
         MsgPk.deser_verifier_index(
-            MsgPk.new_stream(vm.readFileBinary("unit_test_data/verifier_index.mpk")), test_verifier_index
+            MsgPk.new_stream(
+                vm.readFileBinary("verifier_index.mpk")
+            ),
+            test_verifier_index
         );
     }
 
@@ -191,7 +194,7 @@ contract KimchiVerifierTest is Test {
         );
         assertEq(
             Scalar.FE.unwrap(permutation_vanishing_poly),
-            0x2C5ACDAC911B82AE9F3E0D0D792DFEAC4638C8F482B99116BDC080527F5DEB7E
+            0x1AEE30761864581115514430C6BD95502BB8DE7CD8C6B608F27BA1C03E80BFFB
         );
     }
 }

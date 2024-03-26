@@ -86,31 +86,6 @@ contract KimchiVerifier {
         return final_verify(agg_proof, urs.verifier_urs);
     }
 
-    /// @notice this is currently deprecated but remains as to not break
-    /// @notice the demo.
-    function verify_state(bytes calldata state_serialized, bytes calldata proof_serialized) public returns (bool) {
-        // 1. Deserialize proof and setup
-
-        // For now, proof consists in the concatenation of the bytes that
-        // represent the numerator, quotient and divisor polynomial
-        // commitments (G1 and G2 points).
-
-        // BEWARE: quotient must be negated.
-
-        (BN254.G1Point memory numerator, BN254.G1Point memory quotient, BN254.G2Point memory divisor) =
-            MsgPk.deserializeFinalCommitments(proof_serialized);
-
-        bool success = BN254.pairingProd2(numerator, BN254.P2(), quotient, divisor);
-
-        // 3. If success, deserialize and store state
-        if (success) {
-            store_state(state_serialized);
-            state_available = true;
-        }
-
-        return success;
-    }
-
     error IncorrectPublicInputLength();
 
     // This takes Kimchi's `to_batch()` as reference.
@@ -118,7 +93,41 @@ contract KimchiVerifier {
         // TODO: 1. CHeck the length of evaluations insde the proof
 
         // 2. Commit to the negated public input polynomial.
-        PolyComm memory public_comm = public_commitment();
+        uint256 chunk_size = verifier_index.domain_size < verifier_index.max_poly_size
+            ? 1
+            : verifier_index.domain_size / verifier_index.max_poly_size;
+
+        if (public_inputs.length != verifier_index.public_len) {
+            revert IncorrectPublicInputLength();
+        }
+        PolyComm memory public_comm;
+        if (public_inputs.length == 0) {
+            BN254.G1Point[] memory blindings = new BN254.G1Point[](chunk_size);
+            uint256 j = chunk_size;
+            while (j > 0) {
+                --j;
+                blindings[j] = urs.full_urs.h;
+            }
+            // TODO: shifted is fixed to infinity
+            BN254.G1Point memory shifted = BN254.point_at_inf();
+            public_comm = PolyComm(blindings, shifted);
+        } else {
+            PolyComm memory public_comm_tmp = polycomm_msm(lagrange_bases, public_inputs);
+            // negate the results of the MSM
+            uint256 i_unshifted = public_comm_tmp.unshifted.length;
+            while (i_unshifted > 0) {
+                --i_unshifted;
+                public_comm_tmp.unshifted[i_unshifted] = public_comm_tmp.unshifted[i_unshifted].neg();
+            }
+
+            Scalar.FE[] memory blinders = new Scalar.FE[](public_comm_tmp.unshifted.length);
+            uint256 j = public_comm_tmp.unshifted.length;
+            while (j > 0) {
+                --j;
+                blinders[j] = Scalar.FE.wrap(1);
+            }
+            public_comm = mask_custom(urs.full_urs, public_comm_tmp, blinders).commitment;
+        }
 
         // 3. Execute fiat-shamir with a Keccak sponge
 
@@ -154,17 +163,18 @@ contract KimchiVerifier {
             verifier_index.zk_rows
         );
 
-        for (uint256 i = 0; i < linear.index_terms.length; i++) {
-            Column memory col = linear.index_terms[i].col;
-            PolishToken[] memory tokens = linear.index_terms[i].coeff;
+        uint256 i_commitments = 0;
+        while (i_commitments < linear.index_terms.length) {
+            Column memory col = linear.index_terms[i_commitments].col;
+            PolishToken[] memory tokens = linear.index_terms[i_commitments].coeff;
 
             Scalar.FE scalar =
                 evaluate(tokens, verifier_index.domain_gen, verifier_index.domain_size, oracles.zeta, evals, constants);
 
-            scalars[i + 1] = scalar;
-            commitments[i + 1] = get_column_commitment(verifier_index, proof, col);
+            scalars[i_commitments + 1] = scalar;
+            commitments[i_commitments + 1] = get_column_commitment(verifier_index, proof, col);
+            ++i_commitments;
         }
-
         PolyComm memory f_comm = polycomm_msm(commitments, scalars);
 
         // 6. Compute the chunked commitment of ft
@@ -385,7 +395,7 @@ contract KimchiVerifier {
         pure
         returns (Polynomial.Dense memory)
     {
-        require(elm.length == evals.length, "lengths don't match");
+        require(elm.length == evals.length, "lengths don\'t match");
         require(elm.length == 2, "length must be 2");
         Scalar.FE zeta = elm[0];
         Scalar.FE zeta_omega = elm[1];
@@ -417,66 +427,6 @@ contract KimchiVerifier {
         coeffs[0] = a;
         coeffs[1] = b;
         return Polynomial.Dense(coeffs);
-    }
-
-    function combineCommitments(Evaluation[] memory evaluations, Scalar.FE polyscale, Scalar.FE rand_base)
-        internal
-        pure
-        returns (BN254.G1Point[] memory, Scalar.FE[] memory)
-    {
-        uint256 vec_length = 0;
-        // Calculate the max length of the points and scalars vectors
-        // Iterate over the evaluations
-        for (uint256 i = 0; i < evaluations.length; i++) {
-            // Filter out evaluations with an empty commitment
-            if (evaluations[i].commitment.unshifted.length == 0) {
-                continue;
-            }
-
-            vec_length += evaluations[i].commitment.unshifted.length + 1;
-        }
-        BN254.G1Point[] memory points = new BN254.G1Point[](vec_length);
-        Scalar.FE[] memory scalars = new Scalar.FE[](vec_length);
-        uint256 index = 0; // index of the element to assign in the vectors
-
-        // Initialize xi_i to 1
-        Scalar.FE xi_i = Scalar.FE.wrap(1);
-
-        // Iterate over the evaluations
-        for (uint256 i = 0; i < evaluations.length; i++) {
-            // Filter out evaluations with an empty commitment
-            if (evaluations[i].commitment.unshifted.length == 0) {
-                continue;
-            }
-
-            // iterating over the polynomial segments
-            for (uint256 j = 0; j < evaluations[i].commitment.unshifted.length; j++) {
-                // Add the scalar rand_base * xi_i to the scalars vector
-                scalars[index] = rand_base.mul(xi_i);
-                // Add the point to the points vector
-                points[index] = evaluations[i].commitment.unshifted[j];
-
-                // Multiply xi_i by polyscale
-                xi_i = xi_i.mul(polyscale);
-
-                // Increment the index
-                index++;
-            }
-
-            // If the evaluation has a degree bound and a non-zero shifted commitment
-            if (evaluations[i].degree_bound > 0 && evaluations[i].commitment.shifted.x != 0) {
-                // Add the scalar rand_base * xi_i to the scalars vector
-                scalars[index] = rand_base.mul(xi_i);
-                // Add the point to the points vector
-                points[index] = evaluations[i].commitment.shifted;
-
-                // Multiply xi_i by polyscale
-                xi_i = xi_i.mul(polyscale);
-                // Increment the index
-                index++;
-            }
-        }
-        return (points, scalars);
     }
 
     /*
