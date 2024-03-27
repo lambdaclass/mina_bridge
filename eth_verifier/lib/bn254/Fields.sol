@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
+import "./BN254.sol";
+
 /// @notice Implements 256 bit modular arithmetic over the base field of bn254.
 library Base {
     type FE is uint256;
@@ -66,35 +68,14 @@ library Base {
         }
     }
 
-    // Reference: Lambdaworks
-    // https://github.com/lambdaclass/lambdaworks/
     function pow(FE self, uint256 exponent) public pure returns (FE result) {
-        if (exponent == 0) {
-            return FE.wrap(1);
-        } else if (exponent == 1) {
-            return self;
-        } else {
-            result = self;
-
-            while (exponent & 1 == 0) {
-                result = square(result);
-                exponent = exponent >> 1;
+        result = FE.wrap(1);
+        while (exponent != 0) {
+            if (exponent & 1 == 1) {
+                result = mul(result, self);
             }
-
-            if (exponent == 0) {
-                return result;
-            } else {
-                FE base = result;
-                exponent = exponent >> 1;
-
-                while (exponent != 0) {
-                    base = square(base);
-                    if (exponent & 1 == 1) {
-                        result = mul(result, base);
-                    }
-                    exponent = exponent >> 1;
-                }
-            }
+            self = mul(self, self);
+            exponent = exponent >> 1;
         }
     }
 }
@@ -156,12 +137,8 @@ library Scalar {
         res = mul(self, self);
     }
 
-    function inv(FE self) public pure returns (FE) {
-        require(FE.unwrap(self) != 0, "tried to get inverse of 0");
-        (uint256 gcd, uint256 inverse) = Aux.xgcd(FE.unwrap(self), MODULUS);
-        require(gcd == 1, "gcd not 1");
-
-        return FE.wrap(inverse);
+    function inv(FE self) public view returns (FE inverse) {
+        inverse = FE.wrap(BN254.invert(FE.unwrap(self)));
     }
 
     function neg(FE self) public pure returns (FE) {
