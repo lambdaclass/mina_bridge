@@ -92,7 +92,7 @@ library Polynomial {
     // @notice (x - w^{n - i}) * (x - w^{n - i + 1}) * ... * (x - w^{n - 1})
     function eval_vanishes_on_last_n_rows(Scalar.FE domain_gen, uint256 domain_size, uint256 i, Scalar.FE x)
         public
-        pure
+        view
         returns (Scalar.FE)
     {
         if (i == 0) {

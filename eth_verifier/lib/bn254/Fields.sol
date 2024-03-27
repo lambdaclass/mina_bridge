@@ -151,35 +151,24 @@ library Scalar {
         }
     }
 
-    // Reference: Lambdaworks
-    // https://github.com/lambdaclass/lambdaworks/
-    function pow(FE self, uint256 exponent) public pure returns (FE result) {
-        if (exponent == 0) {
-            return FE.wrap(1);
-        } else if (exponent == 1) {
-            return self;
-        } else {
-            result = self;
+    function pow(FE self, uint256 exponent) public view returns (FE result) {
+        result = FE.wrap(expmod(FE.unwrap(self), exponent, MODULUS));
+    }
 
-            while (exponent & 1 == 0) {
-                result = square(result);
-                exponent = exponent >> 1;
-            }
-
-            if (exponent == 0) {
-                return result;
-            } else {
-                FE base = result;
-                exponent = exponent >> 1;
-
-                while (exponent != 0) {
-                    base = square(base);
-                    if (exponent & 1 == 1) {
-                        result = mul(result, base);
-                    }
-                    exponent = exponent >> 1;
-                }
-            }
+    function expmod(uint256 base, uint256 e, uint256 m) internal view returns (uint256 o) {
+        assembly {
+            // define pointer
+            let p := mload(0x40)
+            // store data assembly-favouring ways
+            mstore(p, 0x20) // Length of Base
+            mstore(add(p, 0x20), 0x20) // Length of Exponent
+            mstore(add(p, 0x40), 0x20) // Length of Modulus
+            mstore(add(p, 0x60), base) // Base
+            mstore(add(p, 0x80), e) // Exponent
+            mstore(add(p, 0xa0), m) // Modulus
+            if iszero(staticcall(sub(gas(), 2000), 0x05, p, 0xc0, p, 0x20)) { revert(0, 0) }
+            // data
+            o := mload(p)
         }
     }
 
@@ -188,7 +177,7 @@ library Scalar {
     // Reference: Lambdaworks
     // https://github.com/lambdaclass/lambdaworks/
 
-    function get_primitive_root_of_unity(uint256 order) public pure returns (FE root) {
+    function get_primitive_root_of_unity(uint256 order) public view returns (FE root) {
         if (order == 0) {
             return FE.wrap(1);
         }
