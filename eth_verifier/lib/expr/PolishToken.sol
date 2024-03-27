@@ -219,7 +219,7 @@ type PolishTokenSkipIf is uint256;
 
 // @notice Compute the ith unnormalized lagrange basis
 function unnormalized_lagrange_basis(Scalar.FE domain_gen, uint256 domain_size, int256 i, Scalar.FE pt)
-    pure
+    view
     returns (Scalar.FE result)
 {
     Scalar.FE omega_i;
@@ -236,7 +236,7 @@ function unnormalized_lagrange_basis(Scalar.FE domain_gen, uint256 domain_size, 
 
 // @notice evaluates the vanishing polynomial for this domain at tau.
 // @notice for multiplicative subgroups, this polynomial is `z(X) = X^self.size - 1
-function evaluate_vanishing_polynomial(Scalar.FE domain_gen, uint256 domain_size, Scalar.FE tau) 
+function evaluate_vanishing_polynomial(Scalar.FE domain_gen, uint256 domain_size, Scalar.FE tau)
     pure
     returns (Scalar.FE)
 {
