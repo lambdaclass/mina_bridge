@@ -40,10 +40,8 @@ library BN254 {
     // and G_T as a subgroup of a multiplicative group (GF(p^12))^* of order r.
     //
     // BN254 is defined over a 254-bit prime order p, embedding degree k = 12.
-    uint256 public constant P_MOD =
-        21888242871839275222246405745257275088696311157297823662689037894645226208583;
-    uint256 public constant R_MOD =
-        21888242871839275222246405745257275088548364400416034343698204186575808495617;
+    uint256 public constant P_MOD = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
+    uint256 public constant R_MOD = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
     using {add, scalarMul, scale_scalar} for G1Point;
 
@@ -69,13 +67,12 @@ library BN254 {
     /// @return the generator of G2
     // solhint-disable-next-line func-name-mixedcase
     function P2() internal pure returns (G2Point memory) {
-        return
-            G2Point({
-                x0: 0x198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2,
-                x1: 0x1800deef121f1e76426a00665e5c4479674322d4f75edadd46debd5cd992f6ed,
-                y0: 0x090689d0585ff075ec9e99ad690c3395bc4b313370b38ef355acdadcd122975b,
-                y1: 0x12c85ea5db8c6deb4aab71808dcb408fe3d1e7690c43d37b4ce6cc0166fa7daa
-            });
+        return G2Point({
+            x0: 0x198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2,
+            x1: 0x1800deef121f1e76426a00665e5c4479674322d4f75edadd46debd5cd992f6ed,
+            y0: 0x090689d0585ff075ec9e99ad690c3395bc4b313370b38ef355acdadcd122975b,
+            y1: 0x12c85ea5db8c6deb4aab71808dcb408fe3d1e7690c43d37b4ce6cc0166fa7daa
+        });
     }
 
     /// @return the point at infinity of G1
@@ -91,12 +88,8 @@ library BN254 {
     function endo_coeffs_g1() internal pure returns (Base.FE endo_q, Scalar.FE endo_r) {
         // INFO: values taken from Kimchi\'s Rust implementation.
         return (
-            Base.from(
-                0x30644E72E131A0295E6DD9E7E0ACCCB0C28F069FBB966E3DE4BD44E5607CFD48
-            ),
-            Scalar.from(
-                0x30644E72E131A029048B6E193FD84104CC37A73FEC2BC5E9B8CA0B2D36636F23
-            )
+            Base.from(0x30644E72E131A0295E6DD9E7E0ACCCB0C28F069FBB966E3DE4BD44E5607CFD48),
+            Scalar.from(0x30644E72E131A029048B6E193FD84104CC37A73FEC2BC5E9B8CA0B2D36636F23)
         );
     }
 
@@ -132,9 +125,7 @@ library BN254 {
             success := staticcall(sub(gas(), 2000), 6, input, 0xc0, r, 0x60)
             // Use "invalid" to make gas estimation work
             switch success
-            case 0 {
-                revert(0, 0)
-            }
+            case 0 { revert(0, 0) }
         }
         require(success, "Bn254: group addition failed!");
     }
@@ -156,9 +147,7 @@ library BN254 {
             success := staticcall(sub(gas(), 2000), 7, input, 0x80, r, 0x60)
             // Use "invalid" to make gas estimation work
             switch success
-            case 0 {
-                revert(0, 0)
-            }
+            case 0 { revert(0, 0) }
         }
         require(success, "Bn254: scalar mul failed!");
     }
@@ -218,10 +207,11 @@ library BN254 {
             let x := mload(point)
             let y := mload(add(point, 0x20))
 
-            isWellFormed := and(
-                and(and(lt(x, p), lt(y, p)), not(or(iszero(x), iszero(y)))),
-                eq(mulmod(y, y, p), addmod(mulmod(x, mulmod(x, x, p), p), 3, p))
-            )
+            isWellFormed :=
+                and(
+                    and(and(lt(x, p), lt(y, p)), not(or(iszero(x), iszero(y)))),
+                    eq(mulmod(y, y, p), addmod(mulmod(x, mulmod(x, x, p), p), 3, p))
+                )
         }
         require(isWellFormed, "Bn254: invalid G1 point");
     }
@@ -240,12 +230,11 @@ library BN254 {
     /// @dev e(a1, a2).e(-b1, b2) == 1
     /// @dev caller needs to ensure that a1, a2, b1 and b2 are within proper group
     /// @notice credit: Aztec, Spilsbury Holdings Ltd
-    function pairingProd2(
-        G1Point memory a1,
-        G2Point memory a2,
-        G1Point memory b1,
-        G2Point memory b2
-    ) internal view returns (bool) {
+    function pairingProd2(G1Point memory a1, G2Point memory a2, G1Point memory b1, G2Point memory b2)
+        internal
+        view
+        returns (bool)
+    {
         uint256 out;
         bool success;
         assembly ("memory-safe") {
@@ -286,25 +275,15 @@ library BN254 {
     // @return base^exponent (mod modulus)
     // This method is ideal for small exponents (~64 bits or less), as it is cheaper than using the pow precompile
     // @notice credit: credit: Aztec, Spilsbury Holdings Ltd
-    function powSmall(
-        uint256 base,
-        uint256 exponent,
-        uint256 modulus
-    ) internal pure returns (uint256) {
+    function powSmall(uint256 base, uint256 exponent, uint256 modulus) internal pure returns (uint256) {
         uint256 result = 1;
         uint256 input = base;
         uint256 count = 1;
 
         assembly ("memory-safe") {
             let endpoint := add(exponent, 0x01)
-            for {
-
-            } lt(count, endpoint) {
-                count := add(count, count)
-            } {
-                if and(exponent, count) {
-                    result := mulmod(result, input, modulus)
-                }
+            for {} lt(count, endpoint) { count := add(count, count) } {
+                if and(exponent, count) { result := mulmod(result, input, modulus) }
                 input := mulmod(input, input, modulus)
             }
         }
@@ -364,11 +343,7 @@ library BN254 {
         point = G1Point(x, y);
     }
 
-    function quadraticResidue(uint256 x)
-        internal
-        view
-        returns (bool isQuadraticResidue, uint256 a)
-    {
+    function quadraticResidue(uint256 x) internal view returns (bool isQuadraticResidue, uint256 a) {
         bool success;
         // e = (p+1)/4
         uint256 e = 0xc19139cb84c680a6e14116da060561765e05aa45a1c72a34f082305b61f3f52;

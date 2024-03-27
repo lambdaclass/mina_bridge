@@ -534,7 +534,7 @@ contract KimchiVerifier {
         eval_poly_coeffs[0] = b;
         eval_poly_coeffs[1] = a;
 
-        return naive_msm(full_urs.g, eval_poly_coeffs);
+        return msm(full_urs.g, eval_poly_coeffs);
     }
 
     /// @notice This is used exclusively in `test_PartialVerify()`.
