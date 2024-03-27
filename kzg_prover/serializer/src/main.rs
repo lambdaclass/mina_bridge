@@ -1,9 +1,15 @@
 use std::fs;
 
-use kimchi::proof::{PointEvaluations, ProofEvaluations};
+use kimchi::{
+    circuits::wires::{COLUMNS, PERMUTS},
+    proof::{LookupCommitments, PointEvaluations},
+};
 use serializer::{
     serialize::{EVMSerializable, EVMSerializableType},
-    type_aliases::{BN254PairingProof, BN254ProofEvaluations, BaseField, G1Point, ScalarField},
+    type_aliases::{
+        BN254PairingProof, BN254PolyComm, BN254ProofEvaluations, BN254ProverCommitments, BaseField,
+        G1Point, ScalarField,
+    },
 };
 
 fn main() {
@@ -11,22 +17,22 @@ fn main() {
 }
 
 fn generate_solidity_test_data() {
+    // pairing proof
     let pairing_proof = BN254PairingProof {
         quotient: G1Point::new(BaseField::from(1), BaseField::from(2), false),
         blinding: ScalarField::from(1),
     };
 
-    let gen_test_eval = || {
-        PointEvaluations {
-            zeta: vec![ScalarField::from(1)],
-            zeta_omega: vec![ScalarField::from(42)],
-        }
+    // proof evals
+    let gen_test_eval = || PointEvaluations {
+        zeta: vec![ScalarField::from(1)],
+        zeta_omega: vec![ScalarField::from(42)],
     };
     let proof_evals = BN254ProofEvaluations {
         public: Some(gen_test_eval()),
-        w: [0; 15].map(|_| gen_test_eval()),
+        w: [0; COLUMNS].map(|_| gen_test_eval()),
         z: gen_test_eval(),
-        s: [0; 6].map(|_| gen_test_eval()),
+        s: [0; PERMUTS - 1].map(|_| gen_test_eval()),
         coefficients: [0; 15].map(|_| gen_test_eval()),
         generic_selector: gen_test_eval(),
         poseidon_selector: gen_test_eval(),
@@ -52,6 +58,22 @@ fn generate_solidity_test_data() {
         foreign_field_mul_lookup_selector: None,
     };
 
+    // proof commitments
+    let gen_test_comm = || BN254PolyComm {
+        unshifted: vec![G1Point::new(BaseField::from(1), BaseField::from(2), false)],
+        shifted: None,
+    };
+    let proof_comms = BN254ProverCommitments {
+        w_comm: [0; COLUMNS].map(|_| gen_test_comm()),
+        z_comm: gen_test_comm(),
+        t_comm: gen_test_comm(),
+        lookup: Some(LookupCommitments {
+            sorted: vec![gen_test_comm(); 5],
+            aggreg: gen_test_comm(),
+            runtime: Some(gen_test_comm()),
+        }),
+    };
+
     fs::write(
         "../../eth_verifier/unit_test_data/pairing_proof.bin",
         EVMSerializableType(pairing_proof).to_bytes(),
@@ -60,6 +82,11 @@ fn generate_solidity_test_data() {
     fs::write(
         "../../eth_verifier/unit_test_data/proof_evals.bin",
         EVMSerializableType(proof_evals).to_bytes(),
+    )
+    .unwrap();
+    fs::write(
+        "../../eth_verifier/unit_test_data/proof_comms.bin",
+        EVMSerializableType(proof_comms).to_bytes(),
     )
     .unwrap();
 }
