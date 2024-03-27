@@ -7,6 +7,8 @@ import "../bn254/Fields.sol";
 import "../Proof.sol";
 import "../sponge/Sponge.sol";
 
+import "forge-std/console.sol";
+
 using {Scalar.add, Scalar.mul, Scalar.sub, Scalar.pow, Scalar.inv} for Scalar.FE;
 
 // PolishToken is a tagged union type, whose variants can hold different data types.
@@ -88,9 +90,10 @@ function evaluate(
             continue;
         }
         if (v == PolishTokenVariant.UnnormalizedLagrangeBasis) {
-            int256 offset = abi.decode(v_data, (int256));
+            uint256 unnormalized_lagrange_basis = abi.decode(v_data, (uint256));
+            console.log("value: %d", unnormalized_lagrange_basis);
 
-            stack[stack_next] = unnormalized_lagrange_basis(domain_gen, domain_size, offset, pt);
+            stack[stack_next] = Scalar.FE.wrap(unnormalized_lagrange_basis);
             stack_next += 1;
             continue;
         }
@@ -216,23 +219,6 @@ type PolishTokenSkipIf is uint256;
 // TODO: maybe delete these types? Solidity only allows to define aliases
 // (actually called "user-defined value types") over elementary value types like
 // integers, bools.
-
-// @notice Compute the ith unnormalized lagrange basis
-function unnormalized_lagrange_basis(Scalar.FE domain_gen, uint256 domain_size, int256 i, Scalar.FE pt)
-    view
-    returns (Scalar.FE result)
-{
-    Scalar.FE omega_i;
-    if (i < 0) {
-        omega_i = domain_gen.pow(uint256(-i)).inv();
-    } else {
-        omega_i = domain_gen.pow(uint256(i));
-    }
-
-    result = evaluate_vanishing_polynomial(domain_gen, domain_size, pt);
-    Scalar.FE sub_m_omega = pt.sub(omega_i);
-    result = result.mul(sub_m_omega.inv());
-}
 
 // @notice evaluates the vanishing polynomial for this domain at tau.
 // @notice for multiplicative subgroups, this polynomial is `z(X) = X^self.size - 1

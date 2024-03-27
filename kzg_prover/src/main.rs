@@ -7,7 +7,7 @@ use ark_ec::{
     bn::Bn, msm::VariableBaseMSM, short_weierstrass_jacobian::GroupAffine, AffineCurve,
     ProjectiveCurve,
 };
-use ark_ff::{BigInteger256, PrimeField};
+use ark_ff::{BigInteger256, Field, PrimeField};
 use ark_poly::{
     univariate::DensePolynomial, EvaluationDomain, Evaluations, Polynomial, Radix2EvaluationDomain,
     UVPolynomial,
@@ -33,12 +33,15 @@ use kimchi::{
     groupmap::*,
     keccak_sponge::{Keccak256FqSponge, Keccak256FrSponge},
     o1_utils::{foreign_field::BigUintForeignFieldHelpers, BigUintFieldHelpers},
+    oracles::OraclesResult,
     proof::ProverProof,
     prover_index::ProverIndex,
     verifier::{batch_verify, to_batch, Context},
+    verifier_index::VerifierIndex,
 };
 use num::{bigint::RandBigInt, BigUint};
 use num_traits::{One, Zero};
+use o1_utils::FieldHelpers;
 use poly_commitment::{
     commitment::{
         combine_commitments, combine_evaluations, BatchEvaluationProof, CommitmentCurve, Evaluation,
@@ -49,7 +52,6 @@ use poly_commitment::{
     PolyComm, SRS as _,
 };
 use serde::{ser::SerializeStruct, Serialize};
-use serde_with::serde_as;
 use snarky_gate::SnarkyGate;
 
 type BaseField = ark_bn254::Fq;
@@ -155,9 +157,11 @@ fn generate_proof() {
         rmp_serde::to_vec_named(&srs_to_serialize).unwrap(),
     )
     .unwrap();
+
+    let zeta = get_oracles_zeta(&verifier_index, &proof, &public_input);
     fs::write(
         "../eth_verifier/linearization.mpk",
-        &serialize_linearization(index.linearization),
+        &serialize_linearization(index.linearization, &index.cs.domain.d1, &zeta),
     )
     .unwrap();
 
@@ -281,9 +285,11 @@ fn generate_test_proof_for_evm_verifier() {
         rmp_serde::to_vec_named(&proof).unwrap(),
     )
     .unwrap();
+
+    let verifier_index = index.verifier_index();
     fs::write(
         "../eth_verifier/verifier_index.mpk",
-        rmp_serde::to_vec_named(&index.verifier_index()).unwrap(),
+        rmp_serde::to_vec_named(&verifier_index).unwrap(),
     )
     .unwrap();
     let srs_to_serialize = PairingSRS::<Bn<Parameters>> {
@@ -299,9 +305,11 @@ fn generate_test_proof_for_evm_verifier() {
         rmp_serde::to_vec_named(&srs_to_serialize).unwrap(),
     )
     .unwrap();
+
+    let zeta = get_oracles_zeta(&verifier_index, &proof, &public_inputs);
     fs::write(
         "../eth_verifier/linearization.mpk",
-        &serialize_linearization(index.linearization),
+        &serialize_linearization(index.linearization, &index.cs.domain.d1, &zeta),
     )
     .unwrap();
 }
@@ -351,7 +359,7 @@ struct Pow {
 
 #[derive(Serialize)]
 struct UnnormalizedLagrangeBasis {
-    rowoffset: i32,
+    value: Vec<u8>,
 }
 
 #[derive(Serialize)]
@@ -359,7 +367,11 @@ struct Load {
     load: usize,
 }
 
-fn serialize_linearization(linearization: Linearization<Vec<PolishToken<ScalarField>>>) -> Vec<u8> {
+fn serialize_linearization(
+    linearization: Linearization<Vec<PolishToken<ScalarField>>>,
+    domain: &Radix2EvaluationDomain<ScalarField>,
+    zeta: &ScalarField,
+) -> Vec<u8> {
     let constant_term_ser: Vec<_> = linearization
         .constant_term
         .iter()
@@ -390,7 +402,10 @@ fn serialize_linearization(linearization: Linearization<Vec<PolishToken<ScalarFi
                     })
                 }
                 PolishToken::UnnormalizedLagrangeBasis(rowoffset) => {
-                    rmp_serde::to_vec_named(&UnnormalizedLagrangeBasis { rowoffset })
+                    let value = unnormalized_lagrange_basis(domain, rowoffset, zeta);
+                    println!("value: {}", value.to_biguint().to_string());
+                    let value = value.to_bytes();
+                    rmp_serde::to_vec_named(&UnnormalizedLagrangeBasis { value })
                 }
                 PolishToken::Store => rmp_serde::to_vec_named(&UnitVariant { variant: "store" }),
                 PolishToken::Load(load) => rmp_serde::to_vec_named(&Load { load }),
@@ -732,4 +747,78 @@ fn selector_polynomial(
         domain.d1,
     )
     .interpolate()
+}
+
+fn get_oracles_zeta(
+    verifier_index: &VerifierIndex<G1, KZGProof>,
+    proof: &ProverProof<G1, KZGProof>,
+    public_input: &[ScalarField],
+) -> ScalarField {
+    //~
+    //~ #### Partial verification
+    //~
+    //~ For every proof we want to verify, we defer the proof opening to the very end.
+    //~ This allows us to potentially batch verify a number of partially verified proofs.
+    //~ Essentially, this steps verifies that $f(\zeta) = t(\zeta) * Z_H(\zeta)$.
+    //~
+
+    //~ 1. Check the length of evaluations inside the proof.
+    let chunk_size = {
+        let d1_size = verifier_index.domain.size();
+        if d1_size < verifier_index.max_poly_size {
+            1
+        } else {
+            d1_size / verifier_index.max_poly_size
+        }
+    };
+
+    //~ 1. Commit to the negated public input polynomial.
+    let public_comm = {
+        let lgr_comm = verifier_index
+            .srs()
+            .get_lagrange_basis(verifier_index.domain.size())
+            .expect("pre-computed committed lagrange bases not found");
+        let com: Vec<_> = lgr_comm.iter().take(verifier_index.public).collect();
+        if public_input.is_empty() {
+            PolyComm::new(
+                vec![verifier_index.srs().blinding_commitment(); chunk_size],
+                None,
+            )
+        } else {
+            let elm: Vec<_> = public_input.iter().map(|s| -*s).collect();
+            let public_comm = PolyComm::multi_scalar_mul(&com, &elm);
+            verifier_index
+                .srs()
+                .mask_custom(
+                    public_comm.clone(),
+                    &public_comm.map(|_| ScalarField::one()),
+                )
+                .unwrap()
+                .commitment
+        }
+    };
+
+    //~ 1. Run the [Fiat-Shamir argument](#fiat-shamir-argument).
+    let OraclesResult {
+        fq_sponge: _,
+        oracles,
+        ..
+    } = proof
+        .oracles::<KeccakFqSponge, KeccakFrSponge>(verifier_index, &public_comm, Some(public_input))
+        .unwrap();
+
+    oracles.zeta
+}
+
+fn unnormalized_lagrange_basis(
+    domain: &Radix2EvaluationDomain<ScalarField>,
+    i: i32,
+    pt: &ScalarField,
+) -> ScalarField {
+    let omega_i = if i < 0 {
+        domain.group_gen.pow([-i as u64]).inverse().unwrap()
+    } else {
+        domain.group_gen.pow([i as u64])
+    };
+    domain.evaluate_vanishing_polynomial(*pt) / (*pt - omega_i)
 }
