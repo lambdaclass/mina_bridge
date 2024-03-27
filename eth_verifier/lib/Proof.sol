@@ -33,6 +33,12 @@ struct ProverProof {
     Scalar.FE ft_eval1;
 }
 
+struct NewProverProof {
+    NewProverCommitments commitments;
+    NewPairingProof opening;
+    NewProofEvaluations evals;
+}
+
 struct AggregatedEvaluationProof {
     Evaluation[] evaluations;
     Scalar.FE[2] evaluation_points;
@@ -189,12 +195,108 @@ struct ProofEvaluationsArray {
     bool is_foreign_field_mul_lookup_selector_set;
 }
 
+/// @notice each bit represents a boolean. 0 is false, 1 is true.
+type bitmap is uint256;
+
+struct NewProofEvaluations {
+    // each bit represents the presence (1) or absence (0) of an
+    // optional field.
+    bitmap optional_field_flags;
+
+    // witness polynomials
+    PointEvaluations[COLUMNS] w;
+    // permutation polynomial
+    PointEvaluations z;
+    // permutation polynomials
+    // (PERMUTS-1 evaluations because the last permutation is only used in commitment form)
+    PointEvaluations[PERMUTS - 1] s;
+    // coefficient polynomials
+    PointEvaluations[COLUMNS] coefficients;
+    // evaluation of the generic selector polynomial
+    PointEvaluations generic_selector;
+    // evaluation of the poseidon selector polynomial
+    PointEvaluations poseidon_selector;
+    // evaluation of the EC addition selector polynomial
+    PointEvaluations complete_add_selector;
+    // evaluation of the EC variable base scalar multiplication selector polynomial
+    PointEvaluations mul_selector;
+    // evaluation of the EC endoscalar  emultiplication selector polynomial
+    PointEvaluations emul_selector;
+    // evaluation of the endoscalar multiplication scalar computation selector polynomial
+    PointEvaluations endomul_scalar_selector;
+
+    // Optional gates
+
+    PointEvaluations public_evals;
+    // bool is_public_evals_set; // public_evals is optional
+    // evaluation of the RangeCheck0 selector polynomial
+    PointEvaluations range_check0_selector;
+    // bool is_range_check0_selector_set;
+    // evaluation of the RangeCheck1 selector polynomial
+    PointEvaluations range_check1_selector;
+    // bool is_range_check1_selector_set;
+    // evaluation of the ForeignFieldAdd selector polynomial
+    PointEvaluations foreign_field_add_selector;
+    // bool is_foreign_field_add_selector_set;
+    // evaluation of the ForeignFieldMul selector polynomial
+    PointEvaluations foreign_field_mul_selector;
+    // bool is_foreign_field_mul_selector_set;
+    // evaluation of the Xor selector polynomial
+    PointEvaluations xor_selector;
+    // bool is_xor_selector_set;
+    // evaluation of the Rot selector polynomial
+    PointEvaluations rot_selector;
+    // bool is_rot_selector_set;
+    // lookup-related evaluations
+    // evaluation of lookup aggregation polynomial
+    PointEvaluations lookup_aggregation;
+    // bool is_lookup_aggregation_set;
+    // evaluation of lookup table polynomial
+    PointEvaluations lookup_table;
+    // bool is_lookup_table_set;
+    // evaluation of lookup sorted polynomials
+    PointEvaluations[5] lookup_sorted;
+    // bool is_lookup_sorted_set;
+    // evaluation of runtime lookup table polynomial
+    PointEvaluations runtime_lookup_table;
+    // bool is_runtime_lookup_table_set;
+    // lookup selectors
+    // evaluation of the runtime lookup table selector polynomial
+    PointEvaluations runtime_lookup_table_selector;
+    // bool is_runtime_lookup_table_selector_set;
+    // evaluation of the Xor range check pattern selector polynomial
+    PointEvaluations xor_lookup_selector;
+    // bool is_xor_lookup_selector_set;
+    // evaluation of the Lookup range check pattern selector polynomial
+    PointEvaluations lookup_gate_lookup_selector;
+    // bool is_lookup_gate_lookup_selector_set;
+    // evaluation of the RangeCheck range check pattern selector polynomial
+    PointEvaluations range_check_lookup_selector;
+    // bool is_range_check_lookup_selector_set;
+    // evaluation of the ForeignFieldMul range check pattern selector polynomial
+    PointEvaluations foreign_field_mul_lookup_selector;
+    // bool is_foreign_field_mul_lookup_selector_set;
+}
+
 struct ProverCommitments {
     PolyComm[COLUMNS] w_comm;
     PolyComm z_comm;
     PolyComm t_comm;
     bool is_lookup_set;
     LookupCommitments lookup;
+}
+
+struct NewProverCommitments {
+    bitmap optional_field_flags;
+
+    BN254.G1Point[COLUMNS] w_comm;
+    BN254.G1Point z_comm;
+    BN254.G1Point t_comm;
+
+    // optional commitments
+    BN254.G1Point[] lookup_sorted;
+    BN254.G1Point lookup_aggreg;
+    BN254.G1Point lookup_runtime;
 }
 
 struct LookupCommitments {
