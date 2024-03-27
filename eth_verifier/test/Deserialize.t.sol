@@ -2,19 +2,21 @@
 pragma solidity >=0.4.16 <0.9.0;
 
 import {Test, console2} from "forge-std/Test.sol";
-import "../lib/deserialize/PairingProof.sol";
 import "../lib/deserialize/ProverProof.sol";
 import "../lib/Proof.sol";
 import "../lib/Constants.sol";
 
-contract DeserializeTest is Test {
+contract DecodeProverProof is Test {
     bytes pairing_proof_bytes;
     bytes proof_evals_bytes;
     bytes proof_comms_bytes;
+    bytes prover_proof_bytes;
 
     NewPairingProof pairing_proof;
     NewProofEvaluations proof_evals;
     NewProverCommitments proof_comms;
+    NewProverProof prover_proof;
+    Scalar.FE ft_eval1;
 
     function setUp() public {
         pairing_proof_bytes = vm.readFileBinary(
@@ -25,6 +27,9 @@ contract DeserializeTest is Test {
         );
         proof_comms_bytes = vm.readFileBinary(
             "./unit_test_data/proof_comms.bin"
+        );
+        prover_proof_bytes = vm.readFileBinary(
+            "./unit_test_data/prover_proof.bin"
         );
     }
 
@@ -56,7 +61,7 @@ contract DeserializeTest is Test {
         // optional field flags
         assertEq(
             bitmap.unwrap(proof_evals.optional_field_flags),
-            (1 << 0) + (1 << 1) + (1 << 3)
+            11 // 0b1011
         );
 
         // will only test some fields:
@@ -89,5 +94,54 @@ contract DeserializeTest is Test {
 
         assertTestG1Point(proof_comms.lookup_aggreg);
         assertTestG1Point(proof_comms.lookup_runtime);
+    }
+
+    function test_deser_new_prover_proof() public {
+        deser_prover_proof(prover_proof_bytes, prover_proof);
+
+        /** Test comms **/
+        assertEq(
+            bitmap.unwrap(prover_proof.commitments.optional_field_flags),
+            3 // 0b11
+        );
+        for (uint256 i = 0; i < COLUMNS; i++) {
+            assertTestG1Point(prover_proof.commitments.w_comm[i]);
+        }
+        assertTestG1Point(prover_proof.commitments.z_comm);
+        assertTestG1Point(prover_proof.commitments.t_comm);
+        assertEq(prover_proof.commitments.lookup_sorted.length, 5);
+        for (
+            uint256 i = 0;
+            i < prover_proof.commitments.lookup_sorted.length;
+            i++
+        ) {
+            assertTestG1Point(prover_proof.commitments.lookup_sorted[i]);
+        }
+        assertTestG1Point(prover_proof.commitments.lookup_aggreg);
+        assertTestG1Point(prover_proof.commitments.lookup_runtime);
+
+        /** Test opening **/
+        assertTestG1Point(prover_proof.opening.quotient);
+        assertEq(Scalar.FE.unwrap(prover_proof.opening.blinding), 1);
+
+        /** Test evals **/
+        assertEq(
+            bitmap.unwrap(prover_proof.evals.optional_field_flags),
+            11 // 0b1011
+        );
+        // will only test some fields:
+        assertTestEval(prover_proof.evals.z);
+        assertTestEval(prover_proof.evals.public_evals);
+        assertTestEval(prover_proof.evals.range_check0_selector);
+        assertEmptyEval(prover_proof.evals.range_check1_selector);
+        assertTestEval(prover_proof.evals.foreign_field_add_selector);
+
+        /** Test ft_eval1 **/
+        assertEq(Scalar.FE.unwrap(ft_eval1), 10);
+        uint256 slot_of_ft_eval1 = 0;
+        assembly {
+            slot_of_ft_eval1 := ft_eval1.slot
+        }
+        console.log("slot: ", slot_of_ft_eval1);
     }
 }

@@ -33,6 +33,12 @@ struct ProverProof {
     Scalar.FE ft_eval1;
 }
 
+struct NewProverProof {
+    NewProverCommitments commitments;
+    NewPairingProof opening;
+    NewProofEvaluations evals;
+}
+
 struct AggregatedEvaluationProof {
     Evaluation[] evaluations;
     Scalar.FE[2] evaluation_points;

@@ -2,7 +2,10 @@ use kimchi::proof::PointEvaluations;
 
 use crate::{
     serialize::{EVMSerializable, EVMSerializableType},
-    type_aliases::{BN254PairingProof, BN254ProofEvaluations, BN254ProverCommitments, ScalarField},
+    type_aliases::{
+        BN254PairingProof, BN254ProofEvaluations, BN254ProverCommitments, BN254ProverProof,
+        ScalarField,
+    },
 };
 
 impl EVMSerializable for EVMSerializableType<BN254PairingProof> {
@@ -64,11 +67,7 @@ impl EVMSerializable for EVMSerializableType<BN254ProverCommitments> {
             }
         }
 
-        [
-            optional_field_flags_encoded,
-            encoded_comms,
-        ]
-        .concat()
+        [optional_field_flags_encoded, encoded_comms].concat()
     }
 }
 
@@ -175,6 +174,25 @@ impl EVMSerializable for EVMSerializableType<BN254ProofEvaluations> {
             encoded_evals,
         ]
         .concat()
+    }
+}
+
+impl EVMSerializable for EVMSerializableType<BN254ProverProof> {
+    fn to_bytes(self) -> Vec<u8> {
+        let BN254ProverProof {
+            commitments,
+            proof,
+            evals,
+            ft_eval1,
+            ..
+        } = self.0;
+
+        [
+            EVMSerializableType(commitments).to_bytes(),
+            EVMSerializableType(proof).to_bytes(),
+            EVMSerializableType(evals).to_bytes(),
+            EVMSerializableType(ft_eval1).to_bytes(),
+        ].concat()
     }
 }
 

@@ -7,8 +7,7 @@ use kimchi::{
 use serializer::{
     serialize::{EVMSerializable, EVMSerializableType},
     type_aliases::{
-        BN254PairingProof, BN254PolyComm, BN254ProofEvaluations, BN254ProverCommitments, BaseField,
-        G1Point, ScalarField,
+        BN254PairingProof, BN254PolyComm, BN254ProofEvaluations, BN254ProverCommitments, BN254ProverProof, BaseField, G1Point, ScalarField
     },
 };
 
@@ -74,6 +73,15 @@ fn generate_solidity_test_data() {
         }),
     };
 
+    // prover proof
+    let prover_proof = BN254ProverProof {
+        commitments: proof_comms.clone(),
+        proof: pairing_proof.clone(),
+        evals: proof_evals.clone(),
+        ft_eval1: ScalarField::from(10),
+        prev_challenges: Vec::new()
+    };
+
     fs::write(
         "../../eth_verifier/unit_test_data/pairing_proof.bin",
         EVMSerializableType(pairing_proof).to_bytes(),
@@ -87,6 +95,11 @@ fn generate_solidity_test_data() {
     fs::write(
         "../../eth_verifier/unit_test_data/proof_comms.bin",
         EVMSerializableType(proof_comms).to_bytes(),
+    )
+    .unwrap();
+    fs::write(
+        "../../eth_verifier/unit_test_data/prover_proof.bin",
+        EVMSerializableType(prover_proof).to_bytes(),
     )
     .unwrap();
 }
