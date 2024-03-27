@@ -79,5 +79,15 @@ contract DeserializeTest is Test {
         for (uint256 i = 0; i < COLUMNS; i++) {
             assertTestG1Point(proof_comms.w_comm[i]);
         }
+        assertTestG1Point(proof_comms.z_comm);
+        assertTestG1Point(proof_comms.t_comm);
+
+        assertEq(proof_comms.lookup_sorted.length, 5);
+        for (uint256 i = 0; i < proof_comms.lookup_sorted.length; i++) {
+            assertTestG1Point(proof_comms.lookup_sorted[i]);
+        }
+
+        assertTestG1Point(proof_comms.lookup_aggreg);
+        assertTestG1Point(proof_comms.lookup_runtime);
     }
 }
