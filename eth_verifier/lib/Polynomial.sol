@@ -67,7 +67,7 @@ library Polynomial {
         return Dense(coeffs_self_sub_other);
     }
 
-    function mul(Dense memory self, Dense memory other) public pure returns (Dense memory) {
+    function mul(Dense memory self, Dense memory other) public view returns (Dense memory) {
         // evaluate both polys with FFT and 2n degree bound (degree of the result poly)
         uint256 count = Utils.max(self.coeffs.length, other.coeffs.length) * 2;
         Scalar.FE[] memory evals_self = Utils.fft_resized(self.coeffs, count);

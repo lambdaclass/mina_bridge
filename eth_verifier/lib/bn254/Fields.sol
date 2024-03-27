@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
+import "./BN254.sol";
+
 /// @notice Implements 256 bit modular arithmetic over the base field of bn254.
 library Base {
     type FE is uint256;
@@ -135,12 +137,8 @@ library Scalar {
         res = mul(self, self);
     }
 
-    function inv(FE self) public pure returns (FE) {
-        require(FE.unwrap(self) != 0, "tried to get inverse of 0");
-        (uint256 gcd, uint256 inverse) = Aux.xgcd(FE.unwrap(self), MODULUS);
-        require(gcd == 1, "gcd not 1");
-
-        return FE.wrap(inverse);
+    function inv(FE self) public view returns (FE inverse) {
+        inverse = FE.wrap(BN254.invert(FE.unwrap(self)));
     }
 
     function neg(FE self) public pure returns (FE) {
