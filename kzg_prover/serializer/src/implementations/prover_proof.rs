@@ -1,11 +1,8 @@
-use kimchi::{circuits::lookup, proof::PointEvaluations};
+use kimchi::proof::PointEvaluations;
 
 use crate::{
     serialize::{EVMSerializable, EVMSerializableType},
-    type_aliases::{
-        BN254PairingProof, BN254PolyComm, BN254ProofEvaluations, BN254ProverCommitments,
-        BN254ProverProof, ScalarField,
-    },
+    type_aliases::{BN254PairingProof, BN254ProofEvaluations, BN254ProverCommitments, ScalarField},
 };
 
 impl EVMSerializable for EVMSerializableType<BN254PairingProof> {
@@ -25,7 +22,7 @@ impl EVMSerializable for EVMSerializableType<BN254ProverCommitments> {
         // optional field in it and two non-optional, so we'll flat out
         // LookupCommitments and define only two flags.
         let mut optional_field_flags_encoded = vec![0; 32]; // allocate a word for them
-        // The first flag will indicate if LookupCommitments is Some:
+                                                            // The first flag will indicate if LookupCommitments is Some:
         if let Some(lookup_comms) = &comms.lookup {
             optional_field_flags_encoded[31] |= 0b01;
             // the other flag if lookup_comms.runtime is Some:
@@ -68,7 +65,7 @@ impl EVMSerializable for EVMSerializableType<BN254ProverCommitments> {
         }
 
         [
-            optional_field_flags_encoded.into_iter().rev().collect(),
+            optional_field_flags_encoded,
             encoded_comms,
         ]
         .concat()
