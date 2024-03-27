@@ -138,10 +138,5 @@ contract DecodeProverProof is Test {
 
         /** Test ft_eval1 **/
         assertEq(Scalar.FE.unwrap(ft_eval1), 10);
-        uint256 slot_of_ft_eval1 = 0;
-        assembly {
-            slot_of_ft_eval1 := ft_eval1.slot
-        }
-        console.log("slot: ", slot_of_ft_eval1);
     }
 }
