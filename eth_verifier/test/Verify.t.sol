@@ -171,10 +171,10 @@ contract KimchiVerifierTest is Test {
             lagrange_bases_serialized
         );
 
-        //PolyComm memory public_commitment = verifier.public_commitment();
+        PolyComm memory public_commitment = verifier.public_commitment();
 
         // Necessary so that the optimized compiler takes into account the public commitment
-        //require(keccak256(abi.encode(public_commitment)) > 0);
+        require(keccak256(abi.encode(public_commitment)) > 0);
     }
 
     function test_absorb_evaluations() public {

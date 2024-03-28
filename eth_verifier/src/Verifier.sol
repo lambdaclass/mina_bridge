@@ -327,6 +327,45 @@ contract KimchiVerifier {
         return AggregatedEvaluationProof(evaluations, evaluation_points, oracles.v, proof.opening);
     }
 
+    function public_commitment() public view returns (PolyComm memory) {
+        uint256 chunk_size = verifier_index.domain_size < verifier_index.max_poly_size
+            ? 1
+            : verifier_index.domain_size / verifier_index.max_poly_size;
+
+        if (public_inputs.length != verifier_index.public_len) {
+            revert IncorrectPublicInputLength();
+        }
+        PolyComm memory public_comm;
+        if (public_inputs.length == 0) {
+            BN254.G1Point[] memory blindings = new BN254.G1Point[](chunk_size);
+            uint256 j = chunk_size;
+            while (j > 0) {
+                --j;
+                blindings[j] = urs.full_urs.h;
+            }
+            // TODO: shifted is fixed to infinity
+            BN254.G1Point memory shifted = BN254.point_at_inf();
+            public_comm = PolyComm(blindings, shifted);
+        } else {
+            uint256 msm_len = public_inputs.length;
+            BN254.G1Point[] memory public_comm_unshifted = new BN254.G1Point[](1);
+            public_comm_unshifted[0] = BN254.point_at_inf();
+            for (uint i = 0; i < msm_len; i++) {
+                public_comm_unshifted[0] = public_comm_unshifted[0].add(
+                    get_lagrange_base(i).scale_scalar(public_inputs[i])
+                );
+            }
+            // negate the results of the MSM
+            public_comm_unshifted[0] = public_comm_unshifted[0].neg();
+
+            public_comm_unshifted[0] = urs.full_urs.h.add(public_comm_unshifted[0]);
+
+            public_comm = PolyComm(public_comm_unshifted, BN254.point_at_inf());
+        }
+
+        return public_comm;
+    }
+
     function perm_scalars(
         ProofEvaluations memory e,
         Scalar.FE beta,
