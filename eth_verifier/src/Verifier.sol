@@ -31,7 +31,7 @@ contract KimchiVerifier {
     using {chunk_commitment} for PolyComm;
 
     VerifierIndex verifier_index;
-    ProverProof proof;
+    NewProverProof proof;
     PairingURS urs;
     Scalar.FE[] public_inputs;
     PolyComm[] lagrange_bases;
@@ -62,7 +62,7 @@ contract KimchiVerifier {
         bytes calldata lagrange_bases_serialized
     ) public {
         MsgPk.deser_verifier_index(MsgPk.new_stream(verifier_index_serialized), verifier_index);
-        MsgPk.deser_prover_proof(MsgPk.new_stream(prover_proof_serialized), proof);
+        //MsgPk.deser_prover_proof(MsgPk.new_stream(prover_proof_serialized), proof);
         verifier_index.linearization = abi.decode(linearization_serialized_rlp, (Linearization));
         public_inputs = MsgPk.deser_public_inputs(public_inputs_serialized);
         lagrange_bases = MsgPk.deser_lagrange_bases(lagrange_bases_serialized);
@@ -137,7 +137,9 @@ contract KimchiVerifier {
 
         // 4. Combine the chunked polynomials' evaluations
 
-        ProofEvaluations memory evals = proof.evals.combine_evals(oracles_res.powers_of_eval_points_for_chunks);
+        //ProofEvaluations memory evals = proof.evals.combine_evals(oracles_res.powers_of_eval_points_for_chunks);
+        // INFO: There's only one evaluation per polynomial so there's nothing to combine
+        NewProofEvaluations memory evals = proof.evals;
 
         // 5. Compute the commitment to the linearized polynomial $f$.
         Scalar.FE permutation_vanishing_polynomial = Polynomial.eval_vanishes_on_last_n_rows(
@@ -368,7 +370,7 @@ contract KimchiVerifier {
     }
 
     function perm_scalars(
-        ProofEvaluations memory e,
+        NewProofEvaluations memory e,
         Scalar.FE beta,
         Scalar.FE gamma,
         AlphasIterator memory alphas,

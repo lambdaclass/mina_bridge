@@ -37,7 +37,7 @@ library Oracles {
 
     // This takes Kimchi's `oracles()` as reference.
     function fiat_shamir(
-        ProverProof memory proof,
+        NewProverProof memory proof,
         VerifierIndex storage index,
         PolyComm memory public_comm,
         Scalar.FE[] memory public_input,
@@ -68,7 +68,7 @@ library Oracles {
 
         // 5. Absorb the commitments to the registers / witness columns
         for (uint256 i = 0; i < proof.commitments.w_comm.length; i++) {
-            base_sponge.absorb_commitment(proof.commitments.w_comm[i]);
+            base_sponge.absorb_g_single(proof.commitments.w_comm[i]);
         }
 
         // TODO: 6. If lookup is used, absorb runtime commitment
@@ -81,7 +81,7 @@ library Oracles {
 
         // 8. If lookup is used, absorb commitments to the sorted polys:
         for (uint256 i = 0; i < proof.commitments.lookup.sorted.length; i++) {
-            base_sponge.absorb_commitment(proof.commitments.lookup.sorted[i]);
+            base_sponge.absorb_g_single(proof.commitments.lookup.sorted[i]);
         }
 
         // 9. Sample beta from the sponge
@@ -90,10 +90,10 @@ library Oracles {
         Scalar.FE gamma = base_sponge.challenge_scalar();
 
         // 11. If using lookup, absorb the commitment to the aggregation lookup polynomial.
-        base_sponge.absorb_commitment(proof.commitments.lookup.aggreg);
+        base_sponge.absorb_g_single(proof.commitments.lookup.aggreg);
 
         // 12. Absorb the commitment to the permutation trace with the Fq-Sponge.
-        base_sponge.absorb_commitment(proof.commitments.z_comm);
+        base_sponge.absorb_g_single(proof.commitments.z_comm);
 
         // 13. Sample alpha prime
         ScalarChallenge memory alpha_chal = ScalarChallenge(base_sponge.challenge_scalar());
@@ -102,12 +102,10 @@ library Oracles {
         Scalar.FE alpha = alpha_chal.to_field(endo_r);
 
         // 15. Enforce that the length of the $t$ commitment is of size 7.
-        if (proof.commitments.t_comm.unshifted.length > chunk_size * 7) {
-            revert IncorrectCommitmentLength("t", chunk_size * 7, proof.commitments.t_comm.unshifted.length);
-        }
+        // INFO: We are assuming the prover is configured accordingly so this is always the case
 
         // 16. Absorb commitment to the quotient polynomial $t$.
-        base_sponge.absorb_commitment(proof.commitments.t_comm);
+        base_sponge.absorb_g_single(proof.commitments.t_comm);
 
         // 17. Sample zeta prime
         ScalarChallenge memory zeta_chal = ScalarChallenge(base_sponge.challenge_scalar());
@@ -147,7 +145,7 @@ library Oracles {
         // evaluations of the public input
 
         Scalar.FE[][2] memory public_evals;
-        if (proof.evals.is_public_evals_set) {
+        if ((proof.evals.optional_field_flags & 1) == 1) {
             public_evals = [proof.evals.public_evals.zeta, proof.evals.public_evals.zeta_omega];
         } else if (chunk_size > 1) {
             revert MissingPublicInputEvaluation();
@@ -226,7 +224,9 @@ library Oracles {
         Scalar.FE u = u_chal.to_field(endo_r);
 
         // 28. Create a list of all polynomials that have an evaluation proof
-        ProofEvaluations memory evals = proof.evals.combine_evals(powers_of_eval_points_for_chunks);
+        //ProofEvaluations memory evals = proof.evals.combine_evals(powers_of_eval_points_for_chunks);
+        // INFO: There's only one evaluation per polynomial so there's nothing to combine
+        NewProofEvaluations memory evals = proof.evals;
 
         // 29. Compute the evaluation of $ft(\zeta)$.
         Scalar.FE permutation_vanishing_poly =

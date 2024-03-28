@@ -60,7 +60,7 @@ library KeccakSponge {
         }
     }
 
-    function absorb_scalar(Sponge storage self, Scalar.FE elem) external {
+    function absorb_scalar(Sponge storage self, Scalar.FE elem) public {
         bytes memory b = abi.encodePacked(elem);
         for (uint256 i = 0; i < b.length; i++) {
             self.pending.push(b[i]);
@@ -119,7 +119,7 @@ library KeccakSponge {
 
     function absorb_evaluations(
         Sponge storage self,
-        ProofEvaluationsArray memory evals
+        ProofEvaluations memory evals
     ) external {
         absorb_point_evaluation(self, evals.z);
         absorb_point_evaluation(self, evals.generic_selector);
@@ -192,10 +192,10 @@ library KeccakSponge {
 
     function absorb_point_evaluation(
         Sponge storage self,
-        PointEvaluationsArray memory eval
+        PointEvaluations memory eval
     ) public {
-        absorb_scalar_multiple(self, eval.zeta);
-        absorb_scalar_multiple(self, eval.zeta_omega);
+        absorb_scalar(self, eval.zeta);
+        absorb_scalar(self, eval.zeta_omega);
     }
 
     function absorb_point_evaluations(

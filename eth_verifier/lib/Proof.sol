@@ -195,13 +195,10 @@ struct ProofEvaluationsArray {
     bool is_foreign_field_mul_lookup_selector_set;
 }
 
-/// @notice each bit represents a boolean. 0 is false, 1 is true.
-type bitmap is uint256;
-
 struct NewProofEvaluations {
     // each bit represents the presence (1) or absence (0) of an
     // optional field.
-    bitmap optional_field_flags;
+    uint256 optional_field_flags;
 
     // witness polynomials
     PointEvaluations[COLUMNS] w;
@@ -287,7 +284,7 @@ struct ProverCommitments {
 }
 
 struct NewProverCommitments {
-    bitmap optional_field_flags;
+    uint256 optional_field_flags;
 
     BN254.G1Point[COLUMNS] w_comm;
     BN254.G1Point z_comm;
@@ -614,7 +611,7 @@ function combine_evals(
 
 // INFO: ref: berkeley_columns.rs
 function evaluate_column(
-    ProofEvaluations memory self,
+    NewProofEvaluations memory self,
     Column memory col
 ) view returns (PointEvaluations memory) {
     if (col.variant == ColumnVariant.Witness) {
@@ -625,26 +622,26 @@ function evaluate_column(
         return self.z;
     }
     if (col.variant == ColumnVariant.LookupSorted) {
-        if (!self.is_lookup_sorted_set) {
+        uint256 i = abi.decode(col.data, (uint256));
+        if (self.optional_field_flags >> (LOOKUP_SORTED_FLAG + i) == 0) {
             revert MissingIndexEvaluation("lookup_sorted");
         }
-        uint256 i = abi.decode(col.data, (uint256));
         return self.lookup_sorted[i];
     }
     if (col.variant == ColumnVariant.LookupAggreg) {
-        if (!self.is_lookup_aggregation_set) {
+        if (self.optional_field_flags >> LOOKUP_AGGREGATION_FLAG == 0) {
             revert MissingIndexEvaluation("lookup_aggregation");
         }
         return self.lookup_aggregation;
     }
     if (col.variant == ColumnVariant.LookupTable) {
-        if (!self.is_lookup_table_set) {
+        if (self.optional_field_flags >> LOOKUP_TABLE_FLAG == 0) {
             revert MissingIndexEvaluation("lookup_table");
         }
         return self.lookup_table;
     }
     if (col.variant == ColumnVariant.LookupRuntimeTable) {
-        if (!self.is_runtime_lookup_table_set) {
+        if (self.optional_field_flags >> RUNTIME_LOOKUP_TABLE_FLAG == 0) {
             revert MissingIndexEvaluation("runtime_lookup_table");
         }
         return self.runtime_lookup_table;
@@ -670,37 +667,37 @@ function evaluate_column(
             return self.endomul_scalar_selector;
         }
         if (gate_type == GateType.RangeCheck0) {
-            if (!self.is_range_check0_selector_set) {
+            if (!self.optional_field_flags >> RANGE_CHECK0_SELECTOR_FLAG == 0) {
                 revert MissingIndexEvaluation("range_check0_selector");
             }
             return self.range_check0_selector;
         }
         if (gate_type == GateType.RangeCheck1) {
-            if (!self.is_range_check1_selector_set) {
+            if (!self.optional_field_flags >> RANGE_CHECK1_SELECTOR_FLAG == 0) {
                 revert MissingIndexEvaluation("range_check1_selector");
             }
             return self.range_check1_selector;
         }
         if (gate_type == GateType.ForeignFieldAdd) {
-            if (!self.is_foreign_field_add_selector_set) {
+            if (self.optional_field_flags >> FOREIGN_FIELD_ADD_SELECTOR_FLAG == 0) {
                 revert MissingIndexEvaluation("foreign_field_add_selector");
             }
             return self.foreign_field_add_selector;
         }
         if (gate_type == GateType.ForeignFieldMul) {
-            if (!self.is_foreign_field_mul_selector_set) {
+            if (self.optional_field_flags >> FOREIGN_FIELD_MUL_SELECTOR_FLAG == 0) {
                 revert MissingIndexEvaluation("foreign_field_mul_selector");
             }
             return self.foreign_field_mul_selector;
         }
         if (gate_type == GateType.Xor16) {
-            if (!self.is_xor_selector_set) {
+            if (self.optional_field_flags >> XOR_SELECTOR_FLAG == 0) {
                 revert MissingIndexEvaluation("xor_selector");
             }
             return self.xor_selector;
         }
         if (gate_type == GateType.Rot64) {
-            if (!self.is_rot_selector_set) {
+            if (self.optional_field_flags >> ROT_SELECTOR_FLAG == 0) {
                 revert MissingIndexEvaluation("rot_selector");
             }
             return self.rot_selector;
@@ -717,25 +714,25 @@ function evaluate_column(
     if (col.variant == ColumnVariant.LookupKindIndex) {
         LookupPattern pattern = abi.decode(col.data, (LookupPattern));
         if (pattern == LookupPattern.Xor) {
-            if (!self.is_xor_lookup_selector_set) {
+            if (self.optional_field_flags >> XOR_LOOKUP_SELECTOR_FLAG == 0) {
                 revert MissingIndexEvaluation("xor_lookup_selector");
             }
             return self.xor_lookup_selector;
         }
         if (pattern == LookupPattern.Lookup) {
-            if (!self.is_lookup_gate_lookup_selector_set) {
+            if (self.optional_field_flags >> LOOKUP_GATE_LOOKUP_SELECTOR_FLAG == 0) {
                 revert MissingIndexEvaluation("lookup_gate_lookup_selector");
             }
             return self.lookup_gate_lookup_selector;
         }
         if (pattern == LookupPattern.RangeCheck) {
-            if (!self.is_range_check_lookup_selector_set) {
+            if (self.optional_field_flags >> RANGE_CHECK_LOOKUP_SELECTOR_FLAG == 0) {
                 revert MissingIndexEvaluation("range_check_lookup_selector");
             }
             return self.range_check_lookup_selector;
         }
         if (pattern == LookupPattern.ForeignFieldMul) {
-            if (!self.is_foreign_field_mul_lookup_selector_set) {
+            if (self.optional_field_flags >> FOREIGN_FIELD_MUL_LOOKUP_SELECTOR_FLAG == 0) {
                 revert MissingIndexEvaluation(
                     "foreign_field_mul_lookup_selector"
                 );
@@ -744,7 +741,7 @@ function evaluate_column(
         }
     }
     if (col.variant == ColumnVariant.LookupRuntimeSelector) {
-        if (!self.is_runtime_lookup_table_selector_set) {
+        if (self.optional_field_flags >> RUNTIME_LOOKUP_TABLE_SELECTOR_FLAG == 0) {
             revert MissingIndexEvaluation("runtime_lookup_table_selector");
         }
         return self.runtime_lookup_table_selector;
@@ -754,7 +751,7 @@ function evaluate_column(
 
 function evaluate_variable(
     Variable memory self,
-    ProofEvaluations memory evals
+    NewProofEvaluations memory evals
 ) view returns (Scalar.FE) {
     PointEvaluations memory point_evals = evaluate_column(evals, self.col);
     if (self.row == CurrOrNext.Curr) {
