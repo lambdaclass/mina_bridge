@@ -57,29 +57,25 @@ contract KimchiVerifier {
         bytes calldata verifier_index_serialized,
         bytes calldata prover_proof_serialized,
         bytes calldata linearization_serialized_rlp,
-        bytes calldata public_inputs_serialized,
-        bytes calldata lagrange_bases_serialized
+        bytes calldata public_inputs_serialized
     ) public {
         MsgPk.deser_verifier_index(MsgPk.new_stream(verifier_index_serialized), verifier_index);
         MsgPk.deser_prover_proof(MsgPk.new_stream(prover_proof_serialized), proof);
         verifier_index.linearization = abi.decode(linearization_serialized_rlp, (Linearization));
         public_inputs = MsgPk.deser_public_inputs(public_inputs_serialized);
-        //lagrange_bases = MsgPk.deser_lagrange_bases(lagrange_bases_serialized);
     }
 
     function verify_with_index(
         bytes calldata verifier_index_serialized,
         bytes calldata prover_proof_serialized,
         bytes calldata linearization_serialized_rlp,
-        bytes calldata public_inputs_serialized,
-        bytes calldata lagrange_bases_serialized
+        bytes calldata public_inputs_serialized
     ) public returns (bool) {
         deserialize_proof(
             verifier_index_serialized,
             prover_proof_serialized,
             linearization_serialized_rlp,
-            public_inputs_serialized,
-            lagrange_bases_serialized
+            public_inputs_serialized
         );
         AggregatedEvaluationProof memory agg_proof = partial_verify();
         return final_verify(agg_proof, urs.verifier_urs);
@@ -577,7 +573,7 @@ contract KimchiVerifier {
         return state.block_height;
     }
 
-    function get_lagrange_base(uint256 i) public pure returns (BN254.G1Point memory) {
+    function get_lagrange_base(uint256 i) internal pure returns (BN254.G1Point memory) {
         // (x, y) pairs
         uint256[444] memory lagrange_bases = [
             0x280c10e2f52fb4ab3ba21204b30df5b69560978e0911a5c673ad0558070f17c1,

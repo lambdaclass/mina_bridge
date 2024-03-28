@@ -16,7 +16,6 @@ contract KimchiVerifierTest is Test {
     bytes urs_serialized;
     bytes linearization_serialized_rlp;
     bytes public_inputs_serialized;
-    bytes lagrange_bases_serialized;
 
     ProverProof test_prover_proof;
     VerifierIndex test_verifier_index;
@@ -28,7 +27,6 @@ contract KimchiVerifierTest is Test {
         urs_serialized = vm.readFileBinary("urs.mpk");
         linearization_serialized_rlp = vm.readFileBinary("linearization.rlp");
         public_inputs_serialized = vm.readFileBinary("public_inputs.mpk");
-        lagrange_bases_serialized = vm.readFileBinary("lagrange_bases.mpk");
 
         // we store deserialized structures mostly to run intermediate results
         // tests.
@@ -52,8 +50,7 @@ contract KimchiVerifierTest is Test {
             verifier_index_serialized,
             prover_proof_serialized,
             linearization_serialized_rlp,
-            public_inputs_serialized,
-            lagrange_bases_serialized
+            public_inputs_serialized
         );
 
         require(success, "Verification failed!");
@@ -68,8 +65,7 @@ contract KimchiVerifierTest is Test {
             verifier_index_serialized,
             prover_proof_serialized,
             linearization_serialized_rlp,
-            public_inputs_serialized,
-            lagrange_bases_serialized
+            public_inputs_serialized
         );
 
         AggregatedEvaluationProof memory agg_proof = verifier.partial_verify();
@@ -87,8 +83,7 @@ contract KimchiVerifierTest is Test {
             verifier_index_serialized,
             prover_proof_serialized,
             linearization_serialized_rlp,
-            public_inputs_serialized,
-            lagrange_bases_serialized
+            public_inputs_serialized
         );
 
         Scalar.FE[2] memory evaluation_points = [
@@ -123,8 +118,7 @@ contract KimchiVerifierTest is Test {
             verifier_index_serialized,
             prover_proof_serialized,
             linearization_serialized_rlp,
-            public_inputs_serialized,
-            lagrange_bases_serialized
+            public_inputs_serialized
         );
 
         Scalar.FE[2] memory evaluation_points = [
@@ -167,8 +161,7 @@ contract KimchiVerifierTest is Test {
             verifier_index_serialized,
             prover_proof_serialized,
             linearization_serialized_rlp,
-            public_inputs_serialized,
-            lagrange_bases_serialized
+            public_inputs_serialized
         );
 
         PolyComm memory public_commitment = verifier.public_commitment();
