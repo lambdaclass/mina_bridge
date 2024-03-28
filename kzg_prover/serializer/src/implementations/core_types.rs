@@ -33,6 +33,9 @@ impl EVMSerializable for EVMSerializableType<BN254PolyComm> {
         // In this case there's only one point per PolyComm.
         //
         // We are also ignoring the shifted point
+        if self.0.unshifted.len() != 1 {
+            panic!("Tried to encode a polycomm with more (or less) than one unshifted element!");
+        }
         EVMSerializableType(self.0.unshifted[0]).to_bytes()
     }
 }

@@ -50,6 +50,7 @@ use poly_commitment::{
 };
 use serde::{ser::SerializeStruct, Serialize};
 use serde_with::serde_as;
+use serializer::serialize::{EVMSerializable, EVMSerializableType};
 use snarky_gate::SnarkyGate;
 
 type BaseField = ark_bn254::Fq;
@@ -97,6 +98,7 @@ fn generate_proof() {
             .len()
     );
     let verifier_index = index.verifier_index();
+    let domain_size = index.cs.domain.d1.size();
 
     println!(
         "verifier_index digest: {}",
@@ -191,6 +193,13 @@ fn generate_proof() {
     fs::write(
         "../eth_verifier/lagrange_bases.mpk",
         rmp_serde::to_vec_named(&lagrange_bases).unwrap(),
+    )
+    .unwrap();
+
+    // Serialize lagrange bases for hardcoding
+    fs::write(
+        "../eth_verifier/lagrange_bases.bin",
+        EVMSerializableType(lagrange_bases[&domain_size].clone()).to_bytes(),
     )
     .unwrap();
 }
