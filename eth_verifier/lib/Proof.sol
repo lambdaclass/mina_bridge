@@ -37,13 +37,14 @@ struct NewProverProof {
     NewProverCommitments commitments;
     NewPairingProof opening;
     NewProofEvaluations evals;
+    Scalar.FE ft_eval1;
 }
 
 struct AggregatedEvaluationProof {
     Evaluation[] evaluations;
     Scalar.FE[2] evaluation_points;
     Scalar.FE polyscale;
-    PairingProof opening;
+    NewPairingProof opening;
 }
 
 struct ProofEvaluations {
@@ -623,25 +624,25 @@ function evaluate_column(
     }
     if (col.variant == ColumnVariant.LookupSorted) {
         uint256 i = abi.decode(col.data, (uint256));
-        if (self.optional_field_flags >> (LOOKUP_SORTED_FLAG + i) == 0) {
+        if (self.optional_field_flags >> (LOOKUP_SORTED_EVAL_FLAG + i) == 0) {
             revert MissingIndexEvaluation("lookup_sorted");
         }
         return self.lookup_sorted[i];
     }
     if (col.variant == ColumnVariant.LookupAggreg) {
-        if (self.optional_field_flags >> LOOKUP_AGGREGATION_FLAG == 0) {
+        if (self.optional_field_flags >> LOOKUP_AGGREGATION_EVAL_FLAG == 0) {
             revert MissingIndexEvaluation("lookup_aggregation");
         }
         return self.lookup_aggregation;
     }
     if (col.variant == ColumnVariant.LookupTable) {
-        if (self.optional_field_flags >> LOOKUP_TABLE_FLAG == 0) {
+        if (self.optional_field_flags >> LOOKUP_TABLE_EVAL_FLAG == 0) {
             revert MissingIndexEvaluation("lookup_table");
         }
         return self.lookup_table;
     }
     if (col.variant == ColumnVariant.LookupRuntimeTable) {
-        if (self.optional_field_flags >> RUNTIME_LOOKUP_TABLE_FLAG == 0) {
+        if (self.optional_field_flags >> RUNTIME_LOOKUP_TABLE_EVAL_FLAG == 0) {
             revert MissingIndexEvaluation("runtime_lookup_table");
         }
         return self.runtime_lookup_table;
@@ -667,37 +668,37 @@ function evaluate_column(
             return self.endomul_scalar_selector;
         }
         if (gate_type == GateType.RangeCheck0) {
-            if (!self.optional_field_flags >> RANGE_CHECK0_SELECTOR_FLAG == 0) {
+            if (self.optional_field_flags >> RANGE_CHECK0_SELECTOR_EVAL_FLAG == 0) {
                 revert MissingIndexEvaluation("range_check0_selector");
             }
             return self.range_check0_selector;
         }
         if (gate_type == GateType.RangeCheck1) {
-            if (!self.optional_field_flags >> RANGE_CHECK1_SELECTOR_FLAG == 0) {
+            if (self.optional_field_flags >> RANGE_CHECK1_SELECTOR_EVAL_FLAG == 0) {
                 revert MissingIndexEvaluation("range_check1_selector");
             }
             return self.range_check1_selector;
         }
         if (gate_type == GateType.ForeignFieldAdd) {
-            if (self.optional_field_flags >> FOREIGN_FIELD_ADD_SELECTOR_FLAG == 0) {
+            if (self.optional_field_flags >> FOREIGN_FIELD_ADD_SELECTOR_EVAL_FLAG == 0) {
                 revert MissingIndexEvaluation("foreign_field_add_selector");
             }
             return self.foreign_field_add_selector;
         }
         if (gate_type == GateType.ForeignFieldMul) {
-            if (self.optional_field_flags >> FOREIGN_FIELD_MUL_SELECTOR_FLAG == 0) {
+            if (self.optional_field_flags >> FOREIGN_FIELD_MUL_SELECTOR_EVAL_FLAG == 0) {
                 revert MissingIndexEvaluation("foreign_field_mul_selector");
             }
             return self.foreign_field_mul_selector;
         }
         if (gate_type == GateType.Xor16) {
-            if (self.optional_field_flags >> XOR_SELECTOR_FLAG == 0) {
+            if (self.optional_field_flags >> XOR_SELECTOR_EVAL_FLAG == 0) {
                 revert MissingIndexEvaluation("xor_selector");
             }
             return self.xor_selector;
         }
         if (gate_type == GateType.Rot64) {
-            if (self.optional_field_flags >> ROT_SELECTOR_FLAG == 0) {
+            if (self.optional_field_flags >> ROT_SELECTOR_EVAL_FLAG == 0) {
                 revert MissingIndexEvaluation("rot_selector");
             }
             return self.rot_selector;
@@ -714,25 +715,25 @@ function evaluate_column(
     if (col.variant == ColumnVariant.LookupKindIndex) {
         LookupPattern pattern = abi.decode(col.data, (LookupPattern));
         if (pattern == LookupPattern.Xor) {
-            if (self.optional_field_flags >> XOR_LOOKUP_SELECTOR_FLAG == 0) {
+            if (self.optional_field_flags >> XOR_LOOKUP_SELECTOR_EVAL_FLAG == 0) {
                 revert MissingIndexEvaluation("xor_lookup_selector");
             }
             return self.xor_lookup_selector;
         }
         if (pattern == LookupPattern.Lookup) {
-            if (self.optional_field_flags >> LOOKUP_GATE_LOOKUP_SELECTOR_FLAG == 0) {
+            if (self.optional_field_flags >> LOOKUP_GATE_LOOKUP_SELECTOR_EVAL_FLAG == 0) {
                 revert MissingIndexEvaluation("lookup_gate_lookup_selector");
             }
             return self.lookup_gate_lookup_selector;
         }
         if (pattern == LookupPattern.RangeCheck) {
-            if (self.optional_field_flags >> RANGE_CHECK_LOOKUP_SELECTOR_FLAG == 0) {
+            if (self.optional_field_flags >> RANGE_CHECK_LOOKUP_SELECTOR_EVAL_FLAG == 0) {
                 revert MissingIndexEvaluation("range_check_lookup_selector");
             }
             return self.range_check_lookup_selector;
         }
         if (pattern == LookupPattern.ForeignFieldMul) {
-            if (self.optional_field_flags >> FOREIGN_FIELD_MUL_LOOKUP_SELECTOR_FLAG == 0) {
+            if (self.optional_field_flags >> FOREIGN_FIELD_MUL_LOOKUP_SELECTOR_EVAL_FLAG == 0) {
                 revert MissingIndexEvaluation(
                     "foreign_field_mul_lookup_selector"
                 );
@@ -741,7 +742,7 @@ function evaluate_column(
         }
     }
     if (col.variant == ColumnVariant.LookupRuntimeSelector) {
-        if (self.optional_field_flags >> RUNTIME_LOOKUP_TABLE_SELECTOR_FLAG == 0) {
+        if (self.optional_field_flags >> RUNTIME_LOOKUP_TABLE_SELECTOR_EVAL_FLAG == 0) {
             revert MissingIndexEvaluation("runtime_lookup_table_selector");
         }
         return self.runtime_lookup_table_selector;
@@ -762,9 +763,9 @@ function evaluate_variable(
 }
 
 function get_column_eval(
-    ProofEvaluationsArray memory evals,
+    NewProofEvaluations memory evals,
     Column memory col
-) pure returns (PointEvaluationsArray memory) {
+) pure returns (PointEvaluations memory) {
     ColumnVariant variant = col.variant;
     bytes memory data = col.data;
     if (variant == ColumnVariant.Witness) {
@@ -820,7 +821,7 @@ function combine_table(
     bool is_table_id_vector_set,
     PolyComm memory table_id_vector,
     bool is_runtime_vector_set,
-    PolyComm memory runtime_vector
+    BN254.G1Point memory runtime_vector
 ) view returns (PolyComm memory) {
     require(columns.length != 0, "column commitments are empty");
     uint256 total_len = columns.length
@@ -850,7 +851,9 @@ function combine_table(
     }
     if (is_runtime_vector_set) {
         scalars[index] = column_combiner;
-        commitments[index] = runtime_vector;
+        BN254.G1Point[] memory unshifted = new BN254.G1Point[](1);
+        unshifted[0] = runtime_vector;
+        commitments[index] = PolyComm(unshifted, BN254.point_at_inf());
         index += 1;
     }
 

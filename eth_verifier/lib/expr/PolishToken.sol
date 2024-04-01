@@ -31,7 +31,7 @@ function evaluate(
     Scalar.FE domain_gen,
     uint256 domain_size,
     Scalar.FE pt,
-    ProofEvaluations memory evals,
+    NewProofEvaluations memory evals,
     ExprConstants memory c
 ) view returns (Scalar.FE) {
     Scalar.FE[] memory stack = new Scalar.FE[](toks.length);

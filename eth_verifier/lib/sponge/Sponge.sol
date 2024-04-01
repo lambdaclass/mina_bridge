@@ -5,6 +5,7 @@ import "../bn254/Fields.sol";
 import "../bn254/BN254.sol";
 import "../Commitment.sol";
 import "../Proof.sol";
+import "../Constants.sol";
 
 struct Sponge {
     bytes pending;
@@ -119,7 +120,7 @@ library KeccakSponge {
 
     function absorb_evaluations(
         Sponge storage self,
-        ProofEvaluations memory evals
+        NewProofEvaluations memory evals
     ) external {
         absorb_point_evaluation(self, evals.z);
         absorb_point_evaluation(self, evals.generic_selector);
@@ -139,53 +140,53 @@ library KeccakSponge {
             absorb_point_evaluation(self, evals.s[i]);
         }
 
-        if (evals.is_range_check0_selector_set) {
+        if (evals.optional_field_flags >> RANGE_CHECK0_SELECTOR_EVAL_FLAG == 1) {
             absorb_point_evaluation(self, evals.range_check0_selector);
         }
-        if (evals.is_range_check1_selector_set) {
+        if (evals.optional_field_flags >> RANGE_CHECK1_SELECTOR_EVAL_FLAG == 1) {
             absorb_point_evaluation(self, evals.range_check1_selector);
         }
-        if (evals.is_foreign_field_add_selector_set) {
+        if (evals.optional_field_flags >> FOREIGN_FIELD_ADD_SELECTOR_EVAL_FLAG == 1) {
             absorb_point_evaluation(self, evals.foreign_field_add_selector);
         }
-        if (evals.is_foreign_field_mul_selector_set) {
+        if (evals.optional_field_flags >> FOREIGN_FIELD_MUL_SELECTOR_EVAL_FLAG == 1) {
             absorb_point_evaluation(self, evals.foreign_field_mul_selector);
         }
-        if (evals.is_xor_selector_set) {
+        if (evals.optional_field_flags >> XOR_SELECTOR_EVAL_FLAG == 1) {
             absorb_point_evaluation(self, evals.xor_selector);
         }
-        if (evals.is_rot_selector_set) {
+        if (evals.optional_field_flags >> ROT_SELECTOR_EVAL_FLAG == 1) {
             absorb_point_evaluation(self, evals.rot_selector);
         }
 
-        if (evals.is_lookup_aggregation_set) {
+        if (evals.optional_field_flags >> LOOKUP_AGGREGATION_EVAL_FLAG == 1) {
             absorb_point_evaluation(self, evals.lookup_aggregation);
         }
-        if (evals.is_lookup_table_set) {
+        if (evals.optional_field_flags >> LOOKUP_TABLE_EVAL_FLAG == 1) {
             absorb_point_evaluation(self, evals.lookup_table);
         }
-        if (evals.is_lookup_sorted_set) {
+        if (evals.optional_field_flags >> LOOKUP_SORTED_EVAL_FLAG == 1) {
             for (uint i = 0; i < evals.lookup_sorted.length; i++) {
                 absorb_point_evaluation(self, evals.lookup_sorted[i]);
             }
         }
-        if (evals.is_runtime_lookup_table_set) {
+        if (evals.optional_field_flags >> RUNTIME_LOOKUP_TABLE_EVAL_FLAG == 1) {
             absorb_point_evaluation(self, evals.runtime_lookup_table);
         }
 
-        if (evals.is_runtime_lookup_table_selector_set) {
+        if (evals.optional_field_flags >> RUNTIME_LOOKUP_TABLE_SELECTOR_EVAL_FLAG == 1) {
             absorb_point_evaluation(self, evals.runtime_lookup_table_selector);
         }
-        if (evals.is_xor_lookup_selector_set) {
+        if (evals.optional_field_flags >> XOR_LOOKUP_SELECTOR_EVAL_FLAG == 1) {
             absorb_point_evaluation(self, evals.xor_lookup_selector);
         }
-        if (evals.is_lookup_gate_lookup_selector_set) {
+        if (evals.optional_field_flags >> LOOKUP_GATE_LOOKUP_SELECTOR_EVAL_FLAG == 1) {
             absorb_point_evaluation(self, evals.lookup_gate_lookup_selector);
         }
-        if (evals.is_range_check_lookup_selector_set) {
+        if (evals.optional_field_flags >> RANGE_CHECK_LOOKUP_SELECTOR_EVAL_FLAG == 1) {
             absorb_point_evaluation(self, evals.range_check_lookup_selector);
         }
-        if (evals.is_foreign_field_mul_lookup_selector_set) {
+        if (evals.optional_field_flags >> FOREIGN_FIELD_MUL_LOOKUP_SELECTOR_EVAL_FLAG == 1) {
             absorb_point_evaluation(self, evals.foreign_field_mul_lookup_selector);
         }
     }

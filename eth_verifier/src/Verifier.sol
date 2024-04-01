@@ -23,7 +23,7 @@ using {get_alphas} for Alphas;
 using {it_next} for AlphasIterator;
 using {Polynomial.evaluate} for Polynomial.Dense;
 using {sub_polycomms, scale_polycomm} for PolyComm;
-using {get_column_eval} for ProofEvaluationsArray;
+using {get_column_eval} for NewProofEvaluations;
 
 contract KimchiVerifier {
     using {register} for Alphas;
@@ -151,8 +151,8 @@ contract KimchiVerifier {
 
         Linearization memory linear = verifier_index.linearization;
 
-        PolyComm[] memory commitments = new PolyComm[](linear.index_terms.length + 1);
-        commitments[0] = verifier_index.sigma_comm[PERMUTS - 1];
+        BN254.G1Point[] memory commitments = new BN254.G1Point[](linear.index_terms.length + 1);
+        commitments[0] = verifier_index.sigma_comm[PERMUTS - 1].unshifted[0];
         Scalar.FE[] memory scalars = new Scalar.FE[](linear.index_terms.length + 1);
         scalars[0] = perm_scalars(evals, oracles.beta, oracles.gamma, alphas, permutation_vanishing_polynomial);
 
@@ -177,14 +177,14 @@ contract KimchiVerifier {
             commitments[i_commitments + 1] = get_column_commitment(verifier_index, proof, col);
             ++i_commitments;
         }
-        PolyComm memory f_comm = polycomm_msm(commitments, scalars);
+        BN254.G1Point memory f_comm = naive_msm(commitments, scalars);
 
         // 6. Compute the chunked commitment of ft
         Scalar.FE zeta_to_srs_len = oracles.zeta.pow(verifier_index.max_poly_size);
-        PolyComm memory chunked_f_comm = f_comm.chunk_commitment(zeta_to_srs_len);
-        PolyComm memory chunked_t_comm = proof.commitments.t_comm.chunk_commitment(zeta_to_srs_len);
-        PolyComm memory ft_comm =
-            chunked_f_comm.sub_polycomms(chunked_t_comm.scale_polycomm(oracles_res.zeta1.sub(Scalar.one())));
+        BN254.G1Point memory chunked_f_comm = f_comm;
+        BN254.G1Point memory chunked_t_comm = proof.commitments.t_comm;
+        BN254.G1Point memory ft_comm =
+            chunked_f_comm.sub(chunked_t_comm.scale_scalar(oracles_res.zeta1.sub(Scalar.one())));
 
         // 7. List the polynomial commitments, and their associated evaluations,
         // that are associated to the aggregated evaluation proof in the proof:
@@ -195,14 +195,10 @@ contract KimchiVerifier {
         uint256 eval_index = 0;
 
         // public input commitment
-        evaluations[eval_index++] = Evaluation(public_comm, oracles_res.public_evals, 0);
+        evaluations[eval_index++] = Evaluation(public_comm.unshifted[0], oracles_res.public_evals, 0);
 
         // ft commitment
-        Scalar.FE[] memory ft_eval0 = new Scalar.FE[](1);
-        Scalar.FE[] memory ft_eval1 = new Scalar.FE[](1);
-        ft_eval0[0] = oracles_res.ft_eval0;
-        ft_eval1[0] = proof.ft_eval1;
-        evaluations[eval_index++] = Evaluation(ft_comm, [ft_eval0, ft_eval1], 0);
+        evaluations[eval_index++] = Evaluation(ft_comm, [oracles_res.ft_eval0, proof.ft_eval1], 0);
         uint256 columns_len = 52; // INFO: hard-coded for the test proof
         Column[] memory columns = new Column[](columns_len);
         columns[0] = Column(ColumnVariant.Z, new bytes(0));
@@ -249,22 +245,21 @@ contract KimchiVerifier {
         }
         // push all commitments corresponding to each column
         for (uint256 i = 0; i < col_index; i++) {
-            PointEvaluationsArray memory eval = get_column_eval(proof.evals, columns[i]);
+            PointEvaluations memory eval = get_column_eval(proof.evals, columns[i]);
             evaluations[eval_index++] =
                 Evaluation(get_column_commitment(verifier_index, proof, columns[i]), [eval.zeta, eval.zeta_omega], 0);
         }
 
         if (verifier_index.is_lookup_index_set) {
             LookupVerifierIndex memory li = verifier_index.lookup_index;
-            if (!proof.commitments.is_lookup_set) {
+            if (proof.commitments.optional_field_flags >> LOOKUP_SORTED_COMM_FLAG == 0) {
                 revert("missing lookup commitments"); // TODO: error
             }
-            LookupCommitments memory lookup_comms = proof.commitments.lookup;
-            PointEvaluationsArray memory lookup_evals = proof.evals.lookup_table;
-            if (!proof.evals.is_lookup_table_set) {
+            PointEvaluations memory lookup_evals = proof.evals.lookup_table;
+            if (proof.evals.optional_field_flags >> LOOKUP_TABLE_EVAL_FLAG == 0) {
                 revert("missing lookup table eval");
             }
-            PointEvaluationsArray memory lookup_table = proof.evals.lookup_table;
+            PointEvaluations memory lookup_table = proof.evals.lookup_table;
 
             Scalar.FE joint_combiner = oracles.joint_combiner_field;
             Scalar.FE table_id_combiner = joint_combiner.pow(li.lookup_info.max_joint_size);
@@ -275,52 +270,52 @@ contract KimchiVerifier {
                 table_id_combiner,
                 li.is_table_ids_set,
                 li.table_ids,
-                lookup_comms.is_runtime_set,
-                lookup_comms.runtime
+                proof.commitments.optional_field_flags >> LOOKUP_RUNTIME_COMM_FLAG == 1,
+                proof.commitments.lookup_runtime
             );
 
-            evaluations[eval_index++] = Evaluation(table_comm, [lookup_table.zeta, lookup_table.zeta_omega], 0);
+            evaluations[eval_index++] = Evaluation(table_comm.unshifted[0], [lookup_table.zeta, lookup_table.zeta_omega], 0);
 
             if (li.is_runtime_tables_selector_set) {
-                if (!lookup_comms.is_runtime_set) {
+                if (proof.commitments.optional_field_flags >> LOOKUP_RUNTIME_COMM_FLAG == 0) {
                     revert("missing lookup runtime commitment");
                 }
-                PolyComm memory runtime = lookup_comms.runtime;
-                if (!proof.evals.is_runtime_lookup_table_set) {
+                BN254.G1Point memory runtime = proof.commitments.lookup_runtime;
+                if (proof.evals.optional_field_flags >> RUNTIME_LOOKUP_TABLE_EVAL_FLAG == 0) {
                     revert("missing runtime lookup table eval");
                 }
-                PointEvaluationsArray memory runtime_eval = proof.evals.runtime_lookup_table;
+                PointEvaluations memory runtime_eval = proof.evals.runtime_lookup_table;
 
                 evaluations[eval_index++] = Evaluation(runtime, [runtime_eval.zeta, runtime_eval.zeta_omega], 0);
             }
 
             if (li.is_runtime_tables_selector_set) {
                 Column memory col = Column(ColumnVariant.LookupRuntimeSelector, new bytes(0));
-                PointEvaluationsArray memory eval = proof.evals.get_column_eval(col);
+                PointEvaluations memory eval = proof.evals.get_column_eval(col);
                 evaluations[eval_index++] =
                     Evaluation(get_column_commitment(verifier_index, proof, col), [eval.zeta, eval.zeta_omega], 0);
             }
             if (li.lookup_selectors.is_xor_set) {
                 Column memory col = Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.Xor));
-                PointEvaluationsArray memory eval = proof.evals.get_column_eval(col);
+                PointEvaluations memory eval = proof.evals.get_column_eval(col);
                 evaluations[eval_index++] =
                     Evaluation(get_column_commitment(verifier_index, proof, col), [eval.zeta, eval.zeta_omega], 0);
             }
             if (li.lookup_selectors.is_lookup_set) {
                 Column memory col = Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.Lookup));
-                PointEvaluationsArray memory eval = proof.evals.get_column_eval(col);
+                PointEvaluations memory eval = proof.evals.get_column_eval(col);
                 evaluations[eval_index++] =
                     Evaluation(get_column_commitment(verifier_index, proof, col), [eval.zeta, eval.zeta_omega], 0);
             }
             if (li.lookup_selectors.is_range_check_set) {
                 Column memory col = Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.RangeCheck));
-                PointEvaluationsArray memory eval = proof.evals.get_column_eval(col);
+                PointEvaluations memory eval = proof.evals.get_column_eval(col);
                 evaluations[eval_index++] =
                     Evaluation(get_column_commitment(verifier_index, proof, col), [eval.zeta, eval.zeta_omega], 0);
             }
             if (li.lookup_selectors.is_ffmul_set) {
                 Column memory col = Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.ForeignFieldMul));
-                PointEvaluationsArray memory eval = proof.evals.get_column_eval(col);
+                PointEvaluations memory eval = proof.evals.get_column_eval(col);
                 evaluations[eval_index++] =
                     Evaluation(get_column_commitment(verifier_index, proof, col), [eval.zeta, eval.zeta_omega], 0);
             }
@@ -460,17 +455,16 @@ contract KimchiVerifier {
         Evaluation[] memory evaluations = agg_proof.evaluations;
         Scalar.FE[2] memory evaluation_points = agg_proof.evaluation_points;
         Scalar.FE polyscale = agg_proof.polyscale;
-        PairingProof memory opening = agg_proof.opening;
 
         // poly commitment
         (BN254.G1Point memory poly_commitment, Scalar.FE[] memory evals) =
             combine_commitments_and_evaluations(evaluations, polyscale, Scalar.one());
 
         // blinding commitment
-        BN254.G1Point memory blinding_commitment = urs.full_urs.h.scale_scalar(opening.blinding);
+        BN254.G1Point memory blinding_commitment = urs.full_urs.h.scale_scalar(agg_proof.opening.blinding);
 
         // quotient commitment
-        BN254.G1Point memory quotient = agg_proof.opening.quotient.unshifted[0];
+        BN254.G1Point memory quotient = agg_proof.opening.quotient;
 
         // divisor commitment
         BN254.G2Point memory divisor = divisor_commitment(evaluation_points, verifier_urs);

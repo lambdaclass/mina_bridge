@@ -9,6 +9,7 @@ import "../lib/msgpack/Deserialize.sol";
 import "../lib/Commitment.sol";
 import "../lib/Alphas.sol";
 import "../lib/Polynomial.sol";
+import "../lib/deserialize/ProverProof.sol";
 
 contract KimchiVerifierTest is Test {
     bytes verifier_index_serialized;
@@ -18,7 +19,7 @@ contract KimchiVerifierTest is Test {
     bytes public_inputs_serialized;
     bytes lagrange_bases_serialized;
 
-    ProverProof test_prover_proof;
+    NewProverProof test_prover_proof;
     VerifierIndex test_verifier_index;
     Sponge sponge;
 
@@ -32,8 +33,9 @@ contract KimchiVerifierTest is Test {
 
         // we store deserialized structures mostly to run intermediate results
         // tests.
-        MsgPk.deser_prover_proof(
-            MsgPk.new_stream(vm.readFileBinary("unit_test_data/prover_proof.mpk")), test_prover_proof
+        deser_prover_proof(
+            vm.readFileBinary("unit_test_data/prover_proof.mpk"),
+            test_prover_proof
         );
         MsgPk.deser_verifier_index(
             MsgPk.new_stream(

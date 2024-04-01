@@ -22,13 +22,15 @@ library Oracles {
         KeccakSponge.absorb_scalar,
         KeccakSponge.absorb_scalar_multiple,
         KeccakSponge.absorb_commitment,
+        KeccakSponge.absorb_g_single,
         KeccakSponge.absorb_evaluations,
         KeccakSponge.challenge_base,
         KeccakSponge.challenge_scalar,
         KeccakSponge.digest_base,
         KeccakSponge.digest_scalar
     } for Sponge;
-    using {combine_evals, get_column_eval} for ProofEvaluationsArray;
+    using {combine_evals} for ProofEvaluationsArray;
+    using {get_column_eval} for NewProofEvaluations;
 
     uint64 internal constant CHALLENGE_LENGTH_IN_LIMBS = 2;
 
@@ -80,8 +82,8 @@ library Oracles {
         Scalar.FE joint_combiner_field = joint_combiner.to_field(endo_r);
 
         // 8. If lookup is used, absorb commitments to the sorted polys:
-        for (uint256 i = 0; i < proof.commitments.lookup.sorted.length; i++) {
-            base_sponge.absorb_g_single(proof.commitments.lookup.sorted[i]);
+        for (uint256 i = 0; i < proof.commitments.lookup_sorted.length; i++) {
+            base_sponge.absorb_g_single(proof.commitments.lookup_sorted[i]);
         }
 
         // 9. Sample beta from the sponge
@@ -90,7 +92,7 @@ library Oracles {
         Scalar.FE gamma = base_sponge.challenge_scalar();
 
         // 11. If using lookup, absorb the commitment to the aggregation lookup polynomial.
-        base_sponge.absorb_g_single(proof.commitments.lookup.aggreg);
+        base_sponge.absorb_g_single(proof.commitments.lookup_aggreg);
 
         // 12. Absorb the commitment to the permutation trace with the Fq-Sponge.
         base_sponge.absorb_g_single(proof.commitments.z_comm);
@@ -144,7 +146,7 @@ library Oracles {
 
         // evaluations of the public input
 
-        Scalar.FE[][2] memory public_evals;
+        Scalar.FE[2] memory public_evals;
         if ((proof.evals.optional_field_flags & 1) == 1) {
             public_evals = [proof.evals.public_evals.zeta, proof.evals.public_evals.zeta_omega];
         } else if (chunk_size > 1) {
@@ -168,9 +170,7 @@ library Oracles {
             // 23. Evaluate the negated public polynomial (if present) at $\zeta$ and $\zeta\omega$.
             // NOTE: this works only in the case when the poly segment size is not smaller than that of the domain.
             if (public_input.length == 0) {
-                Scalar.FE[] memory zero_arr = new Scalar.FE[](1);
-                zero_arr[0] = Scalar.zero();
-                public_evals = [zero_arr, zero_arr];
+                public_evals = [Scalar.zero(), Scalar.zero()];
             } else {
                 Scalar.FE pe_zeta = Scalar.zero();
                 Scalar.FE size_inv = Scalar.from(index.domain_size).inv();
@@ -191,11 +191,7 @@ library Oracles {
                 // pe_zetaOmega = pe_zetaOmega * (zetaw^(domain_size) - 1) * domain_size_inv
                 pe_zetaOmega = pe_zetaOmega.mul(zetaw.pow(index.domain_size).sub(Scalar.one())).mul(size_inv);
 
-                Scalar.FE[] memory pe_zeta_arr = new Scalar.FE[](1);
-                Scalar.FE[] memory pe_zetaOmega_arr = new Scalar.FE[](1);
-                pe_zeta_arr[0] = pe_zeta;
-                pe_zetaOmega_arr[0] = pe_zetaOmega;
-                public_evals = [pe_zeta_arr, pe_zetaOmega_arr];
+                public_evals = [pe_zeta, pe_zetaOmega];
             }
         } else {
             revert MissingPublicInputEvaluation();
@@ -211,8 +207,8 @@ library Oracles {
         //~~ * poseidon selector
         //~~ * the 15 register/witness
         //~~ * 6 sigmas evaluations (the last one is not evaluated)
-        scalar_sponge.absorb_scalar_multiple(public_evals[0]);
-        scalar_sponge.absorb_scalar_multiple(public_evals[1]);
+        scalar_sponge.absorb_scalar(public_evals[0]);
+        scalar_sponge.absorb_scalar(public_evals[1]);
         scalar_sponge.absorb_evaluations(proof.evals);
 
         // 26. Sample v prime with the scalar sponge and derive v
@@ -247,7 +243,7 @@ library Oracles {
             ft_eval0 = ft_eval0.mul(beta.mul(evals.s[i].zeta).add(evals.w[i].zeta).add(gamma)); // reduction
         }
 
-        ft_eval0 = ft_eval0.sub(Polynomial.build_and_eval(public_evals[0], powers_of_eval_points_for_chunks.zeta));
+        ft_eval0 = ft_eval0.sub(public_evals[0]);
 
         // initial value
         Scalar.FE ev = alpha0.mul(permutation_vanishing_poly).mul(evals.z.zeta);
@@ -303,7 +299,7 @@ library Oracles {
         // challenges produced
         RandomOracles oracles;
         // public polynomial evaluations
-        Scalar.FE[][2] public_evals;
+        Scalar.FE[2] public_evals;
         // zeta^n and (zeta * omega)^n
         PointEvaluations powers_of_eval_points_for_chunks;
         // pre-computed zeta^n
