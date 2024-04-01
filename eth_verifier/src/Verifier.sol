@@ -16,6 +16,7 @@ import "../lib/Evaluations.sol";
 import "../lib/expr/Expr.sol";
 import "../lib/expr/PolishToken.sol";
 import "../lib/expr/ExprConstants.sol";
+import "../lib/deserialize/ProverProof.sol";
 
 using {BN254.neg, BN254.scale_scalar, BN254.sub} for BN254.G1Point;
 using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
@@ -30,8 +31,8 @@ contract KimchiVerifier {
     using {combine_evals} for ProofEvaluationsArray;
     using {chunk_commitment} for PolyComm;
 
-    VerifierIndex verifier_index;
     NewProverProof proof;
+    VerifierIndex verifier_index;
     PairingURS urs;
     Scalar.FE[] public_inputs;
     PolyComm[] lagrange_bases;
@@ -62,7 +63,7 @@ contract KimchiVerifier {
         bytes calldata lagrange_bases_serialized
     ) public {
         MsgPk.deser_verifier_index(MsgPk.new_stream(verifier_index_serialized), verifier_index);
-        //MsgPk.deser_prover_proof(MsgPk.new_stream(prover_proof_serialized), proof);
+        deser_prover_proof(prover_proof_serialized, proof);
         verifier_index.linearization = abi.decode(linearization_serialized_rlp, (Linearization));
         public_inputs = MsgPk.deser_public_inputs(public_inputs_serialized);
         lagrange_bases = MsgPk.deser_lagrange_bases(lagrange_bases_serialized);

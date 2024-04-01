@@ -4,12 +4,12 @@ pragma solidity >=0.4.16 <0.9.0;
 import "../Proof.sol";
 
 function deser_proof_comms(
-    bytes memory,
+    bytes memory data,
     NewProverCommitments storage comms
 ) {
     assembly {
-        let addr := 0xa0 // memory starts at 0x80,
-                         // first 32 bytes is the length of the bytes array.
+        // first 32 bytes is the length of the bytes array, we'll skip them.
+        let addr := add(data, 0x20)
         let slot := comms.slot
 
         // the first 32 bytes correspond to the optional field flags:
@@ -91,12 +91,12 @@ function deser_proof_comms(
 }
 
 function deser_proof_evals(
-    bytes memory,
+    bytes memory data,
     NewProofEvaluations storage evals
 ) {
     assembly {
-        let addr := 0xa0 // memory starts at 0x80,
-                         // first 32 bytes is the length of the bytes array.
+        // first 32 bytes is the length of the bytes array, we'll skip them.
+        let addr := add(data, 0x20)
         let slot := evals.slot
 
         // the first 32 bytes correspond to the optional field flags:
@@ -164,12 +164,12 @@ function deser_proof_evals(
 }
 
 function deser_pairing_proof(
-    bytes memory,
+    bytes memory data,
     NewPairingProof storage pairing_proof
 ) {
     assembly {
-        let addr := 0xa0  // memory starts at 0x80,
-                          // first 32 bytes is the length of the bytes array.
+        // first 32 bytes is the length of the bytes array, we'll skip them.
+        let addr := add(data, 0x20)
         let slot := pairing_proof.slot
 
         sstore(slot, mload(addr))
@@ -179,12 +179,12 @@ function deser_pairing_proof(
 }
 
 function deser_prover_proof(
-    bytes memory,
+    bytes memory data,
     NewProverProof storage prover_proof
 ) {
-    assembly {
-        let addr := 0xa0 // memory starts at 0x80,
-                         // first 32 bytes is the length of the bytes array.
+    assembly ("memory-safe") {
+        // first 32 bytes is the length of the bytes array, we'll skip them.
+        let addr := add(data, 0x20)
         let slot := prover_proof.slot
 
         /** Decode commitments **/
