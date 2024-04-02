@@ -406,7 +406,6 @@ function combine_commitments_and_evaluations(Evaluation[] memory evaluations, Sc
     // but for our test proof it will not.
 
     for (uint256 i = 0; i < evaluations.length; i++) {
-        //if (evaluations[i].commitment.unshifted.length == 0) continue;
 
         BN254.G1Point memory commitment = evaluations[i].commitment;
         Scalar.FE[2] memory inner_evaluations = evaluations[i].evaluations;
