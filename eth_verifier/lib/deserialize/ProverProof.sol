@@ -253,7 +253,8 @@ function deser_prover_proof(
             slot := add(slot, 1)
 
             // Now lookup_runtime if it's present:
-            if and(1, shr(1, optional_field_flags)) {
+            switch and(1, shr(1, optional_field_flags)) 
+            case 1 { // true
                 // x:
                 sstore(slot, mload(addr))
                 addr := add(addr, 0x20)
@@ -262,6 +263,9 @@ function deser_prover_proof(
                 sstore(slot, mload(addr))
                 addr := add(addr, 0x20)
                 slot := add(slot, 1)
+            }
+            default { // false
+                slot := add(slot, 2)
             }
         }
 
