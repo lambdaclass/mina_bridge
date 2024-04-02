@@ -18,7 +18,7 @@ import "../lib/expr/PolishToken.sol";
 import "../lib/expr/ExprConstants.sol";
 import "../lib/deserialize/ProverProof.sol";
 
-using {BN254.neg, BN254.scale_scalar, BN254.sub} for BN254.G1Point;
+using {BN254.neg, BN254.scale_scalar, BN254.sub, BN254.add} for BN254.G1Point;
 using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
 using {get_alphas} for Alphas;
 using {it_next} for AlphasIterator;
@@ -183,7 +183,15 @@ contract KimchiVerifier {
         // 6. Compute the chunked commitment of ft
         Scalar.FE zeta_to_srs_len = oracles.zeta.pow(verifier_index.max_poly_size);
         BN254.G1Point memory chunked_f_comm = f_comm;
-        BN254.G1Point memory chunked_t_comm = proof.commitments.t_comm;
+
+        BN254.G1Point[7] memory t_comm = proof.commitments.t_comm;
+        BN254.G1Point memory chunked_t_comm = BN254.point_at_inf();
+
+        for (uint256 i = 0; i < t_comm.length; i++) {
+            chunked_t_comm = chunked_t_comm.scale_scalar(zeta_to_srs_len);
+            chunked_t_comm = chunked_t_comm.add(t_comm[t_comm.length - i - 1]);
+        }
+
         BN254.G1Point memory ft_comm =
             chunked_f_comm.sub(chunked_t_comm.scale_scalar(oracles_res.zeta1.sub(Scalar.one())));
 

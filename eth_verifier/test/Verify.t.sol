@@ -181,6 +181,8 @@ contract KimchiVerifierTest is Test {
         require(keccak256(abi.encode(public_commitment)) > 0);
     }
 
+    // INFO: Disabled test because the new serializer isnt't used yet to
+    // generate unit test data.
     //function test_absorb_evaluations() public {
     //    KeccakSponge.reinit(sponge);
     //    KeccakSponge.absorb_evaluations(sponge, test_prover_proof.evals);

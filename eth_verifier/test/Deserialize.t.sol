@@ -84,7 +84,9 @@ contract DecodeProverProof is Test {
             assertTestG1Point(proof_comms.w_comm[i]);
         }
         assertTestG1Point(proof_comms.z_comm);
-        assertTestG1Point(proof_comms.t_comm);
+        for (uint256 i = 0; i < proof_comms.t_comm.length; i++) {
+            assertTestG1Point(proof_comms.t_comm[i]);
+        }
 
         assertEq(proof_comms.lookup_sorted.length, 5);
         for (uint256 i = 0; i < proof_comms.lookup_sorted.length; i++) {
@@ -107,7 +109,9 @@ contract DecodeProverProof is Test {
             assertTestG1Point(prover_proof.commitments.w_comm[i]);
         }
         assertTestG1Point(prover_proof.commitments.z_comm);
-        assertTestG1Point(prover_proof.commitments.t_comm);
+        for (uint256 i = 0; i < prover_proof.commitments.t_comm.length; i++) {
+            assertTestG1Point(prover_proof.commitments.t_comm[i]);
+        }
         assertEq(prover_proof.commitments.lookup_sorted.length, 5);
         for (
             uint256 i = 0;

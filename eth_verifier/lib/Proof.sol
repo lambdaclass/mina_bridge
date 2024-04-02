@@ -289,7 +289,7 @@ struct NewProverCommitments {
 
     BN254.G1Point[COLUMNS] w_comm;
     BN254.G1Point z_comm;
-    BN254.G1Point t_comm;
+    BN254.G1Point[7] t_comm;
 
     // optional commitments
     BN254.G1Point[] lookup_sorted;
@@ -675,7 +675,6 @@ function evaluate_column(
         }
         if (gate_type == GateType.RangeCheck1) {
             if (!is_field_set(self, RANGE_CHECK1_SELECTOR_EVAL_FLAG)) {
-                console.log(self.optional_field_flags);
                 revert MissingIndexEvaluation("range_check1_selector");
             }
             return self.range_check1_selector;

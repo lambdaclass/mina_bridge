@@ -28,14 +28,7 @@ use kimchi::{
             range_check,
         },
         wires::{Wire, COLUMNS},
-    },
-    curve::KimchiCurve,
-    groupmap::*,
-    keccak_sponge::{Keccak256FqSponge, Keccak256FrSponge},
-    o1_utils::{foreign_field::BigUintForeignFieldHelpers, BigUintFieldHelpers},
-    proof::ProverProof,
-    prover_index::ProverIndex,
-    verifier::{batch_verify, to_batch, Context},
+    }, curve::KimchiCurve, groupmap::*, keccak_sponge::{Keccak256FqSponge, Keccak256FrSponge}, o1_utils::{foreign_field::BigUintForeignFieldHelpers, BigUintFieldHelpers}, plonk_sponge::FrSponge, proof::ProverProof, prover_index::ProverIndex, verifier::{batch_verify, to_batch, Context}
 };
 use num::{bigint::RandBigInt, BigUint};
 use num_traits::{One, Zero};
@@ -50,7 +43,7 @@ use poly_commitment::{
 };
 use serde::{ser::SerializeStruct, Serialize};
 use serde_with::serde_as;
-use serializer::serialize::{EVMSerializable, EVMSerializableType};
+use serializer::{implementations::prover_proof, serialize::{EVMSerializable, EVMSerializableType}};
 use snarky_gate::SnarkyGate;
 
 type BaseField = ark_bn254::Fq;

@@ -43,7 +43,13 @@ impl EVMSerializable for EVMSerializableType<BN254ProverCommitments> {
                 .flat_map(|p| EVMSerializableType(p).to_bytes())
                 .collect(),
             EVMSerializableType(comms.z_comm).to_bytes(),
-            EVMSerializableType(comms.t_comm).to_bytes(),
+            EVMSerializableType(comms.t_comm.unshifted[0]).to_bytes(),
+            EVMSerializableType(comms.t_comm.unshifted[1]).to_bytes(),
+            EVMSerializableType(comms.t_comm.unshifted[2]).to_bytes(),
+            EVMSerializableType(comms.t_comm.unshifted[3]).to_bytes(),
+            EVMSerializableType(comms.t_comm.unshifted[4]).to_bytes(),
+            EVMSerializableType(comms.t_comm.unshifted[5]).to_bytes(),
+            EVMSerializableType(comms.t_comm.unshifted[6]).to_bytes(),
         ]
         .concat();
         if let Some(lookup_comms) = comms.lookup {

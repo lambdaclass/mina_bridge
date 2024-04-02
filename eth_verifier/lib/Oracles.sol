@@ -107,7 +107,9 @@ library Oracles {
         // INFO: We are assuming the prover is configured accordingly so this is always the case
 
         // 16. Absorb commitment to the quotient polynomial $t$.
-        base_sponge.absorb_g_single(proof.commitments.t_comm);
+        for (uint256 i = 0; i < proof.commitments.t_comm.length; i++) {
+            base_sponge.absorb_g_single(proof.commitments.t_comm[i]);
+        }
 
         // 17. Sample zeta prime
         ScalarChallenge memory zeta_chal = ScalarChallenge(base_sponge.challenge_scalar());

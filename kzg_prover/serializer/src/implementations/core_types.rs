@@ -31,8 +31,13 @@ impl EVMSerializable for EVMSerializableType<BN254PolyComm> {
     fn to_bytes(self) -> Vec<u8> {
         // We are assuming that `max_poly_size` is set so no poly gets chunked.
         // In this case there's only one point per PolyComm.
+        // The only commitment that doesn't fulfill this is `t_comm` (the commitment
+        // to the quotient polynomial), which is chunked into 7 points.
         //
         // We are also ignoring the shifted point
+        if self.0.unshifted.len() != 1 {
+            panic!("tried to serialize a PolyComm without only one unshifted point");
+        }
         EVMSerializableType(self.0.unshifted[0]).to_bytes()
     }
 }

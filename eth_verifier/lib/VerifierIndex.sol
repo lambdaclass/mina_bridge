@@ -268,7 +268,7 @@ function get_column_commitment(
         }
         return verifier_index.lookup_index.runtime_tables_selector.unshifted[0];
     } else if (variant == ColumnVariant.LookupRuntimeTable) {
-        if (proof.commitments.optional_field_flags >> LOOKUP_RUNTIME_COMM_FLAG == 0) {
+        if (!is_field_set(proof.commitments, LOOKUP_RUNTIME_COMM_FLAG)) {
             revert MissingCommitment(variant);
         }
         return proof.commitments.lookup_runtime;

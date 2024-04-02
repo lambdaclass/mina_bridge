@@ -21,9 +21,9 @@ function deser_proof_comms(
         // the non-optional commitments are:
         // - w[15]
         // - z
-        // - t
-        // totalling 17 commitments, so 34 base field elements (each one is a G1 point):
-        for { let i := 0 } lt(i, 34) { i := add(i, 1) } {
+        // - t[7]
+        // totalling 23 commitments, so 46 base field elements (each one is a G1 point):
+        for { let i := 0 } lt(i, 46) { i := add(i, 1) } {
             sstore(slot, mload(addr))
             addr := add(addr, 0x20)
             slot := add(slot, 1)
@@ -198,9 +198,9 @@ function deser_prover_proof(
         // the non-optional commitments are:
         // - w[15]
         // - z
-        // - t
-        // totalling 17 commitments, so 34 base field elements (each one is a G1 point):
-        for { let i := 0 } lt(i, 34) { i := add(i, 1) } {
+        // - t[7]
+        // totalling 23 commitments, so 46 base field elements (each one is a G1 point):
+        for { let i := 0 } lt(i, 46) { i := add(i, 1) } {
             sstore(slot, mload(addr))
             addr := add(addr, 0x20)
             slot := add(slot, 1)
