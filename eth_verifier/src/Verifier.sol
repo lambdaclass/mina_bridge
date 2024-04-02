@@ -253,11 +253,11 @@ contract KimchiVerifier {
 
         if (verifier_index.is_lookup_index_set) {
             LookupVerifierIndex memory li = verifier_index.lookup_index;
-            if (proof.commitments.optional_field_flags >> LOOKUP_SORTED_COMM_FLAG == 0) {
+            if (!is_field_set(proof.commitments, LOOKUP_SORTED_COMM_FLAG)) {
                 revert("missing lookup commitments"); // TODO: error
             }
             PointEvaluations memory lookup_evals = proof.evals.lookup_table;
-            if (proof.evals.optional_field_flags >> LOOKUP_TABLE_EVAL_FLAG == 0) {
+            if (!is_field_set(proof.evals, LOOKUP_TABLE_EVAL_FLAG)) {
                 revert("missing lookup table eval");
             }
             PointEvaluations memory lookup_table = proof.evals.lookup_table;
@@ -271,18 +271,18 @@ contract KimchiVerifier {
                 table_id_combiner,
                 li.is_table_ids_set,
                 li.table_ids,
-                proof.commitments.optional_field_flags >> LOOKUP_RUNTIME_COMM_FLAG == 1,
+                is_field_set(proof.commitments, LOOKUP_RUNTIME_COMM_FLAG),
                 proof.commitments.lookup_runtime
             );
 
             evaluations[eval_index++] = Evaluation(table_comm.unshifted[0], [lookup_table.zeta, lookup_table.zeta_omega], 0);
 
             if (li.is_runtime_tables_selector_set) {
-                if (proof.commitments.optional_field_flags >> LOOKUP_RUNTIME_COMM_FLAG == 0) {
+                if (!is_field_set(proof.commitments, LOOKUP_RUNTIME_COMM_FLAG)) {
                     revert("missing lookup runtime commitment");
                 }
                 BN254.G1Point memory runtime = proof.commitments.lookup_runtime;
-                if (proof.evals.optional_field_flags >> RUNTIME_LOOKUP_TABLE_EVAL_FLAG == 0) {
+                if (!is_field_set(proof.evals, RUNTIME_LOOKUP_TABLE_EVAL_FLAG)) {
                     revert("missing runtime lookup table eval");
                 }
                 PointEvaluations memory runtime_eval = proof.evals.runtime_lookup_table;
