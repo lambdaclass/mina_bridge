@@ -7,7 +7,11 @@ uint constant PERMUTS = 7;
 uint constant PERMUTATION_CONSTRAINTS = 3;
 uint constant VARBASEMUL_CONSTRAINTS = 21;
 
+<<<<<<< HEAD
 // ProofEvals bit flag positions
+=======
+// NewProofEvals bit flag positions
+>>>>>>> new_prover_proof_serialization
 uint constant PUBLIC_EVALS_FLAG = 0;
 uint constant RANGE_CHECK0_SELECTOR_EVAL_FLAG = 1;
 uint constant RANGE_CHECK1_SELECTOR_EVAL_FLAG = 2;

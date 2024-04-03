@@ -32,7 +32,7 @@ struct AggregatedEvaluationProof {
     Evaluation[] evaluations;
     Scalar.FE[2] evaluation_points;
     Scalar.FE polyscale;
-    PairingProof opening;
+    NewPairingProof opening;
 }
 
 struct ProofEvaluations {
@@ -114,7 +114,7 @@ struct ProverCommitments {
 
 // INFO: ref: berkeley_columns.rs
 function evaluate_column(
-    ProofEvaluations memory self,
+    NewProofEvaluations memory self,
     Column memory col
 ) view returns (PointEvaluations memory) {
     if (col.variant == ColumnVariant.Witness) {
@@ -254,7 +254,7 @@ function evaluate_column(
 
 function evaluate_variable(
     Variable memory self,
-    ProofEvaluations memory evals
+    NewProofEvaluations memory evals
 ) view returns (Scalar.FE) {
     PointEvaluations memory point_evals = evaluate_column(evals, self.col);
     if (self.row == CurrOrNext.Curr) {
