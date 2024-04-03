@@ -23,12 +23,10 @@ contract KimchiVerifier {
     using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
     using {get_alphas} for Alphas;
     using {it_next} for AlphasIterator;
-    using {Polynomial.evaluate} for Polynomial.Dense;
     using {sub_polycomms, scale_polycomm} for PolyComm;
     using {get_column_eval} for NewProofEvaluations;
     using {register} for Alphas;
     using {combine_evals} for ProofEvaluationsArray;
-    using {chunk_commitment} for PolyComm;
 
     error IncorrectPublicInputLength();
     error PolynomialsAreChunked(uint256 chunk_size);
