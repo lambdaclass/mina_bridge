@@ -31,6 +31,7 @@ function evaluate(
     Scalar.FE domain_gen,
     uint256 domain_size,
     Scalar.FE pt,
+    Scalar.FE vanishing_eval,
     ProofEvaluations memory evals,
     ExprConstants memory c
 ) view returns (Scalar.FE) {

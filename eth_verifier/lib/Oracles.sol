@@ -269,12 +269,34 @@ library Oracles {
         ExprConstants memory constants =
             ExprConstants(alpha, beta, gamma, joint_combiner_field, index.endo, index.zk_rows);
 
+        Scalar.FE vanishing_eval = evaluate_vanishing_polynomial(index.domain_gen, index.domain_size, zeta);
+
         ft_eval0 = ft_eval0.sub(
-            evaluate(index.linearization.constant_term, index.domain_gen, index.domain_size, zeta, evals, constants)
+            evaluate(
+                index.linearization.constant_term,
+                index.domain_gen,
+                index.domain_size,
+                zeta,
+                vanishing_eval,
+                evals,
+                constants
+            )
         );
 
         RandomOracles memory oracles = RandomOracles(
-            joint_combiner, joint_combiner_field, beta, gamma, alpha_chal, alpha, zeta, v, u, zeta_chal, v_chal, u_chal
+            joint_combiner,
+            joint_combiner_field,
+            beta,
+            gamma,
+            alpha_chal,
+            alpha,
+            zeta,
+            v,
+            u,
+            zeta_chal,
+            v_chal,
+            u_chal,
+            vanishing_eval
         );
 
         return Result(digest, oracles, public_evals, powers_of_eval_points_for_chunks, zeta1, ft_eval0);
@@ -293,6 +315,7 @@ library Oracles {
         ScalarChallenge zeta_chal;
         ScalarChallenge v_chal;
         ScalarChallenge u_chal;
+        Scalar.FE vanishing_eval;
     }
 
     struct Result {
