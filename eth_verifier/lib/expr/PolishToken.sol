@@ -34,6 +34,8 @@ function evaluate(
     ProofEvaluations memory evals,
     ExprConstants memory c
 ) view returns (Scalar.FE) {
+    Scalar.FE vanishing_eval = evaluate_vanishing_polynomial(domain_gen, domain_size, pt);
+
     Scalar.FE[] memory stack = new Scalar.FE[](toks.length);
     uint256 stack_next = 0; // will keep track of last stack element's index
     Scalar.FE[] memory cache = new Scalar.FE[](toks.length);
@@ -90,7 +92,7 @@ function evaluate(
         if (v == PolishTokenVariant.UnnormalizedLagrangeBasis) {
             int256 offset = abi.decode(v_data, (int256));
 
-            stack[stack_next] = unnormalized_lagrange_basis(domain_gen, domain_size, offset, pt);
+            stack[stack_next] = unnormalized_lagrange_basis(domain_gen, vanishing_eval, offset, pt);
             stack_next += 1;
             continue;
         }
@@ -218,7 +220,7 @@ type PolishTokenSkipIf is uint256;
 // integers, bools.
 
 // @notice Compute the ith unnormalized lagrange basis
-function unnormalized_lagrange_basis(Scalar.FE domain_gen, uint256 domain_size, int256 i, Scalar.FE pt)
+function unnormalized_lagrange_basis(Scalar.FE domain_gen, Scalar.FE vanishing_eval, int256 i, Scalar.FE pt)
     view
     returns (Scalar.FE result)
 {
@@ -229,9 +231,8 @@ function unnormalized_lagrange_basis(Scalar.FE domain_gen, uint256 domain_size, 
         omega_i = domain_gen.pow(uint256(i));
     }
 
-    result = evaluate_vanishing_polynomial(domain_gen, domain_size, pt);
     Scalar.FE sub_m_omega = pt.sub(omega_i);
-    result = result.mul(sub_m_omega.inv());
+    result = vanishing_eval.mul(sub_m_omega.inv());
 }
 
 // @notice evaluates the vanishing polynomial for this domain at tau.
