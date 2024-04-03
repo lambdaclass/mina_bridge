@@ -7,7 +7,7 @@ uint constant PERMUTS = 7;
 uint constant PERMUTATION_CONSTRAINTS = 3;
 uint constant VARBASEMUL_CONSTRAINTS = 21;
 
-// NewProofEvals bit flag positions
+// ProofEvals bit flag positions
 uint constant PUBLIC_EVALS_FLAG = 0;
 uint constant RANGE_CHECK0_SELECTOR_EVAL_FLAG = 1;
 uint constant RANGE_CHECK1_SELECTOR_EVAL_FLAG = 2;
@@ -25,7 +25,7 @@ uint constant LOOKUP_GATE_LOOKUP_SELECTOR_EVAL_FLAG = 17;
 uint constant RANGE_CHECK_LOOKUP_SELECTOR_EVAL_FLAG = 18;
 uint constant FOREIGN_FIELD_MUL_LOOKUP_SELECTOR_EVAL_FLAG = 19;
 
-// NewProofCommitments bit flag positions
+// ProofCommitments bit flag positions
 uint constant LOOKUP_SORTED_COMM_FLAG = 0;
 uint constant LOOKUP_AGGREG_COMM_FLAG = 1;
 uint constant LOOKUP_RUNTIME_COMM_FLAG = 2;

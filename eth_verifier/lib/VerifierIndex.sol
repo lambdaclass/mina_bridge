@@ -211,7 +211,7 @@ function verifier_digest(VerifierIndex storage index) returns (Base.FE) {
 
 function get_column_commitment(
     VerifierIndex storage verifier_index,
-    NewProverProof storage proof,
+    ProverProof storage proof,
     Column memory column
 )
     view

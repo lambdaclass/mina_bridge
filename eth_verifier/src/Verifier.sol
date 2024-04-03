@@ -24,14 +24,13 @@ contract KimchiVerifier {
     using {get_alphas} for Alphas;
     using {it_next} for AlphasIterator;
     using {sub_polycomms, scale_polycomm} for PolyComm;
-    using {get_column_eval} for NewProofEvaluations;
+    using {get_column_eval} for ProofEvaluations;
     using {register} for Alphas;
-    using {combine_evals} for ProofEvaluationsArray;
 
     error IncorrectPublicInputLength();
     error PolynomialsAreChunked(uint256 chunk_size);
 
-    NewProverProof proof;
+    ProverProof proof;
     VerifierIndex verifier_index;
     PairingURS urs;
     Scalar.FE[] public_inputs;
@@ -99,7 +98,7 @@ contract KimchiVerifier {
 
         //ProofEvaluations memory evals = proof.evals.combine_evals(oracles_res.powers_of_eval_points_for_chunks);
         // INFO: There's only one evaluation per polynomial so there's nothing to combine
-        NewProofEvaluations memory evals = proof.evals;
+        ProofEvaluations memory evals = proof.evals;
 
         // 5. Compute the commitment to the linearized polynomial $f$.
         Scalar.FE permutation_vanishing_polynomial = Polynomial.eval_vanishes_on_last_n_rows(
@@ -322,7 +321,7 @@ contract KimchiVerifier {
     }
 
     function perm_scalars(
-        NewProofEvaluations memory e,
+        ProofEvaluations memory e,
         Scalar.FE beta,
         Scalar.FE gamma,
         AlphasIterator memory alphas,

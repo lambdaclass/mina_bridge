@@ -5,7 +5,7 @@ import "../Proof.sol";
 
 function deser_proof_comms(
     bytes memory data,
-    NewProverCommitments storage comms
+    ProverCommitments storage comms
 ) {
     assembly {
         // first 32 bytes is the length of the bytes array, we'll skip them.
@@ -92,7 +92,7 @@ function deser_proof_comms(
 
 function deser_proof_evals(
     bytes memory data,
-    NewProofEvaluations storage evals
+    ProofEvaluations storage evals
 ) {
     assembly {
         // first 32 bytes is the length of the bytes array, we'll skip them.
@@ -165,7 +165,7 @@ function deser_proof_evals(
 
 function deser_pairing_proof(
     bytes memory data,
-    NewPairingProof storage pairing_proof
+    PairingProof storage pairing_proof
 ) {
     assembly {
         // first 32 bytes is the length of the bytes array, we'll skip them.
@@ -180,7 +180,7 @@ function deser_pairing_proof(
 
 function deser_prover_proof(
     bytes memory data,
-    NewProverProof storage prover_proof
+    ProverProof storage prover_proof
 ) {
     assembly ("memory-safe") {
         // first 32 bytes is the length of the bytes array, we'll skip them.

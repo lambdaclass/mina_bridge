@@ -22,11 +22,10 @@ using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} f
 using {get_alphas} for Alphas;
 using {it_next} for AlphasIterator;
 using {sub_polycomms, scale_polycomm} for PolyComm;
-using {get_column_eval} for NewProofEvaluations;
+using {get_column_eval} for ProofEvaluations;
 
 contract KimchiVerifierDemo {
     using {register} for Alphas;
-    using {combine_evals} for ProofEvaluationsArray;
 
     VerifierIndex verifier_index;
     ProverProof proof;
