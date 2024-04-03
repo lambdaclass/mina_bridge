@@ -28,7 +28,7 @@ contract DecodeProverProof is Test {
             "./unit_test_data/proof_comms.bin"
         );
         prover_proof_bytes = vm.readFileBinary(
-            "./unit_test_data/prover_proof.bin"
+            "./unit_test_data/simple_prover_proof.bin"
         );
     }
 
