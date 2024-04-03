@@ -28,7 +28,14 @@ use kimchi::{
             range_check,
         },
         wires::{Wire, COLUMNS},
-    }, curve::KimchiCurve, groupmap::*, keccak_sponge::{Keccak256FqSponge, Keccak256FrSponge}, o1_utils::{foreign_field::BigUintForeignFieldHelpers, BigUintFieldHelpers}, plonk_sponge::FrSponge, proof::ProverProof, prover_index::ProverIndex, verifier::{batch_verify, to_batch, Context}
+    },
+    curve::KimchiCurve,
+    groupmap::*,
+    keccak_sponge::{Keccak256FqSponge, Keccak256FrSponge},
+    o1_utils::{foreign_field::BigUintForeignFieldHelpers, BigUintFieldHelpers},
+    proof::ProverProof,
+    prover_index::ProverIndex,
+    verifier::{batch_verify, to_batch, Context},
 };
 use num::{bigint::RandBigInt, BigUint};
 use num_traits::{One, Zero};
@@ -42,8 +49,7 @@ use poly_commitment::{
     PolyComm, SRS as _,
 };
 use serde::{ser::SerializeStruct, Serialize};
-use serde_with::serde_as;
-use serializer::{implementations::prover_proof, serialize::{EVMSerializable, EVMSerializableType}};
+use serializer::serialize::{EVMSerializable, EVMSerializableType};
 use snarky_gate::SnarkyGate;
 
 type BaseField = ark_bn254::Fq;
@@ -91,6 +97,7 @@ fn generate_proof() {
             .len()
     );
     let verifier_index = index.verifier_index();
+    let domain_size = index.cs.domain.d1.size();
 
     println!(
         "verifier_index digest: {}",
@@ -191,6 +198,13 @@ fn generate_proof() {
     fs::write(
         "../eth_verifier/lagrange_bases.mpk",
         rmp_serde::to_vec_named(&lagrange_bases).unwrap(),
+    )
+    .unwrap();
+
+    // Serialize lagrange bases for hardcoding
+    fs::write(
+        "../eth_verifier/lagrange_bases.bin",
+        EVMSerializableType(lagrange_bases[&domain_size].clone()).to_bytes(),
     )
     .unwrap();
 }

@@ -11,7 +11,6 @@ contract Verify is Script {
     bytes urs_serialized;
     bytes linearization_serialized_rlp;
     bytes public_inputs_serialized;
-    bytes lagrange_bases_serialized;
 
     function run() public {
         urs_serialized = vm.readFileBinary("urs.mpk");
@@ -19,7 +18,6 @@ contract Verify is Script {
         prover_proof_serialized = vm.readFileBinary("prover_proof.bin");
         linearization_serialized_rlp = vm.readFileBinary("linearization.rlp");
         public_inputs_serialized = vm.readFileBinary("public_inputs.mpk");
-        lagrange_bases_serialized = vm.readFileBinary("lagrange_bases.mpk");
 
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
@@ -31,8 +29,7 @@ contract Verify is Script {
             verifier_index_serialized,
             prover_proof_serialized,
             linearization_serialized_rlp,
-            public_inputs_serialized,
-            lagrange_bases_serialized
+            public_inputs_serialized
         );
 
         require(success, "Verification failed.");
