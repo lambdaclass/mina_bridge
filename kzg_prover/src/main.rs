@@ -49,7 +49,6 @@ use poly_commitment::{
     PolyComm, SRS as _,
 };
 use serde::{ser::SerializeStruct, Serialize};
-use serde_with::serde_as;
 use serializer::serialize::{EVMSerializable, EVMSerializableType};
 use snarky_gate::SnarkyGate;
 
@@ -137,6 +136,12 @@ fn generate_proof() {
     fs::write(
         "../eth_verifier/prover_proof.mpk",
         rmp_serde::to_vec_named(&proof).unwrap(),
+    )
+    .unwrap();
+    // Serialize and write to binaries
+    fs::write(
+        "../eth_verifier/prover_proof.bin",
+        EVMSerializableType(proof).to_bytes(),
     )
     .unwrap();
     fs::write(

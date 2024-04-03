@@ -16,7 +16,6 @@ contract DecodeProverProof is Test {
     NewProofEvaluations proof_evals;
     NewProverCommitments proof_comms;
     NewProverProof prover_proof;
-    Scalar.FE ft_eval1;
 
     function setUp() public {
         pairing_proof_bytes = vm.readFileBinary(
@@ -60,7 +59,7 @@ contract DecodeProverProof is Test {
 
         // optional field flags
         assertEq(
-            bitmap.unwrap(proof_evals.optional_field_flags),
+            proof_evals.optional_field_flags,
             11 // 0b1011
         );
 
@@ -77,7 +76,7 @@ contract DecodeProverProof is Test {
 
         // optional field flags
         assertEq(
-            bitmap.unwrap(proof_comms.optional_field_flags),
+            proof_comms.optional_field_flags,
             3 // 0b11
         );
 
@@ -85,7 +84,9 @@ contract DecodeProverProof is Test {
             assertTestG1Point(proof_comms.w_comm[i]);
         }
         assertTestG1Point(proof_comms.z_comm);
-        assertTestG1Point(proof_comms.t_comm);
+        for (uint256 i = 0; i < proof_comms.t_comm.length; i++) {
+            assertTestG1Point(proof_comms.t_comm[i]);
+        }
 
         assertEq(proof_comms.lookup_sorted.length, 5);
         for (uint256 i = 0; i < proof_comms.lookup_sorted.length; i++) {
@@ -101,14 +102,16 @@ contract DecodeProverProof is Test {
 
         /** Test comms **/
         assertEq(
-            bitmap.unwrap(prover_proof.commitments.optional_field_flags),
+            prover_proof.commitments.optional_field_flags,
             3 // 0b11
         );
         for (uint256 i = 0; i < COLUMNS; i++) {
             assertTestG1Point(prover_proof.commitments.w_comm[i]);
         }
         assertTestG1Point(prover_proof.commitments.z_comm);
-        assertTestG1Point(prover_proof.commitments.t_comm);
+        for (uint256 i = 0; i < prover_proof.commitments.t_comm.length; i++) {
+            assertTestG1Point(prover_proof.commitments.t_comm[i]);
+        }
         assertEq(prover_proof.commitments.lookup_sorted.length, 5);
         for (
             uint256 i = 0;
@@ -126,7 +129,7 @@ contract DecodeProverProof is Test {
 
         /** Test evals **/
         assertEq(
-            bitmap.unwrap(prover_proof.evals.optional_field_flags),
+            prover_proof.evals.optional_field_flags,
             11 // 0b1011
         );
         // will only test some fields:
@@ -137,6 +140,6 @@ contract DecodeProverProof is Test {
         assertTestEval(prover_proof.evals.foreign_field_add_selector);
 
         /** Test ft_eval1 **/
-        assertEq(Scalar.FE.unwrap(ft_eval1), 10);
+        assertEq(Scalar.FE.unwrap(prover_proof.ft_eval1), 10);
     }
 }

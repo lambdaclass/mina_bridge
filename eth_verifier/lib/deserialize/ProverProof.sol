@@ -4,12 +4,12 @@ pragma solidity >=0.4.16 <0.9.0;
 import "../Proof.sol";
 
 function deser_proof_comms(
-    bytes memory,
+    bytes memory data,
     NewProverCommitments storage comms
 ) {
     assembly {
-        let addr := 0xa0 // memory starts at 0x80,
-                         // first 32 bytes is the length of the bytes array.
+        // first 32 bytes is the length of the bytes array, we'll skip them.
+        let addr := add(data, 0x20)
         let slot := comms.slot
 
         // the first 32 bytes correspond to the optional field flags:
@@ -21,9 +21,9 @@ function deser_proof_comms(
         // the non-optional commitments are:
         // - w[15]
         // - z
-        // - t
-        // totalling 17 commitments, so 34 base field elements (each one is a G1 point):
-        for { let i := 0 } lt(i, 34) { i := add(i, 1) } {
+        // - t[7]
+        // totalling 23 commitments, so 46 base field elements (each one is a G1 point):
+        for { let i := 0 } lt(i, 46) { i := add(i, 1) } {
             sstore(slot, mload(addr))
             addr := add(addr, 0x20)
             slot := add(slot, 1)
@@ -91,12 +91,12 @@ function deser_proof_comms(
 }
 
 function deser_proof_evals(
-    bytes memory,
+    bytes memory data,
     NewProofEvaluations storage evals
 ) {
     assembly {
-        let addr := 0xa0 // memory starts at 0x80,
-                         // first 32 bytes is the length of the bytes array.
+        // first 32 bytes is the length of the bytes array, we'll skip them.
+        let addr := add(data, 0x20)
         let slot := evals.slot
 
         // the first 32 bytes correspond to the optional field flags:
@@ -164,12 +164,12 @@ function deser_proof_evals(
 }
 
 function deser_pairing_proof(
-    bytes memory,
+    bytes memory data,
     NewPairingProof storage pairing_proof
 ) {
     assembly {
-        let addr := 0xa0  // memory starts at 0x80,
-                          // first 32 bytes is the length of the bytes array.
+        // first 32 bytes is the length of the bytes array, we'll skip them.
+        let addr := add(data, 0x20)
         let slot := pairing_proof.slot
 
         sstore(slot, mload(addr))
@@ -179,12 +179,12 @@ function deser_pairing_proof(
 }
 
 function deser_prover_proof(
-    bytes memory,
+    bytes memory data,
     NewProverProof storage prover_proof
 ) {
-    assembly {
-        let addr := 0xa0 // memory starts at 0x80,
-                         // first 32 bytes is the length of the bytes array.
+    assembly ("memory-safe") {
+        // first 32 bytes is the length of the bytes array, we'll skip them.
+        let addr := add(data, 0x20)
         let slot := prover_proof.slot
 
         /** Decode commitments **/
@@ -198,9 +198,9 @@ function deser_prover_proof(
         // the non-optional commitments are:
         // - w[15]
         // - z
-        // - t
-        // totalling 17 commitments, so 34 base field elements (each one is a G1 point):
-        for { let i := 0 } lt(i, 34) { i := add(i, 1) } {
+        // - t[7]
+        // totalling 23 commitments, so 46 base field elements (each one is a G1 point):
+        for { let i := 0 } lt(i, 46) { i := add(i, 1) } {
             sstore(slot, mload(addr))
             addr := add(addr, 0x20)
             slot := add(slot, 1)
@@ -253,7 +253,8 @@ function deser_prover_proof(
             slot := add(slot, 1)
 
             // Now lookup_runtime if it's present:
-            if and(1, shr(1, optional_field_flags)) {
+            switch and(1, shr(1, optional_field_flags)) 
+            case 1 { // true
                 // x:
                 sstore(slot, mload(addr))
                 addr := add(addr, 0x20)
@@ -262,6 +263,9 @@ function deser_prover_proof(
                 sstore(slot, mload(addr))
                 addr := add(addr, 0x20)
                 slot := add(slot, 1)
+            }
+            default { // false
+                slot := add(slot, 2)
             }
         }
 

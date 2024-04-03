@@ -7,7 +7,8 @@ use kimchi::{
 use serializer::{
     serialize::{EVMSerializable, EVMSerializableType},
     type_aliases::{
-        BN254PairingProof, BN254PolyComm, BN254ProofEvaluations, BN254ProverCommitments, BN254ProverProof, BaseField, G1Point, ScalarField
+        BN254PairingProof, BN254PolyComm, BN254ProofEvaluations, BN254ProverCommitments,
+        BN254ProverProof, BaseField, G1Point, ScalarField,
     },
 };
 
@@ -65,7 +66,10 @@ fn generate_solidity_test_data() {
     let proof_comms = BN254ProverCommitments {
         w_comm: [0; COLUMNS].map(|_| gen_test_comm()),
         z_comm: gen_test_comm(),
-        t_comm: gen_test_comm(),
+        t_comm: BN254PolyComm {
+            unshifted: vec![G1Point::new(BaseField::from(1), BaseField::from(2), false); 7],
+            shifted: None,
+        },
         lookup: Some(LookupCommitments {
             sorted: vec![gen_test_comm(); 5],
             aggreg: gen_test_comm(),
@@ -79,7 +83,7 @@ fn generate_solidity_test_data() {
         proof: pairing_proof.clone(),
         evals: proof_evals.clone(),
         ft_eval1: ScalarField::from(10),
-        prev_challenges: Vec::new()
+        prev_challenges: Vec::new(),
     };
 
     fs::write(

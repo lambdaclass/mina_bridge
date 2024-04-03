@@ -406,22 +406,21 @@ function combine_commitments_and_evaluations(Evaluation[] memory evaluations, Sc
     // but for our test proof it will not.
 
     for (uint256 i = 0; i < evaluations.length; i++) {
-        if (evaluations[i].commitment.unshifted.length == 0) continue;
 
-        PolyComm memory commitment = evaluations[i].commitment;
-        Scalar.FE[][2] memory inner_evaluations = evaluations[i].evaluations;
-        uint256 commitment_steps = commitment.unshifted.length;
-        uint256 evaluation_steps = inner_evaluations[0].length;
+        BN254.G1Point memory commitment = evaluations[i].commitment;
+        Scalar.FE[2] memory inner_evaluations = evaluations[i].evaluations;
+        uint256 commitment_steps = 1;
+        uint256 evaluation_steps = 1;
         uint256 steps = commitment_steps > evaluation_steps ? commitment_steps : evaluation_steps;
 
         for (uint256 j = 0; j < steps; j++) {
             if (j < commitment_steps) {
-                BN254.G1Point memory comm_ch = commitment.unshifted[j];
+                BN254.G1Point memory comm_ch = commitment;
                 poly_commitment = poly_commitment.add(comm_ch.scale_scalar(rand_base.mul(xi_i)));
             }
             if (j < evaluation_steps) {
                 for (uint256 k = 0; k < inner_evaluations.length; k++) {
-                    acc[k] = acc[k].add(inner_evaluations[k][j].mul(xi_i));
+                    acc[k] = acc[k].add(inner_evaluations[k].mul(xi_i));
                 }
             }
             xi_i = xi_i.mul(polyscale);

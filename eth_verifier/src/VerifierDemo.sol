@@ -23,7 +23,7 @@ using {get_alphas} for Alphas;
 using {it_next} for AlphasIterator;
 using {Polynomial.evaluate} for Polynomial.Dense;
 using {sub_polycomms, scale_polycomm} for PolyComm;
-using {get_column_eval} for ProofEvaluationsArray;
+using {get_column_eval} for NewProofEvaluations;
 
 contract KimchiVerifierDemo {
     using {register} for Alphas;
