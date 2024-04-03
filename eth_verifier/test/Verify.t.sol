@@ -32,7 +32,7 @@ contract KimchiVerifierTest is Test {
         // tests.
         MsgPk.deser_verifier_index(
             MsgPk.new_stream(
-                vm.readFileBinary("verifier_index.mpk")
+                vm.readFileBinary("unit_test_data/verifier_index.mpk")
             ),
             test_verifier_index
         );

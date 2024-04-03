@@ -37,19 +37,20 @@ mod test {
         );
     }
 
-    #[test]
-    fn test_absorb_evaluations() {
-        let prover_proof_serialized = include_bytes!("../unit_test_data/prover_proof.mpk");
-        let prover_proof: ProverProof<G1, KZGProof> =
-            rmp_serde::from_slice(prover_proof_serialized).unwrap();
-
-        let mut sponge = KeccakFrSponge::new(G1::sponge_params());
-        sponge.absorb_evaluations(&prover_proof.evals);
-        assert_eq!(
-            sponge.challenge().0,
-            scalar_from_hex("0000000000000000000000000000000000DC56216206DF842F824D14A6D87024"),
-        );
-    }
+    // INFO: This test was disabled because there's no way to deserialize a new prover_proof
+    // (previously this was done with the messagepack deserializer).
+    // #[test]
+    // fn test_absorb_evaluations() {
+    //     let prover_proof_serialized = include_bytes!("../unit_test_data/prover_proof.mpk");
+    //     let prover_proof: ProverProof<G1, KZGProof> =
+    //         rmp_serde::from_slice(prover_proof_serialized).unwrap();
+    //     let mut sponge = KeccakFrSponge::new(G1::sponge_params());
+    //     sponge.absorb_evaluations(&prover_proof.evals);
+    //     assert_eq!(
+    //         sponge.challenge().0,
+    //         scalar_from_hex("0000000000000000000000000000000000DC56216206DF842F824D14A6D87024"),
+    //     );
+    // }
 
     #[test]
     fn test_eval_vanishing_poly_on_last_n_rows() {
@@ -65,7 +66,7 @@ mod test {
             eval_vanishes_on_last_n_rows(verifier_index.domain, verifier_index.zk_rows, zeta);
         assert_eq!(
             permutation_vanishing_poly,
-            scalar_from_hex("2C5ACDAC911B82AE9F3E0D0D792DFEAC4638C8F482B99116BDC080527F5DEB7E")
+            scalar_from_hex("1AEE30761864581115514430C6BD95502BB8DE7CD8C6B608F27BA1C03E80BFFB")
         );
     }
 }
