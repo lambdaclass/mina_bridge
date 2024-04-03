@@ -138,12 +138,6 @@ fn generate_proof() {
         EVMSerializableType(proof).to_bytes(),
     )
     .unwrap();
-    // Serialize and write to binaries
-    fs::write(
-        "../eth_verifier/prover_proof.bin",
-        EVMSerializableType(proof).to_bytes(),
-    )
-    .unwrap();
     fs::write(
         "../eth_verifier/verifier_index.mpk",
         rmp_serde::to_vec_named(&verifier_index).unwrap(),
