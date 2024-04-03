@@ -19,6 +19,7 @@ contract KimchiVerifierTest is Test {
     bytes public_inputs_serialized;
 
     VerifierIndex test_verifier_index;
+    ProverProof test_prover_proof;
     Sponge sponge;
 
     function setUp() public {
@@ -36,6 +37,8 @@ contract KimchiVerifierTest is Test {
             ),
             test_verifier_index
         );
+        test_verifier_index.linearization = abi.decode(linearization_serialized_rlp, (Linearization));
+        deser_prover_proof(vm.readFileBinary("unit_test_data/prover_proof.bin"), test_prover_proof);
     }
 
     function test_verify_with_index() public {
@@ -186,6 +189,25 @@ contract KimchiVerifierTest is Test {
         assertEq(
             Scalar.FE.unwrap(permutation_vanishing_poly),
             0x1AEE30761864581115514430C6BD95502BB8DE7CD8C6B608F27BA1C03E80BFFB
+        );
+    }
+
+    // INFO: This test doesn't assert anything as it's used for profiling gas.
+    function test_polish_evaluation_profiling_only() public view {
+        evaluate(
+            test_verifier_index.linearization.constant_term,
+            test_verifier_index.domain_gen,
+            test_verifier_index.domain_size,
+            Scalar.from(1),
+            test_prover_proof.evals,
+            ExprConstants(
+                Scalar.from(1),
+                Scalar.from(1),
+                Scalar.from(1),
+                Scalar.from(1),
+                Scalar.from(1),
+                1
+            )
         );
     }
 }
