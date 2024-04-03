@@ -18,18 +18,20 @@ import "../lib/expr/PolishToken.sol";
 import "../lib/expr/ExprConstants.sol";
 import "../lib/deserialize/ProverProof.sol";
 
-using {BN254.add, BN254.neg, BN254.scale_scalar, BN254.sub} for BN254.G1Point;
-using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
-using {get_alphas} for Alphas;
-using {it_next} for AlphasIterator;
-using {Polynomial.evaluate} for Polynomial.Dense;
-using {sub_polycomms, scale_polycomm} for PolyComm;
-using {get_column_eval} for NewProofEvaluations;
-
 contract KimchiVerifier {
+    using {BN254.add, BN254.neg, BN254.scale_scalar, BN254.sub} for BN254.G1Point;
+    using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
+    using {get_alphas} for Alphas;
+    using {it_next} for AlphasIterator;
+    using {Polynomial.evaluate} for Polynomial.Dense;
+    using {sub_polycomms, scale_polycomm} for PolyComm;
+    using {get_column_eval} for NewProofEvaluations;
     using {register} for Alphas;
     using {combine_evals} for ProofEvaluationsArray;
     using {chunk_commitment} for PolyComm;
+
+    error IncorrectPublicInputLength();
+    error PolynomialsAreChunked(uint256 chunk_size);
 
     NewProverProof proof;
     VerifierIndex verifier_index;
@@ -82,47 +84,12 @@ contract KimchiVerifier {
         return final_verify(agg_proof, urs.verifier_urs);
     }
 
-    error IncorrectPublicInputLength();
-
     // This takes Kimchi's `to_batch()` as reference.
     function partial_verify() public returns (AggregatedEvaluationProof memory) {
         // TODO: 1. CHeck the length of evaluations insde the proof
 
         // 2. Commit to the negated public input polynomial.
-        uint256 chunk_size = verifier_index.domain_size < verifier_index.max_poly_size
-            ? 1
-            : verifier_index.domain_size / verifier_index.max_poly_size;
-
-        if (public_inputs.length != verifier_index.public_len) {
-            revert IncorrectPublicInputLength();
-        }
-        PolyComm memory public_comm;
-        if (public_inputs.length == 0) {
-            BN254.G1Point[] memory blindings = new BN254.G1Point[](chunk_size);
-            uint256 j = chunk_size;
-            while (j > 0) {
-                --j;
-                blindings[j] = urs.full_urs.h;
-            }
-            // TODO: shifted is fixed to infinity
-            BN254.G1Point memory shifted = BN254.point_at_inf();
-            public_comm = PolyComm(blindings, shifted);
-        } else {
-            uint256 msm_len = public_inputs.length;
-            BN254.G1Point[] memory public_comm_unshifted = new BN254.G1Point[](1);
-            public_comm_unshifted[0] = BN254.point_at_inf();
-            for (uint i = 0; i < msm_len; i++) {
-                public_comm_unshifted[0] = public_comm_unshifted[0].add(
-                    get_lagrange_base(i).scale_scalar(public_inputs[i])
-                );
-            }
-            // negate the results of the MSM
-            public_comm_unshifted[0] = public_comm_unshifted[0].neg();
-
-            public_comm_unshifted[0] = urs.full_urs.h.add(public_comm_unshifted[0]);
-
-            public_comm = PolyComm(public_comm_unshifted, BN254.point_at_inf());
-        }
+        BN254.G1Point memory public_comm = public_commitment();
 
         // 3. Execute fiat-shamir with a Keccak sponge
 
@@ -198,7 +165,7 @@ contract KimchiVerifier {
         uint256 eval_index = 0;
 
         // public input commitment
-        evaluations[eval_index++] = Evaluation(public_comm.unshifted[0], oracles_res.public_evals, 0);
+        evaluations[eval_index++] = Evaluation(public_comm, oracles_res.public_evals, 0);
 
         // ft commitment
         evaluations[eval_index++] = Evaluation(ft_comm, [oracles_res.ft_eval0, proof.ft_eval1], 0);
@@ -329,40 +296,28 @@ contract KimchiVerifier {
         return AggregatedEvaluationProof(evaluations, evaluation_points, oracles.v, proof.opening);
     }
 
-    function public_commitment() public view returns (PolyComm memory) {
-        uint256 chunk_size = verifier_index.domain_size < verifier_index.max_poly_size
-            ? 1
-            : verifier_index.domain_size / verifier_index.max_poly_size;
+    function public_commitment() public view returns (BN254.G1Point memory) {
+        if (verifier_index.domain_size < verifier_index.max_poly_size) {
+            revert PolynomialsAreChunked(verifier_index.domain_size / verifier_index.max_poly_size);
+        }
 
         if (public_inputs.length != verifier_index.public_len) {
             revert IncorrectPublicInputLength();
         }
-        PolyComm memory public_comm;
+        BN254.G1Point memory public_comm;
         if (public_inputs.length == 0) {
-            BN254.G1Point[] memory blindings = new BN254.G1Point[](chunk_size);
-            uint256 j = chunk_size;
-            while (j > 0) {
-                --j;
-                blindings[j] = urs.full_urs.h;
-            }
-            // TODO: shifted is fixed to infinity
-            BN254.G1Point memory shifted = BN254.point_at_inf();
-            public_comm = PolyComm(blindings, shifted);
+            public_comm = urs.full_urs.h;
         } else {
-            uint256 msm_len = public_inputs.length;
-            BN254.G1Point[] memory public_comm_unshifted = new BN254.G1Point[](1);
-            public_comm_unshifted[0] = BN254.point_at_inf();
-            for (uint i = 0; i < msm_len; i++) {
-                public_comm_unshifted[0] = public_comm_unshifted[0].add(
+            public_comm = BN254.point_at_inf();
+            for (uint i = 0; i < public_inputs.length; i++) {
+                public_comm = public_comm.add(
                     get_lagrange_base(i).scale_scalar(public_inputs[i])
                 );
             }
             // negate the results of the MSM
-            public_comm_unshifted[0] = public_comm_unshifted[0].neg();
+            public_comm = public_comm.neg();
 
-            public_comm_unshifted[0] = urs.full_urs.h.add(public_comm_unshifted[0]);
-
-            public_comm = PolyComm(public_comm_unshifted, BN254.point_at_inf());
+            public_comm = urs.full_urs.h.add(public_comm);
         }
 
         return public_comm;

@@ -41,7 +41,7 @@ library Oracles {
     function fiat_shamir(
         NewProverProof memory proof,
         VerifierIndex storage index,
-        PolyComm memory public_comm,
+        BN254.G1Point memory public_comm,
         Scalar.FE[] memory public_input,
         bool is_public_input_set,
         Sponge storage base_sponge,
@@ -63,7 +63,7 @@ library Oracles {
         // INFO: For our current o1js proof, this isn't necessary.
 
         // 4. Absorb the commitment to the public inputs.
-        base_sponge.absorb_commitment(public_comm);
+        base_sponge.absorb_g_single(public_comm);
 
         // INFO: up until this point, all previous values only depend on the verifier index which is fixed for a given
         // constraint system.

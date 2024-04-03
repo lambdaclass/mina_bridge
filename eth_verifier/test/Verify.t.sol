@@ -168,7 +168,7 @@ contract KimchiVerifierTest is Test {
             public_inputs_serialized
         );
 
-        PolyComm memory public_commitment = verifier.public_commitment();
+        BN254.G1Point memory public_commitment = verifier.public_commitment();
 
         // Necessary so that the optimized compiler takes into account the public commitment
         require(keccak256(abi.encode(public_commitment)) > 0);
