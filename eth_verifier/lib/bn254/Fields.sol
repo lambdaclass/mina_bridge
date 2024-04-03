@@ -68,8 +68,15 @@ library Base {
         }
     }
 
-    function pow(FE self, uint256 exponent) public view returns (FE result) {
-        result = FE.wrap(Aux.expmod(FE.unwrap(self), exponent, MODULUS));
+    function pow(FE self, uint256 exponent) public pure returns (FE result) {
+        result = FE.wrap(1);
+        while (exponent != 0) {
+            if (exponent & 1 == 1) {
+                result = mul(result, self);
+            }
+            self = mul(self, self);
+            exponent = exponent >> 1;
+        }
     }
 }
 
