@@ -65,54 +65,38 @@ struct ProofEvaluations {
     // Optional gates
 
     PointEvaluations public_evals;
-    // bool is_public_evals_set; // public_evals is optional
     // evaluation of the RangeCheck0 selector polynomial
     PointEvaluations range_check0_selector;
-    // bool is_range_check0_selector_set;
     // evaluation of the RangeCheck1 selector polynomial
     PointEvaluations range_check1_selector;
-    // bool is_range_check1_selector_set;
     // evaluation of the ForeignFieldAdd selector polynomial
     PointEvaluations foreign_field_add_selector;
-    // bool is_foreign_field_add_selector_set;
     // evaluation of the ForeignFieldMul selector polynomial
     PointEvaluations foreign_field_mul_selector;
-    // bool is_foreign_field_mul_selector_set;
     // evaluation of the Xor selector polynomial
     PointEvaluations xor_selector;
-    // bool is_xor_selector_set;
     // evaluation of the Rot selector polynomial
     PointEvaluations rot_selector;
-    // bool is_rot_selector_set;
     // lookup-related evaluations
     // evaluation of lookup aggregation polynomial
     PointEvaluations lookup_aggregation;
-    // bool is_lookup_aggregation_set;
     // evaluation of lookup table polynomial
     PointEvaluations lookup_table;
-    // bool is_lookup_table_set;
     // evaluation of lookup sorted polynomials
     PointEvaluations[5] lookup_sorted;
-    // bool is_lookup_sorted_set;
     // evaluation of runtime lookup table polynomial
     PointEvaluations runtime_lookup_table;
-    // bool is_runtime_lookup_table_set;
     // lookup selectors
     // evaluation of the runtime lookup table selector polynomial
     PointEvaluations runtime_lookup_table_selector;
-    // bool is_runtime_lookup_table_selector_set;
     // evaluation of the Xor range check pattern selector polynomial
     PointEvaluations xor_lookup_selector;
-    // bool is_xor_lookup_selector_set;
     // evaluation of the Lookup range check pattern selector polynomial
     PointEvaluations lookup_gate_lookup_selector;
-    // bool is_lookup_gate_lookup_selector_set;
     // evaluation of the RangeCheck range check pattern selector polynomial
     PointEvaluations range_check_lookup_selector;
-    // bool is_range_check_lookup_selector_set;
     // evaluation of the ForeignFieldMul range check pattern selector polynomial
     PointEvaluations foreign_field_mul_lookup_selector;
-    // bool is_foreign_field_mul_lookup_selector_set;
 }
 
 struct ProverCommitments {
@@ -126,13 +110,6 @@ struct ProverCommitments {
     BN254.G1Point[] lookup_sorted;
     BN254.G1Point lookup_aggreg;
     BN254.G1Point lookup_runtime;
-}
-
-struct LookupCommitments {
-    PolyComm[] sorted;
-    PolyComm aggreg;
-    bool is_runtime_set;
-    PolyComm runtime; // INFO: optional
 }
 
 // INFO: ref: berkeley_columns.rs
