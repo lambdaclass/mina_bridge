@@ -6,7 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-kzg_prover = { path = "../" }
 kimchi = { path = "../../verifier_circuit/o1js/src/mina/src/lib/crypto/proof-systems/kimchi", version = "0.1.0", features = ["bn254", "keccak-sponges"] }
 o1-utils = { path = "../../verifier_circuit/o1js/src/mina/src/lib/crypto/proof-systems/utils", version = "0.1.0" }
 poly-commitment = { path = "../../verifier_circuit/o1js/src/mina/src/lib/crypto/proof-systems/poly-commitment", version = "0.1.0" }
