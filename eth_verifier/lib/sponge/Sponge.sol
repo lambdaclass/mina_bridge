@@ -120,7 +120,7 @@ library KeccakSponge {
 
     function absorb_evaluations(
         Sponge storage self,
-        NewProofEvaluations memory evals
+        ProofEvaluations memory evals
     ) external {
         absorb_point_evaluation(self, evals.z);
         absorb_point_evaluation(self, evals.generic_selector);

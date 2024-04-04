@@ -18,7 +18,6 @@ contract KimchiVerifierTest is Test {
     bytes linearization_serialized_rlp;
     bytes public_inputs_serialized;
 
-    ProverProof test_prover_proof;
     VerifierIndex test_verifier_index;
     Sponge sponge;
 
@@ -31,15 +30,9 @@ contract KimchiVerifierTest is Test {
 
         // we store deserialized structures mostly to run intermediate results
         // tests.
-        MsgPk.deser_prover_proof(
-            MsgPk.new_stream(
-                vm.readFileBinary("unit_test_data/prover_proof.mpk")
-            ),
-            test_prover_proof
-        );
         MsgPk.deser_verifier_index(
             MsgPk.new_stream(
-                vm.readFileBinary("verifier_index.mpk")
+                vm.readFileBinary("unit_test_data/verifier_index.mpk")
             ),
             test_verifier_index
         );
@@ -168,7 +161,7 @@ contract KimchiVerifierTest is Test {
             public_inputs_serialized
         );
 
-        PolyComm memory public_commitment = verifier.public_commitment();
+        BN254.G1Point memory public_commitment = verifier.public_commitment();
 
         // Necessary so that the optimized compiler takes into account the public commitment
         require(keccak256(abi.encode(public_commitment)) > 0);

@@ -21,14 +21,11 @@ using {BN254.neg, BN254.scale_scalar, BN254.sub} for BN254.G1Point;
 using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
 using {get_alphas} for Alphas;
 using {it_next} for AlphasIterator;
-using {Polynomial.evaluate} for Polynomial.Dense;
 using {sub_polycomms, scale_polycomm} for PolyComm;
-using {get_column_eval} for NewProofEvaluations;
+using {get_column_eval} for ProofEvaluations;
 
 contract KimchiVerifierDemo {
     using {register} for Alphas;
-    using {combine_evals} for ProofEvaluationsArray;
-    using {chunk_commitment} for PolyComm;
 
     VerifierIndex verifier_index;
     ProverProof proof;

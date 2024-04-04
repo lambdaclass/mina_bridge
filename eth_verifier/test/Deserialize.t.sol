@@ -12,10 +12,10 @@ contract DecodeProverProof is Test {
     bytes proof_comms_bytes;
     bytes prover_proof_bytes;
 
-    NewPairingProof pairing_proof;
-    NewProofEvaluations proof_evals;
-    NewProverCommitments proof_comms;
-    NewProverProof prover_proof;
+    PairingProof pairing_proof;
+    ProofEvaluations proof_evals;
+    ProverCommitments proof_comms;
+    ProverProof prover_proof;
 
     function setUp() public {
         pairing_proof_bytes = vm.readFileBinary(
