@@ -425,7 +425,7 @@ contract KimchiVerifier {
         BN254.G1Point memory eval_commitment = eval_commitment(evaluation_points, evals, urs.full_urs);
 
         // numerator commitment
-        BN254.G1Point memory numerator = poly_commitment.sub(eval_commitment).sub(blinding_commitment);
+        BN254.G1Point memory numerator = poly_commitment.sub(eval_commitment.add(blinding_commitment));
 
         // quotient commitment needs to be negated. See the doc of pairingProd2().
         return BN254.pairingProd2(numerator, BN254.P2(), quotient.neg(), divisor);
@@ -482,7 +482,7 @@ contract KimchiVerifier {
         eval_poly_coeffs[0] = b;
         eval_poly_coeffs[1] = a;
 
-        return naive_msm(full_urs.g, eval_poly_coeffs);
+        return msm(full_urs.g, eval_poly_coeffs);
     }
 
     /// @notice This is used exclusively in `test_PartialVerify()`.

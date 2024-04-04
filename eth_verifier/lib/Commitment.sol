@@ -93,7 +93,7 @@ function polycomm_msm(PolyComm[] memory com, Scalar.FE[] memory elm) view return
             ++i2;
         }
 
-        BN254.G1Point memory chunk_msm = naive_msm(points, scalars);
+        BN254.G1Point memory chunk_msm = msm(points, scalars);
         unshifted[chunk] = chunk_msm;
         ++chunk;
     }
@@ -103,14 +103,14 @@ function polycomm_msm(PolyComm[] memory com, Scalar.FE[] memory elm) view return
 }
 
 // @notice Execute a simple multi-scalar multiplication with points on G1
-function naive_msm(BN254.G1Point[] memory points, Scalar.FE[] memory scalars) view returns (BN254.G1Point memory) {
-    BN254.G1Point memory result = BN254.point_at_inf();
-
-    for (uint256 i = 0; i < points.length; i++) {
-        result = result.add(points[i].scale_scalar(scalars[i]));
+function msm(BN254.G1Point[] memory points, Scalar.FE[] memory scalars) view returns (BN254.G1Point memory result) {
+    uint256[] memory scalars_uint = new uint256[](points.length);
+    uint256 i = points.length;
+    while (i > 0) {
+        --i;
+        scalars_uint[i] = Scalar.FE.unwrap(scalars[i]);
     }
-
-    return result;
+    result = BN254.multiScalarMul(points, scalars_uint);
 }
 
 // @notice Execute a simple multi-scalar multiplication with points on G2
