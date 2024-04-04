@@ -159,7 +159,7 @@ contract KimchiVerifier {
         uint256 eval_index = 0;
 
         // public input commitment
-        evaluations[eval_index++] = Evaluation(public_comm.unshifted[0], oracles_res.public_evals, 0);
+        evaluations[eval_index++] = Evaluation(public_comm, oracles_res.public_evals, 0);
 
         // ft commitment
         evaluations[eval_index++] = Evaluation(ft_comm, [oracles_res.ft_eval0, proof.ft_eval1], 0);
