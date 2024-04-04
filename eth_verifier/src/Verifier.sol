@@ -126,8 +126,15 @@ contract KimchiVerifier {
             Column memory col = linear.index_terms[i_commitments].col;
             PolishToken[] memory tokens = linear.index_terms[i_commitments].coeff;
 
-            Scalar.FE scalar =
-                evaluate(tokens, verifier_index.domain_gen, verifier_index.domain_size, oracles.zeta, evals, constants);
+            Scalar.FE scalar = evaluate(
+                tokens,
+                verifier_index.domain_gen,
+                verifier_index.domain_size,
+                oracles.zeta,
+                oracles.vanishing_eval,
+                evals,
+                constants
+            );
 
             scalars[i_commitments + 1] = scalar;
             commitments[i_commitments + 1] = get_column_commitment(verifier_index, proof, col);
