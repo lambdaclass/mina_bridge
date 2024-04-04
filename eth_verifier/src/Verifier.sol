@@ -133,7 +133,7 @@ contract KimchiVerifier {
             commitments[i_commitments + 1] = get_column_commitment(verifier_index, proof, col);
             ++i_commitments;
         }
-        BN254.G1Point memory f_comm = naive_msm(commitments, scalars);
+        BN254.G1Point memory f_comm = msm(commitments, scalars);
 
         // 6. Compute the chunked commitment of ft
         Scalar.FE zeta_to_srs_len = oracles.zeta.pow(verifier_index.max_poly_size);
