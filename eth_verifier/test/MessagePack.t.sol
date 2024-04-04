@@ -12,8 +12,6 @@ import "../lib/Commitment.sol";
 contract MessagePackTest is Test {
     VerifierIndex index;
 
-    PairingURS test_urs;
-
     bytes public_inputs_serialized;
 
     // Test to check that the destructuring of the message pack byte array is correct.

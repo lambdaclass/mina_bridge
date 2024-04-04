@@ -39,7 +39,7 @@ contract KimchiVerifier {
 
     ProverProof proof;
     VerifierIndex verifier_index;
-    PairingURS urs;
+    URS urs;
     Scalar.FE[] public_inputs;
 
     Sponge base_sponge;
@@ -315,7 +315,7 @@ contract KimchiVerifier {
         }
         BN254.G1Point memory public_comm;
         if (public_inputs.length == 0) {
-            public_comm = urs.full_urs.h;
+            public_comm = urs.h;
         } else {
             public_comm = BN254.point_at_inf();
             for (uint256 i = 0; i < public_inputs.length; i++) {
@@ -324,7 +324,7 @@ contract KimchiVerifier {
             // negate the results of the MSM
             public_comm = public_comm.neg();
 
-            public_comm = urs.full_urs.h.add(public_comm);
+            public_comm = urs.h.add(public_comm);
         }
 
         return public_comm;
@@ -423,7 +423,7 @@ contract KimchiVerifier {
             combine_commitments_and_evaluations(evaluations, polyscale, Scalar.one());
 
         // blinding commitment
-        BN254.G1Point memory blinding_commitment = urs.full_urs.h.scale_scalar(agg_proof.opening.blinding);
+        BN254.G1Point memory blinding_commitment = urs.h.scale_scalar(agg_proof.opening.blinding);
 
         // quotient commitment
         BN254.G1Point memory quotient = agg_proof.opening.quotient;
@@ -432,7 +432,7 @@ contract KimchiVerifier {
         BN254.G2Point memory divisor = divisor_commitment(evaluation_points);
 
         // eval commitment
-        BN254.G1Point memory eval_commitment = eval_commitment(evaluation_points, evals, urs.full_urs);
+        BN254.G1Point memory eval_commitment = eval_commitment(evaluation_points, evals, urs);
 
         // numerator commitment
         BN254.G1Point memory numerator = poly_commitment.sub(eval_commitment.add(blinding_commitment));

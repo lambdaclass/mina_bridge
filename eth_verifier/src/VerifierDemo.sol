@@ -29,7 +29,7 @@ contract KimchiVerifierDemo {
 
     VerifierIndex verifier_index;
     ProverProof proof;
-    PairingURS urs;
+    URS urs;
     Scalar.FE[] public_inputs;
     PolyComm[] lagrange_bases;
 

@@ -23,11 +23,6 @@ struct URSG2 {
     BN254.G2Point h;
 }
 
-struct PairingURS {
-    URS full_urs;
-    URSG2 verifier_urs;
-}
-
 // WARN: The field shifted is optional but in Solidity we can't have that.
 // for our test circuit it's not necessary, we can just ignore it, using infinity.
 struct PolyComm {
@@ -171,7 +166,6 @@ function combine_commitments_and_evaluations(Evaluation[] memory evaluations, Sc
     // but for our test proof it will not.
 
     for (uint256 i = 0; i < evaluations.length; i++) {
-
         BN254.G1Point memory commitment = evaluations[i].commitment;
         Scalar.FE[2] memory inner_evaluations = evaluations[i].evaluations;
         uint256 commitment_steps = 1;

@@ -495,7 +495,7 @@ library MsgPk {
     // WARN: using the entire `full_urs` may not be necessary, we would only have to deserialize the
     // first two points (in the final verification step, we need the `full_urs` for commitment a
     // evaluation polynomial, which seems to be always of degree 1).
-    function deser_pairing_urs(Stream memory self, PairingURS storage urs) public {
+    function deser_pairing_urs(Stream memory self, URS storage urs) public {
         // full_srs and verifier_srs fields
         EncodedMap memory urs_map = deser_fixmap(self);
 
@@ -517,8 +517,8 @@ library MsgPk {
         BN254.G1Point memory full_urs_h = BN254.g1Deserialize(bytes32(full_urs_h_serialized));
 
         // store values
-        urs.full_urs.g = full_urs_g;
-        urs.full_urs.h = full_urs_h;
+        urs.g = full_urs_g;
+        urs.h = full_urs_h;
 
         // deserialize and store lagrange bases
         // EncodedMap memory lagrange_b_serialized =
