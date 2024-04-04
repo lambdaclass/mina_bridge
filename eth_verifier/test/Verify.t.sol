@@ -31,10 +31,7 @@ contract KimchiVerifierTest is Test {
         // we store deserialized structures mostly to run intermediate results
         // tests.
         MsgPk.deser_verifier_index(
-            MsgPk.new_stream(
-                vm.readFileBinary("unit_test_data/verifier_index.mpk")
-            ),
-            test_verifier_index
+            MsgPk.new_stream(vm.readFileBinary("unit_test_data/verifier_index.mpk")), test_verifier_index
         );
     }
 
@@ -44,10 +41,7 @@ contract KimchiVerifierTest is Test {
         verifier.setup(urs_serialized);
 
         bool success = verifier.verify_with_index(
-            verifier_index_serialized,
-            prover_proof_serialized,
-            linearization_serialized_rlp,
-            public_inputs_serialized
+            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
         );
 
         require(success, "Verification failed!");
@@ -59,10 +53,7 @@ contract KimchiVerifierTest is Test {
         verifier.setup(urs_serialized);
 
         verifier.deserialize_proof(
-            verifier_index_serialized,
-            prover_proof_serialized,
-            linearization_serialized_rlp,
-            public_inputs_serialized
+            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
         );
 
         AggregatedEvaluationProof memory agg_proof = verifier.partial_verify();
@@ -77,10 +68,7 @@ contract KimchiVerifierTest is Test {
         verifier.setup(urs_serialized);
 
         verifier.deserialize_proof(
-            verifier_index_serialized,
-            prover_proof_serialized,
-            linearization_serialized_rlp,
-            public_inputs_serialized
+            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
         );
 
         Scalar.FE[2] memory evaluation_points = [
@@ -112,10 +100,7 @@ contract KimchiVerifierTest is Test {
         verifier.setup(urs_serialized);
 
         verifier.deserialize_proof(
-            verifier_index_serialized,
-            prover_proof_serialized,
-            linearization_serialized_rlp,
-            public_inputs_serialized
+            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
         );
 
         Scalar.FE[2] memory evaluation_points = [
@@ -143,7 +128,7 @@ contract KimchiVerifierTest is Test {
         );
         URSG2 memory verifier_urs = URSG2(verifier_urs_g, BN254.point_at_inf_g2());
 
-        BN254.G2Point memory divisor_commitment = verifier.divisor_commitment(evaluation_points, verifier_urs);
+        BN254.G2Point memory divisor_commitment = verifier.divisor_commitment(evaluation_points);
 
         // Necessary so that the optimized compiler takes into account the divisor commitment
         require(keccak256(abi.encode(divisor_commitment)) > 0);
@@ -155,10 +140,7 @@ contract KimchiVerifierTest is Test {
         verifier.setup(urs_serialized);
 
         verifier.deserialize_proof(
-            verifier_index_serialized,
-            prover_proof_serialized,
-            linearization_serialized_rlp,
-            public_inputs_serialized
+            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
         );
 
         BN254.G1Point memory public_commitment = verifier.public_commitment();

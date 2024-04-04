@@ -82,7 +82,7 @@ contract KimchiVerifier {
             verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
         );
         AggregatedEvaluationProof memory agg_proof = partial_verify();
-        return final_verify(agg_proof, urs.verifier_urs);
+        return final_verify(agg_proof);
     }
 
     // This takes Kimchi's `to_batch()` as reference.
@@ -406,11 +406,7 @@ contract KimchiVerifier {
         6. Check numerator == scaled_quotient
     */
 
-    function final_verify(AggregatedEvaluationProof memory agg_proof, URSG2 memory verifier_urs)
-        public
-        view
-        returns (bool)
-    {
+    function final_verify(AggregatedEvaluationProof memory agg_proof) public view returns (bool) {
         Evaluation[] memory evaluations = agg_proof.evaluations;
         Scalar.FE[2] memory evaluation_points = agg_proof.evaluation_points;
         Scalar.FE polyscale = agg_proof.polyscale;
@@ -426,7 +422,7 @@ contract KimchiVerifier {
         BN254.G1Point memory quotient = agg_proof.opening.quotient;
 
         // divisor commitment
-        BN254.G2Point memory divisor = divisor_commitment(evaluation_points, verifier_urs);
+        BN254.G2Point memory divisor = divisor_commitment(evaluation_points);
 
         // eval commitment
         BN254.G1Point memory eval_commitment = eval_commitment(evaluation_points, evals, urs.full_urs);
@@ -438,43 +434,44 @@ contract KimchiVerifier {
         return BN254.pairingProd2(numerator, BN254.P2(), quotient.neg(), divisor);
     }
 
-    function divisor_commitment_bis(Scalar.FE[2] memory evaluation_points)
-        internal
-        view
-        returns (BN254.G2Point memory point3)
-    {
-        // TODO harcode coordinates @@@@@@@@@@@@@
-        BN254.G2Point memory point1 = BN254.G2Point(0, 0, 0, 0);
-        BN254.G2Point memory point2 = BN254.G2Point(0, 0, 0, 0);
-        BN254.G2Point memory point3 = BN254.G2Point(0, 0, 0, 0);
-
-        //point1 = BN256G2.ECTwistMul(evaluation_points[0].mul(evaluation_points[1]), point1);
-        //point2 = BN256G2.ECTwistMul(evaluation_points[0].add(evaluation_points[1]).neg(), point2);
-        //point3 = BN256G2.ECTwistAdd(point3, point2);
-        //point3 = BN256G2.ECTwistAdd(point3, point1);
-    }
-
-    function divisor_commitment(Scalar.FE[2] memory evaluation_points, URSG2 memory verifier_urs)
+    function divisor_commitment(Scalar.FE[2] memory evaluation_points)
         public
         view
-        returns (BN254.G2Point memory)
+        returns (BN254.G2Point memory result)
     {
+        BN254.G2Point memory point0 = BN254.G2Point(
+            10857046999023057135944570762232829481370756359578518086990519993285655852781,
+            11559732032986387107991004021392285783925812861821192530917403151452391805634,
+            8495653923123431417604973247489272438418190587263600148770280649306958101930,
+            4082367875863433681332203403145435568316851327593401208105741076214120093531
+        );
+        BN254.G2Point memory point1 = BN254.G2Point(
+            7883069657575422103991939149663123175414599384626279795595310520790051448551,
+            8346649071297262948544714173736482699128410021416543801035997871711276407441,
+            3343323372806643151863786479815504460125163176086666838570580800830972412274,
+            16795962876692295166012804782785252840345796645199573986777498170046508450267
+        );
+        BN254.G2Point memory point2 = BN254.G2Point(
+            14127762918448947308790410788210289377279518096121173062251311797297982082469,
+            4640749047686948693676466477499634979423220823002391841311260833878642348023,
+            15584633174679797224858067860955702731818107814729714298421481259259086801380,
+            13424649497566617342906600132389867025763662606076913038585301943152028890013
+        );
+
         Scalar.FE[] memory divisor_poly_coeffs = new Scalar.FE[](3);
 
         // The divisor polynomial is the poly that evaluates to 0 in the evaluation
         // points. Used for proving that the numerator is divisible by it.
         // So, this is: (x-a)(x-b) = x^2 - (a + b)x + ab
         // (there're only two evaluation points: a and b).
-        Scalar.FE a = evaluation_points[0];
-        Scalar.FE b = evaluation_points[1];
 
-        divisor_poly_coeffs[0] = a.mul(b);
-        divisor_poly_coeffs[1] = a.add(b).neg();
+        divisor_poly_coeffs[0] = evaluation_points[0].mul(evaluation_points[1]);
+        divisor_poly_coeffs[1] = evaluation_points[0].add(evaluation_points[1]).neg();
         divisor_poly_coeffs[2] = Scalar.one();
 
-        require(verifier_urs.g.length == 3, "verifier_urs doesn\'t have 3 of points");
-
-        return naive_msm(verifier_urs.g, divisor_poly_coeffs);
+        result = BN256G2.ECTwistMul(Scalar.FE.unwrap(divisor_poly_coeffs[0]), point0);
+        result = BN256G2.ECTwistAdd(result, BN256G2.ECTwistMul(Scalar.FE.unwrap(divisor_poly_coeffs[1]), point1));
+        result = BN256G2.ECTwistAdd(result, BN256G2.ECTwistMul(Scalar.FE.unwrap(divisor_poly_coeffs[2]), point2));
     }
 
     function eval_commitment(Scalar.FE[2] memory evaluation_points, Scalar.FE[] memory evals, URS memory full_urs)
