@@ -65,10 +65,13 @@ jobs:
             - name: Checkout sources
               uses: actions/checkout@v4
 
+            - name: Install Foundry
+              uses: foundry-rs/foundry-toolchain@v1.2.0
+
             - name: Run tests
               run: |
                 export HOME="/root/"
-                export PATH="/.foundry/bin:/root/.cargo/bin:$PATH"
+                #export PATH="/.foundry/bin:/root/.cargo/bin:$PATH"
                 export GOPATH="/root/go"
                 make test > ../gasreport.ansi
               env:
