@@ -22,9 +22,9 @@ struct PointEvaluationsArray {
 /// Contains the evaluation of a polynomial commitment at a set of points.
 struct Evaluation {
     /// The commitment of the polynomial being evaluated
-    PolyComm commitment; // TODO: Dense
+    BN254.G1Point commitment; // TODO: Dense
     /// Contains an evaluation table
-    Scalar.FE[][2] evaluations;
+    Scalar.FE[2] evaluations;
     /// optional degree bound
     uint128 degree_bound;
 }
