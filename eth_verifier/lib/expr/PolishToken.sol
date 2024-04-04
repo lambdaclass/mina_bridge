@@ -238,7 +238,7 @@ function unnormalized_lagrange_basis(Scalar.FE domain_gen, Scalar.FE vanishing_e
 // @notice evaluates the vanishing polynomial for this domain at tau.
 // @notice for multiplicative subgroups, this polynomial is `z(X) = X^self.size - 1
 function evaluate_vanishing_polynomial(Scalar.FE domain_gen, uint256 domain_size, Scalar.FE tau)
-    pure
+    view
     returns (Scalar.FE)
 {
     return tau.pow(domain_size).sub(Scalar.one());
