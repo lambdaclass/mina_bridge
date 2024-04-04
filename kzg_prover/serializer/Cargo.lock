@@ -612,30 +612,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "kzg_prover"
-version = "0.1.0"
-dependencies = [
- "ark-bn254",
- "ark-ec",
- "ark-ff",
- "ark-poly",
- "ark-serialize",
- "ark-std",
- "const-hex",
- "hex",
- "kimchi",
- "mina-poseidon",
- "num",
- "num-traits",
- "o1-utils",
- "poly-commitment",
- "rmp-serde",
- "serde",
- "serde_json",
- "serde_with 3.7.0",
-]
-
-[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1122,7 +1098,6 @@ dependencies = [
  "const-hex",
  "hex",
  "kimchi",
- "kzg_prover",
  "mina-poseidon",
  "num",
  "num-traits",

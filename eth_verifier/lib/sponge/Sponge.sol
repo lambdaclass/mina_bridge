@@ -5,6 +5,7 @@ import "../bn254/Fields.sol";
 import "../bn254/BN254.sol";
 import "../Commitment.sol";
 import "../Proof.sol";
+import "../Constants.sol";
 
 struct Sponge {
     bytes pending;
@@ -60,7 +61,7 @@ library KeccakSponge {
         }
     }
 
-    function absorb_scalar(Sponge storage self, Scalar.FE elem) external {
+    function absorb_scalar(Sponge storage self, Scalar.FE elem) public {
         bytes memory b = abi.encodePacked(elem);
         for (uint256 i = 0; i < b.length; i++) {
             self.pending.push(b[i]);
@@ -119,7 +120,7 @@ library KeccakSponge {
 
     function absorb_evaluations(
         Sponge storage self,
-        ProofEvaluationsArray memory evals
+        ProofEvaluations memory evals
     ) external {
         absorb_point_evaluation(self, evals.z);
         absorb_point_evaluation(self, evals.generic_selector);
@@ -139,63 +140,63 @@ library KeccakSponge {
             absorb_point_evaluation(self, evals.s[i]);
         }
 
-        if (evals.is_range_check0_selector_set) {
+        if (is_field_set(evals, RANGE_CHECK0_SELECTOR_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.range_check0_selector);
         }
-        if (evals.is_range_check1_selector_set) {
+        if (is_field_set(evals, RANGE_CHECK1_SELECTOR_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.range_check1_selector);
         }
-        if (evals.is_foreign_field_add_selector_set) {
+        if (is_field_set(evals, FOREIGN_FIELD_ADD_SELECTOR_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.foreign_field_add_selector);
         }
-        if (evals.is_foreign_field_mul_selector_set) {
+        if (is_field_set(evals, FOREIGN_FIELD_MUL_SELECTOR_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.foreign_field_mul_selector);
         }
-        if (evals.is_xor_selector_set) {
+        if (is_field_set(evals, XOR_SELECTOR_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.xor_selector);
         }
-        if (evals.is_rot_selector_set) {
+        if (is_field_set(evals, ROT_SELECTOR_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.rot_selector);
         }
 
-        if (evals.is_lookup_aggregation_set) {
+        if (is_field_set(evals, LOOKUP_AGGREGATION_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.lookup_aggregation);
         }
-        if (evals.is_lookup_table_set) {
+        if (is_field_set(evals, LOOKUP_TABLE_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.lookup_table);
         }
-        if (evals.is_lookup_sorted_set) {
-            for (uint i = 0; i < evals.lookup_sorted.length; i++) {
+        for (uint i = 0; i < evals.lookup_sorted.length; i++) {
+            if (is_field_set(evals, LOOKUP_SORTED_EVAL_FLAG + i)) {
                 absorb_point_evaluation(self, evals.lookup_sorted[i]);
             }
         }
-        if (evals.is_runtime_lookup_table_set) {
+        if (is_field_set(evals, RUNTIME_LOOKUP_TABLE_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.runtime_lookup_table);
         }
 
-        if (evals.is_runtime_lookup_table_selector_set) {
+        if (is_field_set(evals, RUNTIME_LOOKUP_TABLE_SELECTOR_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.runtime_lookup_table_selector);
         }
-        if (evals.is_xor_lookup_selector_set) {
+        if (is_field_set(evals, XOR_LOOKUP_SELECTOR_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.xor_lookup_selector);
         }
-        if (evals.is_lookup_gate_lookup_selector_set) {
+        if (is_field_set(evals, LOOKUP_GATE_LOOKUP_SELECTOR_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.lookup_gate_lookup_selector);
         }
-        if (evals.is_range_check_lookup_selector_set) {
+        if (is_field_set(evals, RANGE_CHECK_LOOKUP_SELECTOR_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.range_check_lookup_selector);
         }
-        if (evals.is_foreign_field_mul_lookup_selector_set) {
+        if (is_field_set(evals, FOREIGN_FIELD_MUL_LOOKUP_SELECTOR_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.foreign_field_mul_lookup_selector);
         }
     }
 
     function absorb_point_evaluation(
         Sponge storage self,
-        PointEvaluationsArray memory eval
+        PointEvaluations memory eval
     ) public {
-        absorb_scalar_multiple(self, eval.zeta);
-        absorb_scalar_multiple(self, eval.zeta_omega);
+        absorb_scalar(self, eval.zeta);
+        absorb_scalar(self, eval.zeta_omega);
     }
 
     function absorb_point_evaluations(

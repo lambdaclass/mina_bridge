@@ -11,25 +11,6 @@ library Polynomial {
         Scalar.FE[] coeffs;
     }
 
-    function is_zero(Dense memory self) public pure returns (bool) {
-        bool all_zero = true;
-        for (uint256 i = 0; i < self.coeffs.length; i++) {
-            if (Scalar.FE.unwrap(self.coeffs[i]) != 0) {
-                all_zero = false;
-                break;
-            }
-        }
-        return all_zero; // if coeffs is empty, this will return true too.
-    }
-
-    // @notice evaluates via Horner's method.
-    function evaluate(Dense memory self, Scalar.FE x) external pure returns (Scalar.FE result) {
-        result = Scalar.zero();
-        for (uint256 i = self.coeffs.length; i > 0; i--) {
-            result = result.mul(x).add(self.coeffs[i - 1]);
-        }
-    }
-
     // @notice evaluates via Horner's method.
     // @warn this function can not be used with the empty polynomial.
     function build_and_eval(Scalar.FE[] memory coeffs, Scalar.FE x) external pure returns (Scalar.FE result) {
@@ -44,19 +25,6 @@ library Polynomial {
         }
     }
 
-    function constant_poly(Scalar.FE coeff) public pure returns (Dense memory) {
-        Scalar.FE[] memory coeffs = new Scalar.FE[](1);
-        coeffs[0] = coeff;
-        return Dense(coeffs);
-    }
-
-    function binomial(Scalar.FE first_coeff, Scalar.FE second_coeff) public pure returns (Dense memory) {
-        Scalar.FE[] memory coeffs = new Scalar.FE[](2);
-        coeffs[0] = first_coeff;
-        coeffs[1] = second_coeff;
-        return Dense(coeffs);
-    }
-
     function sub(Dense memory self, Dense memory other) public pure returns (Dense memory) {
         uint256 n = Utils.min(self.coeffs.length, other.coeffs.length);
         Scalar.FE[] memory coeffs_self_sub_other = new Scalar.FE[](n);
@@ -65,27 +33,6 @@ library Polynomial {
         }
 
         return Dense(coeffs_self_sub_other);
-    }
-
-    function mul(Dense memory self, Dense memory other) public view returns (Dense memory) {
-        // evaluate both polys with FFT and 2n degree bound (degree of the result poly)
-        uint256 count = Utils.max(self.coeffs.length, other.coeffs.length) * 2;
-        Scalar.FE[] memory evals_self = Utils.fft_resized(self.coeffs, count);
-        Scalar.FE[] memory evals_other = Utils.fft_resized(other.coeffs, count);
-        // padding with zeros results in more evaluations of the same polys
-
-        require(evals_self.length == evals_other.length, "poly mul evals are not of the same length");
-        uint256 n = evals_self.length;
-
-        // point-wise multiplication
-        Scalar.FE[] memory evals_self_mul_other = new Scalar.FE[](n);
-        for (uint256 i = 0; i < n; i++) {
-            evals_self_mul_other[i] = evals_self[i].mul(evals_other[i]);
-        }
-
-        // interpolate result poly
-        Scalar.FE[] memory coeffs_res = Utils.ifft(evals_self_mul_other);
-        return Dense(coeffs_res);
     }
 
     // @notice evaluates the polynomial
