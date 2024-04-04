@@ -20,13 +20,10 @@ import "../lib/expr/PolishToken.sol";
 import "../lib/expr/ExprConstants.sol";
 
 using {BN254.add, BN254.neg, BN254.scale_scalar, BN254.sub} for BN254.G1Point;
-using {BN256G2} for BN256G2;
 using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
 using {get_alphas} for Alphas;
 using {it_next} for AlphasIterator;
-using {Polynomial.evaluate} for Polynomial.Dense;
 using {sub_polycomms, scale_polycomm} for PolyComm;
-using {get_column_eval} for ProofEvaluationsArray;
 
 contract KimchiVerifier {
     using {BN254.add, BN254.neg, BN254.scale_scalar, BN254.sub} for BN254.G1Point;
@@ -451,10 +448,10 @@ contract KimchiVerifier {
         BN254.G2Point memory point2 = BN254.G2Point(0, 0, 0, 0);
         BN254.G2Point memory point3 = BN254.G2Point(0, 0, 0, 0);
 
-        point1 = BN256G2.ECTwistMul(evaluation_points[0].mul(evaluation_points[1]), point1);
-        point2 = BN256G2.ECTwistMul(evaluation_points[0].add(evaluation_points[1]).neg(), point2);
-        point3 = BN256G2.ECTwistAdd(point3, point2);
-        point3 = BN256G2.ECTwistAdd(point3, point1);
+        //point1 = BN256G2.ECTwistMul(evaluation_points[0].mul(evaluation_points[1]), point1);
+        //point2 = BN256G2.ECTwistMul(evaluation_points[0].add(evaluation_points[1]).neg(), point2);
+        //point3 = BN256G2.ECTwistAdd(point3, point2);
+        //point3 = BN256G2.ECTwistAdd(point3, point1);
     }
 
     function divisor_commitment(Scalar.FE[2] memory evaluation_points, URSG2 memory verifier_urs)
