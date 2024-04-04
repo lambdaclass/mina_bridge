@@ -38,7 +38,7 @@ library Oracles {
 
     // This takes Kimchi's `oracles()` as reference.
     function fiat_shamir(
-        NewProverProof memory proof,
+        ProverProof memory proof,
         VerifierIndex storage index,
         BN254.G1Point memory public_comm,
         Scalar.FE[] memory public_input,

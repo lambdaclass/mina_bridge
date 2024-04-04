@@ -72,10 +72,7 @@ contract KimchiVerifier {
         bytes calldata public_inputs_serialized
     ) public returns (bool) {
         deserialize_proof(
-            verifier_index_serialized,
-            prover_proof_serialized,
-            linearization_serialized_rlp,
-            public_inputs_serialized
+            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
         );
         AggregatedEvaluationProof memory agg_proof = partial_verify();
         return final_verify(agg_proof, urs.verifier_urs);
@@ -241,7 +238,8 @@ contract KimchiVerifier {
                 proof.commitments.lookup_runtime
             );
 
-            evaluations[eval_index++] = Evaluation(table_comm.unshifted[0], [lookup_table.zeta, lookup_table.zeta_omega], 0);
+            evaluations[eval_index++] =
+                Evaluation(table_comm.unshifted[0], [lookup_table.zeta, lookup_table.zeta_omega], 0);
 
             if (li.is_runtime_tables_selector_set) {
                 if (!is_field_set(proof.commitments, LOOKUP_RUNTIME_COMM_FLAG)) {
@@ -306,10 +304,8 @@ contract KimchiVerifier {
             public_comm = urs.full_urs.h;
         } else {
             public_comm = BN254.point_at_inf();
-            for (uint i = 0; i < public_inputs.length; i++) {
-                public_comm = public_comm.add(
-                    get_lagrange_base(i).scale_scalar(public_inputs[i])
-                );
+            for (uint256 i = 0; i < public_inputs.length; i++) {
+                public_comm = public_comm.add(get_lagrange_base(i).scale_scalar(public_inputs[i]));
             }
             // negate the results of the MSM
             public_comm = public_comm.neg();
@@ -321,7 +317,7 @@ contract KimchiVerifier {
     }
 
     function perm_scalars(
-        NewProofEvaluations memory e,
+        ProofEvaluations memory e,
         Scalar.FE beta,
         Scalar.FE gamma,
         AlphasIterator memory alphas,
@@ -979,9 +975,6 @@ contract KimchiVerifier {
     ];
 
     function get_lagrange_base(uint256 i) internal view returns (BN254.G1Point memory) {
-        return BN254.G1Point(
-            lagrange_bases[2*i],
-            lagrange_bases[2*i+1]
-        );
+        return BN254.G1Point(lagrange_bases[2 * i], lagrange_bases[2 * i + 1]);
     }
 }

@@ -32,14 +32,13 @@ struct AggregatedEvaluationProof {
     Evaluation[] evaluations;
     Scalar.FE[2] evaluation_points;
     Scalar.FE polyscale;
-    NewPairingProof opening;
+    PairingProof opening;
 }
 
 struct ProofEvaluations {
     // each bit represents the presence (1) or absence (0) of an
     // optional field.
     uint256 optional_field_flags;
-
     // witness polynomials
     PointEvaluations[COLUMNS] w;
     // permutation polynomial
@@ -61,9 +60,7 @@ struct ProofEvaluations {
     PointEvaluations emul_selector;
     // evaluation of the endoscalar multiplication scalar computation selector polynomial
     PointEvaluations endomul_scalar_selector;
-
     // Optional gates
-
     PointEvaluations public_evals;
     // evaluation of the RangeCheck0 selector polynomial
     PointEvaluations range_check0_selector;
@@ -101,11 +98,9 @@ struct ProofEvaluations {
 
 struct ProverCommitments {
     uint256 optional_field_flags;
-
     BN254.G1Point[COLUMNS] w_comm;
     BN254.G1Point z_comm;
     BN254.G1Point[7] t_comm;
-
     // optional commitments
     BN254.G1Point[] lookup_sorted;
     BN254.G1Point lookup_aggreg;
@@ -113,10 +108,7 @@ struct ProverCommitments {
 }
 
 // INFO: ref: berkeley_columns.rs
-function evaluate_column(
-    NewProofEvaluations memory self,
-    Column memory col
-) view returns (PointEvaluations memory) {
+function evaluate_column(ProofEvaluations memory self, Column memory col) view returns (PointEvaluations memory) {
     if (col.variant == ColumnVariant.Witness) {
         uint256 i = abi.decode(col.data, (uint256));
         return self.w[i];
@@ -236,15 +228,13 @@ function evaluate_column(
         }
         if (pattern == LookupPattern.ForeignFieldMul) {
             if (!is_field_set(self, FOREIGN_FIELD_MUL_LOOKUP_SELECTOR_EVAL_FLAG)) {
-                revert MissingIndexEvaluation(
-                    "foreign_field_mul_lookup_selector"
-                );
+                revert MissingIndexEvaluation("foreign_field_mul_lookup_selector");
             }
             return self.foreign_field_mul_lookup_selector;
         }
     }
     if (col.variant == ColumnVariant.LookupRuntimeSelector) {
-            if (!is_field_set(self, RUNTIME_LOOKUP_TABLE_SELECTOR_EVAL_FLAG)) {
+        if (!is_field_set(self, RUNTIME_LOOKUP_TABLE_SELECTOR_EVAL_FLAG)) {
             revert MissingIndexEvaluation("runtime_lookup_table_selector");
         }
         return self.runtime_lookup_table_selector;
@@ -252,10 +242,7 @@ function evaluate_column(
     revert("unhandled column variant");
 }
 
-function evaluate_variable(
-    Variable memory self,
-    NewProofEvaluations memory evals
-) view returns (Scalar.FE) {
+function evaluate_variable(Variable memory self, ProofEvaluations memory evals) view returns (Scalar.FE) {
     PointEvaluations memory point_evals = evaluate_column(evals, self.col);
     if (self.row == CurrOrNext.Curr) {
         return point_evals.zeta;
@@ -264,10 +251,7 @@ function evaluate_variable(
     return point_evals.zeta_omega;
 }
 
-function get_column_eval(
-    ProofEvaluations memory evals,
-    Column memory col
-) pure returns (PointEvaluations memory) {
+function get_column_eval(ProofEvaluations memory evals, Column memory col) pure returns (PointEvaluations memory) {
     ColumnVariant variant = col.variant;
     bytes memory data = col.data;
     if (variant == ColumnVariant.Witness) {
@@ -284,28 +268,28 @@ function get_column_eval(
         return evals.lookup_table;
     } else if (variant == ColumnVariant.LookupKindIndex) {
         LookupPattern pattern = abi.decode(data, (LookupPattern));
-        if (pattern == LookupPattern.Xor) { return evals.xor_lookup_selector; }
-        else if (pattern == LookupPattern.Lookup) { return evals.lookup_gate_lookup_selector; }
-        else if (pattern == LookupPattern.RangeCheck) { return evals.range_check_lookup_selector; }
-        else if (pattern == LookupPattern.ForeignFieldMul) { return evals.foreign_field_mul_lookup_selector; }
-        else { revert MissingLookupColumnEvaluation(pattern); }
+        if (pattern == LookupPattern.Xor) return evals.xor_lookup_selector;
+        else if (pattern == LookupPattern.Lookup) return evals.lookup_gate_lookup_selector;
+        else if (pattern == LookupPattern.RangeCheck) return evals.range_check_lookup_selector;
+        else if (pattern == LookupPattern.ForeignFieldMul) return evals.foreign_field_mul_lookup_selector;
+        else revert MissingLookupColumnEvaluation(pattern);
     } else if (variant == ColumnVariant.LookupRuntimeSelector) {
         return evals.runtime_lookup_table_selector;
     } else if (variant == ColumnVariant.Index) {
         GateType gate = abi.decode(data, (GateType));
-        if (gate == GateType.Generic) { return evals.generic_selector; }
-        else if (gate == GateType.Poseidon) { return evals.poseidon_selector; } 
-        else if (gate == GateType.CompleteAdd) { return evals.complete_add_selector; } 
-        else if (gate == GateType.VarBaseMul) { return evals.mul_selector; }
-        else if (gate == GateType.EndoMul) { return evals.emul_selector; } 
-        else if (gate == GateType.EndoMulScalar) { return evals.endomul_scalar_selector; }
-        else if (gate == GateType.RangeCheck0) { return evals.range_check0_selector; }
-        else if (gate == GateType.RangeCheck1) { return evals.range_check1_selector; }
-        else if (gate == GateType.ForeignFieldAdd) { return evals.foreign_field_add_selector; }
-        else if (gate == GateType.ForeignFieldMul) { return evals.foreign_field_mul_selector; }
-        else if (gate == GateType.Xor16) { return evals.xor_selector; }
-        else if (gate == GateType.Rot64) { return evals.rot_selector; }
-        else { revert MissingIndexColumnEvaluation(gate); }
+        if (gate == GateType.Generic) return evals.generic_selector;
+        else if (gate == GateType.Poseidon) return evals.poseidon_selector;
+        else if (gate == GateType.CompleteAdd) return evals.complete_add_selector;
+        else if (gate == GateType.VarBaseMul) return evals.mul_selector;
+        else if (gate == GateType.EndoMul) return evals.emul_selector;
+        else if (gate == GateType.EndoMulScalar) return evals.endomul_scalar_selector;
+        else if (gate == GateType.RangeCheck0) return evals.range_check0_selector;
+        else if (gate == GateType.RangeCheck1) return evals.range_check1_selector;
+        else if (gate == GateType.ForeignFieldAdd) return evals.foreign_field_add_selector;
+        else if (gate == GateType.ForeignFieldMul) return evals.foreign_field_mul_selector;
+        else if (gate == GateType.Xor16) return evals.xor_selector;
+        else if (gate == GateType.Rot64) return evals.rot_selector;
+        else revert MissingIndexColumnEvaluation(gate);
     } else if (variant == ColumnVariant.Coefficient) {
         uint256 i = abi.decode(data, (uint256));
         return evals.coefficients[i];
@@ -316,6 +300,7 @@ function get_column_eval(
         revert MissingColumnEvaluation(variant);
     }
 }
+
 function combine_table(
     PolyComm[] memory columns,
     Scalar.FE column_combiner,
@@ -326,9 +311,7 @@ function combine_table(
     BN254.G1Point memory runtime_vector
 ) view returns (PolyComm memory) {
     require(columns.length != 0, "column commitments are empty");
-    uint256 total_len = columns.length
-        + (is_table_id_vector_set ? 1 : 0)
-        + (is_runtime_vector_set ? 1 : 0);
+    uint256 total_len = columns.length + (is_table_id_vector_set ? 1 : 0) + (is_runtime_vector_set ? 1 : 0);
 
     Scalar.FE j = Scalar.one();
     Scalar.FE[] memory scalars = new Scalar.FE[](total_len);
@@ -339,7 +322,7 @@ function combine_table(
     scalars[index] = j;
     commitments[index] = columns[0];
     index += 1;
-    for (uint i = 1; i < columns.length; i++) {
+    for (uint256 i = 1; i < columns.length; i++) {
         j = j.mul(column_combiner);
         scalars[index] = j;
         commitments[index] = columns[i];
@@ -362,18 +345,10 @@ function combine_table(
     return polycomm_msm(commitments, scalars);
 }
 
-function is_field_set(
-    ProofEvaluations memory self,
-    uint256 flag_pos
-) pure returns (bool)
-{
+function is_field_set(ProofEvaluations memory self, uint256 flag_pos) pure returns (bool) {
     return (self.optional_field_flags >> flag_pos) & 1 == 1;
 }
 
-function is_field_set(
-    ProverCommitments memory self,
-    uint256 flag_pos
-) pure returns (bool)
-{
+function is_field_set(ProverCommitments memory self, uint256 flag_pos) pure returns (bool) {
     return (self.optional_field_flags >> flag_pos) & 1 == 1;
 }
