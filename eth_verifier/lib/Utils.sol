@@ -108,7 +108,7 @@ library Utils {
         }
     }
 
-    function get_twiddles(uint256 order) public pure returns (Scalar.FE[] memory twiddles) {
+    function get_twiddles(uint256 order) public view returns (Scalar.FE[] memory twiddles) {
         Scalar.FE root = Scalar.get_primitive_root_of_unity(order);
 
         uint256 size = 1 << (order - 1);
@@ -199,7 +199,7 @@ library Utils {
     }
 
     /// @notice runs FFT for BN254 scalar field.
-    function fft(Scalar.FE[] memory scalars) public pure returns (Scalar.FE[] memory results) {
+    function fft(Scalar.FE[] memory scalars) public view returns (Scalar.FE[] memory results) {
         (uint256 size, uint256 order) = next_power_of_two(scalars.length);
 
         if (size > scalars.length) {
@@ -219,7 +219,7 @@ library Utils {
     /// @notice runs FFT for BN254 scalar field, padding with zeros to retrieve `count` elements.
     /// @notice or the next power of two from that.
     /// @notice `count` needs to be greater or equal than `scalars` length.
-    function fft_resized(Scalar.FE[] memory scalars, uint256 count) public pure returns (Scalar.FE[] memory results) {
+    function fft_resized(Scalar.FE[] memory scalars, uint256 count) public view returns (Scalar.FE[] memory results) {
         require(count >= scalars.length, "tried to execute resized fft with size smaller than input length");
         (uint256 size, uint256 order) = next_power_of_two(count);
 
