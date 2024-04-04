@@ -119,7 +119,7 @@ library Utils {
         }
     }
 
-    function get_twiddles_inv(uint256 order) public pure returns (Scalar.FE[] memory twiddles) {
+    function get_twiddles_inv(uint256 order) public view returns (Scalar.FE[] memory twiddles) {
         Scalar.FE root = Scalar.get_primitive_root_of_unity(order).inv();
 
         uint256 size = 1 << (order - 1);
@@ -238,7 +238,7 @@ library Utils {
     }
 
     /// @notice runs inverse FFT for BN254 scalar field.
-    function ifft(Scalar.FE[] memory scalars) public pure returns (Scalar.FE[] memory results) {
+    function ifft(Scalar.FE[] memory scalars) public view returns (Scalar.FE[] memory results) {
         (uint256 size, uint256 order) = next_power_of_two(scalars.length);
 
         if (size > scalars.length) {
