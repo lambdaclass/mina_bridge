@@ -33,7 +33,7 @@ library KimchiPartialVerifier {
     function partial_verify(
         ProverProof storage proof,
         VerifierIndex storage verifier_index,
-        PairingURS storage urs,
+        URS storage urs,
         Scalar.FE[] storage public_inputs,
         uint256[] storage lagrange_bases_components // flattened pairs of (x, y) coords
     ) external returns (AggregatedEvaluationProof memory) {
@@ -262,7 +262,7 @@ library KimchiPartialVerifier {
 
     function public_commitment(
         VerifierIndex storage verifier_index,
-        PairingURS storage urs,
+        URS storage urs,
         Scalar.FE[] storage public_inputs,
         uint256[] storage lagrange_bases_components // flattened pairs of (x, y) coords
     ) public view returns (BN254.G1Point memory) {
@@ -329,7 +329,7 @@ contract KimchiVerifier {
 
     ProverProof proof;
     VerifierIndex verifier_index;
-    PairingURS urs;
+    URS urs;
     Scalar.FE[] public_inputs;
 
     State internal state;
@@ -368,7 +368,12 @@ contract KimchiVerifier {
         deserialize_proof(
             verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
         );
-        AggregatedEvaluationProof memory agg_proof = KimchiPartialVerifier.partial_verify();
+        AggregatedEvaluationProof memory agg_proof = KimchiPartialVerifier.partial_verify(
+            verifier_index,
+            urs,
+            public_inputs,
+            lagrange_bases
+        );
         return final_verify(agg_proof, urs.verifier_urs);
     }
 
