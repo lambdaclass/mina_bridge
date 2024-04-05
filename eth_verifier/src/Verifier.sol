@@ -25,72 +25,27 @@ using {get_alphas} for Alphas;
 using {it_next} for AlphasIterator;
 using {sub_polycomms, scale_polycomm} for PolyComm;
 
-contract KimchiVerifier {
-    using {BN254.add, BN254.neg, BN254.scale_scalar, BN254.sub} for BN254.G1Point;
-    using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
-    using {get_alphas} for Alphas;
-    using {it_next} for AlphasIterator;
-    using {sub_polycomms, scale_polycomm} for PolyComm;
-    using {get_column_eval} for ProofEvaluations;
-    using {register} for Alphas;
-
+library KimchiPartialVerifier {
     error IncorrectPublicInputLength();
     error PolynomialsAreChunked(uint256 chunk_size);
 
-    ProverProof proof;
-    VerifierIndex verifier_index;
-    URS urs;
-    Scalar.FE[] public_inputs;
-
-    Sponge base_sponge;
-    Sponge scalar_sponge;
-
-    State internal state;
-    bool state_available;
-
-    function setup(bytes memory urs_serialized) public {
-        MsgPk.deser_pairing_urs(MsgPk.new_stream(urs_serialized), urs);
-
-        // INFO: powers of alpha are fixed for a given constraint system, so we can hard-code them.
-        verifier_index.powers_of_alpha.register(ArgumentType.GateZero, VARBASEMUL_CONSTRAINTS);
-        verifier_index.powers_of_alpha.register(ArgumentType.Permutation, PERMUTATION_CONSTRAINTS);
-
-        // INFO: endo coefficient is fixed for a given constraint system
-        (Base.FE _endo_q, Scalar.FE endo_r) = BN254.endo_coeffs_g1();
-        verifier_index.endo = endo_r;
-    }
-
-    function deserialize_proof(
-        bytes calldata verifier_index_serialized,
-        bytes calldata prover_proof_serialized,
-        bytes calldata linearization_serialized_rlp,
-        bytes calldata public_inputs_serialized
-    ) public {
-        MsgPk.deser_verifier_index(MsgPk.new_stream(verifier_index_serialized), verifier_index);
-        deser_prover_proof(prover_proof_serialized, proof);
-        verifier_index.linearization = abi.decode(linearization_serialized_rlp, (Linearization));
-        public_inputs = MsgPk.deser_public_inputs(public_inputs_serialized);
-    }
-
-    function verify_with_index(
-        bytes calldata verifier_index_serialized,
-        bytes calldata prover_proof_serialized,
-        bytes calldata linearization_serialized_rlp,
-        bytes calldata public_inputs_serialized
-    ) public returns (bool) {
-        deserialize_proof(
-            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
-        );
-        AggregatedEvaluationProof memory agg_proof = partial_verify();
-        return final_verify(agg_proof);
-    }
-
     // This takes Kimchi's `to_batch()` as reference.
-    function partial_verify() public returns (AggregatedEvaluationProof memory) {
+    function partial_verify(
+        ProverProof storage proof,
+        VerifierIndex storage verifier_index,
+        PairingURS storage urs,
+        Scalar.FE[] storage public_inputs,
+        uint256[] storage lagrange_bases_components // flattened pairs of (x, y) coords
+    ) external returns (AggregatedEvaluationProof memory) {
         // TODO: 1. CHeck the length of evaluations insde the proof
 
         // 2. Commit to the negated public input polynomial.
-        BN254.G1Point memory public_comm = public_commitment();
+        BN254.G1Point memory public_comm = public_commitment(
+            verifier_index,
+            urs,
+            public_inputs,
+            lagrange_bases_components
+        );
 
         // 3. Execute fiat-shamir with a Keccak sponge
 
@@ -305,7 +260,12 @@ contract KimchiVerifier {
         return AggregatedEvaluationProof(evaluations, evaluation_points, oracles.v, proof.opening);
     }
 
-    function public_commitment() public view returns (BN254.G1Point memory) {
+    function public_commitment(
+        VerifierIndex storage verifier_index,
+        PairingURS storage urs,
+        Scalar.FE[] storage public_inputs,
+        uint256[] storage lagrange_bases_components // flattened pairs of (x, y) coords
+    ) public view returns (BN254.G1Point memory) {
         if (verifier_index.domain_size < verifier_index.max_poly_size) {
             revert PolynomialsAreChunked(verifier_index.domain_size / verifier_index.max_poly_size);
         }
@@ -318,8 +278,13 @@ contract KimchiVerifier {
             public_comm = urs.h;
         } else {
             public_comm = BN254.point_at_inf();
+            BN254.G1Point memory lagrange_base;
             for (uint256 i = 0; i < public_inputs.length; i++) {
-                public_comm = public_comm.add(get_lagrange_base(i).scale_scalar(public_inputs[i]));
+                lagrange_base = BN254.G1Point(
+                    lagrange_bases_components[2 * i],
+                    lagrange_bases_components[2 * i + 1]
+                );
+                public_comm = public_comm.add(lagrange_base.scale_scalar(public_inputs[i]));
             }
             // negate the results of the MSM
             public_comm = public_comm.neg();
@@ -351,45 +316,60 @@ contract KimchiVerifier {
         }
         res = res.neg();
     }
+}
 
-    /// The polynomial that evaluates to each of `evals` for the respective `elm`s.
-    function evalPolynomial(Scalar.FE[] memory elm, Scalar.FE[] memory evals)
-        public
-        view
-        returns (Polynomial.Dense memory)
-    {
-        require(elm.length == evals.length, "lengths don\'t match");
-        require(elm.length == 2, "length must be 2");
-        Scalar.FE zeta = elm[0];
-        Scalar.FE zeta_omega = elm[1];
-        Scalar.FE eval_zeta = evals[0];
-        Scalar.FE eval_zeta_omega = evals[1];
+contract KimchiVerifier {
+    using {BN254.add, BN254.neg, BN254.scale_scalar, BN254.sub} for BN254.G1Point;
+    using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
+    using {get_alphas} for Alphas;
+    using {it_next} for AlphasIterator;
+    using {sub_polycomms, scale_polycomm} for PolyComm;
+    using {get_column_eval} for ProofEvaluations;
+    using {register} for Alphas;
 
-        // The polynomial that evaluates to `p(zeta)` at `zeta` and `p(zeta_omega)` at
-        // `zeta_omega`.
-        // We write `p(x) = a + bx`, which gives
-        // ```text
-        // p(zeta) = a + b * zeta
-        // p(zeta_omega) = a + b * zeta_omega
-        // ```
-        // and so
-        // ```text
-        // b = (p(zeta_omega) - p(zeta)) / (zeta_omega - zeta)
-        // a = p(zeta) - b * zeta
-        // ```
+    ProverProof proof;
+    VerifierIndex verifier_index;
+    PairingURS urs;
+    Scalar.FE[] public_inputs;
 
-        // Compute b
-        Scalar.FE num_b = eval_zeta_omega.add(eval_zeta.neg());
-        Scalar.FE den_b_inv = zeta_omega.add(zeta.neg()).inv();
-        Scalar.FE b = num_b.mul(den_b_inv);
+    State internal state;
+    bool state_available;
 
-        // Compute a
-        Scalar.FE a = eval_zeta.sub(b.mul(zeta));
+    function setup(bytes memory urs_serialized) public {
+        MsgPk.deser_pairing_urs(MsgPk.new_stream(urs_serialized), urs);
 
-        Scalar.FE[] memory coeffs = new Scalar.FE[](2);
-        coeffs[0] = a;
-        coeffs[1] = b;
-        return Polynomial.Dense(coeffs);
+        // INFO: powers of alpha are fixed for a given constraint system, so we can hard-code them.
+        verifier_index.powers_of_alpha.register(ArgumentType.GateZero, VARBASEMUL_CONSTRAINTS);
+        verifier_index.powers_of_alpha.register(ArgumentType.Permutation, PERMUTATION_CONSTRAINTS);
+
+        // INFO: endo coefficient is fixed for a given constraint system
+        (Base.FE _endo_q, Scalar.FE endo_r) = BN254.endo_coeffs_g1();
+        verifier_index.endo = endo_r;
+    }
+
+    function deserialize_proof(
+        bytes calldata verifier_index_serialized,
+        bytes calldata prover_proof_serialized,
+        bytes calldata linearization_serialized_rlp,
+        bytes calldata public_inputs_serialized
+    ) public {
+        MsgPk.deser_verifier_index(MsgPk.new_stream(verifier_index_serialized), verifier_index);
+        deser_prover_proof(prover_proof_serialized, proof);
+        verifier_index.linearization = abi.decode(linearization_serialized_rlp, (Linearization));
+        public_inputs = MsgPk.deser_public_inputs(public_inputs_serialized);
+    }
+
+    function verify_with_index(
+        bytes calldata verifier_index_serialized,
+        bytes calldata prover_proof_serialized,
+        bytes calldata linearization_serialized_rlp,
+        bytes calldata public_inputs_serialized
+    ) public returns (bool) {
+        deserialize_proof(
+            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
+        );
+        AggregatedEvaluationProof memory agg_proof = KimchiPartialVerifier.partial_verify();
+        return final_verify(agg_proof, urs.verifier_urs);
     }
 
     /*
@@ -510,47 +490,6 @@ contract KimchiVerifier {
         eval_poly_coeffs[1] = a;
 
         return msm(full_urs.g, eval_poly_coeffs);
-    }
-
-    /// @notice This is used exclusively in `test_PartialVerify()`.
-    function set_verifier_index_for_testing() public {
-        verifier_index.max_poly_size = 1;
-    }
-
-    /// @notice store a mina state
-    function store_state(bytes memory data) internal {
-        state = MsgPk.deserializeState(data, 0);
-    }
-
-    /// @notice check if state is available
-    function is_state_available() public view returns (bool) {
-        return state_available;
-    }
-
-    error UnavailableState();
-
-    /// @notice retrieves the base58 encoded creator's public key
-    function retrieve_state_creator() public view returns (string memory) {
-        if (!state_available) {
-            revert UnavailableState();
-        }
-        return state.creator;
-    }
-
-    /// @notice retrieves the hash of the state after this block
-    function retrieve_state_hash() public view returns (uint256) {
-        if (!state_available) {
-            revert UnavailableState();
-        }
-        return state.hash;
-    }
-
-    /// @notice retrieves the block height
-    function retrieve_state_height() public view returns (uint256) {
-        if (!state_available) {
-            revert UnavailableState();
-        }
-        return state.block_height;
     }
 
     // (x, y) pairs
@@ -1000,8 +939,4 @@ contract KimchiVerifier {
         0x07e651df50d21a07f4d3ae0e1058ec584f1e25e258d6b128739070a81a317023,
         0x099b86f8a9c8738225fb2b8a1f2f5efa431c2c29bbc1a70802968b6a67603de4
     ];
-
-    function get_lagrange_base(uint256 i) internal view returns (BN254.G1Point memory) {
-        return BN254.G1Point(lagrange_bases[2 * i], lagrange_bases[2 * i + 1]);
-    }
 }
