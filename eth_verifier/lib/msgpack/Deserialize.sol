@@ -312,7 +312,7 @@ library MsgPk {
         bytes memory null_encoded = abi.encode("null");
         if (self.length != null_encoded.length) return false;
 
-        for (uint i = 0; i < self.length; i++) {
+        for (uint256 i = 0; i < self.length; i++) {
             if (self[i] != null_encoded[i]) return false;
         }
         return true;
@@ -331,14 +331,21 @@ library MsgPk {
     }
 
     // @notice `map` is the parent map which contains the field with key `name` and value PolyComm.
-    function deser_poly_comm_from_map(EncodedMap memory map, string memory name) public view returns (PolyComm memory) {
-        EncodedMap memory poly_comm_map =
-            abi.decode(find_value(map, abi.encode(name)), (EncodedMap));
+    function deser_poly_comm_from_map(EncodedMap memory map, string memory name)
+        public
+        view
+        returns (PolyComm memory)
+    {
+        EncodedMap memory poly_comm_map = abi.decode(find_value(map, abi.encode(name)), (EncodedMap));
         return deser_poly_comm(poly_comm_map);
     }
 
     // @notice if the poly comm is not null, then it is set into `comm_reference` and `true` is returned.
-    function deser_poly_comm_from_map_optional(EncodedMap memory map, string memory name) public view returns (bool, PolyComm memory) {
+    function deser_poly_comm_from_map_optional(EncodedMap memory map, string memory name)
+        public
+        view
+        returns (bool, PolyComm memory)
+    {
         bytes memory poly_comm_bytes = find_value(map, abi.encode(name));
         if (!is_null(poly_comm_bytes)) {
             return (true, deser_poly_comm(abi.decode(poly_comm_bytes, (EncodedMap))));
@@ -349,7 +356,7 @@ library MsgPk {
     function deser_lookup_verifier_index(EncodedMap memory map, LookupVerifierIndex storage index) public {
         // lookup table
         EncodedArray memory lookup_table_arr = abi.decode(find_value(map, abi.encode("lookup_table")), (EncodedArray));
-        uint lookup_table_len = lookup_table_arr.values.length;
+        uint256 lookup_table_len = lookup_table_arr.values.length;
         index.lookup_table = new PolyComm[](lookup_table_len);
         for (uint256 i = 0; i < lookup_table_len; i++) {
             index.lookup_table[i] = deser_poly_comm(abi.decode(lookup_table_arr.values[i], (EncodedMap)));
@@ -357,34 +364,21 @@ library MsgPk {
 
         // lookup selectors
         EncodedMap memory selectors_map = abi.decode(find_value(map, abi.encode("lookup_selectors")), (EncodedMap));
-        (
-            index.lookup_selectors.is_xor_set,
-            index.lookup_selectors.xor
-        ) = deser_poly_comm_from_map_optional(selectors_map, "xor");
-        (
-            index.lookup_selectors.is_lookup_set,
-            index.lookup_selectors.lookup
-        ) = deser_poly_comm_from_map_optional(selectors_map, "lookup");
-        (
-            index.lookup_selectors.is_range_check_set,
-            index.lookup_selectors.range_check
-        ) = deser_poly_comm_from_map_optional(selectors_map, "range_check");
-        (
-            index.lookup_selectors.is_ffmul_set,
-            index.lookup_selectors.ffmul
-        ) = deser_poly_comm_from_map_optional(selectors_map, "ffmul");
+        (index.lookup_selectors.is_xor_set, index.lookup_selectors.xor) =
+            deser_poly_comm_from_map_optional(selectors_map, "xor");
+        (index.lookup_selectors.is_lookup_set, index.lookup_selectors.lookup) =
+            deser_poly_comm_from_map_optional(selectors_map, "lookup");
+        (index.lookup_selectors.is_range_check_set, index.lookup_selectors.range_check) =
+            deser_poly_comm_from_map_optional(selectors_map, "range_check");
+        (index.lookup_selectors.is_ffmul_set, index.lookup_selectors.ffmul) =
+            deser_poly_comm_from_map_optional(selectors_map, "ffmul");
 
         // table ids
-        (
-            index.is_table_ids_set,
-            index.table_ids
-        ) = deser_poly_comm_from_map_optional(map, "table_ids");
+        (index.is_table_ids_set, index.table_ids) = deser_poly_comm_from_map_optional(map, "table_ids");
 
         // runtime table selectors
-        (
-            index.is_runtime_tables_selector_set,
-            index.runtime_tables_selector
-        ) = deser_poly_comm_from_map_optional(map, "runtime_tables_selector");
+        (index.is_runtime_tables_selector_set, index.runtime_tables_selector) =
+            deser_poly_comm_from_map_optional(map, "runtime_tables_selector");
 
         // lookup info
         EncodedMap memory lookup_info_map = abi.decode(find_value_str(map, "lookup_info"), (EncodedMap));
@@ -450,30 +444,16 @@ library MsgPk {
         index.emul_comm = deser_poly_comm_from_map(map, "emul_comm");
         index.endomul_scalar_comm = deser_poly_comm_from_map(map, "endomul_scalar_comm");
 
-        (
-            index.is_range_check0_comm_set,
-            index.range_check0_comm
-        ) = deser_poly_comm_from_map_optional(map, "range_check0_comm");
-        (
-            index.is_range_check1_comm_set,
-            index.range_check1_comm
-        ) = deser_poly_comm_from_map_optional(map, "range_check1_comm");
-        (
-            index.is_foreign_field_add_comm_set,
-            index.foreign_field_add_comm
-        ) = deser_poly_comm_from_map_optional(map, "foreign_field_add_comm");
-        (
-            index.is_foreign_field_mul_comm_set,
-            index.foreign_field_mul_comm
-        ) = deser_poly_comm_from_map_optional(map, "foreign_field_mul_comm");
-        (
-            index.is_xor_comm_set,
-            index.xor_comm
-        ) = deser_poly_comm_from_map_optional(map, "xor_comm");
-        (
-            index.is_rot_comm_set,
-            index.rot_comm
-        ) = deser_poly_comm_from_map_optional(map, "rot_comm");
+        (index.is_range_check0_comm_set, index.range_check0_comm) =
+            deser_poly_comm_from_map_optional(map, "range_check0_comm");
+        (index.is_range_check1_comm_set, index.range_check1_comm) =
+            deser_poly_comm_from_map_optional(map, "range_check1_comm");
+        (index.is_foreign_field_add_comm_set, index.foreign_field_add_comm) =
+            deser_poly_comm_from_map_optional(map, "foreign_field_add_comm");
+        (index.is_foreign_field_mul_comm_set, index.foreign_field_mul_comm) =
+            deser_poly_comm_from_map_optional(map, "foreign_field_mul_comm");
+        (index.is_xor_comm_set, index.xor_comm) = deser_poly_comm_from_map_optional(map, "xor_comm");
+        (index.is_rot_comm_set, index.rot_comm) = deser_poly_comm_from_map_optional(map, "rot_comm");
 
         // lookup index
         bytes memory lookup_index_bytes = find_value(map, abi.encode("lookup_index"));
@@ -500,15 +480,13 @@ library MsgPk {
         return PolyComm(unshifted, shifted);
     }
 
-    function deser_lagrange_bases(
-        bytes calldata data
-    ) public returns (PolyComm[] memory lagrange_bases){
+    function deser_lagrange_bases(bytes calldata data) public returns (PolyComm[] memory lagrange_bases) {
         EncodedMap memory map = deser_fixmap(new_stream(data));
         EncodedArray memory arr = abi.decode(map.values[0], (EncodedArray));
 
         uint256 length = arr.values.length;
         lagrange_bases = new PolyComm[](length);
-        for (uint i = 0; i < length; i++) {
+        for (uint256 i = 0; i < length; i++) {
             EncodedMap memory comm_map = abi.decode(arr.values[i], (EncodedMap));
             lagrange_bases[i] = deser_poly_comm(comm_map);
         }
@@ -517,23 +495,15 @@ library MsgPk {
     // WARN: using the entire `full_urs` may not be necessary, we would only have to deserialize the
     // first two points (in the final verification step, we need the `full_urs` for commitment a
     // evaluation polynomial, which seems to be always of degree 1).
-    function deser_pairing_urs(Stream memory self, PairingURS storage urs) public {
+    function deser_pairing_urs(Stream memory self, URS storage urs) public {
         // full_srs and verifier_srs fields
         EncodedMap memory urs_map = deser_fixmap(self);
 
         EncodedMap memory full_urs_serialized = abi.decode(find_value_str(urs_map, "full_srs"), (EncodedMap));
-        EncodedMap memory verifier_urs_serialized =
-            abi.decode(find_value_str(urs_map, "verifier_srs"), (EncodedMap));
 
         // get data from g and h fields (g is an array of bin8 and h is a bin8)
-        EncodedArray memory full_urs_g_serialized =
-            abi.decode(find_value_str(full_urs_serialized, "g"), (EncodedArray));
+        EncodedArray memory full_urs_g_serialized = abi.decode(find_value_str(full_urs_serialized, "g"), (EncodedArray));
         bytes memory full_urs_h_serialized = abi.decode(find_value_str(full_urs_serialized, "h"), (bytes));
-
-        EncodedArray memory verifier_urs_g_serialized =
-            abi.decode(find_value_str(verifier_urs_serialized, "g"), (EncodedArray));
-        bytes memory verifier_urs_h_serialized =
-            abi.decode(find_value_str(verifier_urs_serialized, "h"), (bytes));
 
         // deserialized and save g for both URS
         // INFO: we only need the first two points
@@ -543,23 +513,12 @@ library MsgPk {
             full_urs_g[i] = BN254.g1Deserialize(bytes32(point_bytes));
         }
 
-        require(verifier_urs_g_serialized.values.length == 3, "verifier_urs doesn\'t have three elements");
-        BN254.G2Point[] memory verifier_urs_g = new BN254.G2Point[](3);
-        for (uint256 i = 0; i < verifier_urs_g.length; i++) {
-            bytes memory point_bytes = abi.decode(verifier_urs_g_serialized.values[i], (bytes));
-            verifier_urs_g[i] = BN256G2.G2Deserialize(point_bytes);
-        }
-
         // deserialized and save h for both URS
         BN254.G1Point memory full_urs_h = BN254.g1Deserialize(bytes32(full_urs_h_serialized));
-        BN254.G2Point memory verifier_urs_h = BN256G2.G2Deserialize(verifier_urs_h_serialized);
 
         // store values
-        urs.full_urs.g = full_urs_g;
-        urs.full_urs.h = full_urs_h;
-
-        urs.verifier_urs.g = verifier_urs_g;
-        urs.verifier_urs.h = verifier_urs_h;
+        urs.g = full_urs_g;
+        urs.h = full_urs_h;
 
         // deserialize and store lagrange bases
         // EncodedMap memory lagrange_b_serialized =
@@ -610,11 +569,13 @@ library MsgPk {
         if (is_witness) {
             return Column(ColumnVariant.Witness, witness_value);
         }
-        (bytes memory lookup_sorted_value, bool is_lookup_sorted) = find_value_or_fail(col_map, abi.encode("LookupSorted"));
+        (bytes memory lookup_sorted_value, bool is_lookup_sorted) =
+            find_value_or_fail(col_map, abi.encode("LookupSorted"));
         if (is_lookup_sorted) {
             return Column(ColumnVariant.LookupSorted, lookup_sorted_value);
         }
-        (bytes memory lookup_kind_index_value, bool is_lookup_kind_index) = find_value_or_fail(col_map, abi.encode("LookupKindIndex"));
+        (bytes memory lookup_kind_index_value, bool is_lookup_kind_index) =
+            find_value_or_fail(col_map, abi.encode("LookupKindIndex"));
         if (is_lookup_kind_index) {
             string memory lookup_pattern_variant = abi.decode(lookup_kind_index_value, (string));
             if (Utils.str_cmp(lookup_pattern_variant, "Xor")) {
@@ -767,17 +728,13 @@ library MsgPk {
         }
     }
 
-    function deser_public_inputs(bytes calldata data)
-        public
-        view
-        returns (Scalar.FE[] memory public_input)
-    {
+    function deser_public_inputs(bytes calldata data) public view returns (Scalar.FE[] memory public_input) {
         uint256 public_input_len = data.length / 32; // each element is 32 bytes
         public_input = new Scalar.FE[](public_input_len);
 
-        for (uint i = 0; i < public_input_len; i++) {
+        for (uint256 i = 0; i < public_input_len; i++) {
             uint256 offset = i * 32;
-            public_input[i] = Scalar.from(uint256(bytes32(data[offset:offset+32])));
+            public_input[i] = Scalar.from(uint256(bytes32(data[offset:offset + 32])));
         }
     }
 
