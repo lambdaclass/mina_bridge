@@ -23,3 +23,7 @@ verify:
 serialize:
 	PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 \
 	forge script --non-interactive script/Serialize.s.sol:Serialize --via-ir --optimize --broadcast --rpc-url http://localhost:8545
+
+tenderly:
+	PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 \
+	forge script --non-interactive script/Verify.s.sol:Verify --via-ir --optimize --broadcast --rpc-url=$(TENDERLY_DEVNET_RPC_URL)
