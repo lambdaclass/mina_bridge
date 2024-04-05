@@ -29,16 +29,15 @@ library KimchiPartialVerifier {
     error IncorrectPublicInputLength();
     error PolynomialsAreChunked(uint256 chunk_size);
 
-    Sponge base_sponge;
-    Sponge scalar_sponge;
-
     // This takes Kimchi's `to_batch()` as reference.
     function partial_verify(
         ProverProof storage proof,
         VerifierIndex storage verifier_index,
         URS storage urs,
         Scalar.FE[] storage public_inputs,
-        uint256[] storage lagrange_bases_components // flattened pairs of (x, y) coords
+        uint256[] storage lagrange_bases_components, // flattened pairs of (x, y) coords
+        Sponge storage base_sponge,
+        Sponge storage scalar_sponge
     ) external returns (AggregatedEvaluationProof memory) {
         // TODO: 1. CHeck the length of evaluations insde the proof
 
@@ -304,7 +303,7 @@ library KimchiPartialVerifier {
         Scalar.FE gamma,
         AlphasIterator memory alphas,
         Scalar.FE zkp_zeta
-    ) internal view returns (Scalar.FE res) {
+    ) public view returns (Scalar.FE res) {
         require(alphas.powers.length - alphas.current_index == 3, "not enough powers of alpha for permutation");
 
         Scalar.FE alpha0 = alphas.it_next();
