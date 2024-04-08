@@ -36,7 +36,7 @@ contract KimchiVerifier {
     using {register} for Alphas;
 
     Proof.ProverProof proof;
-    VerifierIndex verifier_index;
+    VerifierIndexLib.VerifierIndex verifier_index;
     URS urs;
     Scalar.FE[] public_inputs;
 

@@ -9,7 +9,7 @@ import "../lib/msgpack/Deserialize.sol";
 import "forge-std/console.sol";
 
 contract Serialize is Script {
-    VerifierIndex verifier_index;
+    VerifierIndexLib.VerifierIndex verifier_index;
 
     function run() public {
         bytes memory verifier_index_serialized = vm.readFileBinary("verifier_index.mpk");

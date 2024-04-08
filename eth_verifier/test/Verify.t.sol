@@ -18,7 +18,7 @@ contract KimchiVerifierTest is Test {
     bytes linearization_serialized_rlp;
     bytes public_inputs_serialized;
 
-    VerifierIndex test_verifier_index;
+    VerifierIndexLib.VerifierIndex test_verifier_index;
     Sponge sponge;
 
     function setUp() public {

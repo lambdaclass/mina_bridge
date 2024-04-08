@@ -27,7 +27,7 @@ using {Proof.get_column_eval} for Proof.ProofEvaluations;
 contract KimchiVerifierDemo {
     using {register} for Alphas;
 
-    VerifierIndex verifier_index;
+    VerifierIndexLib.VerifierIndex verifier_index;
     Proof.ProverProof proof;
     URS urs;
     Scalar.FE[] public_inputs;

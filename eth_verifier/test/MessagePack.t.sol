@@ -10,7 +10,7 @@ import "../lib/Proof.sol";
 import "../lib/Commitment.sol";
 
 contract MessagePackTest is Test {
-    VerifierIndex index;
+    VerifierIndexLib.VerifierIndex index;
 
     bytes public_inputs_serialized;
 

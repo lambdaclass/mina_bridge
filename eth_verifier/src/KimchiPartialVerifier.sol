@@ -40,7 +40,7 @@ library KimchiPartialVerifier {
     // This takes Kimchi's `to_batch()` as reference.
     function partial_verify(
         Proof.ProverProof storage proof,
-        VerifierIndex storage verifier_index,
+        VerifierIndexLib.VerifierIndex storage verifier_index,
         URS storage urs,
         Scalar.FE[] memory public_inputs,
         uint256[444] storage lagrange_bases_components, // flattened pairs of (x, y) coords
@@ -109,7 +109,7 @@ library KimchiPartialVerifier {
             );
 
             scalars[i_commitments + 1] = scalar;
-            commitments[i_commitments + 1] = get_column_commitment(verifier_index, proof, col);
+            commitments[i_commitments + 1] = VerifierIndexLib.get_column_commitment(verifier_index, proof, col);
             ++i_commitments;
         }
         BN254.G1Point memory f_comm = msm(commitments, scalars);
@@ -180,7 +180,7 @@ library KimchiPartialVerifier {
             columns[col_index++] = Column(ColumnVariant.Index, abi.encode(GateType.Rot64));
         }
         if (verifier_index.is_lookup_index_set) {
-            LookupVerifierIndex memory li = verifier_index.lookup_index;
+            VerifierIndexLib.LookupVerifierIndex memory li = verifier_index.lookup_index;
             for (uint256 i = 0; i < li.lookup_info.max_per_row + 1; i++) {
                 columns[col_index++] = Column(ColumnVariant.LookupSorted, abi.encode(i));
             }
@@ -190,11 +190,11 @@ library KimchiPartialVerifier {
         for (uint256 i = 0; i < col_index; i++) {
             PointEvaluations memory eval = Proof.get_column_eval(proof.evals, columns[i]);
             evaluations[eval_index++] =
-                Evaluation(get_column_commitment(verifier_index, proof, columns[i]), [eval.zeta, eval.zeta_omega], 0);
+                Evaluation(VerifierIndexLib.get_column_commitment(verifier_index, proof, columns[i]), [eval.zeta, eval.zeta_omega], 0);
         }
 
         if (verifier_index.is_lookup_index_set) {
-            LookupVerifierIndex memory li = verifier_index.lookup_index;
+            VerifierIndexLib.LookupVerifierIndex memory li = verifier_index.lookup_index;
             if (!Proof.is_field_set(proof.commitments, LOOKUP_SORTED_COMM_FLAG)) {
                 revert("missing lookup commitments"); // TODO: error
             }
@@ -237,31 +237,31 @@ library KimchiPartialVerifier {
                 Column memory col = Column(ColumnVariant.LookupRuntimeSelector, new bytes(0));
                 PointEvaluations memory eval = proof.evals.get_column_eval(col);
                 evaluations[eval_index++] =
-                    Evaluation(get_column_commitment(verifier_index, proof, col), [eval.zeta, eval.zeta_omega], 0);
+                    Evaluation(VerifierIndexLib.get_column_commitment(verifier_index, proof, col), [eval.zeta, eval.zeta_omega], 0);
             }
             if (li.lookup_selectors.is_xor_set) {
                 Column memory col = Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.Xor));
                 PointEvaluations memory eval = proof.evals.get_column_eval(col);
                 evaluations[eval_index++] =
-                    Evaluation(get_column_commitment(verifier_index, proof, col), [eval.zeta, eval.zeta_omega], 0);
+                    Evaluation(VerifierIndexLib.get_column_commitment(verifier_index, proof, col), [eval.zeta, eval.zeta_omega], 0);
             }
             if (li.lookup_selectors.is_lookup_set) {
                 Column memory col = Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.Lookup));
                 PointEvaluations memory eval = proof.evals.get_column_eval(col);
                 evaluations[eval_index++] =
-                    Evaluation(get_column_commitment(verifier_index, proof, col), [eval.zeta, eval.zeta_omega], 0);
+                    Evaluation(VerifierIndexLib.get_column_commitment(verifier_index, proof, col), [eval.zeta, eval.zeta_omega], 0);
             }
             if (li.lookup_selectors.is_range_check_set) {
                 Column memory col = Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.RangeCheck));
                 PointEvaluations memory eval = proof.evals.get_column_eval(col);
                 evaluations[eval_index++] =
-                    Evaluation(get_column_commitment(verifier_index, proof, col), [eval.zeta, eval.zeta_omega], 0);
+                    Evaluation(VerifierIndexLib.get_column_commitment(verifier_index, proof, col), [eval.zeta, eval.zeta_omega], 0);
             }
             if (li.lookup_selectors.is_ffmul_set) {
                 Column memory col = Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.ForeignFieldMul));
                 PointEvaluations memory eval = proof.evals.get_column_eval(col);
                 evaluations[eval_index++] =
-                    Evaluation(get_column_commitment(verifier_index, proof, col), [eval.zeta, eval.zeta_omega], 0);
+                    Evaluation(VerifierIndexLib.get_column_commitment(verifier_index, proof, col), [eval.zeta, eval.zeta_omega], 0);
             }
         }
 
@@ -271,7 +271,7 @@ library KimchiPartialVerifier {
     }
 
     function public_commitment(
-        VerifierIndex storage verifier_index,
+        VerifierIndexLib.VerifierIndex storage verifier_index,
         URS storage urs,
         Scalar.FE[] memory public_inputs,
         uint256[444] storage lagrange_bases_components // flattened pairs of (x, y) coords

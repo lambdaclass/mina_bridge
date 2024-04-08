@@ -353,7 +353,7 @@ library MsgPk {
         return (false, PolyComm(new BN254.G1Point[](0), BN254.point_at_inf()));
     }
 
-    function deser_lookup_verifier_index(EncodedMap memory map, LookupVerifierIndex storage index) public {
+    function deser_lookup_verifier_index(EncodedMap memory map, VerifierIndexLib.LookupVerifierIndex storage index) public {
         // lookup table
         EncodedArray memory lookup_table_arr = abi.decode(find_value(map, abi.encode("lookup_table")), (EncodedArray));
         uint256 lookup_table_len = lookup_table_arr.values.length;
@@ -386,7 +386,7 @@ library MsgPk {
         index.lookup_info.max_joint_size = abi.decode(find_value_str(lookup_info_map, "max_joint_size"), (uint256));
     }
 
-    function deser_verifier_index(Stream memory self, VerifierIndex storage index) external {
+    function deser_verifier_index(Stream memory self, VerifierIndexLib.VerifierIndex storage index) external {
         EncodedMap memory map = deser_map16(self);
         index.public_len = abi.decode(find_value(map, abi.encode("public")), (uint256));
         index.max_poly_size = abi.decode(find_value(map, abi.encode("max_poly_size")), (uint256));
@@ -526,7 +526,7 @@ library MsgPk {
         // deser_lagrange_bases(lagrange_b_serialized, urs.lagrange_bases_unshifted);
     }
 
-    function deser_linearization(Stream memory self, VerifierIndex storage index) public {
+    function deser_linearization(Stream memory self, VerifierIndexLib.VerifierIndex storage index) public {
         // TODO: only constant_term is deserialized right now.
         EncodedArray memory arr = deser_arr32(self);
 
