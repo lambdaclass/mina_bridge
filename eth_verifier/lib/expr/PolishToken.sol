@@ -39,7 +39,7 @@ library PolishTokenEvaluation {
         uint256 domain_size,
         Scalar.FE pt,
         Scalar.FE vanishing_eval,
-        ProofEvaluations memory evals,
+        Proof.ProofEvaluations memory evals,
         ExprConstants memory c
     ) external view returns (Scalar.FE) {
         Scalar.FE vanishing_eval = evaluate_vanishing_polynomial(
@@ -136,7 +136,7 @@ library PolishTokenEvaluation {
             }
             if (v == PolishTokenVariant.Cell) {
                 Variable memory x = abi.decode(v_data, (Variable));
-                stack[stack_next] = evaluate_variable(x, evals);
+                stack[stack_next] = Proof.evaluate_variable(x, evals);
                 stack_next += 1;
                 continue;
             }

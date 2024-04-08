@@ -32,10 +32,10 @@ contract KimchiVerifier {
     using {get_alphas} for Alphas;
     using {it_next} for AlphasIterator;
     using {sub_polycomms, scale_polycomm} for PolyComm;
-    using {get_column_eval} for ProofEvaluations;
+    using {Proof.get_column_eval} for Proof.ProofEvaluations;
     using {register} for Alphas;
 
-    ProverProof proof;
+    Proof.ProverProof proof;
     VerifierIndex verifier_index;
     URS urs;
     Scalar.FE[] public_inputs;
@@ -79,7 +79,7 @@ contract KimchiVerifier {
         deserialize_proof(
             verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
         );
-        AggregatedEvaluationProof memory agg_proof = KimchiPartialVerifier.partial_verify(
+        Proof.AggregatedEvaluationProof memory agg_proof = KimchiPartialVerifier.partial_verify(
             proof,
             verifier_index,
             urs,
@@ -112,7 +112,7 @@ contract KimchiVerifier {
         6. Check numerator == scaled_quotient
     */
 
-    function final_verify(AggregatedEvaluationProof memory agg_proof) public view returns (bool) {
+    function final_verify(Proof.AggregatedEvaluationProof memory agg_proof) public view returns (bool) {
         Evaluation[] memory evaluations = agg_proof.evaluations;
         Scalar.FE[2] memory evaluation_points = agg_proof.evaluation_points;
         Scalar.FE polyscale = agg_proof.polyscale;

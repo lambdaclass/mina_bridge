@@ -31,7 +31,7 @@ library KimchiPartialVerifier {
     using {get_alphas} for Alphas;
     using {it_next} for AlphasIterator;
     using {sub_polycomms, scale_polycomm} for PolyComm;
-    using {get_column_eval} for ProofEvaluations;
+    using {Proof.get_column_eval} for Proof.ProofEvaluations;
     using {register} for Alphas;
 
     error IncorrectPublicInputLength();
@@ -39,14 +39,14 @@ library KimchiPartialVerifier {
 
     // This takes Kimchi's `to_batch()` as reference.
     function partial_verify(
-        ProverProof storage proof,
+        Proof.ProverProof storage proof,
         VerifierIndex storage verifier_index,
         URS storage urs,
         Scalar.FE[] memory public_inputs,
         uint256[444] storage lagrange_bases_components, // flattened pairs of (x, y) coords
         Sponge storage base_sponge,
         Sponge storage scalar_sponge
-    ) external returns (AggregatedEvaluationProof memory) {
+    ) external returns (Proof.AggregatedEvaluationProof memory) {
         // TODO: 1. CHeck the length of evaluations insde the proof
 
         // 2. Commit to the negated public input polynomial.
@@ -67,7 +67,7 @@ library KimchiPartialVerifier {
 
         //ProofEvaluations memory evals = proof.evals.combine_evals(oracles_res.powers_of_eval_points_for_chunks);
         // INFO: There's only one evaluation per polynomial so there's nothing to combine
-        ProofEvaluations memory evals = proof.evals;
+        Proof.ProofEvaluations memory evals = proof.evals;
 
         // 5. Compute the commitment to the linearized polynomial $f$.
         Scalar.FE permutation_vanishing_polynomial = Polynomial.eval_vanishes_on_last_n_rows(
@@ -188,18 +188,18 @@ library KimchiPartialVerifier {
         }
         // push all commitments corresponding to each column
         for (uint256 i = 0; i < col_index; i++) {
-            PointEvaluations memory eval = get_column_eval(proof.evals, columns[i]);
+            PointEvaluations memory eval = Proof.get_column_eval(proof.evals, columns[i]);
             evaluations[eval_index++] =
                 Evaluation(get_column_commitment(verifier_index, proof, columns[i]), [eval.zeta, eval.zeta_omega], 0);
         }
 
         if (verifier_index.is_lookup_index_set) {
             LookupVerifierIndex memory li = verifier_index.lookup_index;
-            if (!is_field_set(proof.commitments, LOOKUP_SORTED_COMM_FLAG)) {
+            if (!Proof.is_field_set(proof.commitments, LOOKUP_SORTED_COMM_FLAG)) {
                 revert("missing lookup commitments"); // TODO: error
             }
             PointEvaluations memory lookup_evals = proof.evals.lookup_table;
-            if (!is_field_set(proof.evals, LOOKUP_TABLE_EVAL_FLAG)) {
+            if (!Proof.is_field_set(proof.evals, LOOKUP_TABLE_EVAL_FLAG)) {
                 revert("missing lookup table eval");
             }
             PointEvaluations memory lookup_table = proof.evals.lookup_table;
@@ -207,13 +207,13 @@ library KimchiPartialVerifier {
             Scalar.FE joint_combiner = oracles.joint_combiner_field;
             Scalar.FE table_id_combiner = joint_combiner.pow(li.lookup_info.max_joint_size);
 
-            PolyComm memory table_comm = combine_table(
+            PolyComm memory table_comm = Proof.combine_table(
                 li.lookup_table,
                 joint_combiner,
                 table_id_combiner,
                 li.is_table_ids_set,
                 li.table_ids,
-                is_field_set(proof.commitments, LOOKUP_RUNTIME_COMM_FLAG),
+                Proof.is_field_set(proof.commitments, LOOKUP_RUNTIME_COMM_FLAG),
                 proof.commitments.lookup_runtime
             );
 
@@ -221,11 +221,11 @@ library KimchiPartialVerifier {
                 Evaluation(table_comm.unshifted[0], [lookup_table.zeta, lookup_table.zeta_omega], 0);
 
             if (li.is_runtime_tables_selector_set) {
-                if (!is_field_set(proof.commitments, LOOKUP_RUNTIME_COMM_FLAG)) {
+                if (!Proof.is_field_set(proof.commitments, LOOKUP_RUNTIME_COMM_FLAG)) {
                     revert("missing lookup runtime commitment");
                 }
                 BN254.G1Point memory runtime = proof.commitments.lookup_runtime;
-                if (!is_field_set(proof.evals, RUNTIME_LOOKUP_TABLE_EVAL_FLAG)) {
+                if (!Proof.is_field_set(proof.evals, RUNTIME_LOOKUP_TABLE_EVAL_FLAG)) {
                     revert("missing runtime lookup table eval");
                 }
                 PointEvaluations memory runtime_eval = proof.evals.runtime_lookup_table;
@@ -267,7 +267,7 @@ library KimchiPartialVerifier {
 
         Scalar.FE[2] memory evaluation_points = [oracles.zeta, oracles.zeta.mul(verifier_index.domain_gen)];
 
-        return AggregatedEvaluationProof(evaluations, evaluation_points, oracles.v, proof.opening);
+        return Proof.AggregatedEvaluationProof(evaluations, evaluation_points, oracles.v, proof.opening);
     }
 
     function public_commitment(
@@ -306,7 +306,7 @@ library KimchiPartialVerifier {
     }
 
     function perm_scalars(
-        ProofEvaluations memory e,
+        Proof.ProofEvaluations memory e,
         Scalar.FE beta,
         Scalar.FE gamma,
         AlphasIterator memory alphas,
