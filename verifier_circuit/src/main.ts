@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync } from "fs";
 import { deserOpeningProof } from "./serde/serde_proof.js";
 import testInputs from "../test_data/inputs.json" assert { type: "json" };
 import { Verifier } from "./verifier/verifier.js";
+import { ForeignScalar } from "./foreign_fields/foreign_scalar.js";
 
 let inputs;
 try {
@@ -17,9 +18,10 @@ try {
 
 console.log("Generating verifier circuit keypair...");
 let openingProof = deserOpeningProof(inputs);
+let single_pub_input = ForeignScalar.from(1);
 let keypair = await Verifier.generateKeypair();
 console.log("Proving...");
-let { value } = await Verifier.prove([], [openingProof], keypair);
+let { value } = await Verifier.prove([], [single_pub_input], keypair);
 console.log("Writing proof into file...");
 let proof_with_public = (value as string[])[1];
 let index = (value as string[])[2];

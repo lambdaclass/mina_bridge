@@ -12,4 +12,8 @@ export class ForeignScalar extends createForeignFieldBn254(Scalar.ORDER).AlmostR
     static toFields(one: ForeignScalar) {
         return ForeignScalar.provable.toFields(one);
     }
+
+    static check(_: ForeignScalar) {
+
+    }
 }

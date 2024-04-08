@@ -44,7 +44,7 @@ contract KimchiVerifierTest is Test {
             verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
         );
 
-        //require(success, "Verification failed!");
+        require(success, "Verification failed!");
     }
 
     function test_partial_verify() public {
