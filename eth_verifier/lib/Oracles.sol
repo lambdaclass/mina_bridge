@@ -266,10 +266,10 @@ library Oracles {
         ExprConstants memory constants =
             ExprConstants(alpha, beta, gamma, joint_combiner_field, index.endo, index.zk_rows);
 
-        Scalar.FE vanishing_eval = evaluate_vanishing_polynomial(index.domain_gen, index.domain_size, zeta);
+        Scalar.FE vanishing_eval = PolishTokenEvaluation.evaluate_vanishing_polynomial(index.domain_gen, index.domain_size, zeta);
 
         ft_eval0 = ft_eval0.sub(
-            evaluate(
+            PolishTokenEvaluation.evaluate(
                 index.linearization.constant_term,
                 index.domain_gen,
                 index.domain_size,

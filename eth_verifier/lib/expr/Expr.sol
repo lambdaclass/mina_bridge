@@ -95,11 +95,11 @@ enum GateType {
 // @notice non-independent term of a linearization
 struct LinearTerm {
     Column col;
-    PolishToken[] coeff;
+    PolishTokenEvaluation.PolishToken[] coeff;
 }
 
 // @notice a linear combination of coefficients and columns
 struct Linearization {
-    PolishToken[] constant_term;
+    PolishTokenEvaluation.PolishToken[] constant_term;
     LinearTerm[] index_terms;
 }

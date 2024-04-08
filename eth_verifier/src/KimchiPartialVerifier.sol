@@ -96,9 +96,9 @@ library KimchiPartialVerifier {
         uint256 i_commitments = 0;
         while (i_commitments < linear.index_terms.length) {
             Column memory col = linear.index_terms[i_commitments].col;
-            PolishToken[] memory tokens = linear.index_terms[i_commitments].coeff;
+            PolishTokenEvaluation.PolishToken[] memory tokens = linear.index_terms[i_commitments].coeff;
 
-            Scalar.FE scalar = evaluate(
+            Scalar.FE scalar = PolishTokenEvaluation.evaluate(
                 tokens,
                 verifier_index.domain_gen,
                 verifier_index.domain_size,

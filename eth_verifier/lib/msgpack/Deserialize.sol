@@ -530,7 +530,7 @@ library MsgPk {
         // TODO: only constant_term is deserialized right now.
         EncodedArray memory arr = deser_arr32(self);
 
-        PolishToken[] memory constant_term = new PolishToken[](arr.values.length);
+        PolishTokenEvaluation.PolishToken[] memory constant_term = new PolishTokenEvaluation.PolishToken[](arr.values.length);
         for (uint256 i = 0; i < arr.values.length; i++) {
             EncodedMap memory value_map = abi.decode(arr.values[i], (EncodedMap));
             constant_term[i] = deser_polishtoken(value_map);
@@ -651,33 +651,33 @@ library MsgPk {
         // TODO: remaining variants
     }
 
-    function deser_polishtoken(EncodedMap memory map) public view returns (PolishToken memory) {
+    function deser_polishtoken(EncodedMap memory map) public view returns (PolishTokenEvaluation.PolishToken memory) {
         // if its a unit variant (meaning that it doesn't have associated data):
         (bytes memory unit_value, bool is_unit) = find_value_or_fail(map, abi.encode("variant"));
         if (is_unit) {
             string memory variant = abi.decode(unit_value, (string));
             if (Utils.str_cmp(variant, "alpha")) {
-                return PolishToken(PolishTokenVariant.Alpha, new bytes(0));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.Alpha, new bytes(0));
             } else if (Utils.str_cmp(variant, "beta")) {
-                return PolishToken(PolishTokenVariant.Beta, new bytes(0));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.Beta, new bytes(0));
             } else if (Utils.str_cmp(variant, "gamma")) {
-                return PolishToken(PolishTokenVariant.Gamma, new bytes(0));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.Gamma, new bytes(0));
             } else if (Utils.str_cmp(variant, "jointcombiner")) {
-                return PolishToken(PolishTokenVariant.JointCombiner, new bytes(0));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.JointCombiner, new bytes(0));
             } else if (Utils.str_cmp(variant, "endocoefficient")) {
-                return PolishToken(PolishTokenVariant.EndoCoefficient, new bytes(0));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.EndoCoefficient, new bytes(0));
             } else if (Utils.str_cmp(variant, "dup")) {
-                return PolishToken(PolishTokenVariant.Dup, new bytes(0));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.Dup, new bytes(0));
             } else if (Utils.str_cmp(variant, "add")) {
-                return PolishToken(PolishTokenVariant.Add, new bytes(0));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.Add, new bytes(0));
             } else if (Utils.str_cmp(variant, "mul")) {
-                return PolishToken(PolishTokenVariant.Mul, new bytes(0));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.Mul, new bytes(0));
             } else if (Utils.str_cmp(variant, "sub")) {
-                return PolishToken(PolishTokenVariant.Sub, new bytes(0));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.Sub, new bytes(0));
             } else if (Utils.str_cmp(variant, "vanishesonzeroknowledgeandpreviousrows")) {
-                return PolishToken(PolishTokenVariant.VanishesOnZeroKnowledgeAndPreviousRows, new bytes(0));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.VanishesOnZeroKnowledgeAndPreviousRows, new bytes(0));
             } else if (Utils.str_cmp(variant, "store")) {
-                return PolishToken(PolishTokenVariant.Store, new bytes(0));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.Store, new bytes(0));
             }
         } else {
             (bytes memory mds_value, bool is_mds) = find_value_or_fail(map, abi.encode("mds"));
@@ -685,14 +685,14 @@ library MsgPk {
                 EncodedMap memory mds_map = abi.decode(mds_value, (EncodedMap));
                 uint256 row = abi.decode(find_value(mds_map, abi.encode("row")), (uint256));
                 uint256 col = abi.decode(find_value(mds_map, abi.encode("col")), (uint256));
-                return PolishToken(PolishTokenVariant.Mds, abi.encode(PolishTokenMds(row, col)));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.Mds, abi.encode(PolishTokenEvaluation.PolishTokenMds(row, col)));
             }
             (bytes memory literal_value, bool is_literal) = find_value_or_fail(map, abi.encode("literal"));
             if (is_literal) {
                 // literal serializes as an array
                 EncodedArray memory literal_arr = abi.decode(literal_value, (EncodedArray));
                 uint256 inner_int = Utils.padded_le_bytes_array_to_uint256(literal_arr.values);
-                return PolishToken(PolishTokenVariant.Literal, abi.encode(inner_int));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.Literal, abi.encode(inner_int));
             }
             (bytes memory cell_value, bool is_cell) = find_value_or_fail(map, abi.encode("variable"));
             if (is_cell) {
@@ -709,21 +709,21 @@ library MsgPk {
                 Column memory col = deser_column(find_value(variable_map, abi.encode("col")));
 
                 Variable memory variable = Variable(col, row);
-                return PolishToken(PolishTokenVariant.Cell, abi.encode(variable));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.Cell, abi.encode(variable));
             }
             (bytes memory pow_value, bool is_pow) = find_value_or_fail(map, abi.encode("pow"));
             if (is_pow) {
                 uint256 pow = abi.decode(pow_value, (uint256));
-                return PolishToken(PolishTokenVariant.Pow, abi.encode(pow));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.Pow, abi.encode(pow));
             }
             (bytes memory ulag_value, bool is_ulag) = find_value_or_fail(map, abi.encode("rowoffset"));
             if (is_ulag) {
-                return PolishToken(PolishTokenVariant.UnnormalizedLagrangeBasis, ulag_value);
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.UnnormalizedLagrangeBasis, ulag_value);
             }
             (bytes memory load_value, bool is_load) = find_value_or_fail(map, abi.encode("load"));
             if (is_load) {
                 uint256 i = abi.decode(load_value, (uint256));
-                return PolishToken(PolishTokenVariant.Load, abi.encode(i));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.Load, abi.encode(i));
             }
         }
     }
