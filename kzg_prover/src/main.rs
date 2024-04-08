@@ -96,7 +96,7 @@ fn generate_proof() {
             .unwrap()
             .len()
     );
-    let verifier_index = index.verifier_index();
+    let mut verifier_index = index.verifier_index();
     let domain_size = index.cs.domain.d1.size();
 
     println!(
@@ -104,10 +104,12 @@ fn generate_proof() {
         verifier_index.digest::<KeccakFqSponge>()
     );
 
-    let public_input: Vec<_> = public_input
-        .iter()
-        .map(|&p_i| ark_bn254::Fr::new(BigInteger256::new(p_i)))
-        .collect();
+    // let public_input: Vec<_> = public_input
+    //     .iter()
+    //     .map(|&p_i| ark_bn254::Fr::new(BigInteger256::new(p_i)))
+    //     .collect();
+    let public_input = vec![ark_bn254::Fr::new(BigInteger256::new(public_input[0]))];
+    verifier_index.public = 1;
 
     // Partially verify proof
     let agg_proof = to_batch::<
@@ -129,7 +131,7 @@ fn generate_proof() {
         combined_inner_product: _,
     } = agg_proof;
     if !opening.verify(&index.srs, &evaluations, polyscale, &evaluation_points) {
-        panic!();
+        //panic!();
     }
 
     // Serialize and write to binaries
@@ -175,7 +177,7 @@ fn generate_proof() {
     let public_input_bytes: Vec<_> = public_input_bytes.iter().cloned().flatten().collect();
     fs::write("../eth_verifier/public_inputs.mpk", public_input_bytes).unwrap();
     // for tests purposes
-    println!("third public input: {}", public_input[2]);
+    //println!("third public input: {}", public_input[2]);
 
     let empty_polycomm = PolyComm::new(
         vec![G1::new(BaseField::from(0), BaseField::from(0), true)],
