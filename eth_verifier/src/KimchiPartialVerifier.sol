@@ -26,6 +26,14 @@ using {it_next} for AlphasIterator;
 using {sub_polycomms, scale_polycomm} for PolyComm;
 
 library KimchiPartialVerifier {
+    using {BN254.add, BN254.neg, BN254.scale_scalar, BN254.sub} for BN254.G1Point;
+    using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
+    using {get_alphas} for Alphas;
+    using {it_next} for AlphasIterator;
+    using {sub_polycomms, scale_polycomm} for PolyComm;
+    using {get_column_eval} for ProofEvaluations;
+    using {register} for Alphas;
+
     error IncorrectPublicInputLength();
     error PolynomialsAreChunked(uint256 chunk_size);
 
@@ -34,8 +42,8 @@ library KimchiPartialVerifier {
         ProverProof storage proof,
         VerifierIndex storage verifier_index,
         URS storage urs,
-        Scalar.FE[] storage public_inputs,
-        uint256[] storage lagrange_bases_components, // flattened pairs of (x, y) coords
+        Scalar.FE[] memory public_inputs,
+        uint256[444] storage lagrange_bases_components, // flattened pairs of (x, y) coords
         Sponge storage base_sponge,
         Sponge storage scalar_sponge
     ) external returns (AggregatedEvaluationProof memory) {
@@ -265,8 +273,8 @@ library KimchiPartialVerifier {
     function public_commitment(
         VerifierIndex storage verifier_index,
         URS storage urs,
-        Scalar.FE[] storage public_inputs,
-        uint256[] storage lagrange_bases_components // flattened pairs of (x, y) coords
+        Scalar.FE[] memory public_inputs,
+        uint256[444] storage lagrange_bases_components // flattened pairs of (x, y) coords
     ) public view returns (BN254.G1Point memory) {
         if (verifier_index.domain_size < verifier_index.max_poly_size) {
             revert PolynomialsAreChunked(verifier_index.domain_size / verifier_index.max_poly_size);

@@ -88,7 +88,7 @@ contract KimchiVerifier {
             base_sponge,
             scalar_sponge
         );
-        return final_verify(agg_proof, urs.verifier_urs);
+        return final_verify(agg_proof);
     }
 
     /*
