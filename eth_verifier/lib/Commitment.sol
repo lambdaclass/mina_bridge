@@ -14,7 +14,7 @@ using {Scalar.neg, Scalar.add, Scalar.sub, Scalar.mul, Scalar.inv, Scalar.double
 error MSMInvalidLengths();
 
 struct URS {
-    BN254.G1Point[] g;
+    BN254.G1Point[3] g;
     BN254.G1Point h;
 }
 

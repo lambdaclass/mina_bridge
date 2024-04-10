@@ -514,7 +514,13 @@ contract KimchiVerifier {
         eval_poly_coeffs[0] = b;
         eval_poly_coeffs[1] = a;
 
-        return msm(full_urs.g, eval_poly_coeffs);
+        // Convert fixed array to dynamic
+        BN254.G1Point[] memory urs_g = new BN254.G1Point[](full_urs.g.length);
+        for (uint256 i = 0; i < urs_g.length; i++) {
+            urs_g[i] = full_urs.g[i];
+        }
+
+        return msm(urs_g, eval_poly_coeffs);
     }
 
     /// @notice This is used exclusively in `test_PartialVerify()`.
