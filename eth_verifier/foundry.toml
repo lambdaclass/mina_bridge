@@ -18,3 +18,7 @@ fs_permissions = [
 ]
 solc = "0.8.21"
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+
+[etherscan]
+#                 Paste TENDERLY_ACCESS_KEY      Chain ID          Verification URL: RPC_URL/verify/etherscan
+unknown_chain = { key = <access key>, chain = 11155111, url = "https://api.tenderly.co/api/v1/account/<introduce account>/project/<introduce project>/etherscan/verify/devnet/<resource id> " }
