@@ -23,13 +23,14 @@ contract Verify is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         KimchiVerifier verifier = new KimchiVerifier();
-        verifier.setup(urs_serialized);
+        verifier.setup();
 
         bool success = verifier.verify_with_index(
             verifier_index_serialized,
             prover_proof_serialized,
             linearization_serialized_rlp,
-            public_inputs_serialized
+            public_inputs_serialized,
+            urs_serialized
         );
 
         require(success, "Verification failed.");

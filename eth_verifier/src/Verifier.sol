@@ -48,9 +48,7 @@ contract KimchiVerifier {
     State internal state;
     bool state_available;
 
-    function setup(bytes memory urs_serialized) public {
-        MsgPk.deser_pairing_urs(MsgPk.new_stream(urs_serialized), urs);
-
+    function setup() public {
         // INFO: powers of alpha are fixed for a given constraint system, so we can hard-code them.
         verifier_index.powers_of_alpha.register(ArgumentType.GateZero, VARBASEMUL_CONSTRAINTS);
         verifier_index.powers_of_alpha.register(ArgumentType.Permutation, PERMUTATION_CONSTRAINTS);
@@ -64,22 +62,29 @@ contract KimchiVerifier {
         bytes calldata verifier_index_serialized,
         bytes calldata prover_proof_serialized,
         bytes calldata linearization_serialized_rlp,
-        bytes calldata public_inputs_serialized
+        bytes calldata public_inputs_serialized,
+        bytes memory urs_serialized
     ) public {
         MsgPk.deser_verifier_index(MsgPk.new_stream(verifier_index_serialized), verifier_index);
         deser_prover_proof(prover_proof_serialized, proof);
         verifier_index.linearization = abi.decode(linearization_serialized_rlp, (Linearization));
         public_inputs = MsgPk.deser_public_inputs(public_inputs_serialized);
+        MsgPk.deser_pairing_urs(MsgPk.new_stream(urs_serialized), urs);
     }
 
     function verify_with_index(
         bytes calldata verifier_index_serialized,
         bytes calldata prover_proof_serialized,
         bytes calldata linearization_serialized_rlp,
-        bytes calldata public_inputs_serialized
+        bytes calldata public_inputs_serialized,
+        bytes memory urs_serialized
     ) public returns (bool) {
         deserialize_proof(
-            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
+            verifier_index_serialized,
+            prover_proof_serialized,
+            linearization_serialized_rlp,
+            public_inputs_serialized,
+            urs_serialized
         );
         AggregatedEvaluationProof memory agg_proof = partial_verify();
         return final_verify(agg_proof);

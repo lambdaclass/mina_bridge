@@ -38,10 +38,14 @@ contract KimchiVerifierTest is Test {
     function test_verify_with_index() public {
         KimchiVerifier verifier = new KimchiVerifier();
 
-        verifier.setup(urs_serialized);
+        verifier.setup();
 
         bool success = verifier.verify_with_index(
-            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
+            verifier_index_serialized,
+            prover_proof_serialized,
+            linearization_serialized_rlp,
+            public_inputs_serialized,
+            urs_serialized
         );
 
         require(success, "Verification failed!");
@@ -50,10 +54,14 @@ contract KimchiVerifierTest is Test {
     function test_partial_verify() public {
         KimchiVerifier verifier = new KimchiVerifier();
 
-        verifier.setup(urs_serialized);
+        verifier.setup();
 
         verifier.deserialize_proof(
-            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
+            verifier_index_serialized,
+            prover_proof_serialized,
+            linearization_serialized_rlp,
+            public_inputs_serialized,
+            urs_serialized
         );
 
         AggregatedEvaluationProof memory agg_proof = verifier.partial_verify();
@@ -65,10 +73,14 @@ contract KimchiVerifierTest is Test {
     function test_eval_commitment() public {
         KimchiVerifier verifier = new KimchiVerifier();
 
-        verifier.setup(urs_serialized);
+        verifier.setup();
 
         verifier.deserialize_proof(
-            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
+            verifier_index_serialized,
+            prover_proof_serialized,
+            linearization_serialized_rlp,
+            public_inputs_serialized,
+            urs_serialized
         );
 
         Scalar.FE[2] memory evaluation_points = [
@@ -97,10 +109,14 @@ contract KimchiVerifierTest is Test {
     function test_divisor_commitment() public {
         KimchiVerifier verifier = new KimchiVerifier();
 
-        verifier.setup(urs_serialized);
+        verifier.setup();
 
         verifier.deserialize_proof(
-            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
+            verifier_index_serialized,
+            prover_proof_serialized,
+            linearization_serialized_rlp,
+            public_inputs_serialized,
+            urs_serialized
         );
 
         Scalar.FE[2] memory evaluation_points = [
@@ -117,10 +133,14 @@ contract KimchiVerifierTest is Test {
     function test_public_commitment() public {
         KimchiVerifier verifier = new KimchiVerifier();
 
-        verifier.setup(urs_serialized);
+        verifier.setup();
 
         verifier.deserialize_proof(
-            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
+            verifier_index_serialized,
+            prover_proof_serialized,
+            linearization_serialized_rlp,
+            public_inputs_serialized,
+            urs_serialized
         );
 
         BN254.G1Point memory public_commitment = verifier.public_commitment();
