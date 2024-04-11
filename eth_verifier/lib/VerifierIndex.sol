@@ -102,6 +102,83 @@ struct VerifierIndex {
     Scalar.FE endo;
 }
 
+struct NewVerifierIndex {
+    // each bit represents the presence (1) or absence (0) of an
+    // optional field.
+    uint256 optional_field_flags;
+
+    // domain
+    uint64 domain_size;
+    Scalar.FE domain_gen;
+    // maximal size of polynomial section
+    uint256 max_poly_size;
+    // the number of randomized rows to achieve zero knowledge
+    uint64 zk_rows;
+    // number of public inputs
+    uint256 public_len;
+
+    /// The mapping between powers of alpha and constraints
+    Alphas powers_of_alpha;
+
+    // polynomial commitments
+
+    // permutation commitment array
+    BN254.G1Point[7] sigma_comm; // TODO: use Constants.PERMUTS
+    // coefficient commitment array
+    BN254.G1Point[15] coefficients_comm; // TODO: use Constants.COLUMNS
+    // TODO: doc
+    BN254.G1Point generic_comm;
+
+    // poseidon constraint selector polynomial commitment
+    BN254.G1Point psm_comm;
+
+    // ECC arithmetic polynomial commitments
+
+    // EC addition selector polynomial commitment
+    BN254.G1Point complete_add_comm;
+    // EC variable base scalar multiplication selector polynomial commitment
+    BN254.G1Point mul_comm;
+    // endoscalar multiplication selector polynomial commitment
+    BN254.G1Point emul_comm;
+    // endoscalar multiplication scalar computation selector polynomial commitment
+    BN254.G1Point endomul_scalar_comm;
+
+    // RangeCheck0 polynomial commitments
+    BN254.G1Point range_check0_comm; // INFO: optional
+
+    // RangeCheck1 polynomial commitments
+    BN254.G1Point range_check1_comm; // INFO: optional
+
+    // Foreign field addition gates polynomial commitments
+    BN254.G1Point foreign_field_add_comm; // INFO: optional
+
+    // Foreign field multiplication gates polynomial commitments
+    BN254.G1Point foreign_field_mul_comm; // INFO: optional
+
+    // Xor commitments
+    BN254.G1Point xor_comm; // INFO: optional
+
+    // Rot commitments
+    BN254.G1Point rot_comm; // INFO: optional
+
+    // wire shift coordinates
+    Scalar.FE[7] shift; // TODO: use Consants.PERMUTS
+
+    /// domain offset for zero-knowledge
+    Scalar.FE w;
+
+    LookupVerifierIndex lookup_index; // INFO: optional
+    Linearization linearization;
+
+    bool is_lookup_index_set;
+
+    Scalar.FE endo;
+
+    // this is used for generating the index's digest
+    Sponge sponge;
+
+}
+
 struct LookupVerifierIndex {
     PolyComm[] lookup_table;
     LookupSelectors lookup_selectors;
@@ -115,6 +192,19 @@ struct LookupVerifierIndex {
     // an optional selector polynomial for runtime tables
     PolyComm runtime_tables_selector; // INFO: optional
     bool is_runtime_tables_selector_set;
+}
+
+struct NewLookupVerifierIndex {
+    BN254.G1Point[] lookup_table;
+    NewLookupSelectors lookup_selectors;
+    NewLookupInfo lookup_info;
+
+    // table IDs for the lookup values.
+    // this may be not set if all lookups originate from table 0.
+    BN254.G1Point table_ids; // INFO: optional
+
+    // an optional selector polynomial for runtime tables
+    BN254.G1Point runtime_tables_selector; // INFO: optional
 }
 
 struct LookupSelectors {
@@ -131,7 +221,23 @@ struct LookupSelectors {
     bool is_ffmul_set;
 }
 
+struct NewLookupSelectors {
+    BN254.G1Point xor; // INFO: optional
+
+    BN254.G1Point lookup; // INFO: optional
+
+    BN254.G1Point range_check; // INFO: optional
+
+    BN254.G1Point ffmul; // INFO: optional
+}
+
 struct LookupInfo {
+    uint256 max_per_row;
+    uint256 max_joint_size;
+    // TODO: lookup features
+}
+
+struct NewLookupInfo {
     uint256 max_per_row;
     uint256 max_joint_size;
     // TODO: lookup features
