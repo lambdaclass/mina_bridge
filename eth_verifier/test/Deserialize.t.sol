@@ -18,18 +18,10 @@ contract DecodeProverProof is Test {
     ProverProof prover_proof;
 
     function setUp() public {
-        pairing_proof_bytes = vm.readFileBinary(
-            "./unit_test_data/pairing_proof.bin"
-        );
-        proof_evals_bytes = vm.readFileBinary(
-            "./unit_test_data/proof_evals.bin"
-        );
-        proof_comms_bytes = vm.readFileBinary(
-            "./unit_test_data/proof_comms.bin"
-        );
-        prover_proof_bytes = vm.readFileBinary(
-            "./unit_test_data/prover_proof.bin"
-        );
+        pairing_proof_bytes = vm.readFileBinary("./unit_test_data/pairing_proof.bin");
+        proof_evals_bytes = vm.readFileBinary("./unit_test_data/proof_evals.bin");
+        proof_comms_bytes = vm.readFileBinary("./unit_test_data/proof_comms.bin");
+        prover_proof_bytes = vm.readFileBinary("./unit_test_data/prover_proof.bin");
     }
 
     function assertTestEval(PointEvaluations memory eval) internal {
@@ -100,7 +92,9 @@ contract DecodeProverProof is Test {
     function test_deser_new_prover_proof() public {
         deser_prover_proof(prover_proof_bytes, prover_proof);
 
-        /** Test comms **/
+        /**
+         * Test comms *
+         */
         assertEq(
             prover_proof.commitments.optional_field_flags,
             3 // 0b11
@@ -113,21 +107,21 @@ contract DecodeProverProof is Test {
             assertTestG1Point(prover_proof.commitments.t_comm[i]);
         }
         assertEq(prover_proof.commitments.lookup_sorted.length, 5);
-        for (
-            uint256 i = 0;
-            i < prover_proof.commitments.lookup_sorted.length;
-            i++
-        ) {
+        for (uint256 i = 0; i < prover_proof.commitments.lookup_sorted.length; i++) {
             assertTestG1Point(prover_proof.commitments.lookup_sorted[i]);
         }
         assertTestG1Point(prover_proof.commitments.lookup_aggreg);
         assertTestG1Point(prover_proof.commitments.lookup_runtime);
 
-        /** Test opening **/
+        /**
+         * Test opening *
+         */
         assertTestG1Point(prover_proof.opening.quotient);
         assertEq(Scalar.FE.unwrap(prover_proof.opening.blinding), 1);
 
-        /** Test evals **/
+        /**
+         * Test evals *
+         */
         assertEq(
             prover_proof.evals.optional_field_flags,
             11 // 0b1011
@@ -139,7 +133,9 @@ contract DecodeProverProof is Test {
         assertEmptyEval(prover_proof.evals.range_check1_selector);
         assertTestEval(prover_proof.evals.foreign_field_add_selector);
 
-        /** Test ft_eval1 **/
+        /**
+         * Test ft_eval1 *
+         */
         assertEq(Scalar.FE.unwrap(prover_proof.ft_eval1), 10);
     }
 }

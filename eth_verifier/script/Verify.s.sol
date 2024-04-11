@@ -13,23 +13,14 @@ contract Verify is Script {
     bytes public_inputs_serialized;
 
     function run() public {
-        urs_serialized = vm.readFileBinary("urs.mpk");
-        verifier_index_serialized = vm.readFileBinary("verifier_index.mpk");
-        prover_proof_serialized = vm.readFileBinary("prover_proof.bin");
-        linearization_serialized_rlp = vm.readFileBinary("linearization.rlp");
-        public_inputs_serialized = vm.readFileBinary("public_inputs.mpk");
-
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
         KimchiVerifier verifier = new KimchiVerifier();
-        verifier.setup(urs_serialized);
+        verifier.setup();
 
         bool success = verifier.verify_with_index(
-            verifier_index_serialized,
-            prover_proof_serialized,
-            linearization_serialized_rlp,
-            public_inputs_serialized
+            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
         );
 
         require(success, "Verification failed.");
