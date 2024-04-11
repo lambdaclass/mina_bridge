@@ -9,7 +9,6 @@ import "../State.sol";
 import "../Utils.sol";
 import "../UtilsExternal.sol";
 import "../VerifierIndex.sol";
-import "forge-std/console.sol";
 
 library MsgPk {
     using {Scalar.pow} for Scalar.FE;
@@ -353,7 +352,7 @@ library MsgPk {
         return (false, PolyComm(new BN254.G1Point[](0), BN254.point_at_inf()));
     }
 
-    function deser_lookup_verifier_index(EncodedMap memory map, LookupVerifierIndex storage index) public {
+    function deser_lookup_verifier_index(EncodedMap memory map, VerifierIndexLib.LookupVerifierIndex storage index) public {
         // lookup table
         EncodedArray memory lookup_table_arr = abi.decode(find_value(map, abi.encode("lookup_table")), (EncodedArray));
         uint256 lookup_table_len = lookup_table_arr.values.length;
@@ -386,7 +385,7 @@ library MsgPk {
         index.lookup_info.max_joint_size = abi.decode(find_value_str(lookup_info_map, "max_joint_size"), (uint256));
     }
 
-    function deser_verifier_index(Stream memory self, VerifierIndex storage index) external {
+    function deser_verifier_index(Stream memory self, VerifierIndexLib.VerifierIndex storage index) external {
         EncodedMap memory map = deser_map16(self);
         index.public_len = abi.decode(find_value(map, abi.encode("public")), (uint256));
         index.max_poly_size = abi.decode(find_value(map, abi.encode("max_poly_size")), (uint256));
@@ -526,11 +525,11 @@ library MsgPk {
         // deser_lagrange_bases(lagrange_b_serialized, urs.lagrange_bases_unshifted);
     }
 
-    function deser_linearization(Stream memory self, VerifierIndex storage index) public {
+    function deser_linearization(Stream memory self, VerifierIndexLib.VerifierIndex storage index) public {
         // TODO: only constant_term is deserialized right now.
         EncodedArray memory arr = deser_arr32(self);
 
-        PolishToken[] memory constant_term = new PolishToken[](arr.values.length);
+        PolishTokenEvaluation.PolishToken[] memory constant_term = new PolishTokenEvaluation.PolishToken[](arr.values.length);
         for (uint256 i = 0; i < arr.values.length; i++) {
             EncodedMap memory value_map = abi.decode(arr.values[i], (EncodedMap));
             constant_term[i] = deser_polishtoken(value_map);
@@ -651,33 +650,33 @@ library MsgPk {
         // TODO: remaining variants
     }
 
-    function deser_polishtoken(EncodedMap memory map) public view returns (PolishToken memory) {
+    function deser_polishtoken(EncodedMap memory map) public view returns (PolishTokenEvaluation.PolishToken memory) {
         // if its a unit variant (meaning that it doesn't have associated data):
         (bytes memory unit_value, bool is_unit) = find_value_or_fail(map, abi.encode("variant"));
         if (is_unit) {
             string memory variant = abi.decode(unit_value, (string));
             if (Utils.str_cmp(variant, "alpha")) {
-                return PolishToken(PolishTokenVariant.Alpha, new bytes(0));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.Alpha, new bytes(0));
             } else if (Utils.str_cmp(variant, "beta")) {
-                return PolishToken(PolishTokenVariant.Beta, new bytes(0));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.Beta, new bytes(0));
             } else if (Utils.str_cmp(variant, "gamma")) {
-                return PolishToken(PolishTokenVariant.Gamma, new bytes(0));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.Gamma, new bytes(0));
             } else if (Utils.str_cmp(variant, "jointcombiner")) {
-                return PolishToken(PolishTokenVariant.JointCombiner, new bytes(0));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.JointCombiner, new bytes(0));
             } else if (Utils.str_cmp(variant, "endocoefficient")) {
-                return PolishToken(PolishTokenVariant.EndoCoefficient, new bytes(0));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.EndoCoefficient, new bytes(0));
             } else if (Utils.str_cmp(variant, "dup")) {
-                return PolishToken(PolishTokenVariant.Dup, new bytes(0));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.Dup, new bytes(0));
             } else if (Utils.str_cmp(variant, "add")) {
-                return PolishToken(PolishTokenVariant.Add, new bytes(0));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.Add, new bytes(0));
             } else if (Utils.str_cmp(variant, "mul")) {
-                return PolishToken(PolishTokenVariant.Mul, new bytes(0));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.Mul, new bytes(0));
             } else if (Utils.str_cmp(variant, "sub")) {
-                return PolishToken(PolishTokenVariant.Sub, new bytes(0));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.Sub, new bytes(0));
             } else if (Utils.str_cmp(variant, "vanishesonzeroknowledgeandpreviousrows")) {
-                return PolishToken(PolishTokenVariant.VanishesOnZeroKnowledgeAndPreviousRows, new bytes(0));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.VanishesOnZeroKnowledgeAndPreviousRows, new bytes(0));
             } else if (Utils.str_cmp(variant, "store")) {
-                return PolishToken(PolishTokenVariant.Store, new bytes(0));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.Store, new bytes(0));
             }
         } else {
             (bytes memory mds_value, bool is_mds) = find_value_or_fail(map, abi.encode("mds"));
@@ -685,14 +684,14 @@ library MsgPk {
                 EncodedMap memory mds_map = abi.decode(mds_value, (EncodedMap));
                 uint256 row = abi.decode(find_value(mds_map, abi.encode("row")), (uint256));
                 uint256 col = abi.decode(find_value(mds_map, abi.encode("col")), (uint256));
-                return PolishToken(PolishTokenVariant.Mds, abi.encode(PolishTokenMds(row, col)));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.Mds, abi.encode(PolishTokenEvaluation.PolishTokenMds(row, col)));
             }
             (bytes memory literal_value, bool is_literal) = find_value_or_fail(map, abi.encode("literal"));
             if (is_literal) {
                 // literal serializes as an array
                 EncodedArray memory literal_arr = abi.decode(literal_value, (EncodedArray));
                 uint256 inner_int = Utils.padded_le_bytes_array_to_uint256(literal_arr.values);
-                return PolishToken(PolishTokenVariant.Literal, abi.encode(inner_int));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.Literal, abi.encode(inner_int));
             }
             (bytes memory cell_value, bool is_cell) = find_value_or_fail(map, abi.encode("variable"));
             if (is_cell) {
@@ -709,21 +708,21 @@ library MsgPk {
                 Column memory col = deser_column(find_value(variable_map, abi.encode("col")));
 
                 Variable memory variable = Variable(col, row);
-                return PolishToken(PolishTokenVariant.Cell, abi.encode(variable));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.Cell, abi.encode(variable));
             }
             (bytes memory pow_value, bool is_pow) = find_value_or_fail(map, abi.encode("pow"));
             if (is_pow) {
                 uint256 pow = abi.decode(pow_value, (uint256));
-                return PolishToken(PolishTokenVariant.Pow, abi.encode(pow));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.Pow, abi.encode(pow));
             }
             (bytes memory ulag_value, bool is_ulag) = find_value_or_fail(map, abi.encode("rowoffset"));
             if (is_ulag) {
-                return PolishToken(PolishTokenVariant.UnnormalizedLagrangeBasis, ulag_value);
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.UnnormalizedLagrangeBasis, ulag_value);
             }
             (bytes memory load_value, bool is_load) = find_value_or_fail(map, abi.encode("load"));
             if (is_load) {
                 uint256 i = abi.decode(load_value, (uint256));
-                return PolishToken(PolishTokenVariant.Load, abi.encode(i));
+                return PolishTokenEvaluation.PolishToken(PolishTokenEvaluation.PolishTokenVariant.Load, abi.encode(i));
             }
         }
     }
@@ -736,160 +735,5 @@ library MsgPk {
             uint256 offset = i * 32;
             public_input[i] = Scalar.from(uint256(bytes32(data[offset:offset + 32])));
         }
-    }
-
-    /* WARN:
-     * Functions below are part of the previous deserializer implementation,
-     * and are still used for functions related to the demo. The goal is to replace
-     * them with the new WIP deserializer. Please prefer using functions above.
-     */
-
-    function deserializeFinalCommitments(bytes calldata data)
-        public
-        pure
-        returns (BN254.G1Point memory numerator, BN254.G1Point memory quotient, BN254.G2Point memory divisor)
-    {
-        numerator = abi.decode(data[:64], (BN254.G1Point));
-        quotient = abi.decode(data[64:128], (BN254.G1Point));
-        divisor = abi.decode(data[128:256], (BN254.G2Point));
-    }
-
-    /// @notice deserializes an array of G1Point and also returns the rest of the
-    // data, excluding the consumed bytes. `i` is the index that we start to read
-    // the data from.
-    function deserializeG1Point(bytes calldata data, uint256 i)
-        public
-        view
-        returns (BN254.G1Point memory p, uint256 final_i)
-    {
-        // read length of the data
-        require(data[i] == 0xC4, "not a stream of bin8 (bytes)");
-
-        // next byte is the length of the stream in one byte
-        i += 1;
-        require(data[i] == 0x20, "size of element is not 32 bytes");
-
-        // read data
-        i += 1;
-        bytes32 compressed = abi.decode(data[i:i + 32], (bytes32));
-        p = BN254.g1Deserialize(compressed);
-
-        // go to next
-        i += 32;
-
-        final_i = i;
-    }
-
-    /// @notice deserializes an URS excluding the lagrange bases, and also
-    // returns the final index which points at the end of the consumed data.
-    function deserializeURS(bytes calldata data)
-        public
-        view
-        returns (BN254.G1Point[] memory, BN254.G1Point memory, uint256)
-    {
-        uint256 i = 0;
-        require(data[i] == 0x92, "not a fix array of two elements");
-
-        i += 1;
-        require(data[i] == 0xdc || data[i] == 0xdd, "not an array16 or array32");
-        // 0xdc means that the next 2 bytes represent the size,
-        // 0xdd means that the next 4 bytes represent the size.
-        uint256 byte_count = data[i] == 0xdc ? 2 : 4;
-
-        // next bytes are size of the array
-        i += 1;
-        uint256 size = uint256(bytes32(data[i:i + byte_count])) >> ((32 - byte_count) * 8);
-        // shift is necessary because conversion pads with zeros to the left
-        BN254.G1Point[] memory g = new BN254.G1Point[](size);
-        i += byte_count;
-
-        // read elements
-        for (uint256 elem = 0; elem < size; elem++) {
-            (BN254.G1Point memory p, uint256 new_index) = deserializeG1Point(data, i);
-            g[elem] = p;
-            i = new_index;
-        }
-
-        (BN254.G1Point memory h, uint256 final_i) = deserializeG1Point(data, i);
-        final_i += 1;
-        return (g, h, final_i);
-    }
-
-    function deserializeScalar(bytes calldata data, uint256 i)
-        public
-        pure
-        returns (Scalar.FE scalar, uint256 final_i)
-    {
-        // read length of the data
-        require(data[i] == 0xC4, "not a stream of bin8 (bytes)");
-
-        // next byte is the length of the stream in one byte
-        i += 1;
-        require(data[i] == 0x20, "size of element is not 32 bytes");
-
-        // read data
-        i += 1;
-        uint256 inner = abi.decode(data[i:i + 32], (uint256));
-        scalar = Scalar.from(inner);
-
-        // go to next
-        i += 32;
-
-        final_i = i;
-    }
-
-    function deserializePointEvals(bytes calldata data, uint256 i)
-        public
-        pure
-        returns (PointEvaluations memory eval, uint256 final_i)
-    {
-        require(data[i] == 0x92, "not a fix array of two elements");
-        i += 1;
-        require(data[i] == 0x91, "not a fix array of one element");
-        i += 1;
-
-        (Scalar.FE zeta, uint256 i0) = deserializeScalar(data, i);
-        i = i0;
-        require(data[i] == 0x91, "not a fix array of one element");
-        i += 1;
-        (Scalar.FE zeta_omega, uint256 i1) = deserializeScalar(data, i);
-        i = i1;
-
-        eval = PointEvaluations(zeta, zeta_omega);
-        final_i = i;
-    }
-
-    function deserializeState(bytes calldata data, uint256 i) public pure returns (State memory) {
-        require(data[i] == 0x93, "not a fix array of three elements");
-        i += 1;
-
-        // Creator public key:
-        require(data[i] == 0xd9, "not a str 8");
-        i += 1;
-        // next byte is the length of the stream in one byte
-        uint8 size = uint8(data[i]);
-        i += 1;
-        string memory creator = string(data[i:i + size]);
-        i += size;
-
-        // State hash:
-        require(data[i] == 0xd9, "not a str 8");
-        i += 1;
-        // next byte is the length of the stream in one byte
-        size = uint8(data[i]);
-        i += 1;
-        string memory hash_str = string(data[i:i + size]);
-        uint256 hash = Utils.str_to_uint(hash_str);
-        i += size;
-
-        // Block height:
-        require((data[i] >> 4) == 0x0a, "not a fixstr");
-        size = uint8(data[i]) & 0x0f;
-        i += 1;
-        string memory height_str = string(data[i:i + size]);
-        uint256 block_height = Utils.str_to_uint(height_str);
-        i += size;
-
-        return State(creator, hash, block_height);
     }
 }

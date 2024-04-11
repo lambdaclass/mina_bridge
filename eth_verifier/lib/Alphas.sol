@@ -2,7 +2,6 @@
 pragma solidity >=0.4.16 <0.9.0;
 
 import "./bn254/Fields.sol";
-import "forge-std/console.sol";
 
 using {Scalar.mul} for Scalar.FE;
 

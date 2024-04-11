@@ -29,7 +29,7 @@ library Oracles {
         KeccakSponge.digest_base,
         KeccakSponge.digest_scalar
     } for Sponge;
-    using {get_column_eval} for ProofEvaluations;
+    using {Proof.get_column_eval} for Proof.ProofEvaluations;
 
     uint64 internal constant CHALLENGE_LENGTH_IN_LIMBS = 2;
 
@@ -38,8 +38,8 @@ library Oracles {
 
     // This takes Kimchi's `oracles()` as reference.
     function fiat_shamir(
-        ProverProof memory proof,
-        VerifierIndex storage index,
+        Proof.ProverProof memory proof,
+        VerifierIndexLib.VerifierIndex storage index,
         BN254.G1Point memory public_comm,
         Scalar.FE[] memory public_input,
         bool is_public_input_set,
@@ -54,7 +54,7 @@ library Oracles {
         base_sponge.reinit();
 
         // 2. Absorb the digest of the VerifierIndex.
-        Base.FE verifier_index_digest = verifier_digest(index);
+        Base.FE verifier_index_digest = VerifierIndexLib.verifier_digest(index);
         base_sponge.absorb_base(verifier_index_digest);
 
         // TODO: 3. Absorb the commitment to the previous challenges.
@@ -223,7 +223,7 @@ library Oracles {
         // 28. Create a list of all polynomials that have an evaluation proof
         //ProofEvaluations memory evals = proof.evals.combine_evals(powers_of_eval_points_for_chunks);
         // INFO: There's only one evaluation per polynomial so there's nothing to combine
-        ProofEvaluations memory evals = proof.evals;
+        Proof.ProofEvaluations memory evals = proof.evals;
 
         // 29. Compute the evaluation of $ft(\zeta)$.
         Scalar.FE permutation_vanishing_poly =
@@ -266,10 +266,10 @@ library Oracles {
         ExprConstants memory constants =
             ExprConstants(alpha, beta, gamma, joint_combiner_field, index.endo, index.zk_rows);
 
-        Scalar.FE vanishing_eval = evaluate_vanishing_polynomial(index.domain_gen, index.domain_size, zeta);
+        Scalar.FE vanishing_eval = PolishTokenEvaluation.evaluate_vanishing_polynomial(index.domain_gen, index.domain_size, zeta);
 
         ft_eval0 = ft_eval0.sub(
-            evaluate(
+            PolishTokenEvaluation.evaluate(
                 index.linearization.constant_term,
                 index.domain_gen,
                 index.domain_size,
