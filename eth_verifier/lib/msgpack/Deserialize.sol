@@ -9,7 +9,6 @@ import "../State.sol";
 import "../Utils.sol";
 import "../UtilsExternal.sol";
 import "../VerifierIndex.sol";
-import "forge-std/console.sol";
 
 library MsgPk {
     using {Scalar.pow} for Scalar.FE;

@@ -6,7 +6,6 @@ import {Script, console2} from "forge-std/Script.sol";
 import {KimchiVerifier} from "../src/Verifier.sol";
 import "../lib/VerifierIndex.sol";
 import "../lib/msgpack/Deserialize.sol";
-import "forge-std/console.sol";
 
 contract Serialize is Script {
     VerifierIndexLib.VerifierIndex verifier_index;

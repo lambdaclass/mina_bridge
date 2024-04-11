@@ -21,4 +21,4 @@ solc = "0.8.21"
 
 [etherscan]
 #                 Paste TENDERLY_ACCESS_KEY      Chain ID          Verification URL: RPC_URL/verify/etherscan
-unknown_chain = { key = "${TENDERLY_ACCESS_KEY}", chain = 11155111, url = "https://api.tenderly.co/api/v1/account/lambdaclassinfra/project/kimchi-evm-verifier/etherscan/verify/devnet/${DEVNET_ID} " }
+unknown_chain = { key = "R5rG-xNm1X40p9PmEmCE1b7wp25Yi8hK", chain = 11155111, url = "https://api.tenderly.co/api/v1/account/lambdaclassinfra/project/kimchi-evm-verifier/etherscan/verify/devnet/9f4251c0-0f34-4d62-99b4-89d21e35e454" }

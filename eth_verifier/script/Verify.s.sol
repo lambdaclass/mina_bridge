@@ -3,7 +3,6 @@ pragma solidity >=0.4.16 <0.9.0;
 
 import {Script, console2} from "forge-std/Script.sol";
 import {KimchiVerifier} from "../src/Verifier.sol";
-import "forge-std/console.sol";
 
 contract Verify is Script {
     bytes verifier_index_serialized;
