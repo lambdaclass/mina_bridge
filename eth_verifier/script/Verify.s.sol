@@ -26,10 +26,7 @@ contract Verify is Script {
         verifier.setup(urs_serialized);
 
         bool success = verifier.verify_with_index(
-            verifier_index_serialized,
-            prover_proof_serialized,
-            linearization_serialized_rlp,
-            public_inputs_serialized
+            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
         );
 
         require(success, "Verification failed.");
