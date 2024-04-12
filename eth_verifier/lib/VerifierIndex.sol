@@ -167,16 +167,14 @@ struct NewVerifierIndex {
     /// domain offset for zero-knowledge
     Scalar.FE w;
 
-    LookupVerifierIndex lookup_index; // INFO: optional
-    Linearization linearization;
-
-    bool is_lookup_index_set;
+    NewLookupVerifierIndex lookup_index; // INFO: optional
 
     Scalar.FE endo;
 
     // this is used for generating the index's digest
     Sponge sponge;
 
+    Linearization linearization;
 }
 
 struct LookupVerifierIndex {
@@ -195,7 +193,11 @@ struct LookupVerifierIndex {
 }
 
 struct NewLookupVerifierIndex {
-    BN254.G1Point[] lookup_table;
+    // each bit represents the presence (1) or absence (0) of an
+    // optional field.
+    uint256 optional_field_flags;
+
+    BN254.G1Point lookup_table;
     NewLookupSelectors lookup_selectors;
     NewLookupInfo lookup_info;
 
@@ -208,6 +210,10 @@ struct NewLookupVerifierIndex {
 }
 
 struct LookupSelectors {
+    // each bit represents the presence (1) or absence (0) of an
+    // optional field.
+    uint256 optional_field_flags;
+
     PolyComm xor; // INFO: optional
     bool is_xor_set;
 
@@ -222,6 +228,7 @@ struct LookupSelectors {
 }
 
 struct NewLookupSelectors {
+
     BN254.G1Point xor; // INFO: optional
 
     BN254.G1Point lookup; // INFO: optional
