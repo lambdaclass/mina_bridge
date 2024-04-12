@@ -42,6 +42,16 @@ impl EVMSerializable for EVMSerializableType<BN254PolyComm> {
     }
 }
 
+impl EVMSerializable for EVMSerializableType<Vec<ScalarField>> {
+    fn to_bytes(self) -> Vec<u8> {
+        self.0
+            .iter()
+            .map(|x| EVMSerializableType(x.clone()).to_bytes())
+            .flatten()
+            .collect::<Vec<_>>()
+    }
+}
+
 #[cfg(test)]
 mod test {
     use crate::type_aliases::BaseField;

@@ -164,16 +164,11 @@ fn generate_proof() {
 
     println!("public input len: {}", public_input.len());
 
-    let mut public_input_bytes = vec![vec![]; public_input.len()];
-    let _ = public_input.iter().enumerate().for_each(|(i, x)| {
-        x.serialize(&mut public_input_bytes[i]);
-        public_input_bytes[i].reverse()
-        //println!("public input serialized: {:?}", public_input_bytes[i]);
-        //println!("public input: {:?}", x);
-    });
-
-    let public_input_bytes: Vec<_> = public_input_bytes.iter().cloned().flatten().collect();
-    fs::write("../eth_verifier/public_inputs.mpk", public_input_bytes).unwrap();
+    fs::write(
+        "../eth_verifier/public_inputs.bin",
+        EVMSerializableType(public_input.clone()).to_bytes(),
+    )
+    .unwrap();
     // for tests purposes
     println!("third public input: {}", public_input[2]);
 
