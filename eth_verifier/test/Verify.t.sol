@@ -26,7 +26,7 @@ contract KimchiVerifierTest is Test {
         prover_proof_serialized = vm.readFileBinary("prover_proof.bin");
         urs_serialized = vm.readFileBinary("urs.mpk");
         linearization_serialized_rlp = vm.readFileBinary("linearization.rlp");
-        public_inputs_serialized = vm.readFileBinary("public_inputs.mpk");
+        public_inputs_serialized = vm.readFileBinary("public_inputs.bin");
 
         // we store deserialized structures mostly to run intermediate results
         // tests.
