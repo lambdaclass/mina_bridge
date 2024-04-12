@@ -48,8 +48,22 @@ contract KimchiVerifier {
     State internal state;
     bool state_available;
 
-    function setup(bytes memory urs_serialized) public {
-        MsgPk.deser_pairing_urs(MsgPk.new_stream(urs_serialized), urs);
+    function setup() public {
+        // Setup URS
+        urs.g = new BN254.G1Point[](3);
+        urs.g[0] = BN254.G1Point(1, 2);
+        urs.g[1] = BN254.G1Point(
+            0x0988F35DB6971FD77C8F9AFDAE27F7FB355577586DE4C517537D17882F9B3F34,
+            0x23BAFFA63FAFC8C67007390A6E6DD52860B4A8AE95F49905D52CDB2C3B4CB203
+        );
+        urs.g[2] = BN254.G1Point(
+            0x0D4B868BD01F4E7A548F7EB25B8804890153E13D05AB0783F4A9FABE91A4434A,
+            0x054E363BD9AAF55F8354328C3D7D1E515665B0875BFAA639E3E654D291CF9BC6
+        );
+        urs.h = BN254.G1Point(
+            0x259C9A9126385A54663D11F284944E91215DF44F4A502100B46BC91CCF373772,
+            0x0EC1C952555B2D6978D2D39FA999D6469581ECF94F61262CDC9AA5C05FB8E70B
+        );
 
         // INFO: powers of alpha are fixed for a given constraint system, so we can hard-code them.
         verifier_index.powers_of_alpha.register(ArgumentType.GateZero, VARBASEMUL_CONSTRAINTS);
