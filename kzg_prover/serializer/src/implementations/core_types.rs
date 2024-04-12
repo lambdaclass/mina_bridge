@@ -6,6 +6,15 @@ use crate::{
     type_aliases::{BN254PolyComm, G1Point, ScalarField},
 };
 
+impl EVMSerializable for EVMSerializableType<u32> {
+    fn to_bytes(self) -> Vec<u8> {
+        let integer_bytes = self.0.to_be_bytes();
+        // pad with zeros from the start until we have 32 bytes:
+        [vec![0; 32 - integer_bytes.len()], integer_bytes.to_vec()].concat()
+    }
+}
+
+
 impl EVMSerializable for EVMSerializableType<u64> {
     fn to_bytes(self) -> Vec<u8> {
         let integer_bytes = self.0.to_be_bytes();
