@@ -19,6 +19,7 @@ using {
     KeccakSponge.absorb_commitment,
     KeccakSponge.absorb_evaluations,
     KeccakSponge.absorb_g,
+    KeccakSponge.absorb_g_single,
     KeccakSponge.challenge_base,
     KeccakSponge.challenge_scalar,
     KeccakSponge.digest_base,
@@ -198,8 +199,14 @@ struct NewLookupVerifierIndex {
     uint256 optional_field_flags;
 
     BN254.G1Point lookup_table;
-    NewLookupSelectors lookup_selectors;
+
     NewLookupInfo lookup_info;
+
+    // selectors
+    BN254.G1Point xor; // INFO: optional
+    BN254.G1Point lookup; // INFO: optional
+    BN254.G1Point range_check; // INFO: optional
+    BN254.G1Point ffmul; // INFO: optional
 
     // table IDs for the lookup values.
     // this may be not set if all lookups originate from table 0.
@@ -227,17 +234,6 @@ struct LookupSelectors {
     bool is_ffmul_set;
 }
 
-struct NewLookupSelectors {
-
-    BN254.G1Point xor; // INFO: optional
-
-    BN254.G1Point lookup; // INFO: optional
-
-    BN254.G1Point range_check; // INFO: optional
-
-    BN254.G1Point ffmul; // INFO: optional
-}
-
 struct LookupInfo {
     uint256 max_per_row;
     uint256 max_joint_size;
@@ -250,72 +246,69 @@ struct NewLookupInfo {
     // TODO: lookup features
 }
 
-function verifier_digest(VerifierIndex storage index) returns (Base.FE) {
+function verifier_digest(NewVerifierIndex storage index) returns (Base.FE) {
     index.sponge.reinit();
 
     for (uint i = 0; i < index.sigma_comm.length; i++) {
-        index.sponge.absorb_g(index.sigma_comm[i].unshifted);
+        index.sponge.absorb_g_single(index.sigma_comm[i]);
     }
     for (uint i = 0; i < index.coefficients_comm.length; i++) {
-        index.sponge.absorb_g(index.coefficients_comm[i].unshifted);
+        index.sponge.absorb_g_single(index.coefficients_comm[i]);
     }
-    index.sponge.absorb_g(index.generic_comm.unshifted);
-    index.sponge.absorb_g(index.psm_comm.unshifted);
-    index.sponge.absorb_g(index.complete_add_comm.unshifted);
-    index.sponge.absorb_g(index.mul_comm.unshifted);
-    index.sponge.absorb_g(index.emul_comm.unshifted);
-    index.sponge.absorb_g(index.endomul_scalar_comm.unshifted);
+    index.sponge.absorb_g_single(index.generic_comm);
+    index.sponge.absorb_g_single(index.psm_comm);
+    index.sponge.absorb_g_single(index.complete_add_comm);
+    index.sponge.absorb_g_single(index.mul_comm);
+    index.sponge.absorb_g_single(index.emul_comm);
+    index.sponge.absorb_g_single(index.endomul_scalar_comm);
 
     // optional
 
-    if (index.is_range_check0_comm_set) {
-        index.sponge.absorb_g(index.range_check0_comm.unshifted);
+    if (is_field_set(index, RANGE_CHECK0_COMM_FLAG)) {
+        index.sponge.absorb_g_single(index.range_check0_comm);
     }
 
-    if (index.is_range_check1_comm_set) {
-        index.sponge.absorb_g(index.range_check1_comm.unshifted);
+    if (is_field_set(index, RANGE_CHECK1_COMM_FLAG)) {
+        index.sponge.absorb_g_single(index.range_check1_comm);
     }
 
-    if (index.is_foreign_field_mul_comm_set) {
-        index.sponge.absorb_g(index.foreign_field_mul_comm.unshifted);
+    if (is_field_set(index, FOREIGN_FIELD_MUL_COMM_FLAG)) {
+        index.sponge.absorb_g_single(index.foreign_field_mul_comm);
     }
 
-    if (index.is_foreign_field_add_comm_set) {
-        index.sponge.absorb_g(index.foreign_field_add_comm.unshifted);
+    if (is_field_set(index, FOREIGN_FIELD_ADD_COMM_FLAG)) {
+        index.sponge.absorb_g_single(index.foreign_field_add_comm);
     }
 
-    if (index.is_xor_comm_set) {
-        index.sponge.absorb_g(index.xor_comm.unshifted);
+    if (is_field_set(index, XOR_COMM_FLAG)) {
+        index.sponge.absorb_g_single(index.xor_comm);
     }
 
-    if (index.is_rot_comm_set) {
-        index.sponge.absorb_g(index.rot_comm.unshifted);
+    if (is_field_set(index, ROT_COMM_FLAG)) {
+        index.sponge.absorb_g_single(index.rot_comm);
     }
 
-    if (index.is_lookup_index_set) {
-        LookupVerifierIndex storage l_index = index.lookup_index;
-        for (uint i = 0; i < l_index.lookup_table.length; i++) {
-            index.sponge.absorb_g(l_index.lookup_table[i].unshifted);
+    if (is_field_set(index, LOOKUP_VERIFIER_INDEX_FLAG)) {
+        NewLookupVerifierIndex storage l_index = index.lookup_index;
+        index.sponge.absorb_g_single(l_index.lookup_table);
+        if (is_field_set(l_index, TABLE_IDS_FLAG)) {
+            index.sponge.absorb_g_single(l_index.table_ids);
         }
-        if (l_index.is_table_ids_set) {
-            index.sponge.absorb_g(l_index.table_ids.unshifted);
-        }
-        if (l_index.is_runtime_tables_selector_set) {
-            index.sponge.absorb_g(l_index.runtime_tables_selector.unshifted);
+        if (is_field_set(l_index, RUNTIME_TABLES_SELECTOR_FLAG)) {
+            index.sponge.absorb_g_single(l_index.runtime_tables_selector);
         }
 
-        LookupSelectors storage l_selectors = l_index.lookup_selectors;
-        if (l_selectors.is_xor_set) {
-            index.sponge.absorb_g(l_selectors.xor.unshifted);
+        if (is_field_set(l_index, XOR_FLAG)) {
+            index.sponge.absorb_g_single(l_index.xor);
         }
-        if (l_selectors.is_lookup_set) {
-            index.sponge.absorb_g(l_selectors.lookup.unshifted);
+        if (is_field_set(l_index, LOOKUP_FLAG)) {
+            index.sponge.absorb_g_single(l_index.lookup);
         }
-        if (l_selectors.is_range_check_set) {
-            index.sponge.absorb_g(l_selectors.range_check.unshifted);
+        if (is_field_set(l_index, RANGE_CHECK_FLAG)) {
+            index.sponge.absorb_g_single(l_index.range_check);
         }
-        if (l_selectors.is_ffmul_set) {
-            index.sponge.absorb_g(l_selectors.ffmul.unshifted);
+        if (is_field_set(l_index, FFMUL_FLAG)) {
+            index.sponge.absorb_g_single(l_index.ffmul);
         }
     }
 
@@ -323,13 +316,15 @@ function verifier_digest(VerifierIndex storage index) returns (Base.FE) {
 }
 
 function get_column_commitment(
-    VerifierIndex storage verifier_index,
+    NewVerifierIndex storage verifier_index,
     ProverProof storage proof,
     Column memory column
 )
     view
     returns (BN254.G1Point memory)
 {
+    NewLookupVerifierIndex memory l_index = verifier_index.lookup_index;
+
     bytes memory data = column.data;
     ColumnVariant variant = column.variant;
     if (variant == ColumnVariant.Witness) {
@@ -337,10 +332,10 @@ function get_column_commitment(
         return proof.commitments.w_comm[i];
     } else if (variant == ColumnVariant.Coefficient) {
         uint256 i = abi.decode(data, (uint256));
-        return verifier_index.coefficients_comm[i].unshifted[0];
+        return verifier_index.coefficients_comm[i];
     } else if (variant == ColumnVariant.Permutation) {
         uint256 i = abi.decode(data, (uint256));
-        return verifier_index.sigma_comm[i].unshifted[0];
+        return verifier_index.sigma_comm[i];
     } else if (variant == ColumnVariant.Z) {
         return proof.commitments.z_comm;
     } else if (variant == ColumnVariant.LookupSorted) {
@@ -351,35 +346,35 @@ function get_column_commitment(
     } else if (variant == ColumnVariant.LookupKindIndex) {
         LookupPattern pattern = abi.decode(data, (LookupPattern));
         if (pattern == LookupPattern.Xor) {
-            if (!verifier_index.lookup_index.lookup_selectors.is_xor_set) {
+            if (!is_field_set(l_index, XOR_FLAG)) {
                 revert MissingLookupColumnCommitment(pattern);
             }
-            return verifier_index.lookup_index.lookup_selectors.xor.unshifted[0];
+            return l_index.xor;
         }
         if (pattern == LookupPattern.Lookup) {
-            if (!verifier_index.lookup_index.lookup_selectors.is_lookup_set) {
+            if (!is_field_set(l_index, LOOKUP_FLAG)) {
                 revert MissingLookupColumnCommitment(pattern);
             }
-            return verifier_index.lookup_index.lookup_selectors.lookup.unshifted[0];
+            return l_index.lookup;
         }
         if (pattern == LookupPattern.RangeCheck) {
-            if (!verifier_index.lookup_index.lookup_selectors.is_range_check_set) {
+            if (!is_field_set(l_index, RANGE_CHECK_FLAG)) {
                 revert MissingLookupColumnCommitment(pattern);
             }
-            return verifier_index.lookup_index.lookup_selectors.range_check.unshifted[0];
+            return l_index.range_check;
         }
         if (pattern == LookupPattern.ForeignFieldMul) {
-            if (!verifier_index.lookup_index.lookup_selectors.is_ffmul_set) {
+            if (!is_field_set(l_index, FFMUL_FLAG)) {
                 revert MissingLookupColumnCommitment(pattern);
             }
-            return verifier_index.lookup_index.lookup_selectors.ffmul.unshifted[0];
+            return l_index.ffmul;
         }
         else { revert MissingLookupColumnCommitment(pattern); }
     } else if (variant == ColumnVariant.LookupRuntimeSelector) {
-        if (!verifier_index.lookup_index.is_runtime_tables_selector_set) {
+        if (!is_field_set(l_index, RUNTIME_TABLES_SELECTOR_FLAG)) {
             revert MissingCommitment(variant);
         }
-        return verifier_index.lookup_index.runtime_tables_selector.unshifted[0];
+        return l_index.runtime_tables_selector;
     } else if (variant == ColumnVariant.LookupRuntimeTable) {
         if (!is_field_set(proof.commitments, LOOKUP_RUNTIME_COMM_FLAG)) {
             revert MissingCommitment(variant);
@@ -387,47 +382,47 @@ function get_column_commitment(
         return proof.commitments.lookup_runtime;
     } else if (variant == ColumnVariant.Index) {
         GateType gate = abi.decode(data, (GateType));
-        if (gate == GateType.Generic) { return verifier_index.generic_comm.unshifted[0]; }
-        else if (gate == GateType.CompleteAdd) { return verifier_index.complete_add_comm.unshifted[0]; }
-        else if (gate == GateType.VarBaseMul) { return verifier_index.mul_comm.unshifted[0]; }
-        else if (gate == GateType.EndoMul) { return verifier_index.emul_comm.unshifted[0]; }
-        else if (gate == GateType.EndoMulScalar) { return verifier_index.endomul_scalar_comm.unshifted[0]; }
-        else if (gate == GateType.Poseidon) { return verifier_index.psm_comm.unshifted[0]; }
+        if (gate == GateType.Generic) { return verifier_index.generic_comm; }
+        else if (gate == GateType.CompleteAdd) { return verifier_index.complete_add_comm; }
+        else if (gate == GateType.VarBaseMul) { return verifier_index.mul_comm; }
+        else if (gate == GateType.EndoMul) { return verifier_index.emul_comm; }
+        else if (gate == GateType.EndoMulScalar) { return verifier_index.endomul_scalar_comm; }
+        else if (gate == GateType.Poseidon) { return verifier_index.psm_comm; }
         else if (gate == GateType.RangeCheck0) {
-            if (!verifier_index.is_range_check0_comm_set) {
+            if (!is_field_set(verifier_index, RANGE_CHECK0_COMM_FLAG)) {
                 revert MissingCommitment(variant);
             }
-            return verifier_index.range_check0_comm.unshifted[0];
+            return verifier_index.range_check0_comm;
         }
         else if (gate == GateType.RangeCheck1) {
-            if (!verifier_index.is_range_check1_comm_set) {
+            if (!is_field_set(verifier_index, RANGE_CHECK1_COMM_FLAG)) {
                 revert MissingCommitment(variant);
             }
-            return verifier_index.range_check1_comm.unshifted[0];
+            return verifier_index.range_check1_comm;
         }
         else if (gate == GateType.ForeignFieldAdd) {
-            if (!verifier_index.is_foreign_field_add_comm_set) {
+            if (!is_field_set(verifier_index, FOREIGN_FIELD_ADD_COMM_FLAG)) {
                 revert MissingCommitment(variant);
             }
-            return verifier_index.foreign_field_add_comm.unshifted[0];
+            return verifier_index.foreign_field_add_comm;
         }
         else if (gate == GateType.ForeignFieldMul) {
-            if (!verifier_index.is_foreign_field_mul_comm_set) {
+            if (!is_field_set(verifier_index, FOREIGN_FIELD_MUL_COMM_FLAG)) {
                 revert MissingCommitment(variant);
             }
-            return verifier_index.foreign_field_mul_comm.unshifted[0];
+            return verifier_index.foreign_field_mul_comm;
         }
         else if (gate == GateType.Xor16) {
-            if (!verifier_index.is_xor_comm_set) {
+            if (!is_field_set(verifier_index, XOR_COMM_FLAG)) {
                 revert MissingCommitment(variant);
             }
-            return verifier_index.xor_comm.unshifted[0];
+            return verifier_index.xor_comm;
         }
         else if (gate == GateType.Rot64) {
-            if (!verifier_index.is_rot_comm_set) {
+            if (!is_field_set(verifier_index, ROT_COMM_FLAG)) {
                 revert MissingCommitment(variant);
             }
-            return verifier_index.rot_comm.unshifted[0];
+            return verifier_index.rot_comm;
         }
         else { revert MissingIndexColumnEvaluation(gate); }
     } else {

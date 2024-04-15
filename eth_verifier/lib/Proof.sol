@@ -8,6 +8,7 @@ import "./expr/Expr.sol";
 import "./Commitment.sol";
 import "./bn254/BN254.sol";
 import "./bn254/Fields.sol";
+import "./VerifierIndex.sol";
 
 error MissingIndexEvaluation(string col);
 error MissingColumnEvaluation(ColumnVariant variant);
@@ -302,32 +303,25 @@ function get_column_eval(ProofEvaluations memory evals, Column memory col) pure 
 }
 
 function combine_table(
-    PolyComm[] memory columns,
+    BN254.G1Point memory column,
     Scalar.FE column_combiner,
     Scalar.FE table_id_combiner,
     bool is_table_id_vector_set,
-    PolyComm memory table_id_vector,
+    BN254.G1Point memory table_id_vector,
     bool is_runtime_vector_set,
     BN254.G1Point memory runtime_vector
-) view returns (PolyComm memory) {
-    require(columns.length != 0, "column commitments are empty");
-    uint256 total_len = columns.length + (is_table_id_vector_set ? 1 : 0) + (is_runtime_vector_set ? 1 : 0);
+) view returns (BN254.G1Point memory) {
+    uint256 total_len = 1 + (is_table_id_vector_set ? 1 : 0) + (is_runtime_vector_set ? 1 : 0);
 
     Scalar.FE j = Scalar.one();
     Scalar.FE[] memory scalars = new Scalar.FE[](total_len);
-    PolyComm[] memory commitments = new PolyComm[](total_len);
+    BN254.G1Point[] memory commitments = new BN254.G1Point[](total_len);
 
     uint256 index = 0;
 
     scalars[index] = j;
-    commitments[index] = columns[0];
+    commitments[index] = column;
     index += 1;
-    for (uint256 i = 1; i < columns.length; i++) {
-        j = j.mul(column_combiner);
-        scalars[index] = j;
-        commitments[index] = columns[i];
-        index += 1;
-    }
 
     if (is_table_id_vector_set) {
         scalars[index] = table_id_combiner;
@@ -336,13 +330,11 @@ function combine_table(
     }
     if (is_runtime_vector_set) {
         scalars[index] = column_combiner;
-        BN254.G1Point[] memory unshifted = new BN254.G1Point[](1);
-        unshifted[0] = runtime_vector;
-        commitments[index] = PolyComm(unshifted, BN254.point_at_inf());
+        commitments[index] = runtime_vector;
         index += 1;
     }
 
-    return polycomm_msm(commitments, scalars);
+    return msm(commitments, scalars);
 }
 
 function is_field_set(ProofEvaluations memory self, uint256 flag_pos) pure returns (bool) {
@@ -350,5 +342,13 @@ function is_field_set(ProofEvaluations memory self, uint256 flag_pos) pure retur
 }
 
 function is_field_set(ProverCommitments memory self, uint256 flag_pos) pure returns (bool) {
+    return (self.optional_field_flags >> flag_pos) & 1 == 1;
+}
+
+function is_field_set(NewVerifierIndex storage self, uint256 flag_pos) view returns (bool) {
+    return (self.optional_field_flags >> flag_pos) & 1 == 1;
+}
+
+function is_field_set(NewLookupVerifierIndex memory self, uint256 flag_pos) pure returns (bool) {
     return (self.optional_field_flags >> flag_pos) & 1 == 1;
 }

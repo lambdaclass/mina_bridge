@@ -29,3 +29,20 @@ uint256 constant FOREIGN_FIELD_MUL_LOOKUP_SELECTOR_EVAL_FLAG = 19;
 uint256 constant LOOKUP_SORTED_COMM_FLAG = 0;
 uint256 constant LOOKUP_AGGREG_COMM_FLAG = 1;
 uint256 constant LOOKUP_RUNTIME_COMM_FLAG = 2;
+
+// VerifierIndex bit flag positions
+uint256 constant RANGE_CHECK0_COMM_FLAG = 0;
+uint256 constant RANGE_CHECK1_COMM_FLAG = 1;
+uint256 constant FOREIGN_FIELD_ADD_COMM_FLAG = 2;
+uint256 constant FOREIGN_FIELD_MUL_COMM_FLAG = 3;
+uint256 constant XOR_COMM_FLAG = 4;
+uint256 constant ROT_COMM_FLAG = 5;
+uint256 constant LOOKUP_VERIFIER_INDEX_FLAG = 6;
+
+// LookupVerifierIndex bit flag positions
+uint256 constant XOR_FLAG = 0;
+uint256 constant LOOKUP_FLAG = 1;
+uint256 constant RANGE_CHECK_FLAG = 2;
+uint256 constant FFMUL_FLAG = 3;
+uint256 constant TABLE_IDS_FLAG = 4;
+uint256 constant RUNTIME_TABLES_SELECTOR_FLAG = 5;
