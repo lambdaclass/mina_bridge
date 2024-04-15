@@ -7,8 +7,7 @@ use kimchi::{
 use serializer::{
     serialize::{EVMSerializable, EVMSerializableType},
     type_aliases::{
-        BN254PairingProof, BN254PolyComm, BN254ProofEvaluations, BN254ProverCommitments,
-        BN254ProverProof, BaseField, G1Point, ScalarField,
+        BN254PairingProof, BN254PolyComm, BN254ProofEvaluations, BN254ProverCommitments, BN254ProverProof, BN254VerifierIndex, BaseField, G1Point, ScalarField
     },
 };
 
@@ -85,6 +84,8 @@ fn generate_solidity_test_data() {
         ft_eval1: ScalarField::from(10),
         prev_challenges: Vec::new(),
     };
+
+    // TODO: verifier index test
 
     fs::write(
         "../../eth_verifier/unit_test_data/pairing_proof.bin",
