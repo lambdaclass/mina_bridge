@@ -143,6 +143,11 @@ fn generate_proof() {
         rmp_serde::to_vec_named(&verifier_index).unwrap(),
     )
     .unwrap();
+    fs::write(
+        "../eth_verifier/verifier_index.bin",
+        EVMSerializableType(verifier_index).to_bytes(),
+    )
+    .unwrap();
     let srs_to_serialize = PairingSRS::<Bn<Parameters>> {
         full_srs: SRS {
             g: index.srs.full_srs.g[0..3].to_vec(),
