@@ -12,7 +12,7 @@ contract Serialize is Script {
     VerifierIndex verifier_index;
 
     function run() public {
-        bytes memory verifier_index_serialized = vm.readFileBinary("verifier_index.mpk");
+        bytes memory verifier_index_serialized = vm.readFileBinary("verifier_index.bin");
         bytes memory linearization_serialized = vm.readFileBinary("linearization.mpk");
 
         MsgPk.deser_verifier_index(MsgPk.new_stream(verifier_index_serialized), verifier_index);

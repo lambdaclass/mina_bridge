@@ -14,7 +14,7 @@ contract Verify is Script {
 
     function run() public {
         urs_serialized = vm.readFileBinary("urs.mpk");
-        verifier_index_serialized = vm.readFileBinary("verifier_index.mpk");
+        verifier_index_serialized = vm.readFileBinary("verifier_index.bin");
         prover_proof_serialized = vm.readFileBinary("prover_proof.bin");
         linearization_serialized_rlp = vm.readFileBinary("linearization.rlp");
         public_inputs_serialized = vm.readFileBinary("public_inputs.mpk");
