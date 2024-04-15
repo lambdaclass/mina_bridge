@@ -70,8 +70,8 @@ impl EVMSerializable for EVMSerializableType<BN254LookupVerifierIndex> {
             encoded_optional_field_flags,
             encoded_lookup_table,
             encoded_lookup_selectors,
-            encoded_table_ids,
             encoded_lookup_info,
+            encoded_table_ids,
             encoded_runtime_tables_selector,
         ]
         .concat()
@@ -146,6 +146,8 @@ impl EVMSerializable for EVMSerializableType<BN254VerifierIndex> {
         let encoded_w = EVMSerializableType(index.w.clone().into_inner()).to_bytes();
         let encoded_endo = EVMSerializableType(index.endo).to_bytes();
 
+        let encoded_lookup_index = EVMSerializableType(index.lookup_index).to_bytes();
+
         [
             encoded_optional_field_flags,
             encoded_domain,
@@ -160,16 +162,16 @@ impl EVMSerializable for EVMSerializableType<BN254VerifierIndex> {
             encoded_mul_comm,
             encoded_emul_comm,
             encoded_endomul_scalar_comm,
+            encoded_shift,
+            encoded_w,
+            encoded_endo,
             encoded_range_check0_comm,
             encoded_range_check1_comm,
             encoded_foreign_field_add_comm,
             encoded_foreign_field_mul_comm,
             encoded_xor_comm,
             encoded_rot_comm,
-            encoded_shift,
-            encoded_w,
-            // lookup_index
-            encoded_endo,
+            encoded_lookup_index,
         ]
         .concat()
     }
