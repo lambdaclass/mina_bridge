@@ -117,9 +117,6 @@ struct NewVerifierIndex {
     // number of public inputs
     uint256 public_len;
 
-    /// The mapping between powers of alpha and constraints
-    Alphas powers_of_alpha;
-
     // polynomial commitments
 
     // permutation commitment array
@@ -143,6 +140,14 @@ struct NewVerifierIndex {
     // endoscalar multiplication scalar computation selector polynomial commitment
     BN254.G1Point endomul_scalar_comm;
 
+    // wire shift coordinates
+    Scalar.FE[7] shift; // TODO: use Consants.PERMUTS
+
+    /// domain offset for zero-knowledge
+    Scalar.FE w;
+
+    Scalar.FE endo;
+
     // RangeCheck0 polynomial commitments
     BN254.G1Point range_check0_comm; // INFO: optional
 
@@ -161,20 +166,15 @@ struct NewVerifierIndex {
     // Rot commitments
     BN254.G1Point rot_comm; // INFO: optional
 
-    // wire shift coordinates
-    Scalar.FE[7] shift; // TODO: use Consants.PERMUTS
-
-    /// domain offset for zero-knowledge
-    Scalar.FE w;
-
     NewLookupVerifierIndex lookup_index; // INFO: optional
-
-    Scalar.FE endo;
 
     // this is used for generating the index's digest
     Sponge sponge;
 
     Linearization linearization;
+
+    /// The mapping between powers of alpha and constraints
+    Alphas powers_of_alpha;
 }
 
 struct LookupVerifierIndex {
