@@ -3,7 +3,7 @@ use kimchi::circuits::lookup::lookups::LookupInfo;
 
 use crate::{
     serialize::{EVMSerializable, EVMSerializableType},
-    type_aliases::{BN254LookupSelectors, BN254LookupVerifierIndex, BN254VerifierIndex},
+    type_aliases::{BN254LookupVerifierIndex, BN254VerifierIndex},
     utils::encode_bools_to_uint256_flags_bytes,
 };
 
@@ -15,33 +15,6 @@ impl EVMSerializable for EVMSerializableType<LookupInfo> {
         let encoded_max_joint_size = EVMSerializableType(info.max_joint_size).to_bytes();
 
         [encoded_max_per_row, encoded_max_joint_size].concat()
-    }
-}
-
-impl EVMSerializable for EVMSerializableType<BN254LookupSelectors> {
-    fn to_bytes(self) -> Vec<u8> {
-        let sels = self.0;
-
-        // First construct a bitmap, where every bit will be a flag that indicates if
-        // a field is Some or None:
-        let optional_field_bools =
-            [&sels.xor, &sels.lookup, &sels.range_check, &sels.ffmul].map(Option::is_some);
-        let encoded_optional_field_flags =
-            encode_bools_to_uint256_flags_bytes(&optional_field_bools);
-
-        let encoded_xor = EVMSerializableType(sels.xor).to_bytes();
-        let encoded_lookup = EVMSerializableType(sels.lookup).to_bytes();
-        let encoded_range_check = EVMSerializableType(sels.range_check).to_bytes();
-        let encoded_ffmul = EVMSerializableType(sels.ffmul).to_bytes();
-
-        [
-            encoded_optional_field_flags,
-            encoded_xor,
-            encoded_lookup,
-            encoded_range_check,
-            encoded_ffmul,
-        ]
-        .concat()
     }
 }
 
@@ -58,7 +31,8 @@ impl EVMSerializable for EVMSerializableType<BN254LookupVerifierIndex> {
             &index.lookup_selectors.ffmul,
             &index.table_ids,
             &index.runtime_tables_selector,
-        ].map(Option::is_some);
+        ]
+        .map(Option::is_some);
         let encoded_optional_field_flags =
             encode_bools_to_uint256_flags_bytes(&optional_field_bools);
 
@@ -70,7 +44,8 @@ impl EVMSerializable for EVMSerializableType<BN254LookupVerifierIndex> {
         // we flat out selectors
         let encoded_xor = EVMSerializableType(index.lookup_selectors.xor).to_bytes();
         let encoded_lookup = EVMSerializableType(index.lookup_selectors.lookup).to_bytes();
-        let encoded_range_check = EVMSerializableType(index.lookup_selectors.range_check).to_bytes();
+        let encoded_range_check =
+            EVMSerializableType(index.lookup_selectors.range_check).to_bytes();
         let encoded_ffmul = EVMSerializableType(index.lookup_selectors.ffmul).to_bytes();
 
         let encoded_table_ids = EVMSerializableType(index.table_ids).to_bytes();

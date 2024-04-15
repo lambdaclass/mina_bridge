@@ -14,5 +14,5 @@ struct ExprConstants {
     // They implement the keccak sponge with a "dummy" (unused) MDS.
     //Scalar.FE[] mds; // the MDS matrix in row major
     //uint256 mds_cols;
-    uint64 zk_rows;
+    uint256 zk_rows;
 }

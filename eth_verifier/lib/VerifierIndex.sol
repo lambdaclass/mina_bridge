@@ -109,12 +109,12 @@ struct NewVerifierIndex {
     uint256 optional_field_flags;
 
     // domain
-    uint64 domain_size;
+    uint256 domain_size;
     Scalar.FE domain_gen;
     // maximal size of polynomial section
     uint256 max_poly_size;
     // the number of randomized rows to achieve zero knowledge
-    uint64 zk_rows;
+    uint256 zk_rows;
     // number of public inputs
     uint256 public_len;
 

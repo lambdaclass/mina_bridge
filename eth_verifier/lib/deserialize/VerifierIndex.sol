@@ -35,8 +35,8 @@ function deser_verifier_index(
         // - shift[7] (scalar)
         // - w (scalar)
         // - endo (scalar)
-        // totalling 42 field elements:
-        for { let i := 0 } lt(i, 42) { i := add(i, 1) } {
+        // totalling 70 field elements:
+        for { let i := 0 } lt(i, 70) { i := add(i, 1) } {
             sstore(slot, mload(addr))
             addr := add(addr, 0x20)
             slot := add(slot, 1)
