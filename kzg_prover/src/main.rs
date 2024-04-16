@@ -110,15 +110,15 @@ fn generate_proof() {
         .map(|&p_i| ark_bn254::Fr::new(BigInteger256::new(p_i)))
         .collect();
 
-    // Partially verify proof
-    let agg_proof = to_batch::<G1Affine, KeccakFqSponge, KeccakFrSponge, KZGProof>(
+    // Partial verification
+    let agg_proof = to_batch::<G1, KeccakFqSponge, KeccakFrSponge, KZGProof>(
         &verifier_index,
         &proof,
         &public_input,
     )
     .unwrap();
 
-    // Final verify
+    // Final verification
     let BatchEvaluationProof {
         sponge: _,
         evaluations,
