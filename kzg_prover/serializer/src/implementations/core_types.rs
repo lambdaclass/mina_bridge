@@ -6,6 +6,31 @@ use crate::{
     type_aliases::{BN254PolyComm, G1Point, ScalarField},
 };
 
+impl EVMSerializable for EVMSerializableType<u32> {
+    fn to_bytes(self) -> Vec<u8> {
+        let integer_bytes = self.0.to_be_bytes();
+        // pad with zeros from the start until we have 32 bytes:
+        [vec![0; 32 - integer_bytes.len()], integer_bytes.to_vec()].concat()
+    }
+}
+
+
+impl EVMSerializable for EVMSerializableType<u64> {
+    fn to_bytes(self) -> Vec<u8> {
+        let integer_bytes = self.0.to_be_bytes();
+        // pad with zeros from the start until we have 32 bytes:
+        [vec![0; 32 - integer_bytes.len()], integer_bytes.to_vec()].concat()
+    }
+}
+
+impl EVMSerializable for EVMSerializableType<usize> {
+    fn to_bytes(self) -> Vec<u8> {
+        let integer_bytes = self.0.to_be_bytes();
+        // pad with zeros from the start until we have 32 bytes:
+        [vec![0; 32 - integer_bytes.len()], integer_bytes.to_vec()].concat()
+    }
+}
+
 impl EVMSerializable for EVMSerializableType<ScalarField> {
     fn to_bytes(self) -> Vec<u8> {
         self.0.to_bytes().into_iter().rev().collect() // flip endianness
@@ -48,7 +73,20 @@ impl EVMSerializable for EVMSerializableType<Vec<ScalarField>> {
             .iter()
             .map(|x| EVMSerializableType(x.clone()).to_bytes())
             .flatten()
-            .collect::<Vec<_>>()
+            .collect::<Vec<_>>()     
+    }
+}
+
+impl<T> EVMSerializable for EVMSerializableType<Option<T>>
+where
+    EVMSerializableType<T>: EVMSerializable,
+{
+    fn to_bytes(self) -> Vec<u8> {
+        if let Some(data) = self.0 {
+            EVMSerializableType(data).to_bytes()
+        } else {
+            vec![]
+        }
     }
 }
 
