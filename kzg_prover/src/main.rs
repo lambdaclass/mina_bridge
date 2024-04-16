@@ -32,6 +32,7 @@ use kimchi::{
     curve::KimchiCurve,
     groupmap::*,
     keccak_sponge::{Keccak256FqSponge, Keccak256FrSponge},
+    mina_poseidon::FqSponge,
     o1_utils::{foreign_field::BigUintForeignFieldHelpers, BigUintFieldHelpers},
     proof::ProverProof,
     prover_index::ProverIndex,
@@ -179,18 +180,18 @@ fn generate_proof() {
 
     println!("public input len: {}", public_input.len());
 
-    let mut public_input_bytes = vec![vec![]; public_input.len()];
-    let _ = public_input.iter().enumerate().for_each(|(i, x)| {
-        x.serialize(&mut public_input_bytes[i]);
-        public_input_bytes[i].reverse()
-        //println!("public input serialized: {:?}", public_input_bytes[i]);
-        //println!("public input: {:?}", x);
-    });
-
-    let public_input_bytes: Vec<_> = public_input_bytes.iter().cloned().flatten().collect();
-    fs::write("../eth_verifier/public_inputs.mpk", public_input_bytes).unwrap();
     // for tests purposes
     println!("third public input: {}", public_input[2]);
+
+    // Hash public input and write into file
+    let mut fq_sponge = KeccakFqSponge::new(G1::other_curve_sponge_params());
+    fq_sponge.absorb_fr(&public_input);
+    let public_input_hash = fq_sponge.digest();
+    fs::write(
+        "../eth_verifier/public_input.bin",
+        EVMSerializableType(public_input_hash).to_bytes(),
+    )
+    .unwrap();
 
     let empty_polycomm = PolyComm::new(
         vec![G1::new(BaseField::from(0), BaseField::from(0), true)],
