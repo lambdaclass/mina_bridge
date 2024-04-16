@@ -9,7 +9,7 @@ import "../lib/msgpack/Deserialize.sol";
 import "../lib/deserialize/VerifierIndex.sol";
 import "../lib/deserialize/ProverProof.sol";
 
-contract MessagePackTest is Test {
+contract Profiling is Test {
     Linearization linearization;
     VerifierIndex verifier_index;
     ProverProof prover_proof;
