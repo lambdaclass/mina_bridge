@@ -111,12 +111,11 @@ fn generate_proof() {
         .collect();
 
     // Partially verify proof
-    let agg_proof = to_batch::<
-        G1Affine,
-        Keccak256FqSponge<BaseField, G1, ScalarField>,
-        Keccak256FrSponge<ScalarField>,
-        KZGProof,
-    >(&verifier_index, &proof, &public_input)
+    let agg_proof = to_batch::<G1Affine, KeccakFqSponge, KeccakFrSponge, KZGProof>(
+        &verifier_index,
+        &proof,
+        &public_input,
+    )
     .unwrap();
 
     // Final verify
