@@ -108,32 +108,4 @@ contract MessagePackTest is Test {
         Scalar.FE[] memory public_inputs = MsgPk.deser_public_inputs(public_inputs_serialized);
         assertEq(Scalar.FE.unwrap(public_inputs[2]), 0x000000000000000000000000000000000000000000002149A7476FD365F3E060);
     }
-
-    // INFO: this doesn't assert anything, it only executes this deserialization
-    // for gas profiling.
-    function test_deserialize_linearization_profiling_only() public {
-        bytes memory linearization_serialized = vm.readFileBinary("linearization.mpk");
-        MsgPk.deser_linearization(MsgPk.new_stream(linearization_serialized), index);
-    }
-
-    // INFO: this doesn't assert anything, it only executes this deserialization
-    // for gas profiling.
-    function test_decode_linearization_profiling_only() public {
-        bytes memory linearization_rlp = vm.readFileBinary("linearization.rlp");
-        abi.decode(linearization_rlp, (Linearization));
-    }
-
-    // INFO: this doesn't assert anything, it only executes this deserialization
-    // for gas profiling.
-    function test_deserialize_verifier_index_profiling_only() public {
-        bytes memory verifier_index_serialized = vm.readFileBinary("verifier_index.mpk");
-        deser_verifier_index(verifier_index_serialized, index);
-    }
-
-    // INFO: this doesn't assert anything, it only executes this deserialization
-    // for gas profiling.
-    function test_deserialize_public_inputs_profiling_only() public {
-        bytes memory public_inputs_serialized = vm.readFileBinary("public_inputs.mpk");
-        MsgPk.deser_public_inputs(public_inputs_serialized);
-    }
 }
