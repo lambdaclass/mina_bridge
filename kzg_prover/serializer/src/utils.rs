@@ -10,5 +10,6 @@ pub fn encode_bools_to_uint256_flags_bytes(bools: &[bool]) -> Vec<u8> {
         flag <<= i % 8; // first flags are positioned on least significant bits
         flags_encoded[i / 8] |= flag;
     }
+    flags_encoded.reverse();
     flags_encoded
 }
