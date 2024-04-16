@@ -55,8 +55,6 @@ library Oracles {
 
         // 2. Absorb the digest of the VerifierIndex.
         Base.FE verifier_index_digest = verifier_digest(index);
-        console.log("verifier index digest:");
-        console.logBytes(abi.encode(verifier_index_digest));
         base_sponge.absorb_base(verifier_index_digest);
 
         // TODO: 3. Absorb the commitment to the previous challenges.

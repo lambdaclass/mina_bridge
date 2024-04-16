@@ -29,7 +29,7 @@ contract KimchiVerifierTest is Test {
         // we store deserialized structures mostly to run intermediate results
         // tests.
         deser_verifier_index(
-            vm.readFileBinary("unit_test_data/verifier_index.mpk"),
+            vm.readFileBinary("unit_test_data/verifier_index.bin"),
             test_verifier_index
         );
     }
