@@ -39,7 +39,7 @@ contract KimchiVerifier {
     error PolynomialsAreChunked(uint256 chunk_size);
 
     ProverProof proof;
-    NewVerifierIndex verifier_index;
+    VerifierIndex verifier_index;
     URS urs;
     Scalar.FE[] public_inputs;
 
@@ -230,7 +230,7 @@ contract KimchiVerifier {
             columns[col_index++] = Column(ColumnVariant.Index, abi.encode(GateType.Rot64));
         }
         if (is_field_set(verifier_index, LOOKUP_VERIFIER_INDEX_FLAG)) {
-            NewLookupVerifierIndex memory li = verifier_index.lookup_index;
+            LookupVerifierIndex memory li = verifier_index.lookup_index;
             for (uint256 i = 0; i < li.lookup_info.max_per_row + 1; i++) {
                 columns[col_index++] = Column(ColumnVariant.LookupSorted, abi.encode(i));
             }
@@ -244,7 +244,7 @@ contract KimchiVerifier {
         }
 
         if (is_field_set(verifier_index, LOOKUP_VERIFIER_INDEX_FLAG)) {
-            NewLookupVerifierIndex memory li = verifier_index.lookup_index;
+            LookupVerifierIndex memory li = verifier_index.lookup_index;
             if (!is_field_set(proof.commitments, LOOKUP_SORTED_COMM_FLAG)) {
                 revert("missing lookup commitments"); // TODO: error
             }

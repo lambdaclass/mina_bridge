@@ -345,10 +345,10 @@ function is_field_set(ProverCommitments memory self, uint256 flag_pos) pure retu
     return (self.optional_field_flags >> flag_pos) & 1 == 1;
 }
 
-function is_field_set(NewVerifierIndex storage self, uint256 flag_pos) view returns (bool) {
+function is_field_set(VerifierIndex storage self, uint256 flag_pos) view returns (bool) {
     return (self.optional_field_flags >> flag_pos) & 1 == 1;
 }
 
-function is_field_set(NewLookupVerifierIndex memory self, uint256 flag_pos) pure returns (bool) {
+function is_field_set(LookupVerifierIndex memory self, uint256 flag_pos) pure returns (bool) {
     return (self.optional_field_flags >> flag_pos) & 1 == 1;
 }

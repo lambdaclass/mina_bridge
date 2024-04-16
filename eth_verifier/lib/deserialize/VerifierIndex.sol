@@ -5,7 +5,7 @@ import "../VerifierIndex.sol";
 
 function deser_verifier_index(
     bytes memory data,
-    NewVerifierIndex storage verifier_index
+    VerifierIndex storage verifier_index
 ) {
     assembly ("memory-safe") {
         // first 32 bytes is the length of the bytes array, we'll skip them.

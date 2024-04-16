@@ -31,79 +31,6 @@ error MissingLookupColumnCommitment(LookupPattern pattern);
 error MissingIndexColumnCommitment(GateType gate);
 
 struct VerifierIndex {
-    // this is used for generating the index's digest
-    Sponge sponge;
-
-    // number of public inputs
-    uint256 public_len;
-    // maximal size of polynomial section
-    uint256 max_poly_size;
-    // the number of randomized rows to achieve zero knowledge
-    uint64 zk_rows;
-    // domain
-    uint64 domain_size;
-    Scalar.FE domain_gen;
-    /// The mapping between powers of alpha and constraints
-    Alphas powers_of_alpha;
-    // wire shift coordinates
-    Scalar.FE[7] shift; // TODO: use Consants.PERMUTS
-    /// domain offset for zero-knowledge
-    Scalar.FE w;
-    Linearization linearization;
-    // polynomial commitments
-
-    // permutation commitment array
-    PolyComm[7] sigma_comm; // TODO: use Constants.PERMUTS
-    // coefficient commitment array
-    PolyComm[15] coefficients_comm; // TODO: use Constants.COLUMNS
-    // TODO: doc
-    PolyComm generic_comm;
-
-    // poseidon constraint selector polynomial commitment
-    PolyComm psm_comm;
-
-    // ECC arithmetic polynomial commitments
-
-    // EC addition selector polynomial commitment
-    PolyComm complete_add_comm;
-    // EC variable base scalar multiplication selector polynomial commitment
-    PolyComm mul_comm;
-    // endoscalar multiplication selector polynomial commitment
-    PolyComm emul_comm;
-    // endoscalar multiplication scalar computation selector polynomial commitment
-    PolyComm endomul_scalar_comm;
-
-    // RangeCheck0 polynomial commitments
-    PolyComm range_check0_comm; // INFO: optional
-    bool is_range_check0_comm_set;
-
-    // RangeCheck1 polynomial commitments
-    PolyComm range_check1_comm; // INFO: optional
-    bool is_range_check1_comm_set;
-
-    // Foreign field addition gates polynomial commitments
-    PolyComm foreign_field_add_comm; // INFO: optional
-    bool is_foreign_field_add_comm_set;
-
-    // Foreign field multiplication gates polynomial commitments
-    PolyComm foreign_field_mul_comm; // INFO: optional
-    bool is_foreign_field_mul_comm_set;
-
-    // Xor commitments
-    PolyComm xor_comm; // INFO: optional
-    bool is_xor_comm_set;
-
-    // Rot commitments
-    PolyComm rot_comm; // INFO: optional
-    bool is_rot_comm_set;
-
-    LookupVerifierIndex lookup_index; // INFO: optional
-    bool is_lookup_index_set;
-
-    Scalar.FE endo;
-}
-
-struct NewVerifierIndex {
     // each bit represents the presence (1) or absence (0) of an
     // optional field.
     uint256 optional_field_flags;
@@ -167,7 +94,7 @@ struct NewVerifierIndex {
     // Rot commitments
     BN254.G1Point rot_comm; // INFO: optional
 
-    NewLookupVerifierIndex lookup_index; // INFO: optional
+    LookupVerifierIndex lookup_index; // INFO: optional
 
     // this is used for generating the index's digest
     Sponge sponge;
@@ -179,28 +106,13 @@ struct NewVerifierIndex {
 }
 
 struct LookupVerifierIndex {
-    PolyComm[] lookup_table;
-    LookupSelectors lookup_selectors;
-    LookupInfo lookup_info;
-
-    // table IDs for the lookup values.
-    // this may be not set if all lookups originate from table 0.
-    PolyComm table_ids; // INFO: optional
-    bool is_table_ids_set;
-
-    // an optional selector polynomial for runtime tables
-    PolyComm runtime_tables_selector; // INFO: optional
-    bool is_runtime_tables_selector_set;
-}
-
-struct NewLookupVerifierIndex {
     // each bit represents the presence (1) or absence (0) of an
     // optional field.
     uint256 optional_field_flags;
 
     BN254.G1Point lookup_table;
 
-    NewLookupInfo lookup_info;
+    LookupInfo lookup_info;
 
     // selectors
     BN254.G1Point xor; // INFO: optional
@@ -217,24 +129,6 @@ struct NewLookupVerifierIndex {
 }
 
 struct LookupSelectors {
-    // each bit represents the presence (1) or absence (0) of an
-    // optional field.
-    uint256 optional_field_flags;
-
-    PolyComm xor; // INFO: optional
-    bool is_xor_set;
-
-    PolyComm lookup; // INFO: optional
-    bool is_lookup_set;
-
-    PolyComm range_check; // INFO: optional
-    bool is_range_check_set;
-
-    PolyComm ffmul; // INFO: optional
-    bool is_ffmul_set;
-}
-
-struct NewLookupSelectors {
 
     BN254.G1Point xor; // INFO: optional
 
@@ -251,13 +145,7 @@ struct LookupInfo {
     // TODO: lookup features
 }
 
-struct NewLookupInfo {
-    uint256 max_per_row;
-    uint256 max_joint_size;
-    // TODO: lookup features
-}
-
-function verifier_digest(NewVerifierIndex storage index) returns (Base.FE) {
+function verifier_digest(VerifierIndex storage index) returns (Base.FE) {
     index.sponge.reinit();
 
     for (uint i = 0; i < index.sigma_comm.length; i++) {
@@ -300,7 +188,7 @@ function verifier_digest(NewVerifierIndex storage index) returns (Base.FE) {
     }
 
     if (is_field_set(index, LOOKUP_VERIFIER_INDEX_FLAG)) {
-        NewLookupVerifierIndex storage l_index = index.lookup_index;
+        LookupVerifierIndex storage l_index = index.lookup_index;
         index.sponge.absorb_g_single(l_index.lookup_table);
         if (is_field_set(l_index, TABLE_IDS_FLAG)) {
             index.sponge.absorb_g_single(l_index.table_ids);
@@ -327,14 +215,14 @@ function verifier_digest(NewVerifierIndex storage index) returns (Base.FE) {
 }
 
 function get_column_commitment(
-    NewVerifierIndex storage verifier_index,
+    VerifierIndex storage verifier_index,
     ProverProof storage proof,
     Column memory column
 )
     view
     returns (BN254.G1Point memory)
 {
-    NewLookupVerifierIndex memory l_index = verifier_index.lookup_index;
+    LookupVerifierIndex memory l_index = verifier_index.lookup_index;
 
     bytes memory data = column.data;
     ColumnVariant variant = column.variant;

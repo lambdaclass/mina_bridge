@@ -7,7 +7,7 @@ uint256 constant PERMUTS = 7;
 uint256 constant PERMUTATION_CONSTRAINTS = 3;
 uint256 constant VARBASEMUL_CONSTRAINTS = 21;
 
-// NewProofEvals bit flag positions
+// ProofEvals bit flag positions
 uint256 constant PUBLIC_EVALS_FLAG = 0;
 uint256 constant RANGE_CHECK0_SELECTOR_EVAL_FLAG = 1;
 uint256 constant RANGE_CHECK1_SELECTOR_EVAL_FLAG = 2;
