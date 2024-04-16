@@ -95,4 +95,8 @@ export class OpeningProof {
 
         return [chal, chal_inv];
     }
+
+    static check(_: OpeningProof) {}
+
+    static toAuxiliary(_?: OpeningProof): any[] { return [] }
 }

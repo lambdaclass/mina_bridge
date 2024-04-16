@@ -190,7 +190,7 @@ fn generate_proof() {
     let public_input_bytes: Vec<_> = public_input_bytes.iter().cloned().flatten().collect();
     fs::write("../eth_verifier/public_inputs.mpk", public_input_bytes).unwrap();
     // for tests purposes
-    println!("third public input: {}", public_input[2]);
+    //println!("third public input: {}", public_input[2]);
 
     let empty_polycomm = PolyComm::new(
         vec![G1::new(BaseField::from(0), BaseField::from(0), true)],

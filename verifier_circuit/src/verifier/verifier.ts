@@ -1,5 +1,5 @@
 import { readFileSync } from 'fs';
-import { CircuitBn254, circuitMainBn254, publicBn254 } from 'o1js';
+import { CircuitBn254, circuitMainBn254, FieldBn254, Provable, ProvableBn254, publicBn254 } from 'o1js';
 import { PolyComm } from '../poly_commitment/commitment.js';
 import { OpeningProof } from "../poly_commitment/opening_proof.js";
 import { SRS } from '../SRS.js';
@@ -16,7 +16,7 @@ import { Batch } from './batch.js';
 import proof_json from "../../test_data/proof.json" assert { type: "json" };
 import verifier_index_json from "../../test_data/verifier_index.json" assert { type: "json" };
 import { deserVerifierIndex } from "../serde/serde_index.js";
-import { deserProverProof } from '../serde/serde_proof.js';
+import { deserOpeningProof, deserProverProof, OpeningProofJSON } from '../serde/serde_proof.js';
 import { ForeignPallas, pallasZero } from '../foreign_fields/foreign_pallas.js';
 import { isErr, isOk, unwrap, VerifierResult, verifierOk } from '../error.js';
 import { finalVerify, BWParameters } from "./commitment.js";
@@ -209,6 +209,15 @@ export class VerifierIndex {
     }
 }
 
+import testInputs from "../../test_data/inputs.json" assert { type: "json" };
+let inputs: OpeningProofJSON;
+try {
+    inputs = JSON.parse(readFileSync("./src/inputs.json", "utf-8"));
+} catch (e) {
+    console.log("Using default inputs");
+    inputs = testInputs;
+}
+
 export class Verifier extends CircuitBn254 {
     /** Number of total registers */
     static readonly COLUMNS: number = 15;
@@ -217,10 +226,16 @@ export class Verifier extends CircuitBn254 {
     static readonly PERMUTATION_CONSTRAINTS: number = 3;
 
     @circuitMainBn254
-    static main(@publicBn254 openingProof: OpeningProof) {
+    static main(@publicBn254 single_pub_input: ForeignScalar) {
         // if the proof is successful, this will be 1. Else will be 0.
-        let success = ForeignScalar.from(0).assertAlmostReduced();
 
+        let openingProof = ProvableBn254.witness(OpeningProof, () => {
+            let openingProof = deserOpeningProof(inputs);
+            return openingProof;
+        });
+
+        let success = ForeignScalar.from(0).assertAlmostReduced();
+        success.add(single_pub_input);
         const verifier_result = this.verifyProof(openingProof);
         if (isOk(verifier_result)) {
             const verifier_successful = unwrap(verifier_result);

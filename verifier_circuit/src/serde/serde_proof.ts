@@ -187,7 +187,7 @@ export function deserProverCommitments(json: ProverCommitmentsJSON): ProverCommi
 }
 
 
-interface OpeningProofJSON {
+export interface OpeningProofJSON {
     lr: GroupJSON[][] // [GroupJSON, GroupJSON]
     delta: GroupJSON
     z1: string
