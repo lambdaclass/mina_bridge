@@ -234,6 +234,17 @@ struct LookupSelectors {
     bool is_ffmul_set;
 }
 
+struct NewLookupSelectors {
+
+    BN254.G1Point xor; // INFO: optional
+
+    BN254.G1Point lookup; // INFO: optional
+
+    BN254.G1Point range_check; // INFO: optional
+
+    BN254.G1Point ffmul; // INFO: optional
+}
+
 struct LookupInfo {
     uint256 max_per_row;
     uint256 max_joint_size;

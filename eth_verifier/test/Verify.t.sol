@@ -14,7 +14,6 @@ import "../lib/deserialize/ProverProof.sol";
 contract KimchiVerifierTest is Test {
     bytes verifier_index_serialized;
     bytes prover_proof_serialized;
-    bytes urs_serialized;
     bytes linearization_serialized_rlp;
     bytes public_inputs_serialized;
 
@@ -24,7 +23,6 @@ contract KimchiVerifierTest is Test {
     function setUp() public {
         verifier_index_serialized = vm.readFileBinary("verifier_index.bin");
         prover_proof_serialized = vm.readFileBinary("prover_proof.bin");
-        urs_serialized = vm.readFileBinary("urs.mpk");
         linearization_serialized_rlp = vm.readFileBinary("linearization.rlp");
         public_inputs_serialized = vm.readFileBinary("public_inputs.mpk");
 
@@ -38,7 +36,7 @@ contract KimchiVerifierTest is Test {
     function test_verify_with_index() public {
         KimchiVerifier verifier = new KimchiVerifier();
 
-        verifier.setup(urs_serialized);
+        verifier.setup();
 
         bool success = verifier.verify_with_index(
             verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
@@ -50,7 +48,7 @@ contract KimchiVerifierTest is Test {
     function test_partial_verify() public {
         KimchiVerifier verifier = new KimchiVerifier();
 
-        verifier.setup(urs_serialized);
+        verifier.setup();
 
         verifier.deserialize_proof(
             verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
@@ -65,7 +63,7 @@ contract KimchiVerifierTest is Test {
     function test_eval_commitment() public {
         KimchiVerifier verifier = new KimchiVerifier();
 
-        verifier.setup(urs_serialized);
+        verifier.setup();
 
         verifier.deserialize_proof(
             verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
@@ -97,7 +95,7 @@ contract KimchiVerifierTest is Test {
     function test_divisor_commitment() public {
         KimchiVerifier verifier = new KimchiVerifier();
 
-        verifier.setup(urs_serialized);
+        verifier.setup();
 
         verifier.deserialize_proof(
             verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
@@ -117,7 +115,7 @@ contract KimchiVerifierTest is Test {
     function test_public_commitment() public {
         KimchiVerifier verifier = new KimchiVerifier();
 
-        verifier.setup(urs_serialized);
+        verifier.setup();
 
         verifier.deserialize_proof(
             verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized

@@ -156,6 +156,16 @@ fn generate_proof() {
         },
         verifier_srs: index.srs.verifier_srs.clone(),
     };
+    println!(
+        "urs.g: {:?}",
+        srs_to_serialize
+            .full_srs
+            .g
+            .iter()
+            .map(|g_i| g_i.to_string())
+            .collect::<Vec<_>>()
+    );
+    println!("urs.h: {:?}", srs_to_serialize.full_srs.h.to_string());
     fs::write(
         "../eth_verifier/urs.mpk",
         rmp_serde::to_vec_named(&srs_to_serialize).unwrap(),
