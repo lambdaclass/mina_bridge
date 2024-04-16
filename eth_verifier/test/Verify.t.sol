@@ -21,15 +21,16 @@ contract KimchiVerifierTest is Test {
     Sponge sponge;
 
     function setUp() public {
-        verifier_index_serialized = vm.readFileBinary("verifier_index.mpk");
+        verifier_index_serialized = vm.readFileBinary("verifier_index.bin");
         prover_proof_serialized = vm.readFileBinary("prover_proof.bin");
         linearization_serialized_rlp = vm.readFileBinary("linearization.rlp");
         public_inputs_serialized = vm.readFileBinary("public_inputs.bin");
 
         // we store deserialized structures mostly to run intermediate results
         // tests.
-        MsgPk.deser_verifier_index(
-            MsgPk.new_stream(vm.readFileBinary("unit_test_data/verifier_index.mpk")), test_verifier_index
+        deser_verifier_index(
+            vm.readFileBinary("unit_test_data/verifier_index.bin"),
+            test_verifier_index
         );
     }
 
