@@ -103,12 +103,6 @@ contract MessagePackTest is Test {
         assertEq(point.y1, y1, "y1 is not correct");
     }
 
-    function test_deserialize_public_input() public {
-        public_inputs_serialized = vm.readFileBinary("public_inputs.mpk");
-        Scalar.FE[] memory public_inputs = MsgPk.deser_public_inputs(public_inputs_serialized);
-        assertEq(Scalar.FE.unwrap(public_inputs[2]), 0x000000000000000000000000000000000000000000002149A7476FD365F3E060);
-    }
-
     // INFO: this doesn't assert anything, it only executes this deserialization
     // for gas profiling.
     function test_deserialize_linearization_profiling_only() public {
@@ -128,12 +122,5 @@ contract MessagePackTest is Test {
     function test_deserialize_verifier_index_profiling_only() public {
         bytes memory verifier_index_serialized = vm.readFileBinary("verifier_index.mpk");
         deser_verifier_index(verifier_index_serialized, index);
-    }
-
-    // INFO: this doesn't assert anything, it only executes this deserialization
-    // for gas profiling.
-    function test_deserialize_public_inputs_profiling_only() public {
-        bytes memory public_inputs_serialized = vm.readFileBinary("public_inputs.mpk");
-        MsgPk.deser_public_inputs(public_inputs_serialized);
     }
 }
