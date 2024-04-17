@@ -102,10 +102,4 @@ contract MessagePackTest is Test {
         assertEq(point.y0, y0, "y0 is not correct");
         assertEq(point.y1, y1, "y1 is not correct");
     }
-
-    function test_deserialize_public_input() public {
-        public_inputs_serialized = vm.readFileBinary("public_inputs.mpk");
-        Scalar.FE[] memory public_inputs = MsgPk.deser_public_inputs(public_inputs_serialized);
-        assertEq(Scalar.FE.unwrap(public_inputs[2]), 0x000000000000000000000000000000000000000000002149A7476FD365F3E060);
-    }
 }

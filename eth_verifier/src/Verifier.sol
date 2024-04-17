@@ -15,6 +15,7 @@ import "../lib/msgpack/Deserialize.sol";
 import "../lib/Alphas.sol";
 import "../lib/Evaluations.sol";
 import "../lib/deserialize/ProverProof.sol";
+import "../lib/deserialize/PublicInputs.sol";
 import "../lib/deserialize/VerifierIndex.sol";
 import "../lib/expr/Expr.sol";
 import "../lib/expr/PolishToken.sol";
@@ -41,7 +42,7 @@ contract KimchiVerifier {
     ProverProof proof;
     VerifierIndex verifier_index;
     URS urs;
-    Scalar.FE[] public_inputs;
+    Scalar.FE[222] public_inputs;
 
     Sponge base_sponge;
     Sponge scalar_sponge;
@@ -84,7 +85,7 @@ contract KimchiVerifier {
         deser_verifier_index(verifier_index_serialized, verifier_index);
         deser_prover_proof(prover_proof_serialized, proof);
         verifier_index.linearization = abi.decode(linearization_serialized_rlp, (Linearization));
-        public_inputs = MsgPk.deser_public_inputs(public_inputs_serialized);
+        deser_public_inputs(public_inputs_serialized, public_inputs);
     }
 
     function verify_with_index(

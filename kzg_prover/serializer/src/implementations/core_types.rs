@@ -67,6 +67,16 @@ impl EVMSerializable for EVMSerializableType<BN254PolyComm> {
     }
 }
 
+impl EVMSerializable for EVMSerializableType<Vec<ScalarField>> {
+    fn to_bytes(self) -> Vec<u8> {
+        self.0
+            .iter()
+            .map(|x| EVMSerializableType(x.clone()).to_bytes())
+            .flatten()
+            .collect::<Vec<_>>()     
+    }
+}
+
 impl<T> EVMSerializable for EVMSerializableType<Option<T>>
 where
     EVMSerializableType<T>: EVMSerializable,

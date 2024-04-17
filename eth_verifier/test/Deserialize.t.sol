@@ -3,6 +3,7 @@ pragma solidity >=0.4.16 <0.9.0;
 
 import {Test, console2} from "forge-std/Test.sol";
 import "../lib/deserialize/ProverProof.sol";
+import "../lib/deserialize/PublicInputs.sol";
 import "../lib/Proof.sol";
 import "../lib/Constants.sol";
 
@@ -16,6 +17,7 @@ contract DecodeProverProof is Test {
     ProofEvaluations proof_evals;
     ProverCommitments proof_comms;
     ProverProof prover_proof;
+    Scalar.FE[222] public_inputs;
 
     function setUp() public {
         pairing_proof_bytes = vm.readFileBinary("./unit_test_data/pairing_proof.bin");
@@ -137,5 +139,12 @@ contract DecodeProverProof is Test {
          * Test ft_eval1 *
          */
         assertEq(Scalar.FE.unwrap(prover_proof.ft_eval1), 10);
+    }
+
+    // INFO: this doesn't assert anything, it only executes this deserialization
+    // for gas profiling.
+    function test_deserialize_public_inputs_profiling_only() public {
+        bytes memory public_inputs_serialized = vm.readFileBinary("public_inputs.bin");
+        deser_public_inputs(public_inputs_serialized, public_inputs);
     }
 }

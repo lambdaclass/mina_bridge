@@ -11,7 +11,7 @@ fs_permissions = [
     { access = "read", path = "./verifier_index.bin"},
     { access = "read", path = "./prover_proof.mpk"},
     { access = "read", path = "./prover_proof.bin"},
-    { access = "read", path = "./public_inputs.mpk"},
+    { access = "read", path = "./public_inputs.bin"},
     { access = "read", path = "./linearization.mpk"},
     { access = "read", path = "./lagrange_bases.mpk"},
     { access = "read", path = "./unit_test_data/"},

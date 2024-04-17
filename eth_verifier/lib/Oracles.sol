@@ -41,7 +41,7 @@ library Oracles {
         ProverProof memory proof,
         VerifierIndex storage index,
         BN254.G1Point memory public_comm,
-        Scalar.FE[] memory public_input,
+        Scalar.FE[222] memory public_input,
         bool is_public_input_set,
         Sponge storage base_sponge,
         Sponge storage scalar_sponge
