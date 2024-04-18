@@ -42,7 +42,7 @@ contract KimchiVerifier {
     ProverProof proof;
     VerifierIndex verifier_index;
     URS urs;
-    Scalar.FE[222] public_inputs;
+    Scalar.FE public_input;
 
     Sponge base_sponge;
     Sponge scalar_sponge;
@@ -80,22 +80,22 @@ contract KimchiVerifier {
         bytes calldata verifier_index_serialized,
         bytes calldata prover_proof_serialized,
         bytes calldata linearization_serialized_rlp,
-        bytes calldata public_inputs_serialized
+        bytes calldata public_input_serialized
     ) public {
         deser_verifier_index(verifier_index_serialized, verifier_index);
         deser_prover_proof(prover_proof_serialized, proof);
         verifier_index.linearization = abi.decode(linearization_serialized_rlp, (Linearization));
-        deser_public_inputs(public_inputs_serialized, public_inputs);
+        deser_public_inputs(public_inputs_serialized, public_input);
     }
 
     function verify_with_index(
         bytes calldata verifier_index_serialized,
         bytes calldata prover_proof_serialized,
         bytes calldata linearization_serialized_rlp,
-        bytes calldata public_inputs_serialized
+        bytes calldata public_input_serialized
     ) public returns (bool) {
         deserialize_proof(
-            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
+            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_input_serialized
         );
         AggregatedEvaluationProof memory agg_proof = partial_verify();
         return final_verify(agg_proof);
@@ -111,7 +111,7 @@ contract KimchiVerifier {
         // 3. Execute fiat-shamir with a Keccak sponge
 
         Oracles.Result memory oracles_res =
-            Oracles.fiat_shamir(proof, verifier_index, public_comm, public_inputs, true, base_sponge, scalar_sponge);
+            Oracles.fiat_shamir(proof, verifier_index, public_comm, public_input, true, base_sponge, scalar_sponge);
         Oracles.RandomOracles memory oracles = oracles_res.oracles;
 
         // 4. Combine the chunked polynomials' evaluations
@@ -268,8 +268,7 @@ contract KimchiVerifier {
                 proof.commitments.lookup_runtime
             );
 
-            evaluations[eval_index++] =
-                Evaluation(table_comm, [lookup_table.zeta, lookup_table.zeta_omega], 0);
+            evaluations[eval_index++] = Evaluation(table_comm, [lookup_table.zeta, lookup_table.zeta_omega], 0);
 
             if (is_field_set(li, RUNTIME_TABLES_SELECTOR_FLAG)) {
                 if (!is_field_set(proof.commitments, LOOKUP_RUNTIME_COMM_FLAG)) {

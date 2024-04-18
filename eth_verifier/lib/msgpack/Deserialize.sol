@@ -561,6 +561,10 @@ library MsgPk {
         }
     }
 
+    function deser_public_input(bytes calldata data) public pure returns (Scalar.FE public_input) {
+        public_input = Scalar.from(uint256(bytes32(data)));
+    }
+
     /* WARN:
      * Functions below are part of the previous deserializer implementation,
      * and are still used for functions related to the demo. The goal is to replace

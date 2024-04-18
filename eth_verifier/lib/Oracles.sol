@@ -41,7 +41,7 @@ library Oracles {
         ProverProof memory proof,
         VerifierIndex storage index,
         BN254.G1Point memory public_comm,
-        Scalar.FE[222] memory public_input,
+        Scalar.FE public_input,
         bool is_public_input_set,
         Sponge storage base_sponge,
         Sponge storage scalar_sponge
@@ -64,65 +64,68 @@ library Oracles {
         // 4. Absorb the commitment to the public inputs.
         base_sponge.absorb_g_single(public_comm);
 
+        // 5. (NEW) Absorb the public input.
+        base_sponge.absorb_scalar(public_input);
+
         // INFO: up until this point, all previous values only depend on the verifier index which is fixed for a given
         // constraint system.
 
-        // 5. Absorb the commitments to the registers / witness columns
+        // 6. Absorb the commitments to the registers / witness columns
         for (uint256 i = 0; i < proof.commitments.w_comm.length; i++) {
             base_sponge.absorb_g_single(proof.commitments.w_comm[i]);
         }
 
-        // TODO: 6. If lookup is used, absorb runtime commitment
+        // TODO: 7. If lookup is used, absorb runtime commitment
         // INFO: this isn't needed for our current test proof
 
-        // TODO: 7. Calculate joint_combiner
+        // TODO: 8. Calculate joint_combiner
         // INFO: for our test proof this will be zero.
         ScalarChallenge memory joint_combiner = ScalarChallenge(Scalar.zero());
         Scalar.FE joint_combiner_field = joint_combiner.to_field(endo_r);
 
-        // 8. If lookup is used, absorb commitments to the sorted polys:
+        // 9. If lookup is used, absorb commitments to the sorted polys:
         for (uint256 i = 0; i < proof.commitments.lookup_sorted.length; i++) {
             base_sponge.absorb_g_single(proof.commitments.lookup_sorted[i]);
         }
 
-        // 9. Sample beta from the sponge
+        // 10. Sample beta from the sponge
         Scalar.FE beta = base_sponge.challenge_scalar();
-        // 10. Sample gamma from the sponge
+        // 11. Sample gamma from the sponge
         Scalar.FE gamma = base_sponge.challenge_scalar();
 
-        // 11. If using lookup, absorb the commitment to the aggregation lookup polynomial.
+        // 12. If using lookup, absorb the commitment to the aggregation lookup polynomial.
         base_sponge.absorb_g_single(proof.commitments.lookup_aggreg);
 
-        // 12. Absorb the commitment to the permutation trace with the Fq-Sponge.
+        // 13. Absorb the commitment to the permutation trace with the Fq-Sponge.
         base_sponge.absorb_g_single(proof.commitments.z_comm);
 
-        // 13. Sample alpha prime
+        // 14. Sample alpha prime
         ScalarChallenge memory alpha_chal = ScalarChallenge(base_sponge.challenge_scalar());
 
-        // 14. Derive alpha using the endomorphism
+        // 15. Derive alpha using the endomorphism
         Scalar.FE alpha = alpha_chal.to_field(endo_r);
 
-        // 15. Enforce that the length of the $t$ commitment is of size 7.
+        // 16. Enforce that the length of the $t$ commitment is of size 7.
         // INFO: We are assuming the prover is configured accordingly so this is always the case
 
-        // 16. Absorb commitment to the quotient polynomial $t$.
+        // 17. Absorb commitment to the quotient polynomial $t$.
         for (uint256 i = 0; i < proof.commitments.t_comm.length; i++) {
             base_sponge.absorb_g_single(proof.commitments.t_comm[i]);
         }
 
-        // 17. Sample zeta prime
+        // 18. Sample zeta prime
         ScalarChallenge memory zeta_chal = ScalarChallenge(base_sponge.challenge_scalar());
-        // 18. Derive zeta using the endomorphism
+        // 19. Derive zeta using the endomorphism
         Scalar.FE zeta = zeta_chal.to_field(endo_r);
 
-        // 19. Setup a scalar sponge
+        // 20. Setup a scalar sponge
         scalar_sponge.reinit();
 
-        // 20. Absorb the digest of the previous sponge
+        // 21. Absorb the digest of the previous sponge
         Scalar.FE digest = base_sponge.digest_scalar();
         scalar_sponge.absorb_scalar(digest);
 
-        // TODO: 21. Absorb the previous recursion challenges
+        // TODO: 22. Absorb the previous recursion challenges
         // INFO: our proofs won't have recursion for now, so we only need
         // to absorb the digest of an empty sponge. This will be hardcoded:
         scalar_sponge.absorb_scalar(Scalar.from(0x00C5D2460186F7233C927E7DB2DCC703C0E500B653CA82273B7BFAD8045D85A4));
@@ -136,7 +139,7 @@ library Oracles {
         PointEvaluations memory powers_of_eval_points_for_chunks =
             PointEvaluations(zeta.pow(index.max_poly_size), zetaw.pow(index.max_poly_size));
 
-        // TODO: 22. Compute evaluations for the previous recursion challenges
+        // TODO: 23. Compute evaluations for the previous recursion challenges
         // INFO: this isn't necessary for our current test proof
 
         // retrieve ranges for the powers of alphas
@@ -168,7 +171,7 @@ library Oracles {
                 w_i = w_i.mul(index.domain_gen);
             }
 
-            // 23. Evaluate the negated public polynomial (if present) at $\zeta$ and $\zeta\omega$.
+            // 24. Evaluate the negated public polynomial (if present) at $\zeta$ and $\zeta\omega$.
             // NOTE: this works only in the case when the poly segment size is not smaller than that of the domain.
             if (public_input.length == 0) {
                 public_evals = [Scalar.zero(), Scalar.zero()];
@@ -198,10 +201,10 @@ library Oracles {
             revert MissingPublicInputEvaluation();
         }
 
-        // 24. Absorb the unique evaluation of ft
+        // 25. Absorb the unique evaluation of ft
         scalar_sponge.absorb_scalar(proof.ft_eval1);
 
-        // 25. Absorb all the polynomial evaluations in $\zeta$ and $\zeta\omega$:
+        // 26. Absorb all the polynomial evaluations in $\zeta$ and $\zeta\omega$:
         //~~ * the public polynomial
         //~~ * z
         //~~ * generic selector
@@ -212,20 +215,20 @@ library Oracles {
         scalar_sponge.absorb_scalar(public_evals[1]);
         scalar_sponge.absorb_evaluations(proof.evals);
 
-        // 26. Sample v prime with the scalar sponge and derive v
+        // 27. Sample v prime with the scalar sponge and derive v
         ScalarChallenge memory v_chal = ScalarChallenge(scalar_sponge.challenge_scalar());
         Scalar.FE v = v_chal.to_field(endo_r);
 
-        // 27. Sample u prime with the scalar sponge and derive u
+        // 28. Sample u prime with the scalar sponge and derive u
         ScalarChallenge memory u_chal = ScalarChallenge(scalar_sponge.challenge_scalar());
         Scalar.FE u = u_chal.to_field(endo_r);
 
-        // 28. Create a list of all polynomials that have an evaluation proof
+        // 29. Create a list of all polynomials that have an evaluation proof
         //ProofEvaluations memory evals = proof.evals.combine_evals(powers_of_eval_points_for_chunks);
         // INFO: There's only one evaluation per polynomial so there's nothing to combine
         ProofEvaluations memory evals = proof.evals;
 
-        // 29. Compute the evaluation of $ft(\zeta)$.
+        // 30. Compute the evaluation of $ft(\zeta)$.
         Scalar.FE permutation_vanishing_poly =
             Polynomial.eval_vanishes_on_last_n_rows(index.domain_gen, index.domain_size, index.zk_rows, zeta);
         Scalar.FE zeta1m1 = zeta1.sub(Scalar.one());

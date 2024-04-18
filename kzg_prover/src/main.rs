@@ -36,6 +36,7 @@ use kimchi::{
     proof::ProverProof,
     prover_index::ProverIndex,
     verifier::{batch_verify, to_batch, Context},
+    verifier_index::VerifierIndex,
 };
 use num::{bigint::RandBigInt, BigUint};
 use num_traits::{One, Zero};
@@ -109,13 +110,12 @@ fn generate_proof() {
         .map(|&p_i| ark_bn254::Fr::new(BigInteger256::new(p_i)))
         .collect();
 
-    // Partially verify proof
-    let agg_proof = to_batch::<
-        G1Affine,
-        Keccak256FqSponge<BaseField, G1, ScalarField>,
-        Keccak256FrSponge<ScalarField>,
-        KZGProof,
-    >(&verifier_index, &proof, &public_input)
+    // Partial verification
+    let agg_proof = to_batch::<G1, KeccakFqSponge, KeccakFrSponge, KZGProof>(
+        &verifier_index,
+        &proof,
+        &public_input,
+    )
     .unwrap();
 
     // Final verify
@@ -211,6 +211,42 @@ fn generate_proof() {
         EVMSerializableType(lagrange_bases[&domain_size].clone()).to_bytes(),
     )
     .unwrap();
+}
+
+fn public_commitment(
+    verifier_index: &VerifierIndex<G1, KZGProof>,
+    public_input: &Vec<ScalarField>,
+) {
+    let chunk_size = {
+        let d1_size = verifier_index.domain.size();
+        if d1_size < verifier_index.max_poly_size {
+            1
+        } else {
+            d1_size / verifier_index.max_poly_size
+        }
+    };
+    let lgr_comm = verifier_index
+        .srs()
+        .get_lagrange_basis(verifier_index.domain.size())
+        .expect("pre-computed committed lagrange bases not found");
+    let com: Vec<_> = lgr_comm.iter().take(public_input.len()).collect();
+    if public_input.is_empty() {
+        PolyComm::new(
+            *vec![verifier_index.srs().blinding_commitment(); chunk_size],
+            None,
+        )
+    } else {
+        let elm: Vec<_> = public_input.iter().map(|s| -*s).collect();
+        let public_comm = PolyComm::<G1>::multi_scalar_mul(&com, &elm);
+        verifier_index
+            .srs()
+            .mask_custom(
+                public_comm.clone(),
+                &public_comm.map(|_| ScalarField::one()),
+            )
+            .unwrap()
+            .commitment
+    }
 }
 
 fn generate_test_proof_for_evm_verifier() {

@@ -1,10 +1,11 @@
 import { SRS } from "../SRS.js";
 import { ScalarChallenge } from "../verifier/scalar_challenge.js";
 import { invScalar } from "../util/scalar.js";
-import { FieldBn254, Provable }  from "o1js";
+import { FieldBn254, PoseidonBn254, Provable, ProvableBn254 } from "o1js";
 import { ForeignPallas } from "../foreign_fields/foreign_pallas.js";
 import { Sponge } from "../verifier/sponge";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
+import { readFileSync } from "fs";
 
 export class OpeningProof {
     /** vector of rounds of L & R commitments */
@@ -13,6 +14,7 @@ export class OpeningProof {
     z1: ForeignScalar
     z2: ForeignScalar
     sg: ForeignPallas
+    fieldsRepr: FieldBn254[]
 
     constructor(lr: [ForeignPallas, ForeignPallas][], delta: ForeignPallas, z1: ForeignScalar, z2: ForeignScalar, sg: ForeignPallas) {
         this.lr = lr;
@@ -20,6 +22,18 @@ export class OpeningProof {
         this.z1 = z1;
         this.z2 = z2;
         this.sg = sg;
+
+        let fieldsStr: string[] = JSON.parse(readFileSync("./src/opening_proof_fields.json", "utf-8"));
+        this.fieldsRepr = fieldsStr.map(FieldBn254);
+    }
+
+    hash() {
+        let ret = PoseidonBn254.hash(this.fieldsRepr);
+        ProvableBn254.asProver(() => {
+            console.log("fields:", this.fieldsRepr.map((f) => f.toBigInt()));
+            console.log("hash:", ret.toBigInt());
+        })
+        return ret;
     }
 
     static #rounds() {
@@ -80,6 +94,12 @@ export class OpeningProof {
     static toFields(x: OpeningProof) {
         return x.toFields();
     }
+
+    static toAuxiliary() {
+        return [];
+    }
+
+    static check() { }
 
     challenges(
         endo_r: ForeignScalar,
