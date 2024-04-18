@@ -14,7 +14,6 @@ export class OpeningProof {
     z1: ForeignScalar
     z2: ForeignScalar
     sg: ForeignPallas
-    fieldsRepr: FieldBn254[]
 
     constructor(lr: [ForeignPallas, ForeignPallas][], delta: ForeignPallas, z1: ForeignScalar, z2: ForeignScalar, sg: ForeignPallas) {
         this.lr = lr;
@@ -22,15 +21,15 @@ export class OpeningProof {
         this.z1 = z1;
         this.z2 = z2;
         this.sg = sg;
-
-        let fieldsStr: string[] = JSON.parse(readFileSync("./src/opening_proof_fields.json", "utf-8"));
-        this.fieldsRepr = fieldsStr.map(FieldBn254);
     }
 
     hash() {
-        let ret = PoseidonBn254.hash(this.fieldsRepr);
+        let fieldsStr: string[] = JSON.parse(readFileSync("./src/opening_proof_fields.json", "utf-8"));
+        let fieldsRepr = fieldsStr.map(FieldBn254);
+
+        let ret = PoseidonBn254.hash(fieldsRepr);
         ProvableBn254.asProver(() => {
-            console.log("fields:", this.fieldsRepr.map((f) => f.toBigInt()));
+            console.log("fields:", fieldsRepr.map((f) => f.toBigInt()));
             console.log("hash:", ret.toBigInt());
         })
         return ret;
