@@ -27,7 +27,7 @@ struct PolishToken {
 }
 
 function evaluate(
-    PolishToken[] memory toks,
+    NewLinearization storage linearization,
     Scalar.FE domain_gen,
     uint256 domain_size,
     Scalar.FE pt,
@@ -37,89 +37,97 @@ function evaluate(
 ) view returns (Scalar.FE) {
     Scalar.FE vanishing_eval = evaluate_vanishing_polynomial(domain_gen, domain_size, pt);
 
-    Scalar.FE[] memory stack = new Scalar.FE[](toks.length);
+    Scalar.FE[] memory stack = new Scalar.FE[](linearization.total_variants_len);
     uint256 stack_next = 0; // will keep track of last stack element's index
-    Scalar.FE[] memory cache = new Scalar.FE[](toks.length);
+    Scalar.FE[] memory cache = new Scalar.FE[](linearization.total_variants_len);
     uint256 cache_next = 0; // will keep track of last cache element's index
     // WARN: Both arrays allocate the maximum memory they will ever use, but it's
     // WARN: pretty unlikely they'll need it all.
 
     uint256 skip_count = 0;
 
-    for (uint256 i = 0; i < toks.length; i++) {
+    for (uint256 i = 0; i < linearization.total_variants_len; i++) {
         if (skip_count > 0) {
             skip_count -= 1;
             continue;
         }
 
-        PolishTokenVariant v = toks[i].variant;
-        bytes memory v_data = toks[i].data;
-        if (v == PolishTokenVariant.Alpha) {
+        uint256 byte_index = i % 32;
+        uint256 word_index = i / 32;
+
+        uint256 next_mds_index = 0;
+        uint256 next_literals_index = 0;
+        uint256 next_pows_index = 0;
+        uint256 next_offsets_index = 0;
+        uint256 next_loads_index = 0;
+
+        uint256 variant = (linearization.variants[word_index] >> (byte_index * 8)) & 0xFF;
+
+        // Alpha
+        if (variant == 0) {
             stack[stack_next] = c.alpha;
             stack_next += 1;
             continue;
         }
-        if (v == PolishTokenVariant.Beta) {
+        // Beta
+        if (variant == 1) {
             stack[stack_next] = c.beta;
             stack_next += 1;
             continue;
         }
-        if (v == PolishTokenVariant.Gamma) {
+        // Gamma
+        if (variant == 2) {
             stack[stack_next] = c.gamma;
             stack_next += 1;
             continue;
         }
-        if (v == PolishTokenVariant.JointCombiner) {
+        // JointCombiner
+        if (variant == 3) {
             stack[stack_next] = c.joint_combiner;
             stack_next += 1;
             continue;
         }
-        if (v == PolishTokenVariant.EndoCoefficient) {
+        // EndoCoefficient
+        if (variant == 4) {
             stack[stack_next] = c.endo_coefficient;
             stack_next += 1;
             continue;
         }
-        if (v == PolishTokenVariant.Mds) {
-            PolishTokenMds memory pos = abi.decode(v_data, (PolishTokenMds));
-            stack[stack_next] = KeccakSponge.mds()[pos.row][pos.col];
-            stack_next += 1;
-            continue;
-        }
-        if (v == PolishTokenVariant.VanishesOnZeroKnowledgeAndPreviousRows) {
-            stack[stack_next] = Polynomial.eval_vanishes_on_last_n_rows(domain_gen, domain_size, c.zk_rows + 1, pt);
-            stack_next += 1;
-            continue;
-        }
-        if (v == PolishTokenVariant.UnnormalizedLagrangeBasis) {
-            int256 offset = abi.decode(v_data, (int256));
+        // Mds
+        if (variant == 5) {
+            uint256 row = linearization.mds[next_mds_index];
+            uint256 col = linearization.mds[next_mds_index + 1];
+            next_mds_index += 2;
 
-            stack[stack_next] = unnormalized_lagrange_basis(domain_gen, vanishing_eval, offset, pt);
+            stack[stack_next] = KeccakSponge.mds()[row][col];
             stack_next += 1;
             continue;
         }
-        if (v == PolishTokenVariant.Literal) {
-            Scalar.FE x = abi.decode(v_data, (Scalar.FE));
-            stack[stack_next] = x;
+        // Literal
+        if (variant == 6) {
+            Scalar.FE literal = Scalar.FE.wrap(linearization.literals[next_literals_index]);
+            next_literals_index += 1;
+
+            stack[stack_next] = literal;
             stack_next += 1;
             continue;
         }
-        if (v == PolishTokenVariant.Dup) {
+        // Dup
+        if (variant == 7) {
             stack[stack_next] = stack[stack_next - 1];
             stack_next += 1;
             continue;
         }
-        if (v == PolishTokenVariant.Cell) {
-            Variable memory x = abi.decode(v_data, (Variable));
-            stack[stack_next] = evaluate_variable(x, evals);
-            stack_next += 1;
-            continue;
-        }
-        if (v == PolishTokenVariant.Pow) {
-            uint256 n = abi.decode(v_data, (uint256)); // WARN: different types
+        // Pow
+        if (variant == 8) {
+            uint256 n = linearization.pows[next_pows_index];
+            next_pows_index += 1;
+
             stack[stack_next - 1] = stack[stack_next - 1].pow(n);
             continue;
         }
-        if (v == PolishTokenVariant.Add) {
+        // Add
+        if (variant == 9) {
             // pop x and y
             Scalar.FE y = stack[stack_next - 1];
             stack_next -= 1;
@@ -131,7 +139,8 @@ function evaluate(
             stack_next += 1;
             continue;
         }
-        if (v == PolishTokenVariant.Mul) {
+        // Mul
+        if (variant == 10) {
             // pop x and y
             Scalar.FE y = stack[stack_next - 1];
             stack_next -= 1;
@@ -143,7 +152,8 @@ function evaluate(
             stack_next += 1;
             continue;
         }
-        if (v == PolishTokenVariant.Sub) {
+        // Sub
+        if (variant == 11) {
             // pop x and y
             Scalar.FE y = stack[stack_next - 1];
             stack_next -= 1;
@@ -155,18 +165,55 @@ function evaluate(
             stack_next += 1;
             continue;
         }
-        if (v == PolishTokenVariant.Store) {
+        // VanishesOnZeroKnowledgeAndPreviousRows
+        if (variant == 12) {
+            stack[stack_next] = Polynomial.eval_vanishes_on_last_n_rows(domain_gen, domain_size, c.zk_rows + 1, pt);
+            stack_next += 1;
+            continue;
+        }
+        // UnnormalizedLagrangeBasis
+        if (variant == 13) {
+            int256 offset = linearization.offsets[next_offsets_index];
+            next_offsets_index += 1;
+
+            stack[stack_next] = unnormalized_lagrange_basis(domain_gen, vanishing_eval, offset, pt);
+            stack_next += 1;
+            continue;
+        }
+        // Store
+        if (variant == 14) {
             Scalar.FE x = stack[stack_next - 1];
 
             cache[cache_next] = x;
             cache_next += 1;
             continue;
         }
-        if (v == PolishTokenVariant.Load) {
-            uint256 j = abi.decode(v_data, (uint256)); // WARN: different types
-            Scalar.FE x = cache[j];
+        // Load
+        if (variant == 15) {
+            uint256 j = linearization.loads[next_loads_index];
+            next_loads_index += 1;
 
+            Scalar.FE x = cache[j];
             stack[stack_next] = x;
+            stack_next += 1;
+            continue;
+        }
+        // Cell
+        if (variant >= 16) {
+            // check msb for row:
+            bool curr = variant & 0x80 == 0;
+
+            // get eval from column id (see serializer)
+            uint256 col_id = (variant & 0x80) - 16;
+            PointEvaluations memory point_eval = evaluate_column_by_id(evals, col_id);
+            Scalar.FE eval;
+            if (curr) {
+                eval = point_eval.zeta;
+            } else {
+                eval = point_eval.zeta_omega;
+            }
+
+            stack[stack_next] = eval;
             stack_next += 1;
             continue;
         }

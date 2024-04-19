@@ -21,6 +21,7 @@ impl EVMSerializable for EVMSerializableType<Vec<BN254PolishToken>> {
         let mut encoded_mds = vec![];
         let mut encoded_literals = vec![];
         let mut encoded_pows = vec![];
+        let mut encoded_offsets = vec![];
         let mut encoded_loads = vec![];
 
         for token in self.0.iter() {
@@ -52,7 +53,10 @@ impl EVMSerializable for EVMSerializableType<Vec<BN254PolishToken>> {
                 PolishToken::Mul => token_id = 10,
                 PolishToken::Sub => token_id = 11,
                 PolishToken::VanishesOnZeroKnowledgeAndPreviousRows => token_id = 12,
-                PolishToken::UnnormalizedLagrangeBasis(_) => token_id = 13,
+                PolishToken::UnnormalizedLagrangeBasis(offset) =>  {
+                    token_id = 13;
+                    encoded_offsets.extend(EVMSerializableType(*offset).to_bytes());
+                },
                 PolishToken::Store => token_id = 14,
                 PolishToken::Load(index) => {
                     token_id = 15;
@@ -125,21 +129,28 @@ impl EVMSerializable for EVMSerializableType<Vec<BN254PolishToken>> {
         let encoded_mds_len = EVMSerializableType(encoded_mds.len()).to_bytes();
         let encoded_literals_len = EVMSerializableType(encoded_literals.len()).to_bytes();
         let encoded_pows_len = EVMSerializableType(encoded_pows.len()).to_bytes();
+        let encoded_offsets_len = EVMSerializableType(encoded_pows.len()).to_bytes();
         let encoded_loads_len = EVMSerializableType(encoded_loads.len()).to_bytes();
 
         [
-            // first encode lengths:
             encoded_total_variants_len,
+            // variants
             encoded_variants_len,
-            encoded_mds_len,
-            encoded_literals_len,
-            encoded_pows_len,
-            encoded_loads_len,
-            // then data:
             encoded_variants,
+            // mds
+            encoded_mds_len,
             encoded_mds,
+            // literals
+            encoded_literals_len,
             encoded_literals,
+            // pows
+            encoded_pows_len,
             encoded_pows,
+            // offsets
+            encoded_offsets_len,
+            encoded_offsets,
+            // loads
+            encoded_loads_len,
             encoded_loads,
         ]
         .concat()

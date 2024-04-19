@@ -17,6 +17,7 @@ import "../lib/Evaluations.sol";
 import "../lib/deserialize/ProverProof.sol";
 import "../lib/deserialize/PublicInputs.sol";
 import "../lib/deserialize/VerifierIndex.sol";
+import "../lib/deserialize/Linearization.sol";
 import "../lib/expr/Expr.sol";
 import "../lib/expr/PolishToken.sol";
 import "../lib/expr/ExprConstants.sol";
@@ -79,12 +80,12 @@ contract KimchiVerifier {
     function deserialize_proof(
         bytes calldata verifier_index_serialized,
         bytes calldata prover_proof_serialized,
-        bytes calldata linearization_serialized_rlp,
+        bytes calldata linearization_serialized,
         bytes calldata public_inputs_serialized
     ) public {
         deser_verifier_index(verifier_index_serialized, verifier_index);
         deser_prover_proof(prover_proof_serialized, proof);
-        verifier_index.linearization = abi.decode(linearization_serialized_rlp, (Linearization));
+        deser_linearization(linearization_serialized, verifier_index.linearization);
         deser_public_inputs(public_inputs_serialized, public_inputs);
     }
 
@@ -128,41 +129,11 @@ contract KimchiVerifier {
         AlphasIterator memory alphas =
             verifier_index.powers_of_alpha.get_alphas(ArgumentType.Permutation, PERMUTATION_CONSTRAINTS);
 
-        Linearization memory linear = verifier_index.linearization;
-
-        BN254.G1Point[] memory commitments = new BN254.G1Point[](linear.index_terms.length + 1);
+        BN254.G1Point[] memory commitments = new BN254.G1Point[](1);
         commitments[0] = verifier_index.sigma_comm[PERMUTS - 1];
-        Scalar.FE[] memory scalars = new Scalar.FE[](linear.index_terms.length + 1);
+        Scalar.FE[] memory scalars = new Scalar.FE[](1);
         scalars[0] = perm_scalars(evals, oracles.beta, oracles.gamma, alphas, permutation_vanishing_polynomial);
 
-        ExprConstants memory constants = ExprConstants(
-            oracles.alpha,
-            oracles.beta,
-            oracles.gamma,
-            oracles.joint_combiner_field,
-            verifier_index.endo,
-            verifier_index.zk_rows
-        );
-
-        uint256 i_commitments = 0;
-        while (i_commitments < linear.index_terms.length) {
-            Column memory col = linear.index_terms[i_commitments].col;
-            PolishToken[] memory tokens = linear.index_terms[i_commitments].coeff;
-
-            Scalar.FE scalar = evaluate(
-                tokens,
-                verifier_index.domain_gen,
-                verifier_index.domain_size,
-                oracles.zeta,
-                oracles.vanishing_eval,
-                evals,
-                constants
-            );
-
-            scalars[i_commitments + 1] = scalar;
-            commitments[i_commitments + 1] = get_column_commitment(verifier_index, proof, col);
-            ++i_commitments;
-        }
         BN254.G1Point memory f_comm = msm(commitments, scalars);
 
         // 6. Compute the chunked commitment of ft

@@ -103,3 +103,13 @@ struct Linearization {
     PolishToken[] constant_term;
     LinearTerm[] index_terms;
 }
+
+struct NewLinearization {
+    uint256 total_variants_len;
+    uint256[] variants;
+    uint256[] mds;
+    uint256[] literals;
+    uint256[] pows;
+    int256[] offsets;
+    uint256[] loads;
+}

@@ -359,19 +359,6 @@ library MsgPk {
         // deser_lagrange_bases(lagrange_b_serialized, urs.lagrange_bases_unshifted);
     }
 
-    function deser_linearization(Stream memory self, VerifierIndex storage index) public {
-        // TODO: only constant_term is deserialized right now.
-        EncodedArray memory arr = deser_arr32(self);
-
-        PolishToken[] memory constant_term = new PolishToken[](arr.values.length);
-        for (uint256 i = 0; i < arr.values.length; i++) {
-            EncodedMap memory value_map = abi.decode(arr.values[i], (EncodedMap));
-            constant_term[i] = deser_polishtoken(value_map);
-        }
-
-        index.linearization.constant_term = constant_term;
-    }
-
     function deser_column(bytes memory col) public view returns (Column memory) {
         // if col is an encoded string, then it may be a unit value. In this case the encoded bytes
         // must not be more than 96 (this fact is based on seeing multiple encoded strings):

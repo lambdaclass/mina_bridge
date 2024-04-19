@@ -243,6 +243,132 @@ function evaluate_column(ProofEvaluations memory self, Column memory col) view r
     revert("unhandled column variant");
 }
 
+function evaluate_column_by_id(ProofEvaluations memory self, uint256 col_id) view returns (PointEvaluations memory) {
+    if (col_id <= 14) {
+        return self.w[col_id - 14];
+    }
+    else if (col_id == 15) {
+        return self.z;
+    }
+    else if (col_id <= 20) {
+        uint256 i = col_id - 16;
+        if (!is_field_set(self, LOOKUP_SORTED_EVAL_FLAG + i)) {
+            revert MissingIndexEvaluation("lookup_sorted");
+        }
+        return self.lookup_sorted[i];
+    }
+    else if (col_id == 21) {
+        if (!is_field_set(self, LOOKUP_AGGREGATION_EVAL_FLAG)) {
+            revert MissingIndexEvaluation("lookup_aggregation");
+        }
+        return self.lookup_aggregation;
+    }
+    else if (col_id == 22) {
+        if (!is_field_set(self, LOOKUP_TABLE_EVAL_FLAG)) {
+            revert MissingIndexEvaluation("lookup_table");
+        }
+        return self.lookup_table;
+    }
+    else if (col_id == 23) {
+        if (!is_field_set(self, XOR_LOOKUP_SELECTOR_EVAL_FLAG)) {
+            revert MissingIndexEvaluation("xor_lookup_selector");
+        }
+        return self.xor_lookup_selector;
+    }
+    else if (col_id == 24) {
+        if (!is_field_set(self, LOOKUP_GATE_LOOKUP_SELECTOR_EVAL_FLAG)) {
+            revert MissingIndexEvaluation("lookup_gate_lookup_selector");
+        }
+        return self.lookup_gate_lookup_selector;
+    }
+    else if (col_id == 25) {
+        if (!is_field_set(self, RANGE_CHECK_LOOKUP_SELECTOR_EVAL_FLAG)) {
+            revert MissingIndexEvaluation("range_check_lookup_selector");
+        }
+        return self.range_check_lookup_selector;
+    }
+    else if (col_id == 26) {
+        if (!is_field_set(self, FOREIGN_FIELD_MUL_LOOKUP_SELECTOR_EVAL_FLAG)) {
+            revert MissingIndexEvaluation("foreign_field_mul_lookup_selector");
+        }
+        return self.foreign_field_mul_lookup_selector;
+    }
+    else if (col_id == 27) {
+        if (!is_field_set(self, RUNTIME_LOOKUP_TABLE_SELECTOR_EVAL_FLAG)) {
+            revert MissingIndexEvaluation("runtime_lookup_table_selector");
+        }
+        return self.runtime_lookup_table_selector;
+    }
+    else if (col_id == 28) {
+        if (!is_field_set(self, RUNTIME_LOOKUP_TABLE_EVAL_FLAG)) {
+            revert MissingIndexEvaluation("runtime_lookup_table");
+        }
+        return self.runtime_lookup_table;
+    }
+    else if (col_id == 30) {
+        return self.generic_selector;
+    }
+    else if (col_id == 31) {
+        return self.poseidon_selector;
+    }
+    else if (col_id == 32) {
+        return self.complete_add_selector;
+    }
+    else if (col_id == 33) {
+        return self.mul_selector;
+    }
+    else if (col_id == 34) {
+        return self.emul_selector;
+    }
+    else if (col_id == 35) {
+        return self.endomul_scalar_selector;
+    }
+    else if (col_id == 37) {
+        if (!is_field_set(self, RANGE_CHECK0_SELECTOR_EVAL_FLAG)) {
+            revert MissingIndexEvaluation("range_check0_selector");
+        }
+        return self.range_check0_selector;
+    }
+    else if (col_id == 38) {
+        if (!is_field_set(self, RANGE_CHECK1_SELECTOR_EVAL_FLAG)) {
+            revert MissingIndexEvaluation("range_check1_selector");
+        }
+        return self.range_check1_selector;
+    }
+    else if (col_id == 39) {
+        if (!is_field_set(self, FOREIGN_FIELD_ADD_SELECTOR_EVAL_FLAG)) {
+            revert MissingIndexEvaluation("foreign_field_add_selector");
+        }
+        return self.foreign_field_add_selector;
+    }
+    else if (col_id == 40) {
+        if (!is_field_set(self, FOREIGN_FIELD_MUL_SELECTOR_EVAL_FLAG)) {
+            revert MissingIndexEvaluation("foreign_field_mul_selector");
+        }
+        return self.foreign_field_mul_selector;
+    }
+    else if (col_id == 41) {
+        if (!is_field_set(self, XOR_SELECTOR_EVAL_FLAG)) {
+            revert MissingIndexEvaluation("xor_selector");
+        }
+        return self.xor_selector;
+    }
+    else if (col_id == 42) {
+        if (!is_field_set(self, ROT_SELECTOR_EVAL_FLAG)) {
+            revert MissingIndexEvaluation("rot_selector");
+        }
+        return self.rot_selector;
+    }
+    else if (col_id <= 57) {
+        return self.coefficients[col_id - 43];
+    }
+    else if (col_id <= 63) {
+        return self.s[col_id - 58];
+    } else {
+        revert("unhandled column variant");
+    }
+}
+
 function evaluate_variable(Variable memory self, ProofEvaluations memory evals) view returns (Scalar.FE) {
     PointEvaluations memory point_evals = evaluate_column(evals, self.col);
     if (self.row == CurrOrNext.Curr) {
