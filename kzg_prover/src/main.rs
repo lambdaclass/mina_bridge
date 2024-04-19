@@ -173,7 +173,12 @@ fn generate_proof() {
     .unwrap();
     fs::write(
         "../eth_verifier/linearization.mpk",
-        &serialize_linearization(index.linearization),
+        &serialize_linearization(index.linearization.clone()),
+    )
+    .unwrap();
+    fs::write(
+        "../eth_verifier/linearization.bin",
+        EVMSerializableType(index.linearization.constant_term).to_bytes(),
     )
     .unwrap();
 
