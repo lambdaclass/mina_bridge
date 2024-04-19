@@ -10,14 +10,15 @@ function deser_linearization(
     uint256[] storage linearization_literals,
     uint256[] storage linearization_pows,
     uint256[] storage linearization_loads
-) {
-    uint256 test_mem = 42;
+) returns (uint256 total_variants_len) {
     assembly {
         // first 32 bytes is the length of the bytes array, we'll skip them.
         let addr := add(data, 0x20)
 
+        total_variants_len := mload(addr)
+        addr := add(addr, 0x20)
+
         let variants_len := mload(addr)
-        test_mem := variants_len
         addr := add(addr, 0x20)
         let mds_len := mload(addr)
         addr := add(addr, 0x20)

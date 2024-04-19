@@ -120,7 +120,8 @@ impl EVMSerializable for EVMSerializableType<Vec<BN254PolishToken>> {
 
         encoded_variants.reverse();
 
-        let encoded_variants_len = EVMSerializableType(self.0.len()).to_bytes();
+        let encoded_total_variants_len = EVMSerializableType(self.0.len()).to_bytes();
+        let encoded_variants_len = EVMSerializableType(encoded_variants.len()).to_bytes();
         let encoded_mds_len = EVMSerializableType(encoded_mds.len()).to_bytes();
         let encoded_literals_len = EVMSerializableType(encoded_literals.len()).to_bytes();
         let encoded_pows_len = EVMSerializableType(encoded_pows.len()).to_bytes();
@@ -128,6 +129,7 @@ impl EVMSerializable for EVMSerializableType<Vec<BN254PolishToken>> {
 
         [
             // first encode lengths:
+            encoded_total_variants_len,
             encoded_variants_len,
             encoded_mds_len,
             encoded_literals_len,

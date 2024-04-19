@@ -17,6 +17,7 @@ contract Profiling is Test {
     ProverProof prover_proof;
     Scalar.FE[222] public_inputs;
 
+    uint256 linearization_total_variants_len;
     uint256[] linearization_variants;
     uint256[] linearization_mds;
     uint256[] linearization_literals;
@@ -34,7 +35,7 @@ contract Profiling is Test {
     // for gas profiling.
     function test_new_deserialize_linearization_profiling_only() public {
         bytes memory linearization_serialized = vm.readFileBinary("linearization.bin");
-        deser_linearization(
+        linearization_total_variants_len = deser_linearization(
             linearization_serialized,
             linearization_variants,
             linearization_mds,
