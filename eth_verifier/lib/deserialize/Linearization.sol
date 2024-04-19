@@ -1,19 +1,23 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
+import "forge-std/console.sol";
+
 function deser_linearization(
     bytes memory data,
-    bytes storage linearization_variants,
-    bytes storage linearization_mds,
-    bytes storage linearization_literals,
-    bytes storage linearization_pows,
-    bytes storage linearization_loads
+    uint256[] storage linearization_variants,
+    uint256[] storage linearization_mds,
+    uint256[] storage linearization_literals,
+    uint256[] storage linearization_pows,
+    uint256[] storage linearization_loads
 ) {
+    uint256 test_mem = 42;
     assembly {
         // first 32 bytes is the length of the bytes array, we'll skip them.
         let addr := add(data, 0x20)
 
         let variants_len := mload(addr)
+        test_mem := variants_len
         addr := add(addr, 0x20)
         let mds_len := mload(addr)
         addr := add(addr, 0x20)
@@ -36,12 +40,16 @@ function deser_linearization(
         // get pointers to dynamic arrays (a pointer is just an address)
         mstore(free_mem_addr, linearization_variants.slot)
         let variants_ptr := keccak256(free_mem_addr, 0x20)
+
         mstore(free_mem_addr, linearization_mds.slot)
         let mds_ptr := keccak256(free_mem_addr, 0x20)
+
         mstore(free_mem_addr, linearization_literals.slot)
         let literals_ptr := keccak256(free_mem_addr, 0x20)
+
         mstore(free_mem_addr, linearization_pows.slot)
         let pows_ptr := keccak256(free_mem_addr, 0x20)
+
         mstore(free_mem_addr, linearization_loads.slot)
         let loads_ptr := keccak256(free_mem_addr, 0x20)
 
