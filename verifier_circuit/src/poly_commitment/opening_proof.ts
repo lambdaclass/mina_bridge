@@ -24,20 +24,15 @@ export class OpeningProof {
     }
 
     hash() {
-        let fieldsStr: string[] = JSON.parse(readFileSync("./src/opening_proof_fields.json", "utf-8"));
-        let fieldsRepr = fieldsStr.map(FieldBn254);
-
-        let ret = PoseidonBn254.hash(fieldsRepr);
-        ProvableBn254.asProver(() => {
-            console.log("fields:", fieldsRepr.map((f) => f.toBigInt()));
-            console.log("hash:", ret.toBigInt());
-        })
-        return ret;
+        return ProvableBn254.witness(FieldBn254, () => {
+            let fieldsStr: string[] = JSON.parse(readFileSync("./src/opening_proof_fields.json", "utf-8"));
+            let fieldsRepr = fieldsStr.map(FieldBn254);
+            return PoseidonBn254.hash(fieldsRepr);
+        });
     }
 
     static #rounds() {
-        const { g } = SRS.createFromJSON();
-        return Math.ceil(Math.log2(g.length));
+        return 17;
     }
 
     /**
@@ -46,7 +41,7 @@ export class OpeningProof {
      * Returns the sum of `sizeInFields()` of all the class fields, which depends on `SRS.g` length.
      */
     static sizeInFields() {
-        const lrSize = 2 * 17 * ForeignPallas.sizeInFields();
+        const lrSize = 2 * this.#rounds() * ForeignPallas.sizeInFields();
         const deltaSize = ForeignPallas.sizeInFields();
         const z1Size = ForeignScalar.sizeInFields();
         const z2Size = ForeignScalar.sizeInFields();

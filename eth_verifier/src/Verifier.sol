@@ -42,7 +42,7 @@ contract KimchiVerifier {
     ProverProof proof;
     VerifierIndex verifier_index;
     URS urs;
-    Scalar.FE public_input;
+    Scalar.FE[1] public_inputs;
 
     Sponge base_sponge;
     Sponge scalar_sponge;
@@ -85,7 +85,7 @@ contract KimchiVerifier {
         deser_verifier_index(verifier_index_serialized, verifier_index);
         deser_prover_proof(prover_proof_serialized, proof);
         verifier_index.linearization = abi.decode(linearization_serialized_rlp, (Linearization));
-        deser_public_inputs(public_inputs_serialized, public_input);
+        public_inputs = [deser_public_input(public_input_serialized)];
     }
 
     function verify_with_index(
@@ -111,7 +111,7 @@ contract KimchiVerifier {
         // 3. Execute fiat-shamir with a Keccak sponge
 
         Oracles.Result memory oracles_res =
-            Oracles.fiat_shamir(proof, verifier_index, public_comm, public_input, true, base_sponge, scalar_sponge);
+            Oracles.fiat_shamir(proof, verifier_index, public_comm, public_inputs, true, base_sponge, scalar_sponge);
         Oracles.RandomOracles memory oracles = oracles_res.oracles;
 
         // 4. Combine the chunked polynomials' evaluations

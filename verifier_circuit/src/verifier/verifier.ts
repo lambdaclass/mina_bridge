@@ -239,6 +239,7 @@ export class Verifier extends CircuitBn254 {
 
     static verifyProof(openingProof: OpeningProof): VerifierResult<boolean> {
         let proverProof = deserProverProof(proof_json);
+        proverProof.proof = openingProof;
 
         const verifierIndex = deserVerifierIndex(verifier_index_json);
         let evaluationProofResult = Batch.toBatch(verifierIndex, proverProof, []);
