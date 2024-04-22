@@ -5,7 +5,6 @@ import {Test} from "forge-std/Test.sol";
 
 import "../lib/expr/Expr.sol";
 import "../lib/VerifierIndex.sol";
-import "../lib/msgpack/Deserialize.sol";
 import "../lib/deserialize/VerifierIndex.sol";
 import "../lib/deserialize/ProverProof.sol";
 import "../lib/deserialize/PublicInputs.sol";
