@@ -98,8 +98,12 @@ struct LinearTerm {
     PolishToken[] coeff;
 }
 
-// @notice a linear combination of coefficients and columns
 struct Linearization {
-    PolishToken[] constant_term;
-    LinearTerm[] index_terms;
+    uint256 total_variants_len;
+    uint256[] variants;
+    uint256[] mds;
+    uint256[] literals;
+    uint256[] pows;
+    uint256[] loads;
+    int256[] offsets;
 }
