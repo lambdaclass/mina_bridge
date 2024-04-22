@@ -99,7 +99,7 @@ struct VerifierIndex {
     // this is used for generating the index's digest
     Sponge sponge;
 
-    NewLinearization linearization;
+    Linearization linearization;
 
     /// The mapping between powers of alpha and constraints
     Alphas powers_of_alpha;

@@ -7,7 +7,7 @@ import "forge-std/console.sol";
 
 function deser_linearization(
     bytes memory data,
-    NewLinearization storage linearization
+    Linearization storage linearization
 ) {
     assembly ("memory-safe") {
         // first 32 bytes is the length of the bytes array, we'll skip them.

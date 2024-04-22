@@ -27,7 +27,7 @@ struct PolishToken {
 }
 
 function evaluate(
-    NewLinearization storage linearization,
+    Linearization storage linearization,
     Scalar.FE domain_gen,
     uint256 domain_size,
     Scalar.FE pt,

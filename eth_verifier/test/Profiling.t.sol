@@ -19,16 +19,9 @@ contract Profiling is Test {
 
     // INFO: this doesn't assert anything, it only executes this deserialization
     // for gas profiling.
-    function test_new_deserialize_linearization_profiling_only() public {
+    function test_deserialize_linearization_profiling_only() public {
         bytes memory linearization_serialized = vm.readFileBinary("linearization.bin");
         deser_linearization(linearization_serialized, verifier_index.linearization);
-    }
-
-    // INFO: this doesn't assert anything, it only executes this deserialization
-    // for gas profiling.
-    function test_decode_linearization_profiling_only() public {
-        bytes memory linearization_rlp = vm.readFileBinary("linearization.rlp");
-        linearization = abi.decode(linearization_rlp, (Linearization));
     }
 
     // INFO: this doesn't assert anything, it only executes this deserialization
