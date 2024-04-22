@@ -129,7 +129,7 @@ impl EVMSerializable for EVMSerializableType<Vec<BN254PolishToken>> {
         let encoded_literals_len = EVMSerializableType(encoded_literals.len() / 32).to_bytes();
         let encoded_pows_len = EVMSerializableType(encoded_pows.len() / 32).to_bytes();
         let encoded_loads_len = EVMSerializableType(encoded_loads.len() / 32).to_bytes();
-        let encoded_offsets_len = EVMSerializableType(encoded_pows.len() / 32).to_bytes();
+        let encoded_offsets_len = EVMSerializableType(encoded_offsets.len() / 32).to_bytes();
 
         [
             encoded_total_variants_len,

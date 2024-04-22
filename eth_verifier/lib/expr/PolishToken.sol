@@ -46,6 +46,12 @@ function evaluate(
 
     uint256 skip_count = 0;
 
+    uint256 next_mds_index = 0;
+    uint256 next_literals_index = 0;
+    uint256 next_pows_index = 0;
+    uint256 next_offsets_index = 0;
+    uint256 next_loads_index = 0;
+
     for (uint256 i = 0; i < linearization.total_variants_len; i++) {
         if (skip_count > 0) {
             skip_count -= 1;
@@ -54,13 +60,6 @@ function evaluate(
 
         uint256 byte_index = 31 - (i % 32);
         uint256 word_index = i / 32;
-
-        uint256 next_mds_index = 0;
-        uint256 next_literals_index = 0;
-        uint256 next_pows_index = 0;
-        uint256 next_offsets_index = 0;
-        uint256 next_loads_index = 0;
-
         uint256 variant = (linearization.variants[word_index] >> (byte_index * 8)) & 0xFF;
 
         // Alpha
