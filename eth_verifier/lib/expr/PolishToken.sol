@@ -52,7 +52,7 @@ function evaluate(
             continue;
         }
 
-        uint256 byte_index = i % 32;
+        uint256 byte_index = 31 - (i % 32);
         uint256 word_index = i / 32;
 
         uint256 next_mds_index = 0;
@@ -204,7 +204,7 @@ function evaluate(
             bool curr = variant & 0x80 == 0;
 
             // get eval from column id (see serializer)
-            uint256 col_id = (variant & 0x80) - 16;
+            uint256 col_id = (variant & (0x80 - 1)) - 16;
             PointEvaluations memory point_eval = evaluate_column_by_id(evals, col_id);
             Scalar.FE eval;
             if (curr) {

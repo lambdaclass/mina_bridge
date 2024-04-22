@@ -14,7 +14,7 @@ import "../lib/deserialize/ProverProof.sol";
 contract KimchiVerifierTest is Test {
     bytes verifier_index_serialized;
     bytes prover_proof_serialized;
-    bytes linearization_serialized_rlp;
+    bytes linearization_serialized;
     bytes public_inputs_serialized;
 
     VerifierIndex test_verifier_index;
@@ -23,7 +23,7 @@ contract KimchiVerifierTest is Test {
     function setUp() public {
         verifier_index_serialized = vm.readFileBinary("verifier_index.bin");
         prover_proof_serialized = vm.readFileBinary("prover_proof.bin");
-        linearization_serialized_rlp = vm.readFileBinary("linearization.rlp");
+        linearization_serialized = vm.readFileBinary("linearization.bin");
         public_inputs_serialized = vm.readFileBinary("public_inputs.bin");
 
         // we store deserialized structures mostly to run intermediate results
@@ -40,7 +40,7 @@ contract KimchiVerifierTest is Test {
         verifier.setup();
 
         bool success = verifier.verify_with_index(
-            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
+            verifier_index_serialized, prover_proof_serialized, linearization_serialized, public_inputs_serialized
         );
 
         require(success, "Verification failed!");
@@ -52,7 +52,7 @@ contract KimchiVerifierTest is Test {
         verifier.setup();
 
         verifier.deserialize_proof(
-            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
+            verifier_index_serialized, prover_proof_serialized, linearization_serialized, public_inputs_serialized
         );
 
         AggregatedEvaluationProof memory agg_proof = verifier.partial_verify();
@@ -67,7 +67,7 @@ contract KimchiVerifierTest is Test {
         verifier.setup();
 
         verifier.deserialize_proof(
-            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
+            verifier_index_serialized, prover_proof_serialized, linearization_serialized, public_inputs_serialized
         );
 
         Scalar.FE[2] memory evaluation_points = [
@@ -99,7 +99,7 @@ contract KimchiVerifierTest is Test {
         verifier.setup();
 
         verifier.deserialize_proof(
-            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
+            verifier_index_serialized, prover_proof_serialized, linearization_serialized, public_inputs_serialized
         );
 
         Scalar.FE[2] memory evaluation_points = [
@@ -119,7 +119,7 @@ contract KimchiVerifierTest is Test {
         verifier.setup();
 
         verifier.deserialize_proof(
-            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
+            verifier_index_serialized, prover_proof_serialized, linearization_serialized, public_inputs_serialized
         );
 
         BN254.G1Point memory public_commitment = verifier.public_commitment();

@@ -110,6 +110,6 @@ struct NewLinearization {
     uint256[] mds;
     uint256[] literals;
     uint256[] pows;
-    int256[] offsets;
     uint256[] loads;
+    int256[] offsets;
 }

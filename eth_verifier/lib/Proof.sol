@@ -14,6 +14,7 @@ error MissingIndexEvaluation(string col);
 error MissingColumnEvaluation(ColumnVariant variant);
 error MissingLookupColumnEvaluation(LookupPattern pattern);
 error MissingIndexColumnEvaluation(GateType gate);
+error UnhandledColumnVariant(uint256 id);
 
 using {Scalar.mul} for Scalar.FE;
 
@@ -245,7 +246,7 @@ function evaluate_column(ProofEvaluations memory self, Column memory col) view r
 
 function evaluate_column_by_id(ProofEvaluations memory self, uint256 col_id) view returns (PointEvaluations memory) {
     if (col_id <= 14) {
-        return self.w[col_id - 14];
+        return self.w[col_id];
     }
     else if (col_id == 15) {
         return self.z;
@@ -365,7 +366,7 @@ function evaluate_column_by_id(ProofEvaluations memory self, uint256 col_id) vie
     else if (col_id <= 63) {
         return self.s[col_id - 58];
     } else {
-        revert("unhandled column variant");
+        revert UnhandledColumnVariant(col_id);
     }
 }
 

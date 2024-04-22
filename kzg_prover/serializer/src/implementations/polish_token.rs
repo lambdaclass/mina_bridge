@@ -122,15 +122,14 @@ impl EVMSerializable for EVMSerializableType<Vec<BN254PolishToken>> {
             encoded_variants.resize(new_len, 0);
         }
 
-        encoded_variants.reverse();
-
         let encoded_total_variants_len = EVMSerializableType(self.0.len()).to_bytes();
-        let encoded_variants_len = EVMSerializableType(encoded_variants.len()).to_bytes();
-        let encoded_mds_len = EVMSerializableType(encoded_mds.len()).to_bytes();
-        let encoded_literals_len = EVMSerializableType(encoded_literals.len()).to_bytes();
-        let encoded_pows_len = EVMSerializableType(encoded_pows.len()).to_bytes();
-        let encoded_offsets_len = EVMSerializableType(encoded_pows.len()).to_bytes();
-        let encoded_loads_len = EVMSerializableType(encoded_loads.len()).to_bytes();
+        // length in words
+        let encoded_variants_len = EVMSerializableType(encoded_variants.len() / 32).to_bytes();
+        let encoded_mds_len = EVMSerializableType(encoded_mds.len() / 32).to_bytes();
+        let encoded_literals_len = EVMSerializableType(encoded_literals.len() / 32).to_bytes();
+        let encoded_pows_len = EVMSerializableType(encoded_pows.len() / 32).to_bytes();
+        let encoded_loads_len = EVMSerializableType(encoded_loads.len() / 32).to_bytes();
+        let encoded_offsets_len = EVMSerializableType(encoded_pows.len() / 32).to_bytes();
 
         [
             encoded_total_variants_len,
@@ -146,12 +145,12 @@ impl EVMSerializable for EVMSerializableType<Vec<BN254PolishToken>> {
             // pows
             encoded_pows_len,
             encoded_pows,
-            // offsets
-            encoded_offsets_len,
-            encoded_offsets,
             // loads
             encoded_loads_len,
             encoded_loads,
+            // offsets
+            encoded_offsets_len,
+            encoded_offsets,
         ]
         .concat()
     }

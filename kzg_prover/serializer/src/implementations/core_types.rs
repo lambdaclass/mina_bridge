@@ -9,8 +9,12 @@ use crate::{
 impl EVMSerializable for EVMSerializableType<i32> {
     fn to_bytes(self) -> Vec<u8> {
         let integer_bytes = self.0.to_be_bytes();
-        // pad with zeros from the start until we have 32 bytes:
-        [vec![0; 32 - integer_bytes.len()], integer_bytes.to_vec()].concat()
+        // pad with zeros or ones from the start until we have 32 bytes:
+        [
+            vec![if self.0 < 0 { 0xFF } else { 0 }; 32 - integer_bytes.len()],
+            integer_bytes.to_vec(),
+        ]
+        .concat()
     }
 }
 
@@ -21,7 +25,6 @@ impl EVMSerializable for EVMSerializableType<u32> {
         [vec![0; 32 - integer_bytes.len()], integer_bytes.to_vec()].concat()
     }
 }
-
 
 impl EVMSerializable for EVMSerializableType<u64> {
     fn to_bytes(self) -> Vec<u8> {
@@ -81,7 +84,7 @@ impl EVMSerializable for EVMSerializableType<Vec<ScalarField>> {
             .iter()
             .map(|x| EVMSerializableType(x.clone()).to_bytes())
             .flatten()
-            .collect::<Vec<_>>()     
+            .collect::<Vec<_>>()
     }
 }
 
