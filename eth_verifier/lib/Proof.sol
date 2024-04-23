@@ -14,6 +14,7 @@ error MissingIndexEvaluation(string col);
 error MissingColumnEvaluation(ColumnVariant variant);
 error MissingLookupColumnEvaluation(LookupPattern pattern);
 error MissingIndexColumnEvaluation(GateType gate);
+error UnhandledColumnVariant(uint256 id);
 
 using {Scalar.mul} for Scalar.FE;
 
@@ -108,148 +109,130 @@ struct ProverCommitments {
     BN254.G1Point lookup_runtime;
 }
 
-// INFO: ref: berkeley_columns.rs
-function evaluate_column(ProofEvaluations memory self, Column memory col) view returns (PointEvaluations memory) {
-    if (col.variant == ColumnVariant.Witness) {
-        uint256 i = abi.decode(col.data, (uint256));
-        return self.w[i];
+function evaluate_column_by_id(ProofEvaluations memory self, uint256 col_id) view returns (PointEvaluations memory) {
+    if (col_id <= 14) {
+        return self.w[col_id];
     }
-    if (col.variant == ColumnVariant.Z) {
+    else if (col_id == 15) {
         return self.z;
     }
-    if (col.variant == ColumnVariant.LookupSorted) {
-        uint256 i = abi.decode(col.data, (uint256));
+    else if (col_id <= 20) {
+        uint256 i = col_id - 16;
         if (!is_field_set(self, LOOKUP_SORTED_EVAL_FLAG + i)) {
             revert MissingIndexEvaluation("lookup_sorted");
         }
         return self.lookup_sorted[i];
     }
-    if (col.variant == ColumnVariant.LookupAggreg) {
+    else if (col_id == 21) {
         if (!is_field_set(self, LOOKUP_AGGREGATION_EVAL_FLAG)) {
             revert MissingIndexEvaluation("lookup_aggregation");
         }
         return self.lookup_aggregation;
     }
-    if (col.variant == ColumnVariant.LookupTable) {
+    else if (col_id == 22) {
         if (!is_field_set(self, LOOKUP_TABLE_EVAL_FLAG)) {
             revert MissingIndexEvaluation("lookup_table");
         }
         return self.lookup_table;
     }
-    if (col.variant == ColumnVariant.LookupRuntimeTable) {
-        if (!is_field_set(self, RUNTIME_LOOKUP_TABLE_EVAL_FLAG)) {
-            revert MissingIndexEvaluation("runtime_lookup_table");
+    else if (col_id == 23) {
+        if (!is_field_set(self, XOR_LOOKUP_SELECTOR_EVAL_FLAG)) {
+            revert MissingIndexEvaluation("xor_lookup_selector");
         }
-        return self.runtime_lookup_table;
+        return self.xor_lookup_selector;
     }
-    if (col.variant == ColumnVariant.Index) {
-        GateType gate_type = abi.decode(col.data, (GateType));
-        if (gate_type == GateType.Poseidon) {
-            return self.poseidon_selector;
+    else if (col_id == 24) {
+        if (!is_field_set(self, LOOKUP_GATE_LOOKUP_SELECTOR_EVAL_FLAG)) {
+            revert MissingIndexEvaluation("lookup_gate_lookup_selector");
         }
-        if (gate_type == GateType.Generic) {
-            return self.generic_selector;
-        }
-        if (gate_type == GateType.CompleteAdd) {
-            return self.complete_add_selector;
-        }
-        if (gate_type == GateType.VarBaseMul) {
-            return self.mul_selector;
-        }
-        if (gate_type == GateType.EndoMul) {
-            return self.emul_selector;
-        }
-        if (gate_type == GateType.EndoMulScalar) {
-            return self.endomul_scalar_selector;
-        }
-        if (gate_type == GateType.RangeCheck0) {
-            if (!is_field_set(self, RANGE_CHECK0_SELECTOR_EVAL_FLAG)) {
-                revert MissingIndexEvaluation("range_check0_selector");
-            }
-            return self.range_check0_selector;
-        }
-        if (gate_type == GateType.RangeCheck1) {
-            if (!is_field_set(self, RANGE_CHECK1_SELECTOR_EVAL_FLAG)) {
-                revert MissingIndexEvaluation("range_check1_selector");
-            }
-            return self.range_check1_selector;
-        }
-        if (gate_type == GateType.ForeignFieldAdd) {
-            if (!is_field_set(self, FOREIGN_FIELD_ADD_SELECTOR_EVAL_FLAG)) {
-                revert MissingIndexEvaluation("foreign_field_add_selector");
-            }
-            return self.foreign_field_add_selector;
-        }
-        if (gate_type == GateType.ForeignFieldMul) {
-            if (!is_field_set(self, FOREIGN_FIELD_MUL_SELECTOR_EVAL_FLAG)) {
-                revert MissingIndexEvaluation("foreign_field_mul_selector");
-            }
-            return self.foreign_field_mul_selector;
-        }
-        if (gate_type == GateType.Xor16) {
-            if (!is_field_set(self, XOR_SELECTOR_EVAL_FLAG)) {
-                revert MissingIndexEvaluation("xor_selector");
-            }
-            return self.xor_selector;
-        }
-        if (gate_type == GateType.Rot64) {
-            if (!is_field_set(self, ROT_SELECTOR_EVAL_FLAG)) {
-                revert MissingIndexEvaluation("rot_selector");
-            }
-            return self.rot_selector;
-        }
+        return self.lookup_gate_lookup_selector;
     }
-    if (col.variant == ColumnVariant.Permutation) {
-        uint256 i = abi.decode(col.data, (uint256));
-        return self.s[i];
+    else if (col_id == 25) {
+        if (!is_field_set(self, RANGE_CHECK_LOOKUP_SELECTOR_EVAL_FLAG)) {
+            revert MissingIndexEvaluation("range_check_lookup_selector");
+        }
+        return self.range_check_lookup_selector;
     }
-    if (col.variant == ColumnVariant.Coefficient) {
-        uint256 i = abi.decode(col.data, (uint256));
-        return self.coefficients[i];
+    else if (col_id == 26) {
+        if (!is_field_set(self, FOREIGN_FIELD_MUL_LOOKUP_SELECTOR_EVAL_FLAG)) {
+            revert MissingIndexEvaluation("foreign_field_mul_lookup_selector");
+        }
+        return self.foreign_field_mul_lookup_selector;
     }
-    if (col.variant == ColumnVariant.LookupKindIndex) {
-        LookupPattern pattern = abi.decode(col.data, (LookupPattern));
-        if (pattern == LookupPattern.Xor) {
-            if (!is_field_set(self, XOR_LOOKUP_SELECTOR_EVAL_FLAG)) {
-                revert MissingIndexEvaluation("xor_lookup_selector");
-            }
-            return self.xor_lookup_selector;
-        }
-        if (pattern == LookupPattern.Lookup) {
-            if (!is_field_set(self, LOOKUP_GATE_LOOKUP_SELECTOR_EVAL_FLAG)) {
-                revert MissingIndexEvaluation("lookup_gate_lookup_selector");
-            }
-            return self.lookup_gate_lookup_selector;
-        }
-        if (pattern == LookupPattern.RangeCheck) {
-            if (!is_field_set(self, RANGE_CHECK_LOOKUP_SELECTOR_EVAL_FLAG)) {
-                revert MissingIndexEvaluation("range_check_lookup_selector");
-            }
-            return self.range_check_lookup_selector;
-        }
-        if (pattern == LookupPattern.ForeignFieldMul) {
-            if (!is_field_set(self, FOREIGN_FIELD_MUL_LOOKUP_SELECTOR_EVAL_FLAG)) {
-                revert MissingIndexEvaluation("foreign_field_mul_lookup_selector");
-            }
-            return self.foreign_field_mul_lookup_selector;
-        }
-    }
-    if (col.variant == ColumnVariant.LookupRuntimeSelector) {
+    else if (col_id == 27) {
         if (!is_field_set(self, RUNTIME_LOOKUP_TABLE_SELECTOR_EVAL_FLAG)) {
             revert MissingIndexEvaluation("runtime_lookup_table_selector");
         }
         return self.runtime_lookup_table_selector;
     }
-    revert("unhandled column variant");
-}
-
-function evaluate_variable(Variable memory self, ProofEvaluations memory evals) view returns (Scalar.FE) {
-    PointEvaluations memory point_evals = evaluate_column(evals, self.col);
-    if (self.row == CurrOrNext.Curr) {
-        return point_evals.zeta;
+    else if (col_id == 28) {
+        if (!is_field_set(self, RUNTIME_LOOKUP_TABLE_EVAL_FLAG)) {
+            revert MissingIndexEvaluation("runtime_lookup_table");
+        }
+        return self.runtime_lookup_table;
     }
-    // self.row == CurrOrNext.Next
-    return point_evals.zeta_omega;
+    else if (col_id == 30) {
+        return self.generic_selector;
+    }
+    else if (col_id == 31) {
+        return self.poseidon_selector;
+    }
+    else if (col_id == 32) {
+        return self.complete_add_selector;
+    }
+    else if (col_id == 33) {
+        return self.mul_selector;
+    }
+    else if (col_id == 34) {
+        return self.emul_selector;
+    }
+    else if (col_id == 35) {
+        return self.endomul_scalar_selector;
+    }
+    else if (col_id == 37) {
+        if (!is_field_set(self, RANGE_CHECK0_SELECTOR_EVAL_FLAG)) {
+            revert MissingIndexEvaluation("range_check0_selector");
+        }
+        return self.range_check0_selector;
+    }
+    else if (col_id == 38) {
+        if (!is_field_set(self, RANGE_CHECK1_SELECTOR_EVAL_FLAG)) {
+            revert MissingIndexEvaluation("range_check1_selector");
+        }
+        return self.range_check1_selector;
+    }
+    else if (col_id == 39) {
+        if (!is_field_set(self, FOREIGN_FIELD_ADD_SELECTOR_EVAL_FLAG)) {
+            revert MissingIndexEvaluation("foreign_field_add_selector");
+        }
+        return self.foreign_field_add_selector;
+    }
+    else if (col_id == 40) {
+        if (!is_field_set(self, FOREIGN_FIELD_MUL_SELECTOR_EVAL_FLAG)) {
+            revert MissingIndexEvaluation("foreign_field_mul_selector");
+        }
+        return self.foreign_field_mul_selector;
+    }
+    else if (col_id == 41) {
+        if (!is_field_set(self, XOR_SELECTOR_EVAL_FLAG)) {
+            revert MissingIndexEvaluation("xor_selector");
+        }
+        return self.xor_selector;
+    }
+    else if (col_id == 42) {
+        if (!is_field_set(self, ROT_SELECTOR_EVAL_FLAG)) {
+            revert MissingIndexEvaluation("rot_selector");
+        }
+        return self.rot_selector;
+    }
+    else if (col_id <= 57) {
+        return self.coefficients[col_id - 43];
+    }
+    else if (col_id <= 63) {
+        return self.s[col_id - 58];
+    } else {
+        revert UnhandledColumnVariant(col_id);
+    }
 }
 
 function get_column_eval(ProofEvaluations memory evals, Column memory col) pure returns (PointEvaluations memory) {

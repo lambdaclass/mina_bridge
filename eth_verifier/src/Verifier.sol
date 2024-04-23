@@ -11,12 +11,12 @@ import "../lib/Proof.sol";
 import "../lib/State.sol";
 import "../lib/VerifierIndex.sol";
 import "../lib/Constants.sol";
-import "../lib/msgpack/Deserialize.sol";
 import "../lib/Alphas.sol";
 import "../lib/Evaluations.sol";
 import "../lib/deserialize/ProverProof.sol";
 import "../lib/deserialize/PublicInputs.sol";
 import "../lib/deserialize/VerifierIndex.sol";
+import "../lib/deserialize/Linearization.sol";
 import "../lib/expr/Expr.sol";
 import "../lib/expr/PolishToken.sol";
 import "../lib/expr/ExprConstants.sol";
@@ -47,9 +47,6 @@ contract KimchiVerifier {
     Sponge base_sponge;
     Sponge scalar_sponge;
 
-    State internal state;
-    bool state_available;
-
     function setup() public {
         // Setup URS
         urs.g = new BN254.G1Point[](3);
@@ -79,12 +76,12 @@ contract KimchiVerifier {
     function deserialize_proof(
         bytes calldata verifier_index_serialized,
         bytes calldata prover_proof_serialized,
-        bytes calldata linearization_serialized_rlp,
+        bytes calldata linearization_serialized,
         bytes calldata public_input_serialized
     ) public {
         deser_verifier_index(verifier_index_serialized, verifier_index);
         deser_prover_proof(prover_proof_serialized, proof);
-        verifier_index.linearization = abi.decode(linearization_serialized_rlp, (Linearization));
+        deser_linearization(linearization_serialized, verifier_index.linearization);
         public_inputs = [deser_public_input(public_input_serialized)];
     }
 
@@ -128,41 +125,11 @@ contract KimchiVerifier {
         AlphasIterator memory alphas =
             verifier_index.powers_of_alpha.get_alphas(ArgumentType.Permutation, PERMUTATION_CONSTRAINTS);
 
-        Linearization memory linear = verifier_index.linearization;
-
-        BN254.G1Point[] memory commitments = new BN254.G1Point[](linear.index_terms.length + 1);
+        BN254.G1Point[] memory commitments = new BN254.G1Point[](1);
         commitments[0] = verifier_index.sigma_comm[PERMUTS - 1];
-        Scalar.FE[] memory scalars = new Scalar.FE[](linear.index_terms.length + 1);
+        Scalar.FE[] memory scalars = new Scalar.FE[](1);
         scalars[0] = perm_scalars(evals, oracles.beta, oracles.gamma, alphas, permutation_vanishing_polynomial);
 
-        ExprConstants memory constants = ExprConstants(
-            oracles.alpha,
-            oracles.beta,
-            oracles.gamma,
-            oracles.joint_combiner_field,
-            verifier_index.endo,
-            verifier_index.zk_rows
-        );
-
-        uint256 i_commitments = 0;
-        while (i_commitments < linear.index_terms.length) {
-            Column memory col = linear.index_terms[i_commitments].col;
-            PolishToken[] memory tokens = linear.index_terms[i_commitments].coeff;
-
-            Scalar.FE scalar = evaluate(
-                tokens,
-                verifier_index.domain_gen,
-                verifier_index.domain_size,
-                oracles.zeta,
-                oracles.vanishing_eval,
-                evals,
-                constants
-            );
-
-            scalars[i_commitments + 1] = scalar;
-            commitments[i_commitments + 1] = get_column_commitment(verifier_index, proof, col);
-            ++i_commitments;
-        }
         BN254.G1Point memory f_comm = msm(commitments, scalars);
 
         // 6. Compute the chunked commitment of ft
@@ -367,46 +334,6 @@ contract KimchiVerifier {
         res = res.neg();
     }
 
-    /// The polynomial that evaluates to each of `evals` for the respective `elm`s.
-    function evalPolynomial(Scalar.FE[] memory elm, Scalar.FE[] memory evals)
-        public
-        view
-        returns (Polynomial.Dense memory)
-    {
-        require(elm.length == evals.length, "lengths don\'t match");
-        require(elm.length == 2, "length must be 2");
-        Scalar.FE zeta = elm[0];
-        Scalar.FE zeta_omega = elm[1];
-        Scalar.FE eval_zeta = evals[0];
-        Scalar.FE eval_zeta_omega = evals[1];
-
-        // The polynomial that evaluates to `p(zeta)` at `zeta` and `p(zeta_omega)` at
-        // `zeta_omega`.
-        // We write `p(x) = a + bx`, which gives
-        // ```text
-        // p(zeta) = a + b * zeta
-        // p(zeta_omega) = a + b * zeta_omega
-        // ```
-        // and so
-        // ```text
-        // b = (p(zeta_omega) - p(zeta)) / (zeta_omega - zeta)
-        // a = p(zeta) - b * zeta
-        // ```
-
-        // Compute b
-        Scalar.FE num_b = eval_zeta_omega.add(eval_zeta.neg());
-        Scalar.FE den_b_inv = zeta_omega.add(zeta.neg()).inv();
-        Scalar.FE b = num_b.mul(den_b_inv);
-
-        // Compute a
-        Scalar.FE a = eval_zeta.sub(b.mul(zeta));
-
-        Scalar.FE[] memory coeffs = new Scalar.FE[](2);
-        coeffs[0] = a;
-        coeffs[1] = b;
-        return Polynomial.Dense(coeffs);
-    }
-
     /*
     This is a list of steps needed for verification.
 
@@ -525,47 +452,6 @@ contract KimchiVerifier {
         eval_poly_coeffs[1] = a;
 
         return msm(full_urs.g, eval_poly_coeffs);
-    }
-
-    /// @notice This is used exclusively in `test_PartialVerify()`.
-    function set_verifier_index_for_testing() public {
-        verifier_index.max_poly_size = 1;
-    }
-
-    /// @notice store a mina state
-    function store_state(bytes memory data) internal {
-        state = MsgPk.deserializeState(data, 0);
-    }
-
-    /// @notice check if state is available
-    function is_state_available() public view returns (bool) {
-        return state_available;
-    }
-
-    error UnavailableState();
-
-    /// @notice retrieves the base58 encoded creator's public key
-    function retrieve_state_creator() public view returns (string memory) {
-        if (!state_available) {
-            revert UnavailableState();
-        }
-        return state.creator;
-    }
-
-    /// @notice retrieves the hash of the state after this block
-    function retrieve_state_hash() public view returns (uint256) {
-        if (!state_available) {
-            revert UnavailableState();
-        }
-        return state.hash;
-    }
-
-    /// @notice retrieves the block height
-    function retrieve_state_height() public view returns (uint256) {
-        if (!state_available) {
-            revert UnavailableState();
-        }
-        return state.block_height;
     }
 
     // (x, y) pairs

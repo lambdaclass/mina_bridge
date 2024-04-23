@@ -270,7 +270,7 @@ library Oracles {
 
         ft_eval0 = ft_eval0.sub(
             evaluate(
-                index.linearization.constant_term,
+                index.linearization,
                 index.domain_gen,
                 index.domain_size,
                 zeta,

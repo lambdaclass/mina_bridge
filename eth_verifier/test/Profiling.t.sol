@@ -5,10 +5,10 @@ import {Test} from "forge-std/Test.sol";
 
 import "../lib/expr/Expr.sol";
 import "../lib/VerifierIndex.sol";
-import "../lib/msgpack/Deserialize.sol";
 import "../lib/deserialize/VerifierIndex.sol";
 import "../lib/deserialize/ProverProof.sol";
 import "../lib/deserialize/PublicInputs.sol";
+import "../lib/deserialize/Linearization.sol";
 
 contract Profiling is Test {
     Linearization linearization;
@@ -19,15 +19,8 @@ contract Profiling is Test {
     // INFO: this doesn't assert anything, it only executes this deserialization
     // for gas profiling.
     function test_deserialize_linearization_profiling_only() public {
-        bytes memory linearization_serialized = vm.readFileBinary("linearization.mpk");
-        MsgPk.deser_linearization(MsgPk.new_stream(linearization_serialized), verifier_index);
-    }
-
-    // INFO: this doesn't assert anything, it only executes this deserialization
-    // for gas profiling.
-    function test_decode_linearization_profiling_only() public {
-        bytes memory linearization_rlp = vm.readFileBinary("linearization.rlp");
-        linearization = abi.decode(linearization_rlp, (Linearization));
+        bytes memory linearization_serialized = vm.readFileBinary("linearization.bin");
+        deser_linearization(linearization_serialized, verifier_index.linearization);
     }
 
     // INFO: this doesn't assert anything, it only executes this deserialization
