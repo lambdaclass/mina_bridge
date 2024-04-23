@@ -12,7 +12,7 @@ use ark_poly::{
     univariate::DensePolynomial, EvaluationDomain, Evaluations, Polynomial, Radix2EvaluationDomain,
     UVPolynomial,
 };
-use ark_serialize::{CanonicalDeserialize, CanonicalSerialize, SerializationError};
+use ark_serialize::{CanonicalSerialize, SerializationError};
 use ark_std::{
     rand::{rngs::StdRng, SeedableRng},
     UniformRand,
@@ -36,7 +36,6 @@ use kimchi::{
     proof::ProverProof,
     prover_index::ProverIndex,
     verifier::{batch_verify, to_batch, Context},
-    verifier_index::VerifierIndex,
 };
 use num::{bigint::RandBigInt, BigUint};
 use num_traits::{One, Zero};
@@ -182,7 +181,6 @@ fn generate_proof() {
     .unwrap();
 
     let mut public_input_bytes = EVMSerializableType(*public_input).to_bytes();
-    public_input_bytes.reverse();
     fs::write("../eth_verifier/public_input.bin", public_input_bytes).unwrap();
 
     let empty_polycomm = PolyComm::new(
