@@ -23,14 +23,11 @@ contract KimchiVerifierTest is Test {
         verifier_index_serialized = vm.readFileBinary("verifier_index.bin");
         prover_proof_serialized = vm.readFileBinary("prover_proof.bin");
         linearization_serialized = vm.readFileBinary("linearization.bin");
-        public_inputs_serialized = vm.readFileBinary("public_inputs.bin");
+        public_inputs_serialized = vm.readFileBinary("public_input.bin");
 
         // we store deserialized structures mostly to run intermediate results
         // tests.
-        deser_verifier_index(
-            vm.readFileBinary("unit_test_data/verifier_index.bin"),
-            test_verifier_index
-        );
+        deser_verifier_index(vm.readFileBinary("unit_test_data/verifier_index.bin"), test_verifier_index);
     }
 
     function test_verify_with_index() public {

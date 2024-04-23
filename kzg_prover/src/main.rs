@@ -12,7 +12,7 @@ use ark_poly::{
     univariate::DensePolynomial, EvaluationDomain, Evaluations, Polynomial, Radix2EvaluationDomain,
     UVPolynomial,
 };
-use ark_serialize::{CanonicalDeserialize, CanonicalSerialize, SerializationError};
+use ark_serialize::{CanonicalSerialize, SerializationError};
 use ark_std::{
     rand::{rngs::StdRng, SeedableRng},
     UniformRand,
@@ -39,6 +39,7 @@ use kimchi::{
 };
 use num::{bigint::RandBigInt, BigUint};
 use num_traits::{One, Zero};
+use o1_utils::FieldHelpers;
 use poly_commitment::{
     commitment::{
         combine_commitments, combine_evaluations, BatchEvaluationProof, CommitmentCurve, Evaluation,
@@ -104,18 +105,20 @@ fn generate_proof() {
         verifier_index.digest::<KeccakFqSponge>()
     );
 
-    let public_input: Vec<_> = public_input
+    // The verifier circuit has only one public input
+    let public_input_vec: Vec<_> = public_input
         .iter()
         .map(|&p_i| ark_bn254::Fr::new(BigInteger256::new(p_i)))
         .collect();
+    let public_input = public_input_vec.first().unwrap();
+    println!("public input: {}", public_input.to_hex());
 
-    // Partially verify proof
-    let agg_proof = to_batch::<
-        G1Affine,
-        Keccak256FqSponge<BaseField, G1, ScalarField>,
-        Keccak256FrSponge<ScalarField>,
-        KZGProof,
-    >(&verifier_index, &proof, &public_input)
+    // Partial verification
+    let agg_proof = to_batch::<G1, KeccakFqSponge, KeccakFrSponge, KZGProof>(
+        &verifier_index,
+        &proof,
+        &public_input_vec,
+    )
     .unwrap();
 
     // Final verify
@@ -177,15 +180,8 @@ fn generate_proof() {
     )
     .unwrap();
 
-    println!("public input len: {}", public_input.len());
-
-    fs::write(
-        "../eth_verifier/public_inputs.bin",
-        EVMSerializableType(public_input.clone()).to_bytes(),
-    )
-    .unwrap();
-    // for tests purposes
-    println!("third public input: {}", public_input[2]);
+    let mut public_input_bytes = EVMSerializableType(*public_input).to_bytes();
+    fs::write("../eth_verifier/public_input.bin", public_input_bytes).unwrap();
 
     let empty_polycomm = PolyComm::new(
         vec![G1::new(BaseField::from(0), BaseField::from(0), true)],
@@ -195,7 +191,7 @@ fn generate_proof() {
     let lagrange_bases: HashMap<_, _> = lagrange_bases
         .iter_mut()
         .map(|(key, bases)| {
-            bases.resize(public_input.len(), empty_polycomm.clone());
+            bases.resize(1, empty_polycomm.clone());
             (key, bases)
         })
         .collect();
