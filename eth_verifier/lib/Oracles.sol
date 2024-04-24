@@ -41,7 +41,7 @@ library Oracles {
         ProverProof memory proof,
         VerifierIndex storage index,
         BN254.G1Point memory public_comm,
-        Scalar.FE[1] memory public_input,
+        Scalar.FE public_input,
         bool is_public_input_set,
         Sponge storage base_sponge,
         Sponge storage scalar_sponge
@@ -157,43 +157,25 @@ library Oracles {
 
             // INFO: w is an iterator over the elements of the domain, we want to take N elements
             // where N is the length of the public input.
-            Scalar.FE[] memory w = new Scalar.FE[](public_input.length);
-            Scalar.FE[] memory zeta_minus_x = new Scalar.FE[](public_input.length * 2);
-
-            Scalar.FE w_i = Scalar.one();
-            for (uint256 i = 0; i < public_input.length; i++) {
-                w[i] = w_i;
-                zeta_minus_x[i] = zeta.sub(w_i).inv();
-                zeta_minus_x[i + public_input.length] = zetaw.sub(w_i).inv();
-                w_i = w_i.mul(index.domain_gen);
-            }
+            Scalar.FE w = Scalar.one();
+            Scalar.FE[2] memory zeta_minus_x = [zeta.sub(w).inv(), zetaw.sub(w).inv()];
 
             // 23. Evaluate the negated public polynomial (if present) at $\zeta$ and $\zeta\omega$.
             // NOTE: this works only in the case when the poly segment size is not smaller than that of the domain.
-            if (public_input.length == 0) {
-                public_evals = [Scalar.zero(), Scalar.zero()];
-            } else {
-                Scalar.FE pe_zeta = Scalar.zero();
-                Scalar.FE size_inv = Scalar.from(index.domain_size).inv();
-                for (uint256 i = 0; i < public_input.length; i++) {
-                    // pe_zeta = pe_zeta - l*p*w_i
-                    pe_zeta = pe_zeta.add(zeta_minus_x[i].neg().mul(public_input[i]).mul(w[i]));
-                }
+            Scalar.FE pe_zeta = Scalar.zero();
+            Scalar.FE size_inv = Scalar.from(index.domain_size).inv();
+            // pe_zeta = pe_zeta - l*p*w_i
+            pe_zeta = pe_zeta.add(zeta_minus_x[0].neg().mul(public_input).mul(w));
 
-                // pe_zeta = pe_zeta * (zeta1 - 1) * domain_size_inv
-                pe_zeta = pe_zeta.mul(zeta1.sub(Scalar.one())).mul(size_inv);
+            // pe_zeta = pe_zeta * (zeta1 - 1) * domain_size_inv
+            pe_zeta = pe_zeta.mul(zeta1.sub(Scalar.one())).mul(size_inv);
 
-                Scalar.FE pe_zetaOmega = Scalar.zero();
-                for (uint256 i = 0; i < public_input.length; i++) {
-                    // pe_zetaOmega = pe_zetaOmega - l*p*w_i
-                    pe_zetaOmega =
-                        pe_zetaOmega.add(zeta_minus_x[i + public_input.length].neg().mul(public_input[i]).mul(w[i]));
-                }
-                // pe_zetaOmega = pe_zetaOmega * (zetaw^(domain_size) - 1) * domain_size_inv
-                pe_zetaOmega = pe_zetaOmega.mul(zetaw.pow(index.domain_size).sub(Scalar.one())).mul(size_inv);
+            // pe_zetaOmega = pe_zetaOmega - l*p*w_i
+            Scalar.FE pe_zetaOmega = zeta_minus_x[1].neg().mul(public_input).mul(w);
+            // pe_zetaOmega = pe_zetaOmega * (zetaw^(domain_size) - 1) * domain_size_inv
+            pe_zetaOmega = pe_zetaOmega.mul(zetaw.pow(index.domain_size).sub(Scalar.one())).mul(size_inv);
 
-                public_evals = [pe_zeta, pe_zetaOmega];
-            }
+            public_evals = [pe_zeta, pe_zetaOmega];
         } else {
             revert MissingPublicInputEvaluation();
         }
@@ -269,15 +251,7 @@ library Oracles {
         Scalar.FE vanishing_eval = evaluate_vanishing_polynomial(index.domain_gen, index.domain_size, zeta);
 
         ft_eval0 = ft_eval0.sub(
-            evaluate(
-                index.linearization,
-                index.domain_gen,
-                index.domain_size,
-                zeta,
-                vanishing_eval,
-                evals,
-                constants
-            )
+            evaluate(index.linearization, index.domain_gen, index.domain_size, zeta, vanishing_eval, evals, constants)
         );
 
         RandomOracles memory oracles = RandomOracles(
