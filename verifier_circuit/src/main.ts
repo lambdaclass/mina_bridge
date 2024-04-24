@@ -11,15 +11,17 @@ try {
     inputs = testInputs;
 }
 
-// console.log('O1JS loaded');
+let openingProof = deserOpeningProof(inputs);
+writeFileSync("./src/opening_proof_fields.json", JSON.stringify(openingProof.toFields()));
 
 // ----------------------------------------------------
 
 console.log("Generating verifier circuit keypair...");
-let openingProof = deserOpeningProof(inputs);
+
+let proofHash = openingProof.hash();
 let keypair = await Verifier.generateKeypair();
 console.log("Proving...");
-let { value } = await Verifier.prove([], [openingProof], keypair);
+let { value } = await Verifier.prove([], [proofHash], keypair);
 console.log("Writing proof into file...");
 let proof_with_public = (value as string[])[1];
 let index = (value as string[])[2];

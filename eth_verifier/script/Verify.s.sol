@@ -9,13 +9,13 @@ contract Verify is Script {
     bytes verifier_index_serialized;
     bytes prover_proof_serialized;
     bytes linearization_serialized_rlp;
-    bytes public_inputs_serialized;
+    bytes public_input_serialized;
 
     function run() public {
         verifier_index_serialized = vm.readFileBinary("verifier_index.bin");
         prover_proof_serialized = vm.readFileBinary("prover_proof.bin");
         linearization_serialized_rlp = vm.readFileBinary("linearization.rlp");
-        public_inputs_serialized = vm.readFileBinary("public_inputs.mpk");
+        public_input_serialized = vm.readFileBinary("public_input.bin");
 
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
@@ -24,7 +24,7 @@ contract Verify is Script {
         verifier.setup();
 
         bool success = verifier.verify_with_index(
-            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_inputs_serialized
+            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_input_serialized
         );
 
         require(success, "Verification failed.");

@@ -1,5 +1,5 @@
 import { readFileSync } from 'fs';
-import { CircuitBn254, circuitMainBn254, publicBn254 } from 'o1js';
+import { CircuitBn254, FieldBn254, ProvableBn254, circuitMainBn254, publicBn254 } from 'o1js';
 import { PolyComm } from '../poly_commitment/commitment.js';
 import { OpeningProof } from "../poly_commitment/opening_proof.js";
 import { SRS } from '../SRS.js';
@@ -217,11 +217,18 @@ export class Verifier extends CircuitBn254 {
     static readonly PERMUTATION_CONSTRAINTS: number = 3;
 
     @circuitMainBn254
-    static main(@publicBn254 openingProof: OpeningProof) {
+    static main(@publicBn254 proofHash: FieldBn254) {
+        let proof = ProvableBn254.witness(OpeningProof, () => {
+            let openingProofFields: string[] = JSON.parse(readFileSync("./src/opening_proof_fields.json", "utf-8"));
+
+            return OpeningProof.fromFields(openingProofFields.map(FieldBn254))
+        });
+        proofHash.assertEquals(proof.hash());
+
         // if the proof is successful, this will be 1. Else will be 0.
         let success = ForeignScalar.from(0).assertAlmostReduced();
 
-        const verifier_result = this.verifyProof(openingProof);
+        const verifier_result = this.verifyProof(proof);
         if (isOk(verifier_result)) {
             const verifier_successful = unwrap(verifier_result);
             if (verifier_successful) success = ForeignScalar.from(1).assertAlmostReduced();
@@ -232,6 +239,7 @@ export class Verifier extends CircuitBn254 {
 
     static verifyProof(openingProof: OpeningProof): VerifierResult<boolean> {
         let proverProof = deserProverProof(proof_json);
+        proverProof.proof = openingProof;
 
         const verifierIndex = deserVerifierIndex(verifier_index_json);
         let evaluationProofResult = Batch.toBatch(verifierIndex, proverProof, []);

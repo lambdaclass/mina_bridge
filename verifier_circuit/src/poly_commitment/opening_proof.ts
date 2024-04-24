@@ -1,10 +1,11 @@
 import { SRS } from "../SRS.js";
 import { ScalarChallenge } from "../verifier/scalar_challenge.js";
 import { invScalar } from "../util/scalar.js";
-import { FieldBn254, Provable }  from "o1js";
+import { FieldBn254, PoseidonBn254, Provable, ProvableBn254 } from "o1js";
 import { ForeignPallas } from "../foreign_fields/foreign_pallas.js";
 import { Sponge } from "../verifier/sponge";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
+import { readFileSync } from "fs";
 
 export class OpeningProof {
     /** vector of rounds of L & R commitments */
@@ -22,9 +23,16 @@ export class OpeningProof {
         this.sg = sg;
     }
 
+    hash() {
+        return ProvableBn254.witness(FieldBn254, () => {
+            let fieldsStr: string[] = JSON.parse(readFileSync("./src/opening_proof_fields.json", "utf-8"));
+            let fieldsRepr = fieldsStr.map(FieldBn254);
+            return PoseidonBn254.hash(fieldsRepr);
+        });
+    }
+
     static #rounds() {
-        const { g } = SRS.createFromJSON();
-        return Math.ceil(Math.log2(g.length));
+        return 17;
     }
 
     /**
@@ -33,7 +41,7 @@ export class OpeningProof {
      * Returns the sum of `sizeInFields()` of all the class fields, which depends on `SRS.g` length.
      */
     static sizeInFields() {
-        const lrSize = 2 * 17 * ForeignPallas.sizeInFields();
+        const lrSize = 2 * this.#rounds() * ForeignPallas.sizeInFields();
         const deltaSize = ForeignPallas.sizeInFields();
         const z1Size = ForeignScalar.sizeInFields();
         const z2Size = ForeignScalar.sizeInFields();
@@ -80,6 +88,12 @@ export class OpeningProof {
     static toFields(x: OpeningProof) {
         return x.toFields();
     }
+
+    static toAuxiliary() {
+        return [];
+    }
+
+    static check() { }
 
     challenges(
         endo_r: ForeignScalar,
