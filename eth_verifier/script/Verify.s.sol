@@ -14,7 +14,7 @@ contract Verify is Script {
     function run() public {
         verifier_index_serialized = vm.readFileBinary("verifier_index.bin");
         prover_proof_serialized = vm.readFileBinary("prover_proof.bin");
-        linearization_serialized_rlp = vm.readFileBinary("linearization.rlp");
+        linearization_serialized_rlp = vm.readFileBinary("linearization.bin");
         public_input_serialized = vm.readFileBinary("public_input.bin");
 
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");

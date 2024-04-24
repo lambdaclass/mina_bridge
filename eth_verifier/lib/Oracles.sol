@@ -269,15 +269,7 @@ library Oracles {
         Scalar.FE vanishing_eval = evaluate_vanishing_polynomial(index.domain_gen, index.domain_size, zeta);
 
         ft_eval0 = ft_eval0.sub(
-            evaluate(
-                index.linearization,
-                index.domain_gen,
-                index.domain_size,
-                zeta,
-                vanishing_eval,
-                evals,
-                constants
-            )
+            evaluate(index.linearization, index.domain_gen, index.domain_size, zeta, vanishing_eval, evals, constants)
         );
 
         RandomOracles memory oracles = RandomOracles(
