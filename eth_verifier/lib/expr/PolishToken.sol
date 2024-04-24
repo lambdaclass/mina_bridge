@@ -7,8 +7,6 @@ import "../bn254/Fields.sol";
 import "../Proof.sol";
 import "../sponge/Sponge.sol";
 
-import "forge-std/console.sol";
-
 using {Scalar.add, Scalar.mul, Scalar.sub, Scalar.pow, Scalar.inv} for Scalar.FE;
 
 // PolishToken is a tagged union type, whose variants can hold different data types.
