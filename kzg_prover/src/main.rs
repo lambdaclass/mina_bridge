@@ -141,9 +141,8 @@ fn generate_proof() {
         panic!();
     }
 
-    let mut tokens = index.linearization.constant_term.clone();
-    precompute_evaluation(
-        &mut tokens,
+    let precomputed_tokens = precompute_evaluation(
+        &index.linearization.constant_term,
         verifier_index.domain,
         &proof.evals,
         verifier_index.zk_rows,
@@ -190,7 +189,7 @@ fn generate_proof() {
     .unwrap();
     fs::write(
         "../eth_verifier/linearization.bin",
-        EVMSerializableType(tokens).to_bytes(),
+        EVMSerializableType(precomputed_tokens).to_bytes(),
     )
     .unwrap();
 
@@ -224,14 +223,16 @@ fn generate_proof() {
 }
 
 fn precompute_evaluation(
-    tokens: &mut Vec<BN254PolishToken>,
+    tokens: &Vec<BN254PolishToken>,
     d: Radix2EvaluationDomain<ark_ff::Fp256<ark_bn254::FrParameters>>,
     evals: &BN254ProofEvaluations,
     zk_rows: u64,
-) {
+) -> Vec<BN254PolishToken> {
     let mut first_i = 0;
     let mut stack = Vec::new();
     let mut total_tokens = 0;
+
+    let mut new_tokens = vec![];
 
     // First identify token segments that are independent of the IOP
     for (i, token) in tokens.clone().iter().enumerate() {
@@ -255,15 +256,21 @@ fn precompute_evaluation(
 
         // we can only evaluate if the first two tokens are not operations:
         if is_non_operation_token && stack.len() < 2 {
+            // we start to fill our precomputation stack
             if stack.is_empty() {
                 first_i = i;
             }
             stack.push(token.clone());
         } else if !is_non_operation_token && stack.len() < 2 {
+            // we couldn't get two non operation tokens, reset the stack
+            new_tokens.extend(stack);
             stack = Vec::new();
+            new_tokens.push(token.clone());
         } else if is_independent_token && stack.len() >= 2 {
+            // this token is included in the stack
             stack.push(token.clone());
         } else if !is_independent_token && !stack.is_empty() {
+            // we can't evaluate further, the stack ends until the previous token.
             // we evaluate the stack
             println!("Found at: {} with stack of size {}", first_i, stack.len());
 
@@ -279,7 +286,7 @@ fn precompute_evaluation(
             };
 
             println!("tokens: {:#?}", stack);
-            let (eval, final_segment_size) = partial_polish_evaluation(
+            let eval = partial_polish_evaluation(
                 &stack,
                 &evals.combine(&PointEvaluations {
                     zeta: ScalarField::from(0),
@@ -289,25 +296,27 @@ fn precompute_evaluation(
             )
             .unwrap();
 
-            tokens.splice(
-                first_i..first_i + final_segment_size,
-                eval.into_iter().map(Literal).collect::<Vec<_>>(),
-            );
+            new_tokens.extend(eval.into_iter().map(Literal).collect::<Vec<_>>());
 
             stack = Vec::new();
+            new_tokens.push(token.clone());
+        } else {
+            // we didn't find a non independent token yet
+            new_tokens.push(token.clone());
         }
     }
     println!("total less tokens: {}", total_tokens);
+    new_tokens
 }
 
 fn partial_polish_evaluation(
-    toks: &[BN254PolishToken],
+    tokens: &[BN254PolishToken],
     evals: &ProofEvaluations<PointEvaluations<ScalarField>>,
     c: &Constants<ScalarField>,
-) -> Result<(Vec<ScalarField>, usize), ExprError> {
+) -> Result<Vec<ScalarField>, ExprError> {
     let mut stack = vec![];
 
-    for (i, t) in toks.iter().enumerate() {
+    for t in tokens.iter() {
         use PolishToken::*;
         match t {
             EndoCoefficient => stack.push(c.endo_coefficient),
@@ -321,7 +330,7 @@ fn partial_polish_evaluation(
             }
             Add => {
                 if stack.len() == 1 {
-                    return Ok((stack, i));
+                    return Ok(stack);
                 }
                 let y = stack.pop().ok_or(ExprError::EmptyStack)?;
                 let x = stack.pop().ok_or(ExprError::EmptyStack)?;
@@ -329,7 +338,7 @@ fn partial_polish_evaluation(
             }
             Mul => {
                 if stack.len() == 1 {
-                    return Ok((stack, i));
+                    return Ok(stack);
                 }
                 let y = stack.pop().ok_or(ExprError::EmptyStack)?;
                 let x = stack.pop().ok_or(ExprError::EmptyStack)?;
@@ -337,7 +346,7 @@ fn partial_polish_evaluation(
             }
             Sub => {
                 if stack.len() == 1 {
-                    return Ok((stack, i));
+                    return Ok(stack);
                 }
                 let y = stack.pop().ok_or(ExprError::EmptyStack)?;
                 let x = stack.pop().ok_or(ExprError::EmptyStack)?;
@@ -347,7 +356,7 @@ fn partial_polish_evaluation(
         }
     }
 
-    Ok((stack, toks.len()))
+    Ok(stack)
 }
 
 fn evaluate(
