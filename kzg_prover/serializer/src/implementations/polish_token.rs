@@ -9,57 +9,8 @@ use crate::{
     type_aliases::BN254PolishToken,
 };
 
-fn precompute_evaluation(tokens: &mut [BN254PolishToken]) {
-    let mut first_i = 0;
-    let mut stack = Vec::new();
-    let mut total_tokens = 0;
-
-    // First identify token segments that are independent of the IOP
-    for (i, token) in tokens.iter().enumerate() {
-        let is_independent_token = matches!(
-            token,
-            PolishToken::EndoCoefficient
-                | PolishToken::Mds { row: _, col: _ }
-                | PolishToken::Literal(_)
-                | PolishToken::Cell(_)
-                | PolishToken::Store
-                | PolishToken::Load(_)
-                | PolishToken::Add
-                | PolishToken::Mul
-                | PolishToken::Sub
-                | PolishToken::Pow(_)
-                | PolishToken::Dup
-        );
-        let is_non_operation_token = matches!(
-            token,
-            PolishToken::Mds { row: _, col: _ } | PolishToken::Literal(_) | PolishToken::Cell(_)
-        );
-
-        // we can only evaluate if the first two tokens are not operations:
-        if is_non_operation_token && stack.len() < 2 {
-            if stack.is_empty() {
-                first_i = i;
-            }
-            stack.push(token);
-        } else if !is_non_operation_token && stack.len() < 2 {
-            stack = Vec::new();
-        } else if is_independent_token && stack.len() >= 2 {
-            stack.push(token);
-        } else if !is_independent_token && !stack.is_empty() {
-            println!("Found at: {} with stack of size {}", first_i, stack.len());
-            total_tokens += stack.len() - 1;
-            // evaluate
-            stack = Vec::new();
-        }
-    }
-    println!("total less tokens: {}", total_tokens);
-}
-
 impl EVMSerializable for EVMSerializableType<Vec<BN254PolishToken>> {
     fn to_bytes(self) -> Vec<u8> {
-        let mut tokens = self.0;
-        precompute_evaluation(&mut tokens);
-
         // The idea is to have different bytes arrays. The first one
         // will contain every token variant, then we'll have other
         // arrays for the data associated to each variant, if any.
@@ -73,7 +24,7 @@ impl EVMSerializable for EVMSerializableType<Vec<BN254PolishToken>> {
         let mut encoded_offsets = vec![];
         let mut encoded_loads = vec![];
 
-        for token in tokens.iter() {
+        for token in self.0.iter() {
             // We'll save one byte per token to identify each variant. The
             // value of this byte will be `token_id`.
             let mut token_id: u8;
@@ -171,7 +122,7 @@ impl EVMSerializable for EVMSerializableType<Vec<BN254PolishToken>> {
             encoded_variants.resize(new_len, 0);
         }
 
-        let encoded_total_variants_len = EVMSerializableType(tokens.len()).to_bytes();
+        let encoded_total_variants_len = EVMSerializableType(self.0.len()).to_bytes();
         // length in words
         let encoded_variants_len = EVMSerializableType(encoded_variants.len() / 32).to_bytes();
         let encoded_mds_len = EVMSerializableType(encoded_mds.len() / 32).to_bytes();
