@@ -61,7 +61,7 @@ contract KimchiVerifier {
     ProverProof proof;
     VerifierIndex verifier_index;
     URS urs;
-    Scalar.FE[1] public_inputs;
+    Scalar.FE public_input;
 
     Sponge base_sponge;
     Sponge scalar_sponge;
@@ -101,7 +101,7 @@ contract KimchiVerifier {
         deser_verifier_index(verifier_index_serialized, verifier_index);
         deser_prover_proof(prover_proof_serialized, proof);
         deser_linearization(linearization_serialized, verifier_index.linearization);
-        public_inputs = [deser_public_input(public_input_serialized)];
+        public_input = deser_public_input(public_input_serialized);
     }
 
     function verify_with_index(
@@ -127,7 +127,7 @@ contract KimchiVerifier {
         // 3. Execute fiat-shamir with a Keccak sponge
 
         Oracles.Result memory oracles_res =
-            Oracles.fiat_shamir(proof, verifier_index, public_comm, public_inputs, true, base_sponge, scalar_sponge);
+            Oracles.fiat_shamir(proof, verifier_index, public_comm, public_input, true, base_sponge, scalar_sponge);
         Oracles.RandomOracles memory oracles = oracles_res.oracles;
 
         // 4. Combine the chunked polynomials' evaluations
@@ -305,22 +305,15 @@ contract KimchiVerifier {
             revert PolynomialsAreChunked(verifier_index.domain_size / verifier_index.max_poly_size);
         }
 
-        if (public_inputs.length != verifier_index.public_len) {
+        if (verifier_index.public_len != 1) {
             revert IncorrectPublicInputLength();
         }
         BN254.G1Point memory public_comm;
-        if (public_inputs.length == 0) {
-            public_comm = urs.h;
-        } else {
-            public_comm = BN254.point_at_inf();
-            for (uint256 i = 0; i < public_inputs.length; i++) {
-                public_comm = public_comm.add(get_lagrange_base(i).scale_scalar(public_inputs[i]));
-            }
-            // negate the results of the MSM
-            public_comm = public_comm.neg();
+        public_comm = get_lagrange_base(0).scale_scalar(public_input);
+        // negate the results of the MSM
+        public_comm = public_comm.neg();
 
-            public_comm = urs.h.add(public_comm);
-        }
+        public_comm = urs.h.add(public_comm);
 
         return public_comm;
     }
