@@ -92,12 +92,6 @@ enum GateType {
     Rot64
 }
 
-// @notice non-independent term of a linearization
-struct LinearTerm {
-    Column col;
-    PolishToken[] coeff;
-}
-
 struct Linearization {
     uint256 total_variants_len;
     uint256[] variants;

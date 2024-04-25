@@ -11,7 +11,6 @@ fs_permissions = [
     { access = "read", path = "./prover_proof.bin"},
     { access = "read", path = "./public_input.bin"},
     { access = "read", path = "./linearization.bin"},
-    { access = "read", path = "./linearization.mpk"},
     { access = "read", path = "./unit_test_data/"},
     { access = "read-write", path = "./linearization.rlp"}
 ]
