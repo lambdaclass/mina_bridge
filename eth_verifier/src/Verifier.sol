@@ -21,6 +21,8 @@ import "../lib/expr/Expr.sol";
 import "../lib/expr/PolishToken.sol";
 import "../lib/expr/ExprConstants.sol";
 
+import "forge-std/console.sol";
+
 using {BN254.add, BN254.neg, BN254.scale_scalar, BN254.sub} for BN254.G1Point;
 using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
 using {get_alphas} for Alphas;
@@ -33,8 +35,27 @@ contract KimchiVerifier {
     using {get_alphas} for Alphas;
     using {it_next} for AlphasIterator;
     using {sub_polycomms, scale_polycomm} for PolyComm;
-    using {get_column_eval} for ProofEvaluations;
     using {register} for Alphas;
+
+    // Column variant constants
+    // - GateType
+    uint256 internal constant GATE_TYPE_GENERIC = 0;
+    uint256 internal constant GATE_TYPE_POSEIDON = 1;
+    uint256 internal constant GATE_TYPE_COMPLETE_ADD = 2;
+    uint256 internal constant GATE_TYPE_VAR_BASE_MUL = 3;
+    uint256 internal constant GATE_TYPE_ENDO_MUL = 4;
+    uint256 internal constant GATE_TYPE_ENDO_MUL_SCALAR = 5;
+    uint256 internal constant GATE_TYPE_RANGE_CHECK_0 = 6;
+    uint256 internal constant GATE_TYPE_RANGE_CHECK_1 = 7;
+    uint256 internal constant GATE_TYPE_FOREIGN_FIELD_ADD = 8;
+    uint256 internal constant GATE_TYPE_FOREIGN_FIELD_MUL = 9;
+    uint256 internal constant GATE_TYPE_XOR_16 = 10;
+    uint256 internal constant GATE_TYPE_ROT_64 = 11;
+    // - LookupPattern
+    uint256 internal constant LOOKUP_PATTERN_XOR = 0;
+    uint256 internal constant LOOKUP_PATTERN_LOOKUP = 1;
+    uint256 internal constant LOOKUP_PATTERN_RANGE_CHECK = 2;
+    uint256 internal constant LOOKUP_PATTERN_FOREIGN_FIELD_MUL = 3;
 
     error IncorrectPublicInputLength();
     error PolynomialsAreChunked(uint256 chunk_size);
@@ -162,53 +183,52 @@ contract KimchiVerifier {
         evaluations[eval_index++] = Evaluation(ft_comm, [oracles_res.ft_eval0, proof.ft_eval1], 0);
         uint256 columns_len = 52; // INFO: hard-coded for the test proof
         Column[] memory columns = new Column[](columns_len);
-        columns[0] = Column(ColumnVariant.Z, new bytes(0));
-        columns[1] = Column(ColumnVariant.Index, abi.encode(GateType.Generic));
-        columns[2] = Column(ColumnVariant.Index, abi.encode(GateType.Poseidon));
-        columns[3] = Column(ColumnVariant.Index, abi.encode(GateType.CompleteAdd));
-        columns[4] = Column(ColumnVariant.Index, abi.encode(GateType.VarBaseMul));
-        columns[5] = Column(ColumnVariant.Index, abi.encode(GateType.EndoMul));
-        columns[6] = Column(ColumnVariant.Index, abi.encode(GateType.EndoMulScalar));
+        columns[0] = Column(ColumnVariant.Z, 0);
+        columns[1] = Column(ColumnVariant.Index, GATE_TYPE_GENERIC);
+        columns[2] = Column(ColumnVariant.Index, GATE_TYPE_POSEIDON);
+        columns[3] = Column(ColumnVariant.Index, GATE_TYPE_COMPLETE_ADD);
+        columns[4] = Column(ColumnVariant.Index, GATE_TYPE_VAR_BASE_MUL);
+        columns[5] = Column(ColumnVariant.Index, GATE_TYPE_ENDO_MUL);
+        columns[6] = Column(ColumnVariant.Index, GATE_TYPE_ENDO_MUL_SCALAR);
         uint256 col_index = 7;
         for (uint256 i = 0; i < COLUMNS; i++) {
-            columns[col_index++] = Column(ColumnVariant.Witness, abi.encode(i));
+            columns[col_index++] = Column(ColumnVariant.Witness, i);
         }
         for (uint256 i = 0; i < COLUMNS; i++) {
-            columns[col_index++] = Column(ColumnVariant.Coefficient, abi.encode(i));
+            columns[col_index++] = Column(ColumnVariant.Coefficient, i);
         }
         for (uint256 i = 0; i < PERMUTS - 1; i++) {
-            columns[col_index++] = Column(ColumnVariant.Permutation, abi.encode(i));
+            columns[col_index++] = Column(ColumnVariant.Permutation, i);
         }
         if (is_field_set(verifier_index, RANGE_CHECK0_COMM_FLAG)) {
-            columns[col_index++] = Column(ColumnVariant.Index, abi.encode(GateType.RangeCheck0));
+            columns[col_index++] = Column(ColumnVariant.Index, GATE_TYPE_RANGE_CHECK_0);
         }
         if (is_field_set(verifier_index, RANGE_CHECK1_COMM_FLAG)) {
-            columns[col_index++] = Column(ColumnVariant.Index, abi.encode(GateType.RangeCheck1));
+            columns[col_index++] = Column(ColumnVariant.Index, GATE_TYPE_RANGE_CHECK_1);
         }
         if (is_field_set(verifier_index, FOREIGN_FIELD_ADD_COMM_FLAG)) {
-            columns[col_index++] = Column(ColumnVariant.Index, abi.encode(GateType.ForeignFieldAdd));
+            columns[col_index++] = Column(ColumnVariant.Index, GATE_TYPE_FOREIGN_FIELD_ADD);
         }
         if (is_field_set(verifier_index, FOREIGN_FIELD_MUL_COMM_FLAG)) {
-            columns[col_index++] = Column(ColumnVariant.Index, abi.encode(GateType.ForeignFieldMul));
+            columns[col_index++] = Column(ColumnVariant.Index, GATE_TYPE_FOREIGN_FIELD_MUL);
         }
         if (is_field_set(verifier_index, XOR_COMM_FLAG)) {
-            columns[col_index++] = Column(ColumnVariant.Index, abi.encode(GateType.Xor16));
+            columns[col_index++] = Column(ColumnVariant.Index, GATE_TYPE_XOR_16);
         }
         if (is_field_set(verifier_index, ROT_COMM_FLAG)) {
-            columns[col_index++] = Column(ColumnVariant.Index, abi.encode(GateType.Rot64));
+            columns[col_index++] = Column(ColumnVariant.Index, GATE_TYPE_ROT_64);
         }
         if (is_field_set(verifier_index, LOOKUP_VERIFIER_INDEX_FLAG)) {
             LookupVerifierIndex memory li = verifier_index.lookup_index;
             for (uint256 i = 0; i < li.lookup_info.max_per_row + 1; i++) {
-                columns[col_index++] = Column(ColumnVariant.LookupSorted, abi.encode(i));
+                columns[col_index++] = Column(ColumnVariant.LookupSorted, i);
             }
-            columns[col_index++] = Column(ColumnVariant.LookupAggreg, new bytes(0));
+            columns[col_index++] = Column(ColumnVariant.LookupAggreg, 0);
         }
         // push all commitments corresponding to each column
         for (uint256 i = 0; i < col_index; i++) {
             PointEvaluations memory eval = get_column_eval(proof.evals, columns[i]);
-            evaluations[eval_index++] =
-                Evaluation(get_column_commitment(verifier_index, proof, columns[i]), [eval.zeta, eval.zeta_omega], 0);
+            evaluations[eval_index++] = Evaluation(get_column_commitment(columns[i]), [eval.zeta, eval.zeta_omega], 0);
         }
 
         if (is_field_set(verifier_index, LOOKUP_VERIFIER_INDEX_FLAG)) {
@@ -251,34 +271,29 @@ contract KimchiVerifier {
             }
 
             if (is_field_set(li, RUNTIME_TABLES_SELECTOR_FLAG)) {
-                Column memory col = Column(ColumnVariant.LookupRuntimeSelector, new bytes(0));
-                PointEvaluations memory eval = proof.evals.get_column_eval(col);
-                evaluations[eval_index++] =
-                    Evaluation(get_column_commitment(verifier_index, proof, col), [eval.zeta, eval.zeta_omega], 0);
+                Column memory col = Column(ColumnVariant.LookupRuntimeSelector, 0);
+                PointEvaluations memory eval = get_column_eval(proof.evals, col);
+                evaluations[eval_index++] = Evaluation(get_column_commitment(col), [eval.zeta, eval.zeta_omega], 0);
             }
             if (is_field_set(li, XOR_FLAG)) {
-                Column memory col = Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.Xor));
-                PointEvaluations memory eval = proof.evals.get_column_eval(col);
-                evaluations[eval_index++] =
-                    Evaluation(get_column_commitment(verifier_index, proof, col), [eval.zeta, eval.zeta_omega], 0);
+                Column memory col = Column(ColumnVariant.LookupKindIndex, LOOKUP_PATTERN_XOR);
+                PointEvaluations memory eval = get_column_eval(proof.evals, col);
+                evaluations[eval_index++] = Evaluation(get_column_commitment(col), [eval.zeta, eval.zeta_omega], 0);
             }
             if (is_field_set(li, LOOKUP_FLAG)) {
-                Column memory col = Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.Lookup));
-                PointEvaluations memory eval = proof.evals.get_column_eval(col);
-                evaluations[eval_index++] =
-                    Evaluation(get_column_commitment(verifier_index, proof, col), [eval.zeta, eval.zeta_omega], 0);
+                Column memory col = Column(ColumnVariant.LookupKindIndex, LOOKUP_PATTERN_LOOKUP);
+                PointEvaluations memory eval = get_column_eval(proof.evals, col);
+                evaluations[eval_index++] = Evaluation(get_column_commitment(col), [eval.zeta, eval.zeta_omega], 0);
             }
             if (is_field_set(li, RANGE_CHECK_FLAG)) {
-                Column memory col = Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.RangeCheck));
-                PointEvaluations memory eval = proof.evals.get_column_eval(col);
-                evaluations[eval_index++] =
-                    Evaluation(get_column_commitment(verifier_index, proof, col), [eval.zeta, eval.zeta_omega], 0);
+                Column memory col = Column(ColumnVariant.LookupKindIndex, LOOKUP_PATTERN_RANGE_CHECK);
+                PointEvaluations memory eval = get_column_eval(proof.evals, col);
+                evaluations[eval_index++] = Evaluation(get_column_commitment(col), [eval.zeta, eval.zeta_omega], 0);
             }
             if (is_field_set(li, FFMUL_FLAG)) {
-                Column memory col = Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.ForeignFieldMul));
-                PointEvaluations memory eval = proof.evals.get_column_eval(col);
-                evaluations[eval_index++] =
-                    Evaluation(get_column_commitment(verifier_index, proof, col), [eval.zeta, eval.zeta_omega], 0);
+                Column memory col = Column(ColumnVariant.LookupKindIndex, LOOKUP_PATTERN_FOREIGN_FIELD_MUL);
+                PointEvaluations memory eval = get_column_eval(proof.evals, col);
+                evaluations[eval_index++] = Evaluation(get_column_commitment(col), [eval.zeta, eval.zeta_omega], 0);
             }
         }
 
@@ -323,6 +338,161 @@ contract KimchiVerifier {
             res = res.mul(current);
         }
         res = res.neg();
+    }
+
+    function get_column_eval(ProofEvaluations memory evals, Column memory col)
+        internal
+        pure
+        returns (PointEvaluations memory)
+    {
+        ColumnVariant variant = col.variant;
+        uint256 inner = col.inner;
+        if (variant == ColumnVariant.Witness) {
+            return evals.w[inner];
+        } else if (variant == ColumnVariant.Z) {
+            return evals.z;
+        } else if (variant == ColumnVariant.LookupSorted) {
+            return evals.lookup_sorted[inner];
+        } else if (variant == ColumnVariant.LookupAggreg) {
+            return evals.lookup_aggregation;
+        } else if (variant == ColumnVariant.LookupTable) {
+            return evals.lookup_table;
+        } else if (variant == ColumnVariant.LookupKindIndex) {
+            if (inner == LOOKUP_PATTERN_XOR) return evals.xor_lookup_selector;
+            else if (inner == LOOKUP_PATTERN_LOOKUP) return evals.lookup_gate_lookup_selector;
+            else if (inner == LOOKUP_PATTERN_RANGE_CHECK) return evals.range_check_lookup_selector;
+            else if (inner == LOOKUP_PATTERN_FOREIGN_FIELD_MUL) return evals.foreign_field_mul_lookup_selector;
+            else revert MissingLookupColumnEvaluation(inner);
+        } else if (variant == ColumnVariant.LookupRuntimeSelector) {
+            return evals.runtime_lookup_table_selector;
+        } else if (variant == ColumnVariant.Index) {
+            if (inner == GATE_TYPE_GENERIC) return evals.generic_selector;
+            else if (inner == GATE_TYPE_POSEIDON) return evals.poseidon_selector;
+            else if (inner == GATE_TYPE_COMPLETE_ADD) return evals.complete_add_selector;
+            else if (inner == GATE_TYPE_VAR_BASE_MUL) return evals.mul_selector;
+            else if (inner == GATE_TYPE_ENDO_MUL) return evals.emul_selector;
+            else if (inner == GATE_TYPE_ENDO_MUL_SCALAR) return evals.endomul_scalar_selector;
+            else if (inner == GATE_TYPE_RANGE_CHECK_0) return evals.range_check0_selector;
+            else if (inner == GATE_TYPE_RANGE_CHECK_1) return evals.range_check1_selector;
+            else if (inner == GATE_TYPE_FOREIGN_FIELD_ADD) return evals.foreign_field_add_selector;
+            else if (inner == GATE_TYPE_FOREIGN_FIELD_MUL) return evals.foreign_field_mul_selector;
+            else if (inner == GATE_TYPE_XOR_16) return evals.xor_selector;
+            else if (inner == GATE_TYPE_ROT_64) return evals.rot_selector;
+            else revert MissingIndexColumnEvaluation(inner);
+        } else if (variant == ColumnVariant.Coefficient) {
+            return evals.coefficients[inner];
+        } else if (variant == ColumnVariant.Permutation) {
+            return evals.s[inner];
+        } else {
+            revert MissingColumnEvaluation(variant);
+        }
+    }
+
+    function get_column_commitment(Column memory column) internal view returns (BN254.G1Point memory) {
+        LookupVerifierIndex memory l_index = verifier_index.lookup_index;
+
+        uint256 inner = column.inner;
+        ColumnVariant variant = column.variant;
+        if (variant == ColumnVariant.Witness) {
+            return proof.commitments.w_comm[inner];
+        } else if (variant == ColumnVariant.Coefficient) {
+            return verifier_index.coefficients_comm[inner];
+        } else if (variant == ColumnVariant.Permutation) {
+            return verifier_index.sigma_comm[inner];
+        } else if (variant == ColumnVariant.Z) {
+            return proof.commitments.z_comm;
+        } else if (variant == ColumnVariant.LookupSorted) {
+            return proof.commitments.lookup_sorted[inner];
+        } else if (variant == ColumnVariant.LookupAggreg) {
+            return proof.commitments.lookup_aggreg;
+        } else if (variant == ColumnVariant.LookupKindIndex) {
+            if (inner == LOOKUP_PATTERN_XOR) {
+                if (!is_field_set(l_index, XOR_FLAG)) {
+                    revert MissingLookupColumnCommitment(inner);
+                }
+                return l_index.xor;
+            }
+            if (inner == LOOKUP_PATTERN_LOOKUP) {
+                if (!is_field_set(l_index, LOOKUP_FLAG)) {
+                    revert MissingLookupColumnCommitment(inner);
+                }
+                return l_index.lookup;
+            }
+            if (inner == LOOKUP_PATTERN_RANGE_CHECK) {
+                if (!is_field_set(l_index, RANGE_CHECK_FLAG)) {
+                    revert MissingLookupColumnCommitment(inner);
+                }
+                return l_index.range_check;
+            }
+            if (inner == LOOKUP_PATTERN_FOREIGN_FIELD_MUL) {
+                if (!is_field_set(l_index, FFMUL_FLAG)) {
+                    revert MissingLookupColumnCommitment(inner);
+                }
+                return l_index.ffmul;
+            } else {
+                revert MissingLookupColumnCommitment(inner);
+            }
+        } else if (variant == ColumnVariant.LookupRuntimeSelector) {
+            if (!is_field_set(l_index, RUNTIME_TABLES_SELECTOR_FLAG)) {
+                revert MissingCommitment(variant);
+            }
+            return l_index.runtime_tables_selector;
+        } else if (variant == ColumnVariant.LookupRuntimeTable) {
+            if (!is_field_set(proof.commitments, LOOKUP_RUNTIME_COMM_FLAG)) {
+                revert MissingCommitment(variant);
+            }
+            return proof.commitments.lookup_runtime;
+        } else if (variant == ColumnVariant.Index) {
+            if (inner == GATE_TYPE_GENERIC) {
+                return verifier_index.generic_comm;
+            } else if (inner == GATE_TYPE_COMPLETE_ADD) {
+                return verifier_index.complete_add_comm;
+            } else if (inner == GATE_TYPE_VAR_BASE_MUL) {
+                return verifier_index.mul_comm;
+            } else if (inner == GATE_TYPE_ENDO_MUL) {
+                return verifier_index.emul_comm;
+            } else if (inner == GATE_TYPE_ENDO_MUL_SCALAR) {
+                return verifier_index.endomul_scalar_comm;
+            } else if (inner == GATE_TYPE_POSEIDON) {
+                return verifier_index.psm_comm;
+            } else if (inner == GATE_TYPE_RANGE_CHECK_0) {
+                if (!is_field_set(verifier_index, RANGE_CHECK0_COMM_FLAG)) {
+                    revert MissingCommitment(variant);
+                }
+                return verifier_index.range_check0_comm;
+            } else if (inner == GATE_TYPE_RANGE_CHECK_1) {
+                if (!is_field_set(verifier_index, RANGE_CHECK1_COMM_FLAG)) {
+                    revert MissingCommitment(variant);
+                }
+                return verifier_index.range_check1_comm;
+            } else if (inner == GATE_TYPE_FOREIGN_FIELD_ADD) {
+                if (!is_field_set(verifier_index, FOREIGN_FIELD_ADD_COMM_FLAG)) {
+                    revert MissingCommitment(variant);
+                }
+                return verifier_index.foreign_field_add_comm;
+            } else if (inner == GATE_TYPE_FOREIGN_FIELD_MUL) {
+                if (!is_field_set(verifier_index, FOREIGN_FIELD_MUL_COMM_FLAG)) {
+                    revert MissingCommitment(variant);
+                }
+                return verifier_index.foreign_field_mul_comm;
+            } else if (inner == GATE_TYPE_XOR_16) {
+                if (!is_field_set(verifier_index, XOR_COMM_FLAG)) {
+                    revert MissingCommitment(variant);
+                }
+                return verifier_index.xor_comm;
+            } else if (inner == GATE_TYPE_ROT_64) {
+                if (!is_field_set(verifier_index, ROT_COMM_FLAG)) {
+                    revert MissingCommitment(variant);
+                }
+                return verifier_index.rot_comm;
+            } else {
+                revert MissingIndexColumnEvaluation(inner);
+            }
+        } else {
+            revert MissingCommitment(column.variant);
+        }
+
+        // TODO: other variants remain to be implemented.
     }
 
     /*
@@ -392,13 +562,13 @@ contract KimchiVerifier {
             16795962876692295166012804782785252840345796645199573986777498170046508450267
         );
         BN254.G2Point memory point2 = BN254.G2Point(
-            14127762918448947308790410788210289377279518096121173062251311797297982082469,
             4640749047686948693676466477499634979423220823002391841311260833878642348023,
-            15584633174679797224858067860955702731818107814729714298421481259259086801380,
-            13424649497566617342906600132389867025763662606076913038585301943152028890013
+            14127762918448947308790410788210289377279518096121173062251311797297982082469,
+            13424649497566617342906600132389867025763662606076913038585301943152028890013,
+            15584633174679797224858067860955702731818107814729714298421481259259086801380
         );
 
-        Scalar.FE[] memory divisor_poly_coeffs = new Scalar.FE[](3);
+        Scalar.FE[] memory divisor_poly_coeffs = new Scalar.FE[](2);
 
         // The divisor polynomial is the poly that evaluates to 0 in the evaluation
         // points. Used for proving that the numerator is divisible by it.
@@ -407,11 +577,10 @@ contract KimchiVerifier {
 
         divisor_poly_coeffs[0] = evaluation_points[0].mul(evaluation_points[1]);
         divisor_poly_coeffs[1] = evaluation_points[0].add(evaluation_points[1]).neg();
-        divisor_poly_coeffs[2] = Scalar.one();
 
         result = BN256G2.ECTwistMul(Scalar.FE.unwrap(divisor_poly_coeffs[0]), point0);
         result = BN256G2.ECTwistAdd(result, BN256G2.ECTwistMul(Scalar.FE.unwrap(divisor_poly_coeffs[1]), point1));
-        result = BN256G2.ECTwistAdd(result, BN256G2.ECTwistMul(Scalar.FE.unwrap(divisor_poly_coeffs[2]), point2));
+        result = BN256G2.ECTwistAdd(result, point2);
     }
 
     function eval_commitment(Scalar.FE[2] memory evaluation_points, Scalar.FE[] memory evals, URS memory full_urs)
