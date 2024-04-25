@@ -288,13 +288,9 @@ fn precompute_evaluation(
             2.. => {
                 if is_operation_token {
                     stack.push(token.clone());
-                    let partial_eval =
-                        partial_polish_evaluation(&stack, &evals, &constants).unwrap();
-                    if partial_eval.len() == 3 {
-                        new_tokens.extend(partial_eval);
-                        stack.truncate(0);
-                    } else {
-                        stack = partial_eval;
+                    partial_polish_evaluation(&mut stack, &evals, &constants).unwrap();
+                    if stack.len() == 3 {
+                        new_tokens.append(&mut stack);
                     }
                 } else if is_data_token {
                     stack.push(token.clone());
@@ -310,15 +306,18 @@ fn precompute_evaluation(
             _ => unreachable!(),
         }
     }
-    println!("Token compression result: {}", 1. - new_tokens.len() as f64 / tokens.len() as f64);
+    println!(
+        "Token compression result: {}",
+        1. - new_tokens.len() as f64 / tokens.len() as f64
+    );
     new_tokens
 }
 
 fn partial_polish_evaluation(
-    tokens: &[BN254PolishToken],
+    tokens: &mut Vec<BN254PolishToken>,
     evals: &ProofEvaluations<PointEvaluations<ScalarField>>,
     c: &Constants<ScalarField>,
-) -> Result<Vec<BN254PolishToken>, ExprError> {
+) -> Result<(), ExprError> {
     let mut stack = vec![];
 
     use PolishToken::*;
@@ -352,7 +351,8 @@ fn partial_polish_evaluation(
         }
     }
 
-    Ok(stack.into_iter().map(Literal).collect())
+    *tokens = stack.into_iter().map(Literal).collect();
+    Ok(())
 }
 
 /// Function taken from proof_system's expr.rs because its private.
