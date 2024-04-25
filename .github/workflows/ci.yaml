@@ -48,6 +48,9 @@ jobs:
             - name: Checkout sources
               uses: actions/checkout@v4
 
+            - name: Install Foundry
+              uses: foundry-rs/foundry-toolchain@v1.2.0
+
             - name: Run integration test
               run: |
                 export HOME="/root/"
@@ -64,9 +67,6 @@ jobs:
         steps:
             - name: Checkout sources
               uses: actions/checkout@v4
-            
-            - name: Install Foundry
-              uses: foundry-rs/foundry-toolchain@v1
 
             - name: Install Foundry
               uses: foundry-rs/foundry-toolchain@v1.2.0
