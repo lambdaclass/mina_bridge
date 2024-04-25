@@ -254,12 +254,12 @@ fn precompute_evaluation(
     // EVM verifier needs to deserialize and execute. We instead compute
     // that segment here and replace the 5 tokens with the result: 14.
     //
-    // For this we'll have a stack of tokens of a maximum size of 3,
-    // and we'll fill it first with two operands ("data tokens", so non
-    // operation tokens) and then with an operation, we'll evaluate those
-    // 3 tokens, replace them with the result and continue until we arrive
-    // at a token which we can't evaluate in the prover side. At this
-    // step the stack has the results of that evaluated segment.
+    // For this we'll have a stack of tokens and we'll fill it first with
+    // two operands ("data tokens", so non operation tokens) and then with
+    // an operation, we'll evaluate those 3 tokens, replace them with the
+    // result and continue until we arrive at a token which we can't
+    // evaluate in the prover side. At this step the stack has the results
+    // of that evaluated segment.
 
     for token in tokens.clone().iter() {
         use PolishToken::*;
@@ -285,7 +285,7 @@ fn precompute_evaluation(
                     new_tokens.push(token.clone());
                 }
             }
-            2 => {
+            2.. => {
                 if is_operation_token {
                     stack.push(token.clone());
                     let partial_eval =
@@ -296,6 +296,8 @@ fn precompute_evaluation(
                     } else {
                         stack = partial_eval;
                     }
+                } else if is_data_token {
+                    stack.push(token.clone());
                 } else {
                     new_tokens.append(&mut stack);
                     if is_data_token {
@@ -350,7 +352,6 @@ fn partial_polish_evaluation(
         }
     }
 
-    assert!(stack.len() <= 3);
     Ok(stack.into_iter().map(Literal).collect())
 }
 
