@@ -143,7 +143,6 @@ fn generate_proof() {
 
     let precomputed_tokens = precompute_evaluation(
         &index.linearization.constant_term,
-        verifier_index.domain,
         &proof.evals,
         verifier_index.zk_rows,
     );
@@ -224,13 +223,10 @@ fn generate_proof() {
 
 fn precompute_evaluation(
     tokens: &Vec<BN254PolishToken>,
-    d: Radix2EvaluationDomain<ark_ff::Fp256<ark_bn254::FrParameters>>,
     evals: &BN254ProofEvaluations,
     zk_rows: u64,
 ) -> Vec<BN254PolishToken> {
-    let mut first_i = 0;
     let mut stack: Vec<BN254PolishToken> = Vec::with_capacity(3);
-    let mut total_tokens = 0;
 
     let mut new_tokens = vec![];
 
@@ -247,6 +243,23 @@ fn precompute_evaluation(
         zeta: ScalarField::from(0),
         zeta_omega: ScalarField::from(0),
     });
+
+    // The idea is that we assumed there're many segments in the token
+    // vec that don't depend on any result from the verifier, so
+    // we might as well precompute those segments and send the results
+    // as `Literal` tokens.
+    //
+    // As an example consider we have a segment which is equivalent to
+    // 10 + 5 + 9. Those are 5 tokens in total and two operations the
+    // EVM verifier needs to deserialize and execute. We instead compute
+    // that segment here and replace the 5 tokens with the result: 14.
+    //
+    // For this we'll have a stack of tokens of a maximum size of 3,
+    // and we'll fill it first with two operands ("data tokens", so non
+    // operation tokens) and then with an operation, we'll evaluate those
+    // 3 tokens, replace them with the result and continue until we arrive
+    // at a token which we can't evaluate in the prover side. At this
+    // step the stack has the results of that evaluated segment.
 
     for token in tokens.clone().iter() {
         use PolishToken::*;
@@ -313,7 +326,7 @@ fn partial_polish_evaluation(
             Mds { row, col } => stack.push(c.mds[*row][*col]),
             Literal(x) => stack.push(*x),
             Dup => stack.push(stack[stack.len() - 1]),
-            Cell(v) => stack.push(evaluate(v, evals).unwrap()),
+            Cell(v) => stack.push(evaluate_variable(v, evals)?),
             Pow(n) => {
                 let i = stack.len() - 1;
                 stack[i] = stack[i].pow([*n]);
@@ -341,7 +354,8 @@ fn partial_polish_evaluation(
     Ok(stack.into_iter().map(Literal).collect())
 }
 
-fn evaluate(
+/// Function taken from proof_system's expr.rs because its private.
+fn evaluate_variable(
     v: &Variable,
     evals: &ProofEvaluations<PointEvaluations<ScalarField>>,
 ) -> Result<ScalarField, ExprError> {
