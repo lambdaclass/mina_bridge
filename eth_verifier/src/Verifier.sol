@@ -37,23 +37,23 @@ contract KimchiVerifier {
 
     // Column variant constants
     // - GateType
-    uint256 constant GATE_TYPE_GENERIC = 0;
-    uint256 constant GATE_TYPE_POSEIDON = 1;
-    uint256 constant GATE_TYPE_COMPLETE_ADD = 2;
-    uint256 constant GATE_TYPE_VAR_BASE_MUL = 3;
-    uint256 constant GATE_TYPE_ENDO_MUL = 4;
-    uint256 constant GATE_TYPE_ENDO_MUL_SCALAR = 5;
-    uint256 constant GATE_TYPE_RANGE_CHECK_0 = 6;
-    uint256 constant GATE_TYPE_RANGE_CHECK_1 = 7;
-    uint256 constant GATE_TYPE_FOREIGN_FIELD_ADD = 8;
-    uint256 constant GATE_TYPE_FOREIGN_FIELD_MUL = 9;
-    uint256 constant GATE_TYPE_XOR_16 = 10;
-    uint256 constant GATE_TYPE_ROT_64 = 11;
+    uint256 internal constant GATE_TYPE_GENERIC = 0;
+    uint256 internal constant GATE_TYPE_POSEIDON = 1;
+    uint256 internal constant GATE_TYPE_COMPLETE_ADD = 2;
+    uint256 internal constant GATE_TYPE_VAR_BASE_MUL = 3;
+    uint256 internal constant GATE_TYPE_ENDO_MUL = 4;
+    uint256 internal constant GATE_TYPE_ENDO_MUL_SCALAR = 5;
+    uint256 internal constant GATE_TYPE_RANGE_CHECK_0 = 6;
+    uint256 internal constant GATE_TYPE_RANGE_CHECK_1 = 7;
+    uint256 internal constant GATE_TYPE_FOREIGN_FIELD_ADD = 8;
+    uint256 internal constant GATE_TYPE_FOREIGN_FIELD_MUL = 9;
+    uint256 internal constant GATE_TYPE_XOR_16 = 10;
+    uint256 internal constant GATE_TYPE_ROT_64 = 11;
     // - LookupPattern
-    uint256 constant LOOKUP_PATTERN_XOR = 0;
-    uint256 constant LOOKUP_PATTERN_LOOKUP = 1;
-    uint256 constant LOOKUP_PATTERN_RANGE_CHECK = 2;
-    uint256 constant LOOKUP_PATTERN_FOREIGN_FIELD_MUL = 3;
+    uint256 internal constant LOOKUP_PATTERN_XOR = 0;
+    uint256 internal constant LOOKUP_PATTERN_LOOKUP = 1;
+    uint256 internal constant LOOKUP_PATTERN_RANGE_CHECK = 2;
+    uint256 internal constant LOOKUP_PATTERN_FOREIGN_FIELD_MUL = 3;
 
     error IncorrectPublicInputLength();
     error PolynomialsAreChunked(uint256 chunk_size);
