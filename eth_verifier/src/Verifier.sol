@@ -60,10 +60,13 @@ contract KimchiVerifier {
     error IncorrectPublicInputLength();
     error PolynomialsAreChunked(uint256 chunk_size);
 
-    ProverProof proof;
     VerifierIndex verifier_index;
     URS urs;
+
+    ProverProof proof;
     Scalar.FE public_input;
+
+    AggregatedEvaluationProof aggregated_proof;
 
     Sponge base_sponge;
     Sponge scalar_sponge;
@@ -123,6 +126,10 @@ contract KimchiVerifier {
 
         AggregatedEvaluationProof memory agg_proof = partial_verify();
         return final_verify(agg_proof);
+    }
+
+    function partial_verify_and_store() public {
+        aggregated_proof = partial_verify();
     }
 
     // This takes Kimchi's `to_batch()` as reference.
@@ -503,26 +510,9 @@ contract KimchiVerifier {
         // TODO: other variants remain to be implemented.
     }
 
-    /*
-    This is a list of steps needed for verification.
-
-    Partial verification:
-        1. Check the length of evaluations insde the proof.
-        2. Commit to the negated public input poly
-        3. Fiat-Shamir (vastly simplify for now)
-        4. Combined chunk polynomials evaluations
-        5. Commitment to linearized polynomial f
-        6. Chunked commitment of ft
-        7. List poly commitments for final verification
-
-    Final verification:
-        1. Combine commitments, compute final poly commitment (MSM)
-        2. Combine evals
-        3. Commit divisor and eval polynomials
-        4. Compute numerator commitment
-        5. Compute scaled quotient
-        6. Check numerator == scaled_quotient
-    */
+    function final_verify_stored() public view returns (bool) {
+        final_verify(aggregated_proof);
+    }
 
     function final_verify(AggregatedEvaluationProof memory agg_proof) public view returns (bool) {
         Evaluation[] memory evaluations = agg_proof.evaluations;
