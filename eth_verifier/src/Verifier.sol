@@ -444,14 +444,4 @@ contract KimchiVerifier {
 
         return msm(full_urs.g, eval_poly_coeffs);
     }
-
-    // (x, y) pairs
-    uint256[2] lagrange_bases = [
-        0x280c10e2f52fb4ab3ba21204b30df5b69560978e0911a5c673ad0558070f17c1,
-        0x287897da7c8db33cd988a1328770890b2754155612290448267f9ca4c549cb39
-    ];
-
-    function get_lagrange_base(uint256 i) internal view returns (BN254.G1Point memory) {
-        return BN254.G1Point(lagrange_bases[2 * i], lagrange_bases[2 * i + 1]);
-    }
 }
