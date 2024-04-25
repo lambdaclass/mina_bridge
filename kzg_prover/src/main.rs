@@ -263,7 +263,8 @@ fn precompute_evaluation(
 
     for token in tokens.clone().iter() {
         use PolishToken::*;
-        let is_operation_token = matches!(token, Add | Mul | Sub | Pow(_) | Dup);
+        let is_unary_operation_token = matches!(token, Pow(_) | Dup);
+        let is_binary_operation_token = matches!(token, Add | Mul | Sub);
         let is_data_token = matches!(
             token,
             EndoCoefficient | Mds { row: _, col: _ } | Literal(_) | Cell(_)
@@ -278,29 +279,19 @@ fn precompute_evaluation(
                 }
             }
             1 => {
-                if is_data_token {
-                    stack.push(token.clone());
-                } else {
+                stack.push(token.clone());
+                if is_unary_operation_token {
+                    partial_polish_evaluation(&mut stack, &evals, &constants).unwrap();
+                } else if is_binary_operation_token | !is_data_token {
                     new_tokens.append(&mut stack);
-                    new_tokens.push(token.clone());
                 }
             }
             2.. => {
-                if is_operation_token {
-                    stack.push(token.clone());
+                stack.push(token.clone());
+                if is_unary_operation_token | is_binary_operation_token {
                     partial_polish_evaluation(&mut stack, &evals, &constants).unwrap();
-                    if stack.len() == 3 {
-                        new_tokens.append(&mut stack);
-                    }
-                } else if is_data_token {
-                    stack.push(token.clone());
-                } else {
+                } else if !is_data_token {
                     new_tokens.append(&mut stack);
-                    if is_data_token {
-                        stack.push(token.clone());
-                    } else {
-                        new_tokens.push(token.clone());
-                    }
                 }
             }
             _ => unreachable!(),
