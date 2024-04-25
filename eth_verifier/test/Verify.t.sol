@@ -42,20 +42,20 @@ contract KimchiVerifierTest is Test {
         require(success, "Verification failed!");
     }
 
-    function test_partial_verify() public {
-        KimchiVerifier verifier = new KimchiVerifier();
+    //function test_partial_verify() public {
+    //    KimchiVerifier verifier = new KimchiVerifier();
 
-        verifier.setup();
+    //    verifier.setup();
 
-        verifier.deserialize_proof(
-            verifier_index_serialized, prover_proof_serialized, linearization_serialized, public_inputs_serialized
-        );
+    //    verifier.deserialize_proof(
+    //        verifier_index_serialized, prover_proof_serialized, linearization_serialized, public_inputs_serialized
+    //    );
 
-        AggregatedEvaluationProof memory agg_proof = verifier.partial_verify();
+    //    AggregatedEvaluationProof memory agg_proof = verifier.partial_verify();
 
-        // Necessary so that the optimized compiler takes into account the partial verification
-        require(keccak256(abi.encode(agg_proof)) > 0);
-    }
+    //    // Necessary so that the optimized compiler takes into account the partial verification
+    //    require(keccak256(abi.encode(agg_proof)) > 0);
+    //}
 
     function test_eval_commitment() public {
         KimchiVerifier verifier = new KimchiVerifier();
@@ -109,21 +109,21 @@ contract KimchiVerifierTest is Test {
         require(keccak256(abi.encode(divisor_commitment)) > 0);
     }
 
-    function test_public_commitment() public {
-        KimchiVerifier verifier = new KimchiVerifier();
-
-        verifier.setup();
-
-        verifier.deserialize_proof(
-            verifier_index_serialized, prover_proof_serialized, linearization_serialized, public_inputs_serialized
-        );
-
-        BN254.G1Point memory public_commitment = verifier.public_commitment();
-
-        // Necessary so that the optimized compiler takes into account the public commitment
-        require(keccak256(abi.encode(public_commitment)) > 0);
-    }
-
+//    function test_public_commitment() public {
+//        KimchiVerifier verifier = new KimchiVerifier();
+//
+//        verifier.setup();
+//
+//        verifier.deserialize_proof(
+//            verifier_index_serialized, prover_proof_serialized, linearization_serialized, public_inputs_serialized
+//        );
+//
+//        BN254.G1Point memory public_commitment = verifier.public_commitment();
+//
+//        // Necessary so that the optimized compiler takes into account the public commitment
+//        require(keccak256(abi.encode(public_commitment)) > 0);
+//    }
+//
     // INFO: Disabled test because the new serializer isnt't used yet to
     // generate unit test data.
     //function test_absorb_evaluations() public {

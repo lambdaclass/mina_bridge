@@ -10,6 +10,7 @@ import "./bn254/BN254.sol";
 import "./bn254/Fields.sol";
 import "./VerifierIndex.sol";
 
+library Proof {
 error MissingIndexEvaluation(string col);
 error MissingColumnEvaluation(ColumnVariant variant);
 error MissingLookupColumnEvaluation(LookupPattern pattern);
@@ -109,7 +110,7 @@ struct ProverCommitments {
     BN254.G1Point lookup_runtime;
 }
 
-function evaluate_column_by_id(ProofEvaluations memory self, uint256 col_id) view returns (PointEvaluations memory) {
+function evaluate_column_by_id(ProofEvaluations memory self, uint256 col_id) public view returns (PointEvaluations memory) {
     if (col_id <= 14) {
         return self.w[col_id];
     }
@@ -235,7 +236,10 @@ function evaluate_column_by_id(ProofEvaluations memory self, uint256 col_id) vie
     }
 }
 
-function get_column_eval(ProofEvaluations memory evals, Column memory col) pure returns (PointEvaluations memory) {
+function get_column_eval(
+    ProofEvaluations memory evals,
+    Column memory col
+) public pure returns (PointEvaluations memory) {
     ColumnVariant variant = col.variant;
     bytes memory data = col.data;
     if (variant == ColumnVariant.Witness) {
@@ -293,7 +297,7 @@ function combine_table(
     BN254.G1Point memory table_id_vector,
     bool is_runtime_vector_set,
     BN254.G1Point memory runtime_vector
-) view returns (BN254.G1Point memory) {
+) public view returns (BN254.G1Point memory) {
     uint256 total_len = 1 + (is_table_id_vector_set ? 1 : 0) + (is_runtime_vector_set ? 1 : 0);
 
     Scalar.FE j = Scalar.one();
@@ -320,18 +324,19 @@ function combine_table(
     return msm(commitments, scalars);
 }
 
-function is_field_set(ProofEvaluations memory self, uint256 flag_pos) pure returns (bool) {
+function is_field_set(ProofEvaluations memory self, uint256 flag_pos) public pure returns (bool) {
     return (self.optional_field_flags >> flag_pos) & 1 == 1;
 }
 
-function is_field_set(ProverCommitments memory self, uint256 flag_pos) pure returns (bool) {
+function is_field_set(ProverCommitments memory self, uint256 flag_pos) public pure returns (bool) {
     return (self.optional_field_flags >> flag_pos) & 1 == 1;
 }
 
-function is_field_set(VerifierIndex storage self, uint256 flag_pos) view returns (bool) {
+function is_field_set(VerifierIndex storage self, uint256 flag_pos) public view returns (bool) {
     return (self.optional_field_flags >> flag_pos) & 1 == 1;
 }
 
-function is_field_set(LookupVerifierIndex memory self, uint256 flag_pos) pure returns (bool) {
+function is_field_set(LookupVerifierIndex memory self, uint256 flag_pos) public pure returns (bool) {
     return (self.optional_field_flags >> flag_pos) & 1 == 1;
+}
 }

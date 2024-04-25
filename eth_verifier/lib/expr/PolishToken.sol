@@ -21,6 +21,7 @@ using {Scalar.add, Scalar.mul, Scalar.sub, Scalar.pow, Scalar.inv} for Scalar.FE
 // so we should set an alias to a structure type like that, or directly define
 // a struct with that shape, in this case PolishTokenMds was defined below).
 
+library PolishTokenEvaluation {
 struct PolishToken {
     PolishTokenVariant variant;
     bytes data;
@@ -32,9 +33,9 @@ function evaluate(
     uint256 domain_size,
     Scalar.FE pt,
     Scalar.FE vanishing_eval,
-    ProofEvaluations memory evals,
+    Proof.ProofEvaluations memory evals,
     ExprConstants memory c
-) view returns (Scalar.FE) {
+) external view returns (Scalar.FE) {
     Scalar.FE vanishing_eval = evaluate_vanishing_polynomial(domain_gen, domain_size, pt);
 
     Scalar.FE[] memory stack = new Scalar.FE[](linearization.total_variants_len);
@@ -268,6 +269,7 @@ type PolishTokenSkipIf is uint256;
 
 // @notice Compute the ith unnormalized lagrange basis
 function unnormalized_lagrange_basis(Scalar.FE domain_gen, Scalar.FE vanishing_eval, int256 i, Scalar.FE pt)
+    internal
     view
     returns (Scalar.FE result)
 {
@@ -285,8 +287,10 @@ function unnormalized_lagrange_basis(Scalar.FE domain_gen, Scalar.FE vanishing_e
 // @notice evaluates the vanishing polynomial for this domain at tau.
 // @notice for multiplicative subgroups, this polynomial is `z(X) = X^self.size - 1
 function evaluate_vanishing_polynomial(Scalar.FE domain_gen, uint256 domain_size, Scalar.FE tau)
+    public
     view
     returns (Scalar.FE)
 {
     return tau.pow(domain_size).sub(Scalar.one());
+}
 }

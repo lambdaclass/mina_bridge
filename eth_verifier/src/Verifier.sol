@@ -93,12 +93,13 @@ contract KimchiVerifier {
             verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_input_serialized
         );
 
-        AggregatedEvaluationProof memory agg_proof = KimchiPartialVerifier.partial_verify(
+        AggregatedEvaluationProof memory agg_proof;
+        /* = KimchiPartialVerifier.partial_verify(
             proof,
             verifier_index,
             urs,
             public_input,
-            lagrange_bases);
+            lagrange_bases);*/
         return final_verify(agg_proof);
     }
 

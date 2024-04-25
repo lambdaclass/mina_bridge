@@ -23,13 +23,11 @@ using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} f
 using {get_alphas} for Alphas;
 using {it_next} for AlphasIterator;
 using {sub_polycomms, scale_polycomm} for PolyComm;
+using {Proof.get_column_eval} for Proof.ProofEvaluations;
 
 library KimchiPartialVerifier {
     error IncorrectPublicInputLength();
     error PolynomialsAreChunked(uint256 chunk_size);
-
-    Sponge base_sponge;
-    Sponge scalar_sponge;
 
     // This takes Kimchi's `to_batch()` as reference.
     function partial_verify(
@@ -37,7 +35,9 @@ library KimchiPartialVerifier {
         VerifierIndex storage verifier_index,
         URS storage urs,
         Scalar.FE public_input,
-        uint256[] storage lagrange_bases_components // flattened pairs of (x, y) coords
+        uint256[] storage lagrange_bases_components, // flattened pairs of (x, y) coords
+        Sponge storage base_sponge,
+        Sponge storage scalar_sponge
     ) external returns (AggregatedEvaluationProof memory) {
         // TODO: 1. CHeck the length of evaluations insde the proof
 
@@ -231,37 +231,30 @@ library KimchiPartialVerifier {
         return AggregatedEvaluationProof(evaluations, evaluation_points, oracles.v, proof.opening);
     }
 
+
     function public_commitment(
         VerifierIndex storage verifier_index,
         URS storage urs,
-        Scalar.FE[] storage public_inputs,
+        Scalar.FE public_input,
         uint256[] storage lagrange_bases_components // flattened pairs of (x, y) coords
     ) public view returns (BN254.G1Point memory) {
         if (verifier_index.domain_size < verifier_index.max_poly_size) {
             revert PolynomialsAreChunked(verifier_index.domain_size / verifier_index.max_poly_size);
         }
 
-        if (public_inputs.length != verifier_index.public_len) {
+        if (verifier_index.public_len != 1) {
             revert IncorrectPublicInputLength();
         }
         BN254.G1Point memory public_comm;
-        if (public_inputs.length == 0) {
-            public_comm = urs.h;
-        } else {
-            public_comm = BN254.point_at_inf();
-            BN254.G1Point memory lagrange_base;
-            for (uint256 i = 0; i < public_inputs.length; i++) {
-                lagrange_base = BN254.G1Point(
-                    lagrange_bases_components[2 * i],
-                    lagrange_bases_components[2 * i + 1]
-                );
-                public_comm = public_comm.add(lagrange_base.scale_scalar(public_inputs[i]));
-            }
-            // negate the results of the MSM
-            public_comm = public_comm.neg();
+        BN254.G1Point memory lagrange_base = BN254.G1Point(
+                lagrange_bases_components[0],
+                lagrange_bases_components[1]
+            );
+        public_comm = lagrange_base.scale_scalar(public_input);
+        // negate the results of the MSM
+        public_comm = public_comm.neg();
 
-            public_comm = urs.h.add(public_comm);
-        }
+        public_comm = urs.h.add(public_comm);
 
         return public_comm;
     }
