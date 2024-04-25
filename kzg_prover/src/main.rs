@@ -229,83 +229,73 @@ fn precompute_evaluation(
     zk_rows: u64,
 ) -> Vec<BN254PolishToken> {
     let mut first_i = 0;
-    let mut stack = Vec::new();
+    let mut stack: Vec<BN254PolishToken> = Vec::with_capacity(3);
     let mut total_tokens = 0;
 
     let mut new_tokens = vec![];
 
-    // First identify token segments that are independent of the IOP
-    for (i, token) in tokens.clone().iter().enumerate() {
+    let constants = Constants {
+        alpha: ScalarField::from(0),
+        beta: ScalarField::from(0),
+        gamma: ScalarField::from(0),
+        joint_combiner: None,
+        endo_coefficient: G1::endos().1,
+        mds: &G1::sponge_params().mds,
+        zk_rows,
+    };
+    let evals = evals.combine(&PointEvaluations {
+        zeta: ScalarField::from(0),
+        zeta_omega: ScalarField::from(0),
+    });
+
+    for token in tokens.clone().iter() {
         use PolishToken::*;
-        let is_independent_token = matches!(
+        let is_operation_token = matches!(token, Add | Mul | Sub | Pow(_) | Dup);
+        let is_data_token = matches!(
             token,
-            EndoCoefficient
-                | Mds { row: _, col: _ }
-                | Literal(_)
-                | Cell(_)
-                | Add
-                | Mul
-                | Sub
-                | Pow(_)
-                | Dup
-        );
-        let is_non_operation_token = matches!(
-            token,
-            PolishToken::Mds { row: _, col: _ } | PolishToken::Literal(_) | PolishToken::Cell(_)
+            EndoCoefficient | Mds { row: _, col: _ } | Literal(_) | Cell(_)
         );
 
-        // we can only evaluate if the first two tokens are not operations:
-        if is_non_operation_token && stack.len() < 2 {
-            // we start to fill our precomputation stack
-            if stack.is_empty() {
-                first_i = i;
+        match stack.len() {
+            0 => {
+                if is_data_token {
+                    stack.push(token.clone());
+                } else {
+                    new_tokens.push(token.clone());
+                }
             }
-            stack.push(token.clone());
-        } else if !is_non_operation_token && stack.len() < 2 {
-            // we couldn't get two non operation tokens, reset the stack
-            new_tokens.extend(stack);
-            stack = Vec::new();
-            new_tokens.push(token.clone());
-        } else if is_independent_token && stack.len() >= 2 {
-            // this token is included in the stack
-            stack.push(token.clone());
-        } else if !is_independent_token && !stack.is_empty() {
-            // we can't evaluate further, the stack ends until the previous token.
-            // we evaluate the stack
-            println!("Found at: {} with stack of size {}", first_i, stack.len());
-
-            total_tokens += stack.len() - 1;
-            let constants = Constants {
-                alpha: ScalarField::from(0),
-                beta: ScalarField::from(0),
-                gamma: ScalarField::from(0),
-                joint_combiner: None,
-                endo_coefficient: G1::endos().1,
-                mds: &G1::sponge_params().mds,
-                zk_rows,
-            };
-
-            println!("tokens: {:#?}", stack);
-            let eval = partial_polish_evaluation(
-                &stack,
-                &evals.combine(&PointEvaluations {
-                    zeta: ScalarField::from(0),
-                    zeta_omega: ScalarField::from(0),
-                }),
-                &constants,
-            )
-            .unwrap();
-
-            new_tokens.extend(eval.into_iter().map(Literal).collect::<Vec<_>>());
-
-            stack = Vec::new();
-            new_tokens.push(token.clone());
-        } else {
-            // we didn't find a non independent token yet
-            new_tokens.push(token.clone());
+            1 => {
+                if is_data_token {
+                    stack.push(token.clone());
+                } else {
+                    new_tokens.append(&mut stack);
+                    new_tokens.push(token.clone());
+                }
+            }
+            2 => {
+                if is_operation_token {
+                    stack.push(token.clone());
+                    let partial_eval =
+                        partial_polish_evaluation(&stack, &evals, &constants).unwrap();
+                    if partial_eval.len() == 3 {
+                        new_tokens.extend(partial_eval);
+                        stack.truncate(0);
+                    } else {
+                        stack = partial_eval;
+                    }
+                } else {
+                    new_tokens.append(&mut stack);
+                    if is_data_token {
+                        stack.push(token.clone());
+                    } else {
+                        new_tokens.push(token.clone());
+                    }
+                }
+            }
+            _ => unreachable!(),
         }
     }
-    println!("total less tokens: {}", total_tokens);
+    println!("Token compression result: {}", 1. - new_tokens.len() as f64 / tokens.len() as f64);
     new_tokens
 }
 
@@ -313,11 +303,11 @@ fn partial_polish_evaluation(
     tokens: &[BN254PolishToken],
     evals: &ProofEvaluations<PointEvaluations<ScalarField>>,
     c: &Constants<ScalarField>,
-) -> Result<Vec<ScalarField>, ExprError> {
+) -> Result<Vec<BN254PolishToken>, ExprError> {
     let mut stack = vec![];
 
+    use PolishToken::*;
     for t in tokens.iter() {
-        use PolishToken::*;
         match t {
             EndoCoefficient => stack.push(c.endo_coefficient),
             Mds { row, col } => stack.push(c.mds[*row][*col]),
@@ -329,25 +319,16 @@ fn partial_polish_evaluation(
                 stack[i] = stack[i].pow([*n]);
             }
             Add => {
-                if stack.len() == 1 {
-                    return Ok(stack);
-                }
                 let y = stack.pop().ok_or(ExprError::EmptyStack)?;
                 let x = stack.pop().ok_or(ExprError::EmptyStack)?;
                 stack.push(x + y);
             }
             Mul => {
-                if stack.len() == 1 {
-                    return Ok(stack);
-                }
                 let y = stack.pop().ok_or(ExprError::EmptyStack)?;
                 let x = stack.pop().ok_or(ExprError::EmptyStack)?;
                 stack.push(x * y);
             }
             Sub => {
-                if stack.len() == 1 {
-                    return Ok(stack);
-                }
                 let y = stack.pop().ok_or(ExprError::EmptyStack)?;
                 let x = stack.pop().ok_or(ExprError::EmptyStack)?;
                 stack.push(x - y);
@@ -356,7 +337,8 @@ fn partial_polish_evaluation(
         }
     }
 
-    Ok(stack)
+    assert!(stack.len() <= 3);
+    Ok(stack.into_iter().map(Literal).collect())
 }
 
 fn evaluate(
