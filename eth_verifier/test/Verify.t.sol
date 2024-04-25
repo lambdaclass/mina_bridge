@@ -30,13 +30,13 @@ contract KimchiVerifierTest is Test {
         deser_verifier_index(vm.readFileBinary("unit_test_data/verifier_index.bin"), test_verifier_index);
     }
 
-    function test_verify_with_index() public {
+    function test_full_verify() public {
         KimchiVerifier verifier = new KimchiVerifier();
 
         verifier.setup();
 
-        bool success = verifier.verify_with_index(
-            verifier_index_serialized, prover_proof_serialized, linearization_serialized, public_inputs_serialized
+        bool success = verifier.full_verify(
+            verifier_index_serialized, linearization_serialized, prover_proof_serialized, public_inputs_serialized
         );
 
         require(success, "Verification failed!");

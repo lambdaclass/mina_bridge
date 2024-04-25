@@ -94,27 +94,33 @@ contract KimchiVerifier {
         verifier_index.endo = endo_r;
     }
 
-    function deserialize_proof(
-        bytes calldata verifier_index_serialized,
-        bytes calldata prover_proof_serialized,
-        bytes calldata linearization_serialized,
-        bytes calldata public_input_serialized
-    ) public {
-        deser_verifier_index(verifier_index_serialized, verifier_index);
-        deser_prover_proof(prover_proof_serialized, proof);
-        deser_linearization(linearization_serialized, verifier_index.linearization);
-        public_input = deser_public_input(public_input_serialized);
+    function store_verifier_index(bytes calldata data_serialized) public {
+        deser_verifier_index(data_serialized, verifier_index);
     }
 
-    function verify_with_index(
+    function store_linearization(bytes calldata data_serialized) public {
+        deser_linearization(data_serialized, verifier_index.linearization);
+    }
+
+    function store_prover_proof(bytes calldata data_serialized) public {
+        deser_prover_proof(data_serialized, proof);
+    }
+
+    function store_public_input(bytes calldata data_serialized) public {
+        public_input = deser_public_input(data_serialized);
+    }
+
+    function full_verify(
         bytes calldata verifier_index_serialized,
+        bytes calldata linearization_serialized,
         bytes calldata prover_proof_serialized,
-        bytes calldata linearization_serialized_rlp,
         bytes calldata public_input_serialized
     ) public returns (bool) {
-        deserialize_proof(
-            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_input_serialized
-        );
+        store_verifier_index(verifier_index_serialized);
+        store_linearization(linearization_serialized);
+        store_prover_proof(prover_proof_serialized);
+        store_public_input(public_input_serialized);
+
         AggregatedEvaluationProof memory agg_proof = partial_verify();
         return final_verify(agg_proof);
     }
