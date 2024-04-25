@@ -5,7 +5,7 @@ import "./PolishToken.sol";
 
 struct Column {
     ColumnVariant variant;
-    bytes data;
+    uint256 inner;
 }
 
 enum ColumnVariant {
@@ -20,6 +20,7 @@ enum ColumnVariant {
     Index, // (GateType)
     Coefficient, // (uint)
     Permutation // (uint)
+
 }
 
 enum CurrOrNext {
@@ -34,7 +35,7 @@ struct Variable {
 
 struct RowOffset {
     bool zk_rows;
-    int offset;
+    int256 offset;
 }
 
 enum LookupPattern {
@@ -65,10 +66,11 @@ enum FeatureFlagVariant {
     // TODO: LookupPattern(LookupPattern),
     /// Enabled if the table width is at least the given number
     TableWidth
-    /// Enabled if the number of lookups per row is at least the given number
-    // TODO: LookupsPerRow(isize)
 }
-type FeatureFlagTableWidth is uint;
+/// Enabled if the number of lookups per row is at least the given number
+// TODO: LookupsPerRow(isize)
+
+type FeatureFlagTableWidth is uint256;
 
 enum GateType {
     // Gate types
