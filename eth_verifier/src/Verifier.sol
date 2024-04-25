@@ -21,6 +21,8 @@ import "../lib/expr/Expr.sol";
 import "../lib/expr/PolishToken.sol";
 import "../lib/expr/ExprConstants.sol";
 
+import "forge-std/console.sol";
+
 using {BN254.add, BN254.neg, BN254.scale_scalar, BN254.sub} for BN254.G1Point;
 using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
 using {get_alphas} for Alphas;
@@ -394,13 +396,13 @@ contract KimchiVerifier {
             16795962876692295166012804782785252840345796645199573986777498170046508450267
         );
         BN254.G2Point memory point2 = BN254.G2Point(
-            14127762918448947308790410788210289377279518096121173062251311797297982082469,
             4640749047686948693676466477499634979423220823002391841311260833878642348023,
-            15584633174679797224858067860955702731818107814729714298421481259259086801380,
-            13424649497566617342906600132389867025763662606076913038585301943152028890013
+            14127762918448947308790410788210289377279518096121173062251311797297982082469,
+            13424649497566617342906600132389867025763662606076913038585301943152028890013,
+            15584633174679797224858067860955702731818107814729714298421481259259086801380
         );
 
-        Scalar.FE[] memory divisor_poly_coeffs = new Scalar.FE[](3);
+        Scalar.FE[] memory divisor_poly_coeffs = new Scalar.FE[](2);
 
         // The divisor polynomial is the poly that evaluates to 0 in the evaluation
         // points. Used for proving that the numerator is divisible by it.
@@ -409,11 +411,10 @@ contract KimchiVerifier {
 
         divisor_poly_coeffs[0] = evaluation_points[0].mul(evaluation_points[1]);
         divisor_poly_coeffs[1] = evaluation_points[0].add(evaluation_points[1]).neg();
-        divisor_poly_coeffs[2] = Scalar.one();
 
         result = BN256G2.ECTwistMul(Scalar.FE.unwrap(divisor_poly_coeffs[0]), point0);
         result = BN256G2.ECTwistAdd(result, BN256G2.ECTwistMul(Scalar.FE.unwrap(divisor_poly_coeffs[1]), point1));
-        result = BN256G2.ECTwistAdd(result, BN256G2.ECTwistMul(Scalar.FE.unwrap(divisor_poly_coeffs[2]), point2));
+        result = BN256G2.ECTwistAdd(result, point2);
     }
 
     function eval_commitment(Scalar.FE[2] memory evaluation_points, Scalar.FE[] memory evals, URS memory full_urs)
