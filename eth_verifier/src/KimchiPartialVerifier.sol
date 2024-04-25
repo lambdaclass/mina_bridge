@@ -36,7 +36,7 @@ library KimchiPartialVerifier {
         ProverProof storage proof,
         VerifierIndex storage verifier_index,
         URS storage urs,
-        Scalar.FE storage public_input,
+        Scalar.FE public_input,
         uint256[] storage lagrange_bases_components // flattened pairs of (x, y) coords
     ) external returns (AggregatedEvaluationProof memory) {
         // TODO: 1. CHeck the length of evaluations insde the proof
@@ -45,7 +45,7 @@ library KimchiPartialVerifier {
         BN254.G1Point memory public_comm = public_commitment(
             verifier_index,
             urs,
-            public_inputs,
+            public_input,
             lagrange_bases_components
         );
 

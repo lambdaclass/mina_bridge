@@ -20,68 +20,13 @@ import "../lib/deserialize/Linearization.sol";
 import "../lib/expr/Expr.sol";
 import "../lib/expr/PolishToken.sol";
 import "../lib/expr/ExprConstants.sol";
+import "./KimchiPartialVerifier.sol";
 
 using {BN254.add, BN254.neg, BN254.scale_scalar, BN254.sub} for BN254.G1Point;
 using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
 using {get_alphas} for Alphas;
 using {it_next} for AlphasIterator;
 using {sub_polycomms, scale_polycomm} for PolyComm;
-
-library KimchiPartialVerifier {
-    error IncorrectPublicInputLength();
-    error PolynomialsAreChunked(uint256 chunk_size);
-
-    function public_commitment(
-        VerifierIndex storage verifier_index,
-        PairingURS storage urs,
-        Scalar.FE[] storage public_inputs,
-        uint256[] storage lagrange_bases_components // flattened pairs of (x, y) coords
-    ) public view returns (BN254.G1Point memory) {
-        if (verifier_index.domain_size < verifier_index.max_poly_size) {
-            revert PolynomialsAreChunked(verifier_index.domain_size / verifier_index.max_poly_size);
-        }
-
-        if (verifier_index.public_len != 1) {
-            revert IncorrectPublicInputLength();
-        }
-        BN254.G1Point memory public_comm;
-        BN254.G1Point memory lagrange_base= BN254.G1Point(
-            lagrange_bases_components[0],
-            lagrange_bases_components[1]
-        );
-
-        public_comm = lagrange_base.scale_scalar(public_input);
-
-        // negate the results of the MSM
-        public_comm = public_comm.neg();
-
-        public_comm = urs.h.add(public_comm);
-
-        return public_comm;
-    }
-
-    function perm_scalars(
-        ProofEvaluations memory e,
-        Scalar.FE beta,
-        Scalar.FE gamma,
-        AlphasIterator memory alphas,
-        Scalar.FE zkp_zeta
-    ) internal view returns (Scalar.FE res) {
-        require(alphas.powers.length - alphas.current_index == 3, "not enough powers of alpha for permutation");
-
-        Scalar.FE alpha0 = alphas.it_next();
-        Scalar.FE _alpha1 = alphas.it_next();
-        Scalar.FE _alpha2 = alphas.it_next();
-
-        res = e.z.zeta_omega.mul(beta).mul(alpha0).mul(zkp_zeta);
-        uint256 len = Utils.min(e.w.length, e.s.length);
-        for (uint256 i = 0; i < len; i++) {
-            Scalar.FE current = gamma.add(beta.mul(e.s[i].zeta)).add(e.w[i].zeta);
-            res = res.mul(current);
-        }
-        res = res.neg();
-    }
-}
 
 contract KimchiVerifier {
     using {BN254.add, BN254.neg, BN254.scale_scalar, BN254.sub} for BN254.G1Point;
@@ -91,7 +36,6 @@ contract KimchiVerifier {
     using {sub_polycomms, scale_polycomm} for PolyComm;
     using {get_column_eval} for ProofEvaluations;
     using {register} for Alphas;
-
 
     ProverProof proof;
     VerifierIndex verifier_index;
@@ -148,7 +92,13 @@ contract KimchiVerifier {
         deserialize_proof(
             verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_input_serialized
         );
-        AggregatedEvaluationProof memory agg_proof = partial_verify();
+
+        AggregatedEvaluationProof memory agg_proof = KimchiPartialVerifier.partial_verify(
+            proof,
+            verifier_index,
+            urs,
+            public_input,
+            lagrange_bases);
         return final_verify(agg_proof);
     }
 
