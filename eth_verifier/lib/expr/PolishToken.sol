@@ -200,7 +200,7 @@ function evaluate(
         revert("unhandled polish token variant");
         // TODO: SkipIf, SkipIfNot
     }
-    require(stack_next == 1);
+    require(stack_next == 1, "Polish token stack didn't evaluate fully");
     return stack[0];
 }
 
