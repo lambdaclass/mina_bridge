@@ -12,59 +12,27 @@ import "../lib/deserialize/ProverProof.sol";
 
 contract KimchiVerifierTest is Test {
     bytes verifier_index_serialized;
-    bytes prover_proof_serialized;
     bytes linearization_serialized;
-    bytes public_inputs_serialized;
+    bytes prover_proof_serialized;
+    bytes public_input_serialized;
 
     VerifierIndex test_verifier_index;
     Sponge sponge;
 
     function setUp() public {
         verifier_index_serialized = vm.readFileBinary("verifier_index.bin");
-        prover_proof_serialized = vm.readFileBinary("prover_proof.bin");
         linearization_serialized = vm.readFileBinary("linearization.bin");
-        public_inputs_serialized = vm.readFileBinary("public_input.bin");
+        prover_proof_serialized = vm.readFileBinary("prover_proof.bin");
+        public_input_serialized = vm.readFileBinary("public_input.bin");
 
         // we store deserialized structures mostly to run intermediate results
         // tests.
         deser_verifier_index(vm.readFileBinary("unit_test_data/verifier_index.bin"), test_verifier_index);
     }
 
-    function test_verify_with_index() public {
-        KimchiVerifier verifier = new KimchiVerifier();
-
-        verifier.setup();
-
-        bool success = verifier.verify_with_index(
-            verifier_index_serialized, prover_proof_serialized, linearization_serialized, public_inputs_serialized
-        );
-
-        require(success, "Verification failed!");
-    }
-
-    //function test_partial_verify() public {
-    //    KimchiVerifier verifier = new KimchiVerifier();
-
-    //    verifier.setup();
-
-    //    verifier.deserialize_proof(
-    //        verifier_index_serialized, prover_proof_serialized, linearization_serialized, public_inputs_serialized
-    //    );
-
-    //    AggregatedEvaluationProof memory agg_proof = verifier.partial_verify();
-
-    //    // Necessary so that the optimized compiler takes into account the partial verification
-    //    require(keccak256(abi.encode(agg_proof)) > 0);
-    //}
-
     function test_eval_commitment() public {
         KimchiVerifier verifier = new KimchiVerifier();
-
         verifier.setup();
-
-        verifier.deserialize_proof(
-            verifier_index_serialized, prover_proof_serialized, linearization_serialized, public_inputs_serialized
-        );
 
         Scalar.FE[2] memory evaluation_points = [
             Scalar.from(13611645662807726448009836376915752628632570551277086161653783406622791783728),
@@ -94,9 +62,10 @@ contract KimchiVerifierTest is Test {
 
         verifier.setup();
 
-        verifier.deserialize_proof(
-            verifier_index_serialized, prover_proof_serialized, linearization_serialized, public_inputs_serialized
-        );
+        verifier.store_verifier_index(verifier_index_serialized);
+        verifier.store_linearization(linearization_serialized);
+        verifier.store_prover_proof(prover_proof_serialized);
+        verifier.store_public_input(public_input_serialized);
 
         Scalar.FE[2] memory evaluation_points = [
             Scalar.from(13611645662807726448009836376915752628632570551277086161653783406622791783728),
@@ -109,21 +78,6 @@ contract KimchiVerifierTest is Test {
         require(keccak256(abi.encode(divisor_commitment)) > 0);
     }
 
-//    function test_public_commitment() public {
-//        KimchiVerifier verifier = new KimchiVerifier();
-//
-//        verifier.setup();
-//
-//        verifier.deserialize_proof(
-//            verifier_index_serialized, prover_proof_serialized, linearization_serialized, public_inputs_serialized
-//        );
-//
-//        BN254.G1Point memory public_commitment = verifier.public_commitment();
-//
-//        // Necessary so that the optimized compiler takes into account the public commitment
-//        require(keccak256(abi.encode(public_commitment)) > 0);
-//    }
-//
     // INFO: Disabled test because the new serializer isnt't used yet to
     // generate unit test data.
     //function test_absorb_evaluations() public {

@@ -47,8 +47,10 @@ contract KimchiVerifier {
     Proof.ProverProof proof;
     VerifierIndex verifier_index;
     URS urs;
+
     Scalar.FE public_input;
 
+    Proof.AggregatedEvaluationProof aggregated_proof;
     State internal state;
     bool state_available;
 
@@ -81,28 +83,23 @@ contract KimchiVerifier {
         verifier_index.endo = endo_r;
     }
 
-    function deserialize_proof(
-        bytes calldata verifier_index_serialized,
-        bytes calldata prover_proof_serialized,
-        bytes calldata linearization_serialized,
-        bytes calldata public_input_serialized
-    ) public {
-        deser_verifier_index(verifier_index_serialized, verifier_index);
-        deser_prover_proof(prover_proof_serialized, proof);
-        deser_linearization(linearization_serialized, verifier_index.linearization);
-        public_input = deser_public_input(public_input_serialized);
+    function store_verifier_index(bytes calldata data_serialized) public {
+        deser_verifier_index(data_serialized, verifier_index);
     }
 
-    function verify_with_index(
-        bytes calldata verifier_index_serialized,
-        bytes calldata prover_proof_serialized,
-        bytes calldata linearization_serialized_rlp,
-        bytes calldata public_input_serialized
-    ) public returns (bool) {
-        deserialize_proof(
-            verifier_index_serialized, prover_proof_serialized, linearization_serialized_rlp, public_input_serialized
-        );
+    function store_linearization(bytes calldata data_serialized) public {
+        deser_linearization(data_serialized, verifier_index.linearization);
+    }
 
+    function store_prover_proof(bytes calldata data_serialized) public {
+        deser_prover_proof(data_serialized, proof);
+    }
+
+    function store_public_input(bytes calldata data_serialized) public {
+        public_input = deser_public_input(data_serialized);
+    }
+
+    function full_verify() public returns (bool) {
         Proof.AggregatedEvaluationProof memory agg_proof = KimchiPartialVerifier.partial_verify(
             proof,
             verifier_index,
@@ -114,26 +111,20 @@ contract KimchiVerifier {
         return final_verify(agg_proof);
     }
 
-    /*
-    This is a list of steps needed for verification.
+    function partial_verify_and_store() public {
+        aggregated_proof = KimchiPartialVerifier.partial_verify(
+            proof,
+            verifier_index,
+            urs,
+            public_input,
+            base_sponge,
+            scalar_sponge
+        );
+    }
 
-    Partial verification:
-        1. Check the length of evaluations insde the proof.
-        2. Commit to the negated public input poly
-        3. Fiat-Shamir (vastly simplify for now)
-        4. Combined chunk polynomials evaluations
-        5. Commitment to linearized polynomial f
-        6. Chunked commitment of ft
-        7. List poly commitments for final verification
-
-    Final verification:
-        1. Combine commitments, compute final poly commitment (MSM)
-        2. Combine evals
-        3. Commit divisor and eval polynomials
-        4. Compute numerator commitment
-        5. Compute scaled quotient
-        6. Check numerator == scaled_quotient
-    */
+    function final_verify_stored() public view returns (bool) {
+        return final_verify(aggregated_proof);
+    }
 
     function final_verify(Proof.AggregatedEvaluationProof memory agg_proof) public view returns (bool) {
         Evaluation[] memory evaluations = agg_proof.evaluations;
