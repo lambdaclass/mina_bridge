@@ -32,6 +32,11 @@ contract KimchiVerifierTest is Test {
         global_verifier.partial_verify_and_store();
     }
 
+    function test_deploy() public {
+        KimchiVerifier verifier = new KimchiVerifier();
+        verifier.setup();
+    }
+
     function test_deserialize() public {
         KimchiVerifier verifier = new KimchiVerifier();
 
