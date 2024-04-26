@@ -35,7 +35,7 @@ library KimchiPartialVerifier {
         VerifierIndex storage verifier_index,
         URS storage urs,
         Scalar.FE public_input,
-        uint256[] storage lagrange_bases_components, // flattened pairs of (x, y) coords
+        uint256[2] storage lagrange_base_coords, // flattened pairs of (x, y) coords
         Sponge storage base_sponge,
         Sponge storage scalar_sponge
     ) external returns (Proof.AggregatedEvaluationProof memory) {
@@ -43,7 +43,7 @@ library KimchiPartialVerifier {
 
         // 2. Commit to the negated public input polynomial.
         BN254.G1Point memory public_comm =
-            public_commitment(verifier_index, urs, public_input, lagrange_bases_components);
+            public_commitment(verifier_index, urs, public_input, lagrange_base_coords);
 
         // 3. Execute fiat-shamir with a Keccak sponge
 
@@ -231,7 +231,7 @@ library KimchiPartialVerifier {
         VerifierIndex storage verifier_index,
         URS storage urs,
         Scalar.FE public_input,
-        uint256[] storage lagrange_bases_components // flattened pairs of (x, y) coords
+        uint256[2] storage lagrange_base_coords // (x, y) coords
     ) public view returns (BN254.G1Point memory) {
         if (verifier_index.domain_size < verifier_index.max_poly_size) {
             revert PolynomialsAreChunked(verifier_index.domain_size / verifier_index.max_poly_size);
@@ -241,7 +241,7 @@ library KimchiPartialVerifier {
             revert IncorrectPublicInputLength();
         }
         BN254.G1Point memory public_comm;
-        BN254.G1Point memory lagrange_base = BN254.G1Point(lagrange_bases_components[0], lagrange_bases_components[1]);
+        BN254.G1Point memory lagrange_base = BN254.G1Point(lagrange_base_coords[0], lagrange_base_coords[1]);
         public_comm = lagrange_base.scale_scalar(public_input);
         // negate the results of the MSM
         public_comm = public_comm.neg();
