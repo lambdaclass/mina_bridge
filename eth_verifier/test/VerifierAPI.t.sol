@@ -32,7 +32,18 @@ contract KimchiVerifierTest is Test {
         verifier.partial_verify_and_store();
     }
 
-    function test_full_verify() public {
+    function test_deserialize() public {
+        KimchiVerifier new_verifier = new KimchiVerifier();
+
+        new_verifier.setup();
+
+        new_verifier.store_verifier_index(verifier_index_serialized);
+        new_verifier.store_linearization(linearization_serialized);
+        new_verifier.store_prover_proof(prover_proof_serialized);
+        new_verifier.store_public_input(public_input_serialized);
+    }
+
+    function test_deserialize_and_full_verify() public {
         KimchiVerifier new_verifier = new KimchiVerifier();
 
         new_verifier.setup();
