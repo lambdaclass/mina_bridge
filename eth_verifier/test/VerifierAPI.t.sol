@@ -10,7 +10,7 @@ contract KimchiVerifierTest is Test {
     bytes linearization_serialized;
     bytes public_input_serialized;
 
-    KimchiVerifier verifier;
+    KimchiVerifier global_verifier;
 
     function setUp() public {
         // read serialized data from files
@@ -20,7 +20,31 @@ contract KimchiVerifierTest is Test {
         public_input_serialized = vm.readFileBinary("public_input.bin");
 
         // setup verifier contract
-        verifier = new KimchiVerifier();
+        global_verifier = new KimchiVerifier();
+
+        global_verifier.setup();
+
+        global_verifier.store_verifier_index(verifier_index_serialized);
+        global_verifier.store_linearization(linearization_serialized);
+        global_verifier.store_prover_proof(prover_proof_serialized);
+        global_verifier.store_public_input(public_input_serialized);
+
+        global_verifier.partial_verify_and_store();
+    }
+
+    function test_deserialize() public {
+        KimchiVerifier verifier = new KimchiVerifier();
+
+        verifier.setup();
+
+        verifier.store_verifier_index(verifier_index_serialized);
+        verifier.store_linearization(linearization_serialized);
+        verifier.store_prover_proof(prover_proof_serialized);
+        verifier.store_public_input(public_input_serialized);
+    }
+
+    function test_deserialize_and_full_verify() public {
+        KimchiVerifier verifier = new KimchiVerifier();
 
         verifier.setup();
 
@@ -29,40 +53,16 @@ contract KimchiVerifierTest is Test {
         verifier.store_prover_proof(prover_proof_serialized);
         verifier.store_public_input(public_input_serialized);
 
-        verifier.partial_verify_and_store();
-    }
-
-    function test_deserialize() public {
-        KimchiVerifier new_verifier = new KimchiVerifier();
-
-        new_verifier.setup();
-
-        new_verifier.store_verifier_index(verifier_index_serialized);
-        new_verifier.store_linearization(linearization_serialized);
-        new_verifier.store_prover_proof(prover_proof_serialized);
-        new_verifier.store_public_input(public_input_serialized);
-    }
-
-    function test_deserialize_and_full_verify() public {
-        KimchiVerifier new_verifier = new KimchiVerifier();
-
-        new_verifier.setup();
-
-        new_verifier.store_verifier_index(verifier_index_serialized);
-        new_verifier.store_linearization(linearization_serialized);
-        new_verifier.store_prover_proof(prover_proof_serialized);
-        new_verifier.store_public_input(public_input_serialized);
-
-        bool success = new_verifier.full_verify();
+        bool success = verifier.full_verify();
         require(success, "Verification failed!");
     }
 
     function test_partial_verify_and_store() public {
-        verifier.partial_verify_and_store();
+        global_verifier.partial_verify_and_store();
     }
 
     function test_final_verify() public {
-        bool success = verifier.final_verify_stored();
+        bool success = global_verifier.final_verify_stored();
         require(success, "Verification failed!");
     }
 }
