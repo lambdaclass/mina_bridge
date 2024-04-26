@@ -22,7 +22,6 @@ using {BN254.add, BN254.neg, BN254.scale_scalar, BN254.sub} for BN254.G1Point;
 using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
 using {get_alphas} for Alphas;
 using {it_next} for AlphasIterator;
-using {sub_polycomms, scale_polycomm} for PolyComm;
 using {Proof.get_column_eval} for Proof.ProofEvaluations;
 
 library KimchiPartialVerifier {
@@ -32,8 +31,8 @@ library KimchiPartialVerifier {
     // This takes Kimchi's `to_batch()` as reference.
     function partial_verify(
         Proof.ProverProof storage proof,
-        VerifierIndex storage verifier_index,
-        URS storage urs,
+        VerifierIndexLib.VerifierIndex storage verifier_index,
+        Commitment.URS storage urs,
         Scalar.FE public_input,
         Sponge storage base_sponge,
         Sponge storage scalar_sponge
@@ -72,7 +71,7 @@ library KimchiPartialVerifier {
         Scalar.FE[] memory scalars = new Scalar.FE[](1);
         scalars[0] = perm_scalars(evals, oracles.beta, oracles.gamma, alphas, permutation_vanishing_polynomial);
 
-        BN254.G1Point memory f_comm = msm(commitments, scalars);
+        BN254.G1Point memory f_comm = Commitment.msm(commitments, scalars);
 
         // 6. Compute the chunked commitment of ft
         Scalar.FE zeta_to_srs_len = oracles.zeta.pow(verifier_index.max_poly_size);
@@ -140,7 +139,7 @@ library KimchiPartialVerifier {
             columns[col_index++] = Column(ColumnVariant.Index, GATE_TYPE_ROT_64);
         }
         if (Proof.is_field_set(verifier_index.optional_field_flags, LOOKUP_VERIFIER_INDEX_FLAG)) {
-            LookupVerifierIndex memory li = verifier_index.lookup_index;
+            VerifierIndexLib.LookupVerifierIndex memory li = verifier_index.lookup_index;
             for (uint256 i = 0; i < li.lookup_info.max_per_row + 1; i++) {
                 columns[col_index++] = Column(ColumnVariant.LookupSorted, i);
             }
@@ -150,11 +149,11 @@ library KimchiPartialVerifier {
         for (uint256 i = 0; i < col_index; i++) {
             PointEvaluations memory eval = Proof.get_column_eval(proof.evals, columns[i]);
             evaluations[eval_index++] =
-                Evaluation(get_column_commitment(columns[i], verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
+                Evaluation(VerifierIndexLib.get_column_commitment(columns[i], verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
         }
 
         if (Proof.is_field_set(verifier_index.optional_field_flags, LOOKUP_VERIFIER_INDEX_FLAG)) {
-            LookupVerifierIndex memory li = verifier_index.lookup_index;
+            VerifierIndexLib.LookupVerifierIndex memory li = verifier_index.lookup_index;
             if (!Proof.is_field_set(proof.commitments.optional_field_flags, LOOKUP_SORTED_COMM_FLAG)) {
                 revert("missing lookup commitments"); // TODO: error
             }
@@ -195,27 +194,27 @@ library KimchiPartialVerifier {
             if (Proof.is_field_set(li.optional_field_flags, RUNTIME_TABLES_SELECTOR_FLAG)) {
                 Column memory col = Column(ColumnVariant.LookupRuntimeSelector, 0);
                 PointEvaluations memory eval = Proof.get_column_eval(proof.evals, col);
-                evaluations[eval_index++] = Evaluation(get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
+                evaluations[eval_index++] = Evaluation(VerifierIndexLib.get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
             }
             if (Proof.is_field_set(li.optional_field_flags, XOR_FLAG)) {
                 Column memory col = Column(ColumnVariant.LookupKindIndex, LOOKUP_PATTERN_XOR);
                 PointEvaluations memory eval = Proof.get_column_eval(proof.evals, col);
-                evaluations[eval_index++] = Evaluation(get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
+                evaluations[eval_index++] = Evaluation(VerifierIndexLib.get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
             }
             if (Proof.is_field_set(li.optional_field_flags, LOOKUP_FLAG)) {
                 Column memory col = Column(ColumnVariant.LookupKindIndex, LOOKUP_PATTERN_LOOKUP);
                 PointEvaluations memory eval = Proof.get_column_eval(proof.evals, col);
-                evaluations[eval_index++] = Evaluation(get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
+                evaluations[eval_index++] = Evaluation(VerifierIndexLib.get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
             }
             if (Proof.is_field_set(li.optional_field_flags, RANGE_CHECK_FLAG)) {
                 Column memory col = Column(ColumnVariant.LookupKindIndex, LOOKUP_PATTERN_RANGE_CHECK);
                 PointEvaluations memory eval = Proof.get_column_eval(proof.evals, col);
-                evaluations[eval_index++] = Evaluation(get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
+                evaluations[eval_index++] = Evaluation(VerifierIndexLib.get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
             }
             if (Proof.is_field_set(li.optional_field_flags, FFMUL_FLAG)) {
                 Column memory col = Column(ColumnVariant.LookupKindIndex, LOOKUP_PATTERN_FOREIGN_FIELD_MUL);
                 PointEvaluations memory eval = Proof.get_column_eval(proof.evals, col);
-                evaluations[eval_index++] = Evaluation(get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
+                evaluations[eval_index++] = Evaluation(VerifierIndexLib.get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
             }
         }
 
@@ -225,8 +224,8 @@ library KimchiPartialVerifier {
     }
 
     function public_commitment(
-        VerifierIndex storage verifier_index,
-        URS storage urs,
+        VerifierIndexLib.VerifierIndex storage verifier_index,
+        Commitment.URS storage urs,
         Scalar.FE public_input
     ) public view returns (BN254.G1Point memory) {
         if (verifier_index.domain_size < verifier_index.max_poly_size) {

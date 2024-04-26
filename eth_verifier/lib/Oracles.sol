@@ -21,7 +21,6 @@ library Oracles {
         KeccakSponge.absorb_base,
         KeccakSponge.absorb_scalar,
         KeccakSponge.absorb_scalar_multiple,
-        KeccakSponge.absorb_commitment,
         KeccakSponge.absorb_g_single,
         KeccakSponge.absorb_evaluations,
         KeccakSponge.challenge_base,
@@ -39,7 +38,7 @@ library Oracles {
     // This takes Kimchi's `oracles()` as reference.
     function fiat_shamir(
         Proof.ProverProof memory proof,
-        VerifierIndex storage index,
+        VerifierIndexLib.VerifierIndex storage index,
         BN254.G1Point memory public_comm,
         Scalar.FE public_input,
         bool is_public_input_set,
@@ -54,7 +53,7 @@ library Oracles {
         base_sponge.reinit();
 
         // 2. Absorb the digest of the VerifierIndex.
-        Base.FE verifier_index_digest = verifier_digest(index);
+        Base.FE verifier_index_digest = VerifierIndexLib.verifier_digest(index);
         base_sponge.absorb_base(verifier_index_digest);
 
         // TODO: 3. Absorb the commitment to the previous challenges.

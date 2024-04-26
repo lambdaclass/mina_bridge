@@ -298,7 +298,7 @@ library Proof {
             index += 1;
         }
 
-        return msm(commitments, scalars);
+        return Commitment.msm(commitments, scalars);
     }
 
     function is_field_set(uint256 optional_field_flags, uint256 flag_pos) public pure returns (bool) {

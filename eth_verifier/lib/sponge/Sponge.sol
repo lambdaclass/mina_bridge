@@ -105,19 +105,6 @@ library KeccakSponge {
         }
     }
 
-    function absorb_commitment(Sponge storage self, PolyComm memory comm)
-        external
-    {
-        absorb_g(self, comm.unshifted);
-        if (!comm.shifted.isInfinity()) {
-            BN254.G1Point[] memory shifted = new BN254.G1Point[](1);
-            shifted[0] = comm.shifted;
-            absorb_g(self, shifted);
-        }
-        // WARN: we should keep in mind that if the shifted part is assigned
-        // to the point at infinity then it means that there's no shifted part.
-    }
-
     function absorb_evaluations(
         Sponge storage self,
         Proof.ProofEvaluations memory evals
