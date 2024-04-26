@@ -20,6 +20,7 @@ import "../lib/deserialize/Linearization.sol";
 import "../lib/expr/Expr.sol";
 import "../lib/expr/PolishToken.sol";
 import "../lib/expr/ExprConstants.sol";
+import "./KimchiPartialVerifier.sol";
 
 import "forge-std/console.sol";
 
@@ -35,38 +36,23 @@ contract KimchiVerifier {
     using {get_alphas} for Alphas;
     using {it_next} for AlphasIterator;
     using {sub_polycomms, scale_polycomm} for PolyComm;
+    using {Proof.get_column_eval} for Proof.ProofEvaluations;
     using {register} for Alphas;
 
-    // Column variant constants
-    // - GateType
-    uint256 internal constant GATE_TYPE_GENERIC = 0;
-    uint256 internal constant GATE_TYPE_POSEIDON = 1;
-    uint256 internal constant GATE_TYPE_COMPLETE_ADD = 2;
-    uint256 internal constant GATE_TYPE_VAR_BASE_MUL = 3;
-    uint256 internal constant GATE_TYPE_ENDO_MUL = 4;
-    uint256 internal constant GATE_TYPE_ENDO_MUL_SCALAR = 5;
-    uint256 internal constant GATE_TYPE_RANGE_CHECK_0 = 6;
-    uint256 internal constant GATE_TYPE_RANGE_CHECK_1 = 7;
-    uint256 internal constant GATE_TYPE_FOREIGN_FIELD_ADD = 8;
-    uint256 internal constant GATE_TYPE_FOREIGN_FIELD_MUL = 9;
-    uint256 internal constant GATE_TYPE_XOR_16 = 10;
-    uint256 internal constant GATE_TYPE_ROT_64 = 11;
-    // - LookupPattern
-    uint256 internal constant LOOKUP_PATTERN_XOR = 0;
-    uint256 internal constant LOOKUP_PATTERN_LOOKUP = 1;
-    uint256 internal constant LOOKUP_PATTERN_RANGE_CHECK = 2;
-    uint256 internal constant LOOKUP_PATTERN_FOREIGN_FIELD_MUL = 3;
+    using {register} for Alphas;
 
     error IncorrectPublicInputLength();
     error PolynomialsAreChunked(uint256 chunk_size);
 
+    Proof.ProverProof proof;
     VerifierIndex verifier_index;
     URS urs;
 
-    ProverProof proof;
     Scalar.FE public_input;
 
-    AggregatedEvaluationProof aggregated_proof;
+    Proof.AggregatedEvaluationProof aggregated_proof;
+    State internal state;
+    bool state_available;
 
     Sponge base_sponge;
     Sponge scalar_sponge;
@@ -114,395 +100,33 @@ contract KimchiVerifier {
     }
 
     function full_verify() public returns (bool) {
-        AggregatedEvaluationProof memory agg_proof = partial_verify();
+        Proof.AggregatedEvaluationProof memory agg_proof = KimchiPartialVerifier.partial_verify(
+            proof,
+            verifier_index,
+            urs,
+            public_input,
+            base_sponge,
+            scalar_sponge
+        );
         return final_verify(agg_proof);
     }
 
     function partial_verify_and_store() public {
-        aggregated_proof = partial_verify();
-    }
-
-    // This takes Kimchi's `to_batch()` as reference.
-    function partial_verify() public returns (AggregatedEvaluationProof memory) {
-        // TODO: 1. CHeck the length of evaluations insde the proof
-
-        // 2. Commit to the negated public input polynomial.
-        BN254.G1Point memory public_comm = public_commitment();
-
-        // 3. Execute fiat-shamir with a Keccak sponge
-
-        Oracles.Result memory oracles_res =
-            Oracles.fiat_shamir(proof, verifier_index, public_comm, public_input, true, base_sponge, scalar_sponge);
-        Oracles.RandomOracles memory oracles = oracles_res.oracles;
-
-        // 4. Combine the chunked polynomials' evaluations
-
-        //ProofEvaluations memory evals = proof.evals.combine_evals(oracles_res.powers_of_eval_points_for_chunks);
-        // INFO: There's only one evaluation per polynomial so there's nothing to combine
-        ProofEvaluations memory evals = proof.evals;
-
-        // 5. Compute the commitment to the linearized polynomial $f$.
-        Scalar.FE permutation_vanishing_polynomial = Polynomial.eval_vanishes_on_last_n_rows(
-            verifier_index.domain_gen, verifier_index.domain_size, verifier_index.zk_rows, oracles.zeta
+        aggregated_proof = KimchiPartialVerifier.partial_verify(
+            proof,
+            verifier_index,
+            urs,
+            public_input,
+            base_sponge,
+            scalar_sponge
         );
-
-        AlphasIterator memory alphas =
-            verifier_index.powers_of_alpha.get_alphas(ArgumentType.Permutation, PERMUTATION_CONSTRAINTS);
-
-        BN254.G1Point[] memory commitments = new BN254.G1Point[](1);
-        commitments[0] = verifier_index.sigma_comm[PERMUTS - 1];
-        Scalar.FE[] memory scalars = new Scalar.FE[](1);
-        scalars[0] = perm_scalars(evals, oracles.beta, oracles.gamma, alphas, permutation_vanishing_polynomial);
-
-        BN254.G1Point memory f_comm = msm(commitments, scalars);
-
-        // 6. Compute the chunked commitment of ft
-        Scalar.FE zeta_to_srs_len = oracles.zeta.pow(verifier_index.max_poly_size);
-        BN254.G1Point memory chunked_f_comm = f_comm;
-
-        BN254.G1Point[7] memory t_comm = proof.commitments.t_comm;
-        BN254.G1Point memory chunked_t_comm = BN254.point_at_inf();
-
-        for (uint256 i = 0; i < t_comm.length; i++) {
-            chunked_t_comm = chunked_t_comm.scale_scalar(zeta_to_srs_len);
-            chunked_t_comm = chunked_t_comm.add(t_comm[t_comm.length - i - 1]);
-        }
-
-        BN254.G1Point memory ft_comm =
-            chunked_f_comm.sub(chunked_t_comm.scale_scalar(oracles_res.zeta1.sub(Scalar.one())));
-
-        // 7. List the polynomial commitments, and their associated evaluations,
-        // that are associated to the aggregated evaluation proof in the proof:
-
-        uint256 evaluations_len = 56; // INFO: hard-coded for the test proof
-        Evaluation[] memory evaluations = new Evaluation[](evaluations_len);
-
-        uint256 eval_index = 0;
-
-        // public input commitment
-        evaluations[eval_index++] = Evaluation(public_comm, oracles_res.public_evals, 0);
-
-        // ft commitment
-        evaluations[eval_index++] = Evaluation(ft_comm, [oracles_res.ft_eval0, proof.ft_eval1], 0);
-        uint256 columns_len = 52; // INFO: hard-coded for the test proof
-        Column[] memory columns = new Column[](columns_len);
-        columns[0] = Column(ColumnVariant.Z, 0);
-        columns[1] = Column(ColumnVariant.Index, GATE_TYPE_GENERIC);
-        columns[2] = Column(ColumnVariant.Index, GATE_TYPE_POSEIDON);
-        columns[3] = Column(ColumnVariant.Index, GATE_TYPE_COMPLETE_ADD);
-        columns[4] = Column(ColumnVariant.Index, GATE_TYPE_VAR_BASE_MUL);
-        columns[5] = Column(ColumnVariant.Index, GATE_TYPE_ENDO_MUL);
-        columns[6] = Column(ColumnVariant.Index, GATE_TYPE_ENDO_MUL_SCALAR);
-        uint256 col_index = 7;
-        for (uint256 i = 0; i < COLUMNS; i++) {
-            columns[col_index++] = Column(ColumnVariant.Witness, i);
-        }
-        for (uint256 i = 0; i < COLUMNS; i++) {
-            columns[col_index++] = Column(ColumnVariant.Coefficient, i);
-        }
-        for (uint256 i = 0; i < PERMUTS - 1; i++) {
-            columns[col_index++] = Column(ColumnVariant.Permutation, i);
-        }
-        if (is_field_set(verifier_index, RANGE_CHECK0_COMM_FLAG)) {
-            columns[col_index++] = Column(ColumnVariant.Index, GATE_TYPE_RANGE_CHECK_0);
-        }
-        if (is_field_set(verifier_index, RANGE_CHECK1_COMM_FLAG)) {
-            columns[col_index++] = Column(ColumnVariant.Index, GATE_TYPE_RANGE_CHECK_1);
-        }
-        if (is_field_set(verifier_index, FOREIGN_FIELD_ADD_COMM_FLAG)) {
-            columns[col_index++] = Column(ColumnVariant.Index, GATE_TYPE_FOREIGN_FIELD_ADD);
-        }
-        if (is_field_set(verifier_index, FOREIGN_FIELD_MUL_COMM_FLAG)) {
-            columns[col_index++] = Column(ColumnVariant.Index, GATE_TYPE_FOREIGN_FIELD_MUL);
-        }
-        if (is_field_set(verifier_index, XOR_COMM_FLAG)) {
-            columns[col_index++] = Column(ColumnVariant.Index, GATE_TYPE_XOR_16);
-        }
-        if (is_field_set(verifier_index, ROT_COMM_FLAG)) {
-            columns[col_index++] = Column(ColumnVariant.Index, GATE_TYPE_ROT_64);
-        }
-        if (is_field_set(verifier_index, LOOKUP_VERIFIER_INDEX_FLAG)) {
-            LookupVerifierIndex memory li = verifier_index.lookup_index;
-            for (uint256 i = 0; i < li.lookup_info.max_per_row + 1; i++) {
-                columns[col_index++] = Column(ColumnVariant.LookupSorted, i);
-            }
-            columns[col_index++] = Column(ColumnVariant.LookupAggreg, 0);
-        }
-        // push all commitments corresponding to each column
-        for (uint256 i = 0; i < col_index; i++) {
-            PointEvaluations memory eval = get_column_eval(proof.evals, columns[i]);
-            evaluations[eval_index++] = Evaluation(get_column_commitment(columns[i]), [eval.zeta, eval.zeta_omega], 0);
-        }
-
-        if (is_field_set(verifier_index, LOOKUP_VERIFIER_INDEX_FLAG)) {
-            LookupVerifierIndex memory li = verifier_index.lookup_index;
-            if (!is_field_set(proof.commitments, LOOKUP_SORTED_COMM_FLAG)) {
-                revert("missing lookup commitments"); // TODO: error
-            }
-            PointEvaluations memory lookup_evals = proof.evals.lookup_table;
-            if (!is_field_set(proof.evals, LOOKUP_TABLE_EVAL_FLAG)) {
-                revert("missing lookup table eval");
-            }
-            PointEvaluations memory lookup_table = proof.evals.lookup_table;
-
-            Scalar.FE joint_combiner = oracles.joint_combiner_field;
-            Scalar.FE table_id_combiner = joint_combiner.pow(li.lookup_info.max_joint_size);
-
-            BN254.G1Point memory table_comm = combine_table(
-                li.lookup_table,
-                joint_combiner,
-                table_id_combiner,
-                is_field_set(li, TABLE_IDS_FLAG),
-                li.table_ids,
-                is_field_set(proof.commitments, LOOKUP_RUNTIME_COMM_FLAG),
-                proof.commitments.lookup_runtime
-            );
-
-            evaluations[eval_index++] = Evaluation(table_comm, [lookup_table.zeta, lookup_table.zeta_omega], 0);
-
-            if (is_field_set(li, RUNTIME_TABLES_SELECTOR_FLAG)) {
-                if (!is_field_set(proof.commitments, LOOKUP_RUNTIME_COMM_FLAG)) {
-                    revert("missing lookup runtime commitment");
-                }
-                BN254.G1Point memory runtime = proof.commitments.lookup_runtime;
-                if (!is_field_set(proof.evals, RUNTIME_LOOKUP_TABLE_EVAL_FLAG)) {
-                    revert("missing runtime lookup table eval");
-                }
-                PointEvaluations memory runtime_eval = proof.evals.runtime_lookup_table;
-
-                evaluations[eval_index++] = Evaluation(runtime, [runtime_eval.zeta, runtime_eval.zeta_omega], 0);
-            }
-
-            if (is_field_set(li, RUNTIME_TABLES_SELECTOR_FLAG)) {
-                Column memory col = Column(ColumnVariant.LookupRuntimeSelector, 0);
-                PointEvaluations memory eval = get_column_eval(proof.evals, col);
-                evaluations[eval_index++] = Evaluation(get_column_commitment(col), [eval.zeta, eval.zeta_omega], 0);
-            }
-            if (is_field_set(li, XOR_FLAG)) {
-                Column memory col = Column(ColumnVariant.LookupKindIndex, LOOKUP_PATTERN_XOR);
-                PointEvaluations memory eval = get_column_eval(proof.evals, col);
-                evaluations[eval_index++] = Evaluation(get_column_commitment(col), [eval.zeta, eval.zeta_omega], 0);
-            }
-            if (is_field_set(li, LOOKUP_FLAG)) {
-                Column memory col = Column(ColumnVariant.LookupKindIndex, LOOKUP_PATTERN_LOOKUP);
-                PointEvaluations memory eval = get_column_eval(proof.evals, col);
-                evaluations[eval_index++] = Evaluation(get_column_commitment(col), [eval.zeta, eval.zeta_omega], 0);
-            }
-            if (is_field_set(li, RANGE_CHECK_FLAG)) {
-                Column memory col = Column(ColumnVariant.LookupKindIndex, LOOKUP_PATTERN_RANGE_CHECK);
-                PointEvaluations memory eval = get_column_eval(proof.evals, col);
-                evaluations[eval_index++] = Evaluation(get_column_commitment(col), [eval.zeta, eval.zeta_omega], 0);
-            }
-            if (is_field_set(li, FFMUL_FLAG)) {
-                Column memory col = Column(ColumnVariant.LookupKindIndex, LOOKUP_PATTERN_FOREIGN_FIELD_MUL);
-                PointEvaluations memory eval = get_column_eval(proof.evals, col);
-                evaluations[eval_index++] = Evaluation(get_column_commitment(col), [eval.zeta, eval.zeta_omega], 0);
-            }
-        }
-
-        Scalar.FE[2] memory evaluation_points = [oracles.zeta, oracles.zeta.mul(verifier_index.domain_gen)];
-
-        return AggregatedEvaluationProof(evaluations, evaluation_points, oracles.v, proof.opening);
-    }
-
-    function public_commitment() public view returns (BN254.G1Point memory public_comm) {
-        if (verifier_index.domain_size < verifier_index.max_poly_size) {
-            revert PolynomialsAreChunked(verifier_index.domain_size / verifier_index.max_poly_size);
-        }
-
-        if (verifier_index.public_len != 1) {
-            revert IncorrectPublicInputLength();
-        }
-        BN254.G1Point memory lagrange_base = BN254.G1Point(
-            0x280c10e2f52fb4ab3ba21204b30df5b69560978e0911a5c673ad0558070f17c1,
-            0x287897da7c8db33cd988a1328770890b2754155612290448267f9ca4c549cb39
-        );
-
-        public_comm = urs.h.add(lagrange_base.scale_scalar(public_input).neg());
-    }
-
-    function perm_scalars(
-        ProofEvaluations memory e,
-        Scalar.FE beta,
-        Scalar.FE gamma,
-        AlphasIterator memory alphas,
-        Scalar.FE zkp_zeta
-    ) internal view returns (Scalar.FE res) {
-        require(alphas.powers.length - alphas.current_index == 3, "not enough powers of alpha for permutation");
-
-        Scalar.FE alpha0 = alphas.it_next();
-        Scalar.FE _alpha1 = alphas.it_next();
-        Scalar.FE _alpha2 = alphas.it_next();
-
-        res = e.z.zeta_omega.mul(beta).mul(alpha0).mul(zkp_zeta);
-        uint256 len = Utils.min(e.w.length, e.s.length);
-        for (uint256 i = 0; i < len; i++) {
-            Scalar.FE current = gamma.add(beta.mul(e.s[i].zeta)).add(e.w[i].zeta);
-            res = res.mul(current);
-        }
-        res = res.neg();
-    }
-
-    function get_column_eval(ProofEvaluations memory evals, Column memory col)
-        internal
-        pure
-        returns (PointEvaluations memory)
-    {
-        ColumnVariant variant = col.variant;
-        uint256 inner = col.inner;
-        if (variant == ColumnVariant.Witness) {
-            return evals.w[inner];
-        } else if (variant == ColumnVariant.Z) {
-            return evals.z;
-        } else if (variant == ColumnVariant.LookupSorted) {
-            return evals.lookup_sorted[inner];
-        } else if (variant == ColumnVariant.LookupAggreg) {
-            return evals.lookup_aggregation;
-        } else if (variant == ColumnVariant.LookupTable) {
-            return evals.lookup_table;
-        } else if (variant == ColumnVariant.LookupKindIndex) {
-            if (inner == LOOKUP_PATTERN_XOR) return evals.xor_lookup_selector;
-            else if (inner == LOOKUP_PATTERN_LOOKUP) return evals.lookup_gate_lookup_selector;
-            else if (inner == LOOKUP_PATTERN_RANGE_CHECK) return evals.range_check_lookup_selector;
-            else if (inner == LOOKUP_PATTERN_FOREIGN_FIELD_MUL) return evals.foreign_field_mul_lookup_selector;
-            else revert MissingLookupColumnEvaluation(inner);
-        } else if (variant == ColumnVariant.LookupRuntimeSelector) {
-            return evals.runtime_lookup_table_selector;
-        } else if (variant == ColumnVariant.Index) {
-            if (inner == GATE_TYPE_GENERIC) return evals.generic_selector;
-            else if (inner == GATE_TYPE_POSEIDON) return evals.poseidon_selector;
-            else if (inner == GATE_TYPE_COMPLETE_ADD) return evals.complete_add_selector;
-            else if (inner == GATE_TYPE_VAR_BASE_MUL) return evals.mul_selector;
-            else if (inner == GATE_TYPE_ENDO_MUL) return evals.emul_selector;
-            else if (inner == GATE_TYPE_ENDO_MUL_SCALAR) return evals.endomul_scalar_selector;
-            else if (inner == GATE_TYPE_RANGE_CHECK_0) return evals.range_check0_selector;
-            else if (inner == GATE_TYPE_RANGE_CHECK_1) return evals.range_check1_selector;
-            else if (inner == GATE_TYPE_FOREIGN_FIELD_ADD) return evals.foreign_field_add_selector;
-            else if (inner == GATE_TYPE_FOREIGN_FIELD_MUL) return evals.foreign_field_mul_selector;
-            else if (inner == GATE_TYPE_XOR_16) return evals.xor_selector;
-            else if (inner == GATE_TYPE_ROT_64) return evals.rot_selector;
-            else revert MissingIndexColumnEvaluation(inner);
-        } else if (variant == ColumnVariant.Coefficient) {
-            return evals.coefficients[inner];
-        } else if (variant == ColumnVariant.Permutation) {
-            return evals.s[inner];
-        } else {
-            revert MissingColumnEvaluation(variant);
-        }
-    }
-
-    function get_column_commitment(Column memory column) internal view returns (BN254.G1Point memory) {
-        LookupVerifierIndex memory l_index = verifier_index.lookup_index;
-
-        uint256 inner = column.inner;
-        ColumnVariant variant = column.variant;
-        if (variant == ColumnVariant.Witness) {
-            return proof.commitments.w_comm[inner];
-        } else if (variant == ColumnVariant.Coefficient) {
-            return verifier_index.coefficients_comm[inner];
-        } else if (variant == ColumnVariant.Permutation) {
-            return verifier_index.sigma_comm[inner];
-        } else if (variant == ColumnVariant.Z) {
-            return proof.commitments.z_comm;
-        } else if (variant == ColumnVariant.LookupSorted) {
-            return proof.commitments.lookup_sorted[inner];
-        } else if (variant == ColumnVariant.LookupAggreg) {
-            return proof.commitments.lookup_aggreg;
-        } else if (variant == ColumnVariant.LookupKindIndex) {
-            if (inner == LOOKUP_PATTERN_XOR) {
-                if (!is_field_set(l_index, XOR_FLAG)) {
-                    revert MissingLookupColumnCommitment(inner);
-                }
-                return l_index.xor;
-            }
-            if (inner == LOOKUP_PATTERN_LOOKUP) {
-                if (!is_field_set(l_index, LOOKUP_FLAG)) {
-                    revert MissingLookupColumnCommitment(inner);
-                }
-                return l_index.lookup;
-            }
-            if (inner == LOOKUP_PATTERN_RANGE_CHECK) {
-                if (!is_field_set(l_index, RANGE_CHECK_FLAG)) {
-                    revert MissingLookupColumnCommitment(inner);
-                }
-                return l_index.range_check;
-            }
-            if (inner == LOOKUP_PATTERN_FOREIGN_FIELD_MUL) {
-                if (!is_field_set(l_index, FFMUL_FLAG)) {
-                    revert MissingLookupColumnCommitment(inner);
-                }
-                return l_index.ffmul;
-            } else {
-                revert MissingLookupColumnCommitment(inner);
-            }
-        } else if (variant == ColumnVariant.LookupRuntimeSelector) {
-            if (!is_field_set(l_index, RUNTIME_TABLES_SELECTOR_FLAG)) {
-                revert MissingCommitment(variant);
-            }
-            return l_index.runtime_tables_selector;
-        } else if (variant == ColumnVariant.LookupRuntimeTable) {
-            if (!is_field_set(proof.commitments, LOOKUP_RUNTIME_COMM_FLAG)) {
-                revert MissingCommitment(variant);
-            }
-            return proof.commitments.lookup_runtime;
-        } else if (variant == ColumnVariant.Index) {
-            if (inner == GATE_TYPE_GENERIC) {
-                return verifier_index.generic_comm;
-            } else if (inner == GATE_TYPE_COMPLETE_ADD) {
-                return verifier_index.complete_add_comm;
-            } else if (inner == GATE_TYPE_VAR_BASE_MUL) {
-                return verifier_index.mul_comm;
-            } else if (inner == GATE_TYPE_ENDO_MUL) {
-                return verifier_index.emul_comm;
-            } else if (inner == GATE_TYPE_ENDO_MUL_SCALAR) {
-                return verifier_index.endomul_scalar_comm;
-            } else if (inner == GATE_TYPE_POSEIDON) {
-                return verifier_index.psm_comm;
-            } else if (inner == GATE_TYPE_RANGE_CHECK_0) {
-                if (!is_field_set(verifier_index, RANGE_CHECK0_COMM_FLAG)) {
-                    revert MissingCommitment(variant);
-                }
-                return verifier_index.range_check0_comm;
-            } else if (inner == GATE_TYPE_RANGE_CHECK_1) {
-                if (!is_field_set(verifier_index, RANGE_CHECK1_COMM_FLAG)) {
-                    revert MissingCommitment(variant);
-                }
-                return verifier_index.range_check1_comm;
-            } else if (inner == GATE_TYPE_FOREIGN_FIELD_ADD) {
-                if (!is_field_set(verifier_index, FOREIGN_FIELD_ADD_COMM_FLAG)) {
-                    revert MissingCommitment(variant);
-                }
-                return verifier_index.foreign_field_add_comm;
-            } else if (inner == GATE_TYPE_FOREIGN_FIELD_MUL) {
-                if (!is_field_set(verifier_index, FOREIGN_FIELD_MUL_COMM_FLAG)) {
-                    revert MissingCommitment(variant);
-                }
-                return verifier_index.foreign_field_mul_comm;
-            } else if (inner == GATE_TYPE_XOR_16) {
-                if (!is_field_set(verifier_index, XOR_COMM_FLAG)) {
-                    revert MissingCommitment(variant);
-                }
-                return verifier_index.xor_comm;
-            } else if (inner == GATE_TYPE_ROT_64) {
-                if (!is_field_set(verifier_index, ROT_COMM_FLAG)) {
-                    revert MissingCommitment(variant);
-                }
-                return verifier_index.rot_comm;
-            } else {
-                revert MissingIndexColumnEvaluation(inner);
-            }
-        } else {
-            revert MissingCommitment(column.variant);
-        }
-
-        // TODO: other variants remain to be implemented.
     }
 
     function final_verify_stored() public view returns (bool) {
         return final_verify(aggregated_proof);
     }
 
-    function final_verify(AggregatedEvaluationProof memory agg_proof) public view returns (bool) {
+    function final_verify(Proof.AggregatedEvaluationProof memory agg_proof) public view returns (bool) {
         Evaluation[] memory evaluations = agg_proof.evaluations;
         Scalar.FE[2] memory evaluation_points = agg_proof.evaluation_points;
         Scalar.FE polyscale = agg_proof.polyscale;

@@ -13,10 +13,10 @@ contract DecodeProverProof is Test {
     bytes proof_comms_bytes;
     bytes prover_proof_bytes;
 
-    PairingProof pairing_proof;
-    ProofEvaluations proof_evals;
-    ProverCommitments proof_comms;
-    ProverProof prover_proof;
+    Proof.PairingProof pairing_proof;
+    Proof.ProofEvaluations proof_evals;
+    Proof.ProverCommitments proof_comms;
+    Proof.ProverProof prover_proof;
     Scalar.FE public_input;
 
     function setUp() public {

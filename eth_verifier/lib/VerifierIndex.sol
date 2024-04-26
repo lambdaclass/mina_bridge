@@ -10,6 +10,7 @@ import "./expr/Expr.sol";
 import "./Proof.sol";
 import "./sponge/Sponge.sol";
 import "./Constants.sol";
+import "./Proof.sol";
 
 using {
     KeccakSponge.reinit,
@@ -137,53 +138,163 @@ function verifier_digest(VerifierIndex storage index) returns (Base.FE) {
 
     // optional
 
-    if (is_field_set(index, RANGE_CHECK0_COMM_FLAG)) {
+    if (Proof.is_field_set(index.optional_field_flags, RANGE_CHECK0_COMM_FLAG)) {
         index.sponge.absorb_g_single(index.range_check0_comm);
     }
 
-    if (is_field_set(index, RANGE_CHECK1_COMM_FLAG)) {
+    if (Proof.is_field_set(index.optional_field_flags, RANGE_CHECK1_COMM_FLAG)) {
         index.sponge.absorb_g_single(index.range_check1_comm);
     }
 
-    if (is_field_set(index, FOREIGN_FIELD_MUL_COMM_FLAG)) {
+    if (Proof.is_field_set(index.optional_field_flags, FOREIGN_FIELD_MUL_COMM_FLAG)) {
         index.sponge.absorb_g_single(index.foreign_field_mul_comm);
     }
 
-    if (is_field_set(index, FOREIGN_FIELD_ADD_COMM_FLAG)) {
+    if (Proof.is_field_set(index.optional_field_flags, FOREIGN_FIELD_ADD_COMM_FLAG)) {
         index.sponge.absorb_g_single(index.foreign_field_add_comm);
     }
 
-    if (is_field_set(index, XOR_COMM_FLAG)) {
+    if (Proof.is_field_set(index.optional_field_flags, XOR_COMM_FLAG)) {
         index.sponge.absorb_g_single(index.xor_comm);
     }
 
-    if (is_field_set(index, ROT_COMM_FLAG)) {
+    if (Proof.is_field_set(index.optional_field_flags, ROT_COMM_FLAG)) {
         index.sponge.absorb_g_single(index.rot_comm);
     }
 
-    if (is_field_set(index, LOOKUP_VERIFIER_INDEX_FLAG)) {
+    if (Proof.is_field_set(index.optional_field_flags, LOOKUP_VERIFIER_INDEX_FLAG)) {
         LookupVerifierIndex storage l_index = index.lookup_index;
         index.sponge.absorb_g_single(l_index.lookup_table);
-        if (is_field_set(l_index, TABLE_IDS_FLAG)) {
+        if (Proof.is_field_set(l_index.optional_field_flags, TABLE_IDS_FLAG)) {
             index.sponge.absorb_g_single(l_index.table_ids);
         }
-        if (is_field_set(l_index, RUNTIME_TABLES_SELECTOR_FLAG)) {
+        if (Proof.is_field_set(l_index.optional_field_flags, RUNTIME_TABLES_SELECTOR_FLAG)) {
             index.sponge.absorb_g_single(l_index.runtime_tables_selector);
         }
 
-        if (is_field_set(l_index, XOR_FLAG)) {
+        if (Proof.is_field_set(l_index.optional_field_flags, XOR_FLAG)) {
             index.sponge.absorb_g_single(l_index.xor);
         }
-        if (is_field_set(l_index, LOOKUP_FLAG)) {
+        if (Proof.is_field_set(l_index.optional_field_flags, LOOKUP_FLAG)) {
             index.sponge.absorb_g_single(l_index.lookup);
         }
-        if (is_field_set(l_index, RANGE_CHECK_FLAG)) {
+        if (Proof.is_field_set(l_index.optional_field_flags, RANGE_CHECK_FLAG)) {
             index.sponge.absorb_g_single(l_index.range_check);
         }
-        if (is_field_set(l_index, FFMUL_FLAG)) {
+        if (Proof.is_field_set(l_index.optional_field_flags, FFMUL_FLAG)) {
             index.sponge.absorb_g_single(l_index.ffmul);
         }
     }
-
     return index.sponge.digest_base();
+}
+
+function get_column_commitment(
+    Column memory column,
+    VerifierIndex storage verifier_index,
+    Proof.ProverProof storage proof
+) view returns (BN254.G1Point memory) {
+    LookupVerifierIndex memory l_index = verifier_index.lookup_index;
+
+    uint256 inner = column.inner;
+    ColumnVariant variant = column.variant;
+    if (variant == ColumnVariant.Witness) {
+        return proof.commitments.w_comm[inner];
+    } else if (variant == ColumnVariant.Coefficient) {
+        return verifier_index.coefficients_comm[inner];
+    } else if (variant == ColumnVariant.Permutation) {
+        return verifier_index.sigma_comm[inner];
+    } else if (variant == ColumnVariant.Z) {
+        return proof.commitments.z_comm;
+    } else if (variant == ColumnVariant.LookupSorted) {
+        return proof.commitments.lookup_sorted[inner];
+    } else if (variant == ColumnVariant.LookupAggreg) {
+        return proof.commitments.lookup_aggreg;
+    } else if (variant == ColumnVariant.LookupKindIndex) {
+        if (inner == LOOKUP_PATTERN_XOR) {
+            if (!Proof.is_field_set(l_index.optional_field_flags, XOR_FLAG)) {
+                revert MissingLookupColumnCommitment(inner);
+            }
+            return l_index.xor;
+        }
+        if (inner == LOOKUP_PATTERN_LOOKUP) {
+            if (!Proof.is_field_set(l_index.optional_field_flags, LOOKUP_FLAG)) {
+                revert MissingLookupColumnCommitment(inner);
+            }
+            return l_index.lookup;
+        }
+        if (inner == LOOKUP_PATTERN_RANGE_CHECK) {
+            if (!Proof.is_field_set(l_index.optional_field_flags, RANGE_CHECK_FLAG)) {
+                revert MissingLookupColumnCommitment(inner);
+            }
+            return l_index.range_check;
+        }
+        if (inner == LOOKUP_PATTERN_FOREIGN_FIELD_MUL) {
+            if (!Proof.is_field_set(l_index.optional_field_flags, FFMUL_FLAG)) {
+                revert MissingLookupColumnCommitment(inner);
+            }
+            return l_index.ffmul;
+        } else {
+            revert MissingLookupColumnCommitment(inner);
+        }
+    } else if (variant == ColumnVariant.LookupRuntimeSelector) {
+        if (!Proof.is_field_set(l_index.optional_field_flags, RUNTIME_TABLES_SELECTOR_FLAG)) {
+            revert MissingCommitment(variant);
+        }
+        return l_index.runtime_tables_selector;
+    } else if (variant == ColumnVariant.LookupRuntimeTable) {
+        if (!Proof.is_field_set(proof.commitments.optional_field_flags, LOOKUP_RUNTIME_COMM_FLAG)) {
+            revert MissingCommitment(variant);
+        }
+        return proof.commitments.lookup_runtime;
+    } else if (variant == ColumnVariant.Index) {
+        if (inner == GATE_TYPE_GENERIC) {
+            return verifier_index.generic_comm;
+        } else if (inner == GATE_TYPE_COMPLETE_ADD) {
+            return verifier_index.complete_add_comm;
+        } else if (inner == GATE_TYPE_VAR_BASE_MUL) {
+            return verifier_index.mul_comm;
+        } else if (inner == GATE_TYPE_ENDO_MUL) {
+            return verifier_index.emul_comm;
+        } else if (inner == GATE_TYPE_ENDO_MUL_SCALAR) {
+            return verifier_index.endomul_scalar_comm;
+        } else if (inner == GATE_TYPE_POSEIDON) {
+            return verifier_index.psm_comm;
+        } else if (inner == GATE_TYPE_RANGE_CHECK_0) {
+            if (!Proof.is_field_set(verifier_index.optional_field_flags, RANGE_CHECK0_COMM_FLAG)) {
+                revert MissingCommitment(variant);
+            }
+            return verifier_index.range_check0_comm;
+        } else if (inner == GATE_TYPE_RANGE_CHECK_1) {
+            if (!Proof.is_field_set(verifier_index.optional_field_flags, RANGE_CHECK1_COMM_FLAG)) {
+                revert MissingCommitment(variant);
+            }
+            return verifier_index.range_check1_comm;
+        } else if (inner == GATE_TYPE_FOREIGN_FIELD_ADD) {
+            if (!Proof.is_field_set(verifier_index.optional_field_flags, FOREIGN_FIELD_ADD_COMM_FLAG)) {
+                revert MissingCommitment(variant);
+            }
+            return verifier_index.foreign_field_add_comm;
+        } else if (inner == GATE_TYPE_FOREIGN_FIELD_MUL) {
+            if (!Proof.is_field_set(verifier_index.optional_field_flags, FOREIGN_FIELD_MUL_COMM_FLAG)) {
+                revert MissingCommitment(variant);
+            }
+            return verifier_index.foreign_field_mul_comm;
+        } else if (inner == GATE_TYPE_XOR_16) {
+            if (!Proof.is_field_set(verifier_index.optional_field_flags, XOR_COMM_FLAG)) {
+                revert MissingCommitment(variant);
+            }
+            return verifier_index.xor_comm;
+        } else if (inner == GATE_TYPE_ROT_64) {
+            if (!Proof.is_field_set(verifier_index.optional_field_flags, ROT_COMM_FLAG)) {
+                revert MissingCommitment(variant);
+            }
+            return verifier_index.rot_comm;
+        } else {
+            revert Proof.MissingIndexColumnEvaluation(inner);
+        }
+    } else {
+        revert MissingCommitment(column.variant);
+    }
+
+    // TODO: other variants remain to be implemented.
 }

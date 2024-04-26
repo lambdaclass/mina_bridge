@@ -19,8 +19,6 @@ contract KimchiVerifierTest is Test {
     VerifierIndex test_verifier_index;
     Sponge sponge;
 
-    KimchiVerifier verifier;
-
     function setUp() public {
         verifier_index_serialized = vm.readFileBinary("verifier_index.bin");
         linearization_serialized = vm.readFileBinary("linearization.bin");
@@ -30,15 +28,12 @@ contract KimchiVerifierTest is Test {
         // we store deserialized structures mostly to run intermediate results
         // tests.
         deser_verifier_index(vm.readFileBinary("unit_test_data/verifier_index.bin"), test_verifier_index);
-
-        // setup verifier contract
-        verifier = new KimchiVerifier();
-        verifier.setup();
-        verifier.store_verifier_index(verifier_index_serialized);
-        verifier.store_public_input(public_input_serialized);
     }
 
     function test_eval_commitment() public {
+        KimchiVerifier verifier = new KimchiVerifier();
+        verifier.setup();
+
         Scalar.FE[2] memory evaluation_points = [
             Scalar.from(13611645662807726448009836376915752628632570551277086161653783406622791783728),
             Scalar.from(3564135020345995638717498554909006524700441992279926422621219017070650554254)
@@ -63,9 +58,9 @@ contract KimchiVerifierTest is Test {
     }
 
     function test_divisor_commitment() public {
-        KimchiVerifier new_verifier = new KimchiVerifier();
+        KimchiVerifier verifier = new KimchiVerifier();
 
-        new_verifier.setup();
+        verifier.setup();
 
         verifier.store_verifier_index(verifier_index_serialized);
         verifier.store_linearization(linearization_serialized);
@@ -77,24 +72,10 @@ contract KimchiVerifierTest is Test {
             Scalar.from(3564135020345995638717498554909006524700441992279926422621219017070650554254)
         ];
 
-        BN254.G2Point memory divisor_commitment = new_verifier.divisor_commitment(evaluation_points);
+        BN254.G2Point memory divisor_commitment = verifier.divisor_commitment(evaluation_points);
 
         // Necessary so that the optimized compiler takes into account the divisor commitment
         require(keccak256(abi.encode(divisor_commitment)) > 0);
-    }
-
-    function test_public_commitment() public {
-        KimchiVerifier new_verifier = new KimchiVerifier();
-
-        new_verifier.setup();
-
-        new_verifier.store_verifier_index(verifier_index_serialized);
-        new_verifier.store_public_input(public_input_serialized);
-
-        BN254.G1Point memory public_commitment = new_verifier.public_commitment();
-
-        // Necessary so that the optimized compiler takes into account the public commitment
-        require(keccak256(abi.encode(public_commitment)) > 0);
     }
 
     // INFO: Disabled test because the new serializer isnt't used yet to

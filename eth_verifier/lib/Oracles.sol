@@ -29,6 +29,7 @@ library Oracles {
         KeccakSponge.digest_base,
         KeccakSponge.digest_scalar
     } for Sponge;
+    using {Proof.get_column_eval} for Proof.ProofEvaluations;
 
     uint64 internal constant CHALLENGE_LENGTH_IN_LIMBS = 2;
 
@@ -37,7 +38,7 @@ library Oracles {
 
     // This takes Kimchi's `oracles()` as reference.
     function fiat_shamir(
-        ProverProof memory proof,
+        Proof.ProverProof memory proof,
         VerifierIndex storage index,
         BN254.G1Point memory public_comm,
         Scalar.FE public_input,
@@ -204,7 +205,7 @@ library Oracles {
         // 28. Create a list of all polynomials that have an evaluation proof
         //ProofEvaluations memory evals = proof.evals.combine_evals(powers_of_eval_points_for_chunks);
         // INFO: There's only one evaluation per polynomial so there's nothing to combine
-        ProofEvaluations memory evals = proof.evals;
+        Proof.ProofEvaluations memory evals = proof.evals;
 
         // 29. Compute the evaluation of $ft(\zeta)$.
         Scalar.FE permutation_vanishing_poly =
@@ -247,10 +248,13 @@ library Oracles {
         ExprConstants memory constants =
             ExprConstants(alpha, beta, gamma, joint_combiner_field, index.endo, index.zk_rows);
 
-        Scalar.FE vanishing_eval = evaluate_vanishing_polynomial(index.domain_gen, index.domain_size, zeta);
+        Scalar.FE vanishing_eval =
+            PolishTokenEvaluation.evaluate_vanishing_polynomial(index.domain_gen, index.domain_size, zeta);
 
         ft_eval0 = ft_eval0.sub(
-            evaluate(index.linearization, index.domain_gen, index.domain_size, zeta, vanishing_eval, evals, constants)
+            PolishTokenEvaluation.evaluate(
+                index.linearization, index.domain_gen, index.domain_size, zeta, vanishing_eval, evals, constants
+            )
         );
 
         RandomOracles memory oracles = RandomOracles(
