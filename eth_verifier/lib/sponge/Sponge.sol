@@ -140,53 +140,53 @@ library KeccakSponge {
             absorb_point_evaluation(self, evals.s[i]);
         }
 
-        if (Proof.is_field_set(evals, RANGE_CHECK0_SELECTOR_EVAL_FLAG)) {
+        if (Proof.is_field_set(evals.optional_field_flags, RANGE_CHECK0_SELECTOR_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.range_check0_selector);
         }
-        if (Proof.is_field_set(evals, RANGE_CHECK1_SELECTOR_EVAL_FLAG)) {
+        if (Proof.is_field_set(evals.optional_field_flags, RANGE_CHECK1_SELECTOR_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.range_check1_selector);
         }
-        if (Proof.is_field_set(evals, FOREIGN_FIELD_ADD_SELECTOR_EVAL_FLAG)) {
+        if (Proof.is_field_set(evals.optional_field_flags, FOREIGN_FIELD_ADD_SELECTOR_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.foreign_field_add_selector);
         }
-        if (Proof.is_field_set(evals, FOREIGN_FIELD_MUL_SELECTOR_EVAL_FLAG)) {
+        if (Proof.is_field_set(evals.optional_field_flags, FOREIGN_FIELD_MUL_SELECTOR_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.foreign_field_mul_selector);
         }
-        if (Proof.is_field_set(evals, XOR_SELECTOR_EVAL_FLAG)) {
+        if (Proof.is_field_set(evals.optional_field_flags, XOR_SELECTOR_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.xor_selector);
         }
-        if (Proof.is_field_set(evals, ROT_SELECTOR_EVAL_FLAG)) {
+        if (Proof.is_field_set(evals.optional_field_flags, ROT_SELECTOR_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.rot_selector);
         }
 
-        if (Proof.is_field_set(evals, LOOKUP_AGGREGATION_EVAL_FLAG)) {
+        if (Proof.is_field_set(evals.optional_field_flags, LOOKUP_AGGREGATION_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.lookup_aggregation);
         }
-        if (Proof.is_field_set(evals, LOOKUP_TABLE_EVAL_FLAG)) {
+        if (Proof.is_field_set(evals.optional_field_flags, LOOKUP_TABLE_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.lookup_table);
         }
         for (uint i = 0; i < evals.lookup_sorted.length; i++) {
-            if (Proof.is_field_set(evals, LOOKUP_SORTED_EVAL_FLAG + i)) {
+            if (Proof.is_field_set(evals.optional_field_flags, LOOKUP_SORTED_EVAL_FLAG + i)) {
                 absorb_point_evaluation(self, evals.lookup_sorted[i]);
             }
         }
-        if (Proof.is_field_set(evals, RUNTIME_LOOKUP_TABLE_EVAL_FLAG)) {
+        if (Proof.is_field_set(evals.optional_field_flags, RUNTIME_LOOKUP_TABLE_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.runtime_lookup_table);
         }
 
-        if (Proof.is_field_set(evals, RUNTIME_LOOKUP_TABLE_SELECTOR_EVAL_FLAG)) {
+        if (Proof.is_field_set(evals.optional_field_flags, RUNTIME_LOOKUP_TABLE_SELECTOR_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.runtime_lookup_table_selector);
         }
-        if (Proof.is_field_set(evals, XOR_LOOKUP_SELECTOR_EVAL_FLAG)) {
+        if (Proof.is_field_set(evals.optional_field_flags, XOR_LOOKUP_SELECTOR_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.xor_lookup_selector);
         }
-        if (Proof.is_field_set(evals, LOOKUP_GATE_LOOKUP_SELECTOR_EVAL_FLAG)) {
+        if (Proof.is_field_set(evals.optional_field_flags, LOOKUP_GATE_LOOKUP_SELECTOR_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.lookup_gate_lookup_selector);
         }
-        if (Proof.is_field_set(evals, RANGE_CHECK_LOOKUP_SELECTOR_EVAL_FLAG)) {
+        if (Proof.is_field_set(evals.optional_field_flags, RANGE_CHECK_LOOKUP_SELECTOR_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.range_check_lookup_selector);
         }
-        if (Proof.is_field_set(evals, FOREIGN_FIELD_MUL_LOOKUP_SELECTOR_EVAL_FLAG)) {
+        if (Proof.is_field_set(evals.optional_field_flags, FOREIGN_FIELD_MUL_LOOKUP_SELECTOR_EVAL_FLAG)) {
             absorb_point_evaluation(self, evals.foreign_field_mul_lookup_selector);
         }
     }

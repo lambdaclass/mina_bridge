@@ -121,25 +121,25 @@ library KimchiPartialVerifier {
         for (uint256 i = 0; i < PERMUTS - 1; i++) {
             columns[col_index++] = Column(ColumnVariant.Permutation, i);
         }
-        if (Proof.is_field_set(verifier_index, RANGE_CHECK0_COMM_FLAG)) {
+        if (Proof.is_field_set(verifier_index.optional_field_flags, RANGE_CHECK0_COMM_FLAG)) {
             columns[col_index++] = Column(ColumnVariant.Index, GATE_TYPE_RANGE_CHECK_0);
         }
-        if (Proof.is_field_set(verifier_index, RANGE_CHECK1_COMM_FLAG)) {
+        if (Proof.is_field_set(verifier_index.optional_field_flags, RANGE_CHECK1_COMM_FLAG)) {
             columns[col_index++] = Column(ColumnVariant.Index, GATE_TYPE_RANGE_CHECK_1);
         }
-        if (Proof.is_field_set(verifier_index, FOREIGN_FIELD_ADD_COMM_FLAG)) {
+        if (Proof.is_field_set(verifier_index.optional_field_flags, FOREIGN_FIELD_ADD_COMM_FLAG)) {
             columns[col_index++] = Column(ColumnVariant.Index, GATE_TYPE_FOREIGN_FIELD_ADD);
         }
-        if (Proof.is_field_set(verifier_index, FOREIGN_FIELD_MUL_COMM_FLAG)) {
+        if (Proof.is_field_set(verifier_index.optional_field_flags, FOREIGN_FIELD_MUL_COMM_FLAG)) {
             columns[col_index++] = Column(ColumnVariant.Index, GATE_TYPE_FOREIGN_FIELD_MUL);
         }
-        if (Proof.is_field_set(verifier_index, XOR_COMM_FLAG)) {
+        if (Proof.is_field_set(verifier_index.optional_field_flags, XOR_COMM_FLAG)) {
             columns[col_index++] = Column(ColumnVariant.Index, GATE_TYPE_XOR_16);
         }
-        if (Proof.is_field_set(verifier_index, ROT_COMM_FLAG)) {
+        if (Proof.is_field_set(verifier_index.optional_field_flags, ROT_COMM_FLAG)) {
             columns[col_index++] = Column(ColumnVariant.Index, GATE_TYPE_ROT_64);
         }
-        if (Proof.is_field_set(verifier_index, LOOKUP_VERIFIER_INDEX_FLAG)) {
+        if (Proof.is_field_set(verifier_index.optional_field_flags, LOOKUP_VERIFIER_INDEX_FLAG)) {
             LookupVerifierIndex memory li = verifier_index.lookup_index;
             for (uint256 i = 0; i < li.lookup_info.max_per_row + 1; i++) {
                 columns[col_index++] = Column(ColumnVariant.LookupSorted, i);
@@ -153,13 +153,13 @@ library KimchiPartialVerifier {
                 Evaluation(get_column_commitment(columns[i], verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
         }
 
-        if (Proof.is_field_set(verifier_index, LOOKUP_VERIFIER_INDEX_FLAG)) {
+        if (Proof.is_field_set(verifier_index.optional_field_flags, LOOKUP_VERIFIER_INDEX_FLAG)) {
             LookupVerifierIndex memory li = verifier_index.lookup_index;
-            if (!Proof.is_field_set(proof.commitments, LOOKUP_SORTED_COMM_FLAG)) {
+            if (!Proof.is_field_set(proof.commitments.optional_field_flags, LOOKUP_SORTED_COMM_FLAG)) {
                 revert("missing lookup commitments"); // TODO: error
             }
             PointEvaluations memory lookup_evals = proof.evals.lookup_table;
-            if (!Proof.is_field_set(proof.evals, LOOKUP_TABLE_EVAL_FLAG)) {
+            if (!Proof.is_field_set(proof.evals.optional_field_flags, LOOKUP_TABLE_EVAL_FLAG)) {
                 revert("missing lookup table eval");
             }
             PointEvaluations memory lookup_table = proof.evals.lookup_table;
@@ -171,20 +171,20 @@ library KimchiPartialVerifier {
                 li.lookup_table,
                 joint_combiner,
                 table_id_combiner,
-                Proof.is_field_set(li, TABLE_IDS_FLAG),
+                Proof.is_field_set(li.optional_field_flags, TABLE_IDS_FLAG),
                 li.table_ids,
-                Proof.is_field_set(proof.commitments, LOOKUP_RUNTIME_COMM_FLAG),
+                Proof.is_field_set(proof.commitments.optional_field_flags, LOOKUP_RUNTIME_COMM_FLAG),
                 proof.commitments.lookup_runtime
             );
 
             evaluations[eval_index++] = Evaluation(table_comm, [lookup_table.zeta, lookup_table.zeta_omega], 0);
 
-            if (Proof.is_field_set(li, RUNTIME_TABLES_SELECTOR_FLAG)) {
-                if (!Proof.is_field_set(proof.commitments, LOOKUP_RUNTIME_COMM_FLAG)) {
+            if (Proof.is_field_set(li.optional_field_flags, RUNTIME_TABLES_SELECTOR_FLAG)) {
+                if (!Proof.is_field_set(proof.commitments.optional_field_flags, LOOKUP_RUNTIME_COMM_FLAG)) {
                     revert("missing lookup runtime commitment");
                 }
                 BN254.G1Point memory runtime = proof.commitments.lookup_runtime;
-                if (!Proof.is_field_set(proof.evals, RUNTIME_LOOKUP_TABLE_EVAL_FLAG)) {
+                if (!Proof.is_field_set(proof.evals.optional_field_flags, RUNTIME_LOOKUP_TABLE_EVAL_FLAG)) {
                     revert("missing runtime lookup table eval");
                 }
                 PointEvaluations memory runtime_eval = proof.evals.runtime_lookup_table;
@@ -192,27 +192,27 @@ library KimchiPartialVerifier {
                 evaluations[eval_index++] = Evaluation(runtime, [runtime_eval.zeta, runtime_eval.zeta_omega], 0);
             }
 
-            if (Proof.is_field_set(li, RUNTIME_TABLES_SELECTOR_FLAG)) {
+            if (Proof.is_field_set(li.optional_field_flags, RUNTIME_TABLES_SELECTOR_FLAG)) {
                 Column memory col = Column(ColumnVariant.LookupRuntimeSelector, 0);
                 PointEvaluations memory eval = Proof.get_column_eval(proof.evals, col);
                 evaluations[eval_index++] = Evaluation(get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
             }
-            if (Proof.is_field_set(li, XOR_FLAG)) {
+            if (Proof.is_field_set(li.optional_field_flags, XOR_FLAG)) {
                 Column memory col = Column(ColumnVariant.LookupKindIndex, LOOKUP_PATTERN_XOR);
                 PointEvaluations memory eval = Proof.get_column_eval(proof.evals, col);
                 evaluations[eval_index++] = Evaluation(get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
             }
-            if (Proof.is_field_set(li, LOOKUP_FLAG)) {
+            if (Proof.is_field_set(li.optional_field_flags, LOOKUP_FLAG)) {
                 Column memory col = Column(ColumnVariant.LookupKindIndex, LOOKUP_PATTERN_LOOKUP);
                 PointEvaluations memory eval = Proof.get_column_eval(proof.evals, col);
                 evaluations[eval_index++] = Evaluation(get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
             }
-            if (Proof.is_field_set(li, RANGE_CHECK_FLAG)) {
+            if (Proof.is_field_set(li.optional_field_flags, RANGE_CHECK_FLAG)) {
                 Column memory col = Column(ColumnVariant.LookupKindIndex, LOOKUP_PATTERN_RANGE_CHECK);
                 PointEvaluations memory eval = Proof.get_column_eval(proof.evals, col);
                 evaluations[eval_index++] = Evaluation(get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
             }
-            if (Proof.is_field_set(li, FFMUL_FLAG)) {
+            if (Proof.is_field_set(li.optional_field_flags, FFMUL_FLAG)) {
                 Column memory col = Column(ColumnVariant.LookupKindIndex, LOOKUP_PATTERN_FOREIGN_FIELD_MUL);
                 PointEvaluations memory eval = Proof.get_column_eval(proof.evals, col);
                 evaluations[eval_index++] = Evaluation(get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);

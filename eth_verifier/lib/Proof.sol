@@ -123,47 +123,47 @@ library Proof {
             return self.z;
         } else if (col_id <= 20) {
             uint256 i = col_id - 16;
-            if (!is_field_set(self, LOOKUP_SORTED_EVAL_FLAG + i)) {
+            if (!is_field_set(self.optional_field_flags, LOOKUP_SORTED_EVAL_FLAG + i)) {
                 revert MissingIndexEvaluation("lookup_sorted");
             }
             return self.lookup_sorted[i];
         } else if (col_id == 21) {
-            if (!is_field_set(self, LOOKUP_AGGREGATION_EVAL_FLAG)) {
+            if (!is_field_set(self.optional_field_flags, LOOKUP_AGGREGATION_EVAL_FLAG)) {
                 revert MissingIndexEvaluation("lookup_aggregation");
             }
             return self.lookup_aggregation;
         } else if (col_id == 22) {
-            if (!is_field_set(self, LOOKUP_TABLE_EVAL_FLAG)) {
+            if (!is_field_set(self.optional_field_flags, LOOKUP_TABLE_EVAL_FLAG)) {
                 revert MissingIndexEvaluation("lookup_table");
             }
             return self.lookup_table;
         } else if (col_id == 23) {
-            if (!is_field_set(self, XOR_LOOKUP_SELECTOR_EVAL_FLAG)) {
+            if (!is_field_set(self.optional_field_flags, XOR_LOOKUP_SELECTOR_EVAL_FLAG)) {
                 revert MissingIndexEvaluation("xor_lookup_selector");
             }
             return self.xor_lookup_selector;
         } else if (col_id == 24) {
-            if (!is_field_set(self, LOOKUP_GATE_LOOKUP_SELECTOR_EVAL_FLAG)) {
+            if (!is_field_set(self.optional_field_flags, LOOKUP_GATE_LOOKUP_SELECTOR_EVAL_FLAG)) {
                 revert MissingIndexEvaluation("lookup_gate_lookup_selector");
             }
             return self.lookup_gate_lookup_selector;
         } else if (col_id == 25) {
-            if (!is_field_set(self, RANGE_CHECK_LOOKUP_SELECTOR_EVAL_FLAG)) {
+            if (!is_field_set(self.optional_field_flags, RANGE_CHECK_LOOKUP_SELECTOR_EVAL_FLAG)) {
                 revert MissingIndexEvaluation("range_check_lookup_selector");
             }
             return self.range_check_lookup_selector;
         } else if (col_id == 26) {
-            if (!is_field_set(self, FOREIGN_FIELD_MUL_LOOKUP_SELECTOR_EVAL_FLAG)) {
+            if (!is_field_set(self.optional_field_flags, FOREIGN_FIELD_MUL_LOOKUP_SELECTOR_EVAL_FLAG)) {
                 revert MissingIndexEvaluation("foreign_field_mul_lookup_selector");
             }
             return self.foreign_field_mul_lookup_selector;
         } else if (col_id == 27) {
-            if (!is_field_set(self, RUNTIME_LOOKUP_TABLE_SELECTOR_EVAL_FLAG)) {
+            if (!is_field_set(self.optional_field_flags, RUNTIME_LOOKUP_TABLE_SELECTOR_EVAL_FLAG)) {
                 revert MissingIndexEvaluation("runtime_lookup_table_selector");
             }
             return self.runtime_lookup_table_selector;
         } else if (col_id == 28) {
-            if (!is_field_set(self, RUNTIME_LOOKUP_TABLE_EVAL_FLAG)) {
+            if (!is_field_set(self.optional_field_flags, RUNTIME_LOOKUP_TABLE_EVAL_FLAG)) {
                 revert MissingIndexEvaluation("runtime_lookup_table");
             }
             return self.runtime_lookup_table;
@@ -180,32 +180,32 @@ library Proof {
         } else if (col_id == 35) {
             return self.endomul_scalar_selector;
         } else if (col_id == 37) {
-            if (!is_field_set(self, RANGE_CHECK0_SELECTOR_EVAL_FLAG)) {
+            if (!is_field_set(self.optional_field_flags, RANGE_CHECK0_SELECTOR_EVAL_FLAG)) {
                 revert MissingIndexEvaluation("range_check0_selector");
             }
             return self.range_check0_selector;
         } else if (col_id == 38) {
-            if (!is_field_set(self, RANGE_CHECK1_SELECTOR_EVAL_FLAG)) {
+            if (!is_field_set(self.optional_field_flags, RANGE_CHECK1_SELECTOR_EVAL_FLAG)) {
                 revert MissingIndexEvaluation("range_check1_selector");
             }
             return self.range_check1_selector;
         } else if (col_id == 39) {
-            if (!is_field_set(self, FOREIGN_FIELD_ADD_SELECTOR_EVAL_FLAG)) {
+            if (!is_field_set(self.optional_field_flags, FOREIGN_FIELD_ADD_SELECTOR_EVAL_FLAG)) {
                 revert MissingIndexEvaluation("foreign_field_add_selector");
             }
             return self.foreign_field_add_selector;
         } else if (col_id == 40) {
-            if (!is_field_set(self, FOREIGN_FIELD_MUL_SELECTOR_EVAL_FLAG)) {
+            if (!is_field_set(self.optional_field_flags, FOREIGN_FIELD_MUL_SELECTOR_EVAL_FLAG)) {
                 revert MissingIndexEvaluation("foreign_field_mul_selector");
             }
             return self.foreign_field_mul_selector;
         } else if (col_id == 41) {
-            if (!is_field_set(self, XOR_SELECTOR_EVAL_FLAG)) {
+            if (!is_field_set(self.optional_field_flags, XOR_SELECTOR_EVAL_FLAG)) {
                 revert MissingIndexEvaluation("xor_selector");
             }
             return self.xor_selector;
         } else if (col_id == 42) {
-            if (!is_field_set(self, ROT_SELECTOR_EVAL_FLAG)) {
+            if (!is_field_set(self.optional_field_flags, ROT_SELECTOR_EVAL_FLAG)) {
                 revert MissingIndexEvaluation("rot_selector");
             }
             return self.rot_selector;
@@ -301,19 +301,7 @@ library Proof {
         return msm(commitments, scalars);
     }
 
-    function is_field_set(ProofEvaluations memory self, uint256 flag_pos) public pure returns (bool) {
-        return (self.optional_field_flags >> flag_pos) & 1 == 1;
-    }
-
-    function is_field_set(ProverCommitments memory self, uint256 flag_pos) public pure returns (bool) {
-        return (self.optional_field_flags >> flag_pos) & 1 == 1;
-    }
-
-    function is_field_set(VerifierIndex storage self, uint256 flag_pos) public view returns (bool) {
-        return (self.optional_field_flags >> flag_pos) & 1 == 1;
-    }
-
-    function is_field_set(LookupVerifierIndex memory self, uint256 flag_pos) public pure returns (bool) {
-        return (self.optional_field_flags >> flag_pos) & 1 == 1;
+    function is_field_set(uint256 optional_field_flags, uint256 flag_pos) public pure returns (bool) {
+        return (optional_field_flags >> flag_pos) & 1 == 1;
     }
 }
