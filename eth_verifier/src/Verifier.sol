@@ -28,14 +28,12 @@ using {BN254.add, BN254.neg, BN254.scale_scalar, BN254.sub} for BN254.G1Point;
 using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
 using {get_alphas} for Alphas;
 using {it_next} for AlphasIterator;
-using {sub_polycomms, scale_polycomm} for PolyComm;
 
 contract KimchiVerifier {
     using {BN254.add, BN254.neg, BN254.scale_scalar, BN254.sub} for BN254.G1Point;
     using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
     using {get_alphas} for Alphas;
     using {it_next} for AlphasIterator;
-    using {sub_polycomms, scale_polycomm} for PolyComm;
     using {Proof.get_column_eval} for Proof.ProofEvaluations;
     using {register} for Alphas;
 
@@ -45,8 +43,8 @@ contract KimchiVerifier {
     error PolynomialsAreChunked(uint256 chunk_size);
 
     Proof.ProverProof proof;
-    VerifierIndex verifier_index;
-    URS urs;
+    VerifierIndexLib.VerifierIndex verifier_index;
+    Commitment.URS urs;
 
     Scalar.FE public_input;
 
@@ -133,7 +131,7 @@ contract KimchiVerifier {
 
         // poly commitment
         (BN254.G1Point memory poly_commitment, Scalar.FE[] memory evals) =
-            combine_commitments_and_evaluations(evaluations, polyscale, Scalar.one());
+            Commitment.combine_commitments_and_evaluations(evaluations, polyscale, Scalar.one());
 
         // blinding commitment
         BN254.G1Point memory blinding_commitment = urs.h.scale_scalar(agg_proof.opening.blinding);
@@ -193,7 +191,7 @@ contract KimchiVerifier {
         result = BN256G2.ECTwistAdd(result, point2);
     }
 
-    function eval_commitment(Scalar.FE[2] memory evaluation_points, Scalar.FE[] memory evals, URS memory full_urs)
+    function eval_commitment(Scalar.FE[2] memory evaluation_points, Scalar.FE[] memory evals, Commitment.URS memory full_urs)
         public
         view
         returns (BN254.G1Point memory)
@@ -221,6 +219,6 @@ contract KimchiVerifier {
         eval_poly_coeffs[0] = b;
         eval_poly_coeffs[1] = a;
 
-        return msm(full_urs.g, eval_poly_coeffs);
+        return Commitment.msm(full_urs.g, eval_poly_coeffs);
     }
 }

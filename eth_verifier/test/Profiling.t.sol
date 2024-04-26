@@ -12,7 +12,7 @@ import "../lib/deserialize/Linearization.sol";
 
 contract Profiling is Test {
     Linearization linearization;
-    VerifierIndex verifier_index;
+    VerifierIndexLib.VerifierIndex verifier_index;
     Proof.ProverProof prover_proof;
     Scalar.FE public_input;
 

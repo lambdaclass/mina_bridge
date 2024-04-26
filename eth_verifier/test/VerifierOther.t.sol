@@ -16,7 +16,7 @@ contract KimchiVerifierTest is Test {
     bytes prover_proof_serialized;
     bytes public_input_serialized;
 
-    VerifierIndex test_verifier_index;
+    VerifierIndexLib.VerifierIndex test_verifier_index;
     Sponge sponge;
 
     function setUp() public {
@@ -49,7 +49,7 @@ contract KimchiVerifierTest is Test {
             4312786488925573964619847916436127219510912864504589785209181363209026354996,
             16161347681839669251864665467703281411292235435048747094987907712909939880451
         );
-        URS memory full_urs = URS(g, BN254.point_at_inf());
+        Commitment.URS memory full_urs = Commitment.URS(g, BN254.point_at_inf());
 
         BN254.G1Point memory eval_commitment = verifier.eval_commitment(evaluation_points, evals, full_urs);
 
