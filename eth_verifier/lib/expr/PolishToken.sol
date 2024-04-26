@@ -9,24 +9,7 @@ import "../sponge/Sponge.sol";
 
 using {Scalar.add, Scalar.mul, Scalar.sub, Scalar.pow, Scalar.inv} for Scalar.FE;
 
-// PolishToken is a tagged union type, whose variants can hold different data types.
-// In Rust this can be implemented as an enum, in Typescript as a discriminated union.
-//
-// Here we'll use a struct, which will hold the `variant` tag as an enum and the
-// `data` as bytes. The struct will be discriminated over its `variant` and after
-// we can decode the bytes into the corresponding data type.
-//
-// The idea was also to have type aliases for each data type that's contained in
-// every variant (for example, the MDS variant contains a struct with two fields,
-// so we should set an alias to a structure type like that, or directly define
-// a struct with that shape, in this case PolishTokenMds was defined below).
-
 library PolishTokenEvaluation {
-    struct PolishToken {
-        PolishTokenVariant variant;
-        bytes data;
-    }
-
     function evaluate(
         Linearization storage linearization,
         Scalar.FE domain_gen,
@@ -36,16 +19,12 @@ library PolishTokenEvaluation {
         Proof.ProofEvaluations memory evals,
         ExprConstants memory c
     ) external view returns (Scalar.FE) {
-        Scalar.FE vanishing_eval = evaluate_vanishing_polynomial(domain_gen, domain_size, pt);
-
         Scalar.FE[] memory stack = new Scalar.FE[](linearization.total_variants_len);
         uint256 stack_next = 0; // will keep track of last stack element's index
         Scalar.FE[] memory cache = new Scalar.FE[](linearization.total_variants_len);
         uint256 cache_next = 0; // will keep track of last cache element's index
         // WARN: Both arrays allocate the maximum memory they will ever use, but it's
         // WARN: pretty unlikely they'll need it all.
-
-        uint256 skip_count = 0;
 
         uint256 next_mds_index = 0;
         uint256 next_literals_index = 0;
@@ -54,11 +33,6 @@ library PolishTokenEvaluation {
         uint256 next_loads_index = 0;
 
         for (uint256 i = 0; i < linearization.total_variants_len; i++) {
-            if (skip_count > 0) {
-                skip_count -= 1;
-                continue;
-            }
-
             uint256 byte_index = 31 - (i % 32);
             uint256 word_index = i / 32;
             uint256 variant = (linearization.variants[word_index] >> (byte_index * 8)) & 0xFF;
@@ -218,55 +192,11 @@ library PolishTokenEvaluation {
                 continue;
             }
             revert("unhandled polish token variant");
-            // TODO: SkipIf, SkipIfNot
         }
-        require(stack_next == 1);
+
+        require(stack_next == 1, "Polish token stack didn't evaluate fully");
         return stack[0];
     }
-
-    enum PolishTokenVariant {
-        Alpha,
-        Beta,
-        Gamma,
-        JointCombiner,
-        EndoCoefficient,
-        Mds,
-        Literal,
-        Cell,
-        Dup,
-        Pow,
-        Add,
-        Mul,
-        Sub,
-        VanishesOnZeroKnowledgeAndPreviousRows,
-        UnnormalizedLagrangeBasis,
-        Store,
-        Load,
-        // Skip the given number of tokens if the feature is enabled.
-        SkipIf,
-        // Skip the given number of tokens if the feature is disabled.
-        SkipIfNot
-    }
-
-    struct PolishTokenMds {
-        uint256 row;
-        uint256 col;
-    }
-    // type PolishTokenLiteral is Scalar.FE; // can't do this, language limitation
-    // type PolishTokenCell is Variable; // can't do this, language limitation
-
-    type PolishTokenDup is uint256;
-
-    type PolishTokenPow is uint256;
-    // type PolishTokenUnnormalizedLagrangeBasis is RowOffset; // can't do this, language limitation
-
-    type PolishTokenLoad is uint256;
-
-    type PolishTokenSkipIf is uint256;
-    // TODO: maybe delete these types? Solidity only allows to define aliases
-    // (actually called "user-defined value types") over elementary value types like
-    // integers, bools.
-
     // @notice Compute the ith unnormalized lagrange basis
     function unnormalized_lagrange_basis(Scalar.FE domain_gen, Scalar.FE vanishing_eval, int256 i, Scalar.FE pt)
         internal

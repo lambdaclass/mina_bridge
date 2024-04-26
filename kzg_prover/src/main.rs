@@ -7,7 +7,7 @@ use ark_ec::{
     bn::Bn, msm::VariableBaseMSM, short_weierstrass_jacobian::GroupAffine, AffineCurve,
     ProjectiveCurve,
 };
-use ark_ff::{BigInteger256, PrimeField};
+use ark_ff::{BigInteger256, Field, PrimeField};
 use ark_poly::{
     univariate::DensePolynomial, EvaluationDomain, Evaluations, Polynomial, Radix2EvaluationDomain,
     UVPolynomial,
@@ -21,10 +21,12 @@ use kimchi::{
     circuits::{
         constraints::ConstraintSystem,
         domains::EvaluationDomains,
-        expr::{Linearization, PolishToken, Variable},
-        gate::{CircuitGate, GateType},
+        expr::{Column, Constants, ExprError, Linearization, PolishToken, Variable},
+        gate::{CircuitGate, CurrOrNext, GateType},
+        lookup::lookups::LookupPattern,
         polynomials::{
             generic::testing::{create_circuit, fill_in_witness},
+            permutation::eval_vanishes_on_last_n_rows,
             range_check,
         },
         wires::{Wire, COLUMNS},
@@ -33,10 +35,11 @@ use kimchi::{
     groupmap::*,
     keccak_sponge::{Keccak256FqSponge, Keccak256FrSponge},
     o1_utils::{foreign_field::BigUintForeignFieldHelpers, BigUintFieldHelpers},
-    proof::ProverProof,
+    proof::{PointEvaluations, ProofEvaluations, ProverProof},
     prover_index::ProverIndex,
     verifier::{batch_verify, to_batch, Context},
 };
+use mina_poseidon::dummy_values::kimchi_dummy;
 use num::{bigint::RandBigInt, BigUint};
 use num_traits::{One, Zero};
 use o1_utils::FieldHelpers;
@@ -50,7 +53,10 @@ use poly_commitment::{
     PolyComm, SRS as _,
 };
 use serde::{ser::SerializeStruct, Serialize};
-use serializer::serialize::{EVMSerializable, EVMSerializableType};
+use serializer::{
+    serialize::{EVMSerializable, EVMSerializableType},
+    type_aliases::{BN254PolishToken, BN254ProofEvaluations},
+};
 use snarky_gate::SnarkyGate;
 
 type BaseField = ark_bn254::Fq;
@@ -135,6 +141,12 @@ fn generate_proof() {
         panic!();
     }
 
+    let precomputed_tokens = precompute_evaluation(
+        &index.linearization.constant_term,
+        &proof.evals,
+        verifier_index.zk_rows,
+    );
+
     // Serialize and write to binaries
     fs::write(
         "../eth_verifier/prover_proof.bin",
@@ -176,7 +188,7 @@ fn generate_proof() {
     .unwrap();
     fs::write(
         "../eth_verifier/linearization.bin",
-        EVMSerializableType(index.linearization.constant_term).to_bytes(),
+        EVMSerializableType(precomputed_tokens).to_bytes(),
     )
     .unwrap();
 
@@ -207,6 +219,203 @@ fn generate_proof() {
         EVMSerializableType(lagrange_bases[&domain_size].clone()).to_bytes(),
     )
     .unwrap();
+}
+
+fn precompute_evaluation(
+    tokens: &Vec<BN254PolishToken>,
+    evals: &BN254ProofEvaluations,
+    zk_rows: u64,
+) -> Vec<BN254PolishToken> {
+    let mut stack: Vec<BN254PolishToken> = Vec::with_capacity(3);
+
+    let mut new_tokens = vec![];
+
+    let constants = Constants {
+        alpha: ScalarField::from(0),
+        beta: ScalarField::from(0),
+        gamma: ScalarField::from(0),
+        joint_combiner: None,
+        endo_coefficient: G1::endos().1,
+        mds: &G1::sponge_params().mds,
+        zk_rows,
+    };
+    let evals = evals.combine(&PointEvaluations {
+        zeta: ScalarField::from(0),
+        zeta_omega: ScalarField::from(0),
+    });
+
+    // The idea is that we assumed there're many segments in the token
+    // vec that don't depend on any result from the verifier, so
+    // we might as well precompute those segments and send the results
+    // as `Literal` tokens.
+    //
+    // As an example consider we have a segment which is equivalent to
+    // 10 + 5 + 9. Those are 5 tokens in total and two operations the
+    // EVM verifier needs to deserialize and execute. We instead compute
+    // that segment here and replace the 5 tokens with the result: 14.
+    //
+    // For this we'll have a stack of tokens and we'll fill it first with
+    // two operands ("data tokens", so non operation tokens) and then with
+    // an operation, we'll evaluate those 3 tokens, replace them with the
+    // result and continue until we arrive at a token which we can't
+    // evaluate in the prover side. At this step the stack has the results
+    // of that evaluated segment.
+
+    for token in tokens.clone().iter() {
+        use PolishToken::*;
+        let is_unary_operation_token = matches!(token, Pow(_) | Dup);
+        let is_binary_operation_token = matches!(token, Add | Mul | Sub);
+        let is_data_token = matches!(
+            token,
+            EndoCoefficient | Mds { row: _, col: _ } | Literal(_) | Cell(_)
+        );
+
+        match stack.len() {
+            0 => {
+                if is_data_token {
+                    stack.push(token.clone());
+                } else {
+                    new_tokens.push(token.clone());
+                }
+            }
+            1 => {
+                stack.push(token.clone());
+                if is_unary_operation_token {
+                    partial_polish_evaluation(&mut stack, &evals, &constants).unwrap();
+                } else if is_binary_operation_token | !is_data_token {
+                    new_tokens.append(&mut stack);
+                }
+            }
+            2.. => {
+                stack.push(token.clone());
+                if is_unary_operation_token | is_binary_operation_token {
+                    partial_polish_evaluation(&mut stack, &evals, &constants).unwrap();
+                } else if !is_data_token {
+                    new_tokens.append(&mut stack);
+                }
+            }
+            _ => unreachable!(),
+        }
+    }
+    println!(
+        "Token compression result: {}",
+        1. - new_tokens.len() as f64 / tokens.len() as f64
+    );
+    new_tokens
+}
+
+fn partial_polish_evaluation(
+    tokens: &mut Vec<BN254PolishToken>,
+    evals: &ProofEvaluations<PointEvaluations<ScalarField>>,
+    c: &Constants<ScalarField>,
+) -> Result<(), ExprError> {
+    let mut stack = vec![];
+
+    use PolishToken::*;
+    for t in tokens.iter() {
+        match t {
+            EndoCoefficient => stack.push(c.endo_coefficient),
+            Mds { row, col } => stack.push(c.mds[*row][*col]),
+            Literal(x) => stack.push(*x),
+            Dup => stack.push(stack[stack.len() - 1]),
+            Cell(v) => stack.push(evaluate_variable(v, evals)?),
+            Pow(n) => {
+                let i = stack.len() - 1;
+                stack[i] = stack[i].pow([*n]);
+            }
+            Add => {
+                let y = stack.pop().ok_or(ExprError::EmptyStack)?;
+                let x = stack.pop().ok_or(ExprError::EmptyStack)?;
+                stack.push(x + y);
+            }
+            Mul => {
+                let y = stack.pop().ok_or(ExprError::EmptyStack)?;
+                let x = stack.pop().ok_or(ExprError::EmptyStack)?;
+                stack.push(x * y);
+            }
+            Sub => {
+                let y = stack.pop().ok_or(ExprError::EmptyStack)?;
+                let x = stack.pop().ok_or(ExprError::EmptyStack)?;
+                stack.push(x - y);
+            }
+            _ => unreachable!(),
+        }
+    }
+
+    *tokens = stack.into_iter().map(Literal).collect();
+    Ok(())
+}
+
+/// Function taken from proof_system's expr.rs because its private.
+fn evaluate_variable(
+    v: &Variable,
+    evals: &ProofEvaluations<PointEvaluations<ScalarField>>,
+) -> Result<ScalarField, ExprError> {
+    let point_evaluations = {
+        use Column::*;
+        match v.col {
+            Witness(i) => Ok(evals.w[i]),
+            Z => Ok(evals.z),
+            LookupSorted(i) => {
+                evals.lookup_sorted[i].ok_or(ExprError::MissingIndexEvaluation(v.col))
+            }
+            LookupAggreg => evals
+                .lookup_aggregation
+                .ok_or(ExprError::MissingIndexEvaluation(v.col)),
+            LookupTable => evals
+                .lookup_table
+                .ok_or(ExprError::MissingIndexEvaluation(v.col)),
+            LookupRuntimeTable => evals
+                .runtime_lookup_table
+                .ok_or(ExprError::MissingIndexEvaluation(v.col)),
+            Index(GateType::Poseidon) => Ok(evals.poseidon_selector),
+            Index(GateType::Generic) => Ok(evals.generic_selector),
+            Index(GateType::CompleteAdd) => Ok(evals.complete_add_selector),
+            Index(GateType::VarBaseMul) => Ok(evals.mul_selector),
+            Index(GateType::EndoMul) => Ok(evals.emul_selector),
+            Index(GateType::EndoMulScalar) => Ok(evals.endomul_scalar_selector),
+            Index(GateType::RangeCheck0) => evals
+                .range_check0_selector
+                .ok_or(ExprError::MissingIndexEvaluation(v.col)),
+            Index(GateType::RangeCheck1) => evals
+                .range_check1_selector
+                .ok_or(ExprError::MissingIndexEvaluation(v.col)),
+            Index(GateType::ForeignFieldAdd) => evals
+                .foreign_field_add_selector
+                .ok_or(ExprError::MissingIndexEvaluation(v.col)),
+            Index(GateType::ForeignFieldMul) => evals
+                .foreign_field_mul_selector
+                .ok_or(ExprError::MissingIndexEvaluation(v.col)),
+            Index(GateType::Xor16) => evals
+                .xor_selector
+                .ok_or(ExprError::MissingIndexEvaluation(v.col)),
+            Index(GateType::Rot64) => evals
+                .rot_selector
+                .ok_or(ExprError::MissingIndexEvaluation(v.col)),
+            Permutation(i) => Ok(evals.s[i]),
+            Coefficient(i) => Ok(evals.coefficients[i]),
+            Column::LookupKindIndex(LookupPattern::Xor) => evals
+                .xor_lookup_selector
+                .ok_or(ExprError::MissingIndexEvaluation(v.col)),
+            Column::LookupKindIndex(LookupPattern::Lookup) => evals
+                .lookup_gate_lookup_selector
+                .ok_or(ExprError::MissingIndexEvaluation(v.col)),
+            Column::LookupKindIndex(LookupPattern::RangeCheck) => evals
+                .range_check_lookup_selector
+                .ok_or(ExprError::MissingIndexEvaluation(v.col)),
+            Column::LookupKindIndex(LookupPattern::ForeignFieldMul) => evals
+                .foreign_field_mul_lookup_selector
+                .ok_or(ExprError::MissingIndexEvaluation(v.col)),
+            Column::LookupRuntimeSelector => evals
+                .runtime_lookup_table_selector
+                .ok_or(ExprError::MissingIndexEvaluation(v.col)),
+            Index(_) => Err(ExprError::MissingIndexEvaluation(v.col)),
+        }
+    }?;
+    match v.row {
+        CurrOrNext::Curr => Ok(point_evaluations.zeta),
+        CurrOrNext::Next => Ok(point_evaluations.zeta_omega),
+    }
 }
 
 fn generate_test_proof_for_evm_verifier() {

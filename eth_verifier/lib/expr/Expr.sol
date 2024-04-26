@@ -5,7 +5,7 @@ import "./PolishToken.sol";
 
 struct Column {
     ColumnVariant variant;
-    bytes data;
+    uint256 inner;
 }
 
 enum ColumnVariant {
@@ -92,12 +92,6 @@ enum GateType {
     ForeignFieldMul,
     Xor16,
     Rot64
-}
-
-// @notice non-independent term of a linearization
-struct LinearTerm {
-    Column col;
-    PolishTokenEvaluation.PolishToken[] coeff;
 }
 
 struct Linearization {

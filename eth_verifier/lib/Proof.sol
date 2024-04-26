@@ -9,15 +9,17 @@ import "./Commitment.sol";
 import "./bn254/BN254.sol";
 import "./bn254/Fields.sol";
 import "./VerifierIndex.sol";
+import "./Constants.sol";
 
 library Proof {
     error MissingIndexEvaluation(string col);
     error MissingColumnEvaluation(ColumnVariant variant);
-    error MissingLookupColumnEvaluation(LookupPattern pattern);
-    error MissingIndexColumnEvaluation(GateType gate);
+    error MissingLookupColumnEvaluation(uint256 pattern);
+    error MissingIndexColumnEvaluation(uint256 gate);
     error UnhandledColumnVariant(uint256 id);
 
     using {Scalar.mul} for Scalar.FE;
+
 
     struct PairingProof {
         BN254.G1Point quotient;
@@ -216,57 +218,51 @@ library Proof {
         }
     }
 
-    function get_column_eval(ProofEvaluations memory evals, Column memory col)
-        public
+    function get_column_eval(Proof.ProofEvaluations memory evals, Column memory col)
+        internal
         pure
         returns (PointEvaluations memory)
     {
         ColumnVariant variant = col.variant;
-        bytes memory data = col.data;
+        uint256 inner = col.inner;
         if (variant == ColumnVariant.Witness) {
-            uint256 i = abi.decode(data, (uint256));
-            return evals.w[i];
+            return evals.w[inner];
         } else if (variant == ColumnVariant.Z) {
             return evals.z;
         } else if (variant == ColumnVariant.LookupSorted) {
-            uint256 i = abi.decode(data, (uint256));
-            return evals.lookup_sorted[i];
+            return evals.lookup_sorted[inner];
         } else if (variant == ColumnVariant.LookupAggreg) {
             return evals.lookup_aggregation;
         } else if (variant == ColumnVariant.LookupTable) {
             return evals.lookup_table;
         } else if (variant == ColumnVariant.LookupKindIndex) {
-            LookupPattern pattern = abi.decode(data, (LookupPattern));
-            if (pattern == LookupPattern.Xor) return evals.xor_lookup_selector;
-            else if (pattern == LookupPattern.Lookup) return evals.lookup_gate_lookup_selector;
-            else if (pattern == LookupPattern.RangeCheck) return evals.range_check_lookup_selector;
-            else if (pattern == LookupPattern.ForeignFieldMul) return evals.foreign_field_mul_lookup_selector;
-            else revert MissingLookupColumnEvaluation(pattern);
+            if (inner == LOOKUP_PATTERN_XOR) return evals.xor_lookup_selector;
+            else if (inner == LOOKUP_PATTERN_LOOKUP) return evals.lookup_gate_lookup_selector;
+            else if (inner == LOOKUP_PATTERN_RANGE_CHECK) return evals.range_check_lookup_selector;
+            else if (inner == LOOKUP_PATTERN_FOREIGN_FIELD_MUL) return evals.foreign_field_mul_lookup_selector;
+            else revert Proof.MissingLookupColumnEvaluation(inner);
         } else if (variant == ColumnVariant.LookupRuntimeSelector) {
             return evals.runtime_lookup_table_selector;
         } else if (variant == ColumnVariant.Index) {
-            GateType gate = abi.decode(data, (GateType));
-            if (gate == GateType.Generic) return evals.generic_selector;
-            else if (gate == GateType.Poseidon) return evals.poseidon_selector;
-            else if (gate == GateType.CompleteAdd) return evals.complete_add_selector;
-            else if (gate == GateType.VarBaseMul) return evals.mul_selector;
-            else if (gate == GateType.EndoMul) return evals.emul_selector;
-            else if (gate == GateType.EndoMulScalar) return evals.endomul_scalar_selector;
-            else if (gate == GateType.RangeCheck0) return evals.range_check0_selector;
-            else if (gate == GateType.RangeCheck1) return evals.range_check1_selector;
-            else if (gate == GateType.ForeignFieldAdd) return evals.foreign_field_add_selector;
-            else if (gate == GateType.ForeignFieldMul) return evals.foreign_field_mul_selector;
-            else if (gate == GateType.Xor16) return evals.xor_selector;
-            else if (gate == GateType.Rot64) return evals.rot_selector;
-            else revert MissingIndexColumnEvaluation(gate);
+            if (inner == GATE_TYPE_GENERIC) return evals.generic_selector;
+            else if (inner == GATE_TYPE_POSEIDON) return evals.poseidon_selector;
+            else if (inner == GATE_TYPE_COMPLETE_ADD) return evals.complete_add_selector;
+            else if (inner == GATE_TYPE_VAR_BASE_MUL) return evals.mul_selector;
+            else if (inner == GATE_TYPE_ENDO_MUL) return evals.emul_selector;
+            else if (inner == GATE_TYPE_ENDO_MUL_SCALAR) return evals.endomul_scalar_selector;
+            else if (inner == GATE_TYPE_RANGE_CHECK_0) return evals.range_check0_selector;
+            else if (inner == GATE_TYPE_RANGE_CHECK_1) return evals.range_check1_selector;
+            else if (inner == GATE_TYPE_FOREIGN_FIELD_ADD) return evals.foreign_field_add_selector;
+            else if (inner == GATE_TYPE_FOREIGN_FIELD_MUL) return evals.foreign_field_mul_selector;
+            else if (inner == GATE_TYPE_XOR_16) return evals.xor_selector;
+            else if (inner == GATE_TYPE_ROT_64) return evals.rot_selector;
+            else revert Proof.MissingIndexColumnEvaluation(inner);
         } else if (variant == ColumnVariant.Coefficient) {
-            uint256 i = abi.decode(data, (uint256));
-            return evals.coefficients[i];
+            return evals.coefficients[inner];
         } else if (variant == ColumnVariant.Permutation) {
-            uint256 i = abi.decode(data, (uint256));
-            return evals.s[i];
+            return evals.s[inner];
         } else {
-            revert MissingColumnEvaluation(variant);
+            revert Proof.MissingColumnEvaluation(variant);
         }
     }
 

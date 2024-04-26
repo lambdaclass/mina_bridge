@@ -35,15 +35,17 @@ library KimchiPartialVerifier {
         VerifierIndex storage verifier_index,
         URS storage urs,
         Scalar.FE public_input,
-        uint256[2] storage lagrange_base_coords, // flattened pairs of (x, y) coords
         Sponge storage base_sponge,
         Sponge storage scalar_sponge
     ) external returns (Proof.AggregatedEvaluationProof memory) {
-        // TODO: 1. CHeck the length of evaluations insde the proof
+        // TODO: 1. Check the length of evaluations insde the proof
 
         // 2. Commit to the negated public input polynomial.
-        BN254.G1Point memory public_comm =
-            public_commitment(verifier_index, urs, public_input, lagrange_base_coords);
+        BN254.G1Point memory public_comm = public_commitment(
+            verifier_index,
+            urs,
+            public_input
+        );
 
         // 3. Execute fiat-shamir with a Keccak sponge
 
@@ -102,53 +104,53 @@ library KimchiPartialVerifier {
         evaluations[eval_index++] = Evaluation(ft_comm, [oracles_res.ft_eval0, proof.ft_eval1], 0);
         uint256 columns_len = 52; // INFO: hard-coded for the test proof
         Column[] memory columns = new Column[](columns_len);
-        columns[0] = Column(ColumnVariant.Z, new bytes(0));
-        columns[1] = Column(ColumnVariant.Index, abi.encode(GateType.Generic));
-        columns[2] = Column(ColumnVariant.Index, abi.encode(GateType.Poseidon));
-        columns[3] = Column(ColumnVariant.Index, abi.encode(GateType.CompleteAdd));
-        columns[4] = Column(ColumnVariant.Index, abi.encode(GateType.VarBaseMul));
-        columns[5] = Column(ColumnVariant.Index, abi.encode(GateType.EndoMul));
-        columns[6] = Column(ColumnVariant.Index, abi.encode(GateType.EndoMulScalar));
+        columns[0] = Column(ColumnVariant.Z, 0);
+        columns[1] = Column(ColumnVariant.Index, GATE_TYPE_GENERIC);
+        columns[2] = Column(ColumnVariant.Index, GATE_TYPE_POSEIDON);
+        columns[3] = Column(ColumnVariant.Index, GATE_TYPE_COMPLETE_ADD);
+        columns[4] = Column(ColumnVariant.Index, GATE_TYPE_VAR_BASE_MUL);
+        columns[5] = Column(ColumnVariant.Index, GATE_TYPE_ENDO_MUL);
+        columns[6] = Column(ColumnVariant.Index, GATE_TYPE_ENDO_MUL_SCALAR);
         uint256 col_index = 7;
         for (uint256 i = 0; i < COLUMNS; i++) {
-            columns[col_index++] = Column(ColumnVariant.Witness, abi.encode(i));
+            columns[col_index++] = Column(ColumnVariant.Witness, i);
         }
         for (uint256 i = 0; i < COLUMNS; i++) {
-            columns[col_index++] = Column(ColumnVariant.Coefficient, abi.encode(i));
+            columns[col_index++] = Column(ColumnVariant.Coefficient, i);
         }
         for (uint256 i = 0; i < PERMUTS - 1; i++) {
-            columns[col_index++] = Column(ColumnVariant.Permutation, abi.encode(i));
+            columns[col_index++] = Column(ColumnVariant.Permutation, i);
         }
         if (Proof.is_field_set(verifier_index, RANGE_CHECK0_COMM_FLAG)) {
-            columns[col_index++] = Column(ColumnVariant.Index, abi.encode(GateType.RangeCheck0));
+            columns[col_index++] = Column(ColumnVariant.Index, GATE_TYPE_RANGE_CHECK_0);
         }
         if (Proof.is_field_set(verifier_index, RANGE_CHECK1_COMM_FLAG)) {
-            columns[col_index++] = Column(ColumnVariant.Index, abi.encode(GateType.RangeCheck1));
+            columns[col_index++] = Column(ColumnVariant.Index, GATE_TYPE_RANGE_CHECK_1);
         }
         if (Proof.is_field_set(verifier_index, FOREIGN_FIELD_ADD_COMM_FLAG)) {
-            columns[col_index++] = Column(ColumnVariant.Index, abi.encode(GateType.ForeignFieldAdd));
+            columns[col_index++] = Column(ColumnVariant.Index, GATE_TYPE_FOREIGN_FIELD_ADD);
         }
         if (Proof.is_field_set(verifier_index, FOREIGN_FIELD_MUL_COMM_FLAG)) {
-            columns[col_index++] = Column(ColumnVariant.Index, abi.encode(GateType.ForeignFieldMul));
+            columns[col_index++] = Column(ColumnVariant.Index, GATE_TYPE_FOREIGN_FIELD_MUL);
         }
         if (Proof.is_field_set(verifier_index, XOR_COMM_FLAG)) {
-            columns[col_index++] = Column(ColumnVariant.Index, abi.encode(GateType.Xor16));
+            columns[col_index++] = Column(ColumnVariant.Index, GATE_TYPE_XOR_16);
         }
         if (Proof.is_field_set(verifier_index, ROT_COMM_FLAG)) {
-            columns[col_index++] = Column(ColumnVariant.Index, abi.encode(GateType.Rot64));
+            columns[col_index++] = Column(ColumnVariant.Index, GATE_TYPE_ROT_64);
         }
         if (Proof.is_field_set(verifier_index, LOOKUP_VERIFIER_INDEX_FLAG)) {
             LookupVerifierIndex memory li = verifier_index.lookup_index;
             for (uint256 i = 0; i < li.lookup_info.max_per_row + 1; i++) {
-                columns[col_index++] = Column(ColumnVariant.LookupSorted, abi.encode(i));
+                columns[col_index++] = Column(ColumnVariant.LookupSorted, i);
             }
-            columns[col_index++] = Column(ColumnVariant.LookupAggreg, new bytes(0));
+            columns[col_index++] = Column(ColumnVariant.LookupAggreg, 0);
         }
         // push all commitments corresponding to each column
         for (uint256 i = 0; i < col_index; i++) {
             PointEvaluations memory eval = Proof.get_column_eval(proof.evals, columns[i]);
             evaluations[eval_index++] =
-                Evaluation(get_column_commitment(verifier_index, proof, columns[i]), [eval.zeta, eval.zeta_omega], 0);
+                Evaluation(get_column_commitment(columns[i], verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
         }
 
         if (Proof.is_field_set(verifier_index, LOOKUP_VERIFIER_INDEX_FLAG)) {
@@ -191,34 +193,29 @@ library KimchiPartialVerifier {
             }
 
             if (Proof.is_field_set(li, RUNTIME_TABLES_SELECTOR_FLAG)) {
-                Column memory col = Column(ColumnVariant.LookupRuntimeSelector, new bytes(0));
-                PointEvaluations memory eval = proof.evals.get_column_eval(col);
-                evaluations[eval_index++] =
-                    Evaluation(get_column_commitment(verifier_index, proof, col), [eval.zeta, eval.zeta_omega], 0);
+                Column memory col = Column(ColumnVariant.LookupRuntimeSelector, 0);
+                PointEvaluations memory eval = Proof.get_column_eval(proof.evals, col);
+                evaluations[eval_index++] = Evaluation(get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
             }
             if (Proof.is_field_set(li, XOR_FLAG)) {
-                Column memory col = Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.Xor));
-                PointEvaluations memory eval = proof.evals.get_column_eval(col);
-                evaluations[eval_index++] =
-                    Evaluation(get_column_commitment(verifier_index, proof, col), [eval.zeta, eval.zeta_omega], 0);
+                Column memory col = Column(ColumnVariant.LookupKindIndex, LOOKUP_PATTERN_XOR);
+                PointEvaluations memory eval = Proof.get_column_eval(proof.evals, col);
+                evaluations[eval_index++] = Evaluation(get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
             }
             if (Proof.is_field_set(li, LOOKUP_FLAG)) {
-                Column memory col = Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.Lookup));
-                PointEvaluations memory eval = proof.evals.get_column_eval(col);
-                evaluations[eval_index++] =
-                    Evaluation(get_column_commitment(verifier_index, proof, col), [eval.zeta, eval.zeta_omega], 0);
+                Column memory col = Column(ColumnVariant.LookupKindIndex, LOOKUP_PATTERN_LOOKUP);
+                PointEvaluations memory eval = Proof.get_column_eval(proof.evals, col);
+                evaluations[eval_index++] = Evaluation(get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
             }
             if (Proof.is_field_set(li, RANGE_CHECK_FLAG)) {
-                Column memory col = Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.RangeCheck));
-                PointEvaluations memory eval = proof.evals.get_column_eval(col);
-                evaluations[eval_index++] =
-                    Evaluation(get_column_commitment(verifier_index, proof, col), [eval.zeta, eval.zeta_omega], 0);
+                Column memory col = Column(ColumnVariant.LookupKindIndex, LOOKUP_PATTERN_RANGE_CHECK);
+                PointEvaluations memory eval = Proof.get_column_eval(proof.evals, col);
+                evaluations[eval_index++] = Evaluation(get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
             }
             if (Proof.is_field_set(li, FFMUL_FLAG)) {
-                Column memory col = Column(ColumnVariant.LookupKindIndex, abi.encode(LookupPattern.ForeignFieldMul));
-                PointEvaluations memory eval = proof.evals.get_column_eval(col);
-                evaluations[eval_index++] =
-                    Evaluation(get_column_commitment(verifier_index, proof, col), [eval.zeta, eval.zeta_omega], 0);
+                Column memory col = Column(ColumnVariant.LookupKindIndex, LOOKUP_PATTERN_FOREIGN_FIELD_MUL);
+                PointEvaluations memory eval = Proof.get_column_eval(proof.evals, col);
+                evaluations[eval_index++] = Evaluation(get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
             }
         }
 
@@ -230,8 +227,7 @@ library KimchiPartialVerifier {
     function public_commitment(
         VerifierIndex storage verifier_index,
         URS storage urs,
-        Scalar.FE public_input,
-        uint256[2] storage lagrange_base_coords // (x, y) coords
+        Scalar.FE public_input
     ) public view returns (BN254.G1Point memory) {
         if (verifier_index.domain_size < verifier_index.max_poly_size) {
             revert PolynomialsAreChunked(verifier_index.domain_size / verifier_index.max_poly_size);
@@ -240,8 +236,12 @@ library KimchiPartialVerifier {
         if (verifier_index.public_len != 1) {
             revert IncorrectPublicInputLength();
         }
+
         BN254.G1Point memory public_comm;
-        BN254.G1Point memory lagrange_base = BN254.G1Point(lagrange_base_coords[0], lagrange_base_coords[1]);
+        BN254.G1Point memory lagrange_base = BN254.G1Point(
+            0x280c10e2f52fb4ab3ba21204b30df5b69560978e0911a5c673ad0558070f17c1,
+            0x287897da7c8db33cd988a1328770890b2754155612290448267f9ca4c549cb39
+        );
         public_comm = lagrange_base.scale_scalar(public_input);
         // negate the results of the MSM
         public_comm = public_comm.neg();

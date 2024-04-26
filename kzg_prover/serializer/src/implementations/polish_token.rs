@@ -53,10 +53,10 @@ impl EVMSerializable for EVMSerializableType<Vec<BN254PolishToken>> {
                 PolishToken::Mul => token_id = 10,
                 PolishToken::Sub => token_id = 11,
                 PolishToken::VanishesOnZeroKnowledgeAndPreviousRows => token_id = 12,
-                PolishToken::UnnormalizedLagrangeBasis(offset) =>  {
+                PolishToken::UnnormalizedLagrangeBasis(offset) => {
                     token_id = 13;
                     encoded_offsets.extend(EVMSerializableType(*offset).to_bytes());
-                },
+                }
                 PolishToken::Store => token_id = 14,
                 PolishToken::Load(index) => {
                     token_id = 15;
