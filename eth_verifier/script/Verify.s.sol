@@ -21,11 +21,15 @@ contract Verify is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         KimchiVerifier verifier = new KimchiVerifier();
+
         verifier.setup();
 
-        bool success = verifier.full_verify(
-            verifier_index_serialized, linearization_serialized, prover_proof_serialized, public_input_serialized
-        );
+        verifier.store_verifier_index(verifier_index_serialized);
+        verifier.store_linearization(linearization_serialized);
+        verifier.store_prover_proof(prover_proof_serialized);
+        verifier.store_public_input(public_input_serialized);
+
+        bool success = verifier.full_verify();
 
         require(success, "Verification failed.");
 

@@ -113,17 +113,7 @@ contract KimchiVerifier {
         public_input = deser_public_input(data_serialized);
     }
 
-    function full_verify(
-        bytes calldata verifier_index_serialized,
-        bytes calldata linearization_serialized,
-        bytes calldata prover_proof_serialized,
-        bytes calldata public_input_serialized
-    ) public returns (bool) {
-        store_verifier_index(verifier_index_serialized);
-        store_linearization(linearization_serialized);
-        store_prover_proof(prover_proof_serialized);
-        store_public_input(public_input_serialized);
-
+    function full_verify() public returns (bool) {
         AggregatedEvaluationProof memory agg_proof = partial_verify();
         return final_verify(agg_proof);
     }
@@ -511,7 +501,7 @@ contract KimchiVerifier {
     }
 
     function final_verify_stored() public view returns (bool) {
-        final_verify(aggregated_proof);
+        return final_verify(aggregated_proof);
     }
 
     function final_verify(AggregatedEvaluationProof memory agg_proof) public view returns (bool) {
