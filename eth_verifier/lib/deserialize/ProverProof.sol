@@ -3,10 +3,7 @@ pragma solidity >=0.4.16 <0.9.0;
 
 import "../Proof.sol";
 
-function deser_proof_comms(
-    bytes memory data,
-    ProverCommitments storage comms
-) {
+function deser_proof_comms(bytes memory data, Proof.ProverCommitments storage comms) {
     assembly {
         // first 32 bytes is the length of the bytes array, we'll skip them.
         let addr := add(data, 0x20)
@@ -37,7 +34,8 @@ function deser_proof_comms(
         // - lookup_runtime
         // totalling 2 commitments + the length of `lookup_sorted`.
 
-        if and(1, optional_field_flags) { // if the lookup comms are present
+        if and(1, optional_field_flags) {
+            // if the lookup comms are present
             // First we'll take care of lookup_sorted. The slot of
             // the last element of a dynamic array is the keccak hash of
             // the array slot. Also the array slot contains its length.
@@ -90,10 +88,7 @@ function deser_proof_comms(
     }
 }
 
-function deser_proof_evals(
-    bytes memory data,
-    ProofEvaluations storage evals
-) {
+function deser_proof_evals(bytes memory data, Proof.ProofEvaluations storage evals) {
     assembly {
         // first 32 bytes is the length of the bytes array, we'll skip them.
         let addr := add(data, 0x20)
@@ -146,7 +141,8 @@ function deser_proof_evals(
         for { let i := 0 } lt(i, 20) { i := add(i, 1) } {
             let is_some := and(1, shr(i, optional_field_flags))
             switch is_some
-            case 1 { // true
+            case 1 {
+                // true
                 // zeta:
                 sstore(slot, mload(addr))
                 addr := add(addr, 0x20)
@@ -156,17 +152,15 @@ function deser_proof_evals(
                 addr := add(addr, 0x20)
                 slot := add(slot, 1)
             }
-            default { // false
+            default {
+                // false
                 slot := add(slot, 2)
             }
         }
     }
 }
 
-function deser_pairing_proof(
-    bytes memory data,
-    PairingProof storage pairing_proof
-) {
+function deser_pairing_proof(bytes memory data, Proof.PairingProof storage pairing_proof) {
     assembly {
         // first 32 bytes is the length of the bytes array, we'll skip them.
         let addr := add(data, 0x20)
@@ -178,16 +172,15 @@ function deser_pairing_proof(
     }
 }
 
-function deser_prover_proof(
-    bytes memory data,
-    ProverProof storage prover_proof
-) {
+function deser_prover_proof(bytes memory data, Proof.ProverProof storage prover_proof) {
     assembly ("memory-safe") {
         // first 32 bytes is the length of the bytes array, we'll skip them.
         let addr := add(data, 0x20)
         let slot := prover_proof.slot
 
-        /** Decode commitments **/
+        /**
+         * Decode commitments *
+         */
 
         // the first 32 bytes correspond to the optional field flags:
         let optional_field_flags := mload(addr)
@@ -214,7 +207,8 @@ function deser_prover_proof(
         // - lookup_runtime
         // totalling 2 commitments + the length of `lookup_sorted`.
 
-        if and(1, optional_field_flags) { // if the lookup comms are present
+        if and(1, optional_field_flags) {
+            // if the lookup comms are present
             // First we'll take care of lookup_sorted. The slot of
             // the last element of a dynamic array is the keccak hash of
             // the array slot. Also the array slot contains its length.
@@ -253,8 +247,9 @@ function deser_prover_proof(
             slot := add(slot, 1)
 
             // Now lookup_runtime if it's present:
-            switch and(1, shr(1, optional_field_flags)) 
-            case 1 { // true
+            switch and(1, shr(1, optional_field_flags))
+            case 1 {
+                // true
                 // x:
                 sstore(slot, mload(addr))
                 addr := add(addr, 0x20)
@@ -264,12 +259,15 @@ function deser_prover_proof(
                 addr := add(addr, 0x20)
                 slot := add(slot, 1)
             }
-            default { // false
+            default {
+                // false
                 slot := add(slot, 2)
             }
         }
 
-        /** Decode opening **/
+        /**
+         * Decode opening *
+         */
 
         // opening consists of a point and a scalar, so three uints:
         sstore(slot, mload(addr))
@@ -282,7 +280,9 @@ function deser_prover_proof(
         addr := add(addr, 0x20)
         slot := add(slot, 1)
 
-        /** Decode evaluations: **/
+        /**
+         * Decode evaluations: *
+         */
 
         // the first 32 bytes correspond to the optional field flags:
         optional_field_flags := mload(addr)
@@ -331,7 +331,8 @@ function deser_prover_proof(
         for { let i := 0 } lt(i, 20) { i := add(i, 1) } {
             let is_some := and(1, shr(i, optional_field_flags))
             switch is_some
-            case 1 { // true
+            case 1 {
+                // true
                 // zeta:
                 sstore(slot, mload(addr))
                 addr := add(addr, 0x20)
@@ -341,12 +342,15 @@ function deser_prover_proof(
                 addr := add(addr, 0x20)
                 slot := add(slot, 1)
             }
-            default { // false
+            default {
+                // false
                 slot := add(slot, 2)
             }
         }
 
-        /** Decode ft_eval1: **/
+        /**
+         * Decode ft_eval1: *
+         */
 
         // ft_eval1 is just a scalar:
         sstore(slot, mload(addr))
