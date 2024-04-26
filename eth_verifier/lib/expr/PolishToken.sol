@@ -205,7 +205,7 @@ library PolishTokenEvaluation {
 
                 // get eval from column id (see serializer)
                 uint256 col_id = (variant & (0x80 - 1)) - 16;
-                PointEvaluations memory point_eval = evaluate_column_by_id(evals, col_id);
+                PointEvaluations memory point_eval = Proof.evaluate_column_by_id(evals, col_id);
                 Scalar.FE eval;
                 if (curr) {
                     eval = point_eval.zeta;
