@@ -2,17 +2,15 @@
 src = "src"
 out = "out"
 libs = ["lib"]
-optimizer = false
+optimizer = true
+optimizer_runs = 200
+via_ir = true
 fs_permissions = [
-    { access = "read", path = "./proof.mpk"},
-    { access = "read", path = "./state.mpk"},
-    { access = "read", path = "./urs.mpk"},
     { access = "read", path = "./verifier_index.bin"},
     { access = "read", path = "./prover_proof.bin"},
     { access = "read", path = "./public_input.bin"},
     { access = "read", path = "./linearization.bin"},
     { access = "read", path = "./unit_test_data/"},
-    { access = "read-write", path = "./linearization.rlp"}
 ]
 solc = "0.8.21"
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

@@ -55,6 +55,8 @@ contract KimchiVerifier {
     Sponge base_sponge;
     Sponge scalar_sponge;
 
+    bool last_verification_result;
+
     function setup() public {
         // Setup URS
         urs.g = new BN254.G1Point[](3);
@@ -98,30 +100,22 @@ contract KimchiVerifier {
     }
 
     function full_verify() public returns (bool) {
-        Proof.AggregatedEvaluationProof memory agg_proof = KimchiPartialVerifier.partial_verify(
-            proof,
-            verifier_index,
-            urs,
-            public_input,
-            base_sponge,
-            scalar_sponge
-        );
+        Proof.AggregatedEvaluationProof memory agg_proof =
+            KimchiPartialVerifier.partial_verify(proof, verifier_index, urs, public_input, base_sponge, scalar_sponge);
         return final_verify(agg_proof);
     }
 
     function partial_verify_and_store() public {
-        aggregated_proof = KimchiPartialVerifier.partial_verify(
-            proof,
-            verifier_index,
-            urs,
-            public_input,
-            base_sponge,
-            scalar_sponge
-        );
+        aggregated_proof =
+            KimchiPartialVerifier.partial_verify(proof, verifier_index, urs, public_input, base_sponge, scalar_sponge);
     }
 
-    function final_verify_stored() public view returns (bool) {
-        return final_verify(aggregated_proof);
+    function final_verify_and_store() public {
+        last_verification_result = final_verify(aggregated_proof);
+    }
+
+    function is_last_proof_valid() public view returns (bool) {
+        return last_verification_result;
     }
 
     function final_verify(Proof.AggregatedEvaluationProof memory agg_proof) public view returns (bool) {
@@ -191,11 +185,11 @@ contract KimchiVerifier {
         result = BN256G2.ECTwistAdd(result, point2);
     }
 
-    function eval_commitment(Scalar.FE[2] memory evaluation_points, Scalar.FE[] memory evals, Commitment.URS memory full_urs)
-        public
-        view
-        returns (BN254.G1Point memory)
-    {
+    function eval_commitment(
+        Scalar.FE[2] memory evaluation_points,
+        Scalar.FE[] memory evals,
+        Commitment.URS memory full_urs
+    ) public view returns (BN254.G1Point memory) {
         Scalar.FE[] memory eval_poly_coeffs = new Scalar.FE[](3);
 
         // The evaluation polynomial e(x) is the poly that evaluates to evals[i]
