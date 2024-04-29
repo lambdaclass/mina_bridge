@@ -123,7 +123,7 @@ struct AlphasIterator {
     uint256 current_index;
 }
 
-function it_next(AlphasIterator memory self) view returns (Scalar.FE) {
+function it_next(AlphasIterator memory self) pure returns (Scalar.FE) {
     require(self.current_index < self.powers.length, "powers of alpha iterator out of bounds");
     return self.powers[self.current_index++];
 }

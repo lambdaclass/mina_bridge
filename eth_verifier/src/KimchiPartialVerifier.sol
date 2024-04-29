@@ -8,7 +8,6 @@ import "../lib/VerifierIndex.sol";
 import "../lib/Commitment.sol";
 import "../lib/Oracles.sol";
 import "../lib/Proof.sol";
-import "../lib/State.sol";
 import "../lib/VerifierIndex.sol";
 import "../lib/Constants.sol";
 import "../lib/Alphas.sol";

@@ -5,37 +5,19 @@ import "../lib/bn254/Fields.sol";
 import "../lib/bn254/BN254.sol";
 import "../lib/bn254/BN256G2.sol";
 import "../lib/VerifierIndex.sol";
-import "../lib/Commitment.sol";
-import "../lib/Oracles.sol";
 import "../lib/Proof.sol";
-import "../lib/State.sol";
-import "../lib/VerifierIndex.sol";
-import "../lib/Constants.sol";
 import "../lib/Alphas.sol";
-import "../lib/Evaluations.sol";
 import "../lib/deserialize/ProverProof.sol";
 import "../lib/deserialize/PublicInputs.sol";
 import "../lib/deserialize/VerifierIndex.sol";
 import "../lib/deserialize/Linearization.sol";
-import "../lib/expr/Expr.sol";
-import "../lib/expr/PolishToken.sol";
-import "../lib/expr/ExprConstants.sol";
 import "./KimchiPartialVerifier.sol";
-
-using {BN254.add, BN254.neg, BN254.scale_scalar, BN254.sub} for BN254.G1Point;
-using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
-using {get_alphas} for Alphas;
-using {it_next} for AlphasIterator;
 
 contract KimchiVerifier {
     using {BN254.add, BN254.neg, BN254.scale_scalar, BN254.sub} for BN254.G1Point;
     using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
-    using {get_alphas} for Alphas;
+    using {get_alphas, register} for Alphas;
     using {it_next} for AlphasIterator;
-    using {Proof.get_column_eval} for Proof.ProofEvaluations;
-    using {register} for Alphas;
-
-    using {register} for Alphas;
 
     error IncorrectPublicInputLength();
     error PolynomialsAreChunked(uint256 chunk_size);
@@ -47,8 +29,6 @@ contract KimchiVerifier {
     Scalar.FE public_input;
 
     Proof.AggregatedEvaluationProof aggregated_proof;
-    State internal state;
-    bool state_available;
 
     KeccakSponge.Sponge base_sponge;
     KeccakSponge.Sponge scalar_sponge;
