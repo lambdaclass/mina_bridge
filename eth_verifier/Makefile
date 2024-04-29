@@ -20,6 +20,12 @@ deploy_sepolia:
     --chain-id 11155111 \
     script/Deploy.s.sol:Deploy
 
+upload_proof_sepolia:
+	forge script --rpc-url ${RPC_URL} --broadcast \
+    --private-key ${PRIVATE_KEY} \
+    --chain-id 11155111 \
+    script/UploadProof.s.sol:UploadProof
+
 verify_sepolia:
 	cast send --rpc-url ${RPC_URL} --gas-price 15000000000 --private-key ${PRIVATE_KEY} ${CONTRACT_ADDRESS} "partial_verify_and_store()"
 	cast send --rpc-url ${RPC_URL} --private-key ${PRIVATE_KEY} ${CONTRACT_ADDRESS} "final_verify_and_store()"

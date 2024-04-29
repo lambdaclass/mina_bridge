@@ -6,13 +6,11 @@ import {KimchiVerifier} from "../src/Verifier.sol";
 
 contract Deploy is Script {
     bytes verifier_index_serialized;
-    bytes prover_proof_serialized;
     bytes linearization_serialized;
     bytes public_input_serialized;
 
     function run() public {
         verifier_index_serialized = vm.readFileBinary("verifier_index.bin");
-        prover_proof_serialized = vm.readFileBinary("prover_proof.bin");
         linearization_serialized = vm.readFileBinary("linearization.bin");
         public_input_serialized = vm.readFileBinary("public_input.bin");
 
@@ -26,7 +24,6 @@ contract Deploy is Script {
 
         verifier.store_verifier_index(verifier_index_serialized);
         verifier.store_linearization(linearization_serialized);
-        verifier.store_prover_proof(prover_proof_serialized);
         verifier.store_public_input(public_input_serialized);
 
         vm.stopBroadcast();
