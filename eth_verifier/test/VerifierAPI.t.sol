@@ -67,7 +67,7 @@ contract KimchiVerifierTest is Test {
     }
 
     function test_final_verify() public {
-        global_verifier.final_verify_stored();
+        global_verifier.final_verify_and_store();
         bool success = global_verifier.is_last_proof_valid();
         require(success, "Verification failed!");
     }

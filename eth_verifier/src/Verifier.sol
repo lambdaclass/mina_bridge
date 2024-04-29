@@ -110,7 +110,7 @@ contract KimchiVerifier {
             KimchiPartialVerifier.partial_verify(proof, verifier_index, urs, public_input, base_sponge, scalar_sponge);
     }
 
-    function final_verify_stored() public {
+    function final_verify_and_store() public {
         last_verification_result = final_verify(aggregated_proof);
     }
 

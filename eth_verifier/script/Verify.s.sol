@@ -29,6 +29,10 @@ contract Verify is Script {
         verifier.store_prover_proof(prover_proof_serialized);
         verifier.store_public_input(public_input_serialized);
 
+        bool success = verifier.full_verify();
+
+        require(success, "Verification failed.");
+
         vm.stopBroadcast();
     }
 }
