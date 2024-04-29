@@ -22,8 +22,6 @@ import "../lib/expr/PolishToken.sol";
 import "../lib/expr/ExprConstants.sol";
 import "./KimchiPartialVerifier.sol";
 
-import "forge-std/console.sol";
-
 using {BN254.add, BN254.neg, BN254.scale_scalar, BN254.sub} for BN254.G1Point;
 using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
 using {get_alphas} for Alphas;
