@@ -27,7 +27,7 @@ library Oracles {
         KeccakSponge.challenge_scalar,
         KeccakSponge.digest_base,
         KeccakSponge.digest_scalar
-    } for Sponge;
+    } for KeccakSponge.Sponge;
     using {Proof.get_column_eval} for Proof.ProofEvaluations;
 
     uint64 internal constant CHALLENGE_LENGTH_IN_LIMBS = 2;
@@ -42,8 +42,8 @@ library Oracles {
         BN254.G1Point memory public_comm,
         Scalar.FE public_input,
         bool is_public_input_set,
-        Sponge storage base_sponge,
-        Sponge storage scalar_sponge
+        KeccakSponge.Sponge storage base_sponge,
+        KeccakSponge.Sponge storage scalar_sponge
     ) public returns (Result memory) {
         uint256 chunk_size = index.domain_size < index.max_poly_size ? 1 : index.domain_size / index.max_poly_size;
 

@@ -7,15 +7,14 @@ import "../Commitment.sol";
 import "../Proof.sol";
 import "../Constants.sol";
 
-struct Sponge {
-    bytes pending;
-}
-
-using {BN254.isInfinity} for BN254.G1Point;
-
 library KeccakSponge {
-    // Basic methods
+    using {BN254.isInfinity} for BN254.G1Point;
 
+    struct Sponge {
+        bytes pending;
+    }
+
+    // Basic methods
     function reinit(Sponge storage self) external {
         self.pending = new bytes(0);
     }

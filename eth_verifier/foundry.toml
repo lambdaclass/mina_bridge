@@ -12,5 +12,4 @@ fs_permissions = [
     { access = "read", path = "./linearization.bin"},
     { access = "read", path = "./unit_test_data/"},
 ]
-solc = "0.8.21"
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

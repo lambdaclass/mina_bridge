@@ -5,6 +5,20 @@ import {Script, console2} from "forge-std/Script.sol";
 import {KimchiVerifier} from "../src/Verifier.sol";
 
 contract Deploy is Script {
+
+    function run() public {
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+
+        vm.startBroadcast(deployerPrivateKey);
+
+        KimchiVerifier verifier = new KimchiVerifier();
+
+        verifier.setup();
+
+        vm.stopBroadcast();
+    }
+}
+contract DeployAndDeser is Script {
     bytes verifier_index_serialized;
     bytes prover_proof_serialized;
     bytes linearization_serialized;
@@ -23,11 +37,6 @@ contract Deploy is Script {
         KimchiVerifier verifier = new KimchiVerifier();
 
         verifier.setup();
-
-        verifier.store_verifier_index(verifier_index_serialized);
-        verifier.store_linearization(linearization_serialized);
-        verifier.store_prover_proof(prover_proof_serialized);
-        verifier.store_public_input(public_input_serialized);
 
         vm.stopBroadcast();
     }
