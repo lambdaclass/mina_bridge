@@ -1,4 +1,4 @@
-.PHONY: run
+.PHONY: run demo.setup demo.valid demo.not_valid
 
 run:
 	@echo "Setting up o1js..."
@@ -25,3 +25,47 @@ run:
 	@echo "    cast call <CONTRACT_ADDR> 'retrieve_state_creator()(string)'"
 	@echo "    cast call <CONTRACT_ADDR> 'retrieve_state_hash()(uint256)'"
 	@echo "    cast call <CONTRACT_ADDR> 'retrieve_state_height()(uint256)'"
+
+demo.setup:
+	@echo "Setting up o1js..."
+	@git submodule update --init --recursive
+	@echo "Done!"
+	@echo "Setting up polling service..."
+	@cd polling_service && sh demo_setup.sh
+	@echo "Done!"
+	@echo "Deploying verifier to Sepolia..."
+	@cd eth_verifier && make sepolia.deploy
+
+demo.valid:
+	@echo "Fetching state proof from Mina node..."
+	@cd polling_service && sh demo_run.sh
+	@echo "Done!"
+	@echo "Generating public input for verifier circuit..."
+	@cd public_input_gen && cargo r --release
+	@echo "Done!"
+	@echo "Creating circuit gates..."
+	@cd verifier_circuit && make
+	@echo "Done!"
+	@echo "Creating KZG proof..."
+	@cd kzg_prover && cargo r --release
+	@echo "Done!"
+	@echo "Uploading proof and verifying it..."
+	@cd eth_verifier && make sepolia.upload_proof && make.sepolia.verify
+	@echo "Done!"
+
+demo.not_valid:
+	@echo "Fetching state proof from Mina node..."
+	@cd polling_service && sh demo_run.sh
+	@echo "Done!"
+	@echo "Generating public input for verifier circuit..."
+	@cd public_input_gen && cargo r --release
+	@echo "Done!"
+	@echo "Creating circuit gates..."
+	@cd verifier_circuit && make
+	@echo "Done!"
+	@echo "Creating KZG proof..."
+	@cd bad_kzg_prover && cargo r --release
+	@echo "Done!"
+	@echo "Uploading proof and verifying it..."
+	@cd eth_verifier && make sepolia.upload_proof && make.sepolia.verify
+	@echo "Done!"
