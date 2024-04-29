@@ -7,7 +7,6 @@ import "../Commitment.sol";
 import "../Proof.sol";
 import "../Constants.sol";
 
-
 library KeccakSponge {
     using {BN254.isInfinity} for BN254.G1Point;
 
