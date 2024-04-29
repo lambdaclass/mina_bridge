@@ -257,7 +257,7 @@ This repo has commands to easily deploy the Verifier contract and verify a proof
 To deploy the Verifier contract to Sepolia, run:
 
 ```bash
-PRIVATE_KEY=<your_private_key> RPC_URL=<rpc_url> make deploy_sepolia
+PRIVATE_KEY=<your_private_key> RPC_URL=<rpc_url> make sepolia.deploy
 ```
 
 Where:
@@ -268,7 +268,7 @@ Where:
 To upload the proof generated with `kzg_prover`, run:
 
 ```bash
-PRIVATE_KEY=<your_private_key> RPC_URL=<rpc_url> CONTRACT_ADDRESS=<verifier_address> make upload_proof_sepolia
+PRIVATE_KEY=<your_private_key> RPC_URL=<rpc_url> CONTRACT_ADDRESS=<verifier_address> make sepolia.upload_proof
 ```
 
 Where `<verifier_address>` is the address of the deployed Verifier contract.
@@ -276,7 +276,7 @@ Where `<verifier_address>` is the address of the deployed Verifier contract.
 To verify the uploaded proof, run:
 
 ```bash
-PRIVATE_KEY=<your_private_key> RPC_URL=<rpc_url> CONTRACT_ADDRESS=<verifier_address> make verify_sepolia
+PRIVATE_KEY=<your_private_key> RPC_URL=<rpc_url> CONTRACT_ADDRESS=<verifier_address> make sepolia.verify
 ```
 
 This will run the partial and final verification over the uploaded proof and return the verification result as a boolean.
