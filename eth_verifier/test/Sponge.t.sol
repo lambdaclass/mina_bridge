@@ -14,10 +14,10 @@ using {
     KeccakSponge.digest_base,
     KeccakSponge.challenge_base,
     KeccakSponge.absorb_g
-} for Sponge;
+} for KeccakSponge.Sponge;
 
 contract KeccakSpongeTest is Test {
-    Sponge sponge;
+    KeccakSponge.Sponge sponge;
 
     function test_absorb_digest_scalar() public {
         sponge.reinit();

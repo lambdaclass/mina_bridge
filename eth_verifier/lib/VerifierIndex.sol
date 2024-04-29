@@ -24,7 +24,7 @@ using {
     KeccakSponge.challenge_scalar,
     KeccakSponge.digest_base,
     KeccakSponge.digest_scalar
-} for Sponge;
+} for KeccakSponge.Sponge;
 
 error MissingCommitment(ColumnVariant variant);
 error MissingLookupColumnCommitment(uint256 inner);
@@ -83,7 +83,7 @@ library VerifierIndexLib {
         BN254.G1Point rot_comm; // INFO: optional
         LookupVerifierIndex lookup_index; // INFO: optional
         // this is used for generating the index's digest
-        Sponge sponge;
+        KeccakSponge.Sponge sponge;
         Linearization linearization;
         /// The mapping between powers of alpha and constraints
         Alphas powers_of_alpha;

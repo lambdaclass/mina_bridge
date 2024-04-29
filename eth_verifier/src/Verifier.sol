@@ -52,8 +52,8 @@ contract KimchiVerifier {
     State internal state;
     bool state_available;
 
-    Sponge base_sponge;
-    Sponge scalar_sponge;
+    KeccakSponge.Sponge base_sponge;
+    KeccakSponge.Sponge scalar_sponge;
 
     function setup() public {
         // Setup URS

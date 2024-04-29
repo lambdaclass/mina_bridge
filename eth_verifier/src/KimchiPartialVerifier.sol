@@ -34,8 +34,8 @@ library KimchiPartialVerifier {
         VerifierIndexLib.VerifierIndex storage verifier_index,
         Commitment.URS storage urs,
         Scalar.FE public_input,
-        Sponge storage base_sponge,
-        Sponge storage scalar_sponge
+        KeccakSponge.Sponge storage base_sponge,
+        KeccakSponge.Sponge storage scalar_sponge
     ) external returns (Proof.AggregatedEvaluationProof memory) {
         // TODO: 1. Check the length of evaluations insde the proof
 
