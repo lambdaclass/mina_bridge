@@ -33,6 +33,9 @@ demo.setup:
 	@echo "Setting up polling service..."
 	@cd polling_service && sh demo_setup.sh
 	@echo "Done!"
+	@echo "Setting up verifier circuit..."
+	@cd verifier_circuit && npm i
+	@echo "Done!"
 	@echo "Deploying verifier to Sepolia..."
 	@cd eth_verifier && make sepolia.deploy
 
@@ -50,7 +53,7 @@ demo.valid:
 	@cd kzg_prover && cargo r --release
 	@echo "Done!"
 	@echo "Uploading proof and verifying it..."
-	@cd eth_verifier && make sepolia.upload_proof && make.sepolia.verify
+	@cd eth_verifier && make sepolia.upload_proof && make sepolia.verify
 	@echo "Done!"
 
 demo.not_valid:
@@ -67,5 +70,5 @@ demo.not_valid:
 	@cd bad_kzg_prover && cargo r --release
 	@echo "Done!"
 	@echo "Uploading proof and verifying it..."
-	@cd eth_verifier && make sepolia.upload_proof && make.sepolia.verify
+	@cd eth_verifier && make sepolia.upload_proof && make sepolia.verify
 	@echo "Done!"
