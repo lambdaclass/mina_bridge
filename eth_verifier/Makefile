@@ -18,14 +18,14 @@ deploy_sepolia:
 	forge script --rpc-url ${RPC_URL} --broadcast \
     --private-key ${PRIVATE_KEY} \
     --chain-id 11155111 \
-    --verify --delay 10 \
+    --verify --delay 5 \
     script/Deploy.s.sol:Deploy
 
 deploy_deser_sepolia:
 	forge script --rpc-url ${RPC_URL} --broadcast \
     --private-key ${PRIVATE_KEY} \
     --chain-id 11155111 \
-    --verify --delay 10 \
+    --verify --delay 5 \
     script/Deploy.s.sol:DeployAndDeser
 
 verify_sepolia:
