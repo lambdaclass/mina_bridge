@@ -28,7 +28,7 @@ run:
 
 demo.setup:
 	@echo "Setting up o1js..."
-	@git submodule update --init --recursive
+	@git submodule update --init --recursive && cd verifier_circuit/o1js && npm i
 	@echo "Done!"
 	@echo "Setting up polling service..."
 	@cd polling_service && sh demo_setup.sh
