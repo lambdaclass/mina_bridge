@@ -38,6 +38,11 @@ contract DeployAndDeser is Script {
 
         verifier.setup();
 
+        verifier.store_verifier_index(verifier_index_serialized);
+        verifier.store_linearization(linearization_serialized);
+        verifier.store_prover_proof(prover_proof_serialized);
+        verifier.store_public_input(public_input_serialized);
+
         vm.stopBroadcast();
     }
 }
