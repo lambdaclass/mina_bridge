@@ -83,7 +83,6 @@ library VerifierIndexLib {
         BN254.G1Point rot_comm; // INFO: optional
         LookupVerifierIndex lookup_index; // INFO: optional
         // this is used for generating the index's digest
-        KeccakSponge.Sponge sponge;
         Linearization linearization;
         /// The mapping between powers of alpha and constraints
         Alphas powers_of_alpha;
@@ -120,72 +119,73 @@ library VerifierIndexLib {
     }
     // TODO: lookup features
 
-    function verifier_digest(VerifierIndex storage index) public returns (Base.FE) {
-        index.sponge.reinit();
+    function verifier_digest(VerifierIndex storage index) public view returns (Base.FE) {
+        KeccakSponge.Sponge memory sponge;
+        sponge.reinit();
 
         for (uint256 i = 0; i < index.sigma_comm.length; i++) {
-            index.sponge.absorb_g_single(index.sigma_comm[i]);
+            sponge.absorb_g_single(index.sigma_comm[i]);
         }
         for (uint256 i = 0; i < index.coefficients_comm.length; i++) {
-            index.sponge.absorb_g_single(index.coefficients_comm[i]);
+            sponge.absorb_g_single(index.coefficients_comm[i]);
         }
-        index.sponge.absorb_g_single(index.generic_comm);
-        index.sponge.absorb_g_single(index.psm_comm);
-        index.sponge.absorb_g_single(index.complete_add_comm);
-        index.sponge.absorb_g_single(index.mul_comm);
-        index.sponge.absorb_g_single(index.emul_comm);
-        index.sponge.absorb_g_single(index.endomul_scalar_comm);
+        sponge.absorb_g_single(index.generic_comm);
+        sponge.absorb_g_single(index.psm_comm);
+        sponge.absorb_g_single(index.complete_add_comm);
+        sponge.absorb_g_single(index.mul_comm);
+        sponge.absorb_g_single(index.emul_comm);
+        sponge.absorb_g_single(index.endomul_scalar_comm);
 
         // optional
 
         if (Proof.is_field_set(index.optional_field_flags, RANGE_CHECK0_COMM_FLAG)) {
-            index.sponge.absorb_g_single(index.range_check0_comm);
+            sponge.absorb_g_single(index.range_check0_comm);
         }
 
         if (Proof.is_field_set(index.optional_field_flags, RANGE_CHECK1_COMM_FLAG)) {
-            index.sponge.absorb_g_single(index.range_check1_comm);
+            sponge.absorb_g_single(index.range_check1_comm);
         }
 
         if (Proof.is_field_set(index.optional_field_flags, FOREIGN_FIELD_MUL_COMM_FLAG)) {
-            index.sponge.absorb_g_single(index.foreign_field_mul_comm);
+            sponge.absorb_g_single(index.foreign_field_mul_comm);
         }
 
         if (Proof.is_field_set(index.optional_field_flags, FOREIGN_FIELD_ADD_COMM_FLAG)) {
-            index.sponge.absorb_g_single(index.foreign_field_add_comm);
+            sponge.absorb_g_single(index.foreign_field_add_comm);
         }
 
         if (Proof.is_field_set(index.optional_field_flags, XOR_COMM_FLAG)) {
-            index.sponge.absorb_g_single(index.xor_comm);
+            sponge.absorb_g_single(index.xor_comm);
         }
 
         if (Proof.is_field_set(index.optional_field_flags, ROT_COMM_FLAG)) {
-            index.sponge.absorb_g_single(index.rot_comm);
+            sponge.absorb_g_single(index.rot_comm);
         }
 
         if (Proof.is_field_set(index.optional_field_flags, LOOKUP_VERIFIER_INDEX_FLAG)) {
             LookupVerifierIndex storage l_index = index.lookup_index;
-            index.sponge.absorb_g_single(l_index.lookup_table);
+            sponge.absorb_g_single(l_index.lookup_table);
             if (Proof.is_field_set(l_index.optional_field_flags, TABLE_IDS_FLAG)) {
-                index.sponge.absorb_g_single(l_index.table_ids);
+                sponge.absorb_g_single(l_index.table_ids);
             }
             if (Proof.is_field_set(l_index.optional_field_flags, RUNTIME_TABLES_SELECTOR_FLAG)) {
-                index.sponge.absorb_g_single(l_index.runtime_tables_selector);
+                sponge.absorb_g_single(l_index.runtime_tables_selector);
             }
 
             if (Proof.is_field_set(l_index.optional_field_flags, XOR_FLAG)) {
-                index.sponge.absorb_g_single(l_index.xor);
+                sponge.absorb_g_single(l_index.xor);
             }
             if (Proof.is_field_set(l_index.optional_field_flags, LOOKUP_FLAG)) {
-                index.sponge.absorb_g_single(l_index.lookup);
+                sponge.absorb_g_single(l_index.lookup);
             }
             if (Proof.is_field_set(l_index.optional_field_flags, RANGE_CHECK_FLAG)) {
-                index.sponge.absorb_g_single(l_index.range_check);
+                sponge.absorb_g_single(l_index.range_check);
             }
             if (Proof.is_field_set(l_index.optional_field_flags, FFMUL_FLAG)) {
-                index.sponge.absorb_g_single(l_index.ffmul);
+                sponge.absorb_g_single(l_index.ffmul);
             }
         }
-        return index.sponge.digest_base();
+        return sponge.digest_base();
     }
 
     function get_column_commitment(
