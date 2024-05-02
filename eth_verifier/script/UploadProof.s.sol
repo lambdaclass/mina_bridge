@@ -20,7 +20,7 @@ contract UploadProof is Script {
         address verifierAddress = vm.envAddress("CONTRACT_ADDRESS");
         KimchiVerifier verifier = KimchiVerifier(verifierAddress);
 
-        verifier.store_linearization(linearization_serialized);
+        verifier.store_literal_tokens(linearization_serialized);
         verifier.store_public_input(public_input_serialized);
         verifier.store_prover_proof(prover_proof_serialized);
 

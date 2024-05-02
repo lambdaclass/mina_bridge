@@ -55,23 +55,13 @@ function deser_literal_tokens(
         let slot := linearization.slot
 
         // There're 6 dynamic arrays, we want to just update the literals one
-        // which is the third one. We need to skip the first two.
+        // which is the third one.
+        // We need to skip the slots corresponding to:
+        // - the total variants len (1 slot)
+        // - two dynamic arrays (2 slots)
+        slot := add(slot, 3)
 
-        // First we skip the total variants len (32 bytes)
-        addr := add(addr, 0x20)
-        slot := add(slot, 1)
-
-        // Then skip two dyn arrays
-        for { let _arr := 0 } lt(_arr, 2) { _arr := add(_arr, 1) } {
-            let dyn_len := mload(addr)
-            addr := add(addr, 0x20)
-            // skip 32 * dyn_len bytes
-            addr := add(addr, mul(dyn_len, 0x20))
-            // skip array slot
-            slot := add(slot, 1)
-        }
-
-        // Then serialize literal tokens
+        // Then deserialize literal tokens
 
         // store len
         let dyn_len := mload(addr)
