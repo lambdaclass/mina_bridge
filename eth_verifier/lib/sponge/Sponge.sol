@@ -16,12 +16,12 @@ library KeccakSponge {
     }
 
     // Basic methods
-    function reinit(Sponge memory self) external pure {
+    function reinit(Sponge memory self) internal pure {
         self.pending = new bytes(MAX_SPONGE_STATE_SIZE);
         self.last_index = 0;
     }
 
-    function absorb(Sponge memory self, bytes memory b) public pure {
+    function absorb(Sponge memory self, bytes memory b) internal pure {
         for (uint256 i = 0; i < b.length; i++) {
             if (self.last_index >= MAX_SPONGE_STATE_SIZE) {
                 revert("max sponge state size exceeded.");
@@ -32,7 +32,7 @@ library KeccakSponge {
     }
 
     function squeeze(Sponge memory self, uint256 byte_count)
-        public
+        internal
         pure
         returns (bytes memory digest)
     {
@@ -51,21 +51,22 @@ library KeccakSponge {
             }
 
             // pending <- output
-            self.pending = new bytes(32);
+            reinit(self);
             for (uint i = 0; i < 32; i++) {
                 self.pending[i] = output[i];
+                self.last_index += 1;
             }
         }
     }
 
     // KZG methods
 
-    function absorb_base(Sponge memory self, Base.FE elem) public pure {
+    function absorb_base(Sponge memory self, Base.FE elem) internal pure {
         bytes memory b = abi.encodePacked(elem);
         absorb(self, b);
     }
 
-    function absorb_scalar(Sponge memory self, Scalar.FE elem) public pure {
+    function absorb_scalar(Sponge memory self, Scalar.FE elem) internal pure {
         bytes memory b = abi.encodePacked(elem);
         absorb(self, b);
     }
@@ -73,13 +74,13 @@ library KeccakSponge {
     function absorb_scalar_multiple(
         Sponge memory self,
         Scalar.FE[] memory elems
-    ) public pure {
+    ) internal pure {
         bytes memory b = abi.encodePacked(elems);
         absorb(self, b);
     }
 
     function absorb_g_single(Sponge memory self, BN254.G1Point memory point)
-        public
+        internal
         pure
     {
         if (point.isInfinity()) {
@@ -92,7 +93,7 @@ library KeccakSponge {
     }
 
     function absorb_g(Sponge memory self, BN254.G1Point[] memory points)
-        public
+        internal
         pure
     {
         for (uint256 i = 0; i < points.length; i++) {
@@ -110,7 +111,7 @@ library KeccakSponge {
     function absorb_evaluations(
         Sponge memory self,
         Proof.ProofEvaluations memory evals
-    ) external pure {
+    ) internal pure {
         absorb_point_evaluation(self, evals.z);
         absorb_point_evaluation(self, evals.generic_selector);
         absorb_point_evaluation(self, evals.poseidon_selector);
@@ -183,7 +184,7 @@ library KeccakSponge {
     function absorb_point_evaluation(
         Sponge memory self,
         PointEvaluations memory eval
-    ) public pure {
+    ) internal pure {
         absorb_scalar(self, eval.zeta);
         absorb_scalar(self, eval.zeta_omega);
     }
@@ -191,7 +192,7 @@ library KeccakSponge {
     function absorb_point_evaluations(
         Sponge memory self,
         PointEvaluationsArray[] memory evals
-    ) public pure {
+    ) internal pure {
         for (uint i; i < evals.length; i++) {
             absorb_scalar_multiple(self, evals[i].zeta);
             absorb_scalar_multiple(self, evals[i].zeta_omega);
@@ -199,7 +200,7 @@ library KeccakSponge {
     }
 
     function challenge_base(Sponge memory self)
-        external
+        internal
         pure
         returns (Base.FE chal)
     {
@@ -207,7 +208,7 @@ library KeccakSponge {
     }
 
     function challenge_scalar(Sponge memory self)
-        external
+        internal
         pure
         returns (Scalar.FE chal)
     {
@@ -215,7 +216,7 @@ library KeccakSponge {
     }
 
     function digest_base(Sponge memory self)
-        external
+        internal
         pure
         returns (Base.FE digest)
     {
@@ -223,14 +224,14 @@ library KeccakSponge {
     }
 
     function digest_scalar(Sponge memory self)
-        external
+        internal
         pure
         returns (Scalar.FE digest)
     {
         digest = Scalar.from_bytes_be(squeeze(self, 32));
     }
 
-    function mds() external pure returns (Scalar.FE[3][3] memory) {
+    function mds() internal pure returns (Scalar.FE[3][3] memory) {
         return [
             [
                 Scalar.from(12035446894107573964500871153637039653510326950134440362813193268448863222019),
