@@ -1,3 +1,7 @@
+use crate::type_aliases::BN254PolishToken;
+
+pub struct BN254PolishLiteralTokens(pub BN254PolishToken);
+
 /// Returns the bytes corresponding to a 256 bit integer whose bits
 /// are mapped to `bools` (1 for true, 0 for false).
 pub fn encode_bools_to_uint256_flags_bytes(bools: &[bool]) -> Vec<u8> {

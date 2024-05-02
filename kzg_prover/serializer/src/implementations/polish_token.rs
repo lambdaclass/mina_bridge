@@ -7,6 +7,7 @@ use kimchi::circuits::{
 use crate::{
     serialize::{EVMSerializable, EVMSerializableType},
     type_aliases::BN254PolishToken,
+    utils::BN254PolishLiteralTokens,
 };
 
 impl EVMSerializable for EVMSerializableType<Vec<BN254PolishToken>> {
@@ -153,5 +154,21 @@ impl EVMSerializable for EVMSerializableType<Vec<BN254PolishToken>> {
             encoded_offsets,
         ]
         .concat()
+    }
+}
+
+impl EVMSerializable for EVMSerializableType<Vec<BN254PolishLiteralTokens>> {
+    fn to_bytes(self) -> Vec<u8> {
+        // encoded data:
+        let mut encoded_literals = vec![];
+
+        for token_wrapped in self.0.iter() {
+            if let PolishToken::Literal(literal) = token_wrapped.0 {
+                encoded_literals.extend(EVMSerializableType(literal).to_bytes());
+            };
+        }
+
+        let encoded_literals_len = EVMSerializableType(encoded_literals.len() / 32).to_bytes();
+        [encoded_literals_len, encoded_literals].concat()
     }
 }
