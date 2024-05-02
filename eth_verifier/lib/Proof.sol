@@ -20,7 +20,6 @@ library Proof {
 
     using {Scalar.mul} for Scalar.FE;
 
-
     struct PairingProof {
         BN254.G1Point quotient;
         Scalar.FE blinding;

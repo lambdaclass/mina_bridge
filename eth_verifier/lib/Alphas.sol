@@ -2,7 +2,6 @@
 pragma solidity >=0.4.16 <0.9.0;
 
 import "./bn254/Fields.sol";
-import "forge-std/console.sol";
 
 using {Scalar.mul} for Scalar.FE;
 
@@ -124,7 +123,7 @@ struct AlphasIterator {
     uint256 current_index;
 }
 
-function it_next(AlphasIterator memory self) view returns (Scalar.FE) {
+function it_next(AlphasIterator memory self) pure returns (Scalar.FE) {
     require(self.current_index < self.powers.length, "powers of alpha iterator out of bounds");
     return self.powers[self.current_index++];
 }

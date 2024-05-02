@@ -5,6 +5,20 @@ import {Script, console2} from "forge-std/Script.sol";
 import {KimchiVerifier} from "../src/Verifier.sol";
 
 contract Deploy is Script {
+
+    function run() public {
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+
+        vm.startBroadcast(deployerPrivateKey);
+
+        KimchiVerifier verifier = new KimchiVerifier();
+
+        verifier.setup();
+
+        vm.stopBroadcast();
+    }
+}
+contract DeployAndDeser is Script {
     bytes verifier_index_serialized;
     bytes linearization_serialized;
     bytes public_input_serialized;

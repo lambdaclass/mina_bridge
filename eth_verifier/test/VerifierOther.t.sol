@@ -17,7 +17,7 @@ contract KimchiVerifierTest is Test {
     bytes public_input_serialized;
 
     VerifierIndexLib.VerifierIndex test_verifier_index;
-    Sponge sponge;
+    KeccakSponge.Sponge sponge;
 
     function setUp() public {
         verifier_index_serialized = vm.readFileBinary("verifier_index.bin");
