@@ -8,6 +8,7 @@ contract KimchiVerifierTest is Test {
     bytes verifier_index_serialized;
     bytes prover_proof_serialized;
     bytes linearization_serialized;
+    bytes linearization_literals_serialized;
     bytes public_input_serialized;
 
     KimchiVerifier global_verifier;
@@ -17,6 +18,7 @@ contract KimchiVerifierTest is Test {
         verifier_index_serialized = vm.readFileBinary("verifier_index.bin");
         prover_proof_serialized = vm.readFileBinary("prover_proof.bin");
         linearization_serialized = vm.readFileBinary("linearization.bin");
+        linearization_literals_serialized = vm.readFileBinary("linearization_literals.bin");
         public_input_serialized = vm.readFileBinary("public_input.bin");
 
         // setup verifier contract
@@ -49,7 +51,7 @@ contract KimchiVerifierTest is Test {
     }
 
     function test_deserialize_and_full_verify_existing_verifier() public {
-        global_verifier.store_literal_tokens(linearization_serialized);
+        global_verifier.store_literal_tokens(linearization_literals_serialized);
         global_verifier.store_prover_proof(prover_proof_serialized);
         global_verifier.store_public_input(public_input_serialized);
 
