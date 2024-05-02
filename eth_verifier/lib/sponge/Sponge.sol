@@ -40,7 +40,11 @@ library KeccakSponge {
 
         uint counter = 0;
         while (counter < byte_count) {
-            bytes32 output = keccak256(self.pending);
+            bytes memory pending = new bytes(self.last_index);
+            for (uint i = 0; i < pending.length; i++) {
+                pending[i] = self.pending[i];
+            }
+            bytes32 output = keccak256(pending);
 
             for (uint i = 0; i < 32; i++) {
                 counter++;
@@ -53,7 +57,7 @@ library KeccakSponge {
             // pending <- output
             reinit(self);
             for (uint i = 0; i < 32; i++) {
-                self.pending[i] = output[i];
+                self.pending[self.last_index] = output[i];
                 self.last_index += 1;
             }
         }
