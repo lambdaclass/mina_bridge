@@ -17,14 +17,15 @@ using {
 } for KeccakSponge.Sponge;
 
 contract KeccakSpongeTest is Test {
-    KeccakSponge.Sponge sponge;
-
     function test_absorb_digest_scalar() public {
+        KeccakSponge.Sponge memory sponge;
         sponge.reinit();
         Scalar.FE input = Scalar.from(42);
         sponge.absorb_scalar(input);
 
         Scalar.FE digest = sponge.digest_scalar();
+        console.log("after digesting");
+        console.log(sponge.last_index);
         assertEq(
             Scalar.FE.unwrap(digest),
             0x00BECED09521047D05B8960B7E7BCC1D1292CF3E4B2A6B63F48335CBDE5F7545
@@ -33,6 +34,7 @@ contract KeccakSpongeTest is Test {
     }
 
     function test_digest_scalar() public {
+        KeccakSponge.Sponge memory sponge;
         sponge.reinit();
         Scalar.FE digest = sponge.digest_scalar();
 
@@ -44,6 +46,7 @@ contract KeccakSpongeTest is Test {
     }
 
     function test_absorb_challenge_scalar() public {
+        KeccakSponge.Sponge memory sponge;
         sponge.reinit();
         Scalar.FE input = Scalar.from(42);
         sponge.absorb_scalar(input);
@@ -58,6 +61,7 @@ contract KeccakSpongeTest is Test {
 
     // INFO: absorb_x_base tests are the same as absorb_x_scalar ones.
     function test_absorb_digest_base() public {
+        KeccakSponge.Sponge memory sponge;
         sponge.reinit();
         Base.FE input = Base.from(42);
         sponge.absorb_base(input);
@@ -72,6 +76,7 @@ contract KeccakSpongeTest is Test {
 
     // INFO: absorb_x_base tests are the same as absorb_x_scalar ones.
     function test_absorb_challenge_base() public {
+        KeccakSponge.Sponge memory sponge;
         sponge.reinit();
         Base.FE input = Base.from(42);
         sponge.absorb_base(input);
@@ -85,6 +90,7 @@ contract KeccakSpongeTest is Test {
     }
 
     function test_absorb_digest_g() public {
+        KeccakSponge.Sponge memory sponge;
         sponge.reinit();
         BN254.G1Point[] memory input = new BN254.G1Point[](1);
         input[0] = BN254.P1();
@@ -99,6 +105,7 @@ contract KeccakSpongeTest is Test {
     }
 
     function test_absorb_absorb_digest_scalar() public {
+        KeccakSponge.Sponge memory sponge;
         sponge.reinit();
         Scalar.FE[2] memory inputs = [Scalar.from(42), Scalar.from(24)];
         sponge.absorb_scalar(inputs[0]);
@@ -113,6 +120,7 @@ contract KeccakSpongeTest is Test {
     }
 
     function test_absorb_challenge_challenge_scalar() public {
+        KeccakSponge.Sponge memory sponge;
         sponge.reinit();
         Scalar.FE input = Scalar.from(42);
         sponge.absorb_scalar(input);
@@ -130,6 +138,7 @@ contract KeccakSpongeTest is Test {
     }
 
     function test_absorb_challenge_absorb_challenge_scalar() public {
+        KeccakSponge.Sponge memory sponge;
         sponge.reinit();
         Scalar.FE[2] memory inputs = [Scalar.from(42), Scalar.from(24)];
 
@@ -149,6 +158,7 @@ contract KeccakSpongeTest is Test {
     }
 
     function test_challenge_challenge_scalar() public {
+        KeccakSponge.Sponge memory sponge;
         sponge.reinit();
 
         Scalar.FE challenge = sponge.challenge_scalar();

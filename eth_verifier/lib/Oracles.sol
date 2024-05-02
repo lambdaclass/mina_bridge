@@ -41,15 +41,14 @@ library Oracles {
         VerifierIndexLib.VerifierIndex storage index,
         BN254.G1Point memory public_comm,
         Scalar.FE public_input,
-        bool is_public_input_set,
-        KeccakSponge.Sponge storage base_sponge,
-        KeccakSponge.Sponge storage scalar_sponge
+        bool is_public_input_set
     ) public returns (Result memory) {
         uint256 chunk_size = index.domain_size < index.max_poly_size ? 1 : index.domain_size / index.max_poly_size;
 
         (Base.FE _endo_q, Scalar.FE endo_r) = BN254.endo_coeffs_g1();
 
         // 1. Setup the Fq-Sponge.
+        KeccakSponge.Sponge memory base_sponge;
         base_sponge.reinit();
 
         // 2. Absorb the digest of the VerifierIndex.
@@ -115,6 +114,7 @@ library Oracles {
         Scalar.FE zeta = zeta_chal.to_field(endo_r);
 
         // 19. Setup a scalar sponge
+        KeccakSponge.Sponge memory scalar_sponge;
         scalar_sponge.reinit();
 
         // 20. Absorb the digest of the previous sponge
