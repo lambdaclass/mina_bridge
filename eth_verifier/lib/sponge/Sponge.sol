@@ -12,21 +12,28 @@ library KeccakSponge {
 
     struct Sponge {
         bytes pending;
+        uint256 last_index;
     }
 
     // Basic methods
-    function reinit(Sponge storage self) external {
-        self.pending = new bytes(0);
+    function reinit(Sponge memory self) external pure {
+        self.pending = new bytes(MAX_SPONGE_STATE_SIZE);
+        self.last_index = 0;
     }
 
-    function absorb(Sponge storage self, bytes memory b) external {
+    function absorb(Sponge memory self, bytes memory b) public pure {
         for (uint256 i = 0; i < b.length; i++) {
-            self.pending.push(b[i]);
+            if (self.last_index >= MAX_SPONGE_STATE_SIZE) {
+                revert("max sponge state size exceeded.");
+            }
+            self.pending[self.last_index] = b[i];
+            self.last_index += 1;
         }
     }
 
-    function squeeze(Sponge storage self, uint256 byte_count)
+    function squeeze(Sponge memory self, uint256 byte_count)
         public
+        pure
         returns (bytes memory digest)
     {
         digest = new bytes(byte_count);
@@ -53,32 +60,27 @@ library KeccakSponge {
 
     // KZG methods
 
-    function absorb_base(Sponge storage self, Base.FE elem) public {
+    function absorb_base(Sponge memory self, Base.FE elem) public pure {
         bytes memory b = abi.encodePacked(elem);
-        for (uint256 i = 0; i < b.length; i++) {
-            self.pending.push(b[i]);
-        }
+        absorb(self, b);
     }
 
-    function absorb_scalar(Sponge storage self, Scalar.FE elem) public {
+    function absorb_scalar(Sponge memory self, Scalar.FE elem) public pure {
         bytes memory b = abi.encodePacked(elem);
-        for (uint256 i = 0; i < b.length; i++) {
-            self.pending.push(b[i]);
-        }
+        absorb(self, b);
     }
 
     function absorb_scalar_multiple(
-        Sponge storage self,
+        Sponge memory self,
         Scalar.FE[] memory elems
-    ) public {
+    ) public pure {
         bytes memory b = abi.encodePacked(elems);
-        for (uint256 i = 0; i < b.length; i++) {
-            self.pending.push(b[i]);
-        }
+        absorb(self, b);
     }
 
-    function absorb_g_single(Sponge storage self, BN254.G1Point memory point)
+    function absorb_g_single(Sponge memory self, BN254.G1Point memory point)
         public
+        pure
     {
         if (point.isInfinity()) {
             absorb_base(self, Base.zero());
@@ -89,8 +91,9 @@ library KeccakSponge {
         }
     }
 
-    function absorb_g(Sponge storage self, BN254.G1Point[] memory points)
+    function absorb_g(Sponge memory self, BN254.G1Point[] memory points)
         public
+        pure
     {
         for (uint256 i = 0; i < points.length; i++) {
             BN254.G1Point memory point = points[i];
@@ -105,9 +108,9 @@ library KeccakSponge {
     }
 
     function absorb_evaluations(
-        Sponge storage self,
+        Sponge memory self,
         Proof.ProofEvaluations memory evals
-    ) external {
+    ) external pure {
         absorb_point_evaluation(self, evals.z);
         absorb_point_evaluation(self, evals.generic_selector);
         absorb_point_evaluation(self, evals.poseidon_selector);
@@ -178,46 +181,50 @@ library KeccakSponge {
     }
 
     function absorb_point_evaluation(
-        Sponge storage self,
+        Sponge memory self,
         PointEvaluations memory eval
-    ) public {
+    ) public pure {
         absorb_scalar(self, eval.zeta);
         absorb_scalar(self, eval.zeta_omega);
     }
 
     function absorb_point_evaluations(
-        Sponge storage self,
+        Sponge memory self,
         PointEvaluationsArray[] memory evals
-    ) public {
+    ) public pure {
         for (uint i; i < evals.length; i++) {
             absorb_scalar_multiple(self, evals[i].zeta);
             absorb_scalar_multiple(self, evals[i].zeta_omega);
         }
     }
 
-    function challenge_base(Sponge storage self)
+    function challenge_base(Sponge memory self)
         external
+        pure
         returns (Base.FE chal)
     {
         chal = Base.from_bytes_be(squeeze(self, 16));
     }
 
-    function challenge_scalar(Sponge storage self)
+    function challenge_scalar(Sponge memory self)
         external
+        pure
         returns (Scalar.FE chal)
     {
         chal = Scalar.from_bytes_be(squeeze(self, 16));
     }
 
-    function digest_base(Sponge storage self)
+    function digest_base(Sponge memory self)
         external
+        pure
         returns (Base.FE digest)
     {
         digest = Base.from_bytes_be(squeeze(self, 32));
     }
 
-    function digest_scalar(Sponge storage self)
+    function digest_scalar(Sponge memory self)
         external
+        pure
         returns (Scalar.FE digest)
     {
         digest = Scalar.from_bytes_be(squeeze(self, 32));

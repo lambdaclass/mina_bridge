@@ -32,9 +32,7 @@ library KimchiPartialVerifier {
         Proof.ProverProof storage proof,
         VerifierIndexLib.VerifierIndex storage verifier_index,
         Commitment.URS storage urs,
-        Scalar.FE public_input,
-        KeccakSponge.Sponge storage base_sponge,
-        KeccakSponge.Sponge storage scalar_sponge
+        Scalar.FE public_input
     ) external returns (Proof.AggregatedEvaluationProof memory) {
         // TODO: 1. Check the length of evaluations insde the proof
 
@@ -48,7 +46,7 @@ library KimchiPartialVerifier {
         // 3. Execute fiat-shamir with a Keccak sponge
 
         Oracles.Result memory oracles_res =
-            Oracles.fiat_shamir(proof, verifier_index, public_comm, public_input, true, base_sponge, scalar_sponge);
+            Oracles.fiat_shamir(proof, verifier_index, public_comm, public_input, true);
         Oracles.RandomOracles memory oracles = oracles_res.oracles;
 
         // 4. Combine the chunked polynomials' evaluations

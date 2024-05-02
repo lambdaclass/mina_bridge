@@ -67,3 +67,5 @@ uint256 constant LOOKUP_PATTERN_LOOKUP = 1;
 uint256 constant LOOKUP_PATTERN_RANGE_CHECK = 2;
 uint256 constant LOOKUP_PATTERN_FOREIGN_FIELD_MUL = 3;
 
+// Keccak Sponge
+uint256 constant MAX_SPONGE_STATE_SIZE = 4096;

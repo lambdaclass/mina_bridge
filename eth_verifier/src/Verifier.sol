@@ -30,9 +30,6 @@ contract KimchiVerifier {
 
     Proof.AggregatedEvaluationProof aggregated_proof;
 
-    KeccakSponge.Sponge base_sponge;
-    KeccakSponge.Sponge scalar_sponge;
-
     bool last_verification_result;
 
     function setup() public {
@@ -79,13 +76,13 @@ contract KimchiVerifier {
 
     function full_verify() public returns (bool) {
         Proof.AggregatedEvaluationProof memory agg_proof =
-            KimchiPartialVerifier.partial_verify(proof, verifier_index, urs, public_input, base_sponge, scalar_sponge);
+            KimchiPartialVerifier.partial_verify(proof, verifier_index, urs, public_input);
         return final_verify(agg_proof);
     }
 
     function partial_verify_and_store() public {
         aggregated_proof =
-            KimchiPartialVerifier.partial_verify(proof, verifier_index, urs, public_input, base_sponge, scalar_sponge);
+            KimchiPartialVerifier.partial_verify(proof, verifier_index, urs, public_input);
     }
 
     function final_verify_and_store() public {
