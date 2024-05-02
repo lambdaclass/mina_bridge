@@ -241,7 +241,7 @@ It receives the state proof and the public inputs from the `verifier_circuit` mo
 
 and sends it with the proof, the verifier input and the SRS.
 
-### Ethereum smart contract verifier
+### Verifier smart contract 
 
 `eth_verifier/` holds the Mina state verifier in solidity, implemented using [Foundry](https://book.getfoundry.sh/). The contract exposes an API for retrieving zk-verified data from the last Mina state.
 
@@ -250,6 +250,38 @@ Install dependencies by running:
 ```bash
 make setup
 ```
+
+#### Verifying a proof on testnet
+
+This repo has commands to easily deploy the Verifier contract and verify a proof on Sepolia Testnet.
+To deploy the Verifier contract to Sepolia, run:
+
+```bash
+PRIVATE_KEY=<your_private_key> RPC_URL=<rpc_url> make sepolia.deploy
+```
+
+Where:
+
+- `<your_private_key>` is the private key of the account you will use to sign and pay for the deployment transaction.
+- `<rpc_url>` is the URL of the Sepolia endpoint.
+
+To upload the proof generated with `kzg_prover`, run:
+
+```bash
+PRIVATE_KEY=<your_private_key> RPC_URL=<rpc_url> CONTRACT_ADDRESS=<verifier_address> make sepolia.upload_proof
+```
+
+Where `<verifier_address>` is the address of the deployed Verifier contract.
+It reads the proof, its public inputs and the index linearization and uploads them to the testnet so that the verifier contract stores them.
+
+To verify the uploaded proof, run:
+
+```bash
+PRIVATE_KEY=<your_private_key> RPC_URL=<rpc_url> CONTRACT_ADDRESS=<verifier_address> make sepolia.verify
+```
+
+This will run the partial and final verification over the uploaded proof and return the verification result as a boolean.
+`true` if the uploaded proof is valid, `false` otherwise.
 
 #### Local usage and deployment
 
