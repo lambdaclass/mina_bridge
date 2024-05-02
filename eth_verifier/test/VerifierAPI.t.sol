@@ -48,6 +48,15 @@ contract KimchiVerifierTest is Test {
         verifier.store_public_input(public_input_serialized);
     }
 
+    function test_deserialize_and_full_verify_existing_verifier() public {
+        global_verifier.store_literal_tokens(linearization_serialized);
+        global_verifier.store_prover_proof(prover_proof_serialized);
+        global_verifier.store_public_input(public_input_serialized);
+
+        bool success = global_verifier.full_verify();
+        require(success, "Verification failed!");
+    }
+
     function test_deserialize_and_full_verify() public {
         KimchiVerifier verifier = new KimchiVerifier();
 
