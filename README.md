@@ -272,6 +272,7 @@ PRIVATE_KEY=<your_private_key> RPC_URL=<rpc_url> CONTRACT_ADDRESS=<verifier_addr
 ```
 
 Where `<verifier_address>` is the address of the deployed Verifier contract.
+It reads the proof, its public inputs and the index linearization and uploads them to the testnet so that the verifier contract stores them.
 
 To verify the uploaded proof, run:
 
