@@ -112,8 +112,8 @@ library Proof {
     }
 
     function evaluate_column_by_id(ProofEvaluations memory self, uint256 col_id)
-        public
-        view
+        internal
+        pure
         returns (PointEvaluations memory)
     {
         if (col_id <= 14) {
