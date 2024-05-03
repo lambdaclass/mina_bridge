@@ -20,9 +20,11 @@ contract Deploy is Script {
 
 contract DeployAndDeser is Script {
     bytes verifier_index_serialized;
+    bytes linearization_serialized;
 
     function run() public {
         verifier_index_serialized = vm.readFileBinary("verifier_index.bin");
+        linearization_serialized = vm.readFileBinary("linearization.bin");
 
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
 
@@ -33,6 +35,7 @@ contract DeployAndDeser is Script {
         verifier.setup();
 
         verifier.store_verifier_index(verifier_index_serialized);
+        verifier.store_linearization(linearization_serialized);
 
         vm.stopBroadcast();
     }

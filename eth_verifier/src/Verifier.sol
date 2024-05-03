@@ -66,6 +66,10 @@ contract KimchiVerifier {
         deser_linearization(data_serialized, verifier_index.linearization);
     }
 
+    function store_literal_tokens(bytes calldata data_serialized) public {
+        deser_literal_tokens(data_serialized, verifier_index.linearization);
+    }
+
     function store_prover_proof(bytes calldata data_serialized) public {
         deser_prover_proof(data_serialized, proof);
     }

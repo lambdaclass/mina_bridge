@@ -98,8 +98,8 @@ struct Linearization {
     uint256 total_variants_len;
     uint256[] variants;
     uint256[] mds;
-    uint256[] literals;
     uint256[] pows;
     uint256[] loads;
     int256[] offsets;
+    uint256[] literals;
 }

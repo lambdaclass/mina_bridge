@@ -5,12 +5,12 @@ import {Script, console2} from "forge-std/Script.sol";
 import {KimchiVerifier} from "../src/Verifier.sol";
 
 contract UploadProof is Script {
-    bytes linearization_serialized;
+    bytes linearization_literals_serialized;
     bytes public_input_serialized;
     bytes prover_proof_serialized;
 
     function run() public {
-        linearization_serialized = vm.readFileBinary("linearization.bin");
+        linearization_literals_serialized = vm.readFileBinary("linearization_literals.bin");
         public_input_serialized = vm.readFileBinary("public_input.bin");
         prover_proof_serialized = vm.readFileBinary("prover_proof.bin");
 
@@ -20,7 +20,7 @@ contract UploadProof is Script {
         address verifierAddress = vm.envAddress("CONTRACT_ADDRESS");
         KimchiVerifier verifier = KimchiVerifier(verifierAddress);
 
-        verifier.store_linearization(linearization_serialized);
+        verifier.store_literal_tokens(linearization_literals_serialized);
         verifier.store_public_input(public_input_serialized);
         verifier.store_prover_proof(prover_proof_serialized);
 
