@@ -40,7 +40,7 @@ library BN256G2 {
         uint256 pt2xy,
         uint256 pt2yx,
         uint256 pt2yy
-    ) public view returns (uint256, uint256, uint256, uint256) {
+    ) internal view returns (uint256, uint256, uint256, uint256) {
         if (pt1xx == 0 && pt1xy == 0 && pt1yx == 0 && pt1yy == 0) {
             if (!(pt2xx == 0 && pt2xy == 0 && pt2yx == 0 && pt2yy == 0)) {
                 assert(_isOnCurve(pt2xx, pt2xy, pt2yx, pt2yy));
@@ -59,7 +59,7 @@ library BN256G2 {
         return _fromJacobian(pt3[PTXX], pt3[PTXY], pt3[PTYX], pt3[PTYY], pt3[PTZX], pt3[PTZY]);
     }
 
-    function ECTwistAdd(BN254.G2Point memory p1, BN254.G2Point memory p2) public view returns (BN254.G2Point memory) {
+    function ECTwistAdd(BN254.G2Point memory p1, BN254.G2Point memory p2) internal view returns (BN254.G2Point memory) {
         uint256 p1xx = p1.x1;
         uint256 p1xy = p1.x0;
         uint256 p1yx = p1.y1;
@@ -86,7 +86,7 @@ library BN256G2 {
      * @return (pt2xx, pt2xy, pt2yx, pt2yy)
      */
     function ECTwistMul(uint256 s, uint256 pt1xx, uint256 pt1xy, uint256 pt1yx, uint256 pt1yy)
-        public
+        internal
         view
         returns (uint256, uint256, uint256, uint256)
     {
@@ -104,7 +104,7 @@ library BN256G2 {
         return _fromJacobian(pt2[PTXX], pt2[PTXY], pt2[PTYX], pt2[PTYY], pt2[PTZX], pt2[PTZY]);
     }
 
-    function ECTwistMul(uint256 s, BN254.G2Point memory p) public view returns (BN254.G2Point memory) {
+    function ECTwistMul(uint256 s, BN254.G2Point memory p) internal view returns (BN254.G2Point memory) {
         uint256 pxx = p.x0;
         uint256 pxy = p.x1;
         uint256 pyx = p.y0;
@@ -119,7 +119,7 @@ library BN256G2 {
         return addmod(a, n - b, n);
     }
 
-    function _FQ2Mul(uint256 xx, uint256 xy, uint256 yx, uint256 yy) public pure returns (uint256, uint256) {
+    function _FQ2Mul(uint256 xx, uint256 xy, uint256 yx, uint256 yy) internal pure returns (uint256, uint256) {
         return (
             submod(mulmod(xx, yx, FIELD_MODULUS), mulmod(xy, yy, FIELD_MODULUS), FIELD_MODULUS),
             addmod(mulmod(xx, yy, FIELD_MODULUS), mulmod(xy, yx, FIELD_MODULUS), FIELD_MODULUS)
@@ -211,7 +211,7 @@ library BN256G2 {
     // @returns the root was found.
     //
     // @notice reference: Algorithm 8 of https://eprint.iacr.org/2012/685.pdf
-    function FQ2Sqrt(uint256 a0, uint256 a1) public view returns (uint256, uint256) {
+    function FQ2Sqrt(uint256 a0, uint256 a1) internal view returns (uint256, uint256) {
         if (a1 == 0) return (_FQ1Sqrt(a0), 0);
 
         // 4: alpha <- a_0^2 - beta * a_1^2
