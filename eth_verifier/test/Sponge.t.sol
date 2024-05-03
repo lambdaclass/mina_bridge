@@ -24,8 +24,6 @@ contract KeccakSpongeTest is Test {
         sponge.absorb_scalar(input);
 
         Scalar.FE digest = sponge.digest_scalar();
-        console.log("after digesting");
-        console.log(sponge.last_index);
         assertEq(
             Scalar.FE.unwrap(digest),
             0x00BECED09521047D05B8960B7E7BCC1D1292CF3E4B2A6B63F48335CBDE5F7545

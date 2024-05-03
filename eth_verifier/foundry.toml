@@ -12,4 +12,11 @@ fs_permissions = [
     { access = "read", path = "./linearization.bin"},
     { access = "read", path = "./unit_test_data/"},
 ]
-# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+# https://github.com/foundry-rs/foundry/issues/6780#issuecomment-1962319449
+bytecode_hash = "none"
+cbor_metadata = false
+sparse_mode = false
+
+[profile.default.optimizer_details]
+# constantOptimizer = true
+yul = true
