@@ -56,6 +56,7 @@ use serde::{ser::SerializeStruct, Serialize};
 use serializer::{
     serialize::{EVMSerializable, EVMSerializableType},
     type_aliases::{BN254PolishToken, BN254ProofEvaluations},
+    utils::BN254PolishLiteralTokens,
 };
 use snarky_gate::SnarkyGate;
 
@@ -186,9 +187,19 @@ fn generate_proof() {
         rmp_serde::to_vec_named(&srs_to_serialize).unwrap(),
     )
     .unwrap();
+    let precomputed_literal_tokens: Vec<BN254PolishLiteralTokens> = precomputed_tokens
+        .clone()
+        .into_iter()
+        .map(BN254PolishLiteralTokens)
+        .collect();
     fs::write(
         "../eth_verifier/linearization.bin",
         EVMSerializableType(precomputed_tokens).to_bytes(),
+    )
+    .unwrap();
+    fs::write(
+        "../eth_verifier/linearization_literals.bin",
+        EVMSerializableType(precomputed_literal_tokens).to_bytes(),
     )
     .unwrap();
 

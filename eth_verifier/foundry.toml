@@ -10,6 +10,7 @@ fs_permissions = [
     { access = "read", path = "./prover_proof.bin"},
     { access = "read", path = "./public_input.bin"},
     { access = "read", path = "./linearization.bin"},
+    { access = "read", path = "./linearization_literals.bin"},
     { access = "read", path = "./unit_test_data/"},
 ]
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
