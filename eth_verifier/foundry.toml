@@ -3,7 +3,7 @@ src = "src"
 out = "out"
 libs = ["lib"]
 optimizer = true
-optimizer_runs = 200
+optimizer_runs = 4_294_967_295 # 2^32 - 1, max value
 via_ir = true
 fs_permissions = [
     { access = "read", path = "./verifier_index.bin"},
