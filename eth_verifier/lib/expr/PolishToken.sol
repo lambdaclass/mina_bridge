@@ -18,7 +18,7 @@ library PolishTokenEvaluation {
         Scalar.FE vanishing_eval,
         Proof.ProofEvaluations memory evals,
         ExprConstants memory c
-    ) external view returns (Scalar.FE) {
+    ) internal view returns (Scalar.FE) {
         Scalar.FE[] memory stack = new Scalar.FE[](linearization.total_variants_len);
         uint256 stack_next = 0; // will keep track of last stack element's index
         Scalar.FE[] memory cache = new Scalar.FE[](linearization.total_variants_len);
@@ -217,7 +217,7 @@ library PolishTokenEvaluation {
     // @notice evaluates the vanishing polynomial for this domain at tau.
     // @notice for multiplicative subgroups, this polynomial is `z(X) = X^self.size - 1
     function evaluate_vanishing_polynomial(Scalar.FE domain_gen, uint256 domain_size, Scalar.FE tau)
-        public
+        internal
         view
         returns (Scalar.FE)
     {

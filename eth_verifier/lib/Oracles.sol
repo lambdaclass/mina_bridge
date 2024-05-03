@@ -42,7 +42,7 @@ library Oracles {
         BN254.G1Point memory public_comm,
         Scalar.FE public_input,
         bool is_public_input_set
-    ) public returns (Result memory) {
+    ) internal returns (Result memory) {
         uint256 chunk_size = index.domain_size < index.max_poly_size ? 1 : index.domain_size / index.max_poly_size;
 
         (Base.FE _endo_q, Scalar.FE endo_r) = BN254.endo_coeffs_g1();

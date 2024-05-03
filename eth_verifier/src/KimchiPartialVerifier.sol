@@ -224,7 +224,7 @@ library KimchiPartialVerifier {
         VerifierIndexLib.VerifierIndex storage verifier_index,
         Commitment.URS storage urs,
         Scalar.FE public_input
-    ) public view returns (BN254.G1Point memory) {
+    ) internal view returns (BN254.G1Point memory) {
         if (verifier_index.domain_size < verifier_index.max_poly_size) {
             revert PolynomialsAreChunked(verifier_index.domain_size / verifier_index.max_poly_size);
         }
@@ -253,7 +253,7 @@ library KimchiPartialVerifier {
         Scalar.FE gamma,
         AlphasIterator memory alphas,
         Scalar.FE zkp_zeta
-    ) internal view returns (Scalar.FE res) {
+    ) internal pure returns (Scalar.FE res) {
         require(alphas.powers.length - alphas.current_index == 3, "not enough powers of alpha for permutation");
 
         Scalar.FE alpha0 = alphas.it_next();

@@ -112,8 +112,8 @@ library Proof {
     }
 
     function evaluate_column_by_id(ProofEvaluations memory self, uint256 col_id)
-        public
-        view
+        internal
+        pure
         returns (PointEvaluations memory)
     {
         if (col_id <= 14) {
@@ -273,7 +273,7 @@ library Proof {
         BN254.G1Point memory table_id_vector,
         bool is_runtime_vector_set,
         BN254.G1Point memory runtime_vector
-    ) public view returns (BN254.G1Point memory) {
+    ) internal view returns (BN254.G1Point memory) {
         uint256 total_len = 1 + (is_table_id_vector_set ? 1 : 0) + (is_runtime_vector_set ? 1 : 0);
 
         Scalar.FE j = Scalar.one();
@@ -300,7 +300,7 @@ library Proof {
         return Commitment.msm(commitments, scalars);
     }
 
-    function is_field_set(uint256 optional_field_flags, uint256 flag_pos) public pure returns (bool) {
+    function is_field_set(uint256 optional_field_flags, uint256 flag_pos) internal pure returns (bool) {
         return (optional_field_flags >> flag_pos) & 1 == 1;
     }
 }

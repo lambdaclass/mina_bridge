@@ -119,7 +119,7 @@ library VerifierIndexLib {
     }
     // TODO: lookup features
 
-    function verifier_digest(VerifierIndex storage index) public view returns (Base.FE) {
+    function verifier_digest(VerifierIndex storage index) internal view returns (Base.FE) {
         KeccakSponge.Sponge memory sponge;
         sponge.reinit();
 
@@ -192,7 +192,7 @@ library VerifierIndexLib {
         Column memory column,
         VerifierIndex storage verifier_index,
         Proof.ProverProof storage proof
-    ) public view returns (BN254.G1Point memory) {
+    ) internal view returns (BN254.G1Point memory) {
         LookupVerifierIndex memory l_index = verifier_index.lookup_index;
 
         uint256 inner = column.inner;

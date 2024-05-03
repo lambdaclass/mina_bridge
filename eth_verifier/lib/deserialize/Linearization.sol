@@ -3,8 +3,6 @@ pragma solidity >=0.4.16 <0.9.0;
 
 import "../expr/Expr.sol";
 
-import "forge-std/console.sol";
-
 function deser_linearization(
     bytes memory data,
     Linearization storage linearization

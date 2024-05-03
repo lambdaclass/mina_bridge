@@ -7,21 +7,21 @@ import "./BN254.sol";
 library Base {
     type FE is uint256;
 
-    uint256 public constant MODULUS = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
+    uint256 internal constant MODULUS = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
 
-    function zero() public pure returns (FE) {
+    function zero() internal pure returns (FE) {
         return FE.wrap(0);
     }
 
-    function one() public pure returns (FE) {
+    function one() internal pure returns (FE) {
         return FE.wrap(1);
     }
 
-    function from(uint256 n) public pure returns (FE) {
+    function from(uint256 n) internal pure returns (FE) {
         return FE.wrap(n % MODULUS);
     }
 
-    function from_bytes_be(bytes memory b) public pure returns (FE) {
+    function from_bytes_be(bytes memory b) internal pure returns (FE) {
         uint256 integer = 0;
         uint256 count = b.length <= 32 ? b.length : 32;
 
@@ -32,25 +32,25 @@ library Base {
         return FE.wrap(integer % MODULUS);
     }
 
-    function add(FE self, FE other) public pure returns (FE res) {
-        assembly {
+    function add(FE self, FE other) internal pure returns (FE res) {
+        assembly ("memory-safe") {
             res := addmod(self, other, MODULUS) // addmod has arbitrary precision
         }
     }
 
-    function mul(FE self, FE other) public pure returns (FE res) {
-        assembly {
+    function mul(FE self, FE other) internal pure returns (FE res) {
+        assembly ("memory-safe") {
             res := mulmod(self, other, MODULUS) // mulmod has arbitrary precision
         }
     }
 
-    function square(FE self) public pure returns (FE res) {
-        assembly {
+    function square(FE self) internal pure returns (FE res) {
+        assembly ("memory-safe") {
             res := mulmod(self, self, MODULUS) // mulmod has arbitrary precision
         }
     }
 
-    function inv(FE self) public pure returns (FE) {
+    function inv(FE self) internal pure returns (FE) {
         require(FE.unwrap(self) != 0, "tried to get inverse of 0");
         (uint256 gcd, uint256 inverse) = Aux.xgcd(FE.unwrap(self), MODULUS);
         require(gcd == 1, "gcd not 1");
@@ -58,17 +58,17 @@ library Base {
         return FE.wrap(inverse);
     }
 
-    function neg(FE self) public pure returns (FE) {
+    function neg(FE self) internal pure returns (FE) {
         return FE.wrap(MODULUS - FE.unwrap(self));
     }
 
-    function sub(FE self, FE other) public pure returns (FE res) {
-        assembly {
+    function sub(FE self, FE other) internal pure returns (FE res) {
+        assembly ("memory-safe") {
             res := addmod(self, sub(MODULUS, other), MODULUS)
         }
     }
 
-    function pow(FE self, uint256 exponent) public pure returns (FE result) {
+    function pow(FE self, uint256 exponent) internal pure returns (FE result) {
         result = FE.wrap(1);
         while (exponent != 0) {
             if (exponent & 1 == 1) {
@@ -80,7 +80,6 @@ library Base {
     }
 }
 
-import {console} from "forge-std/console.sol";
 /// @notice Implements 256 bit modular arithmetic over the scalar field of bn254.
 
 library Scalar {
@@ -88,25 +87,25 @@ library Scalar {
 
     using {add, mul, inv, neg, sub} for FE;
 
-    uint256 public constant MODULUS = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
+    uint256 internal constant MODULUS = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
-    uint256 public constant TWO_ADIC_PRIMITIVE_ROOT_OF_UNITY =
+    uint256 internal constant TWO_ADIC_PRIMITIVE_ROOT_OF_UNITY =
         19103219067921713944291392827692070036145651957329286315305642004821462161904;
-    uint256 public constant TWO_ADICITY = 28;
+    uint256 internal constant TWO_ADICITY = 28;
 
-    function zero() public pure returns (FE) {
+    function zero() internal pure returns (FE) {
         return FE.wrap(0);
     }
 
-    function one() public pure returns (FE) {
+    function one() internal pure returns (FE) {
         return FE.wrap(1);
     }
 
-    function from(uint256 n) public pure returns (FE) {
+    function from(uint256 n) internal pure returns (FE) {
         return FE.wrap(n % MODULUS);
     }
 
-    function from_bytes_be(bytes memory b) public pure returns (FE) {
+    function from_bytes_be(bytes memory b) internal pure returns (FE) {
         uint256 integer = 0;
         uint256 count = b.length <= 32 ? b.length : 32;
 
@@ -117,47 +116,47 @@ library Scalar {
         return FE.wrap(integer % MODULUS);
     }
 
-    function add(FE self, FE other) public pure returns (FE res) {
-        assembly {
+    function add(FE self, FE other) internal pure returns (FE res) {
+        assembly ("memory-safe") {
             res := addmod(self, other, MODULUS) // addmod has arbitrary precision
         }
     }
 
-    function mul(FE self, FE other) public pure returns (FE res) {
-        assembly {
+    function mul(FE self, FE other) internal pure returns (FE res) {
+        assembly ("memory-safe") {
             res := mulmod(self, other, MODULUS) // mulmod has arbitrary precision
         }
     }
 
-    function double(FE self) public pure returns (FE res) {
+    function double(FE self) internal pure returns (FE res) {
         res = mul(self, FE.wrap(2));
     }
 
-    function square(FE self) public pure returns (FE res) {
+    function square(FE self) internal pure returns (FE res) {
         res = mul(self, self);
     }
 
-    function inv(FE self) public view returns (FE inverse) {
+    function inv(FE self) internal view returns (FE inverse) {
         inverse = FE.wrap(BN254.invert(FE.unwrap(self)));
     }
 
-    function neg(FE self) public pure returns (FE) {
+    function neg(FE self) internal pure returns (FE) {
         return FE.wrap(MODULUS - FE.unwrap(self));
     }
 
-    function sub(FE self, FE other) public pure returns (FE res) {
-        assembly {
+    function sub(FE self, FE other) internal pure returns (FE res) {
+        assembly ("memory-safe") {
             res := addmod(self, sub(MODULUS, other), MODULUS)
         }
     }
 
-    function pow(FE self, uint256 exponent) public view returns (FE result) {
+    function pow(FE self, uint256 exponent) internal view returns (FE result) {
         uint256 base = FE.unwrap(self);
         uint256 o;
-        assembly {
+        assembly ("memory-safe") {
             // define pointer
             let p := mload(0x40)
-            // store data assembly-favouring ways
+            // store data assembly ("memory-safe")-favouring ways
             mstore(p, 0x20) // Length of Base
             mstore(add(p, 0x20), 0x20) // Length of Exponent
             mstore(add(p, 0x40), 0x20) // Length of Modulus
@@ -176,7 +175,7 @@ library Scalar {
     // Reference: Lambdaworks
     // https://github.com/lambdaclass/lambdaworks/
 
-    function get_primitive_root_of_unity(uint256 order) public view returns (FE root) {
+    function get_primitive_root_of_unity(uint256 order) internal view returns (FE root) {
         if (order == 0) {
             return FE.wrap(1);
         }
@@ -198,7 +197,7 @@ library Aux {
     /// @notice Extended euclidean algorithm. Returns [gcd, Bezout_a]
     /// @notice so gcd = a*Bezout_a + b*Bezout_b.
     /// @notice source: https://www.extendedeuclideanalgorithm.com/code
-    function xgcd(uint256 a, uint256 b) public pure returns (uint256 r0, uint256 s0) {
+    function xgcd(uint256 a, uint256 b) internal pure returns (uint256 r0, uint256 s0) {
         r0 = a;
         uint256 r1 = b;
         s0 = 1;
