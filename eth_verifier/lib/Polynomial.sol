@@ -13,7 +13,7 @@ library Polynomial {
 
     // @notice evaluates via Horner's method.
     // @warn this function can not be used with the empty polynomial.
-    function build_and_eval(Scalar.FE[] memory coeffs, Scalar.FE x) external pure returns (Scalar.FE result) {
+    function build_and_eval(Scalar.FE[] memory coeffs, Scalar.FE x) internal pure returns (Scalar.FE result) {
         result = coeffs[coeffs.length - 1];
         if (coeffs.length == 1) {
             return result;
@@ -25,7 +25,7 @@ library Polynomial {
         }
     }
 
-    function sub(Dense memory self, Dense memory other) public pure returns (Dense memory) {
+    function sub(Dense memory self, Dense memory other) internal pure returns (Dense memory) {
         uint256 n = Utils.min(self.coeffs.length, other.coeffs.length);
         Scalar.FE[] memory coeffs_self_sub_other = new Scalar.FE[](n);
         for (uint256 i = 0; i < n; i++) {
@@ -38,7 +38,7 @@ library Polynomial {
     // @notice evaluates the polynomial
     // @notice (x - w^{n - i}) * (x - w^{n - i + 1}) * ... * (x - w^{n - 1})
     function eval_vanishes_on_last_n_rows(Scalar.FE domain_gen, uint256 domain_size, uint256 i, Scalar.FE x)
-        public
+        internal
         view
         returns (Scalar.FE)
     {
