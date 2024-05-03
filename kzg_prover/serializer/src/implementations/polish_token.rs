@@ -20,7 +20,6 @@ impl EVMSerializable for EVMSerializableType<Vec<BN254PolishToken>> {
 
         // encoded data:
         let mut encoded_mds = vec![];
-        let mut encoded_literals = vec![];
         let mut encoded_pows = vec![];
         let mut encoded_offsets = vec![];
         let mut encoded_loads = vec![];
@@ -41,9 +40,9 @@ impl EVMSerializable for EVMSerializableType<Vec<BN254PolishToken>> {
                     encoded_mds.extend(EVMSerializableType(*row).to_bytes());
                     encoded_mds.extend(EVMSerializableType(*col).to_bytes());
                 }
-                PolishToken::Literal(literal) => {
+                PolishToken::Literal(_) => {
                     token_id = 6;
-                    encoded_literals.extend(EVMSerializableType(*literal).to_bytes());
+                    // literal data will be serialized separately
                 }
                 PolishToken::Dup => token_id = 7,
                 PolishToken::Pow(pow) => {
@@ -127,7 +126,6 @@ impl EVMSerializable for EVMSerializableType<Vec<BN254PolishToken>> {
         // length in words
         let encoded_variants_len = EVMSerializableType(encoded_variants.len() / 32).to_bytes();
         let encoded_mds_len = EVMSerializableType(encoded_mds.len() / 32).to_bytes();
-        let encoded_literals_len = EVMSerializableType(encoded_literals.len() / 32).to_bytes();
         let encoded_pows_len = EVMSerializableType(encoded_pows.len() / 32).to_bytes();
         let encoded_loads_len = EVMSerializableType(encoded_loads.len() / 32).to_bytes();
         let encoded_offsets_len = EVMSerializableType(encoded_offsets.len() / 32).to_bytes();
@@ -140,9 +138,6 @@ impl EVMSerializable for EVMSerializableType<Vec<BN254PolishToken>> {
             // mds
             encoded_mds_len,
             encoded_mds,
-            // literals
-            encoded_literals_len,
-            encoded_literals,
             // pows
             encoded_pows_len,
             encoded_pows,
