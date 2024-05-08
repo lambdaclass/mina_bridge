@@ -1,0 +1,9 @@
+[package]
+name = "merkle-path"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde_json = "1.0.108"
+serde = { version = "1.0.192", features = ["derive"] }
+neptune = "13.0.0"
