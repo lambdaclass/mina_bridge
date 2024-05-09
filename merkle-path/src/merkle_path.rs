@@ -41,6 +41,7 @@ pub struct MerkleLeaf {
 
 mod test {
     use super::{MerkleLeaf, MerkleTree};
+    use base58::*;
 
     #[test]
     fn test_merkle_leaf() {
@@ -74,5 +75,40 @@ mod test {
         let deserialized: MerkleTree = serde_json::from_str(&serialized).unwrap();
         let flatten = deserialized.create_map();
         println!("{:?}", flatten);
+    }
+
+    #[test]
+    fn test_fp() {
+        use pasta_curves::Fp;
+
+        let f = "0x8186407070323331717412068877244574160296972200577316395640080416951883426150";
+        //let hex_string = hex::encode(f);
+        //println!("hex_string: {:?}", hex_string);
+        let deserialized: Fp = serde_json::from_str(&f).unwrap();
+
+        println!("{:?}", deserialized);
+    }
+
+    #[test]
+    fn test_hash() {
+        use generic_array::typenum::U2;
+        use neptune::poseidon::Poseidon;
+        use neptune::poseidon::PoseidonConstants;
+        use pasta_curves::Fp;
+
+        let preimage_set_length = 1;
+        let constants: PoseidonConstants<Fp, U2> =
+            PoseidonConstants::new_constant_length(preimage_set_length);
+
+        /*
+        let mut poseidon = Poseidon::<Fp, U2>::new_with_preimage(&preimage, &constants);
+        let pos = poseidon
+            .input(Fp::from(u64::MAX))
+            .expect("can't add one more element");
+        let digest = poseidon.hash();
+
+        println!("pos: {:?}", pos);
+        println!("digest: {:?}", digest);
+        */
     }
 }
