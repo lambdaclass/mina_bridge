@@ -156,7 +156,7 @@ library Scalar {
         assembly ("memory-safe") {
             // define pointer
             let p := mload(0x40)
-            // store data assembly ("memory-safe")-favouring ways
+            // store data assembly-favouring ways
             mstore(p, 0x20) // Length of Base
             mstore(add(p, 0x20), 0x20) // Length of Exponent
             mstore(add(p, 0x40), 0x20) // Length of Modulus
