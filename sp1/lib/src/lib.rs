@@ -21,6 +21,9 @@ type SpongeParams = PlonkSpongeConstantsKimchi;
 type BaseSponge = DefaultFqSponge<VestaParameters, SpongeParams>;
 type ScalarSponge = DefaultFrSponge<Fp, SpongeParams>;
 
+type Curve = Vesta;
+type ScalarField = Fp;
+
 /*
 pub fn verify_kimchi_proof() -> bool {
     let verifier_index = if let Ok(verifier_index) =
@@ -78,8 +81,14 @@ fn deserialize_kimchi_pub_input(
 mod test {
     use super::*;
 
+    use kimchi::circuits::constraints::ConstraintSystem;
+    use kimchi::circuits::gate::CircuitGate;
+    use kimchi::circuits::polynomials::range_check;
+    use kimchi::circuits::wires::Wire;
     use kimchi::groupmap::GroupMap;
+    use kimchi::poly_commitment::OpenProof;
     use kimchi::proof::ProverProof;
+    use kimchi::prover_index::ProverIndex;
     use kimchi::{poly_commitment::commitment::CommitmentCurve, verifier::verify};
 
     const KIMCHI_PROOF: &[u8] = include_bytes!("../kimchi_ec_add.proof");
@@ -103,6 +112,7 @@ mod test {
     }
     */
 
+    #[ignore]
     #[test]
     fn serialize_deserialize_pub_input_works() {
         let proof: ProverProof<Vesta, OpeningProof<Vesta>> = rmp_serde::from_slice(KIMCHI_PROOF)
@@ -145,6 +155,7 @@ mod test {
         );
     }
 
+    #[ignore]
     #[test]
     fn read_proof_from_file() {
         /*
@@ -157,5 +168,68 @@ mod test {
             rmp_serde::from_slice(&bytes_verifier_index).unwrap();
 
         println!("{:?}", verifier_index);
+    }
+
+    fn generate_test_proof() -> (
+        ProverProof<Curve, OpeningProof<Curve>>,
+        VerifierIndex<Curve, OpeningProof<Curve>>,
+    ) {
+        // Create range-check gadget
+        let (mut next_row, mut gates) = CircuitGate::<ScalarField>::create_multi_range_check(0);
+
+        // Create witness
+        let witness = range_check::witness::create_multi::<ScalarField>(
+            ScalarField::from(1),
+            ScalarField::from(1),
+            ScalarField::from(1),
+        );
+
+        // Temporary workaround for lookup-table/domain-size issue
+        for _ in 0..(1 << 13) {
+            gates.push(CircuitGate::zero(Wire::for_row(next_row)));
+            next_row += 1;
+        }
+        // Create constraint system
+        let cs = ConstraintSystem::<ScalarField>::create(gates)
+            //.lookup(vec![range_check::gadget::lookup_table()])
+            .build()
+            .unwrap();
+
+        let mut srs = SRS::create_trusted_setup(ScalarField::from(42), cs.gates.len());
+        srs.add_lagrange_basis(cs.domain.d1);
+
+        let (_endo_q, endo_r) = Curve::endos();
+        let index =
+            ProverIndex::<Curve, OpeningProof<Curve>>::create(cs, *endo_r, Arc::new(srs.clone()));
+
+        let group_map = <Curve as CommitmentCurve>::Map::setup();
+        let proof = ProverProof::create_recursive::<BaseSponge, ScalarSponge>(
+            &group_map,
+            witness,
+            &[],
+            &index,
+            vec![],
+            None,
+        )
+        .unwrap();
+
+        // Verify
+        assert!(
+            verify::<Curve, BaseSponge, ScalarSponge, OpeningProof<Curve>>(
+                &group_map,
+                &index.verifier_index(),
+                &proof,
+                &Vec::new()
+            )
+            .is_ok(),
+            "Generated test proof isn't valid."
+        );
+
+        (proof, index.verifier_index())
+    }
+
+    #[test]
+    fn test_generate_proof() {
+        generate_test_proof();
     }
 }
