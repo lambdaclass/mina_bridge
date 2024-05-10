@@ -8,9 +8,10 @@ const ELF: &[u8] = include_bytes!("../../program/elf/riscv32im-succinct-zkvm-elf
 fn main() {
     // Generate proof.
     let mut stdin = SP1Stdin::new();
-    let (proof, index) = generate_test_proof();
+    let (proof, index, srs) = generate_test_proof();
     stdin.write(&proof);
     stdin.write(&index);
+    stdin.write(&srs);
     let client = ProverClient::new();
     let (pk, vk) = client.setup(ELF);
     let mut proof = client.prove(&pk, stdin).expect("proving failed");
