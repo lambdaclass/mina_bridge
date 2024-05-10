@@ -3,9 +3,8 @@
 #![no_main]
 
 use kimchi::{
-    groupmap::GroupMap,
     mina_curves::pasta::Vesta,
-    poly_commitment::{commitment::CommitmentCurve, evaluation_proof::OpeningProof},
+    poly_commitment::{evaluation_proof::OpeningProof, srs::SRS},
     proof::ProverProof,
     verifier_index::VerifierIndex,
 };
@@ -20,9 +19,9 @@ type KimchiVerifierIndex = VerifierIndex<Curve, KimchiOpeningProof>;
 
 pub fn main() {
     let proof = sp1_zkvm::io::read::<KimchiProof>();
-    let verifier_index = sp1_zkvm::io::read::<KimchiVerifierIndex>();
-    let group_map = <Curve as CommitmentCurve>::Map::setup();
+    let mut verifier_index = sp1_zkvm::io::read::<KimchiVerifierIndex>();
+    let srs = sp1_zkvm::io::read::<SRS<Curve>>();
 
-    let result = kimchi_verify(&proof, &verifier_index, group_map);
+    let result = kimchi_verify(&proof, &mut verifier_index, srs);
     sp1_zkvm::io::commit(&result);
 }

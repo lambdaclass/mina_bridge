@@ -28,11 +28,12 @@ type ScalarField = Fp;
 
 pub fn kimchi_verify(
     proof: &ProverProof<Curve, OpeningProof<Curve>>,
-    verifier_index: &VerifierIndex<Curve, OpeningProof<Curve>>,
-    group_map: <Curve as CommitmentCurve>::Map,
+    verifier_index: &mut VerifierIndex<Curve, OpeningProof<Curve>>,
+    srs: SRS<Curve>
 ) -> bool {
+    verifier_index.srs = Arc::new(srs);
     verify::<Curve, BaseSponge, ScalarSponge, OpeningProof<Curve>>(
-        &group_map,
+        &<Curve as CommitmentCurve>::Map::setup(),
         verifier_index,
         proof,
         &Vec::new(),
@@ -43,6 +44,7 @@ pub fn kimchi_verify(
 pub fn generate_test_proof() -> (
     ProverProof<Curve, OpeningProof<Curve>>,
     VerifierIndex<Curve, OpeningProof<Curve>>,
+    SRS<Curve>,
 ) {
     // Create range-check gadget
     let (mut next_row, mut gates) = CircuitGate::<ScalarField>::create_multi_range_check(0);
@@ -95,7 +97,7 @@ pub fn generate_test_proof() -> (
         "Generated test proof isn't valid."
     );
 
-    (proof, index.verifier_index())
+    (proof, index.verifier_index(), srs)
 }
 
 #[cfg(test)]
@@ -104,6 +106,7 @@ mod test {
 
     #[test]
     fn test_generate_proof() {
-        generate_test_proof();
+        let (proof, verifier_index, srs) = generate_test_proof();
+        assert!(kimchi_verify(&proof, &mut verifier_index, &srs));
     }
 }
