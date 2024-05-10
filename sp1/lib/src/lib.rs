@@ -43,7 +43,6 @@ pub fn kimchi_verify(
 pub fn generate_test_proof() -> (
     ProverProof<Curve, OpeningProof<Curve>>,
     VerifierIndex<Curve, OpeningProof<Curve>>,
-    <Curve as CommitmentCurve>::Map,
 ) {
     // Create range-check gadget
     let (mut next_row, mut gates) = CircuitGate::<ScalarField>::create_multi_range_check(0);
@@ -96,7 +95,7 @@ pub fn generate_test_proof() -> (
         "Generated test proof isn't valid."
     );
 
-    (proof, index.verifier_index(), group_map)
+    (proof, index.verifier_index())
 }
 
 #[cfg(test)]

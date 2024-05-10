@@ -30,6 +30,17 @@ checksum = "f26201604c87b1e01bd3d98f8d5d9a8fcbb815e8cedb41ffccbeb4bf593a35fe"
 
 [[package]]
 name = "ahash"
+version = "0.7.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "891477e0c6a8957309ee5c45a6368af3ae14bb510732d2684ffa19af310920f9"
+dependencies = [
+ "getrandom",
+ "once_cell",
+ "version_check",
+]
+
+[[package]]
+name = "ahash"
 version = "0.8.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e89da841a80418a9b391ebaea17f5c112ffaaa96f621d2c285b5174da76b9011"
@@ -523,6 +534,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "25bdb32cbbdce2b519a9cd7df3a678443100e265d5e25ca763b7572a5104f5f3"
 
 [[package]]
+name = "ark-ec"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dea978406c4b1ca13c2db2373b05cc55429c3575b8b21f1b9ee859aa5b03dd42"
+dependencies = [
+ "ark-ff 0.3.0",
+ "ark-serialize 0.3.0",
+ "ark-std 0.3.0",
+ "derivative",
+ "num-traits",
+ "rayon",
+ "zeroize",
+]
+
+[[package]]
 name = "ark-ff"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -536,6 +562,7 @@ dependencies = [
  "num-bigint 0.4.5",
  "num-traits",
  "paste",
+ "rayon",
  "rustc_version 0.3.3",
  "zeroize",
 ]
@@ -606,11 +633,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "ark-poly"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7b0f78f47537c2f15706db7e98fe64cc1711dbf9def81218194e17239e53e5aa"
+dependencies = [
+ "ark-ff 0.3.0",
+ "ark-serialize 0.3.0",
+ "ark-std 0.3.0",
+ "derivative",
+ "hashbrown 0.11.2",
+ "rayon",
+]
+
+[[package]]
 name = "ark-serialize"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d6c2b318ee6e10f8c2853e73a83adc0ccb88995aa978d8a3408d492ab2ee671"
 dependencies = [
+ "ark-serialize-derive",
  "ark-std 0.3.0",
  "digest 0.9.0",
 ]
@@ -627,6 +669,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "ark-serialize-derive"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8dd4e5f0bf8285d5ed538d27fab7411f3e297908fd93c62195de8bee3f199e82"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
 name = "ark-std"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -634,6 +687,7 @@ checksum = "1df2c09229cbc5a028b1d70e00fdb2acee28b1055dfb5ca73eea49c5a25c4e7c"
 dependencies = [
  "num-traits",
  "rand",
+ "rayon",
 ]
 
 [[package]]
@@ -808,6 +862,16 @@ name = "base64ct"
 version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8c3c1a368f70d6cf7302d78f8f7093da241fb8e8807c05cc9e51a125895a6d5b"
+
+[[package]]
+name = "bcs"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "85b6598a2f5d564fb7855dc6b06fd1c38cff5a72bd8b863a4d021938497b440a"
+dependencies = [
+ "serde",
+ "thiserror",
+]
 
 [[package]]
 name = "bincode"
@@ -1124,6 +1188,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6245d59a3e82a7fc217c5828a6692dbc6dfb63a0c8c90495621f7b9d79704a0e"
 
 [[package]]
+name = "convert_case"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec182b0ca2f35d8fc196cf3404988fd8b8c739a4d270ff118a398feb0cbec1ca"
+dependencies = [
+ "unicode-segmentation",
+]
+
+[[package]]
 name = "core-foundation"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1350,7 +1423,7 @@ version = "0.99.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4fb810d30a7c1953f91334de7244731fc3f3c10d7fe163338a35b9f640960321"
 dependencies = [
- "convert_case",
+ "convert_case 0.4.0",
  "proc-macro2",
  "quote",
  "rustc_version 0.4.0",
@@ -1798,6 +1871,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "groupmap"
+version = "0.1.0"
+source = "git+https://github.com/lambdaclass/proof-systems?branch=add-verifier-serializations#0b4336bafe7bb91b77684fb22f7406102a425529"
+dependencies = [
+ "ark-ec",
+ "ark-ff 0.3.0",
+ "rand",
+]
+
+[[package]]
 name = "h2"
 version = "0.3.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1860,6 +1943,15 @@ dependencies = [
 
 [[package]]
 name = "hashbrown"
+version = "0.11.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ab5ef0d4909ef3724cc8cce6ccc8572c5c817592e9285f5464f8e86f8bd3726e"
+dependencies = [
+ "ahash 0.7.8",
+]
+
+[[package]]
+name = "hashbrown"
 version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a9ee70c43aaf417c914396645a0fa852624801b24ebb7ae78fe8272889ac888"
@@ -1870,7 +1962,7 @@ version = "0.14.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1"
 dependencies = [
- "ahash",
+ "ahash 0.8.11",
  "allocator-api2",
 ]
 
@@ -2262,6 +2354,11 @@ dependencies = [
 ]
 
 [[package]]
+name = "internal-tracing"
+version = "0.1.0"
+source = "git+https://github.com/lambdaclass/proof-systems?branch=add-verifier-serializations#0b4336bafe7bb91b77684fb22f7406102a425529"
+
+[[package]]
 name = "ipconfig"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2372,6 +2469,56 @@ checksum = "47a3633291834c4fbebf8673acbc1b04ec9d151418ff9b8e26dcd79129928758"
 dependencies = [
  "digest 0.10.7",
  "sha3-asm",
+]
+
+[[package]]
+name = "kimchi"
+version = "0.1.0"
+source = "git+https://github.com/lambdaclass/proof-systems?branch=add-verifier-serializations#0b4336bafe7bb91b77684fb22f7406102a425529"
+dependencies = [
+ "ark-ec",
+ "ark-ff 0.3.0",
+ "ark-poly",
+ "ark-serialize 0.3.0",
+ "blake2",
+ "groupmap",
+ "hex",
+ "internal-tracing",
+ "itertools 0.12.1",
+ "mina-curves",
+ "mina-poseidon",
+ "num-bigint 0.4.5",
+ "num-derive",
+ "num-integer",
+ "num-traits",
+ "o1-utils",
+ "once_cell",
+ "poly-commitment",
+ "rand",
+ "rand_core",
+ "rayon",
+ "rmp-serde",
+ "serde",
+ "serde_with",
+ "snarky-deriver",
+ "strum",
+ "strum_macros",
+ "thiserror",
+ "turshi",
+]
+
+[[package]]
+name = "kimchi-verifier-ffi"
+version = "0.1.0"
+dependencies = [
+ "ark-ec",
+ "ark-ff 0.3.0",
+ "ark-poly",
+ "ark-serialize 0.3.0",
+ "kimchi",
+ "o1-utils",
+ "rmp-serde",
+ "serde",
 ]
 
 [[package]]
@@ -2525,9 +2672,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "mina-curves"
+version = "0.1.0"
+source = "git+https://github.com/lambdaclass/proof-systems?branch=add-verifier-serializations#0b4336bafe7bb91b77684fb22f7406102a425529"
+dependencies = [
+ "ark-ec",
+ "ark-ff 0.3.0",
+ "num-bigint 0.4.5",
+]
+
+[[package]]
+name = "mina-poseidon"
+version = "0.1.0"
+source = "git+https://github.com/lambdaclass/proof-systems?branch=add-verifier-serializations#0b4336bafe7bb91b77684fb22f7406102a425529"
+dependencies = [
+ "ark-ec",
+ "ark-ff 0.3.0",
+ "ark-poly",
+ "mina-curves",
+ "o1-utils",
+ "once_cell",
+ "rand",
+ "rayon",
+ "serde",
+ "serde_with",
+]
+
+[[package]]
 name = "mina_bridge_sp1-script"
 version = "0.1.0"
 dependencies = [
+ "kimchi-verifier-ffi",
  "sp1-helper",
  "sp1-sdk",
 ]
@@ -2619,6 +2794,8 @@ checksum = "c165a9ab64cf766f73521c0dd2cfdff64f488b8f0b3e621face3462d3db536d7"
 dependencies = [
  "num-integer",
  "num-traits",
+ "rand",
+ "serde",
 ]
 
 [[package]]
@@ -2635,6 +2812,17 @@ name = "num-conv"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "51d515d32fb182ee37cda2ccdcb92950d6a3c2893aa280e540671c2cd0f3b1d9"
+
+[[package]]
+name = "num-derive"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ed3955f1a9c7c0c15e092f9c887db08b1fc683305fdf6eb6684f22555355e202"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.61",
+]
 
 [[package]]
 name = "num-integer"
@@ -2722,6 +2910,29 @@ name = "number_prefix"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "830b246a0e5f20af87141b25c173cd1b609bd7779a4617d6ec582abaf90870f3"
+
+[[package]]
+name = "o1-utils"
+version = "0.1.0"
+source = "git+https://github.com/lambdaclass/proof-systems?branch=add-verifier-serializations#0b4336bafe7bb91b77684fb22f7406102a425529"
+dependencies = [
+ "ark-ec",
+ "ark-ff 0.3.0",
+ "ark-poly",
+ "ark-serialize 0.3.0",
+ "bcs",
+ "hex",
+ "num-bigint 0.4.5",
+ "num-integer",
+ "num-traits",
+ "rand",
+ "rand_core",
+ "rayon",
+ "serde",
+ "serde_with",
+ "sha2",
+ "thiserror",
+]
 
 [[package]]
 name = "object"
@@ -3206,6 +3417,31 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "db23d408679286588f4d4644f965003d056e3dd5abcaaa938116871d7ce2fee7"
 
 [[package]]
+name = "poly-commitment"
+version = "0.1.0"
+source = "git+https://github.com/lambdaclass/proof-systems?branch=add-verifier-serializations#0b4336bafe7bb91b77684fb22f7406102a425529"
+dependencies = [
+ "ark-ec",
+ "ark-ff 0.3.0",
+ "ark-poly",
+ "ark-serialize 0.3.0",
+ "blake2",
+ "groupmap",
+ "itertools 0.12.1",
+ "mina-curves",
+ "mina-poseidon",
+ "o1-utils",
+ "once_cell",
+ "rand",
+ "rand_core",
+ "rayon",
+ "rmp-serde",
+ "serde",
+ "serde_with",
+ "thiserror",
+]
+
+[[package]]
 name = "portable-atomic"
 version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3636,6 +3872,28 @@ checksum = "bb919243f34364b6bd2fc10ef797edbfa75f33c252e7998527479c6d6b47e1ec"
 dependencies = [
  "bytes",
  "rustc-hex",
+]
+
+[[package]]
+name = "rmp"
+version = "0.8.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "228ed7c16fa39782c3b3468e974aec2795e9089153cd08ee2e9aefb3613334c4"
+dependencies = [
+ "byteorder",
+ "num-traits",
+ "paste",
+]
+
+[[package]]
+name = "rmp-serde"
+version = "1.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "52e599a477cf9840e92f2cde9a7189e67b42c57532749bf90aea6ec10facd4db"
+dependencies = [
+ "byteorder",
+ "rmp",
+ "serde",
 ]
 
 [[package]]
@@ -4107,6 +4365,18 @@ name = "smallvec"
 version = "1.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
+
+[[package]]
+name = "snarky-deriver"
+version = "0.1.0"
+source = "git+https://github.com/lambdaclass/proof-systems?branch=add-verifier-serializations#0b4336bafe7bb91b77684fb22f7406102a425529"
+dependencies = [
+ "convert_case 0.6.0",
+ "itertools 0.12.1",
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
 
 [[package]]
 name = "snowbridge-amcl"
@@ -4912,6 +5182,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 
 [[package]]
+name = "turshi"
+version = "0.1.0"
+source = "git+https://github.com/lambdaclass/proof-systems?branch=add-verifier-serializations#0b4336bafe7bb91b77684fb22f7406102a425529"
+dependencies = [
+ "ark-ff 0.3.0",
+ "hex",
+ "o1-utils",
+]
+
+[[package]]
 name = "twirp"
 version = "0.3.0"
 source = "git+https://github.com/github/twirp-rs.git?rev=93d4e4b#93d4e4b4a48f9112c943d2925e8dbb1106bd6a18"
@@ -4992,6 +5272,12 @@ checksum = "a56d1686db2308d901306f92a263857ef59ea39678a5458e7cb17f01415101f5"
 dependencies = [
  "tinyvec",
 ]
+
+[[package]]
+name = "unicode-segmentation"
+version = "1.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d4c87d22b6e3f4a18d4d40ef354e97c90fcb14dd91d7dc0aa9d8a1172ebf7202"
 
 [[package]]
 name = "unicode-width"
