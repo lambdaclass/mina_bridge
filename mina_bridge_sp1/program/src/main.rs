@@ -23,6 +23,6 @@ pub fn main() {
     let verifier_index = sp1_zkvm::io::read::<KimchiVerifierIndex>();
     let group_map = <Curve as CommitmentCurve>::Map::setup();
 
-    let result = kimchi_verify(proof, verifier_index, group_map);
+    let result = kimchi_verify(&proof, &verifier_index, group_map);
     sp1_zkvm::io::commit(&result);
 }
