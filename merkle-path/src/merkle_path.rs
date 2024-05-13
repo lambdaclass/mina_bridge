@@ -40,8 +40,13 @@ pub struct MerkleLeaf {
 }
 
 mod test {
+    use std::str::FromStr;
+
     use super::{MerkleLeaf, MerkleTree};
+    use ark_ff::BigInteger;
     use base58::*;
+    use num_bigint::BigUint;
+    use pasta_curves::group::ff::PrimeField;
 
     #[test]
     fn test_merkle_leaf() {
@@ -79,14 +84,13 @@ mod test {
 
     #[test]
     fn test_fp() {
-        use pasta_curves::Fp;
+        use kimchi::o1_utils::FieldHelpers;
+        use mina_curves::pasta::Fp;
 
-        let f = "0x8186407070323331717412068877244574160296972200577316395640080416951883426150";
-        //let hex_string = hex::encode(f);
-        //println!("hex_string: {:?}", hex_string);
-        let deserialized: Fp = serde_json::from_str(&f).unwrap();
+        let f = "8186407070323331717412068877244574160296972200577316395640080416951883426150";
+        let fp = Fp::from_biguint(&BigUint::from_str(&f).unwrap());
 
-        println!("{:?}", deserialized);
+        println!("{:?}", fp);
     }
 
     #[test]
