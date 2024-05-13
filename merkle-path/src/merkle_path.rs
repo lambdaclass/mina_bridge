@@ -42,13 +42,22 @@ pub struct MerkleLeaf {
 
 #[cfg(test)]
 mod test {
-    use std::str::FromStr;
 
     use super::{MerkleLeaf, MerkleTree};
-    use ark_ff::BigInteger;
+    use ark_ff::{BigInteger, FromBytes as _};
     use base58::*;
+    use kimchi::{
+        mina_poseidon::{
+            constants::PlonkSpongeConstantsKimchi,
+            pasta::fp_kimchi::static_params,
+            poseidon::{ArithmeticSponge, Sponge as _},
+        },
+        o1_utils::FieldHelpers as _,
+    };
+    use mina_curves::pasta::Fp;
     use num_bigint::BigUint;
     use pasta_curves::group::ff::PrimeField;
+    use std::{fmt::Write as _, str::FromStr as _};
 
     #[test]
     fn test_merkle_leaf() {
@@ -97,24 +106,85 @@ mod test {
 
     #[test]
     fn test_hash() {
-        use generic_array::typenum::U2;
-        use neptune::poseidon::Poseidon;
-        use neptune::poseidon::PoseidonConstants;
-        use pasta_curves::Fp;
+        let account_hash = string_to_field(
+            "8186407070323331717412068877244574160296972200577316395640080416951883426150",
+        );
+        let mut param = String::with_capacity(16);
 
-        let preimage_set_length = 1;
-        let constants: PoseidonConstants<Fp, U2> =
-            PoseidonConstants::new_constant_length(preimage_set_length);
+        let serialized_merkle_path = r#"{
+            "data": {
+              "account": {
+                "merklePath": [
+                  {
+                    "left": null,
+                    "right": "25269606294916619424328783876704640983264873133815222226208603489064938585963"
+                  },
+                  {
+                    "left": "8196401609013649445499057870676218044178796697776855327762810874439081359829",
+                    "right": null
+                  }
+                  ]
+                }
+              }
+            }"#;
+        let merkle_path: MerkleTree = serde_json::from_str(&serialized_merkle_path).unwrap();
+        let merkle_path_map = merkle_path.create_map();
 
-        /*
-        let mut poseidon = Poseidon::<Fp, U2>::new_with_preimage(&preimage, &constants);
-        let pos = poseidon
-            .input(Fp::from(u64::MAX))
-            .expect("can't add one more element");
-        let digest = poseidon.hash();
+        let merkle_root =
+            merkle_path_map
+                .iter()
+                .enumerate()
+                .fold(account_hash, |child, (depth, path)| {
+                    let (direction, split_path) = path.split_at(1);
+                    let hashes = match direction {
+                        "0" => [string_to_field(split_path), child],
+                        "1" => [child, string_to_field(split_path)],
+                        _ => panic!("Path direction must be 0 or 1 but is {}", direction),
+                    };
 
-        println!("pos: {:?}", pos);
-        println!("digest: {:?}", digest);
-        */
+                    param.clear();
+                    write!(&mut param, "MinaMklTree{:03}", depth).unwrap();
+
+                    hash_with_kimchi(&param, &hashes)
+                });
+
+        // TODO: compare merkle_root with expected value
+    }
+
+    fn string_to_field(input: &str) -> Fp {
+        Fp::from_biguint(&BigUint::from_str(&input).unwrap()).unwrap()
+    }
+
+    fn hash_with_kimchi(param: &str, fields: &[Fp]) -> Fp {
+        let mut sponge = ArithmeticSponge::<Fp, PlonkSpongeConstantsKimchi>::new(static_params());
+
+        sponge.absorb(&[param_to_field(param)]);
+        sponge.squeeze();
+
+        sponge.absorb(fields);
+        sponge.squeeze()
+    }
+
+    fn param_to_field_impl(param: &str, default: [u8; 32]) -> Fp {
+        let param_bytes = param.as_bytes();
+        let len = param_bytes.len();
+
+        let mut fp = default;
+        fp[..len].copy_from_slice(param_bytes);
+
+        Fp::read(&fp[..]).expect("fp read failed")
+    }
+
+    fn param_to_field(param: &str) -> Fp {
+        const DEFAULT: [u8; 32] = [
+            b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*',
+            b'*', b'*', b'*', b'*', b'*', b'*', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        ];
+
+        if param.len() > 20 {
+            panic!("must be 20 byte maximum");
+        }
+
+        param_to_field_impl(param, DEFAULT)
     }
 }
