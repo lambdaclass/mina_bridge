@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::sync::Arc;
 
 use kimchi::circuits::constraints::ConstraintSystem;
@@ -10,7 +9,6 @@ use kimchi::mina_curves::pasta::{Fp, VestaParameters};
 use kimchi::mina_poseidon::constants::PlonkSpongeConstantsKimchi;
 use kimchi::mina_poseidon::sponge::{DefaultFqSponge, DefaultFrSponge};
 use kimchi::poly_commitment::commitment::CommitmentCurve;
-use kimchi::poly_commitment::PolyComm;
 use kimchi::proof::ProverProof;
 use kimchi::prover_index::ProverIndex;
 use kimchi::verifier::verify;
@@ -30,13 +28,8 @@ type ScalarField = Fp;
 
 pub fn kimchi_verify(
     proof: &ProverProof<Curve, OpeningProof<Curve>>,
-    verifier_index: &mut VerifierIndex<Curve, OpeningProof<Curve>>,
-    mut srs: SRS<Curve>,
-    lagrange_bases: HashMap<usize, Vec<PolyComm<Curve>>>,
+    verifier_index: &VerifierIndex<Curve, OpeningProof<Curve>>,
 ) -> bool {
-    srs.lagrange_bases = lagrange_bases;
-    verifier_index.srs = Arc::new(srs);
-
     verify::<Curve, BaseSponge, ScalarSponge, OpeningProof<Curve>>(
         &<Curve as CommitmentCurve>::Map::setup(),
         verifier_index,
@@ -46,6 +39,7 @@ pub fn kimchi_verify(
     .is_ok()
 }
 
+#[allow(clippy::type_complexity)]
 pub fn generate_test_proof() -> (
     ProverProof<Curve, OpeningProof<Curve>>,
     VerifierIndex<Curve, OpeningProof<Curve>>,
@@ -111,16 +105,24 @@ mod test {
 
     #[test]
     fn test_generate_proof() {
-        let (proof, mut verifier_index, srs) = generate_test_proof();
+        let (proof, verifier_index, srs) = generate_test_proof();
         println!("SRS size: {}", srs.g.len());
         for key in srs.lagrange_bases.keys() {
             println!("Lagrange bases size: {}", srs.lagrange_bases[key].len());
         }
-        assert!(kimchi_verify(
-            &proof,
-            &mut verifier_index,
-            srs.clone(),
-            srs.lagrange_bases
-        ));
+
+        /*
+            SRS and lagrange bases don't implement serde, so we need to
+            pass them as inputs separately.
+            In the test this has no effect but the code is there to reflect
+            what is needed to do inside the SP1 script.
+
+            ```rust
+            srs.lagrange_bases = srs.lagrange_bases;
+            verifier_index.srs = Arc::new(srs);
+            ```
+        */
+
+        assert!(kimchi_verify(&proof, &verifier_index));
     }
 }
