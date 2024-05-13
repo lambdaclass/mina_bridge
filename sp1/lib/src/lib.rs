@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use kimchi::circuits::constraints::ConstraintSystem;
@@ -9,6 +10,7 @@ use kimchi::mina_curves::pasta::{Fp, VestaParameters};
 use kimchi::mina_poseidon::constants::PlonkSpongeConstantsKimchi;
 use kimchi::mina_poseidon::sponge::{DefaultFqSponge, DefaultFrSponge};
 use kimchi::poly_commitment::commitment::CommitmentCurve;
+use kimchi::poly_commitment::PolyComm;
 use kimchi::proof::ProverProof;
 use kimchi::prover_index::ProverIndex;
 use kimchi::verifier::verify;
@@ -29,9 +31,12 @@ type ScalarField = Fp;
 pub fn kimchi_verify(
     proof: &ProverProof<Curve, OpeningProof<Curve>>,
     verifier_index: &mut VerifierIndex<Curve, OpeningProof<Curve>>,
-    srs: SRS<Curve>
+    mut srs: SRS<Curve>,
+    lagrange_bases: HashMap<usize, Vec<PolyComm<Curve>>>,
 ) -> bool {
+    srs.lagrange_bases = lagrange_bases;
     verifier_index.srs = Arc::new(srs);
+
     verify::<Curve, BaseSponge, ScalarSponge, OpeningProof<Curve>>(
         &<Curve as CommitmentCurve>::Map::setup(),
         verifier_index,
@@ -106,7 +111,16 @@ mod test {
 
     #[test]
     fn test_generate_proof() {
-        let (proof, verifier_index, srs) = generate_test_proof();
-        assert!(kimchi_verify(&proof, &mut verifier_index, &srs));
+        let (proof, mut verifier_index, srs) = generate_test_proof();
+        println!("SRS size: {}", srs.g.len());
+        for key in srs.lagrange_bases.keys() {
+            println!("Lagrange bases size: {}", srs.lagrange_bases[key].len());
+        }
+        assert!(kimchi_verify(
+            &proof,
+            &mut verifier_index,
+            srs.clone(),
+            srs.lagrange_bases
+        ));
     }
 }

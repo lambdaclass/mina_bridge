@@ -15,6 +15,8 @@ fn main() {
     stdin.write(&proof);
     stdin.write(&index);
     stdin.write(&srs);
+    stdin.write(&srs.lagrange_bases);
+
     let client = ProverClient::new();
     let (pk, vk) = client.setup(ELF);
     let mut proof = client.prove_compressed(&pk, stdin).expect("proving failed");

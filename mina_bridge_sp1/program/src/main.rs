@@ -2,9 +2,11 @@
 
 #![no_main]
 
+use std::collections::HashMap;
+
 use kimchi::{
     mina_curves::pasta::Vesta,
-    poly_commitment::{evaluation_proof::OpeningProof, srs::SRS},
+    poly_commitment::{evaluation_proof::OpeningProof, srs::SRS, PolyComm},
     proof::ProverProof,
     verifier_index::VerifierIndex,
 };
@@ -21,7 +23,8 @@ pub fn main() {
     let proof = sp1_zkvm::io::read::<KimchiProof>();
     let mut verifier_index = sp1_zkvm::io::read::<KimchiVerifierIndex>();
     let srs = sp1_zkvm::io::read::<SRS<Curve>>();
+    let lagrange_bases = sp1_zkvm::io::read::<HashMap<usize, Vec<PolyComm<Curve>>>>();
 
-    let result = kimchi_verify(&proof, &mut verifier_index, srs);
+    let result = kimchi_verify(&proof, &mut verifier_index, srs, lagrange_bases);
     sp1_zkvm::io::commit(&result);
 }
