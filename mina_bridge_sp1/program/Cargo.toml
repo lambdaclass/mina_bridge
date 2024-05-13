@@ -6,7 +6,7 @@ edition = "2021"
 
 [dependencies]
 sp1-zkvm = { git = "https://github.com/succinctlabs/sp1.git", rev = "v1.0.0-testnet" }
-kimchi-verifier-ffi = { path = "../../sp1/lib/" }
+kimchi-verifier-ffi = { path = "../lib/" }
 kimchi = { git = "https://github.com/lambdaclass/proof-systems", branch = "add-verifier-serializations" }
 o1-utils = { git = "https://github.com/lambdaclass/proof-systems", branch = "add-verifier-serializations" }
 ark-ff = { version = "0.3.0", features = ["parallel", "asm"] }
