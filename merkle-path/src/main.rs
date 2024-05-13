@@ -1,6 +1,8 @@
 pub mod merkle_path;
 use reqwest::header::CONTENT_TYPE;
 
+use crate::merkle_path::MerkleTree;
+
 fn main() {
     let client = reqwest::blocking::Client::new();
     let res = client
@@ -21,5 +23,8 @@ fn main() {
         .text()
         .unwrap();
 
-    println!("{}", res);
+    let received_merkle_path: MerkleTree = serde_json::from_str(&res).unwrap();
+    let merkle_path_map = received_merkle_path.create_map();
+
+    println!("{:?}", merkle_path_map);
 }
