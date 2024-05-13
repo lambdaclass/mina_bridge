@@ -40,6 +40,7 @@ pub struct MerkleLeaf {
     pub right: Option<String>,
 }
 
+#[cfg(test)]
 mod test {
     use std::str::FromStr;
 
