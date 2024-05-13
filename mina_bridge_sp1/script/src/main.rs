@@ -19,7 +19,7 @@ fn main() {
 
     let client = ProverClient::new();
     let (pk, vk) = client.setup(ELF);
-    let mut proof = client.prove_compressed(&pk, stdin).expect("proving failed");
+    let mut proof = client.prove_groth16(&pk, stdin).expect("proving failed");
 
     // Read output.
     let result = proof.public_values.read::<bool>();
@@ -31,7 +31,7 @@ fn main() {
         .expect("saving proof failed");
 
     // Verify proof.
-    client.verify_compressed(&proof, &vk).expect("verification failed");
+    client.verify_groth16(&proof, &vk).expect("verification failed");
 
     println!("successfully generated and verified proof for the program!")
 }
