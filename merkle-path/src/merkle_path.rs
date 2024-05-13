@@ -13,8 +13,9 @@ impl MerkleTree {
             .merkle_path
             .iter()
             .map(|leaf| match (&leaf.left, &leaf.right) {
-                (Some(left), None) => left.to_owned(),
-                (None, Some(right)) => right.to_owned(),
+                // 0 if left, 1 if right
+                (Some(left), None) => format!("{}{}", "0", left.to_owned()),
+                (None, Some(right)) => format!("{}{}", "1", right.to_owned()),
                 _ => unreachable!(),
             })
             .collect()
