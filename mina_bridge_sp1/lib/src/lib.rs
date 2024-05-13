@@ -56,7 +56,7 @@ pub fn generate_test_proof() -> (
     );
 
     // Temporary workaround for lookup-table/domain-size issue
-    for _ in 0..(1 << 13) {
+    for _ in 0..1 {
         gates.push(CircuitGate::zero(Wire::for_row(next_row)));
         next_row += 1;
     }
