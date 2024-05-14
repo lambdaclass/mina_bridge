@@ -1,4 +1,18 @@
+use std::str::FromStr as _;
+
+use ark_ff::FromBytes as _;
+use kimchi::{
+    mina_poseidon::{
+        constants::PlonkSpongeConstantsKimchi,
+        pasta::fp_kimchi::static_params,
+        poseidon::{ArithmeticSponge, Sponge as _},
+    },
+    o1_utils::FieldHelpers as _,
+};
+use mina_curves::pasta::Fp;
+use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
+use std::fmt::Write as _;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -19,6 +33,67 @@ impl MerkleTree {
                 _ => unreachable!(),
             })
             .collect()
+    }
+
+    pub fn get_root(&self, input: &str) -> String {
+        let input_field = Self::string_to_field(input);
+        let mut param = String::with_capacity(16);
+        let merkle_path_map = self.create_map();
+
+        merkle_path_map
+            .iter()
+            .enumerate()
+            .fold(input_field, |child, (depth, path)| {
+                let (direction, split_path) = path.split_at(1);
+                let hashes = match direction {
+                    "0" => [Self::string_to_field(split_path), child],
+                    "1" => [child, Self::string_to_field(split_path)],
+                    _ => panic!("Path direction must be 0 or 1 but is {}", direction),
+                };
+
+                param.clear();
+                write!(&mut param, "MinaMklTree{:03}", depth).unwrap();
+
+                Self::hash_with_kimchi(&param, &hashes)
+            })
+            .to_string()
+    }
+
+    fn string_to_field(input: &str) -> Fp {
+        Fp::from_biguint(&BigUint::from_str(&input).unwrap()).unwrap()
+    }
+
+    fn hash_with_kimchi(param: &str, fields: &[Fp]) -> Fp {
+        let mut sponge = ArithmeticSponge::<Fp, PlonkSpongeConstantsKimchi>::new(static_params());
+
+        sponge.absorb(&[Self::param_to_field(param)]);
+        sponge.squeeze();
+
+        sponge.absorb(fields);
+        sponge.squeeze()
+    }
+
+    fn param_to_field_impl(param: &str, default: [u8; 32]) -> Fp {
+        let param_bytes = param.as_bytes();
+        let len = param_bytes.len();
+
+        let mut fp = default;
+        fp[..len].copy_from_slice(param_bytes);
+
+        Fp::read(&fp[..]).expect("fp read failed")
+    }
+
+    fn param_to_field(param: &str) -> Fp {
+        const DEFAULT: [u8; 32] = [
+            b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*',
+            b'*', b'*', b'*', b'*', b'*', b'*', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        ];
+
+        if param.len() > 20 {
+            panic!("must be 20 byte maximum");
+        }
+
+        Self::param_to_field_impl(param, DEFAULT)
     }
 }
 
@@ -44,8 +119,7 @@ pub struct MerkleLeaf {
 mod test {
 
     use super::{MerkleLeaf, MerkleTree};
-    use ark_ff::{BigInteger, FromBytes as _};
-    use base58::*;
+    use ark_ff::FromBytes as _;
     use kimchi::{
         mina_poseidon::{
             constants::PlonkSpongeConstantsKimchi,
@@ -56,8 +130,7 @@ mod test {
     };
     use mina_curves::pasta::Fp;
     use num_bigint::BigUint;
-    use pasta_curves::group::ff::PrimeField;
-    use std::{fmt::Write as _, str::FromStr as _};
+    use std::str::FromStr as _;
 
     #[test]
     fn test_merkle_leaf() {
@@ -106,10 +179,8 @@ mod test {
 
     #[test]
     fn test_hash() {
-        let account_hash = string_to_field(
-            "8186407070323331717412068877244574160296972200577316395640080416951883426150",
-        );
-        let mut param = String::with_capacity(16);
+        let account_hash =
+            "8186407070323331717412068877244574160296972200577316395640080416951883426150";
 
         let serialized_merkle_path = r#"{
             "data": {
@@ -128,63 +199,8 @@ mod test {
               }
             }"#;
         let merkle_path: MerkleTree = serde_json::from_str(&serialized_merkle_path).unwrap();
-        let merkle_path_map = merkle_path.create_map();
-
-        let merkle_root =
-            merkle_path_map
-                .iter()
-                .enumerate()
-                .fold(account_hash, |child, (depth, path)| {
-                    let (direction, split_path) = path.split_at(1);
-                    let hashes = match direction {
-                        "0" => [string_to_field(split_path), child],
-                        "1" => [child, string_to_field(split_path)],
-                        _ => panic!("Path direction must be 0 or 1 but is {}", direction),
-                    };
-
-                    param.clear();
-                    write!(&mut param, "MinaMklTree{:03}", depth).unwrap();
-
-                    hash_with_kimchi(&param, &hashes)
-                });
+        let merkle_root = merkle_path.get_root(account_hash);
 
         // TODO: compare merkle_root with expected value
-    }
-
-    fn string_to_field(input: &str) -> Fp {
-        Fp::from_biguint(&BigUint::from_str(&input).unwrap()).unwrap()
-    }
-
-    fn hash_with_kimchi(param: &str, fields: &[Fp]) -> Fp {
-        let mut sponge = ArithmeticSponge::<Fp, PlonkSpongeConstantsKimchi>::new(static_params());
-
-        sponge.absorb(&[param_to_field(param)]);
-        sponge.squeeze();
-
-        sponge.absorb(fields);
-        sponge.squeeze()
-    }
-
-    fn param_to_field_impl(param: &str, default: [u8; 32]) -> Fp {
-        let param_bytes = param.as_bytes();
-        let len = param_bytes.len();
-
-        let mut fp = default;
-        fp[..len].copy_from_slice(param_bytes);
-
-        Fp::read(&fp[..]).expect("fp read failed")
-    }
-
-    fn param_to_field(param: &str) -> Fp {
-        const DEFAULT: [u8; 32] = [
-            b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*',
-            b'*', b'*', b'*', b'*', b'*', b'*', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        ];
-
-        if param.len() > 20 {
-            panic!("must be 20 byte maximum");
-        }
-
-        param_to_field_impl(param, DEFAULT)
     }
 }
