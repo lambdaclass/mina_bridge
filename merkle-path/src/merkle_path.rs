@@ -1,5 +1,3 @@
-use std::str::FromStr as _;
-
 use ark_ff::FromBytes as _;
 use kimchi::{
     mina_poseidon::{
@@ -11,8 +9,10 @@ use kimchi::{
 };
 use mina_curves::pasta::Fp;
 use num_bigint::BigUint;
+use reqwest::header::CONTENT_TYPE;
 use serde::{Deserialize, Serialize};
 use std::fmt::Write as _;
+use std::str::FromStr as _;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -33,6 +33,30 @@ impl MerkleTree {
                 _ => unreachable!(),
             })
             .collect()
+    }
+
+    pub fn query_merkle_path(public_key: &str) -> Self {
+        let body = format!(
+            "{{\"query\": \"{{
+            account(publicKey: \\\"{public_key}\\\") {{
+              leafHash
+              merklePath {{
+                  left 
+                  right
+              }}
+            }}
+        }}\"}}"
+        );
+        let client = reqwest::blocking::Client::new();
+        let res = client
+            .post("http://5.9.57.89:3085/graphql")
+            .header(CONTENT_TYPE, "application/json")
+            .body(body)
+            .send()
+            .unwrap()
+            .text()
+            .unwrap();
+        serde_json::from_str(&res).unwrap()
     }
 
     pub fn get_root(&self) -> String {
