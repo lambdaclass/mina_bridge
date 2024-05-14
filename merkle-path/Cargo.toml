@@ -6,20 +6,12 @@ edition = "2021"
 [dependencies]
 serde_json = "1.0.108"
 serde = { version = "1.0.192", features = ["derive"] }
-
-serializer = { path = "../kzg_prover/serializer/" }
-
-base58 = "0.2.0"
 hex = "0.4.3"
 reqwest = { version = "0.12", features = ["blocking"] }
 
 # hash functions
-neptune = "13.0.0"
-pasta_curves = { version = "0.5.1", features = ["serde"] }
 kimchi = { git = "https://github.com/o1-labs/proof-systems.git", branch = "develop", version = "0.1.0" }
 mina-curves = { git = "https://github.com/o1-labs/proof-systems.git", branch = "develop", version = "0.1.0" }
 num-bigint = "0.4.3"
 ark-ff = { version = "0.3.0", features = ["parallel", "asm"] }
-abomonation = "0.7.3"
-abomonation_derive = "0.5.0"
 generic-array = "1.0.0"
