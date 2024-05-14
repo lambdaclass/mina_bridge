@@ -10,7 +10,8 @@ fn main() {
         .header(CONTENT_TYPE, "application/json")
         .body(
             r#"{"query": "{
-            account(publicKey: \"B62qkWL1NPMtQ2WAntxi6x2FzoYR4oxLR2vmA3AjZzRyHAEWxaEfNht\") {
+            account(publicKey: \"B62qk8PgLSaL6DJKniMXwh6zePZP3q8vRLQDw1prXyu5YqZZMMemSQ2\") {
+              leafHash
               merklePath { 
                   left 
                   right
@@ -24,7 +25,7 @@ fn main() {
         .unwrap();
 
     let received_merkle_path: MerkleTree = serde_json::from_str(&res).unwrap();
-    let merkle_path_map = received_merkle_path.create_map();
+    let merkle_root = received_merkle_path.get_root();
 
-    println!("{:?}", merkle_path_map);
+    println!("merkle root: {}", merkle_root);
 }

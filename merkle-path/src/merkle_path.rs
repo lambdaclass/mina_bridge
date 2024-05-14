@@ -35,8 +35,8 @@ impl MerkleTree {
             .collect()
     }
 
-    pub fn get_root(&self, input: &str) -> String {
-        let input_field = Self::string_to_field(input);
+    pub fn get_root(&self) -> String {
+        let input_field = Self::string_to_field(&self.data.account.leaf_hash.clone().unwrap());
         let mut param = String::with_capacity(16);
         let merkle_path_map = self.create_map();
 
@@ -56,7 +56,7 @@ impl MerkleTree {
 
                 Self::hash_with_kimchi(&param, &hashes)
             })
-            .to_string()
+            .to_hex()
     }
 
     fn string_to_field(input: &str) -> Fp {
@@ -105,6 +105,7 @@ pub struct Data {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Account {
+    pub leaf_hash: Option<String>,
     pub merkle_path: Vec<MerkleLeaf>,
 }
 
@@ -179,12 +180,10 @@ mod test {
 
     #[test]
     fn test_hash() {
-        let account_hash =
-            "8186407070323331717412068877244574160296972200577316395640080416951883426150";
-
         let serialized_merkle_path = r#"{
             "data": {
               "account": {
+                "leafHash": "8186407070323331717412068877244574160296972200577316395640080416951883426150",
                 "merklePath": [
                   {
                     "left": null,
@@ -199,7 +198,7 @@ mod test {
               }
             }"#;
         let merkle_path: MerkleTree = serde_json::from_str(&serialized_merkle_path).unwrap();
-        let merkle_root = merkle_path.get_root(account_hash);
+        let merkle_root = merkle_path.get_root();
 
         // TODO: compare merkle_root with expected value
     }
