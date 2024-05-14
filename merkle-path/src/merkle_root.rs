@@ -1,18 +1,5 @@
-use std::str::FromStr as _;
-
-use ark_ff::FromBytes as _;
-use kimchi::{
-    mina_poseidon::{
-        constants::PlonkSpongeConstantsKimchi,
-        pasta::fp_kimchi::static_params,
-        poseidon::{ArithmeticSponge, Sponge as _},
-    },
-    o1_utils::FieldHelpers as _,
-};
-use mina_curves::pasta::Fp;
-use num_bigint::BigUint;
+use reqwest::header::CONTENT_TYPE;
 use serde::{Deserialize, Serialize};
-use std::fmt::Write as _;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -30,4 +17,29 @@ pub struct Data {
 #[serde(rename_all = "camelCase")]
 pub struct LedgerMerkleRoot {
     pub ledger_merkle_root: String,
+}
+
+impl MerkleRoot {
+    pub fn query_merkle_root() -> Vec<u8> {
+        let body = format!(
+            "{{\"query\": \"{{
+                daemonStatus {{
+                  ledgerMerkleRoot
+                }}
+              }}\"}}"
+        );
+        let client = reqwest::blocking::Client::new();
+        let res = client
+            .post("http://5.9.57.89:3085/graphql")
+            .header(CONTENT_TYPE, "application/json")
+            .body(body)
+            .send()
+            .unwrap()
+            .text()
+            .unwrap();
+        let aux: Self = serde_json::from_str(&res).unwrap();
+        bs58::decode(&aux.data.daemon_status.ledger_merkle_root)
+            .into_vec()
+            .unwrap()
+    }
 }
