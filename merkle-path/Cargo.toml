@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 serde_json = "1.0.108"
 serde = { version = "1.0.192", features = ["derive"] }
+serde-enum-str = "0.4.0"
 hex = "0.4.3"
 reqwest = { version = "0.12", features = ["blocking"] }
 
@@ -18,4 +19,4 @@ generic-array = "1.0.0"
 bs58 = { version = "0.5.1", features = ["check"] }
 binprot = { git = "https://github.com/openmina/binprot-rs", rev = "3f29b25" }
 binprot_derive = { git = "https://github.com/openmina/binprot-rs", rev = "3f29b25" }
-mina-p2p-messages = { git = "https://github.com/openmina/openmina.git" }
+mina-p2p-messages = { git = "https://github.com/openmina/openmina.git", features = ["hashing"] }

@@ -47,8 +47,8 @@ impl MerkleRoot {
         let aux: Self = serde_json::from_str(&res).unwrap();
         let ledger_hash_checksum = 0x05;
         let ocaml_merkle_root = bs58::decode(&aux.data.daemon_status.ledger_merkle_root)
-            .with_check(Some(ledger_hash_checksum))
-            .into_vec()
+        .with_check(Some(ledger_hash_checksum))
+        .into_vec()
             .unwrap();
 
         LedgerHash::binprot_read(&mut &ocaml_merkle_root[1..])

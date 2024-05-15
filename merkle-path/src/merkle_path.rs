@@ -132,6 +132,13 @@ pub struct Data {
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
+pub struct Account {
+    pub leaf_hash: Option<String>,
+    pub merkle_path: Vec<MerkleLeaf>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct MerkleLeaf {
     pub left: Option<String>,
     pub right: Option<String>,
