@@ -35,6 +35,10 @@ impl MerkleTree {
             .collect()
     }
 
+    /*
+
+    */
+
     pub fn query_merkle_path(public_key: &str) -> Self {
         let body = format!(
             "{{\"query\": \"{{
@@ -124,13 +128,6 @@ impl MerkleTree {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Data {
     pub account: Account,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct Account {
-    pub leaf_hash: Option<String>,
-    pub merkle_path: Vec<MerkleLeaf>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
