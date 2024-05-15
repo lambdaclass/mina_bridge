@@ -1,15 +1,19 @@
+use binprot::{BinProtRead, BinProtWrite};
 use mina_p2p_messages::{
-    string,
+    bigint::BigInt,
+    string::{self, ByteString},
     v2::{
-        CurrencyBalanceStableV1, MinaBaseAccountBinableArgStableV2, MinaBaseAccountTimingStableV2,
-        MinaBasePermissionsAuthRequiredStableV2, MinaBasePermissionsStableV2,
-        MinaBaseReceiptChainHashStableV1, MinaBaseZkappAccountStableV2, NonZeroCurvePoint,
-        StateHash, TokenIdKeyHash, UnsignedExtendedUInt32StableV1,
+        CurrencyAmountStableV1, CurrencyBalanceStableV1, MinaBaseAccountBinableArgStableV2,
+        MinaBaseAccountTimingStableV2, MinaBasePermissionsAuthRequiredStableV2,
+        MinaBasePermissionsStableV2, MinaBaseReceiptChainHashStableV1, NonZeroCurvePoint,
+        TokenIdKeyHash, UnsignedExtendedUInt32StableV1,
+        UnsignedExtendedUInt64Int64ForVersionTagsStableV1,
     },
 };
 use reqwest::header::CONTENT_TYPE;
-use serde::Deserialize;
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_enum_str::{Deserialize_enum_str, Serialize_enum_str};
+use std::fmt::Debug;
 
 #[derive(Deserialize)]
 struct Response {
@@ -21,22 +25,26 @@ struct Data {
     pub account: Account,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 struct Account {
-    pub public_key: NonZeroCurvePoint,
-    pub token_id: TokenIdKeyHash,
+    pub public_key: String,
+    pub token_id: String,
     pub token_symbol: string::ByteString,
-    pub balance: CurrencyBalanceStableV1,
-    pub nonce: UnsignedExtendedUInt32StableV1,
-    pub receipt_chain_hash: MinaBaseReceiptChainHashStableV1,
-    pub delegate: Option<NonZeroCurvePoint>,
-    pub voting_for: StateHash,
+    pub balance: Balance,
+    pub nonce: String,
+    pub receipt_chain_hash: String,
+    pub delegate: Option<String>,
+    pub voting_for: String,
     pub permissions: Permissions,
-    pub zkapp: Option<MinaBaseZkappAccountStableV2>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
+struct Balance {
+    pub total: String,
+}
+
+#[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 struct Permissions {
     pub edit_state: PermissionType,
@@ -45,7 +53,7 @@ struct Permissions {
     pub receive: PermissionType,
     pub set_delegate: PermissionType,
     pub set_permissions: PermissionType,
-    pub set_verification_key: (PermissionType, u32),
+    pub set_verification_key: SetVerificationKey,
     pub set_zkapp_uri: PermissionType,
     pub edit_action_state: PermissionType,
     pub set_token_symbol: PermissionType,
@@ -54,7 +62,7 @@ struct Permissions {
     pub set_timing: PermissionType,
 }
 
-#[derive(Serialize_enum_str, Deserialize_enum_str)]
+#[derive(Serialize_enum_str, Deserialize_enum_str, Debug)]
 enum PermissionType {
     #[serde(rename = "None")]
     None,
@@ -68,22 +76,53 @@ enum PermissionType {
     Impossible,
 }
 
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+struct SetVerificationKey {
+    auth: PermissionType,
+    txn_version: String,
+}
+
 impl From<Account> for MinaBaseAccountBinableArgStableV2 {
     fn from(value: Account) -> Self {
+        println!("{:?}", value);
         Self {
-            public_key: value.public_key,
-            token_id: value.token_id,
+            public_key: deserialize_str(&value.public_key),
+            token_id: deserialize_str(&value.token_id),
             token_symbol: value.token_symbol,
-            balance: value.balance,
-            nonce: value.nonce,
-            receipt_chain_hash: value.receipt_chain_hash,
-            delegate: value.delegate,
-            voting_for: value.voting_for,
+            balance: CurrencyBalanceStableV1(CurrencyAmountStableV1(
+                UnsignedExtendedUInt64Int64ForVersionTagsStableV1(
+                    value.balance.total.parse::<u64>().unwrap().into(),
+                ),
+            )),
+            nonce: UnsignedExtendedUInt32StableV1(value.nonce.parse::<u32>().unwrap().into()),
+            receipt_chain_hash: deserialize_receipt_chain_hash(&value.receipt_chain_hash),
+            delegate: value
+                .delegate
+                .and_then(|delegate| Some(deserialize_str(&delegate))),
+            voting_for: deserialize_str(&value.voting_for),
             timing: MinaBaseAccountTimingStableV2::Untimed,
             permissions: value.permissions.into(),
-            zkapp: value.zkapp,
+            zkapp: None,
         }
     }
+}
+
+fn deserialize_str<T>(input: &str) -> T
+where
+    T: Serialize + DeserializeOwned + BinProtRead + BinProtWrite + Debug,
+{
+    serde_json::from_value(serde_json::json!(input)).unwrap()
+}
+
+fn deserialize_receipt_chain_hash(b58: &str) -> MinaBaseReceiptChainHashStableV1 {
+    let mut receipt_chain_hash_bytes = [0_u8; 32];
+
+    let receipt_chain_hash_vec = bs58::decode(b58).into_vec().unwrap();
+    // We are assuming we have to remove the first 6 bytes from the decoded hash
+    receipt_chain_hash_bytes.copy_from_slice(&receipt_chain_hash_vec[6..]);
+
+    MinaBaseReceiptChainHashStableV1(BigInt::new(Box::new(receipt_chain_hash_bytes)))
 }
 
 impl From<Permissions> for MinaBasePermissionsStableV2 {
@@ -96,8 +135,15 @@ impl From<Permissions> for MinaBasePermissionsStableV2 {
             set_delegate: value.set_delegate.into(),
             set_permissions: value.set_permissions.into(),
             set_verification_key: (
-                value.set_verification_key.0.into(),
-                UnsignedExtendedUInt32StableV1(value.set_verification_key.1.into()),
+                value.set_verification_key.auth.into(),
+                UnsignedExtendedUInt32StableV1(
+                    value
+                        .set_verification_key
+                        .txn_version
+                        .parse::<u32>()
+                        .unwrap()
+                        .into(),
+                ),
             ),
             set_zkapp_uri: value.set_zkapp_uri.into(),
             edit_action_state: value.edit_action_state.into(),
@@ -185,10 +231,13 @@ pub fn query_account(public_key: &str) -> MinaBaseAccountBinableArgStableV2 {
 
 #[cfg(test)]
 mod test {
-    use binprot::BinProtRead;
-    use mina_p2p_messages::v2::MinaBaseReceiptChainHashStableV1;
+    use std::str::from_utf8;
+
+    use mina_p2p_messages::{bigint::BigInt, v2::MinaBaseReceiptChainHashStableV1};
     use reqwest::header::CONTENT_TYPE;
     use serde::Deserialize;
+
+    use crate::account::deserialize_receipt_chain_hash;
 
     #[derive(Deserialize)]
     #[serde(rename_all = "camelCase")]
@@ -228,15 +277,9 @@ mod test {
             .text()
             .unwrap();
         println!("res: {}", res);
-        let deserialied_res: ReceiptChainHashResponse = serde_json::from_str(&res).unwrap();
-        let mut receipt_chain_hash_bytes =
-            bs58::decode(&deserialied_res.data.account.receipt_chain_hash)
-                .into_vec()
-                .unwrap();
-
+        let deserialized_res: ReceiptChainHashResponse = serde_json::from_str(&res).unwrap();
         let receipt_chain_hash =
-            MinaBaseReceiptChainHashStableV1::binprot_read(&mut &receipt_chain_hash_bytes[..])
-                .unwrap();
+            deserialize_receipt_chain_hash(&deserialized_res.data.account.receipt_chain_hash);
 
         println!("{:?}", receipt_chain_hash);
     }

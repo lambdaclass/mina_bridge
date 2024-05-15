@@ -35,10 +35,6 @@ impl MerkleTree {
             .collect()
     }
 
-    /*
-
-    */
-
     pub fn query_merkle_path(public_key: &str) -> Self {
         let body = format!(
             "{{\"query\": \"{{
