@@ -12,9 +12,9 @@ fn main() {
     println!("{:?}", received_merkle_path);
 
     let root = MerkleRoot::query_merkle_root();
-    println!("{:?}", root);
+    println!("queried root: {:?}", root);
 
-    //let merkle_root = received_merkle_path.get_root();
+    let merkle_root = received_merkle_path.get_root();
 
-    //println!("merkle root: {}", merkle_root);
+    println!("computed root: {:?}", merkle_root);
 }

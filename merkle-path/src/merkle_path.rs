@@ -59,7 +59,7 @@ impl MerkleTree {
         serde_json::from_str(&res).unwrap()
     }
 
-    pub fn get_root(&self) -> String {
+    pub fn get_root(&self) -> Vec<u8> {
         let input_field = Self::string_to_field(&self.data.account.leaf_hash.clone().unwrap());
         let mut param = String::with_capacity(16);
         let merkle_path_map = self.create_map();
@@ -80,7 +80,7 @@ impl MerkleTree {
 
                 Self::hash_with_kimchi(&param, &hashes)
             })
-            .to_hex()
+            .to_bytes()
     }
 
     fn string_to_field(input: &str) -> Fp {
