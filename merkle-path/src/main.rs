@@ -9,7 +9,7 @@ use crate::merkle_root::MerkleRoot;
 
 fn main() {
     let queried_account = query_account("B62qk8PgLSaL6DJKniMXwh6zePZP3q8vRLQDw1prXyu5YqZZMMemSQ2");
-    println!("{:?}", queried_account);
+    println!("queried_account: {:?}", queried_account);
 
     let received_merkle_path =
         MerkleTree::query_merkle_path("B62qk8PgLSaL6DJKniMXwh6zePZP3q8vRLQDw1prXyu5YqZZMMemSQ2");

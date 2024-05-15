@@ -3,12 +3,13 @@ use mina_p2p_messages::{
     bigint::BigInt,
     string::{self, ByteString},
     v2::{
-        CurrencyAmountStableV1, CurrencyBalanceStableV1, MinaBaseAccountBinableArgStableV2,
-        MinaBaseAccountTimingStableV2, MinaBasePermissionsAuthRequiredStableV2,
-        MinaBasePermissionsStableV2, MinaBaseReceiptChainHashStableV1, NonZeroCurvePoint,
-        TokenIdKeyHash, UnsignedExtendedUInt32StableV1,
-        UnsignedExtendedUInt64Int64ForVersionTagsStableV1,
+        CurrencyAmountStableV1, CurrencyBalanceStableV1, DataHashLibStateHashStableV1,
+        MinaBaseAccountBinableArgStableV2, MinaBaseAccountTimingStableV2,
+        MinaBasePermissionsAuthRequiredStableV2, MinaBasePermissionsStableV2,
+        MinaBaseReceiptChainHashStableV1, NonZeroCurvePoint, StateHash, TokenIdKeyHash,
+        UnsignedExtendedUInt32StableV1, UnsignedExtendedUInt64Int64ForVersionTagsStableV1,
     },
+    versioned::Versioned,
 };
 use reqwest::header::CONTENT_TYPE;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -100,7 +101,7 @@ impl From<Account> for MinaBaseAccountBinableArgStableV2 {
             delegate: value
                 .delegate
                 .and_then(|delegate| Some(deserialize_str(&delegate))),
-            voting_for: deserialize_str(&value.voting_for),
+            voting_for: deserialize_state_hash(&value.voting_for),
             timing: MinaBaseAccountTimingStableV2::Untimed,
             permissions: value.permissions.into(),
             zkapp: None,
@@ -123,6 +124,20 @@ fn deserialize_receipt_chain_hash(b58: &str) -> MinaBaseReceiptChainHashStableV1
     receipt_chain_hash_bytes.copy_from_slice(&receipt_chain_hash_vec[6..]);
 
     MinaBaseReceiptChainHashStableV1(BigInt::new(Box::new(receipt_chain_hash_bytes)))
+}
+
+/**
+    Like `StateHash::from_str` but it avoids checking payload version. This is because `openmina`
+    only allows payload version to be `16` and the Mina node contains accounts with different values
+    for the payload version.
+*/
+fn deserialize_state_hash(b58: &str) -> StateHash {
+    let state_hash_ocaml = bs58::decode(b58).into_vec().unwrap();
+    let state_hash_bytes =
+        Versioned::<DataHashLibStateHashStableV1, 1>::binprot_read(&mut &state_hash_ocaml[1..])
+            .unwrap();
+
+    DataHashLibStateHashStableV1::from(state_hash_bytes).into()
 }
 
 impl From<Permissions> for MinaBasePermissionsStableV2 {
