@@ -8,9 +8,12 @@ use kimchi::{
     o1_utils::FieldHelpers as _,
 };
 use mina_curves::pasta::Fp;
+use mina_p2p_messages::bigint::BigInt;
+use mina_p2p_messages::v2::MerkleTreeNode;
 use num_bigint::BigUint;
 use reqwest::header::CONTENT_TYPE;
 use serde::{Deserialize, Serialize};
+use std::convert::Into;
 use std::fmt::Write as _;
 use std::str::FromStr as _;
 
@@ -138,6 +141,22 @@ pub struct Account {
 pub struct MerkleLeaf {
     pub left: Option<String>,
     pub right: Option<String>,
+}
+
+impl Into<MerkleTreeNode> for MerkleLeaf {
+    fn into(self) -> MerkleTreeNode {
+        match (self.left, self.right) {
+            (Some(left), None) => {
+                let v: Box<[u8; 32]> = Box::new(left.as_bytes().try_into().unwrap());
+                MerkleTreeNode::Left(BigInt::from(v))
+            }
+            (None, Some(right)) => {
+                let v: Box<[u8; 32]> = Box::new(right.as_bytes().try_into().unwrap());
+                MerkleTreeNode::Right(BigInt::from(v))
+            }
+            _ => unreachable!(),
+        }
+    }
 }
 
 #[cfg(test)]

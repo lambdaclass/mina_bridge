@@ -20,4 +20,7 @@ fn main() {
     let merkle_root = received_merkle_path.get_root();
 
     println!("computed root: {:?}", merkle_root);
+
+    // TODO:
+    // 1. Verify the merkle proof using openmina
 }
