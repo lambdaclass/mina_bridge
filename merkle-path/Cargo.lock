@@ -1247,6 +1247,7 @@ dependencies = [
  "serde",
  "serde-enum-str",
  "serde_json",
+ "snark",
 ]
 
 [[package]]
@@ -2272,6 +2273,39 @@ name = "smallvec"
 version = "1.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
+
+[[package]]
+name = "snark"
+version = "0.4.0"
+source = "git+https://github.com/openmina/openmina.git#44b3cfe2364321752c6aa8ca453e57bbbedb0f34"
+dependencies = [
+ "ark-ec",
+ "ark-ff",
+ "ark-poly",
+ "bincode",
+ "derive_more",
+ "hex",
+ "kimchi",
+ "mina-curves",
+ "mina-hasher",
+ "mina-p2p-messages",
+ "mina-poseidon",
+ "mina-signer",
+ "mina-tree",
+ "num-bigint",
+ "o1-utils",
+ "once_cell",
+ "openmina-core",
+ "poly-commitment",
+ "rand",
+ "rayon",
+ "redux",
+ "serde",
+ "serde_json",
+ "sha2 0.10.8",
+ "strum_macros",
+ "thiserror",
+]
 
 [[package]]
 name = "socket2"

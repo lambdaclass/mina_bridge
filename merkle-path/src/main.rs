@@ -6,6 +6,7 @@ pub mod merkle_root;
 use crate::account::query_account;
 use crate::merkle_path::MerkleTree;
 use crate::merkle_root::MerkleRoot;
+use mina_p2p_messages::v2::MerkleTreeNode;
 
 fn main() {
     let queried_account = query_account("B62qk8PgLSaL6DJKniMXwh6zePZP3q8vRLQDw1prXyu5YqZZMMemSQ2");
@@ -21,8 +22,8 @@ fn main() {
 
     println!("computed root: {:?}", merkle_root);
 
+    let received_merkle_path_vec: Vec<MerkleTreeNode> = received_merkle_path.into();
     // TODO:
     // 1. Verify the merkle proof using openmina
-    //calc_merkle_root_hash(&open_mina_merkle_path);
-    //let root = snark::calc_merkle_root_hash(&queried_account, &received_merkle_path);
+    let root = snark::calc_merkle_root_hash(&queried_account, &received_merkle_path_vec);
 }
