@@ -23,4 +23,6 @@ fn main() {
 
     // TODO:
     // 1. Verify the merkle proof using openmina
+    //calc_merkle_root_hash(&open_mina_merkle_path);
+    //let root = snark::calc_merkle_root_hash(&queried_account, &received_merkle_path);
 }
