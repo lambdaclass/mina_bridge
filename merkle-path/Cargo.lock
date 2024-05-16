@@ -640,7 +640,7 @@ checksum = "4271d37baee1b8c7e4b708028c57d816cf9d2434acb33a549475f78c181f6253"
 [[package]]
 name = "groupmap"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems.git?branch=develop#553795286d4561aa5d7e928ed1e3555e3a4a81be"
+source = "git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf#44e0d3b98b8747de54e595f53d97c035ff43167c"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -698,9 +698,6 @@ name = "hex"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
-dependencies = [
- "serde",
-]
 
 [[package]]
 name = "http"
@@ -825,11 +822,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "internal-tracing"
-version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems.git?branch=develop#553795286d4561aa5d7e928ed1e3555e3a4a81be"
-
-[[package]]
 name = "ipnet"
 version = "2.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -862,7 +854,7 @@ dependencies = [
 [[package]]
 name = "kimchi"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems.git?branch=develop#553795286d4561aa5d7e928ed1e3555e3a4a81be"
+source = "git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf#44e0d3b98b8747de54e595f53d97c035ff43167c"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -872,15 +864,14 @@ dependencies = [
  "disjoint-set",
  "groupmap",
  "hex",
- "internal-tracing",
  "itertools",
- "mina-curves 0.1.0 (git+https://github.com/o1-labs/proof-systems.git?branch=develop)",
- "mina-poseidon 0.1.0 (git+https://github.com/o1-labs/proof-systems.git?branch=develop)",
+ "mina-curves",
+ "mina-poseidon",
  "num-bigint",
  "num-derive",
  "num-integer",
  "num-traits",
- "o1-utils 0.1.0 (git+https://github.com/o1-labs/proof-systems.git?branch=develop)",
+ "o1-utils",
  "once_cell",
  "poly-commitment",
  "rand",
@@ -942,7 +933,7 @@ dependencies = [
  "generic-array 1.0.0",
  "hex",
  "kimchi",
- "mina-curves 0.1.0 (git+https://github.com/o1-labs/proof-systems.git?branch=develop)",
+ "mina-hasher",
  "mina-p2p-messages",
  "num-bigint",
  "reqwest",
@@ -960,15 +951,6 @@ checksum = "6877bb514081ee2a7ff5ef9de3281f14a4dd4bceac4c09388074a6b5df8a139a"
 [[package]]
 name = "mina-curves"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems.git?branch=develop#553795286d4561aa5d7e928ed1e3555e3a4a81be"
-dependencies = [
- "ark-ec",
- "ark-ff",
-]
-
-[[package]]
-name = "mina-curves"
-version = "0.1.0"
 source = "git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf#44e0d3b98b8747de54e595f53d97c035ff43167c"
 dependencies = [
  "ark-ec",
@@ -982,9 +964,9 @@ source = "git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-r
 dependencies = [
  "ark-ff",
  "bitvec",
- "mina-curves 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
- "mina-poseidon 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
- "o1-utils 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
+ "mina-curves",
+ "mina-poseidon",
+ "o1-utils",
  "serde",
 ]
 
@@ -1001,11 +983,11 @@ dependencies = [
  "bs58 0.4.0",
  "derive_more",
  "hex",
- "mina-curves 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
+ "mina-curves",
  "mina-hasher",
- "mina-poseidon 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
+ "mina-poseidon",
  "mina-signer",
- "o1-utils 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
+ "o1-utils",
  "rsexp",
  "serde",
  "serde_json",
@@ -1016,30 +998,13 @@ dependencies = [
 [[package]]
 name = "mina-poseidon"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems.git?branch=develop#553795286d4561aa5d7e928ed1e3555e3a4a81be"
-dependencies = [
- "ark-ec",
- "ark-ff",
- "ark-poly",
- "mina-curves 0.1.0 (git+https://github.com/o1-labs/proof-systems.git?branch=develop)",
- "o1-utils 0.1.0 (git+https://github.com/o1-labs/proof-systems.git?branch=develop)",
- "once_cell",
- "rand",
- "rayon",
- "serde",
- "serde_with",
-]
-
-[[package]]
-name = "mina-poseidon"
-version = "0.1.0"
 source = "git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf#44e0d3b98b8747de54e595f53d97c035ff43167c"
 dependencies = [
  "ark-ec",
  "ark-ff",
  "ark-poly",
- "mina-curves 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
- "o1-utils 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
+ "mina-curves",
+ "o1-utils",
  "once_cell",
  "rand",
  "rayon",
@@ -1058,9 +1023,9 @@ dependencies = [
  "blake2",
  "bs58 0.4.0",
  "hex",
- "mina-curves 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
+ "mina-curves",
  "mina-hasher",
- "o1-utils 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
+ "o1-utils",
  "rand",
  "sha2 0.10.8",
  "thiserror",
@@ -1153,29 +1118,6 @@ checksum = "4161fcb6d602d4d2081af7c3a45852d875a03dd337a6bfdd6e06407b61342a43"
 dependencies = [
  "hermit-abi",
  "libc",
-]
-
-[[package]]
-name = "o1-utils"
-version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems.git?branch=develop#553795286d4561aa5d7e928ed1e3555e3a4a81be"
-dependencies = [
- "ark-ec",
- "ark-ff",
- "ark-poly",
- "ark-serialize",
- "bcs",
- "hex",
- "num-bigint",
- "num-integer",
- "num-traits",
- "rand",
- "rand_core",
- "rayon",
- "serde",
- "serde_with",
- "sha2 0.10.8",
- "thiserror",
 ]
 
 [[package]]
@@ -1330,7 +1272,7 @@ checksum = "d231b230927b5e4ad203db57bbcbee2802f6bce620b1e4a9024a07d94e2907ec"
 [[package]]
 name = "poly-commitment"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems.git?branch=develop#553795286d4561aa5d7e928ed1e3555e3a4a81be"
+source = "git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf#44e0d3b98b8747de54e595f53d97c035ff43167c"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1339,14 +1281,13 @@ dependencies = [
  "blake2",
  "groupmap",
  "itertools",
- "mina-curves 0.1.0 (git+https://github.com/o1-labs/proof-systems.git?branch=develop)",
- "mina-poseidon 0.1.0 (git+https://github.com/o1-labs/proof-systems.git?branch=develop)",
- "o1-utils 0.1.0 (git+https://github.com/o1-labs/proof-systems.git?branch=develop)",
+ "mina-curves",
+ "mina-poseidon",
+ "o1-utils",
  "once_cell",
  "rand",
  "rand_core",
  "rayon",
- "rmp-serde",
  "serde",
  "serde_with",
  "thiserror",
@@ -1997,11 +1938,11 @@ checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 [[package]]
 name = "turshi"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems.git?branch=develop#553795286d4561aa5d7e928ed1e3555e3a4a81be"
+source = "git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf#44e0d3b98b8747de54e595f53d97c035ff43167c"
 dependencies = [
  "ark-ff",
  "hex",
- "o1-utils 0.1.0 (git+https://github.com/o1-labs/proof-systems.git?branch=develop)",
+ "o1-utils",
 ]
 
 [[package]]

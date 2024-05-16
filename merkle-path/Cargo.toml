@@ -11,12 +11,16 @@ hex = "0.4.3"
 reqwest = { version = "0.12", features = ["blocking"] }
 
 # hash functions
-kimchi = { git = "https://github.com/o1-labs/proof-systems.git", branch = "develop", version = "0.1.0" }
-mina-curves = { git = "https://github.com/o1-labs/proof-systems.git", branch = "develop", version = "0.1.0" }
+#kimchi = { git = "https://github.com/o1-labs/proof-systems.git", branch = "develop", version = "0.1.0" }
+#mina-curves = { git = "https://github.com/o1-labs/proof-systems.git", branch = "develop", version = "0.1.0" }
 num-bigint = "0.4.3"
 ark-ff = { version = "0.3.0", features = ["parallel", "asm"] }
 generic-array = "1.0.0"
 bs58 = { version = "0.5.1", features = ["check"] }
 binprot = { git = "https://github.com/openmina/binprot-rs", rev = "3f29b25" }
 binprot_derive = { git = "https://github.com/openmina/binprot-rs", rev = "3f29b25" }
-mina-p2p-messages = { git = "https://github.com/openmina/openmina.git", features = ["hashing"] }
+mina-p2p-messages = { git = "https://github.com/openmina/openmina.git", features = [
+    "hashing",
+] }
+mina-hasher = { git = "https://github.com/openmina/proof-systems", branch = "ledger-newtypes-rampup4-vrf" }
+kimchi = { git = "https://github.com/openmina/proof-systems", branch = "ledger-newtypes-rampup4-vrf" }

@@ -7,7 +7,7 @@ use kimchi::{
     },
     o1_utils::FieldHelpers as _,
 };
-use mina_curves::pasta::Fp;
+use mina_hasher::Fp;
 use mina_p2p_messages::bigint::BigInt;
 use mina_p2p_messages::v2::MerkleTreeNode;
 use num_bigint::BigUint;
@@ -124,6 +124,17 @@ impl MerkleTree {
     }
 }
 
+impl Into<Vec<MerkleTreeNode>> for MerkleTree {
+    fn into(self) -> Vec<MerkleTreeNode> {
+        self.data
+            .account
+            .merkle_path
+            .into_iter()
+            .map(Into::into)
+            .collect()
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Data {
     pub account: Account,
@@ -147,12 +158,12 @@ impl Into<MerkleTreeNode> for MerkleLeaf {
     fn into(self) -> MerkleTreeNode {
         match (self.left, self.right) {
             (Some(left), None) => {
-                let v: Box<[u8; 32]> = Box::new(left.as_bytes().try_into().unwrap());
-                MerkleTreeNode::Left(BigInt::from(v))
+                let f: Fp = Fp::from_str(&left).unwrap().into();
+                MerkleTreeNode::Left(BigInt::from(f))
             }
             (None, Some(right)) => {
-                let v: Box<[u8; 32]> = Box::new(right.as_bytes().try_into().unwrap());
-                MerkleTreeNode::Right(BigInt::from(v))
+                let f: Fp = Fp::from_str(&right).unwrap().into();
+                MerkleTreeNode::Right(BigInt::from(f))
             }
             _ => unreachable!(),
         }
@@ -172,7 +183,7 @@ mod test {
         },
         o1_utils::FieldHelpers as _,
     };
-    use mina_curves::pasta::Fp;
+    use mina_hasher::Fp;
     use num_bigint::BigUint;
     use std::str::FromStr as _;
 
@@ -213,7 +224,6 @@ mod test {
     #[test]
     fn test_fp() {
         use kimchi::o1_utils::FieldHelpers;
-        use mina_curves::pasta::Fp;
 
         let f = "8186407070323331717412068877244574160296972200577316395640080416951883426150";
         let fp = Fp::from_biguint(&BigUint::from_str(&f).unwrap());
@@ -242,6 +252,10 @@ mod test {
             }"#;
         let merkle_path: MerkleTree = serde_json::from_str(&serialized_merkle_path).unwrap();
         let merkle_root = merkle_path.get_root();
+
+        // convert merkle tree to open mina format
+        let open_mina_merkle_path: Vec<mina_p2p_messages::v2::MerkleTreeNode> = merkle_path.into();
+        println!("{:?}", open_mina_merkle_path);
 
         // TODO: compare merkle_root with expected value
     }
