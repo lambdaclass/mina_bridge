@@ -17,7 +17,7 @@ fn main() {
     let state = parse_and_serialize_state(query);
     let proof = parse_proof(query);
     fs::write("../eth_verifier/state.mpk", state).unwrap();
-    fs::write("../public_input_gen/src/proof.json", proof).unwrap();
+    fs::write("../verifier_circuit/src/proof.json", proof).unwrap();
 }
 
 fn parse_and_serialize_state(query: &Value) -> Vec<u8> {
