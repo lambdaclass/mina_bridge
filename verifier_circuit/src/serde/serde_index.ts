@@ -151,10 +151,7 @@ export interface LookupPatternsJSON {
     foreign_field_mul: boolean,
 }
 
-export interface GroupJSON {
-    x: string
-    y: string
-}
+export type GroupJSON = [string, string];
 
 export function deserGroup(json: GroupJSON): ForeignCurveBn254 {
     if (json.x === "0" && json.y === "1") {
