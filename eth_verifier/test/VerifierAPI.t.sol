@@ -85,4 +85,26 @@ contract KimchiVerifierTest is Test {
         bool success = global_verifier.is_last_proof_valid();
         require(success, "Verification failed!");
     }
+
+    function test_multiple_setups_and_verifications() public {
+        uint256 num_circuit_updates = 10;
+        uint256 num_verifications_per_update = 100;
+        KimchiVerifier verifier = new KimchiVerifier();
+
+        verifier.setup();
+
+        for (uint256 i = 0; i < num_circuit_updates; i++) {
+            verifier.store_verifier_index(verifier_index_serialized);
+            verifier.store_linearization(linearization_serialized);
+
+            for (uint256 j = 0; j < num_verifications_per_update; j++) {
+                verifier.store_literal_tokens(linearization_literals_serialized);
+                verifier.store_prover_proof(prover_proof_serialized);
+                verifier.store_public_input(public_input_serialized);
+
+                bool success = verifier.full_verify();
+                require(success, "Verification failed!");
+            }
+        }
+    }
 }
