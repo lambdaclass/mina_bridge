@@ -5,13 +5,13 @@ import { Verifier } from "./verifier/verifier.js";
 
 let inputs;
 try {
-    inputs = JSON.parse(readFileSync("./src/inputs.json", "utf-8"));
+    inputs = JSON.parse(readFileSync("./src/proof.json", "utf-8"));
 } catch (e) {
     console.log("Using default inputs");
     inputs = testInputs;
 }
 
-let openingProof = deserOpeningProof(inputs);
+let openingProof = deserOpeningProof(inputs.proof.bulletproof);
 writeFileSync("./src/opening_proof_fields.json", JSON.stringify(openingProof.toFields()));
 
 // ----------------------------------------------------
