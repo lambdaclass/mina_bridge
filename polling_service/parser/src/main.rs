@@ -17,7 +17,7 @@ fn main() {
     let state = parse_and_serialize_state(query);
     let proof = parse_proof(query);
     fs::write("../eth_verifier/state.mpk", state).unwrap();
-    fs::write("proof.txt", proof).unwrap();
+    fs::write("../public_input_gen/src/proof.json", proof).unwrap();
 }
 
 fn parse_and_serialize_state(query: &Value) -> Vec<u8> {
@@ -37,8 +37,7 @@ fn parse_and_serialize_state(query: &Value) -> Vec<u8> {
 fn parse_proof(query: &Value) -> String {
     query
         .get("protocolStateProof")
-        .and_then(|v| v.get("base64"))
-        .and_then(Value::as_str)
+        .and_then(|v| v.get("json"))
         .unwrap()
         .to_string()
 }
