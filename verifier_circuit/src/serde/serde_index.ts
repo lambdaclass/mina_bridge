@@ -151,13 +151,13 @@ export interface LookupPatternsJSON {
     foreign_field_mul: boolean,
 }
 
-export type GroupJSON = [string, string];
+export type GroupJSON = string[];
 
 export function deserGroup(json: GroupJSON): ForeignCurveBn254 {
-    if (json.x === "0" && json.y === "1") {
+    if (json[0] === "0" && json[1] === "1") {
         return ForeignPallas.generator.add(ForeignPallas.generator.negate());
     } else {
-        return new ForeignPallas({ x: BigInt(json.x), y: BigInt(json.y) });
+        return new ForeignPallas({ x: BigInt(json[0]), y: BigInt(json[1]) });
     }
 }
 
