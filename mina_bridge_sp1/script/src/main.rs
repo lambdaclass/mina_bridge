@@ -1,9 +1,13 @@
 //! A simple script to generate and verify the proof of a given program.
 
-use sp1_sdk::{ProverClient, SP1Stdin};
 use kimchi_verifier_ffi::generate_test_proof;
+use sp1_sdk::{ProverClient, SP1Stdin};
 
 const ELF: &[u8] = include_bytes!("../../program/elf/riscv32im-succinct-zkvm-elf");
+
+unsafe fn as_bytes<T: Sized>(data: &T) -> &[u8] {
+    std::slice::from_raw_parts((data as *const T) as *const u8, std::mem::size_of_val(data))
+}
 
 fn main() {
     // Setup the logger.
@@ -12,10 +16,14 @@ fn main() {
     // Generate proof.
     let mut stdin = SP1Stdin::new();
     let (proof, index, srs) = generate_test_proof();
+
     stdin.write(&proof);
     stdin.write(&index);
-    stdin.write(&srs);
-    stdin.write(&srs.lagrange_bases);
+
+    unsafe {
+        let srs_bytes = as_bytes(&srs);
+        stdin.write_slice(srs_bytes);
+    }
 
     let client = ProverClient::new();
     let (pk, vk) = client.setup(ELF);
@@ -31,7 +39,9 @@ fn main() {
         .expect("saving proof failed");
 
     // Verify proof.
-    client.verify_groth16(&proof, &vk).expect("verification failed");
+    client
+        .verify_groth16(&proof, &vk)
+        .expect("verification failed");
 
     println!("successfully generated and verified proof for the program!")
 }

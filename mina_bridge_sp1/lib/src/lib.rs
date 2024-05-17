@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use kimchi::circuits::constraints::ConstraintSystem;

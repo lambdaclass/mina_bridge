@@ -5,8 +5,8 @@ name = "mina_bridge_sp1-script"
 edition = "2021"
 
 [dependencies]
-sp1-sdk = { git = "https://github.com/succinctlabs/sp1.git", rev = "v1.0.0-testnet" }
+sp1-sdk = { git = "https://github.com/succinctlabs/sp1.git", rev = "v1.0.1-testnet" }
 kimchi-verifier-ffi = { path = "../lib/" }
 
 [build-dependencies]
-sp1-helper = { git = "https://github.com/succinctlabs/sp1.git", rev = "v1.0.0-testnet"  }
+sp1-helper = { git = "https://github.com/succinctlabs/sp1.git", rev = "v1.0.1-testnet"  }
