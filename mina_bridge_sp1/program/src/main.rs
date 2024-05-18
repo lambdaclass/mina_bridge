@@ -5,10 +5,7 @@
 use std::{collections::HashMap, sync::Arc};
 
 use kimchi::{
-    mina_curves::pasta::Vesta,
-    poly_commitment::{evaluation_proof::OpeningProof, srs::SRS, PolyComm},
-    proof::ProverProof,
-    verifier_index::VerifierIndex,
+    mina_curves::pasta::Vesta, poly_commitment::{evaluation_proof::OpeningProof, srs::SRS, PolyComm}, precomputed_srs, proof::ProverProof, verifier_index::VerifierIndex
 };
 use kimchi_verifier_ffi::kimchi_verify;
 
@@ -24,17 +21,6 @@ type KimchiLagrangeBases = HashMap<usize, Vec<PolyComm<Curve>>>;
 pub fn main() {
     println!("cycle-tracker-start: deserialize data");
 
-    println!("Proof size: {}", std::mem::size_of::<KimchiProof>());
-    println!(
-        "Verifier index size: {}",
-        std::mem::size_of::<KimchiVerifierIndex>()
-    );
-    println!("SRS size: {}", std::mem::size_of::<KimchiSRS>());
-    println!(
-        "Lag. bases size: {}",
-        std::mem::size_of::<KimchiLagrangeBases>()
-    );
-
     println!("cycle-tracker-start: deserialize proof");
     let proof = sp1_zkvm::io::read::<KimchiProof>();
     println!("cycle-tracker-end: deserialize proof");
@@ -44,7 +30,7 @@ pub fn main() {
     println!("cycle-tracker-end: deserialize verifier index");
 
     println!("cycle-tracker-start: deserialize srs");
-    let srs = unsafe { std::ptr::read(sp1_zkvm::io::read_vec().as_ptr() as *const _) };
+    let srs = unsafe { std::ptr::read_unaligned(sp1_zkvm::io::read_vec().as_ptr() as *const _) };
     println!("cycle-tracker-end: deserialize srs");
 
     println!("cycle-tracker-end: deserialize data");
