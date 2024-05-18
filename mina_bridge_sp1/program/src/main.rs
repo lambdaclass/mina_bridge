@@ -29,9 +29,9 @@ pub fn main() {
     let mut verifier_index = sp1_zkvm::io::read::<KimchiVerifierIndex>();
     println!("cycle-tracker-end: deserialize verifier index");
 
-    println!("cycle-tracker-start: deserialize srs");
-    let srs = unsafe { std::ptr::read_unaligned(sp1_zkvm::io::read_vec().as_ptr() as *const _) };
-    println!("cycle-tracker-end: deserialize srs");
+    println!("cycle-tracker-start: load precomp srs");
+    let srs = precomputed_srs::get_srs::<Curve>();
+    println!("cycle-tracker-end: load precomp srs");
 
     println!("cycle-tracker-end: deserialize data");
 
