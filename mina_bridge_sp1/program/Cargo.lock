@@ -804,6 +804,7 @@ dependencies = [
  "ark-ec",
  "ark-ff",
  "ark-poly",
+ "bincode",
  "kimchi",
  "kimchi-verifier-ffi",
  "o1-utils",
