@@ -22,15 +22,15 @@ contract KimchiVerifier {
     error IncorrectPublicInputLength();
     error PolynomialsAreChunked(uint256 chunk_size);
 
-    Proof.ProverProof proof;
-    VerifierIndexLib.VerifierIndex verifier_index;
-    Commitment.URS urs;
+    Proof.ProverProof internal proof;
+    VerifierIndexLib.VerifierIndex internal verifier_index;
+    Commitment.URS internal urs;
 
-    Scalar.FE public_input;
+    Scalar.FE internal public_input;
 
-    Proof.AggregatedEvaluationProof aggregated_proof;
+    Proof.AggregatedEvaluationProof internal aggregated_proof;
 
-    bool last_verification_result;
+    bool internal last_verification_result;
 
     function setup() public {
         // Setup URS
@@ -85,8 +85,7 @@ contract KimchiVerifier {
     }
 
     function partial_verify_and_store() public {
-        aggregated_proof =
-            KimchiPartialVerifier.partial_verify(proof, verifier_index, urs, public_input);
+        aggregated_proof = KimchiPartialVerifier.partial_verify(proof, verifier_index, urs, public_input);
     }
 
     function final_verify_and_store() public {
@@ -116,10 +115,9 @@ contract KimchiVerifier {
         BN254.G2Point memory divisor = divisor_commitment(evaluation_points);
 
         // eval commitment
-        BN254.G1Point memory eval_commitment = eval_commitment(evaluation_points, evals, urs);
-
         // numerator commitment
-        BN254.G1Point memory numerator = poly_commitment.sub(eval_commitment.add(blinding_commitment));
+        BN254.G1Point memory numerator =
+            poly_commitment.sub(eval_commitment(evaluation_points, evals, urs).add(blinding_commitment));
 
         // quotient commitment needs to be negated. See the doc of pairingProd2().
         return BN254.pairingProd2(numerator, BN254.P2(), quotient.neg(), divisor);
