@@ -6,12 +6,14 @@ import {KimchiVerifier} from "../src/Verifier.sol";
 import "forge-std/console.sol";
 
 contract Verify is Script {
+    bytes linearization_literals_serialized;
     bytes verifier_index_serialized;
     bytes prover_proof_serialized;
     bytes linearization_serialized;
     bytes public_input_serialized;
 
     function run() public {
+        linearization_literals_serialized = vm.readFileBinary("linearization_literals.bin");
         verifier_index_serialized = vm.readFileBinary("verifier_index.bin");
         prover_proof_serialized = vm.readFileBinary("prover_proof.bin");
         linearization_serialized = vm.readFileBinary("linearization.bin");
@@ -24,6 +26,7 @@ contract Verify is Script {
 
         verifier.setup();
 
+        verifier.store_literal_tokens(linearization_literals_serialized);
         verifier.store_verifier_index(verifier_index_serialized);
         verifier.store_linearization(linearization_serialized);
         verifier.store_prover_proof(prover_proof_serialized);
