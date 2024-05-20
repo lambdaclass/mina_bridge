@@ -35,24 +35,14 @@ pub fn main() {
     let mut verifier_index = sp1_zkvm::io::read::<KimchiVerifierIndex>();
     println!("cycle-tracker-end: deserialize verifier index");
 
-    println!("cycle-tracker-start: read srs bytes");
-    let srs_bytes = sp1_zkvm::io::read_vec();
-    println!("cycle-tracker-end: read srs bytes");
-
     println!("cycle-tracker-start: deserialize srs");
-    sp1_zkvm::precompiles::unconstrained! {
-        let srs = bincode::deserialize::<KimchiSRS>(&srs_bytes).expect("can't deserialize srs");
-        unsafe {sp1_zkvm::io::hint_slice(as_bytes(&srs))};
-    };
+    let srs = sp1_zkvm::io::read::<KimchiSRS>();
     println!("cycle-tracker-end: deserialize srs");
 
     println!("cycle-tracker-end: deserialize data");
 
     println!("cycle-tracker-start: srs");
-    unsafe {
-        let srs = sp1_zkvm::io::read_vec().as_ptr() as *const KimchiSRS;
-        verifier_index.srs = Arc::new(srs.read_unaligned());
-    };
+    verifier_index.srs = Arc::new(srs);
     println!("cycle-tracker-end: srs");
 
     println!("cycle-tracker-start: verify");
