@@ -59,7 +59,11 @@ library BN256G2 {
         return _fromJacobian(pt3[PTXX], pt3[PTXY], pt3[PTYX], pt3[PTYY], pt3[PTZX], pt3[PTZY]);
     }
 
-    function ECTwistAdd(BN254.G2Point memory p1, BN254.G2Point memory p2) internal view returns (BN254.G2Point memory) {
+    function ECTwistAdd(BN254.G2Point memory p1, BN254.G2Point memory p2)
+        internal
+        view
+        returns (BN254.G2Point memory)
+    {
         uint256 p1xx = p1.x1;
         uint256 p1xy = p1.x0;
         uint256 p1yx = p1.y1;
@@ -205,110 +209,6 @@ library BN256G2 {
     function _FQ1Div(uint256 a, uint256 b) internal pure returns (uint256) {
         uint256 b_inv = _FQ1Inv(b);
         return _FQ1Mul(a, b_inv);
-    }
-
-    // @returns both components of the Fq2 result, and a boolean that is set if
-    // @returns the root was found.
-    //
-    // @notice reference: Algorithm 8 of https://eprint.iacr.org/2012/685.pdf
-    function FQ2Sqrt(uint256 a0, uint256 a1) internal view returns (uint256, uint256) {
-        if (a1 == 0) return (_FQ1Sqrt(a0), 0);
-
-        // 4: alpha <- a_0^2 - beta * a_1^2
-        // for BN254, beta = -1
-        uint256 alpha = _FQ1Add(_FQ1Square(a0), _FQ1Square(a1));
-
-        // 5: gamma <- x_q(alpha)
-        // x_q refers to the Euler criterion: x_q(a) = a^( (p-1)/2 )
-        // 6: if gamma = 1
-        // 7:    return false;
-        // 8: end if;
-        // returning false indicates that a is not a quadratic residue.
-        // in that case the contract reverts.
-        require(
-            _FQ1EulerCriterion(alpha),
-            "couldn\'t find the square root of alpha, meaning that this is not a quadratic residue."
-        );
-
-        // 9: alpha <- SQRT(alpha)
-        alpha = _FQ1Sqrt(alpha);
-
-        // 10: delta <- (a_0 + alpha) / 2
-        uint256 delta = _FQ1Div(_FQ1Add(a0, alpha), 2);
-
-        // 11: gamma <- x_q(alpha)
-        // 12: if gamma = 1
-        // 14:    delta <- (a_0 - alpha) / 2
-        // 14: end if;
-        if (!_FQ1EulerCriterion(delta)) {
-            delta = _FQ1Div(_FQ1Sub(a0, alpha), 2);
-        }
-
-        // 15: x_0 <- SQRT(delta)
-        uint256 x0 = _FQ1Sqrt(delta);
-        // 16: x_1 <- (a1 / (2*x_0))
-        uint256 x1 = _FQ1Div(a1, _FQ1Mul(x0, 2));
-
-        // 17: x <- x_0 + x_1*y
-        return (x0, x1);
-    }
-
-    function G2Deserialize(bytes memory input) internal view returns (BN254.G2Point memory point) {
-        require(input.length == 64, "Compressed G2 point is not 64 bytes long");
-        bytes memory x = UtilsExternal.reverseEndianness(input);
-
-        if (x[0] & 0x40 != 0x00) {
-            // if the 254-th bit is set then this is the point at infinity
-            return BN254.G2Point(0, 0, 0, 0);
-        }
-
-        // if the 255-th bit is set then y is positive
-        bool y_needs_to_be_positive = (x[0] & 0x80 != 0);
-
-        // mask off the first two bits of x
-        x[0] &= 0x3F;
-
-        // decompose both components of the element
-        uint256 xx = 0;
-        uint256 xy = 0;
-
-        for (uint256 i = 0; i < 32; i++) {
-            uint256 order = (32 - i - 1) * 8;
-            xy |= uint256(uint8(x[i])) << order;
-            xx |= uint256(uint8(x[i + 32])) << order;
-        }
-
-        // solve for y where E: y^2 = x^3 + B
-        // equation taken from: https://hackmd.io/@jpw/bn254#Twists
-
-        // x^3
-        uint256 yx;
-        uint256 yy;
-        (yx, yy) = _FQ2Mul(xx, xy, xx, xy);
-        (yx, yy) = _FQ2Mul(yx, yy, xx, xy);
-
-        // x^3 + B
-        uint256 Bx = 19485874751759354771024239261021720505790618469301721065564631296452457478373;
-        uint256 By = 266929791119991161246907387137283842545076965332900288569378510910307636690;
-        (yx, yy) = _FQ2Add(yx, yy, Bx, By);
-
-        // sqrt(x^3 + B)
-        (yx, yy) = FQ2Sqrt(yx, yy);
-
-        // define "sign" of y
-        uint256 neg_yx = FIELD_MODULUS - yx;
-        uint256 neg_yy = FIELD_MODULUS - yy;
-
-        // is_y_positive == y > -y
-        // a > b == a.c1 > b.c1 || (a.c1 == b.c1 && a.c0 > a.c0)
-        bool is_y_positive = yy > neg_yy || (yy == neg_yy && yx > neg_yx);
-
-        if (y_needs_to_be_positive && !is_y_positive) {
-            yx = neg_yx;
-            yy = neg_yy;
-        }
-
-        return BN254.G2Point(xx, xy, yx, yy);
     }
 
     function _isOnCurve(uint256 xx, uint256 xy, uint256 yx, uint256 yy) internal pure returns (bool) {
