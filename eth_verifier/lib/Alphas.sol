@@ -16,9 +16,9 @@ using {Scalar.mul} for Scalar.FE;
 struct Alphas {
     /// The next power of alpha to use.
     /// The end result will be [1, alpha^(next_power - 1)]
-    uint next_power;
+    uint256 next_power;
     /// The mapping between constraint types and powers of alpha */
-    mapping(ArgumentType => uint[2]) map;
+    mapping(ArgumentType => uint256[2]) map;
     /// The powers of alpha: 1, alpha, alpha^2, ..
     /// The array is initially empty until powers are initialized.
     /// If not empty, you can't register new contraints.
@@ -26,29 +26,21 @@ struct Alphas {
 }
 
 error CantRegisterNewConstraints();
-function register(Alphas storage self, ArgumentType ty, uint powers) {
+
+function register(Alphas storage self, ArgumentType ty, uint256 powers) {
     if (self.alphas.length != 0) {
         revert CantRegisterNewConstraints();
     }
 
-    if (ty == ArgumentType.GateGeneric ||
-        ty == ArgumentType.GatePoseidon ||
-        ty == ArgumentType.GateCompleteAdd ||
-        ty == ArgumentType.GateVarBaseMul ||
-        ty == ArgumentType.GateEndoMul ||
-        ty == ArgumentType.GateEndoMulScalar ||
-        ty == ArgumentType.GateLookup ||
-        ty == ArgumentType.GateCairoClaim ||
-        ty == ArgumentType.GateCairoInstruction ||
-        ty == ArgumentType.GateCairoFlags ||
-        ty == ArgumentType.GateCairoTransition ||
-        ty == ArgumentType.GateRangeCheck0 ||
-        ty == ArgumentType.GateRangeCheck1 ||
-        ty == ArgumentType.GateForeignFieldAdd ||
-        ty == ArgumentType.GateForeignFieldMul ||
-        ty == ArgumentType.GateXor16 ||
-        ty == ArgumentType.GateRot64)
-    {
+    if (
+        ty == ArgumentType.GateGeneric || ty == ArgumentType.GatePoseidon || ty == ArgumentType.GateCompleteAdd
+            || ty == ArgumentType.GateVarBaseMul || ty == ArgumentType.GateEndoMul || ty == ArgumentType.GateEndoMulScalar
+            || ty == ArgumentType.GateLookup || ty == ArgumentType.GateCairoClaim || ty == ArgumentType.GateCairoInstruction
+            || ty == ArgumentType.GateCairoFlags || ty == ArgumentType.GateCairoTransition
+            || ty == ArgumentType.GateRangeCheck0 || ty == ArgumentType.GateRangeCheck1
+            || ty == ArgumentType.GateForeignFieldAdd || ty == ArgumentType.GateForeignFieldMul
+            || ty == ArgumentType.GateXor16 || ty == ArgumentType.GateRot64
+    ) {
         ty = ArgumentType.GateZero;
     }
 
@@ -63,7 +55,7 @@ function instantiate(Alphas storage self, Scalar.FE alpha) {
     Scalar.FE[] memory alphas = new Scalar.FE[](self.next_power);
     alphas[0] = last_power;
 
-    for (uint i = 1; i < self.next_power; i++) {
+    for (uint256 i = 1; i < self.next_power; i++) {
         last_power = last_power.mul(alpha);
         alphas[i] = last_power;
     }
@@ -73,33 +65,21 @@ function instantiate(Alphas storage self, Scalar.FE alpha) {
 error NotEnoughPowersOfAlpha(uint256 asked_for, uint256 available);
 error NonInstantiatedPowersOfAlpha();
 /// @notice retrieves the powers of alpha, upperbounded by `num`
-function get_alphas(Alphas storage self, ArgumentType ty, uint num)
-    view
-    returns (AlphasIterator memory)
-{
-    if (ty == ArgumentType.GateZero ||
-        ty == ArgumentType.GateGeneric ||
-        ty == ArgumentType.GatePoseidon ||
-        ty == ArgumentType.GateCompleteAdd ||
-        ty == ArgumentType.GateVarBaseMul ||
-        ty == ArgumentType.GateEndoMul ||
-        ty == ArgumentType.GateEndoMulScalar ||
-        ty == ArgumentType.GateLookup ||
-        ty == ArgumentType.GateCairoClaim ||
-        ty == ArgumentType.GateCairoInstruction ||
-        ty == ArgumentType.GateCairoFlags ||
-        ty == ArgumentType.GateCairoTransition ||
-        ty == ArgumentType.GateRangeCheck0 ||
-        ty == ArgumentType.GateRangeCheck1 ||
-        ty == ArgumentType.GateForeignFieldAdd ||
-        ty == ArgumentType.GateForeignFieldMul ||
-        ty == ArgumentType.GateXor16 ||
-        ty == ArgumentType.GateRot64)
-    {
+
+function get_alphas(Alphas storage self, ArgumentType ty, uint256 num) view returns (AlphasIterator memory) {
+    if (
+        ty == ArgumentType.GateZero || ty == ArgumentType.GateGeneric || ty == ArgumentType.GatePoseidon
+            || ty == ArgumentType.GateCompleteAdd || ty == ArgumentType.GateVarBaseMul || ty == ArgumentType.GateEndoMul
+            || ty == ArgumentType.GateEndoMulScalar || ty == ArgumentType.GateLookup || ty == ArgumentType.GateCairoClaim
+            || ty == ArgumentType.GateCairoInstruction || ty == ArgumentType.GateCairoFlags
+            || ty == ArgumentType.GateCairoTransition || ty == ArgumentType.GateRangeCheck0
+            || ty == ArgumentType.GateRangeCheck1 || ty == ArgumentType.GateForeignFieldAdd
+            || ty == ArgumentType.GateForeignFieldMul || ty == ArgumentType.GateXor16 || ty == ArgumentType.GateRot64
+    ) {
         ty = ArgumentType.GateZero;
     }
 
-    uint[2] memory range = self.map[ty];
+    uint256[2] memory range = self.map[ty];
     if (num > range[1]) {
         revert NotEnoughPowersOfAlpha(num, range[1]);
     }
@@ -109,8 +89,8 @@ function get_alphas(Alphas storage self, ArgumentType ty, uint num)
     }
 
     Scalar.FE[] memory powers = new Scalar.FE[](num);
-    for (uint i = 0; i < num; i++) {
-        powers[i] = self.alphas[range[0]+i];
+    for (uint256 i = 0; i < num; i++) {
+        powers[i] = self.alphas[range[0] + i];
     }
 
     return AlphasIterator(powers, 0);
@@ -150,7 +130,7 @@ enum ArgumentType {
     GateRot64,
     // Permutation
     Permutation
-
-    // Lookup
-    //Lookup
 }
+
+// Lookup
+//Lookup
