@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity >=0.4.16 <0.9.0;
+pragma solidity ^0.8.0;
 
-import "./bn254/Fields.sol";
+import {Scalar} from "./bn254/Fields.sol";
 
 using {Scalar.mul} for Scalar.FE;
 
