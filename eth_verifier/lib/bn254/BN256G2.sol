@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: LGPL-3.0
-pragma solidity >=0.4.16 <0.9.0;
+pragma solidity ^0.8.0;
 
-import "./BN254.sol";
+import {BN254} from "./BN254.sol";
+import {Aux} from "./Fields.sol";
 
 /**
  * @title Elliptic curve operations on twist points for alt_bn128
