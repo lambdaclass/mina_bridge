@@ -1,17 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity >=0.4.16 <0.9.0;
+pragma solidity ^0.8.0;
 
-import "../lib/bn254/Fields.sol";
-import "../lib/bn254/BN254.sol";
-import "../lib/bn254/BN256G2.sol";
-import "../lib/VerifierIndex.sol";
-import "../lib/Proof.sol";
-import "../lib/Alphas.sol";
-import "../lib/deserialize/ProverProof.sol";
-import "../lib/deserialize/PublicInputs.sol";
-import "../lib/deserialize/VerifierIndex.sol";
-import "../lib/deserialize/Linearization.sol";
-import "./KimchiPartialVerifier.sol";
+import {Base} from "../lib/bn254/Fields.sol";
+import {BN254} from "../lib/bn254/BN254.sol";
+import {BN256G2} from "../lib/bn254/BN256G2.sol";
+import {Scalar} from "../lib/VerifierIndex.sol";
+import {Proof} from "../lib/Proof.sol";
+import {Commitment} from "../lib/Commitment.sol";
+import {Evaluation} from "../lib/Evaluations.sol";
+import {VARBASEMUL_CONSTRAINTS, PERMUTATION_CONSTRAINTS} from "../lib/Constants.sol";
+import {ArgumentType, Alphas, AlphasIterator, get_alphas, register, it_next} from "../lib/Alphas.sol";
+import {deser_prover_proof} from "../lib/deserialize/ProverProof.sol";
+import {deser_public_input} from "../lib/deserialize/PublicInputs.sol";
+import {deser_verifier_index, VerifierIndexLib} from "../lib/deserialize/VerifierIndex.sol";
+import {deser_linearization, deser_literal_tokens} from "../lib/deserialize/Linearization.sol";
+import {KimchiPartialVerifier} from "./KimchiPartialVerifier.sol";
 
 contract KimchiVerifier {
     using {BN254.add, BN254.neg, BN254.scale_scalar, BN254.sub} for BN254.G1Point;
