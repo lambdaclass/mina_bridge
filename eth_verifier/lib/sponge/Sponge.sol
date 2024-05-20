@@ -1,11 +1,29 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity >=0.4.16 <0.9.0;
+pragma solidity ^0.8.0;
 
-import "../bn254/Fields.sol";
-import "../bn254/BN254.sol";
-import "../Commitment.sol";
-import "../Proof.sol";
-import "../Constants.sol";
+import {Base} from "../bn254/Fields.sol";
+import {BN254} from "../bn254/BN254.sol";
+import {Scalar} from "../bn254/Fields.sol";
+import {Proof} from "../Proof.sol";
+import {PointEvaluations, PointEvaluationsArray} from "../Evaluations.sol";
+import {
+    RANGE_CHECK0_SELECTOR_EVAL_FLAG,
+    RANGE_CHECK1_SELECTOR_EVAL_FLAG,
+    FOREIGN_FIELD_ADD_SELECTOR_EVAL_FLAG,
+    FOREIGN_FIELD_MUL_SELECTOR_EVAL_FLAG,
+    XOR_SELECTOR_EVAL_FLAG,
+    ROT_SELECTOR_EVAL_FLAG,
+    LOOKUP_AGGREGATION_EVAL_FLAG,
+    LOOKUP_TABLE_EVAL_FLAG,
+    LOOKUP_SORTED_EVAL_FLAG,
+    RUNTIME_LOOKUP_TABLE_EVAL_FLAG,
+    RUNTIME_LOOKUP_TABLE_SELECTOR_EVAL_FLAG,
+    XOR_LOOKUP_SELECTOR_EVAL_FLAG,
+    LOOKUP_GATE_LOOKUP_SELECTOR_EVAL_FLAG,
+    RANGE_CHECK_LOOKUP_SELECTOR_EVAL_FLAG,
+    FOREIGN_FIELD_MUL_LOOKUP_SELECTOR_EVAL_FLAG,
+    MAX_SPONGE_STATE_SIZE
+} from "../Constants.sol";
 
 library KeccakSponge {
     using {BN254.isInfinity} for BN254.G1Point;
