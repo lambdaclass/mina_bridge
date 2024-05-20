@@ -365,12 +365,4 @@ library Oracles {
             n >>= 64;
         }
     }
-
-    /// @notice Recomposes 64-bit `limbs` into a bigint, less significant first
-    function from_limbs_64(uint64[] memory limbs) internal pure returns (uint256 n_rebuilt) {
-        n_rebuilt = 0;
-        for (uint64 i = 0; i < limbs.length; i++) {
-            n_rebuilt += limbs[i] << (64 * i);
-        }
-    }
 }
