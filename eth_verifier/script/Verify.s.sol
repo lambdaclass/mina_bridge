@@ -39,3 +39,25 @@ contract Verify is Script {
         vm.stopBroadcast();
     }
 }
+
+contract PartialAndFinalVerify is Script {
+    bytes linearization_literals_serialized;
+    bytes verifier_index_serialized;
+    bytes prover_proof_serialized;
+    bytes linearization_serialized;
+    bytes public_input_serialized;
+
+    function run() public {
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        vm.startBroadcast(deployerPrivateKey);
+
+        address verifierAddress = vm.envAddress("CONTRACT_ADDRESS");
+        KimchiVerifier verifier = KimchiVerifier(verifierAddress);
+
+        verifier.partial_verify_and_store();
+        verifier.final_verify_and_store();
+        console.log("is proof valid?: %s", verifier.is_last_proof_valid());
+
+        vm.stopBroadcast();
+    }
+}
