@@ -37,16 +37,11 @@ library KimchiPartialVerifier {
         // TODO: 1. Check the length of evaluations insde the proof
 
         // 2. Commit to the negated public input polynomial.
-        BN254.G1Point memory public_comm = public_commitment(
-            verifier_index,
-            urs,
-            public_input
-        );
+        BN254.G1Point memory public_comm = public_commitment(verifier_index, urs, public_input);
 
         // 3. Execute fiat-shamir with a Keccak sponge
 
-        Oracles.Result memory oracles_res =
-            Oracles.fiat_shamir(proof, verifier_index, public_comm, public_input, true);
+        Oracles.Result memory oracles_res = Oracles.fiat_shamir(proof, verifier_index, public_comm, public_input, true);
         Oracles.RandomOracles memory oracles = oracles_res.oracles;
 
         // 4. Combine the chunked polynomials' evaluations
@@ -145,8 +140,11 @@ library KimchiPartialVerifier {
         // push all commitments corresponding to each column
         for (uint256 i = 0; i < col_index; i++) {
             PointEvaluations memory eval = Proof.get_column_eval(proof.evals, columns[i]);
-            evaluations[eval_index++] =
-                Evaluation(VerifierIndexLib.get_column_commitment(columns[i], verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
+            evaluations[eval_index++] = Evaluation(
+                VerifierIndexLib.get_column_commitment(columns[i], verifier_index, proof),
+                [eval.zeta, eval.zeta_omega],
+                0
+            );
         }
 
         if (Proof.is_field_set(verifier_index.optional_field_flags, LOOKUP_VERIFIER_INDEX_FLAG)) {
@@ -154,7 +152,7 @@ library KimchiPartialVerifier {
             if (!Proof.is_field_set(proof.commitments.optional_field_flags, LOOKUP_SORTED_COMM_FLAG)) {
                 revert("missing lookup commitments"); // TODO: error
             }
-            PointEvaluations memory lookup_evals = proof.evals.lookup_table;
+            //PointEvaluations memory lookup_evals = proof.evals.lookup_table;
             if (!Proof.is_field_set(proof.evals.optional_field_flags, LOOKUP_TABLE_EVAL_FLAG)) {
                 revert("missing lookup table eval");
             }
@@ -191,27 +189,37 @@ library KimchiPartialVerifier {
             if (Proof.is_field_set(li.optional_field_flags, RUNTIME_TABLES_SELECTOR_FLAG)) {
                 Column memory col = Column(ColumnVariant.LookupRuntimeSelector, 0);
                 PointEvaluations memory eval = Proof.get_column_eval(proof.evals, col);
-                evaluations[eval_index++] = Evaluation(VerifierIndexLib.get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
+                evaluations[eval_index++] = Evaluation(
+                    VerifierIndexLib.get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0
+                );
             }
             if (Proof.is_field_set(li.optional_field_flags, XOR_FLAG)) {
                 Column memory col = Column(ColumnVariant.LookupKindIndex, LOOKUP_PATTERN_XOR);
                 PointEvaluations memory eval = Proof.get_column_eval(proof.evals, col);
-                evaluations[eval_index++] = Evaluation(VerifierIndexLib.get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
+                evaluations[eval_index++] = Evaluation(
+                    VerifierIndexLib.get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0
+                );
             }
             if (Proof.is_field_set(li.optional_field_flags, LOOKUP_FLAG)) {
                 Column memory col = Column(ColumnVariant.LookupKindIndex, LOOKUP_PATTERN_LOOKUP);
                 PointEvaluations memory eval = Proof.get_column_eval(proof.evals, col);
-                evaluations[eval_index++] = Evaluation(VerifierIndexLib.get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
+                evaluations[eval_index++] = Evaluation(
+                    VerifierIndexLib.get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0
+                );
             }
             if (Proof.is_field_set(li.optional_field_flags, RANGE_CHECK_FLAG)) {
                 Column memory col = Column(ColumnVariant.LookupKindIndex, LOOKUP_PATTERN_RANGE_CHECK);
                 PointEvaluations memory eval = Proof.get_column_eval(proof.evals, col);
-                evaluations[eval_index++] = Evaluation(VerifierIndexLib.get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
+                evaluations[eval_index++] = Evaluation(
+                    VerifierIndexLib.get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0
+                );
             }
             if (Proof.is_field_set(li.optional_field_flags, FFMUL_FLAG)) {
                 Column memory col = Column(ColumnVariant.LookupKindIndex, LOOKUP_PATTERN_FOREIGN_FIELD_MUL);
                 PointEvaluations memory eval = Proof.get_column_eval(proof.evals, col);
-                evaluations[eval_index++] = Evaluation(VerifierIndexLib.get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0);
+                evaluations[eval_index++] = Evaluation(
+                    VerifierIndexLib.get_column_commitment(col, verifier_index, proof), [eval.zeta, eval.zeta_omega], 0
+                );
             }
         }
 
@@ -257,8 +265,8 @@ library KimchiPartialVerifier {
         require(alphas.powers.length - alphas.current_index == 3, "not enough powers of alpha for permutation");
 
         Scalar.FE alpha0 = alphas.it_next();
-        Scalar.FE _alpha1 = alphas.it_next();
-        Scalar.FE _alpha2 = alphas.it_next();
+        //Scalar.FE _alpha1 = alphas.it_next();
+        //Scalar.FE _alpha2 = alphas.it_next();
 
         res = e.z.zeta_omega.mul(beta).mul(alpha0).mul(zkp_zeta);
         uint256 len = Utils.min(e.w.length, e.s.length);
