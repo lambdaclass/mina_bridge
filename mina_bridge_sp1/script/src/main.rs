@@ -1,7 +1,5 @@
 //! A simple script to generate and verify the proof of a given program.
 
-use std::sync::Arc;
-
 use kimchi_verifier_ffi::generate_test_proof;
 use sp1_sdk::{ProverClient, SP1Stdin};
 
@@ -18,6 +16,7 @@ fn main() {
     stdin.write(&proof);
     stdin.write(&index);
     stdin.write(&srs);
+    stdin.write(&srs.lagrange_bases);
 
     let client = ProverClient::new();
     let (pk, vk) = client.setup(ELF);
