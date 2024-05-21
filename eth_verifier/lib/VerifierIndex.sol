@@ -1,16 +1,46 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity >=0.4.16 <0.9.0;
+pragma solidity ^0.8.0;
 
-import "./bn254/BN254.sol";
-import "./Commitment.sol";
-import "./bn254/Fields.sol";
-import "./Alphas.sol";
-import "./Evaluations.sol";
-import "./expr/Expr.sol";
-import "./Proof.sol";
-import "./sponge/Sponge.sol";
-import "./Constants.sol";
-import "./Proof.sol";
+import {BN254} from "./bn254/BN254.sol";
+import {Scalar} from "./bn254/Fields.sol";
+import {Alphas} from "./Alphas.sol";
+import {KeccakSponge} from "./sponge/Sponge.sol";
+import {ColumnVariant} from "./expr/Expr.sol";
+import {Proof} from "./Proof.sol";
+import {Linearization, Column} from "./expr/Expr.sol";
+import {Base} from "./bn254/Fields.sol";
+import {
+    LOOKUP_RUNTIME_COMM_FLAG,
+    RANGE_CHECK0_COMM_FLAG,
+    RANGE_CHECK1_COMM_FLAG,
+    FOREIGN_FIELD_ADD_COMM_FLAG,
+    FOREIGN_FIELD_MUL_COMM_FLAG,
+    XOR_COMM_FLAG,
+    ROT_COMM_FLAG,
+    LOOKUP_VERIFIER_INDEX_FLAG,
+    XOR_FLAG,
+    LOOKUP_FLAG,
+    RANGE_CHECK_FLAG,
+    FFMUL_FLAG,
+    TABLE_IDS_FLAG,
+    RUNTIME_TABLES_SELECTOR_FLAG,
+    GATE_TYPE_GENERIC,
+    GATE_TYPE_POSEIDON,
+    GATE_TYPE_COMPLETE_ADD,
+    GATE_TYPE_VAR_BASE_MUL,
+    GATE_TYPE_ENDO_MUL,
+    GATE_TYPE_ENDO_MUL_SCALAR,
+    GATE_TYPE_RANGE_CHECK_0,
+    GATE_TYPE_RANGE_CHECK_1,
+    GATE_TYPE_FOREIGN_FIELD_ADD,
+    GATE_TYPE_FOREIGN_FIELD_MUL,
+    GATE_TYPE_XOR_16,
+    GATE_TYPE_ROT_64,
+    LOOKUP_PATTERN_XOR,
+    LOOKUP_PATTERN_LOOKUP,
+    LOOKUP_PATTERN_RANGE_CHECK,
+    LOOKUP_PATTERN_FOREIGN_FIELD_MUL
+} from "./Constants.sol";
 
 using {
     KeccakSponge.reinit,
