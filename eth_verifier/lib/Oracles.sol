@@ -317,7 +317,7 @@ library Oracles {
         pure
         returns (Scalar.FE)
     {
-        uint64[] memory r = get_limbs_64(Scalar.FE.unwrap(self.chal));
+        uint256 r = Scalar.FE.unwrap(self.chal);
         Scalar.FE a = Scalar.from(2);
         Scalar.FE b = Scalar.from(2);
 
@@ -326,14 +326,14 @@ library Oracles {
 
         // (0..length_in_bits / 2).rev()
         for (uint256 _i = length_in_bits / 2; _i >= 1; _i--) {
-            uint64 i = uint64(_i) - 1;
+            uint256 i = _i - 1;
             a = a.double();
             b = b.double();
 
-            uint64 r_2i = get_bit(r, 2 * i);
+            uint256 r_2i = (r >> (2 * i)) & 1;
             Scalar.FE s = r_2i == 0 ? neg_one : one;
 
-            if (get_bit(r, 2 * i + 1) == 0) {
+            if ((r >> (2 * i + 1)) & 1 == 0) {
                 b = b.add(s);
             } else {
                 a = a.add(s);
@@ -346,23 +346,5 @@ library Oracles {
     function to_field(ScalarChallenge memory self, Scalar.FE endo_coeff) internal pure returns (Scalar.FE) {
         uint64 length_in_bits = 64 * CHALLENGE_LENGTH_IN_LIMBS;
         return self.to_field_with_length(length_in_bits, endo_coeff);
-    }
-
-    function get_bit(uint64[] memory limbs_lsb, uint64 i) internal pure returns (uint64) {
-        uint64 limb = i / 64;
-        uint64 j = i % 64;
-        return (limbs_lsb[limb] >> j) & 1;
-    }
-
-    /// @notice Decomposes `n` into 64 bit limbs, less significant first
-    function get_limbs_64(uint256 n) internal pure returns (uint64[] memory limbs) {
-        uint256 len = 256 / 64;
-        uint128 mask_64 = (1 << 64) - 1;
-
-        limbs = new uint64[](len);
-        for (uint256 i = 0; i < len; i++) {
-            limbs[i] = uint64(n & mask_64);
-            n >>= 64;
-        }
     }
 }
