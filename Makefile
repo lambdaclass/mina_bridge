@@ -6,9 +6,6 @@ run:
 	@echo "Fetching state proof from Mina node..."
 	@cd polling_service && sh run.sh
 	@echo "Done!"
-	@echo "Generating public input for verifier circuit..."
-	@cd public_input_gen && cargo r --release
-	@echo "Done!"
 	@echo "Creating circuit gates..."
 	@cd verifier_circuit && npm i && make
 	@echo "Done!"

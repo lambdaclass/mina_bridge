@@ -19,12 +19,14 @@ sepolia.deploy:
     --private-key ${PRIVATE_KEY} \
     --chain-id 11155111 \
     --verify --delay 5 \
+	--legacy \
     script/Deploy.s.sol:Deploy
 
 sepolia.upload_proof:
 	forge script --rpc-url ${RPC_URL} --broadcast \
     --private-key ${PRIVATE_KEY} \
     --chain-id 11155111 \
+	--legacy \
     script/UploadProof.s.sol:UploadProof
 
 sepolia.deploy_deser:
@@ -32,9 +34,13 @@ sepolia.deploy_deser:
     --private-key ${PRIVATE_KEY} \
     --chain-id 11155111 \
     --verify --delay 5 \
+	--legacy \
     script/Deploy.s.sol:DeployAndDeser
 
 sepolia.verify:
-	cast send --rpc-url ${RPC_URL} --gas-price 15000000000 --private-key ${PRIVATE_KEY} ${CONTRACT_ADDRESS} "partial_verify_and_store()"
-	cast send --rpc-url ${RPC_URL} --private-key ${PRIVATE_KEY} ${CONTRACT_ADDRESS} "final_verify_and_store()"
-	cast call --rpc-url ${RPC_URL} --private-key ${PRIVATE_KEY} ${CONTRACT_ADDRESS} "is_last_proof_valid()(bool)"
+	forge script --rpc-url ${RPC_URL} --broadcast \
+    --private-key ${PRIVATE_KEY} \
+    --chain-id 11155111 \
+    --verify --delay 5 \
+	--legacy \
+    script/Verify.s.sol:PartialAndFinalVerify

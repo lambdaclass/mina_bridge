@@ -190,18 +190,18 @@ export function deserProverCommitments(json: ProverCommitmentsJSON): ProverCommi
 interface OpeningProofJSON {
     lr: GroupJSON[][] // [GroupJSON, GroupJSON]
     delta: GroupJSON
-    z1: string
-    z2: string
-    sg: GroupJSON
+    z_1: string
+    z_2: string
+    challenge_polynomial_commitment: GroupJSON
 }
 
 export function deserOpeningProof(json: OpeningProofJSON): OpeningProof {
     return new OpeningProof(
         json.lr.map((g) => [deserGroup(g[0]), deserGroup(g[1])]),
         deserGroup(json.delta),
-        deserHexScalar(json.z1),
-        deserHexScalar(json.z2),
-        deserGroup(json.sg),
+        deserHexScalar(json.z_1),
+        deserHexScalar(json.z_2),
+        deserGroup(json.challenge_polynomial_commitment),
     )
 }
 

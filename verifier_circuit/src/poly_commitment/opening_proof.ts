@@ -32,7 +32,8 @@ export class OpeningProof {
     }
 
     static #rounds() {
-        return 17;
+        // TODO: this value is hardcoded, it should be calculated based on how the `lr` field is computed in the Kimchi prover.
+        return 15;
     }
 
     /**
