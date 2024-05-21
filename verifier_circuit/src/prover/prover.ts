@@ -1,5 +1,5 @@
 import { Polynomial } from "../polynomial.js"
-import { ProvableBn254, Scalar } from "o1js"
+import { FieldBn254, ProvableBn254, Scalar } from "o1js"
 import { PolyComm, bPoly, bPolyCoefficients } from "../poly_commitment/commitment.js";
 import { ScalarChallenge } from "../verifier/scalar_challenge.js";
 import { fp_sponge_initial_state, fp_sponge_params, fq_sponge_initial_state, fq_sponge_params, Sponge } from "../verifier/sponge.js";
@@ -430,6 +430,17 @@ export class ProverProof {
         return verifierOk(result);
         */
     }
+
+    static fromFields(fields: FieldBn254[]) {
+
+    }
+
+    toFields() {
+        let evals = this.evals.toFields();
+        let proof = this.proof.toFields()
+
+        return [...proof];
+    }
 }
 
 export function combinedInnerProduct(
@@ -481,101 +492,106 @@ export class Context {
     public_input: Scalar[]
 };
 
+export interface Evals {
+    static fromFields: (_fields: FieldBn254[]) => Evals;
+    toFields: () => FieldBn254[];
+}
+
 /**
  * Polynomial evaluations contained in a `ProverProof`.
  * **Chunked evaluations** `Field` is instantiated with vectors with a length that equals the length of the chunk
  * **Non chunked evaluations** `Field` is instantiated with a field, so they are single-sized#[serde_as]
  */
-export class ProofEvaluations<Evals> {
+export class ProofEvaluations<T extends Evals> {
     /* public input polynomials */
-    public_input?: Evals
+    public_input?: T
     /* witness polynomials */
-    w: Array<Evals> // of size 15, total num of registers (columns)
+    w: Array<T> // of size 15, total num of registers (columns)
     /* permutation polynomial */
-    z: Evals
+    z: T
     /*
      * permutation polynomials
      * (PERMUTS-1 evaluations because the last permutation is only used in commitment form)
      */
-    s: Array<Evals> // of size 7 - 1, total num of wirable registers minus one
+    s: Array<T> // of size 7 - 1, total num of wirable registers minus one
     /* coefficient polynomials */
-    coefficients: Array<Evals> // of size 15, total num of registers (columns)
+    coefficients: Array<T> // of size 15, total num of registers (columns)
     /* evaluation of the generic selector polynomial */
-    genericSelector: Evals
+    genericSelector: T
     /* evaluation of the poseidon selector polynomial */
-    poseidonSelector: Evals
+    poseidonSelector: T
     /** evaluation of the elliptic curve addition selector polynomial */
-    completeAddSelector: Evals
+    completeAddSelector: T
     /** evaluation of the elliptic curve variable base scalar multiplication selector polynomial */
-    mulSelector: Evals
+    mulSelector: T
     /** evaluation of the endoscalar multiplication selector polynomial */
-    emulSelector: Evals
+    emulSelector: T
     /** evaluation of the endoscalar multiplication scalar computation selector polynomial */
-    endomulScalarSelector: Evals
+    endomulScalarSelector: T
 
     // Optional gates
     /** evaluation of the RangeCheck0 selector polynomial **/
-    rangeCheck0Selector?: Evals
+    rangeCheck0Selector?: T
     /** evaluation of the RangeCheck1 selector polynomial **/
-    rangeCheck1Selector?: Evals
+    rangeCheck1Selector?: T
     /** evaluation of the ForeignFieldAdd selector polynomial **/
-    foreignFieldAddSelector?: Evals
+    foreignFieldAddSelector?: T
     /** evaluation of the ForeignFieldMul selector polynomial **/
-    foreignFieldMulSelector?: Evals
+    foreignFieldMulSelector?: T
     /** evaluation of the Xor selector polynomial **/
-    xorSelector?: Evals
+    xorSelector?: T
     /** evaluation of the Rot selector polynomial **/
-    rotSelector?: Evals
+    rotSelector?: T
 
     // lookup-related evaluations
     /** evaluation of lookup aggregation polynomial **/
-    lookupAggregation?: Evals
+    lookupAggregation?: T
     /** evaluation of lookup table polynomial **/
-    lookupTable?: Evals
+    lookupTable?: T
     /** evaluation of lookup sorted polynomials **/
-    lookupSorted?: Evals[] // fixed size of 5
+    lookupSorted?: T[] // fixed size of 5
     /** evaluation of runtime lookup table polynomial **/
-    runtimeLookupTable?: Evals
+    runtimeLookupTable?: T
 
     // lookup selectors
     /** evaluation of the runtime lookup table selector polynomial **/
-    runtimeLookupTableSelector?: Evals
+    runtimeLookupTableSelector?: T
     /** evaluation of the Xor range check pattern selector polynomial **/
-    xorLookupSelector?: Evals
+    xorLookupSelector?: T
     /** evaluation of the Lookup range check pattern selector polynomial **/
-    lookupGateLookupSelector?: Evals
+    lookupGateLookupSelector?: T
     /** evaluation of the RangeCheck range check pattern selector polynomial **/
-    rangeCheckLookupSelector?: Evals
+    rangeCheckLookupSelector?: T
     /** evaluation of the ForeignFieldMul range check pattern selector polynomial **/
-    foreignFieldMulLookupSelector?: Evals
+    foreignFieldMulLookupSelector?: T
 
     constructor(
-        w: Array<Evals>,
-        z: Evals,
-        s: Array<Evals>,
-        coefficients: Array<Evals>,
-        genericSelector: Evals,
-        poseidonSelector: Evals,
-        completeAddSelector: Evals,
-        mulSelector: Evals,
-        emulSelector: Evals,
-        endomulScalarSelector: Evals,
-        public_input?: Evals,
-        rangeCheck0Selector?: Evals,
-        rangeCheck1Selector?: Evals,
-        foreignFieldAddSelector?: Evals,
-        foreignFieldMulSelector?: Evals,
-        xorSelector?: Evals,
-        rotSelector?: Evals,
-        lookupAggregation?: Evals,
-        lookupTable?: Evals,
-        lookupSorted?: Evals[], // fixed size of 5
-        runtimeLookupTable?: Evals,
-        runtimeLookupTableSelector?: Evals,
-        xorLookupSelector?: Evals,
-        lookupGateLookupSelector?: Evals,
-        rangeCheckLookupSelector?: Evals,
-        foreignFieldMulLookupSelector?: Evals,
+        w: Array<T>,
+        z: T,
+        s: Array<T>,
+        coefficients: Array<T>,
+        genericSelector: T,
+        poseidonSelector: T,
+        completeAddSelector: T,
+        mulSelector: T,
+        emulSelector: T,
+        endomulScalarSelector: T,
+        public_input?: T,
+        rangeCheck0Selector?: T,
+        rangeCheck1Selector?: T,
+        foreignFieldAddSelector?: T,
+        foreignFieldMulSelector?: T,
+        xorSelector?: T,
+        rotSelector?: T,
+        lookupAggregation?: T,
+        lookupTable?: T,
+        lookupSorted?: T[], // fixed size of 5
+        runtimeLookupTable?: T,
+        runtimeLookupTableSelector?: T,
+        xorLookupSelector?: T,
+        lookupGateLookupSelector?: T,
+        rangeCheckLookupSelector?: T,
+        foreignFieldMulLookupSelector?: T,
     ) {
         this.w = w;
         this.z = z;
@@ -606,7 +622,7 @@ export class ProofEvaluations<Evals> {
         return this;
     }
 
-    map<Evals2>(f: (e: Evals) => Evals2): ProofEvaluations<Evals2> {
+    map<U extends Evals>(f: (e: T) => U): ProofEvaluations<U> {
         let {
             w,
             z,
@@ -638,9 +654,9 @@ export class ProofEvaluations<Evals> {
         let public_input = undefined;
         if (this.public_input) public_input = f(this.public_input);
 
-        const optional_f = (e?: Evals) => e ? f(e) : undefined;
+        const optional_f = (e?: T) => e ? f(e) : undefined;
 
-        return new ProofEvaluations<Evals2>(
+        return new ProofEvaluations<U>(
             w.map(f),
             f(z),
             s.map(f),
@@ -697,7 +713,7 @@ export class ProofEvaluations<Evals> {
         return p.evaluate(point);
     }
 
-    getColumn(col: Column): Evals | undefined {
+    getColumn(col: Column): T | undefined {
         switch (col.kind) {
             case "witness": {
                 return this.w[col.index];
@@ -750,6 +766,14 @@ export class ProofEvaluations<Evals> {
             }
         }
     }
+
+    static fromFields(fields: FieldBn254[]) {
+
+    }
+
+    toFields() {
+
+    }
 }
 
 /**
@@ -774,15 +798,26 @@ export class LookupEvaluations<Evals> {
 /**
  * Evaluations of a polynomial at 2 points.
  */
-export class PointEvaluations<Evals> {
+export class PointEvaluations<T extends Evals> {
     /* evaluation at the challenge point zeta */
-    zeta: Evals
+    zeta: T
     /* Evaluation at `zeta . omega`, the product of the challenge point and the group generator */
-    zetaOmega: Evals
+    zetaOmega: T
 
-    constructor(zeta: Evals, zetaOmega: Evals) {
+    constructor(zeta: T, zetaOmega: T) {
         this.zeta = zeta;
         this.zetaOmega = zetaOmega;
+    }
+
+    static fromFields<U extends Evals>(fields: FieldBn254[]) {
+        let zeta = U.fromFields(fields[]);
+    }
+
+    toFields() {
+        let zeta = this.zeta.toFields();
+        let zetaOmega = this.zetaOmega.toFields();
+
+        return [...zeta, ...zetaOmega];
     }
 }
 
