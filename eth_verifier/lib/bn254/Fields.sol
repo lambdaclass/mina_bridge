@@ -22,14 +22,13 @@ library Base {
     }
 
     function from_bytes_be(bytes memory b) internal pure returns (FE) {
-        uint256 integer = 0;
-        uint256 count = b.length <= 32 ? b.length : 32;
-
-        for (uint256 i = 0; i < count; i++) {
-            integer <<= 8;
-            integer += uint8(b[i]);
+        uint256 offset = b.length < 32 ? (32 - b.length) * 8 : 0;
+        uint256 integer = uint256(bytes32(b)) >> offset;
+        if (integer > MODULUS) {
+            integer -= MODULUS;
         }
-        return FE.wrap(integer % MODULUS);
+
+        return FE.wrap(integer);
     }
 
     function add(FE self, FE other) internal pure returns (FE res) {
