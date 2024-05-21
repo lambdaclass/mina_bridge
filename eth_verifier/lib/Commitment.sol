@@ -36,7 +36,11 @@ library Commitment {
     }
 
     // @notice Execute a simple multi-scalar multiplication with points on G1
-    function msm(BN254.G1Point[] memory points, Scalar.FE[] memory scalars) internal view returns (BN254.G1Point memory result) {
+    function msm(BN254.G1Point[] memory points, Scalar.FE[] memory scalars)
+        internal
+        view
+        returns (BN254.G1Point memory result)
+    {
         uint256[] memory scalars_uint = new uint256[](points.length);
         uint256 i = points.length;
         while (i > 0) {
@@ -47,7 +51,11 @@ library Commitment {
     }
 
     // @notice Execute a simple multi-scalar multiplication with points on G2
-    function naive_msm(BN254.G2Point[] memory points, Scalar.FE[] memory scalars) internal view returns (BN254.G2Point memory) {
+    function naive_msm(BN254.G2Point[] memory points, Scalar.FE[] memory scalars)
+        internal
+        view
+        returns (BN254.G2Point memory)
+    {
         BN254.G2Point memory result = BN254.point_at_inf_g2();
 
         for (uint256 i = 0; i < points.length; i++) {
@@ -58,11 +66,11 @@ library Commitment {
         return result;
     }
 
-    function combine_commitments_and_evaluations(Evaluation[] memory evaluations, Scalar.FE polyscale, Scalar.FE rand_base)
-        internal
-        view
-        returns (BN254.G1Point memory poly_commitment, Scalar.FE[] memory acc)
-    {
+    function combine_commitments_and_evaluations(
+        Evaluation[] memory evaluations,
+        Scalar.FE polyscale,
+        Scalar.FE rand_base
+    ) internal view returns (BN254.G1Point memory poly_commitment, Scalar.FE[] memory acc) {
         Scalar.FE xi_i = Scalar.one();
         poly_commitment = BN254.point_at_inf();
         uint256 num_evals = evaluations.length != 0 ? evaluations[0].evaluations.length : 0;

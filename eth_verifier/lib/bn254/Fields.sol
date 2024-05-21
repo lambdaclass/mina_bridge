@@ -66,17 +66,6 @@ library Base {
             res := addmod(self, sub(MODULUS, other), MODULUS)
         }
     }
-
-    function pow(FE self, uint256 exponent) internal pure returns (FE result) {
-        result = FE.wrap(1);
-        while (exponent != 0) {
-            if (exponent & 1 == 1) {
-                result = mul(result, self);
-            }
-            self = mul(self, self);
-            exponent = exponent >> 1;
-        }
-    }
 }
 
 /// @notice Implements 256 bit modular arithmetic over the scalar field of bn254.

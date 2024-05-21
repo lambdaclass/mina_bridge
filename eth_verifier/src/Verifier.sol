@@ -1,17 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity >=0.4.16 <0.9.0;
+pragma solidity ^0.8.0;
 
-import "../lib/bn254/Fields.sol";
-import "../lib/bn254/BN254.sol";
-import "../lib/bn254/BN256G2.sol";
-import "../lib/VerifierIndex.sol";
-import "../lib/Proof.sol";
-import "../lib/Alphas.sol";
-import "../lib/deserialize/ProverProof.sol";
-import "../lib/deserialize/PublicInputs.sol";
-import "../lib/deserialize/VerifierIndex.sol";
-import "../lib/deserialize/Linearization.sol";
-import "./KimchiPartialVerifier.sol";
+import {Base} from "../lib/bn254/Fields.sol";
+import {BN254} from "../lib/bn254/BN254.sol";
+import {BN256G2} from "../lib/bn254/BN256G2.sol";
+import {Scalar} from "../lib/VerifierIndex.sol";
+import {Proof} from "../lib/Proof.sol";
+import {Commitment} from "../lib/Commitment.sol";
+import {Evaluation} from "../lib/Evaluations.sol";
+import {VARBASEMUL_CONSTRAINTS, PERMUTATION_CONSTRAINTS} from "../lib/Constants.sol";
+import {ArgumentType, Alphas, AlphasIterator, get_alphas, register, it_next} from "../lib/Alphas.sol";
+import {deser_prover_proof} from "../lib/deserialize/ProverProof.sol";
+import {deser_public_input} from "../lib/deserialize/PublicInputs.sol";
+import {deser_verifier_index, VerifierIndexLib} from "../lib/deserialize/VerifierIndex.sol";
+import {deser_linearization, deser_literal_tokens} from "../lib/deserialize/Linearization.sol";
+import {KimchiPartialVerifier} from "./KimchiPartialVerifier.sol";
 
 contract KimchiVerifier {
     using {BN254.add, BN254.neg, BN254.scale_scalar, BN254.sub} for BN254.G1Point;
@@ -22,15 +25,15 @@ contract KimchiVerifier {
     error IncorrectPublicInputLength();
     error PolynomialsAreChunked(uint256 chunk_size);
 
-    Proof.ProverProof proof;
-    VerifierIndexLib.VerifierIndex verifier_index;
-    Commitment.URS urs;
+    Proof.ProverProof internal proof;
+    VerifierIndexLib.VerifierIndex internal verifier_index;
+    Commitment.URS internal urs;
 
-    Scalar.FE public_input;
+    Scalar.FE internal public_input;
 
-    Proof.AggregatedEvaluationProof aggregated_proof;
+    Proof.AggregatedEvaluationProof internal aggregated_proof;
 
-    bool last_verification_result;
+    bool internal last_verification_result;
 
     function setup() public {
         // Setup URS
@@ -85,8 +88,7 @@ contract KimchiVerifier {
     }
 
     function partial_verify_and_store() public {
-        aggregated_proof =
-            KimchiPartialVerifier.partial_verify(proof, verifier_index, urs, public_input);
+        aggregated_proof = KimchiPartialVerifier.partial_verify(proof, verifier_index, urs, public_input);
     }
 
     function final_verify_and_store() public {
@@ -116,10 +118,9 @@ contract KimchiVerifier {
         BN254.G2Point memory divisor = divisor_commitment(evaluation_points);
 
         // eval commitment
-        BN254.G1Point memory eval_commitment = eval_commitment(evaluation_points, evals, urs);
-
         // numerator commitment
-        BN254.G1Point memory numerator = poly_commitment.sub(eval_commitment.add(blinding_commitment));
+        BN254.G1Point memory numerator =
+            poly_commitment.sub(eval_commitment(evaluation_points, evals, urs).add(blinding_commitment));
 
         // quotient commitment needs to be negated. See the doc of pairingProd2().
         return BN254.pairingProd2(numerator, BN254.P2(), quotient.neg(), divisor);

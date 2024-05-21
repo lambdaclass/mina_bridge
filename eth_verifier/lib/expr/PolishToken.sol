@@ -6,6 +6,8 @@ import "./ExprConstants.sol";
 import "../bn254/Fields.sol";
 import "../Proof.sol";
 import "../sponge/Sponge.sol";
+import {Polynomial} from "../Polynomial.sol";
+import {PointEvaluations} from "../Evaluations.sol";
 
 using {Scalar.add, Scalar.mul, Scalar.sub, Scalar.pow, Scalar.inv} for Scalar.FE;
 
@@ -198,6 +200,7 @@ library PolishTokenEvaluation {
         return stack[0];
     }
     // @notice Compute the ith unnormalized lagrange basis
+
     function unnormalized_lagrange_basis(Scalar.FE domain_gen, Scalar.FE vanishing_eval, int256 i, Scalar.FE pt)
         internal
         view

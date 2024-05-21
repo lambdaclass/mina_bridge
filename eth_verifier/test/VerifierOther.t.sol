@@ -9,6 +9,7 @@ import "../lib/Commitment.sol";
 import "../lib/Alphas.sol";
 import "../lib/Polynomial.sol";
 import "../lib/deserialize/ProverProof.sol";
+import {KeccakSponge} from "../lib/sponge/Sponge.sol";
 
 contract KimchiVerifierTest is Test {
     bytes verifier_index_serialized;
