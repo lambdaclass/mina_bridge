@@ -66,7 +66,8 @@ fn main() {
     bincode::serialize_into(
         File::create("reduce_proof.bin").expect("failed to open file"),
         &reduce_proof,
-    ).expect("saving reduce proof failed");
+    )
+    .expect("saving reduce proof failed");
 
     // Save reduced compressed proof (this is the result of a normal JSON
     // compressed proof)
