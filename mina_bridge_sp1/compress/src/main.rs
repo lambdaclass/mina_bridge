@@ -30,30 +30,31 @@ fn main() {
     let prover = client.prover.sp1_prover();
 
     // Read saved proof
+    println!("Reading shard proof...");
     let mut proof: SP1CoreProof = bincode::deserialize_from(
         File::open("proof_with_metadata.bin").expect("could not read proof_with_metadata.bin"),
     )
     .expect("could not deserialize proof");
     println!("Shard proof successfully deserialized!");
 
-    // Read output.
-    let result = proof.public_values.read::<bool>();
-    println!("Verification result: {}", result);
-
-    // Save proof with public values (this is the result of a normal JSON proof)
-    // without compression or wrapping.
     let proof_with_public = SP1ProofWithPublicValues {
         proof: proof.proof.0.clone(),
         stdin: proof.stdin.clone(),
         public_values: proof.public_values.clone(),
     };
 
+    println!("Verifying shard proof...");
     // Verify proof.
     client
         .verify(&proof_with_public, &vk)
         .expect("proof with public verification failed");
     println!("Proof was verified!");
 
+    // Read output.
+    let result = proof.public_values.read::<bool>();
+    println!("Kimchi verification result: {}", result);
+
+    println!("Compressing proof...");
     // Compress proof
     let deferred_proofs = stdin.proofs.iter().map(|p| p.0.clone()).collect();
     let public_values = proof.public_values.clone();
