@@ -2,13 +2,12 @@
 pragma solidity ^0.8.0;
 
 import {BN254} from "./bn254/BN254.sol";
-import {Scalar} from "./bn254/Fields.sol";
+import {Scalar, Base} from "./bn254/Fields.sol";
 import {Alphas} from "./Alphas.sol";
 import {KeccakSponge} from "./sponge/Sponge.sol";
 import {ColumnVariant} from "./expr/Expr.sol";
 import {Proof} from "./Proof.sol";
 import {Linearization, Column} from "./expr/Expr.sol";
-import {Base} from "./bn254/Base.sol";
 import {
     LOOKUP_RUNTIME_COMM_FLAG,
     RANGE_CHECK0_COMM_FLAG,

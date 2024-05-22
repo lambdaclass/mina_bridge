@@ -15,8 +15,7 @@
 pragma solidity ^0.8.0;
 
 import {UtilsExternal} from "../UtilsExternal.sol";
-import {Scalar} from "./Fields.sol";
-import {Base} from "./Base.sol";
+import {Scalar, Base} from "./Fields.sol";
 
 error GroupAdditionFailed(); // Bn254: group addition failed!
 error ScalarMulFailed(); // Bn254: scalar multiplication failed!

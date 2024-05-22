@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 
-import {Base} from "../bn254/Base.sol";
 import {BN254} from "../bn254/BN254.sol";
-import {Scalar} from "../bn254/Fields.sol";
+import {Scalar, Base} from "../bn254/Fields.sol";
 import {Proof} from "../Proof.sol";
 import {PointEvaluations, PointEvaluationsArray} from "../Evaluations.sol";
 import {

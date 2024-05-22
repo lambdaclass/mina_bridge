@@ -3,8 +3,7 @@ pragma solidity ^0.8.13;
 
 import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
-import {Base} from "../lib/bn254/Base.sol";
-import {Scalar} from "../lib/bn254/Fields.sol";
+import {Scalar, Base} from "../lib/bn254/Fields.sol";
 import "../lib/bn254/BN256G2.sol";
 import "../lib/bn254/BN254.sol";
 import "../lib/Oracles.sol";
