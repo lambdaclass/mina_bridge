@@ -8,7 +8,7 @@ import {KeccakSponge} from "./sponge/Sponge.sol";
 import {ColumnVariant} from "./expr/Expr.sol";
 import {Proof} from "./Proof.sol";
 import {Linearization, Column} from "./expr/Expr.sol";
-import {Base} from "./bn254/Fields.sol";
+import {Base} from "./bn254/Base.sol";
 import {
     LOOKUP_RUNTIME_COMM_FLAG,
     RANGE_CHECK0_COMM_FLAG,

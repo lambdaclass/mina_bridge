@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {BN254} from "./BN254.sol";
-import {Aux} from "./Fields.sol";
+import {Aux} from "./Aux.sol";
 
 /**
  * @title Elliptic curve operations on twist points for alt_bn128

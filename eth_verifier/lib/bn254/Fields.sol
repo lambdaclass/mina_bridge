@@ -1,75 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity >=0.4.16 <0.9.0;
+pragma solidity ^0.8.0;
 
-import "./BN254.sol";
-
-/// @notice Implements 256 bit modular arithmetic over the base field of bn254.
-library Base {
-    type FE is uint256;
-
-    uint256 internal constant MODULUS = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
-
-    function zero() internal pure returns (FE) {
-        return FE.wrap(0);
-    }
-
-    function one() internal pure returns (FE) {
-        return FE.wrap(1);
-    }
-
-    function from(uint256 n) internal pure returns (FE) {
-        return FE.wrap(n % MODULUS);
-    }
-
-    function from_bytes_be(bytes memory b) internal pure returns (FE) {
-        uint256 offset = b.length < 32 ? (32 - b.length) * 8 : 0;
-        uint256 integer = uint256(bytes32(b)) >> offset;
-        if (integer > MODULUS) {
-            integer -= MODULUS;
-        }
-
-        return FE.wrap(integer);
-    }
-
-    function add(FE self, FE other) internal pure returns (FE res) {
-        assembly ("memory-safe") {
-            res := addmod(self, other, MODULUS) // addmod has arbitrary precision
-        }
-    }
-
-    function mul(FE self, FE other) internal pure returns (FE res) {
-        assembly ("memory-safe") {
-            res := mulmod(self, other, MODULUS) // mulmod has arbitrary precision
-        }
-    }
-
-    function square(FE self) internal pure returns (FE res) {
-        assembly ("memory-safe") {
-            res := mulmod(self, self, MODULUS) // mulmod has arbitrary precision
-        }
-    }
-
-    function inv(FE self) internal pure returns (FE) {
-        require(FE.unwrap(self) != 0, "tried to get inverse of 0");
-        (uint256 gcd, uint256 inverse) = Aux.xgcd(FE.unwrap(self), MODULUS);
-        require(gcd == 1, "gcd not 1");
-
-        return FE.wrap(inverse);
-    }
-
-    function neg(FE self) internal pure returns (FE) {
-        return FE.wrap(MODULUS - FE.unwrap(self));
-    }
-
-    function sub(FE self, FE other) internal pure returns (FE res) {
-        assembly ("memory-safe") {
-            res := addmod(self, sub(MODULUS, other), MODULUS)
-        }
-    }
-}
+import {BN254} from "./BN254.sol";
 
 /// @notice Implements 256 bit modular arithmetic over the scalar field of bn254.
-
 library Scalar {
     type FE is uint256;
 
@@ -178,52 +112,5 @@ library Scalar {
         }
 
         require(FE.unwrap(pow(root, 1 << order)) == 1, "not a root of unity");
-    }
-}
-
-library Aux {
-    /// @notice Extended euclidean algorithm. Returns [gcd, Bezout_a]
-    /// @notice so gcd = a*Bezout_a + b*Bezout_b.
-    /// @notice source: https://www.extendedeuclideanalgorithm.com/code
-    function xgcd(uint256 a, uint256 b) internal pure returns (uint256 r0, uint256 s0) {
-        r0 = a;
-        uint256 r1 = b;
-        s0 = 1;
-        uint256 s1 = 0;
-        uint256 t0 = 0;
-        uint256 t1 = 1;
-
-        uint256 n = 0;
-        while (r1 != 0) {
-            uint256 q = r0 / r1;
-            r0 = r0 > q * r1 ? r0 - q * r1 : q * r1 - r0; // abs
-
-            // swap r0, r1
-            uint256 temp = r0;
-            r0 = r1;
-            r1 = temp;
-
-            s0 = s0 + q * s1;
-
-            // swap s0, s1
-            temp = s0;
-            s0 = s1;
-            s1 = temp;
-
-            t0 = t0 + q * t1;
-
-            // swap t0, t1
-            temp = t0;
-            t0 = t1;
-            t1 = temp;
-
-            ++n;
-        }
-
-        if (n % 2 != 0) {
-            s0 = b - s0;
-        } else {
-            t0 = a - t0;
-        }
     }
 }

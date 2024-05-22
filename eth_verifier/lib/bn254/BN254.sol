@@ -14,8 +14,17 @@
 
 pragma solidity ^0.8.0;
 
-import "../UtilsExternal.sol";
-import "./Fields.sol";
+import {UtilsExternal} from "../UtilsExternal.sol";
+import {Scalar} from "./Fields.sol";
+import {Base} from "./Base.sol";
+
+error GroupAdditionFailed(); // Bn254: group addition failed!
+error ScalarMulFailed(); // Bn254: scalar multiplication failed!
+error LengthDoesNotMatch(); // Bn254: MSM length does not match!
+error PowPrecompileFailed(); // Bn254: pow precompile failed!
+error InvalidG1Point(); // Bn254: invalid G1 point!
+error InvalidScalarField(); // Bn254: invalid scalar field!
+error PairingCheckFailed(); // Bn254: pairing check failed!
 
 /// @notice Barreto-Naehrig curve over a 254 bit prime field
 library BN254 {
@@ -127,7 +136,9 @@ library BN254 {
             switch success
             case 0 { revert(0, 0) }
         }
-        require(success, "Bn254: group addition failed!");
+        if (!success) {
+            revert GroupAdditionFailed();
+        }
     }
 
     /// @return r the substraction of two points of G1
@@ -149,7 +160,9 @@ library BN254 {
             switch success
             case 0 { revert(0, 0) }
         }
-        require(success, "Bn254: scalar mul failed!");
+        if (!success) {
+            revert ScalarMulFailed();
+        }
     }
 
     function scale_scalar(G1Point memory p, Scalar.FE s) internal view returns (G1Point memory) {
@@ -163,7 +176,9 @@ library BN254 {
         view
         returns (G1Point memory r)
     {
-        require(scalars.length == bases.length, "MSM error: length does not match");
+        if (scalars.length != bases.length) {
+            revert LengthDoesNotMatch();
+        }
 
         r = scalarMul(bases[0], scalars[0]);
         for (uint256 i = 1; i < scalars.length; i++) {
@@ -187,7 +202,9 @@ library BN254 {
             success := staticcall(gas(), 0x05, mPtr, 0xc0, 0x00, 0x20)
             output := mload(0x00)
         }
-        require(success, "Bn254: pow precompile failed!");
+        if (!success) {
+            revert PowPrecompileFailed();
+        }
     }
 
     /**
@@ -213,7 +230,9 @@ library BN254 {
                     eq(mulmod(y, y, p), addmod(mulmod(x, mulmod(x, x, p), p), 3, p))
                 )
         }
-        require(isWellFormed, "Bn254: invalid G1 point");
+        if (!isWellFormed) {
+            revert InvalidG1Point();
+        }
     }
 
     /// @dev Validate scalar field, revert if invalid (namely if fr > r_mod).
@@ -223,7 +242,9 @@ library BN254 {
         assembly ("memory-safe") {
             isValid := lt(fr, R_MOD)
         }
-        require(isValid, "Bn254: invalid scalar field");
+        if (!isValid) {
+            revert InvalidScalarField();
+        }
     }
 
     /// @dev Evaluate the following pairing product:
@@ -255,7 +276,9 @@ library BN254 {
             success := staticcall(gas(), 8, mPtr, 0x180, 0x00, 0x20)
             out := mload(0x00)
         }
-        require(success, "Bn254: Pairing check failed!");
+        if (!success) {
+            revert PairingCheckFailed();
+        }
         return (out != 0);
     }
 
@@ -307,72 +330,5 @@ library BN254 {
         }
 
         return abi.encodePacked(UtilsExternal.reverseEndianness(point.x | mask));
-    }
-
-    function g1Deserialize(bytes32 input) internal view returns (G1Point memory point) {
-        uint256 mask = 0x4000000000000000000000000000000000000000000000000000000000000000;
-        uint256 x = UtilsExternal.reverseEndianness(uint256(input));
-        uint256 y;
-        bool isQuadraticResidue;
-        bool isYPositive;
-        if (x & mask != 0) {
-            // the 254-th bit == 1 for infinity
-            x = 0;
-            y = 0;
-        } else {
-            // Set the 255-th bit to 1 for positive Y
-            mask = 0x8000000000000000000000000000000000000000000000000000000000000000;
-            isYPositive = (x & mask != 0);
-            // mask off the first two bits of x
-            mask = 0x3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
-            x &= mask;
-
-            // solve for y where E: y^2 = x^3 + 3
-            y = mulmod(x, x, P_MOD);
-            y = mulmod(y, x, P_MOD);
-            y = addmod(y, 3, P_MOD);
-            (isQuadraticResidue, y) = quadraticResidue(y);
-
-            require(isQuadraticResidue, "deser fail: not on curve");
-
-            if (isYPositive) {
-                y = P_MOD - y;
-            }
-        }
-
-        point = G1Point(x, y);
-    }
-
-    function quadraticResidue(uint256 x) internal view returns (bool isQuadraticResidue, uint256 a) {
-        bool success;
-        // e = (p+1)/4
-        uint256 e = 0xc19139cb84c680a6e14116da060561765e05aa45a1c72a34f082305b61f3f52;
-        uint256 p = P_MOD;
-
-        // we have p == 3 mod 4 therefore
-        // a = x^((p+1)/4)
-        assembly ("memory-safe") {
-            // credit: Aztec
-            let mPtr := mload(0x40)
-            mstore(mPtr, 0x20)
-            mstore(add(mPtr, 0x20), 0x20)
-            mstore(add(mPtr, 0x40), 0x20)
-            mstore(add(mPtr, 0x60), x)
-            mstore(add(mPtr, 0x80), e)
-            mstore(add(mPtr, 0xa0), p)
-            success := staticcall(gas(), 0x05, mPtr, 0xc0, 0x00, 0x20)
-            a := mload(0x00)
-        }
-        require(success, "pow precompile call failed!");
-
-        // ensure a < p/2
-        if (a << 1 > p) {
-            a = p - a;
-        }
-
-        // check if a^2 = x, if not x is not a quadratic residue
-        e = mulmod(a, a, p);
-
-        isQuadraticResidue = (e == x);
     }
 }
