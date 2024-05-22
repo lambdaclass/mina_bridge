@@ -1,7 +1,7 @@
 import { Polynomial } from "../polynomial.js"
 import { FieldBn254, ProvableBn254, Scalar } from "o1js"
 import { PolyComm, bPoly, bPolyCoefficients } from "../poly_commitment/commitment.js";
-import { Evals, evalsArrayToFields, foreignScalarArrayFromFields, foreignScalarFromFields, optionalEvalsArrayToFields, optionalEvalsToFields, optionalForeignScalarArrayFromFields, optionalForeignScalarFromFields } from "../evals.js";
+import { FieldSerializable, arrayToFields, scalarArrayFromFields, scalarFromFields, optionalArrayToFields, optionalToFields, optionalScalarArrayFromFields, optionalScalarFromFields, pallasCommFromFields, pallasCommArrayFromFields, lookupCommFromFields } from "../field_serializable.js";
 import { ScalarChallenge } from "../verifier/scalar_challenge.js";
 import { fp_sponge_initial_state, fp_sponge_params, fq_sponge_initial_state, fq_sponge_params, Sponge } from "../verifier/sponge.js";
 import { Verifier, VerifierIndex } from "../verifier/verifier.js";
@@ -443,7 +443,7 @@ export class ProverProof {
         let ft_eval1 = this.ft_eval1.toFields();
         let proof = this.proof.toFields();
 
-        return [...evals, ...ft_eval1, ...proof];
+        return [...evals, ...commitments, ...ft_eval1, ...proof];
     }
 }
 
@@ -501,7 +501,7 @@ export class Context {
  * **Chunked evaluations** `Field` is instantiated with vectors with a length that equals the length of the chunk
  * **Non chunked evaluations** `Field` is instantiated with a field, so they are single-sized#[serde_as]
  */
-export class ProofEvaluations<T extends Evals> {
+export class ProofEvaluations<T extends FieldSerializable> {
     /* public input polynomials */
     public_input?: T
     /* witness polynomials */
@@ -621,7 +621,7 @@ export class ProofEvaluations<T extends Evals> {
         return this;
     }
 
-    map<U extends Evals>(f: (e: T) => U): ProofEvaluations<U> {
+    map<U extends FieldSerializable>(f: (e: T) => U): ProofEvaluations<U> {
         let {
             w,
             z,
@@ -753,32 +753,32 @@ export class ProofEvaluations<T extends Evals> {
     }
 
     static fromFields(fields: FieldBn254[]) {
-        let [w, zOffset] = foreignScalarArrayFromFields(fields, 0);
-        let [z, sOffset] = foreignScalarFromFields(fields, zOffset);
-        let [s, coefficientsOffset] = foreignScalarArrayFromFields(fields, sOffset);
-        let [coefficients, genericSelectorOffset] = foreignScalarArrayFromFields(fields, coefficientsOffset);
-        let [genericSelector, poseidonSelectorOffset] = foreignScalarFromFields(fields, genericSelectorOffset);
-        let [poseidonSelector, completeAddSelectorOffset] = foreignScalarFromFields(fields, poseidonSelectorOffset);
-        let [completeAddSelector, mulSelectorOffset] = foreignScalarFromFields(fields, completeAddSelectorOffset);
-        let [mulSelector, emulSelectorOffset] = foreignScalarFromFields(fields, mulSelectorOffset);
-        let [emulSelector, endomulScalarSelectorOffset] = foreignScalarFromFields(fields, emulSelectorOffset);
-        let [endomulScalarSelector, publicInputOffset] = foreignScalarFromFields(fields, endomulScalarSelectorOffset);
-        let [public_input, rangeCheck0SelectorOffset] = optionalForeignScalarFromFields(fields, publicInputOffset);
-        let [rangeCheck0Selector, rangeCheck1SelectorOffset] = optionalForeignScalarFromFields(fields, rangeCheck0SelectorOffset);
-        let [rangeCheck1Selector, foreignFieldAddSelectorOffset] = optionalForeignScalarFromFields(fields, rangeCheck1SelectorOffset);
-        let [foreignFieldAddSelector, foreignFieldMulSelectorOffset] = optionalForeignScalarFromFields(fields, foreignFieldAddSelectorOffset);
-        let [foreignFieldMulSelector, xorSelectorOffset] = optionalForeignScalarFromFields(fields, foreignFieldMulSelectorOffset);
-        let [xorSelector, rotSelectorOffset] = optionalForeignScalarFromFields(fields, xorSelectorOffset);
-        let [rotSelector, lookupAggregationOffset] = optionalForeignScalarFromFields(fields, rotSelectorOffset);
-        let [lookupAggregation, lookupTableOffset] = optionalForeignScalarFromFields(fields, lookupAggregationOffset);
-        let [lookupTable, lookupSortedOffset] = optionalForeignScalarFromFields(fields, lookupTableOffset);
-        let [lookupSorted, runtimeLookupTableOffset] = optionalForeignScalarArrayFromFields(fields, lookupSortedOffset);
-        let [runtimeLookupTable, runtimeLookupTableSelectorOffset] = optionalForeignScalarFromFields(fields, runtimeLookupTableOffset);
-        let [runtimeLookupTableSelector, xorLookupSelectorOffset] = optionalForeignScalarFromFields(fields, runtimeLookupTableSelectorOffset);
-        let [xorLookupSelector, lookupGateLookupSelectorOffset] = optionalForeignScalarFromFields(fields, xorLookupSelectorOffset);
-        let [lookupGateLookupSelector, rangeCheckLookupSelectorOffset] = optionalForeignScalarFromFields(fields, lookupGateLookupSelectorOffset);
-        let [rangeCheckLookupSelector, foreignFieldMulLookupSelectorOffset] = optionalForeignScalarFromFields(fields, rangeCheckLookupSelectorOffset);
-        let [foreignFieldMulLookupSelector, _] = optionalForeignScalarFromFields(fields, foreignFieldMulLookupSelectorOffset);
+        let [w, zOffset] = scalarArrayFromFields(fields, 0);
+        let [z, sOffset] = scalarFromFields(fields, zOffset);
+        let [s, coefficientsOffset] = scalarArrayFromFields(fields, sOffset);
+        let [coefficients, genericSelectorOffset] = scalarArrayFromFields(fields, coefficientsOffset);
+        let [genericSelector, poseidonSelectorOffset] = scalarFromFields(fields, genericSelectorOffset);
+        let [poseidonSelector, completeAddSelectorOffset] = scalarFromFields(fields, poseidonSelectorOffset);
+        let [completeAddSelector, mulSelectorOffset] = scalarFromFields(fields, completeAddSelectorOffset);
+        let [mulSelector, emulSelectorOffset] = scalarFromFields(fields, mulSelectorOffset);
+        let [emulSelector, endomulScalarSelectorOffset] = scalarFromFields(fields, emulSelectorOffset);
+        let [endomulScalarSelector, publicInputOffset] = scalarFromFields(fields, endomulScalarSelectorOffset);
+        let [public_input, rangeCheck0SelectorOffset] = optionalScalarFromFields(fields, publicInputOffset);
+        let [rangeCheck0Selector, rangeCheck1SelectorOffset] = optionalScalarFromFields(fields, rangeCheck0SelectorOffset);
+        let [rangeCheck1Selector, foreignFieldAddSelectorOffset] = optionalScalarFromFields(fields, rangeCheck1SelectorOffset);
+        let [foreignFieldAddSelector, foreignFieldMulSelectorOffset] = optionalScalarFromFields(fields, foreignFieldAddSelectorOffset);
+        let [foreignFieldMulSelector, xorSelectorOffset] = optionalScalarFromFields(fields, foreignFieldMulSelectorOffset);
+        let [xorSelector, rotSelectorOffset] = optionalScalarFromFields(fields, xorSelectorOffset);
+        let [rotSelector, lookupAggregationOffset] = optionalScalarFromFields(fields, rotSelectorOffset);
+        let [lookupAggregation, lookupTableOffset] = optionalScalarFromFields(fields, lookupAggregationOffset);
+        let [lookupTable, lookupSortedOffset] = optionalScalarFromFields(fields, lookupTableOffset);
+        let [lookupSorted, runtimeLookupTableOffset] = optionalScalarArrayFromFields(fields, lookupSortedOffset);
+        let [runtimeLookupTable, runtimeLookupTableSelectorOffset] = optionalScalarFromFields(fields, runtimeLookupTableOffset);
+        let [runtimeLookupTableSelector, xorLookupSelectorOffset] = optionalScalarFromFields(fields, runtimeLookupTableSelectorOffset);
+        let [xorLookupSelector, lookupGateLookupSelectorOffset] = optionalScalarFromFields(fields, xorLookupSelectorOffset);
+        let [lookupGateLookupSelector, rangeCheckLookupSelectorOffset] = optionalScalarFromFields(fields, lookupGateLookupSelectorOffset);
+        let [rangeCheckLookupSelector, foreignFieldMulLookupSelectorOffset] = optionalScalarFromFields(fields, rangeCheckLookupSelectorOffset);
+        let [foreignFieldMulLookupSelector, _] = optionalScalarFromFields(fields, foreignFieldMulLookupSelectorOffset);
 
         return new ProofEvaluations(
             w,
@@ -811,32 +811,32 @@ export class ProofEvaluations<T extends Evals> {
     }
 
     toFields() {
-        let w = evalsArrayToFields(this.w);
+        let w = arrayToFields(this.w);
         let z = this.z.toFields();
-        let s = evalsArrayToFields(this.s);
-        let coefficients = evalsArrayToFields(this.coefficients);
+        let s = arrayToFields(this.s);
+        let coefficients = arrayToFields(this.coefficients);
         let genericSelector = this.genericSelector.toFields();
         let poseidonSelector = this.poseidonSelector.toFields();
         let completeAddSelector = this.completeAddSelector.toFields();
         let mulSelector = this.mulSelector.toFields();
         let emulSelector = this.emulSelector.toFields();
         let endomulScalarSelector = this.endomulScalarSelector.toFields();
-        let public_input = optionalEvalsToFields(this.public_input);
-        let rangeCheck0Selector = optionalEvalsToFields(this.rangeCheck0Selector);
-        let rangeCheck1Selector = optionalEvalsToFields(this.rangeCheck1Selector);
-        let foreignFieldAddSelector = optionalEvalsToFields(this.foreignFieldAddSelector);
-        let foreignFieldMulSelector = optionalEvalsToFields(this.foreignFieldMulSelector);
-        let xorSelector = optionalEvalsToFields(this.xorSelector);
-        let rotSelector = optionalEvalsToFields(this.rotSelector);
-        let lookupAggregation = optionalEvalsToFields(this.lookupAggregation);
-        let lookupTable = optionalEvalsToFields(this.lookupTable);
-        let lookupSorted = optionalEvalsArrayToFields(this.lookupSorted);
-        let runtimeLookupTable = optionalEvalsToFields(this.runtimeLookupTable);
-        let runtimeLookupTableSelector = optionalEvalsToFields(this.runtimeLookupTableSelector);
-        let xorLookupSelector = optionalEvalsToFields(this.xorLookupSelector);
-        let lookupGateLookupSelector = optionalEvalsToFields(this.lookupGateLookupSelector);
-        let rangeCheckLookupSelector = optionalEvalsToFields(this.rangeCheckLookupSelector);
-        let foreignFieldMulLookupSelector = optionalEvalsToFields(this.foreignFieldMulLookupSelector);
+        let public_input = optionalToFields(this.public_input);
+        let rangeCheck0Selector = optionalToFields(this.rangeCheck0Selector);
+        let rangeCheck1Selector = optionalToFields(this.rangeCheck1Selector);
+        let foreignFieldAddSelector = optionalToFields(this.foreignFieldAddSelector);
+        let foreignFieldMulSelector = optionalToFields(this.foreignFieldMulSelector);
+        let xorSelector = optionalToFields(this.xorSelector);
+        let rotSelector = optionalToFields(this.rotSelector);
+        let lookupAggregation = optionalToFields(this.lookupAggregation);
+        let lookupTable = optionalToFields(this.lookupTable);
+        let lookupSorted = optionalArrayToFields(this.lookupSorted);
+        let runtimeLookupTable = optionalToFields(this.runtimeLookupTable);
+        let runtimeLookupTableSelector = optionalToFields(this.runtimeLookupTableSelector);
+        let xorLookupSelector = optionalToFields(this.xorLookupSelector);
+        let lookupGateLookupSelector = optionalToFields(this.lookupGateLookupSelector);
+        let rangeCheckLookupSelector = optionalToFields(this.rangeCheckLookupSelector);
+        let foreignFieldMulLookupSelector = optionalToFields(this.foreignFieldMulLookupSelector);
 
         return [
             ...w,
@@ -891,7 +891,7 @@ export class LookupEvaluations<Evals> {
 /**
  * Evaluations of a polynomial at 2 points.
  */
-export class PointEvaluations<T extends Evals[]> {
+export class PointEvaluations<T extends FieldSerializable[]> {
     /* evaluation at the challenge point zeta */
     zeta: T
     /* Evaluation at `zeta . omega`, the product of the challenge point and the group generator */
@@ -903,15 +903,15 @@ export class PointEvaluations<T extends Evals[]> {
     }
 
     static fromFields(fields: FieldBn254[]): PointEvaluations<ForeignScalar[]> {
-        let [zeta, zetaOmegaOffset] = foreignScalarArrayFromFields(fields, 0);
-        let [zetaOmega, _] = foreignScalarArrayFromFields(fields, zetaOmegaOffset);
+        let [zeta, zetaOmegaOffset] = scalarArrayFromFields(fields, 0);
+        let [zetaOmega, _] = scalarArrayFromFields(fields, zetaOmegaOffset);
 
         return new PointEvaluations(zeta, zetaOmega);
     }
 
     toFields() {
-        let zeta = evalsArrayToFields(this.zeta);
-        let zetaOmega = evalsArrayToFields(this.zetaOmega);
+        let zeta = arrayToFields(this.zeta);
+        let zetaOmega = arrayToFields(this.zetaOmega);
 
         return [...zeta, ...zetaOmega];
     }
@@ -977,6 +977,28 @@ export class LookupCommitments {
     aggreg: PolyComm<ForeignPallas>
     /// Optional commitment to concatenated runtime tables
     runtime?: PolyComm<ForeignPallas>
+
+    constructor(sorted: PolyComm<ForeignPallas>[], aggreg: PolyComm<ForeignPallas>, runtime?: PolyComm<ForeignPallas>) {
+        this.sorted = sorted;
+        this.aggreg = aggreg;
+        this.runtime = runtime;
+    }
+
+    static fromFields(fields: FieldBn254[]) {
+        let [sorted, aggregOffset] = pallasCommArrayFromFields(fields, 0);
+        let [aggreg, runtimeOffset] = pallasCommFromFields(fields, aggregOffset);
+        let [runtime, _] = pallasCommFromFields(fields, runtimeOffset);
+
+        return new LookupCommitments(sorted, aggreg, runtime);
+    }
+
+    toFields() {
+        let sorted = arrayToFields(this.sorted);
+        let aggreg = this.aggreg.toFields();
+        let runtime = typeof this.runtime === "undefined" ? [] : this.runtime.toFields();
+
+        return [...sorted, ...aggreg, ...runtime];
+    }
 }
 
 export class ProverCommitments {
@@ -989,8 +1011,29 @@ export class ProverCommitments {
     /// Commitments related to the lookup argument
     lookup?: LookupCommitments
 
+    constructor(wComm: PolyComm<ForeignPallas>[], zComm: PolyComm<ForeignPallas>, tComm: PolyComm<ForeignPallas>, lookup?: LookupCommitments) {
+        this.wComm = wComm;
+        this.zComm = zComm;
+        this.tComm = tComm;
+        this.lookup = lookup;
+    }
+
+    static fromFields(fields: FieldBn254[]) {
+        let [wComm, zCommOffset] = pallasCommArrayFromFields(fields, 0);
+        let [zComm, tCommOffset] = pallasCommFromFields(fields, zCommOffset);
+        let [tComm, lookupOffset] = pallasCommFromFields(fields, tCommOffset);
+        let [lookup, _] = lookupCommFromFields(fields, lookupOffset);
+
+        return new ProverCommitments(wComm, zComm, tComm, lookup);
+    }
+
     toFields() {
-        throw new Error("Method not implemented.");
+        let wComm = arrayToFields(this.wComm);
+        let zComm = this.zComm.toFields();
+        let tComm = this.tComm.toFields();
+        let lookup = optionalToFields(this.lookup);
+
+        return [...wComm, ...zComm, ...tComm, ...lookup];
     }
 }
 

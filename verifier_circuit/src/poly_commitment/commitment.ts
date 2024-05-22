@@ -2,14 +2,14 @@ import { FieldBn254, Provable } from "o1js";
 import { Sponge } from "../verifier/sponge";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { SRS } from "../SRS.js";
-import { Evals, evalsArrayToFields, foreignPallasArrayFromFields, foreignPallasFromFields, optionalEvalsArrayToFields, optionalEvalsToFields, optionalForeignPallasFromFields } from "../evals.js";
+import { FieldSerializable, arrayToFields, pallasArrayFromFields, pallasFromFields, optionalArrayToFields, optionalToFields, optionalPallasFromFields } from "../field_serializable.js";
 import { ForeignPallas } from "../foreign_fields/foreign_pallas.js";
 import { OpeningProof } from "./opening_proof";
 
 /**
 * A polynomial commitment
 */
-export class PolyComm<A extends Evals> {
+export class PolyComm<A extends FieldSerializable> {
     unshifted: A[]
     shifted?: A
 
@@ -21,7 +21,7 @@ export class PolyComm<A extends Evals> {
     /**
     * Maps over self's `unshifted` and `shifted`
     */
-    map<B extends Evals>(f: (x: A) => B): PolyComm<B> {
+    map<B extends FieldSerializable>(f: (x: A) => B): PolyComm<B> {
         let unshifted = this.unshifted.map(f);
         let shifted = (this.shifted) ? f(this.shifted) : undefined;
         return new PolyComm<B>(unshifted, shifted);
@@ -30,7 +30,7 @@ export class PolyComm<A extends Evals> {
     /**
     * Zips two commitments into one and maps over zipped's `unshifted` and `shifted`
     */
-    zip_and_map<B extends Evals, C extends Evals>(other: PolyComm<B>, f: (x: [A, B]) => C): PolyComm<C> {
+    zip_and_map<B extends FieldSerializable, C extends FieldSerializable>(other: PolyComm<B>, f: (x: [A, B]) => C): PolyComm<C> {
         let unshifted_zip = this.unshifted.map((u, i) => [u, other.unshifted[i]] as [A, B]);
         let shifted_zip = (this.shifted && other.shifted) ?
             [this.shifted, other.shifted] as [A, B] : undefined;
@@ -145,15 +145,15 @@ export class PolyComm<A extends Evals> {
     }
 
     static fromFields(fields: FieldBn254[]): PolyComm<ForeignPallas> {
-        let [unshifted, shiftedOffset] = foreignPallasArrayFromFields(fields, 0);
-        let [shifted, _] = optionalForeignPallasFromFields(fields, shiftedOffset)
+        let [unshifted, shiftedOffset] = pallasArrayFromFields(fields, 0);
+        let [shifted, _] = optionalPallasFromFields(fields, shiftedOffset)
 
         return new PolyComm(unshifted, shifted);
     }
 
     toFields() {
-        let unshifted = evalsArrayToFields(this.unshifted);
-        let shifted = optionalEvalsToFields(this.shifted);
+        let unshifted = arrayToFields(this.unshifted);
+        let shifted = optionalToFields(this.shifted);
 
         return [...unshifted, ...shifted];
     }
@@ -162,7 +162,7 @@ export class PolyComm<A extends Evals> {
 /**
  * Represents a blinded commitment
  */
-export class BlindedCommitment<C extends Evals, S extends Evals> {
+export class BlindedCommitment<C extends FieldSerializable, S extends FieldSerializable> {
     commitment: PolyComm<C>
     blinders: PolyComm<S>
 }
