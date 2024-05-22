@@ -1,12 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity >=0.4.16 <0.9.0;
+pragma solidity ^0.8.0;
 
-import "./bn254/BN254.sol";
-import "./bn254/BN256G2.sol";
-import "./bn254/Fields.sol";
-import "./Utils.sol";
-import "./Polynomial.sol";
-import "./Evaluations.sol";
+import {BN254} from "./bn254/BN254.sol";
+import {Scalar} from "./bn254/Fields.sol";
+import {Evaluation} from "./Evaluations.sol";
 
 using {BN254.add, BN254.scale_scalar, BN254.neg} for BN254.G1Point;
 using {Scalar.neg, Scalar.add, Scalar.sub, Scalar.mul, Scalar.inv, Scalar.double, Scalar.pow} for Scalar.FE;
@@ -19,20 +16,11 @@ library Commitment {
         BN254.G1Point h;
     }
 
-    struct URSG2 {
-        BN254.G2Point[] g;
-        BN254.G2Point h;
-    }
-
     // WARN: The field shifted is optional but in Solidity we can't have that.
     // for our test circuit it's not necessary, we can just ignore it, using infinity.
     struct PolyComm {
         BN254.G1Point[] unshifted;
         BN254.G1Point shifted;
-    }
-
-    struct PolyCommG2 {
-        BN254.G2Point[] unshifted;
     }
 
     // @notice Execute a simple multi-scalar multiplication with points on G1
@@ -48,22 +36,6 @@ library Commitment {
             scalars_uint[i] = Scalar.FE.unwrap(scalars[i]);
         }
         result = BN254.multiScalarMul(points, scalars_uint);
-    }
-
-    // @notice Execute a simple multi-scalar multiplication with points on G2
-    function naive_msm(BN254.G2Point[] memory points, Scalar.FE[] memory scalars)
-        internal
-        view
-        returns (BN254.G2Point memory)
-    {
-        BN254.G2Point memory result = BN254.point_at_inf_g2();
-
-        for (uint256 i = 0; i < points.length; i++) {
-            BN254.G2Point memory p = BN256G2.ECTwistMul(Scalar.FE.unwrap(scalars[i]), points[i]);
-            result = BN256G2.ECTwistAdd(result, p);
-        }
-
-        return result;
     }
 
     function combine_commitments_and_evaluations(
