@@ -39,6 +39,10 @@ export class ForeignPallas extends createForeignCurveBn254({
         return ForeignPallas.provable.toFields(one);
     }
 
+    toFields() {
+        return ForeignPallas.toFields(this);
+    }
+
     static assertEquals(one: ForeignPallas, other: ForeignPallas) {
         one.x.assertEquals(other.x);
         one.y.assertEquals(other.y);
