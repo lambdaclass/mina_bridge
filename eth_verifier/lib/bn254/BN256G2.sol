@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import {BN254} from "./BN254.sol";
-import {Aux} from "./Aux.sol";
 
 /**
  * @title Elliptic curve operations on twist points for alt_bn128
@@ -197,19 +196,6 @@ library BN256G2 {
         assembly {
             res := mulmod(a, a, FIELD_MODULUS)
         }
-    }
-
-    function _FQ1Inv(uint256 a) internal pure returns (uint256) {
-        require(a != 0, "tried to get inverse of 0 in BN254G2 lib");
-        (uint256 gcd, uint256 inverse) = Aux.xgcd(a, FIELD_MODULUS);
-        require(gcd == 1, "gcd not 1");
-
-        return inverse;
-    }
-
-    function _FQ1Div(uint256 a, uint256 b) internal pure returns (uint256) {
-        uint256 b_inv = _FQ1Inv(b);
-        return _FQ1Mul(a, b_inv);
     }
 
     function _isOnCurve(uint256 xx, uint256 xy, uint256 yx, uint256 yy) internal pure returns (bool) {

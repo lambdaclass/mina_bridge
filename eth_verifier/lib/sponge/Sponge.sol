@@ -25,6 +25,8 @@ import {
     MAX_SPONGE_STATE_SIZE
 } from "../Constants.sol";
 
+error SizeExceeded(); // max sponge state size exceeded
+
 library KeccakSponge {
     using {BN254.isInfinity} for BN254.G1Point;
 
@@ -42,7 +44,7 @@ library KeccakSponge {
     function absorb(Sponge memory self, bytes memory b) internal pure {
         for (uint256 i = 0; i < b.length; i++) {
             if (self.last_index >= MAX_SPONGE_STATE_SIZE) {
-                revert("max sponge state size exceeded.");
+                revert SizeExceeded();
             }
             self.pending[self.last_index] = b[i];
             self.last_index += 1;

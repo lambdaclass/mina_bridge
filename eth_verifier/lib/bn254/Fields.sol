@@ -91,26 +91,4 @@ library Scalar {
         }
         result = FE.wrap(o);
     }
-
-    error RootOfUnityError();
-    /// @notice returns a primitive root of unity of order $2^{order}$.
-    // Reference: Lambdaworks
-    // https://github.com/lambdaclass/lambdaworks/
-
-    function get_primitive_root_of_unity(uint256 order) internal view returns (FE root) {
-        if (order == 0) {
-            return FE.wrap(1);
-        }
-        if (order > TWO_ADICITY) {
-            revert RootOfUnityError();
-        }
-
-        uint256 log_power = TWO_ADICITY - order;
-        root = from(TWO_ADIC_PRIMITIVE_ROOT_OF_UNITY);
-        for (uint256 i = 0; i < log_power; i++) {
-            root = square(root);
-        }
-
-        require(FE.unwrap(pow(root, 1 << order)) == 1, "not a root of unity");
-    }
 }

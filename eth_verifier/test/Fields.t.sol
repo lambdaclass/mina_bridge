@@ -9,7 +9,7 @@ import "../lib/bn254/BN256G2.sol";
 import "../lib/bn254/BN254.sol";
 import "../lib/Oracles.sol";
 
-using {Base.add, Base.mul, Base.inv} for Base.FE;
+using {Base.add, Base.mul} for Base.FE;
 using {Scalar.add, Scalar.mul, Scalar.inv} for Scalar.FE;
 using {Oracles.to_field} for Oracles.ScalarChallenge;
 
@@ -28,13 +28,6 @@ contract FieldsTest is Test {
 
         Scalar.FE q_plus_one = q.add(one);
         assertEq(Scalar.FE.unwrap(q_plus_one), 0, "p != 0 mod p");
-    }
-
-    function test_inv_base() public {
-        Base.FE a = Base.from(Base.MODULUS - 1);
-        Base.FE b = a.inv();
-
-        assertEq(Base.FE.unwrap(a.mul(b)), 1, "a * a.inv() != 1");
     }
 
     function test_inv_scalar() public {

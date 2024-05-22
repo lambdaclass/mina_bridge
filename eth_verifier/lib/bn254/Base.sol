@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 
-import {Aux} from "./Aux.sol";
-
 /// @notice Implements 256 bit modular arithmetic over the base field of bn254.
 library Base {
     type FE is uint256;
@@ -47,14 +45,6 @@ library Base {
         assembly ("memory-safe") {
             res := mulmod(self, self, MODULUS) // mulmod has arbitrary precision
         }
-    }
-
-    function inv(FE self) internal pure returns (FE) {
-        require(FE.unwrap(self) != 0, "tried to get inverse of 0");
-        (uint256 gcd, uint256 inverse) = Aux.xgcd(FE.unwrap(self), MODULUS);
-        require(gcd == 1, "gcd not 1");
-
-        return FE.wrap(inverse);
     }
 
     function neg(FE self) internal pure returns (FE) {
