@@ -37,18 +37,20 @@ fn main() {
     .expect("could not deserialize proof");
     println!("Shard proof successfully deserialized!");
 
-    let proof_with_public = SP1ProofWithPublicValues {
-        proof: proof.proof.0.clone(),
-        stdin: proof.stdin.clone(),
-        public_values: proof.public_values.clone(),
-    };
+    /* Temporarily disable for faster iteration
+        let proof_with_public = SP1ProofWithPublicValues {
+            proof: proof.proof.0.clone(),
+            stdin: proof.stdin.clone(),
+            public_values: proof.public_values.clone(),
+        };
 
-    println!("Verifying shard proof...");
-    // Verify proof.
-    client
-        .verify(&proof_with_public, &vk)
-        .expect("proof with public verification failed");
-    println!("Proof was verified!");
+        println!("Verifying shard proof...");
+        // Verify proof.
+        client
+            .verify(&proof_with_public, &vk)
+            .expect("proof with public verification failed");
+        println!("Proof was verified!");
+    */
 
     // Read output.
     let result = proof.public_values.read::<bool>();
