@@ -14,7 +14,6 @@
 
 pragma solidity ^0.8.0;
 
-import {UtilsExternal} from "../UtilsExternal.sol";
 import {Scalar, Base} from "./Fields.sol";
 
 error GroupAdditionFailed(); // Bn254: group addition failed!
@@ -311,23 +310,5 @@ library BN254 {
         }
 
         return result;
-    }
-
-    function g1Serialize(G1Point memory point) internal pure returns (bytes memory) {
-        uint256 mask = 0;
-
-        // Set the 254-th bit to 1 for infinity
-        // https://docs.rs/ark-serialize/0.3.0/src/ark_serialize/flags.rs.html#117
-        if (isInfinity(point)) {
-            mask |= 0x4000000000000000000000000000000000000000000000000000000000000000;
-        }
-
-        // Set the 255-th bit to 1 for positive Y
-        // https://docs.rs/ark-serialize/0.3.0/src/ark_serialize/flags.rs.html#118
-        if (!isYNegative(point)) {
-            mask = 0x8000000000000000000000000000000000000000000000000000000000000000;
-        }
-
-        return abi.encodePacked(UtilsExternal.reverseEndianness(point.x | mask));
     }
 }
