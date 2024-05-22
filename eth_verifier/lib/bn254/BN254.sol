@@ -50,7 +50,7 @@ library BN254 {
     uint256 public constant P_MOD = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
     uint256 public constant R_MOD = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
-    using {add, scalarMul, scale_scalar} for G1Point;
+    using {add, scalarMul} for G1Point;
 
     struct G1Point {
         uint256 x;
@@ -92,7 +92,7 @@ library BN254 {
         return G2Point(0, 0, 0, 0);
     }
 
-    function endo_coeffs_g1() internal pure returns (Base.FE endo_q, Scalar.FE endo_r) {
+    function endo_coeffs_g1() internal pure returns (uint256 endo_q, uint256 endo_r) {
         // INFO: values taken from Kimchi\'s Rust implementation.
         return (
             Base.from(0x30644E72E131A0295E6DD9E7E0ACCCB0C28F069FBB966E3DE4BD44E5607CFD48),
@@ -117,7 +117,7 @@ library BN254 {
         if (isInfinity(p)) {
             return p;
         }
-        return G1Point(p.x, P_MOD - (p.y % P_MOD));
+        return G1Point(p.x, Base.neg(p.y));
     }
 
     /// @return r the sum of two points of G1
@@ -146,7 +146,7 @@ library BN254 {
 
     /// @return r the product of a point on G1 and a scalar, i.e.
     /// p == p.mul(1) and p.add(p) == p.mul(2) for all points p.
-    function scalarMul(G1Point memory p, uint256 s) internal view returns (G1Point memory r) {
+    function scalarMul(G1Point memory p, uint256 s) public view returns (G1Point memory r) {
         uint256[3] memory input;
         input[0] = p.x;
         input[1] = p.y;
@@ -161,10 +161,6 @@ library BN254 {
         if (!success) {
             revert ScalarMulFailed();
         }
-    }
-
-    function scale_scalar(G1Point memory p, Scalar.FE s) internal view returns (G1Point memory) {
-        return scalarMul(p, Scalar.FE.unwrap(s));
     }
 
     /// @dev Multi-scalar Mulitiplication (MSM)

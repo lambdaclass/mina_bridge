@@ -5,9 +5,7 @@ import {BN254} from "./BN254.sol";
 
 /// @notice Implements 256 bit modular arithmetic over the scalar field of bn254.
 library Scalar {
-    type FE is uint256;
-
-    using {add, mul, inv, neg, sub} for FE;
+    using {add, mul, inv, neg, sub} for uint256;
 
     uint256 internal constant MODULUS = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
@@ -15,19 +13,19 @@ library Scalar {
         19103219067921713944291392827692070036145651957329286315305642004821462161904;
     uint256 internal constant TWO_ADICITY = 28;
 
-    function zero() internal pure returns (FE) {
-        return FE.wrap(0);
+    function zero() internal pure returns (uint256) {
+        return 0;
     }
 
-    function one() internal pure returns (FE) {
-        return FE.wrap(1);
+    function one() internal pure returns (uint256) {
+        return 1;
     }
 
-    function from(uint256 n) internal pure returns (FE) {
-        return FE.wrap(n % MODULUS);
+    function from(uint256 n) internal pure returns (uint256) {
+        return n % MODULUS;
     }
 
-    function from_bytes_be(bytes memory b) internal pure returns (FE) {
+    function from_bytes_be(bytes memory b) internal pure returns (uint256) {
         uint256 integer = 0;
         uint256 count = b.length <= 32 ? b.length : 32;
 
@@ -35,45 +33,45 @@ library Scalar {
             integer <<= 8;
             integer += uint8(b[i]);
         }
-        return FE.wrap(integer % MODULUS);
+        return integer % MODULUS;
     }
 
-    function add(FE self, FE other) internal pure returns (FE res) {
+    function add(uint256 self, uint256 other) internal pure returns (uint256 res) {
         assembly ("memory-safe") {
             res := addmod(self, other, MODULUS) // addmod has arbitrary precision
         }
     }
 
-    function mul(FE self, FE other) internal pure returns (FE res) {
+    function mul(uint256 self, uint256 other) internal pure returns (uint256 res) {
         assembly ("memory-safe") {
             res := mulmod(self, other, MODULUS) // mulmod has arbitrary precision
         }
     }
 
-    function double(FE self) internal pure returns (FE res) {
-        res = mul(self, FE.wrap(2));
+    function double(uint256 self) internal pure returns (uint256 res) {
+        res = mul(self, 2);
     }
 
-    function square(FE self) internal pure returns (FE res) {
+    function square(uint256 self) internal pure returns (uint256 res) {
         res = mul(self, self);
     }
 
-    function inv(FE self) internal view returns (FE inverse) {
-        inverse = FE.wrap(BN254.invert(FE.unwrap(self)));
+    function inv(uint256 self) internal view returns (uint256 inverse) {
+        inverse = BN254.invert(self);
     }
 
-    function neg(FE self) internal pure returns (FE) {
-        return FE.wrap(MODULUS - FE.unwrap(self));
+    function neg(uint256 self) internal pure returns (uint256) {
+        return MODULUS - self;
     }
 
-    function sub(FE self, FE other) internal pure returns (FE res) {
+    function sub(uint256 self, uint256 other) internal pure returns (uint256 res) {
         assembly ("memory-safe") {
             res := addmod(self, sub(MODULUS, other), MODULUS)
         }
     }
 
-    function pow(FE self, uint256 exponent) internal view returns (FE result) {
-        uint256 base = FE.unwrap(self);
+    function pow(uint256 self, uint256 exponent) internal view returns (uint256 result) {
+        uint256 base = self;
         uint256 o;
         assembly ("memory-safe") {
             // define pointer
@@ -89,61 +87,59 @@ library Scalar {
             // data
             o := mload(p)
         }
-        result = FE.wrap(o);
+        result = o;
     }
 }
 
 /// @notice Implements 256 bit modular arithmetic over the base field of bn254.
 library Base {
-    type FE is uint256;
-
     uint256 internal constant MODULUS = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
 
-    function zero() internal pure returns (FE) {
-        return FE.wrap(0);
+    function zero() internal pure returns (uint256) {
+        return 0;
     }
 
-    function one() internal pure returns (FE) {
-        return FE.wrap(1);
+    function one() internal pure returns (uint256) {
+        return 1;
     }
 
-    function from(uint256 n) internal pure returns (FE) {
-        return FE.wrap(n % MODULUS);
+    function from(uint256 n) internal pure returns (uint256) {
+        return n % MODULUS;
     }
 
-    function from_bytes_be(bytes memory b) internal pure returns (FE) {
+    function from_bytes_be(bytes memory b) internal pure returns (uint256) {
         uint256 offset = b.length < 32 ? (32 - b.length) * 8 : 0;
         uint256 integer = uint256(bytes32(b)) >> offset;
         if (integer > MODULUS) {
             integer -= MODULUS;
         }
 
-        return FE.wrap(integer);
+        return integer;
     }
 
-    function add(FE self, FE other) internal pure returns (FE res) {
+    function add(uint256 self, uint256 other) internal pure returns (uint256 res) {
         assembly ("memory-safe") {
             res := addmod(self, other, MODULUS) // addmod has arbitrary precision
         }
     }
 
-    function mul(FE self, FE other) internal pure returns (FE res) {
+    function mul(uint256 self, uint256 other) internal pure returns (uint256 res) {
         assembly ("memory-safe") {
             res := mulmod(self, other, MODULUS) // mulmod has arbitrary precision
         }
     }
 
-    function square(FE self) internal pure returns (FE res) {
+    function square(uint256 self) internal pure returns (uint256 res) {
         assembly ("memory-safe") {
             res := mulmod(self, self, MODULUS) // mulmod has arbitrary precision
         }
     }
 
-    function neg(FE self) internal pure returns (FE) {
-        return FE.wrap(MODULUS - FE.unwrap(self));
+    function neg(uint256 self) internal pure returns (uint256) {
+        return MODULUS - self;
     }
 
-    function sub(FE self, FE other) internal pure returns (FE res) {
+    function sub(uint256 self, uint256 other) internal pure returns (uint256 res) {
         assembly ("memory-safe") {
             res := addmod(self, sub(MODULUS, other), MODULUS)
         }

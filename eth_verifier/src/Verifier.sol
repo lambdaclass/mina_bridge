@@ -17,8 +17,6 @@ import {deser_linearization, deser_literal_tokens} from "../lib/deserialize/Line
 import {KimchiPartialVerifier} from "./KimchiPartialVerifier.sol";
 
 contract KimchiVerifier {
-    using {BN254.add, BN254.neg, BN254.scale_scalar, BN254.sub} for BN254.G1Point;
-    using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
     using {get_alphas, register} for Alphas;
     using {it_next} for AlphasIterator;
 
@@ -29,7 +27,7 @@ contract KimchiVerifier {
     VerifierIndexLib.VerifierIndex internal verifier_index;
     Commitment.URS internal urs;
 
-    Scalar.FE internal public_input;
+    uint256 internal public_input;
 
     Proof.AggregatedEvaluationProof internal aggregated_proof;
 
@@ -57,7 +55,7 @@ contract KimchiVerifier {
         verifier_index.powers_of_alpha.register(ArgumentType.Permutation, PERMUTATION_CONSTRAINTS);
 
         // INFO: endo coefficient is fixed for a given constraint system
-        (Base.FE _endo_q, Scalar.FE endo_r) = BN254.endo_coeffs_g1();
+        (uint256 _endo_q, uint256 endo_r) = BN254.endo_coeffs_g1();
         verifier_index.endo = endo_r;
     }
 
@@ -101,15 +99,15 @@ contract KimchiVerifier {
 
     function final_verify(Proof.AggregatedEvaluationProof memory agg_proof) public view returns (bool) {
         Evaluation[] memory evaluations = agg_proof.evaluations;
-        Scalar.FE[2] memory evaluation_points = agg_proof.evaluation_points;
-        Scalar.FE polyscale = agg_proof.polyscale;
+        uint256[2] memory evaluation_points = agg_proof.evaluation_points;
+        uint256 polyscale = agg_proof.polyscale;
 
         // poly commitment
-        (BN254.G1Point memory poly_commitment, Scalar.FE[] memory evals) =
+        (BN254.G1Point memory poly_commitment, uint256[] memory evals) =
             Commitment.combine_commitments_and_evaluations(evaluations, polyscale, Scalar.one());
 
         // blinding commitment
-        BN254.G1Point memory blinding_commitment = urs.h.scale_scalar(agg_proof.opening.blinding);
+        BN254.G1Point memory blinding_commitment = BN254.scalarMul(urs.h, agg_proof.opening.blinding);
 
         // quotient commitment
         BN254.G1Point memory quotient = agg_proof.opening.quotient;
@@ -120,13 +118,13 @@ contract KimchiVerifier {
         // eval commitment
         // numerator commitment
         BN254.G1Point memory numerator =
-            poly_commitment.sub(eval_commitment(evaluation_points, evals, urs).add(blinding_commitment));
+            BN254.sub(poly_commitment, BN254.add(eval_commitment(evaluation_points, evals, urs), blinding_commitment));
 
         // quotient commitment needs to be negated. See the doc of pairingProd2().
-        return BN254.pairingProd2(numerator, BN254.P2(), quotient.neg(), divisor);
+        return BN254.pairingProd2(numerator, BN254.P2(), BN254.neg(quotient), divisor);
     }
 
-    function divisor_commitment(Scalar.FE[2] memory evaluation_points)
+    function divisor_commitment(uint256[2] memory evaluation_points)
         public
         view
         returns (BN254.G2Point memory result)
@@ -150,27 +148,27 @@ contract KimchiVerifier {
             15584633174679797224858067860955702731818107814729714298421481259259086801380
         );
 
-        Scalar.FE[] memory divisor_poly_coeffs = new Scalar.FE[](2);
+        uint256[] memory divisor_poly_coeffs = new uint256[](2);
 
         // The divisor polynomial is the poly that evaluates to 0 in the evaluation
         // points. Used for proving that the numerator is divisible by it.
         // So, this is: (x-a)(x-b) = x^2 - (a + b)x + ab
         // (there're only two evaluation points: a and b).
 
-        divisor_poly_coeffs[0] = evaluation_points[0].mul(evaluation_points[1]);
-        divisor_poly_coeffs[1] = evaluation_points[0].add(evaluation_points[1]).neg();
+        divisor_poly_coeffs[0] = Scalar.mul(evaluation_points[0], evaluation_points[1]);
+        divisor_poly_coeffs[1] = Scalar.neg(Scalar.add(evaluation_points[0], evaluation_points[1]));
 
-        result = BN256G2.ECTwistMul(Scalar.FE.unwrap(divisor_poly_coeffs[0]), point0);
-        result = BN256G2.ECTwistAdd(result, BN256G2.ECTwistMul(Scalar.FE.unwrap(divisor_poly_coeffs[1]), point1));
+        result = BN256G2.ECTwistMul(divisor_poly_coeffs[0], point0);
+        result = BN256G2.ECTwistAdd(result, BN256G2.ECTwistMul(divisor_poly_coeffs[1], point1));
         result = BN256G2.ECTwistAdd(result, point2);
     }
 
     function eval_commitment(
-        Scalar.FE[2] memory evaluation_points,
-        Scalar.FE[] memory evals,
+        uint256[2] memory evaluation_points,
+        uint256[] memory evals,
         Commitment.URS memory full_urs
     ) public view returns (BN254.G1Point memory) {
-        Scalar.FE[] memory eval_poly_coeffs = new Scalar.FE[](3);
+        uint256[] memory eval_poly_coeffs = new uint256[](3);
 
         // The evaluation polynomial e(x) is the poly that evaluates to evals[i]
         // in the evaluation point i, for all i. Used for making the numerator
@@ -178,17 +176,17 @@ contract KimchiVerifier {
 
         require(evals.length == 2, "more than two evals");
 
-        Scalar.FE x1 = evaluation_points[0];
-        Scalar.FE x2 = evaluation_points[1];
-        Scalar.FE y1 = evals[0];
-        Scalar.FE y2 = evals[1];
+        uint256 x1 = evaluation_points[0];
+        uint256 x2 = evaluation_points[1];
+        uint256 y1 = evals[0];
+        uint256 y2 = evals[1];
 
         // So, this is: e(x) = ax + b, with:
         // a = (y2-y1)/(x2-x1)
         // b = y1 - a*x1
 
-        Scalar.FE a = (y2.sub(y1)).mul(x2.sub(x1).inv());
-        Scalar.FE b = y1.sub(a.mul(x1));
+        uint256 a = Scalar.mul(Scalar.sub(y2, y1), Scalar.inv(Scalar.sub(x2, x1)));
+        uint256 b = Scalar.sub(y1, Scalar.mul(a, x1));
 
         eval_poly_coeffs[0] = b;
         eval_poly_coeffs[1] = a;
