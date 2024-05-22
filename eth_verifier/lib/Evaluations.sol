@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity >=0.4.16 <0.9.0;
+pragma solidity ^0.8.0;
 
-import "./bn254/Fields.sol";
-import "./Polynomial.sol";
-import "./Commitment.sol";
+import {Scalar} from "./bn254/Fields.sol";
+import {BN254} from "./bn254/BN254.sol";
 
 struct PointEvaluations {
     /// evaluation at the challenge point zeta

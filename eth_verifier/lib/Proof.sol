@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity >=0.4.16 <0.9.0;
+pragma solidity ^0.8.0;
 
-import "./Evaluations.sol";
-import "./Polynomial.sol";
-import "./Constants.sol";
 import "./expr/Expr.sol";
 import "./Commitment.sol";
 import "./bn254/BN254.sol";
