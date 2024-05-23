@@ -2,14 +2,13 @@
 pragma solidity >=0.4.16 <0.9.0;
 
 import {Test, console2} from "forge-std/Test.sol";
-import "../lib/bn254/Fields.sol";
-import "../lib/bn254/BN254.sol";
-import "../src/Verifier.sol";
-import "../lib/Commitment.sol";
-import "../lib/Alphas.sol";
-import "../lib/Polynomial.sol";
-import "../lib/deserialize/ProverProof.sol";
+import {BN254} from "../lib/bn254/BN254.sol";
+import {KimchiVerifier, VerifierIndexLib} from "../src/Verifier.sol";
+import {Commitment} from "../lib/Commitment.sol";
+import {Polynomial} from "../lib/Polynomial.sol";
+import {deser_verifier_index} from "../lib/deserialize/VerifierIndex.sol";
 import {KeccakSponge} from "../lib/sponge/Sponge.sol";
+import {Scalar} from "../lib/bn254/Fields.sol";
 
 contract KimchiVerifierTest is Test {
     bytes verifier_index_serialized;
