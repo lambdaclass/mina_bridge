@@ -271,7 +271,7 @@ library Proof {
     ) internal view returns (BN254.G1Point memory) {
         uint256 total_len = 1 + (is_table_id_vector_set ? 1 : 0) + (is_runtime_vector_set ? 1 : 0);
 
-        uint256 j = Scalar.one();
+        uint256 j = 1;
         uint256[] memory scalars = new uint256[](total_len);
         BN254.G1Point[] memory commitments = new BN254.G1Point[](total_len);
 

@@ -13,14 +13,6 @@ library Scalar {
         19103219067921713944291392827692070036145651957329286315305642004821462161904;
     uint256 internal constant TWO_ADICITY = 28;
 
-    function zero() internal pure returns (uint256) {
-        return 0;
-    }
-
-    function one() internal pure returns (uint256) {
-        return 1;
-    }
-
     function from(uint256 n) internal pure returns (uint256) {
         return n % MODULUS;
     }
@@ -94,14 +86,6 @@ library Scalar {
 /// @notice Implements 256 bit modular arithmetic over the base field of bn254.
 library Base {
     uint256 internal constant MODULUS = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
-
-    function zero() internal pure returns (uint256) {
-        return 0;
-    }
-
-    function one() internal pure returns (uint256) {
-        return 1;
-    }
 
     function from(uint256 n) internal pure returns (uint256) {
         return n % MODULUS;

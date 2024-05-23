@@ -100,7 +100,7 @@ contract KimchiVerifier {
 
         // poly commitment
         (BN254.G1Point memory poly_commitment, uint256[] memory evals) =
-            Commitment.combine_commitments_and_evaluations(evaluations, polyscale, Scalar.one());
+            Commitment.combine_commitments_and_evaluations(evaluations, polyscale, 1);
 
         // blinding commitment
         BN254.G1Point memory blinding_commitment = BN254.scalarMul(urs.h, agg_proof.opening.blinding);

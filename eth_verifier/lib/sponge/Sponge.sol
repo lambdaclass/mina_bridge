@@ -97,8 +97,8 @@ library KeccakSponge {
 
     function absorb_g_single(Sponge memory self, BN254.G1Point memory point) internal pure {
         if (point.isInfinity()) {
-            absorb_base(self, Base.zero());
-            absorb_base(self, Base.zero());
+            absorb_base(self, 0);
+            absorb_base(self, 0);
         } else {
             absorb_base(self, Base.from(point.x));
             absorb_base(self, Base.from(point.y));
@@ -109,8 +109,8 @@ library KeccakSponge {
         for (uint256 i = 0; i < points.length; i++) {
             BN254.G1Point memory point = points[i];
             if (point.isInfinity()) {
-                absorb_base(self, Base.zero());
-                absorb_base(self, Base.zero());
+                absorb_base(self, 0);
+                absorb_base(self, 0);
             } else {
                 absorb_base(self, Base.from(point.x));
                 absorb_base(self, Base.from(point.y));
