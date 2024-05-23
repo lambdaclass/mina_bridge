@@ -35,12 +35,12 @@ contract KimchiVerifierTest is Test {
         KimchiVerifier verifier = new KimchiVerifier();
         verifier.setup();
 
-        Scalar.FE[2] memory evaluation_points = [
+        uint256[2] memory evaluation_points = [
             Scalar.from(13611645662807726448009836376915752628632570551277086161653783406622791783728),
             Scalar.from(3564135020345995638717498554909006524700441992279926422621219017070650554254)
         ];
 
-        Scalar.FE[] memory evals = new Scalar.FE[](2);
+        uint256[] memory evals = new uint256[](2);
         evals[0] = Scalar.from(10120666028354925241544739361936737942150226600838550203372747067710839915497);
         evals[1] = Scalar.from(15078030357868247450073031446158725935649265148599941249555157207050719642652);
 
@@ -68,7 +68,7 @@ contract KimchiVerifierTest is Test {
         verifier.store_prover_proof(prover_proof_serialized);
         verifier.store_public_input(public_input_serialized);
 
-        Scalar.FE[2] memory evaluation_points = [
+        uint256[2] memory evaluation_points = [
             Scalar.from(13611645662807726448009836376915752628632570551277086161653783406622791783728),
             Scalar.from(3564135020345995638717498554909006524700441992279926422621219017070650554254)
         ];
@@ -84,20 +84,17 @@ contract KimchiVerifierTest is Test {
     //function test_absorb_evaluations() public {
     //    KeccakSponge.reinit(sponge);
     //    KeccakSponge.absorb_evaluations(sponge, test_prover_proof.evals);
-    //    Scalar.FE scalar = KeccakSponge.challenge_scalar(sponge);
-    //    assertEq(Scalar.FE.unwrap(scalar), 0x0000000000000000000000000000000000DC56216206DF842F824D14A6D87024);
+    //    uint256 scalar = KeccakSponge.challenge_scalar(sponge);
+    //    assertEq(uint256.unwrap(scalar), 0x0000000000000000000000000000000000DC56216206DF842F824D14A6D87024);
     //}
 
     function test_eval_vanishing_poly_on_last_n_rows() public {
         // hard-coded zeta is taken from executing the verifier in main.rs
         // the value doesn't matter, as long as it matches the analogous test in Rust.
-        Scalar.FE zeta = Scalar.from(0x1B427680FC915CB850FFF8701AD7E2D73B9F1349F713BFBE6B58E5D007988CD0);
-        Scalar.FE permutation_vanishing_poly = Polynomial.eval_vanishes_on_last_n_rows(
+        uint256 zeta = Scalar.from(0x1B427680FC915CB850FFF8701AD7E2D73B9F1349F713BFBE6B58E5D007988CD0);
+        uint256 permutation_vanishing_poly = Polynomial.eval_vanishes_on_last_n_rows(
             test_verifier_index.domain_gen, test_verifier_index.domain_size, test_verifier_index.zk_rows, zeta
         );
-        assertEq(
-            Scalar.FE.unwrap(permutation_vanishing_poly),
-            0x1AEE30761864581115514430C6BD95502BB8DE7CD8C6B608F27BA1C03E80BFFB
-        );
+        assertEq(permutation_vanishing_poly, 0x1AEE30761864581115514430C6BD95502BB8DE7CD8C6B608F27BA1C03E80BFFB);
     }
 }

@@ -66,7 +66,7 @@ library VerifierIndexLib {
         uint256 optional_field_flags;
         // domain
         uint256 domain_size;
-        Scalar.FE domain_gen;
+        uint256 domain_gen;
         // maximal size of polynomial section
         uint256 max_poly_size;
         // the number of randomized rows to achieve zero knowledge
@@ -94,10 +94,10 @@ library VerifierIndexLib {
         // endoscalar multiplication scalar computation selector polynomial commitment
         BN254.G1Point endomul_scalar_comm;
         // wire shift coordinates
-        Scalar.FE[7] shift; // TODO: use Consants.PERMUTS
+        uint256[7] shift; // TODO: use Consants.PERMUTS
         /// domain offset for zero-knowledge
-        Scalar.FE w;
-        Scalar.FE endo;
+        uint256 w;
+        uint256 endo;
         // RangeCheck0 polynomial commitments
         BN254.G1Point range_check0_comm; // INFO: optional
         // RangeCheck1 polynomial commitments
@@ -148,7 +148,7 @@ library VerifierIndexLib {
     }
     // TODO: lookup features
 
-    function verifier_digest(VerifierIndex storage index) internal view returns (Base.FE) {
+    function verifier_digest(VerifierIndex storage index) internal view returns (uint256) {
         KeccakSponge.Sponge memory sponge;
         sponge.reinit();
 
