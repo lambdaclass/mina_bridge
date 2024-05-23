@@ -3,6 +3,53 @@ pragma solidity ^0.8.0;
 
 import {BN254} from "./BN254.sol";
 
+/// @notice Implements 256 bit modular arithmetic over the base field of bn254.
+library Base {
+    uint256 internal constant MODULUS = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
+
+    function from(uint256 n) internal pure returns (uint256) {
+        return n % MODULUS;
+    }
+
+    function from_bytes_be(bytes memory b) internal pure returns (uint256) {
+        uint256 offset = b.length < 32 ? (32 - b.length) * 8 : 0;
+        uint256 integer = uint256(bytes32(b)) >> offset;
+        if (integer > MODULUS) {
+            integer -= MODULUS;
+        }
+
+        return integer;
+    }
+
+    function add(uint256 self, uint256 other) internal pure returns (uint256 res) {
+        assembly ("memory-safe") {
+            res := addmod(self, other, MODULUS) // addmod has arbitrary precision
+        }
+    }
+
+    function mul(uint256 self, uint256 other) internal pure returns (uint256 res) {
+        assembly ("memory-safe") {
+            res := mulmod(self, other, MODULUS) // mulmod has arbitrary precision
+        }
+    }
+
+    function square(uint256 self) internal pure returns (uint256 res) {
+        assembly ("memory-safe") {
+            res := mulmod(self, self, MODULUS) // mulmod has arbitrary precision
+        }
+    }
+
+    function neg(uint256 self) internal pure returns (uint256) {
+        return MODULUS - self;
+    }
+
+    function sub(uint256 self, uint256 other) internal pure returns (uint256 res) {
+        assembly ("memory-safe") {
+            res := addmod(self, sub(MODULUS, other), MODULUS)
+        }
+    }
+}
+
 /// @notice Implements 256 bit modular arithmetic over the scalar field of bn254.
 library Scalar {
     using {add, mul, inv, neg, sub} for uint256;
@@ -80,52 +127,5 @@ library Scalar {
             o := mload(p)
         }
         result = o;
-    }
-}
-
-/// @notice Implements 256 bit modular arithmetic over the base field of bn254.
-library Base {
-    uint256 internal constant MODULUS = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
-
-    function from(uint256 n) internal pure returns (uint256) {
-        return n % MODULUS;
-    }
-
-    function from_bytes_be(bytes memory b) internal pure returns (uint256) {
-        uint256 offset = b.length < 32 ? (32 - b.length) * 8 : 0;
-        uint256 integer = uint256(bytes32(b)) >> offset;
-        if (integer > MODULUS) {
-            integer -= MODULUS;
-        }
-
-        return integer;
-    }
-
-    function add(uint256 self, uint256 other) internal pure returns (uint256 res) {
-        assembly ("memory-safe") {
-            res := addmod(self, other, MODULUS) // addmod has arbitrary precision
-        }
-    }
-
-    function mul(uint256 self, uint256 other) internal pure returns (uint256 res) {
-        assembly ("memory-safe") {
-            res := mulmod(self, other, MODULUS) // mulmod has arbitrary precision
-        }
-    }
-
-    function square(uint256 self) internal pure returns (uint256 res) {
-        assembly ("memory-safe") {
-            res := mulmod(self, self, MODULUS) // mulmod has arbitrary precision
-        }
-    }
-
-    function neg(uint256 self) internal pure returns (uint256) {
-        return MODULUS - self;
-    }
-
-    function sub(uint256 self, uint256 other) internal pure returns (uint256 res) {
-        assembly ("memory-safe") {
-            res := addmod(self, sub(MODULUS, other), MODULUS)
-        }
     }
 }
