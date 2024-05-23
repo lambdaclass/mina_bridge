@@ -31,8 +31,8 @@ export class ForeignPallas extends createForeignCurveBn254({
         return ForeignPallas.provable.sizeInFields();
     }
 
-    static fromFields(fields: FieldBn254[]) {
-        return ForeignPallas.provable.fromFields(fields);
+    static fromFields(fields: FieldBn254[]): ForeignPallas {
+        return ForeignPallas.provable.fromFields(fields) as ForeignPallas;
     }
 
     static toFields(one: ForeignPallas) {

@@ -75,12 +75,10 @@ export class SRS {
      * Turns a non-hiding polynomial commitment into a hidding polynomial commitment. Transforms each given `<a, G>` into `(<a, G> + wH, w)`.
     */
     maskCustom(com: PolyComm<ForeignPallas>, blinders: PolyComm<ForeignScalar>): BlindedCommitment<ForeignPallas, ForeignScalar> | undefined {
-        let commitment = com
-            .zip(blinders)
-            .map(([g, b]) => {
-                let g_masked = this.h.scale(b);
-                return g_masked.completeAdd(g);
-            });
+        let commitment = com.zip_and_map(blinders, ([g, b]) => {
+            let g_masked = this.h.scale(b);
+            return g_masked.completeAdd(g) as ForeignPallas;
+        })
         return { commitment: commitment, blinders: blinders }
     }
 }

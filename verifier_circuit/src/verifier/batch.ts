@@ -267,7 +267,7 @@ export class Batch {
     }
 
     static permScalars(
-        e: ProofEvaluations<PointEvaluations<ForeignScalar>>,
+        e: ProofEvaluations<PointEvaluations<[ForeignScalar]>>,
         beta: ForeignScalar,
         gamma: ForeignScalar,
         alphas: AlphasIterator,
@@ -277,12 +277,12 @@ export class Batch {
         alphas.next();
         alphas.next();
 
-        let acc = e.z.zetaOmega.mul(beta).assertAlmostReduced().mul(alpha0).assertAlmostReduced().mul(zkp_zeta);
+        let acc = e.z.zetaOmega[0].mul(beta).assertAlmostReduced().mul(alpha0).assertAlmostReduced().mul(zkp_zeta);
         for (let i = 0; i < Math.min(e.w.length, e.s.length); i++) {
             const w = e.w[i];
             const s = e.s[i];
 
-            const res = gamma.add(beta.mul(s.zeta)).add(w.zeta);
+            const res = gamma.add(beta.mul(s.zeta[0])).add(w.zeta[0]);
             acc = acc.assertAlmostReduced().mul(res.assertAlmostReduced());
         }
         return acc.neg();

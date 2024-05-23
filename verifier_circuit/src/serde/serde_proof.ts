@@ -179,11 +179,11 @@ export function deserProofEvals(proofEvalsJson: ProofEvalsJSON, publicInputJson:
 }
 
 export function deserProverCommitments(json: ProverCommitmentsJSON): ProverCommitments {
-    return {
-        wComm: json.w_comm.map(deserPolyComm),
-        zComm: deserPolyComm(json.z_comm),
-        tComm: deserPolyComm(json.t_comm)
-    };
+    return new ProverCommitments(
+        json.w_comm.map(deserPolyComm),
+        deserPolyComm(json.z_comm),
+        deserPolyComm(json.t_comm)
+    );
 }
 
 

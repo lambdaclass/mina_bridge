@@ -49,9 +49,9 @@ export class PolyComm<A extends FieldSerializable> {
 
         for (let i = 0; i < Math.max(n1, n2); i++) {
             const pt = i < n1 && i < n2 ?
-                lhs.unshifted[i].completeAdd(rhs.unshifted[i].negate()) as ForeignPallas :
+                lhs.unshifted[i].completeAdd(rhs.unshifted[i].negate()) :
                 i < n1 ? lhs.unshifted[i] : rhs.unshifted[i];
-            unshifted.push(pt);
+            unshifted.push(pt as ForeignPallas);
         }
 
         let shifted: ForeignPallas | undefined;
