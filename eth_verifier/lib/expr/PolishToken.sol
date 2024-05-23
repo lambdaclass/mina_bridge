@@ -9,21 +9,19 @@ import "../sponge/Sponge.sol";
 import {Polynomial} from "../Polynomial.sol";
 import {PointEvaluations} from "../Evaluations.sol";
 
-using {Scalar.add, Scalar.mul, Scalar.sub, Scalar.pow, Scalar.inv} for Scalar.FE;
-
 library PolishTokenEvaluation {
     function evaluate(
         Linearization storage linearization,
-        Scalar.FE domain_gen,
+        uint256 domain_gen,
         uint256 domain_size,
-        Scalar.FE pt,
-        Scalar.FE vanishing_eval,
+        uint256 pt,
+        uint256 vanishing_eval,
         Proof.ProofEvaluations memory evals,
         ExprConstants memory c
-    ) internal view returns (Scalar.FE) {
-        Scalar.FE[] memory stack = new Scalar.FE[](linearization.total_variants_len);
+    ) internal view returns (uint256) {
+        uint256[] memory stack = new uint256[](linearization.total_variants_len);
         uint256 stack_next = 0; // will keep track of last stack element's index
-        Scalar.FE[] memory cache = new Scalar.FE[](linearization.total_variants_len);
+        uint256[] memory cache = new uint256[](linearization.total_variants_len);
         uint256 cache_next = 0; // will keep track of last cache element's index
         // WARN: Both arrays allocate the maximum memory they will ever use, but it's
         // WARN: pretty unlikely they'll need it all.
@@ -81,7 +79,7 @@ library PolishTokenEvaluation {
             }
             // Literal
             if (variant == 6) {
-                Scalar.FE literal = Scalar.FE.wrap(linearization.literals[next_literals_index]);
+                uint256 literal = linearization.literals[next_literals_index];
                 next_literals_index += 1;
 
                 stack[stack_next] = literal;
@@ -99,45 +97,45 @@ library PolishTokenEvaluation {
                 uint256 n = linearization.pows[next_pows_index];
                 next_pows_index += 1;
 
-                stack[stack_next - 1] = stack[stack_next - 1].pow(n);
+                stack[stack_next - 1] = Scalar.pow(stack[stack_next - 1], n);
                 continue;
             }
             // Add
             if (variant == 9) {
                 // pop x and y
-                Scalar.FE y = stack[stack_next - 1];
+                uint256 y = stack[stack_next - 1];
                 stack_next -= 1;
-                Scalar.FE x = stack[stack_next - 1];
+                uint256 x = stack[stack_next - 1];
                 stack_next -= 1;
 
                 // push result
-                stack[stack_next] = x.add(y);
+                stack[stack_next] = Scalar.add(x, y);
                 stack_next += 1;
                 continue;
             }
             // Mul
             if (variant == 10) {
                 // pop x and y
-                Scalar.FE y = stack[stack_next - 1];
+                uint256 y = stack[stack_next - 1];
                 stack_next -= 1;
-                Scalar.FE x = stack[stack_next - 1];
+                uint256 x = stack[stack_next - 1];
                 stack_next -= 1;
 
                 // push result
-                stack[stack_next] = x.mul(y);
+                stack[stack_next] = Scalar.mul(x, y);
                 stack_next += 1;
                 continue;
             }
             // Sub
             if (variant == 11) {
                 // pop x and y
-                Scalar.FE y = stack[stack_next - 1];
+                uint256 y = stack[stack_next - 1];
                 stack_next -= 1;
-                Scalar.FE x = stack[stack_next - 1];
+                uint256 x = stack[stack_next - 1];
                 stack_next -= 1;
 
                 // push result
-                stack[stack_next] = x.sub(y);
+                stack[stack_next] = Scalar.sub(x, y);
                 stack_next += 1;
                 continue;
             }
@@ -158,7 +156,7 @@ library PolishTokenEvaluation {
             }
             // Store
             if (variant == 14) {
-                Scalar.FE x = stack[stack_next - 1];
+                uint256 x = stack[stack_next - 1];
 
                 cache[cache_next] = x;
                 cache_next += 1;
@@ -169,7 +167,7 @@ library PolishTokenEvaluation {
                 uint256 j = linearization.loads[next_loads_index];
                 next_loads_index += 1;
 
-                Scalar.FE x = cache[j];
+                uint256 x = cache[j];
                 stack[stack_next] = x;
                 stack_next += 1;
                 continue;
@@ -182,7 +180,7 @@ library PolishTokenEvaluation {
                 // get eval from column id (see serializer)
                 uint256 col_id = (variant & (0x80 - 1)) - 16;
                 PointEvaluations memory point_eval = Proof.evaluate_column_by_id(evals, col_id);
-                Scalar.FE eval;
+                uint256 eval;
                 if (curr) {
                     eval = point_eval.zeta;
                 } else {
@@ -201,29 +199,29 @@ library PolishTokenEvaluation {
     }
     // @notice Compute the ith unnormalized lagrange basis
 
-    function unnormalized_lagrange_basis(Scalar.FE domain_gen, Scalar.FE vanishing_eval, int256 i, Scalar.FE pt)
+    function unnormalized_lagrange_basis(uint256 domain_gen, uint256 vanishing_eval, int256 i, uint256 pt)
         internal
         view
-        returns (Scalar.FE result)
+        returns (uint256 result)
     {
-        Scalar.FE omega_i;
+        uint256 omega_i;
         if (i < 0) {
-            omega_i = domain_gen.pow(uint256(-i)).inv();
+            omega_i = Scalar.inv(Scalar.pow(domain_gen, uint256(-i)));
         } else {
-            omega_i = domain_gen.pow(uint256(i));
+            omega_i = Scalar.pow(domain_gen, uint256(i));
         }
 
-        Scalar.FE sub_m_omega = pt.sub(omega_i);
-        result = vanishing_eval.mul(sub_m_omega.inv());
+        uint256 sub_m_omega = Scalar.sub(pt, omega_i);
+        result = Scalar.mul(vanishing_eval, Scalar.inv(sub_m_omega));
     }
 
     // @notice evaluates the vanishing polynomial for this domain at tau.
     // @notice for multiplicative subgroups, this polynomial is `z(X) = X^self.size - 1
-    function evaluate_vanishing_polynomial(Scalar.FE domain_gen, uint256 domain_size, Scalar.FE tau)
+    function evaluate_vanishing_polynomial(uint256 domain_gen, uint256 domain_size, uint256 tau)
         internal
         view
-        returns (Scalar.FE)
+        returns (uint256)
     {
-        return tau.pow(domain_size).sub(Scalar.one());
+        return Scalar.sub(Scalar.pow(tau, domain_size), 1);
     }
 }

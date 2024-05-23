@@ -14,7 +14,7 @@ contract Profiling is Test {
     Linearization linearization;
     VerifierIndexLib.VerifierIndex verifier_index;
     Proof.ProverProof prover_proof;
-    Scalar.FE public_input;
+    uint256 public_input;
 
     // INFO: this doesn't assert anything, it only executes this deserialization
     // for gas profiling.

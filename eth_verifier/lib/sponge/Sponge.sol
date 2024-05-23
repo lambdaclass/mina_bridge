@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 
-import {Base} from "../bn254/Fields.sol";
 import {BN254} from "../bn254/BN254.sol";
-import {Scalar} from "../bn254/Fields.sol";
+import {Scalar, Base} from "../bn254/Fields.sol";
 import {Proof} from "../Proof.sol";
 import {PointEvaluations, PointEvaluationsArray} from "../Evaluations.sol";
 import {
@@ -25,6 +24,8 @@ import {
     MAX_SPONGE_STATE_SIZE
 } from "../Constants.sol";
 
+error SizeExceeded(); // max sponge state size exceeded
+
 library KeccakSponge {
     using {BN254.isInfinity} for BN254.G1Point;
 
@@ -42,7 +43,7 @@ library KeccakSponge {
     function absorb(Sponge memory self, bytes memory b) internal pure {
         for (uint256 i = 0; i < b.length; i++) {
             if (self.last_index >= MAX_SPONGE_STATE_SIZE) {
-                revert("max sponge state size exceeded.");
+                revert SizeExceeded();
             }
             self.pending[self.last_index] = b[i];
             self.last_index += 1;
@@ -79,25 +80,25 @@ library KeccakSponge {
 
     // KZG methods
 
-    function absorb_base(Sponge memory self, Base.FE elem) internal pure {
+    function absorb_base(Sponge memory self, uint256 elem) internal pure {
         bytes memory b = abi.encodePacked(elem);
         absorb(self, b);
     }
 
-    function absorb_scalar(Sponge memory self, Scalar.FE elem) internal pure {
+    function absorb_scalar(Sponge memory self, uint256 elem) internal pure {
         bytes memory b = abi.encodePacked(elem);
         absorb(self, b);
     }
 
-    function absorb_scalar_multiple(Sponge memory self, Scalar.FE[] memory elems) internal pure {
+    function absorb_scalar_multiple(Sponge memory self, uint256[] memory elems) internal pure {
         bytes memory b = abi.encodePacked(elems);
         absorb(self, b);
     }
 
     function absorb_g_single(Sponge memory self, BN254.G1Point memory point) internal pure {
         if (point.isInfinity()) {
-            absorb_base(self, Base.zero());
-            absorb_base(self, Base.zero());
+            absorb_base(self, 0);
+            absorb_base(self, 0);
         } else {
             absorb_base(self, Base.from(point.x));
             absorb_base(self, Base.from(point.y));
@@ -108,8 +109,8 @@ library KeccakSponge {
         for (uint256 i = 0; i < points.length; i++) {
             BN254.G1Point memory point = points[i];
             if (point.isInfinity()) {
-                absorb_base(self, Base.zero());
-                absorb_base(self, Base.zero());
+                absorb_base(self, 0);
+                absorb_base(self, 0);
             } else {
                 absorb_base(self, Base.from(point.x));
                 absorb_base(self, Base.from(point.y));
@@ -199,23 +200,23 @@ library KeccakSponge {
         }
     }
 
-    function challenge_base(Sponge memory self) internal pure returns (Base.FE chal) {
+    function challenge_base(Sponge memory self) internal pure returns (uint256 chal) {
         chal = Base.from_bytes_be(squeeze(self, 16));
     }
 
-    function challenge_scalar(Sponge memory self) internal pure returns (Scalar.FE chal) {
+    function challenge_scalar(Sponge memory self) internal pure returns (uint256 chal) {
         chal = Scalar.from_bytes_be(squeeze(self, 16));
     }
 
-    function digest_base(Sponge memory self) internal pure returns (Base.FE digest) {
+    function digest_base(Sponge memory self) internal pure returns (uint256 digest) {
         digest = Base.from_bytes_be(squeeze(self, 32));
     }
 
-    function digest_scalar(Sponge memory self) internal pure returns (Scalar.FE digest) {
+    function digest_scalar(Sponge memory self) internal pure returns (uint256 digest) {
         digest = Scalar.from_bytes_be(squeeze(self, 32));
     }
 
-    function mds() internal pure returns (Scalar.FE[3][3] memory) {
+    function mds() internal pure returns (uint256[3][3] memory) {
         return [
             [
                 Scalar.from(12035446894107573964500871153637039653510326950134440362813193268448863222019),

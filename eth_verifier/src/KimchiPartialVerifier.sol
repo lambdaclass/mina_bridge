@@ -2,7 +2,7 @@
 pragma solidity >=0.4.16 <0.9.0;
 
 import "../lib/bn254/Fields.sol";
-import "../lib/bn254/BN254.sol";
+import {BN254} from "../lib/bn254/BN254.sol";
 import "../lib/bn254/BN256G2.sol";
 import "../lib/VerifierIndex.sol";
 import "../lib/Commitment.sol";
@@ -17,8 +17,6 @@ import "../lib/expr/Expr.sol";
 import "../lib/expr/PolishToken.sol";
 import "../lib/expr/ExprConstants.sol";
 
-using {BN254.add, BN254.neg, BN254.scale_scalar, BN254.sub} for BN254.G1Point;
-using {Scalar.neg, Scalar.mul, Scalar.add, Scalar.inv, Scalar.sub, Scalar.pow} for Scalar.FE;
 using {get_alphas} for Alphas;
 using {it_next} for AlphasIterator;
 using {Proof.get_column_eval} for Proof.ProofEvaluations;
@@ -32,7 +30,7 @@ library KimchiPartialVerifier {
         Proof.ProverProof storage proof,
         VerifierIndexLib.VerifierIndex storage verifier_index,
         Commitment.URS storage urs,
-        Scalar.FE public_input
+        uint256 public_input
     ) external returns (Proof.AggregatedEvaluationProof memory) {
         // TODO: 1. Check the length of evaluations insde the proof
 
@@ -51,7 +49,7 @@ library KimchiPartialVerifier {
         Proof.ProofEvaluations memory evals = proof.evals;
 
         // 5. Compute the commitment to the linearized polynomial $f$.
-        Scalar.FE permutation_vanishing_polynomial = Polynomial.eval_vanishes_on_last_n_rows(
+        uint256 permutation_vanishing_polynomial = Polynomial.eval_vanishes_on_last_n_rows(
             verifier_index.domain_gen, verifier_index.domain_size, verifier_index.zk_rows, oracles.zeta
         );
 
@@ -60,25 +58,25 @@ library KimchiPartialVerifier {
 
         BN254.G1Point[] memory commitments = new BN254.G1Point[](1);
         commitments[0] = verifier_index.sigma_comm[PERMUTS - 1];
-        Scalar.FE[] memory scalars = new Scalar.FE[](1);
+        uint256[] memory scalars = new uint256[](1);
         scalars[0] = perm_scalars(evals, oracles.beta, oracles.gamma, alphas, permutation_vanishing_polynomial);
 
-        BN254.G1Point memory f_comm = Commitment.msm(commitments, scalars);
+        BN254.G1Point memory f_comm = BN254.multiScalarMul(commitments, scalars);
 
         // 6. Compute the chunked commitment of ft
-        Scalar.FE zeta_to_srs_len = oracles.zeta.pow(verifier_index.max_poly_size);
+        uint256 zeta_to_srs_len = Scalar.pow(oracles.zeta, verifier_index.max_poly_size);
         BN254.G1Point memory chunked_f_comm = f_comm;
 
         BN254.G1Point[7] memory t_comm = proof.commitments.t_comm;
         BN254.G1Point memory chunked_t_comm = BN254.point_at_inf();
 
         for (uint256 i = 0; i < t_comm.length; i++) {
-            chunked_t_comm = chunked_t_comm.scale_scalar(zeta_to_srs_len);
-            chunked_t_comm = chunked_t_comm.add(t_comm[t_comm.length - i - 1]);
+            chunked_t_comm = BN254.scalarMul(chunked_t_comm, zeta_to_srs_len);
+            chunked_t_comm = BN254.add(chunked_t_comm, t_comm[t_comm.length - i - 1]);
         }
 
         BN254.G1Point memory ft_comm =
-            chunked_f_comm.sub(chunked_t_comm.scale_scalar(oracles_res.zeta1.sub(Scalar.one())));
+            BN254.sub(chunked_f_comm, BN254.scalarMul(chunked_t_comm, Scalar.sub(oracles_res.zeta1, 1)));
 
         // 7. List the polynomial commitments, and their associated evaluations,
         // that are associated to the aggregated evaluation proof in the proof:
@@ -158,8 +156,8 @@ library KimchiPartialVerifier {
             }
             PointEvaluations memory lookup_table = proof.evals.lookup_table;
 
-            Scalar.FE joint_combiner = oracles.joint_combiner_field;
-            Scalar.FE table_id_combiner = joint_combiner.pow(li.lookup_info.max_joint_size);
+            uint256 joint_combiner = oracles.joint_combiner_field;
+            uint256 table_id_combiner = Scalar.pow(joint_combiner, li.lookup_info.max_joint_size);
 
             BN254.G1Point memory table_comm = Proof.combine_table(
                 li.lookup_table,
@@ -223,7 +221,7 @@ library KimchiPartialVerifier {
             }
         }
 
-        Scalar.FE[2] memory evaluation_points = [oracles.zeta, oracles.zeta.mul(verifier_index.domain_gen)];
+        uint256[2] memory evaluation_points = [oracles.zeta, Scalar.mul(oracles.zeta, verifier_index.domain_gen)];
 
         return Proof.AggregatedEvaluationProof(evaluations, evaluation_points, oracles.v, proof.opening);
     }
@@ -231,7 +229,7 @@ library KimchiPartialVerifier {
     function public_commitment(
         VerifierIndexLib.VerifierIndex storage verifier_index,
         Commitment.URS storage urs,
-        Scalar.FE public_input
+        uint256 public_input
     ) internal view returns (BN254.G1Point memory) {
         if (verifier_index.domain_size < verifier_index.max_poly_size) {
             revert PolynomialsAreChunked(verifier_index.domain_size / verifier_index.max_poly_size);
@@ -246,34 +244,34 @@ library KimchiPartialVerifier {
             0x280c10e2f52fb4ab3ba21204b30df5b69560978e0911a5c673ad0558070f17c1,
             0x287897da7c8db33cd988a1328770890b2754155612290448267f9ca4c549cb39
         );
-        public_comm = lagrange_base.scale_scalar(public_input);
+        public_comm = BN254.scalarMul(lagrange_base, public_input);
         // negate the results of the MSM
-        public_comm = public_comm.neg();
+        public_comm = BN254.neg(public_comm);
 
-        public_comm = urs.h.add(public_comm);
+        public_comm = BN254.add(urs.h, public_comm);
 
         return public_comm;
     }
 
     function perm_scalars(
         Proof.ProofEvaluations memory e,
-        Scalar.FE beta,
-        Scalar.FE gamma,
+        uint256 beta,
+        uint256 gamma,
         AlphasIterator memory alphas,
-        Scalar.FE zkp_zeta
-    ) internal pure returns (Scalar.FE res) {
+        uint256 zkp_zeta
+    ) internal pure returns (uint256 res) {
         require(alphas.powers.length - alphas.current_index == 3, "not enough powers of alpha for permutation");
 
-        Scalar.FE alpha0 = alphas.it_next();
-        //Scalar.FE _alpha1 = alphas.it_next();
-        //Scalar.FE _alpha2 = alphas.it_next();
+        uint256 alpha0 = alphas.it_next();
+        //uint256 _alpha1 = alphas.it_next();
+        //uint256 _alpha2 = alphas.it_next();
 
-        res = e.z.zeta_omega.mul(beta).mul(alpha0).mul(zkp_zeta);
+        res = Scalar.mul(Scalar.mul(Scalar.mul(e.z.zeta_omega, beta), alpha0), zkp_zeta);
         uint256 len = Utils.min(e.w.length, e.s.length);
         for (uint256 i = 0; i < len; i++) {
-            Scalar.FE current = gamma.add(beta.mul(e.s[i].zeta)).add(e.w[i].zeta);
-            res = res.mul(current);
+            uint256 current = Scalar.add(Scalar.add(gamma, Scalar.mul(beta, e.s[i].zeta)), e.w[i].zeta);
+            res = Scalar.mul(res, current);
         }
-        res = res.neg();
+        res = Scalar.neg(res);
     }
 }

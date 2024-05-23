@@ -1,13 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
-import "./bn254/BN254.sol";
-import "./bn254/Fields.sol";
-import "./UtilsExternal.sol";
-
-using {BN254.add, BN254.neg, BN254.scalarMul} for BN254.G1Point;
-using {Scalar.pow, Scalar.inv, Scalar.add, Scalar.mul, Scalar.neg} for Scalar.FE;
-
 library Utils {
     /// @notice returns minimum between a and b.
     function min(uint256 a, uint256 b) internal pure returns (uint256) {

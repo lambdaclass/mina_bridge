@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity >=0.4.16 <0.9.0;
+pragma solidity ^0.8.0;
 
 import "./bn254/Fields.sol";
 import "./VerifierIndex.sol";
@@ -10,10 +10,10 @@ import "./Commitment.sol";
 import "./Proof.sol";
 import "./Polynomial.sol";
 import "./Constants.sol";
+import {Utils} from "./Utils.sol";
 
 library Oracles {
     using {to_field_with_length, to_field} for ScalarChallenge;
-    using {Scalar.neg, Scalar.add, Scalar.sub, Scalar.mul, Scalar.inv, Scalar.double, Scalar.pow} for Scalar.FE;
     using {instantiate, get_alphas} for Alphas;
     using {it_next} for AlphasIterator;
     using {
@@ -40,19 +40,19 @@ library Oracles {
         Proof.ProverProof memory proof,
         VerifierIndexLib.VerifierIndex storage index,
         BN254.G1Point memory public_comm,
-        Scalar.FE public_input,
+        uint256 public_input,
         bool is_public_input_set
     ) internal returns (Result memory) {
         uint256 chunk_size = index.domain_size < index.max_poly_size ? 1 : index.domain_size / index.max_poly_size;
 
-        (Base.FE _endo_q, Scalar.FE endo_r) = BN254.endo_coeffs_g1();
+        (uint256 _endo_q, uint256 endo_r) = BN254.endo_coeffs_g1();
 
         // 1. Setup the Fq-Sponge.
         KeccakSponge.Sponge memory base_sponge;
         base_sponge.reinit();
 
         // 2. Absorb the digest of the VerifierIndex.
-        Base.FE verifier_index_digest = VerifierIndexLib.verifier_digest(index);
+        uint256 verifier_index_digest = VerifierIndexLib.verifier_digest(index);
         base_sponge.absorb_base(verifier_index_digest);
 
         // TODO: 3. Absorb the commitment to the previous challenges.
@@ -75,8 +75,8 @@ library Oracles {
 
         // TODO: 7. Calculate joint_combiner
         // INFO: for our test proof this will be zero.
-        ScalarChallenge memory joint_combiner = ScalarChallenge(Scalar.zero());
-        Scalar.FE joint_combiner_field = joint_combiner.to_field(endo_r);
+        ScalarChallenge memory joint_combiner = ScalarChallenge(0);
+        uint256 joint_combiner_field = joint_combiner.to_field(endo_r);
 
         // 8. If lookup is used, absorb commitments to the sorted polys:
         for (uint256 i = 0; i < proof.commitments.lookup_sorted.length; i++) {
@@ -84,9 +84,9 @@ library Oracles {
         }
 
         // 9. Sample beta from the sponge
-        Scalar.FE beta = base_sponge.challenge_scalar();
+        uint256 beta = base_sponge.challenge_scalar();
         // 10. Sample gamma from the sponge
-        Scalar.FE gamma = base_sponge.challenge_scalar();
+        uint256 gamma = base_sponge.challenge_scalar();
 
         // 11. If using lookup, absorb the commitment to the aggregation lookup polynomial.
         base_sponge.absorb_g_single(proof.commitments.lookup_aggreg);
@@ -98,7 +98,7 @@ library Oracles {
         ScalarChallenge memory alpha_chal = ScalarChallenge(base_sponge.challenge_scalar());
 
         // 14. Derive alpha using the endomorphism
-        Scalar.FE alpha = alpha_chal.to_field(endo_r);
+        uint256 alpha = alpha_chal.to_field(endo_r);
 
         // 15. Enforce that the length of the $t$ commitment is of size 7.
         // INFO: We are assuming the prover is configured accordingly so this is always the case
@@ -111,14 +111,14 @@ library Oracles {
         // 17. Sample zeta prime
         ScalarChallenge memory zeta_chal = ScalarChallenge(base_sponge.challenge_scalar());
         // 18. Derive zeta using the endomorphism
-        Scalar.FE zeta = zeta_chal.to_field(endo_r);
+        uint256 zeta = zeta_chal.to_field(endo_r);
 
         // 19. Setup a scalar sponge
         KeccakSponge.Sponge memory scalar_sponge;
         scalar_sponge.reinit();
 
         // 20. Absorb the digest of the previous sponge
-        Scalar.FE digest = base_sponge.digest_scalar();
+        uint256 digest = base_sponge.digest_scalar();
         scalar_sponge.absorb_scalar(digest);
 
         // TODO: 21. Absorb the previous recursion challenges
@@ -127,13 +127,13 @@ library Oracles {
         scalar_sponge.absorb_scalar(Scalar.from(0x00C5D2460186F7233C927E7DB2DCC703C0E500B653CA82273B7BFAD8045D85A4));
 
         // often used values
-        Scalar.FE zeta1 = zeta.pow(index.domain_size);
-        Scalar.FE zetaw = zeta.mul(index.domain_gen);
-        Scalar.FE[] memory evaluation_points = new Scalar.FE[](2);
+        uint256 zeta1 = Scalar.pow(zeta, index.domain_size);
+        uint256 zetaw = Scalar.mul(zeta, index.domain_gen);
+        uint256[] memory evaluation_points = new uint256[](2);
         evaluation_points[0] = zeta;
         evaluation_points[1] = zetaw;
         PointEvaluations memory powers_of_eval_points_for_chunks =
-            PointEvaluations(zeta.pow(index.max_poly_size), zetaw.pow(index.max_poly_size));
+            PointEvaluations(Scalar.pow(zeta, index.max_poly_size), Scalar.pow(zetaw, index.max_poly_size));
 
         // TODO: 22. Compute evaluations for the previous recursion challenges
         // INFO: this isn't necessary for our current test proof
@@ -146,7 +146,7 @@ library Oracles {
 
         // evaluations of the public input
 
-        Scalar.FE[2] memory public_evals;
+        uint256[2] memory public_evals;
         if ((proof.evals.optional_field_flags & 1) == 1) {
             public_evals = [proof.evals.public_evals.zeta, proof.evals.public_evals.zeta_omega];
         } else if (chunk_size > 1) {
@@ -156,23 +156,24 @@ library Oracles {
 
             // INFO: w is an iterator over the elements of the domain, we want to take N elements
             // where N is the length of the public input.
-            Scalar.FE w = Scalar.one();
-            Scalar.FE[2] memory zeta_minus_x = [zeta.sub(w).inv(), zetaw.sub(w).inv()];
+            uint256 w = 1;
+            uint256[2] memory zeta_minus_x = [Scalar.inv(Scalar.sub(zeta, w)), Scalar.inv(Scalar.sub(zetaw, w))];
 
             // 23. Evaluate the negated public polynomial (if present) at $\zeta$ and $\zeta\omega$.
             // NOTE: this works only in the case when the poly segment size is not smaller than that of the domain.
-            Scalar.FE pe_zeta = Scalar.zero();
-            Scalar.FE size_inv = Scalar.from(index.domain_size).inv();
+            uint256 pe_zeta = 0;
+            uint256 size_inv = Scalar.inv(Scalar.from(index.domain_size));
             // pe_zeta = pe_zeta - l*p*w_i
-            pe_zeta = pe_zeta.add(zeta_minus_x[0].neg().mul(public_input).mul(w));
+            pe_zeta = Scalar.add(pe_zeta, Scalar.mul(Scalar.mul(Scalar.neg(zeta_minus_x[0]), public_input), w));
 
             // pe_zeta = pe_zeta * (zeta1 - 1) * domain_size_inv
-            pe_zeta = pe_zeta.mul(zeta1.sub(Scalar.one())).mul(size_inv);
+            pe_zeta = Scalar.mul(Scalar.mul(pe_zeta, Scalar.sub(zeta1, 1)), size_inv);
 
             // pe_zetaOmega = pe_zetaOmega - l*p*w_i
-            Scalar.FE pe_zetaOmega = zeta_minus_x[1].neg().mul(public_input).mul(w);
+            uint256 pe_zetaOmega = Scalar.mul(Scalar.mul(Scalar.neg(zeta_minus_x[1]), public_input), w);
             // pe_zetaOmega = pe_zetaOmega * (zetaw^(domain_size) - 1) * domain_size_inv
-            pe_zetaOmega = pe_zetaOmega.mul(zetaw.pow(index.domain_size).sub(Scalar.one())).mul(size_inv);
+            pe_zetaOmega =
+                Scalar.mul(pe_zetaOmega, Scalar.mul(Scalar.sub(Scalar.pow(zetaw, index.domain_size), 1), size_inv));
 
             public_evals = [pe_zeta, pe_zetaOmega];
         } else {
@@ -195,11 +196,11 @@ library Oracles {
 
         // 26. Sample v prime with the scalar sponge and derive v
         ScalarChallenge memory v_chal = ScalarChallenge(scalar_sponge.challenge_scalar());
-        Scalar.FE v = v_chal.to_field(endo_r);
+        uint256 v = v_chal.to_field(endo_r);
 
         // 27. Sample u prime with the scalar sponge and derive u
         ScalarChallenge memory u_chal = ScalarChallenge(scalar_sponge.challenge_scalar());
-        Scalar.FE u = u_chal.to_field(endo_r);
+        uint256 u = u_chal.to_field(endo_r);
 
         // 28. Create a list of all polynomials that have an evaluation proof
         //ProofEvaluations memory evals = proof.evals.combine_evals(powers_of_eval_points_for_chunks);
@@ -207,50 +208,59 @@ library Oracles {
         Proof.ProofEvaluations memory evals = proof.evals;
 
         // 29. Compute the evaluation of $ft(\zeta)$.
-        Scalar.FE permutation_vanishing_poly =
+        uint256 permutation_vanishing_poly =
             Polynomial.eval_vanishes_on_last_n_rows(index.domain_gen, index.domain_size, index.zk_rows, zeta);
-        Scalar.FE zeta1m1 = zeta1.sub(Scalar.one());
+        uint256 zeta1m1 = Scalar.sub(zeta1, 1);
 
         AlphasIterator memory alpha_pows = all_alphas.get_alphas(ArgumentType.Permutation, PERMUTATION_CONSTRAINTS);
-        Scalar.FE alpha0 = alpha_pows.it_next();
-        Scalar.FE alpha1 = alpha_pows.it_next();
-        Scalar.FE alpha2 = alpha_pows.it_next();
+        uint256 alpha0 = alpha_pows.it_next();
+        uint256 alpha1 = alpha_pows.it_next();
+        uint256 alpha2 = alpha_pows.it_next();
 
         // initial value
-        Scalar.FE ft_eval0 =
-            evals.w[PERMUTS - 1].zeta.add(gamma).mul(evals.z.zeta_omega).mul(alpha0).mul(permutation_vanishing_poly);
+        uint256 ft_eval0 = Scalar.mul(
+            Scalar.mul(Scalar.mul(Scalar.add(evals.w[PERMUTS - 1].zeta, gamma), evals.z.zeta_omega), alpha0),
+            permutation_vanishing_poly
+        );
 
         // map and reduction
         for (uint256 i = 0; i < PERMUTS - 1; i++) {
-            ft_eval0 = ft_eval0.mul(beta.mul(evals.s[i].zeta).add(evals.w[i].zeta).add(gamma)); // reduction
+            // reduction
+            ft_eval0 =
+                Scalar.mul(ft_eval0, Scalar.add(Scalar.add(Scalar.mul(beta, evals.s[i].zeta), evals.w[i].zeta), gamma));
         }
 
-        ft_eval0 = ft_eval0.sub(public_evals[0]);
+        ft_eval0 = Scalar.sub(ft_eval0, public_evals[0]);
 
         // initial value
-        Scalar.FE ev = alpha0.mul(permutation_vanishing_poly).mul(evals.z.zeta);
+        uint256 ev = Scalar.mul(Scalar.mul(alpha0, permutation_vanishing_poly), evals.z.zeta);
 
         // zip w and shift, map and reduction
         for (uint256 i = 0; i < Utils.min(evals.w.length, index.shift.length); i++) {
-            ev = ev.mul(gamma.add(beta.mul(zeta).mul(index.shift[i])).add(evals.w[i].zeta)); // reduction
+            ev = Scalar.mul(
+                ev, Scalar.add(Scalar.add(gamma, Scalar.mul(Scalar.mul(beta, zeta), index.shift[i])), evals.w[i].zeta)
+            ); // reduction
         }
-        ft_eval0 = ft_eval0.sub(ev);
+        ft_eval0 = Scalar.sub(ft_eval0, ev);
 
-        Scalar.FE numerator = zeta1m1.mul(alpha1).mul(zeta.sub(index.w)).add(
-            zeta1m1.mul(alpha2).mul(zeta.sub(Scalar.one()))
-        ).mul(Scalar.one().sub(evals.z.zeta));
-
-        Scalar.FE denominator = zeta.sub(index.w).mul(zeta.sub(Scalar.one())).inv();
-
-        ft_eval0 = ft_eval0.add(numerator.mul(denominator));
+        uint256 numerator = Scalar.mul(
+            Scalar.add(
+                Scalar.mul(Scalar.mul(zeta1m1, alpha1), Scalar.sub(zeta, index.w)),
+                Scalar.mul(Scalar.mul(zeta1m1, alpha2), Scalar.sub(zeta, 1))
+            ),
+            Scalar.sub(1, evals.z.zeta)
+        );
+        uint256 denominator = Scalar.inv(Scalar.mul(Scalar.sub(zeta, index.w), Scalar.sub(zeta, 1)));
+        ft_eval0 = Scalar.add(ft_eval0, Scalar.mul(numerator, denominator));
 
         ExprConstants memory constants =
             ExprConstants(alpha, beta, gamma, joint_combiner_field, index.endo, index.zk_rows);
 
-        Scalar.FE vanishing_eval =
+        uint256 vanishing_eval =
             PolishTokenEvaluation.evaluate_vanishing_polynomial(index.domain_gen, index.domain_size, zeta);
 
-        ft_eval0 = ft_eval0.sub(
+        ft_eval0 = Scalar.sub(
+            ft_eval0,
             PolishTokenEvaluation.evaluate(
                 index.linearization, index.domain_gen, index.domain_size, zeta, vanishing_eval, evals, constants
             )
@@ -277,73 +287,73 @@ library Oracles {
 
     struct RandomOracles {
         ScalarChallenge joint_combiner;
-        Scalar.FE joint_combiner_field;
-        Scalar.FE beta;
-        Scalar.FE gamma;
+        uint256 joint_combiner_field;
+        uint256 beta;
+        uint256 gamma;
         ScalarChallenge alpha_chal;
-        Scalar.FE alpha;
-        Scalar.FE zeta;
-        Scalar.FE v;
-        Scalar.FE u;
+        uint256 alpha;
+        uint256 zeta;
+        uint256 v;
+        uint256 u;
         ScalarChallenge zeta_chal;
         ScalarChallenge v_chal;
         ScalarChallenge u_chal;
-        Scalar.FE vanishing_eval;
+        uint256 vanishing_eval;
     }
 
     struct Result {
         // INFO: sponges and all_alphas are stored in storage
 
         // the digest of the scalar sponge
-        Scalar.FE digest;
+        uint256 digest;
         // challenges produced
         RandomOracles oracles;
         // public polynomial evaluations
-        Scalar.FE[2] public_evals;
+        uint256[2] public_evals;
         // zeta^n and (zeta * omega)^n
         PointEvaluations powers_of_eval_points_for_chunks;
         // pre-computed zeta^n
-        Scalar.FE zeta1;
+        uint256 zeta1;
         // the evaluation f(zeta) - t(zeta) * Z_H(zeta)
-        Scalar.FE ft_eval0;
+        uint256 ft_eval0;
     }
 
     struct ScalarChallenge {
-        Scalar.FE chal;
+        uint256 chal;
     }
 
-    function to_field_with_length(ScalarChallenge memory self, uint256 length_in_bits, Scalar.FE endo_coeff)
+    function to_field_with_length(ScalarChallenge memory self, uint256 length_in_bits, uint256 endo_coeff)
         internal
         pure
-        returns (Scalar.FE)
+        returns (uint256)
     {
-        uint256 r = Scalar.FE.unwrap(self.chal);
-        Scalar.FE a = Scalar.from(2);
-        Scalar.FE b = Scalar.from(2);
+        uint256 r = self.chal;
+        uint256 a = Scalar.from(2);
+        uint256 b = Scalar.from(2);
 
-        Scalar.FE one = Scalar.from(1);
-        Scalar.FE neg_one = one.neg();
+        uint256 one = Scalar.from(1);
+        uint256 neg_one = Scalar.neg(1);
 
         // (0..length_in_bits / 2).rev()
         for (uint256 _i = length_in_bits / 2; _i >= 1; _i--) {
             uint256 i = _i - 1;
-            a = a.double();
-            b = b.double();
+            a = Scalar.double(a);
+            b = Scalar.double(b);
 
             uint256 r_2i = (r >> (2 * i)) & 1;
-            Scalar.FE s = r_2i == 0 ? neg_one : one;
+            uint256 s = r_2i == 0 ? neg_one : one;
 
             if ((r >> (2 * i + 1)) & 1 == 0) {
-                b = b.add(s);
+                b = Scalar.add(b, s);
             } else {
-                a = a.add(s);
+                a = Scalar.add(a, s);
             }
         }
 
-        return a.mul(endo_coeff).add(b);
+        return Scalar.add(Scalar.mul(a, endo_coeff), b);
     }
 
-    function to_field(ScalarChallenge memory self, Scalar.FE endo_coeff) internal pure returns (Scalar.FE) {
+    function to_field(ScalarChallenge memory self, uint256 endo_coeff) internal pure returns (uint256) {
         uint64 length_in_bits = 64 * CHALLENGE_LENGTH_IN_LIMBS;
         return self.to_field_with_length(length_in_bits, endo_coeff);
     }

@@ -2,13 +2,15 @@
 pragma solidity ^0.8.0;
 
 import {BN254} from "./BN254.sol";
-import {Aux} from "./Fields.sol";
 
+error G2PointNotInCurve(); // G2 point is not on curve
+error BN256modInvStaticcallFailed(); // BN256 _modInv staticcall failed
 /**
  * @title Elliptic curve operations on twist points for alt_bn128
  * @author Mustafa Al-Bassam (mus@musalbas.com)
  * @dev Homepage: https://github.com/musalbas/solidity-BN256G2
  */
+
 library BN256G2 {
     uint256 internal constant FIELD_MODULUS = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47;
     uint256 internal constant TWISTBX = 0x2b149d40ceb8aaae81be18991be06ac3b5b4c5e559dbefa33267e6dc24a138e5;
@@ -101,7 +103,9 @@ library BN256G2 {
             pt1yx = 1;
             pt1zx = 0;
         } else {
-            require(_isOnCurve(pt1xx, pt1xy, pt1yx, pt1yy), "G2 point is not on curve");
+            if (!_isOnCurve(pt1xx, pt1xy, pt1yx, pt1yy)) {
+                revert G2PointNotInCurve();
+            }
         }
 
         uint256[6] memory pt2 = _ECTwistMulJacobian(s, pt1xx, pt1xy, pt1yx, pt1yy, pt1zx, 0);
@@ -151,28 +155,6 @@ library BN256G2 {
 
     // FIXME: we should clean up this library and use the `Fields.sol` functions.
 
-    function _FQ1Sqrt(uint256 a) internal view returns (uint256) {
-        // p = 3 mod 4, so the residue is a^( (p+1)/4 )
-        (bool success, bytes memory result_bytes) =
-            address(0x05).staticcall(abi.encode(0x20, 0x20, 0x20, a, (FIELD_MODULUS + 1) / 4, FIELD_MODULUS));
-
-        require(success, "FQ1Sqrt modexp precompile call failed");
-        return abi.decode(result_bytes, (uint256));
-    }
-
-    // @returns true if a is a quadratic residue (there exists x such that x^2 = a)
-    function _FQ1EulerCriterion(uint256 a) internal view returns (bool) {
-        // p = 3 mod 4, so the residue is a^( (p-1)/2 )
-        (bool success, bytes memory result_bytes) =
-            address(0x05).staticcall(abi.encode(0x20, 0x20, 0x20, a, (FIELD_MODULUS - 1) / 2, FIELD_MODULUS));
-
-        require(success, "FQ1Sqrt modexp precompile call failed");
-        uint256 crit = abi.decode(result_bytes, (uint256));
-
-        require(crit == 1 || crit == FIELD_MODULUS - 1, "Euler\'s criterion failed");
-        return crit == 1;
-    }
-
     function _FQ1Add(uint256 a, uint256 b) internal pure returns (uint256 res) {
         assembly {
             res := addmod(a, b, FIELD_MODULUS)
@@ -199,19 +181,6 @@ library BN256G2 {
         }
     }
 
-    function _FQ1Inv(uint256 a) internal pure returns (uint256) {
-        require(a != 0, "tried to get inverse of 0 in BN254G2 lib");
-        (uint256 gcd, uint256 inverse) = Aux.xgcd(a, FIELD_MODULUS);
-        require(gcd == 1, "gcd not 1");
-
-        return inverse;
-    }
-
-    function _FQ1Div(uint256 a, uint256 b) internal pure returns (uint256) {
-        uint256 b_inv = _FQ1Inv(b);
-        return _FQ1Mul(a, b_inv);
-    }
-
     function _isOnCurve(uint256 xx, uint256 xy, uint256 yx, uint256 yy) internal pure returns (bool) {
         uint256 yyx;
         uint256 yyy;
@@ -234,7 +203,9 @@ library BN256G2 {
             address(0x05).staticcall(abi.encode(length_of_base, length_of_exponent, length_of_modulus, a, n - 2, n));
 
         result = abi.decode(result_bytes, (uint256));
-        require(success, "BN256 _modInv staticcall failed");
+        if (!success) {
+            revert BN256modInvStaticcallFailed();
+        }
     }
 
     function _fromJacobian(uint256 pt1xx, uint256 pt1xy, uint256 pt1yx, uint256 pt1yy, uint256 pt1zx, uint256 pt1zy)
