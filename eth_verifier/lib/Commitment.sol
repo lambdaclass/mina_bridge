@@ -41,22 +41,12 @@ library Commitment {
         for (uint256 i = 0; i < evaluations.length; i++) {
             BN254.G1Point memory commitment = evaluations[i].commitment;
             uint256[2] memory inner_evaluations = evaluations[i].evaluations;
-            uint256 commitment_steps = 1;
-            uint256 evaluation_steps = 1;
-            uint256 steps = commitment_steps > evaluation_steps ? commitment_steps : evaluation_steps;
-
-            for (uint256 j = 0; j < steps; j++) {
-                if (j < commitment_steps) {
-                    BN254.G1Point memory comm_ch = commitment;
-                    poly_commitment = poly_commitment.add(comm_ch.scalarMul(Scalar.mul(rand_base, xi_i)));
-                }
-                if (j < evaluation_steps) {
-                    for (uint256 k = 0; k < inner_evaluations.length; k++) {
-                        acc[k] = Scalar.add(acc[k], Scalar.mul(inner_evaluations[k], xi_i));
-                    }
-                }
-                xi_i = Scalar.mul(xi_i, polyscale);
+            BN254.G1Point memory comm_ch = commitment;
+            poly_commitment = poly_commitment.add(comm_ch.scalarMul(Scalar.mul(rand_base, xi_i)));
+            for (uint256 k = 0; k < inner_evaluations.length; k++) {
+                acc[k] = Scalar.add(acc[k], Scalar.mul(inner_evaluations[k], xi_i));
             }
+            xi_i = Scalar.mul(xi_i, polyscale);
             // TODO: degree bound, shifted part
         }
     }
