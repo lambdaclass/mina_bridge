@@ -27,18 +27,18 @@ library Commitment {
         view
         returns (BN254.G1Point memory poly_commitment, uint256[] memory acc)
     {
-        uint256 xi_i = 1;
-        poly_commitment = BN254.point_at_inf();
+        uint256 xi_i = polyscale;
+        poly_commitment = evaluations[0].commitment.scalarMul(rand_base);
         uint256 num_evals = evaluations.length != 0 ? evaluations[0].evaluations.length : 0;
         acc = new uint256[](num_evals);
         for (uint256 i = 0; i < num_evals; i++) {
-            acc[i] = 0;
+            acc[i] = evaluations[0].evaluations[i];
         }
 
         // WARN: the actual length might be more than evaluations.length
         // but for our test proof it will not.
 
-        for (uint256 i = 0; i < evaluations.length; i++) {
+        for (uint256 i = 1; i < evaluations.length; i++) {
             BN254.G1Point memory commitment = evaluations[i].commitment;
             uint256[2] memory inner_evaluations = evaluations[i].evaluations;
             BN254.G1Point memory comm_ch = commitment;
