@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./expr/Expr.sol";
 import "./Commitment.sol";
-import "./bn254/BN254.sol";
+import {BN254} from "./bn254/BN254.sol";
 import "./bn254/Fields.sol";
 import "./VerifierIndex.sol";
 import "./Constants.sol";
@@ -292,7 +292,7 @@ library Proof {
             index += 1;
         }
 
-        return Commitment.msm(commitments, scalars);
+        return BN254.multiScalarMul(commitments, scalars);
     }
 
     function is_field_set(uint256 optional_field_flags, uint256 flag_pos) internal pure returns (bool) {

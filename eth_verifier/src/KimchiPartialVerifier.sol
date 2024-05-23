@@ -61,7 +61,7 @@ library KimchiPartialVerifier {
         uint256[] memory scalars = new uint256[](1);
         scalars[0] = perm_scalars(evals, oracles.beta, oracles.gamma, alphas, permutation_vanishing_polynomial);
 
-        BN254.G1Point memory f_comm = Commitment.msm(commitments, scalars);
+        BN254.G1Point memory f_comm = BN254.multiScalarMul(commitments, scalars);
 
         // 6. Compute the chunked commitment of ft
         uint256 zeta_to_srs_len = Scalar.pow(oracles.zeta, verifier_index.max_poly_size);

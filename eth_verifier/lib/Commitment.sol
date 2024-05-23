@@ -22,15 +22,6 @@ library Commitment {
         BN254.G1Point shifted;
     }
 
-    // @notice Execute a simple multi-scalar multiplication with points on G1
-    function msm(BN254.G1Point[] memory points, uint256[] memory scalars)
-        internal
-        view
-        returns (BN254.G1Point memory result)
-    {
-        result = BN254.multiScalarMul(points, scalars);
-    }
-
     function combine_commitments_and_evaluations(Evaluation[] memory evaluations, uint256 polyscale, uint256 rand_base)
         internal
         view

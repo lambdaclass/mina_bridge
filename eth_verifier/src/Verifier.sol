@@ -35,15 +35,11 @@ contract KimchiVerifier {
 
     function setup() public {
         // Setup URS
-        urs.g = new BN254.G1Point[](3);
+        urs.g = new BN254.G1Point[](2);
         urs.g[0] = BN254.G1Point(1, 2);
         urs.g[1] = BN254.G1Point(
             0x0988F35DB6971FD77C8F9AFDAE27F7FB355577586DE4C517537D17882F9B3F34,
             0x23BAFFA63FAFC8C67007390A6E6DD52860B4A8AE95F49905D52CDB2C3B4CB203
-        );
-        urs.g[2] = BN254.G1Point(
-            0x0D4B868BD01F4E7A548F7EB25B8804890153E13D05AB0783F4A9FABE91A4434A,
-            0x054E363BD9AAF55F8354328C3D7D1E515665B0875BFAA639E3E654D291CF9BC6
         );
         urs.h = BN254.G1Point(
             0x259C9A9126385A54663D11F284944E91215DF44F4A502100B46BC91CCF373772,
@@ -168,7 +164,7 @@ contract KimchiVerifier {
         uint256[] memory evals,
         Commitment.URS memory full_urs
     ) public view returns (BN254.G1Point memory) {
-        uint256[] memory eval_poly_coeffs = new uint256[](3);
+        uint256[] memory eval_poly_coeffs = new uint256[](2);
 
         // The evaluation polynomial e(x) is the poly that evaluates to evals[i]
         // in the evaluation point i, for all i. Used for making the numerator
@@ -191,6 +187,6 @@ contract KimchiVerifier {
         eval_poly_coeffs[0] = b;
         eval_poly_coeffs[1] = a;
 
-        return Commitment.msm(full_urs.g, eval_poly_coeffs);
+        return BN254.multiScalarMul(full_urs.g, eval_poly_coeffs);
     }
 }
