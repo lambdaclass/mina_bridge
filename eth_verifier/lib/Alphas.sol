@@ -49,7 +49,7 @@ function register(Alphas storage self, ArgumentType ty, uint256 powers) {
 /// @notice instantiates the ranges with an actual field element `alpha`.
 /// @notice once you call this function, you cannot register new constraints.
 function instantiate(Alphas storage self, uint256 alpha) {
-    uint256 last_power = Scalar.one();
+    uint256 last_power = 1;
     uint256[] memory alphas = new uint256[](self.next_power);
     alphas[0] = last_power;
 

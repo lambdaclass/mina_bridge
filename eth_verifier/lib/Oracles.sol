@@ -75,7 +75,7 @@ library Oracles {
 
         // TODO: 7. Calculate joint_combiner
         // INFO: for our test proof this will be zero.
-        ScalarChallenge memory joint_combiner = ScalarChallenge(Scalar.zero());
+        ScalarChallenge memory joint_combiner = ScalarChallenge(0);
         uint256 joint_combiner_field = joint_combiner.to_field(endo_r);
 
         // 8. If lookup is used, absorb commitments to the sorted polys:
@@ -156,12 +156,12 @@ library Oracles {
 
             // INFO: w is an iterator over the elements of the domain, we want to take N elements
             // where N is the length of the public input.
-            uint256 w = Scalar.one();
+            uint256 w = 1;
             uint256[2] memory zeta_minus_x = [Scalar.inv(Scalar.sub(zeta, w)), Scalar.inv(Scalar.sub(zetaw, w))];
 
             // 23. Evaluate the negated public polynomial (if present) at $\zeta$ and $\zeta\omega$.
             // NOTE: this works only in the case when the poly segment size is not smaller than that of the domain.
-            uint256 pe_zeta = Scalar.zero();
+            uint256 pe_zeta = 0;
             uint256 size_inv = Scalar.inv(Scalar.from(index.domain_size));
             // pe_zeta = pe_zeta - l*p*w_i
             pe_zeta = Scalar.add(pe_zeta, Scalar.mul(Scalar.mul(Scalar.neg(zeta_minus_x[0]), public_input), w));

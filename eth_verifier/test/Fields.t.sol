@@ -13,17 +13,13 @@ using {Oracles.to_field} for Oracles.ScalarChallenge;
 contract FieldsTest is Test {
     function test_add_base() public {
         uint256 q = Base.MODULUS - 1;
-        uint256 one = 1;
-
-        uint256 q_plus_one = Base.add(q, one);
+        uint256 q_plus_one = Base.add(q, 1);
         assertEq(q_plus_one, 0, "p != 0 mod p");
     }
 
     function test_add_scalar() public {
         uint256 q = Scalar.MODULUS - 1;
-        uint256 one = 1;
-
-        uint256 q_plus_one = Scalar.add(q, one);
+        uint256 q_plus_one = Scalar.add(q, 1);
         assertEq(q_plus_one, 0, "p != 0 mod p");
     }
 

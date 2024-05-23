@@ -27,12 +27,12 @@ library Commitment {
         view
         returns (BN254.G1Point memory poly_commitment, uint256[] memory acc)
     {
-        uint256 xi_i = Scalar.one();
+        uint256 xi_i = 1;
         poly_commitment = BN254.point_at_inf();
         uint256 num_evals = evaluations.length != 0 ? evaluations[0].evaluations.length : 0;
         acc = new uint256[](num_evals);
         for (uint256 i = 0; i < num_evals; i++) {
-            acc[i] = Scalar.zero();
+            acc[i] = 0;
         }
 
         // WARN: the actual length might be more than evaluations.length

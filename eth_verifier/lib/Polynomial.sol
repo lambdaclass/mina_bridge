@@ -13,7 +13,7 @@ library Polynomial {
         returns (uint256)
     {
         if (i == 0) {
-            return Scalar.one();
+            return 1;
         }
         uint256 term = Scalar.pow(domain_gen, domain_size - i);
         uint256 acc = Scalar.sub(x, term);
