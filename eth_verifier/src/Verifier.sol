@@ -22,6 +22,7 @@ contract KimchiVerifier {
 
     error IncorrectPublicInputLength();
     error PolynomialsAreChunked(uint256 chunk_size);
+    error MoreThanTwoEvals(); // more than two evals
 
     Proof.ProverProof internal proof;
     VerifierIndexLib.VerifierIndex internal verifier_index;
@@ -170,7 +171,7 @@ contract KimchiVerifier {
         // in the evaluation point i, for all i. Used for making the numerator
         // evaluate to zero at the evaluation points (by substraction).
 
-        require(evals.length == 2, "more than two evals");
+        if (evals.length > 2) revert MoreThanTwoEvals();
 
         uint256 x1 = evaluation_points[0];
         uint256 x2 = evaluation_points[1];

@@ -24,6 +24,7 @@ using {Proof.get_column_eval} for Proof.ProofEvaluations;
 library KimchiPartialVerifier {
     error IncorrectPublicInputLength();
     error PolynomialsAreChunked(uint256 chunk_size);
+    error NotEnoughPowersOfAlphaForPermutation(); // not enough powers of alpha for permutation
 
     // This takes Kimchi's `to_batch()` as reference.
     function partial_verify(
@@ -260,7 +261,9 @@ library KimchiPartialVerifier {
         AlphasIterator memory alphas,
         uint256 zkp_zeta
     ) internal pure returns (uint256 res) {
-        require(alphas.powers.length - alphas.current_index == 3, "not enough powers of alpha for permutation");
+        if (alphas.powers.length - alphas.current_index < 3) {
+            revert NotEnoughPowersOfAlphaForPermutation();
+        }
 
         uint256 alpha0 = alphas.it_next();
         //uint256 _alpha1 = alphas.it_next();

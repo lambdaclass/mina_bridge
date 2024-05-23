@@ -10,6 +10,8 @@ import {Polynomial} from "../Polynomial.sol";
 import {PointEvaluations} from "../Evaluations.sol";
 
 library PolishTokenEvaluation {
+    error PolishTokenEvaluationError(); // Polish token stack didn't evaluate fully
+
     function evaluate(
         Linearization storage linearization,
         uint256 domain_gen,
@@ -194,7 +196,9 @@ library PolishTokenEvaluation {
             revert("unhandled polish token variant");
         }
 
-        require(stack_next == 1, "Polish token stack didn't evaluate fully");
+        if (stack_next != 1) {
+            revert PolishTokenEvaluationError();
+        }
         return stack[0];
     }
     // @notice Compute the ith unnormalized lagrange basis
