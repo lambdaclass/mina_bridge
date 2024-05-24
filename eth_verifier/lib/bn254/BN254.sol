@@ -183,7 +183,7 @@ library BN254 {
         input[1] = bases[0].y;
         input[2] = scalars[0];
         assembly ("memory-safe") {
-            success := staticcall(gas(), 7, input, 0x80, r, 0x60)
+            success := staticcall(sub(gas(), 2000), 7, input, 0x80, r, 0x60)
             // Use "invalid" to make gas estimation work
             switch success
             case 0 { revert(0, 0) }
@@ -198,7 +198,7 @@ library BN254 {
             input[1] = bases[i].y;
             input[2] = scalars[i];
             assembly ("memory-safe") {
-                success := staticcall(gas(), 7, input, 0x80, r_aux, 0x60)
+                success := staticcall(sub(gas(), 2000), 7, input, 0x80, r_aux, 0x60)
                 // Use "invalid" to make gas estimation work
                 switch success
                 case 0 { revert(0, 0) }
