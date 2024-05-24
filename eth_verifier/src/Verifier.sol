@@ -122,7 +122,7 @@ contract KimchiVerifier {
     }
 
     function divisor_commitment(uint256[2] memory evaluation_points)
-        public
+        internal
         view
         returns (BN254.G2Point memory result)
     {
@@ -164,7 +164,7 @@ contract KimchiVerifier {
         uint256[2] memory evaluation_points,
         uint256[] memory evals,
         Commitment.URS memory full_urs
-    ) public view returns (BN254.G1Point memory) {
+    ) internal view returns (BN254.G1Point memory) {
         uint256[] memory eval_poly_coeffs = new uint256[](2);
 
         // The evaluation polynomial e(x) is the poly that evaluates to evals[i]

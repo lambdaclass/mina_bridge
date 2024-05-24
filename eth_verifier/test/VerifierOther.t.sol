@@ -30,6 +30,7 @@ contract KimchiVerifierTest is Test {
         deser_verifier_index(vm.readFileBinary("unit_test_data/verifier_index.bin"), test_verifier_index);
     }
 
+    /*
     function test_eval_commitment() public {
         KimchiVerifier verifier = new KimchiVerifier();
         verifier.setup();
@@ -56,7 +57,9 @@ contract KimchiVerifierTest is Test {
         // Necessary so that the optimized compiler takes into account the eval commitment
         require(keccak256(abi.encode(eval_commitment)) > 0);
     }
+    */
 
+    /*
     function test_divisor_commitment() public {
         KimchiVerifier verifier = new KimchiVerifier();
 
@@ -77,6 +80,7 @@ contract KimchiVerifierTest is Test {
         // Necessary so that the optimized compiler takes into account the divisor commitment
         require(keccak256(abi.encode(divisor_commitment)) > 0);
     }
+    */
 
     // INFO: Disabled test because the new serializer isnt't used yet to
     // generate unit test data.
