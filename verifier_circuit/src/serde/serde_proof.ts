@@ -1,9 +1,9 @@
 import { OpeningProof } from "../poly_commitment/opening_proof.js";
-import { LookupEvaluations, PointEvaluations, ProofEvaluations, ProverCommitments, ProverProof, RecursionChallenge } from "../prover/prover.js"
+import { PointEvaluations, ProofEvaluations, ProverCommitments, ProverProof, RecursionChallenge } from "../prover/prover.js"
 import { deserPolyComm, PolyCommJSON, deserGroup, GroupJSON } from "./serde_index.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 
-type PointEvals = PointEvaluations<ForeignScalar[]>;
+type PointEvals = PointEvaluations;
 
 export type PointEvalsJSON = string[][];
 
@@ -82,7 +82,7 @@ export function deserPointEval(json: PointEvalsJSON): PointEvals {
 /**
  * Deserializes scalar proof evaluations from JSON
  */
-export function deserProofEvals(proofEvalsJson: ProofEvalsJSON, publicInputJson: PointEvalsJSON): ProofEvaluations<PointEvals> {
+export function deserProofEvals(proofEvalsJson: ProofEvalsJSON, publicInputJson: PointEvalsJSON): ProofEvaluations {
     const [
         w,
         s,

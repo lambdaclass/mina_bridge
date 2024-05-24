@@ -93,8 +93,8 @@ export class Variable {
         this.row = row;
     }
 
-    evaluate(evals: ProofEvaluations<PointEvaluations<[ForeignScalar]>>): ForeignScalar {
-        let point_evaluations: PointEvaluations<[ForeignScalar]> | undefined = undefined;
+    evaluate(evals: ProofEvaluations): ForeignScalar {
+        let point_evaluations: PointEvaluations | undefined = undefined;
         switch (this.col.kind) {
             case "witness": {
                 point_evaluations = evals.w[this.col.index];
@@ -143,8 +143,8 @@ export class Variable {
             }
         }
         return this.row === CurrOrNext.Curr
-            ? point_evaluations!.zeta[0]
-            : point_evaluations!.zetaOmega[0];
+            ? point_evaluations!.zeta
+            : point_evaluations!.zetaOmega;
     }
 }
 
@@ -224,7 +224,7 @@ export namespace PolishToken {
     export function evaluate(
         toks: PolishToken[],
         pt: ForeignScalar,
-        evals: ProofEvaluations<PointEvaluations<[ForeignScalar]>>,
+        evals: ProofEvaluations,
         domain_gen: ForeignScalar,
         domain_size: number,
         c: Constants<ForeignScalar>

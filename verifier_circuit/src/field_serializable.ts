@@ -62,7 +62,7 @@ export function lookupCommitmentsFromFields(fields: FieldBn254[], offset: number
  * Returns `[evals, newOffset]` where `newOffset` is `offset + length`, where `length` is the size of `PointEvaluations` 
  * in fields.
  */
-export function pointEvaluationsFromFields(fields: FieldBn254[], offset: number): [PointEvaluations<ForeignScalar[]>, number] {
+export function pointEvaluationsFromFields(fields: FieldBn254[], offset: number): [PointEvaluations, number] {
     let pointEvaluations = PointEvaluations.fromFields(fields);
     let newOffset = offset + pointEvaluationsSizeInFields(pointEvaluations);
 
@@ -73,7 +73,7 @@ export function pointEvaluationsFromFields(fields: FieldBn254[], offset: number)
  * Returns `[evals, newOffset]` where `newOffset` is `offset + length`, where `length` is the size of `ProofEvaluations` 
  * in fields.
  */
-export function proofEvaluationsFromFields(fields: FieldBn254[], offset: number): [ProofEvaluations<PointEvaluations<ForeignScalar[]>>, number] {
+export function proofEvaluationsFromFields(fields: FieldBn254[], offset: number): [ProofEvaluations, number] {
     let proofEvaluations = ProofEvaluations.fromFields(fields);
     let newOffset = offset + proofEvaluationsSizeInFields(proofEvaluations);
 
@@ -177,7 +177,7 @@ export function pallasCommArrayFromFields(fields: FieldBn254[], offset: number):
  * Returns `[evals, newOffset]` where `newOffset` is `offset + length`, where `length`is the length of the field array 
  * used for deserializing.
  */
-export function pointEvaluationsArrayFromFields(fields: FieldBn254[], offset: number): [PointEvaluations<ForeignScalar[]>[], number] {
+export function pointEvaluationsArrayFromFields(fields: FieldBn254[], offset: number): [PointEvaluations[], number] {
     let fieldsLength = 0;
     ProvableBn254.asProver(() => {
         fieldsLength = Number(fields[offset].toBigInt());
@@ -241,7 +241,7 @@ export function optionalPallasFromFields(fields: FieldBn254[], offset: number): 
  * Otherwise it returns `[evals, newOffset]` where `newOffset` is `offset + length`, where `length` is the size of 
  * `PointEvaluations` in fields.
  */
-export function optionalPointEvaluationsFromFields(fields: FieldBn254[], offset: number): [PointEvaluations<ForeignScalar[]> | undefined, number] {
+export function optionalPointEvaluationsFromFields(fields: FieldBn254[], offset: number): [PointEvaluations | undefined, number] {
     let offsetWithFlag = offset + 1;
 
     if (fields[offset].equals(0)) {
@@ -273,7 +273,7 @@ export function optionalScalarArrayFromFields(fields: FieldBn254[], offset: numb
     return scalarArrayFromFields(fields, offsetWithFlag);
 }
 
-export function optionalPointEvaluationsArrayFromFields(fields: FieldBn254[], offset: number): [PointEvaluations<ForeignScalar[]>[] | undefined, number] {
+export function optionalPointEvaluationsArrayFromFields(fields: FieldBn254[], offset: number): [PointEvaluations[] | undefined, number] {
     let offsetWithFlag = offset + 1;
 
     if (fields[offset].equals(0)) {
@@ -304,14 +304,14 @@ function lookupCommitmentsSizeInFields(lookupCommitments: LookupCommitments) {
     return sortedSize + aggregSize + runtimeSize;
 }
 
-function pointEvaluationsSizeInFields(pointEvaluations: PointEvaluations<ForeignScalar[]>) {
-    let zetaSize = scalarArraySizeInFields(pointEvaluations.zeta);
-    let zetaOmegaSize = scalarArraySizeInFields(pointEvaluations.zetaOmega);
+function pointEvaluationsSizeInFields(pointEvaluations: PointEvaluations) {
+    let zetaSize = ForeignScalar.sizeInFields();
+    let zetaOmegaSize = ForeignScalar.sizeInFields();
 
     return zetaSize + zetaOmegaSize;
 }
 
-function proofEvaluationsSizeInFields(proofEvaluations: ProofEvaluations<PointEvaluations<ForeignScalar[]>>) {
+function proofEvaluationsSizeInFields(proofEvaluations: ProofEvaluations) {
     let wSize = pointEvaluationsArraySizeInFields(proofEvaluations.w);
     let zSize = pointEvaluationsSizeInFields(proofEvaluations.z);
     let sSize = pointEvaluationsSizeInFields(proofEvaluations.z);
@@ -370,7 +370,7 @@ function pallasCommArraySizeInFields(pallasComms: PolyComm<ForeignPallas>[]) {
     return 1 + pallasCommsSize;
 }
 
-function pointEvaluationsArraySizeInFields(pointEvaluations: PointEvaluations<ForeignScalar[]>[]) {
+function pointEvaluationsArraySizeInFields(pointEvaluations: PointEvaluations[]) {
     let pointEvaluationsSize = pointEvaluations.map((item) => pointEvaluationsSizeInFields(item)).reduce((acc, size) => acc + size, 0);
     // `PointEvaluations array length field` + `PointEvaluations array`
     return 1 + pointEvaluationsSize;
@@ -378,7 +378,7 @@ function pointEvaluationsArraySizeInFields(pointEvaluations: PointEvaluations<Fo
 
 //   - Option size functions
 
-function optionalPointEvaluationsSizeInFields(pointEvaluations?: PointEvaluations<ForeignScalar[]>) {
+function optionalPointEvaluationsSizeInFields(pointEvaluations?: PointEvaluations) {
     // It adds 1 because we need to take into account the optional flag field
     return 1 + (typeof pointEvaluations === "undefined" ? 0 : pointEvaluationsSizeInFields(pointEvaluations));
 }
@@ -390,7 +390,7 @@ function optionalLookupCommitmentsSizeInFields(lookupCommitments?: LookupCommitm
 
 //   - Option array size functions
 
-function optionalPointEvaluationsArraySizeInFields(pointEvaluations?: PointEvaluations<ForeignScalar[]>[]) {
+function optionalPointEvaluationsArraySizeInFields(pointEvaluations?: PointEvaluations[]) {
     // It adds 1 because we need to take into account the optional flag field
     return 1 + (typeof pointEvaluations === "undefined" ? 0 : pointEvaluationsArraySizeInFields(pointEvaluations));
 }
