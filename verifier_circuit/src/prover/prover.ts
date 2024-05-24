@@ -455,7 +455,7 @@ export class ProverProof {
     }
 
     toFields() {
-        ProverProof.toFields(this);
+        return ProverProof.toFields(this);
     }
 
     static toFields(one: ProverProof) {

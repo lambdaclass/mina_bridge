@@ -9,10 +9,7 @@ import { Alphas } from "../alphas.js"
 import { ForeignPallas } from "../foreign_fields/foreign_pallas.js"
 import { LookupFeatures, LookupInfo, LookupPatterns, LookupSelectors } from "../lookups/lookups.js"
 
-export interface PolyCommJSON {
-    unshifted: GroupJSON[]
-    shifted: null
-}
+export type PolyCommJSON = GroupJSON[];
 
 export interface AlphasJSON {
 
@@ -162,12 +159,8 @@ export function deserGroup(json: GroupJSON): ForeignPallas {
 }
 
 export function deserPolyComm(json: PolyCommJSON): PolyComm<ForeignPallas> {
-    const unshifted = json.unshifted.map(deserGroup);
-    let shifted = undefined;
-    if (json.shifted != null) {
-        shifted = json.shifted;
-    }
-    return new PolyComm<ForeignPallas>(unshifted, shifted);
+    const unshifted = json.map(deserGroup);
+    return new PolyComm<ForeignPallas>(unshifted, undefined);
 }
 
 export function deserGateType(json: GateTypeJSON): GateType {

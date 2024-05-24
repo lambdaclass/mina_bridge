@@ -2,6 +2,8 @@ import { OpeningProof } from "../poly_commitment/opening_proof.js";
 import { PointEvaluations, ProofEvaluations, ProverCommitments, ProverProof, RecursionChallenge } from "../prover/prover.js"
 import { deserPolyComm, PolyCommJSON, deserGroup, GroupJSON } from "./serde_index.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
+import { PolyComm } from "../poly_commitment/commitment.js";
+import { ForeignPallas } from "../foreign_fields/foreign_pallas.js";
 
 type PointEvals = PointEvaluations;
 
@@ -40,8 +42,8 @@ export interface ProofEvalsJSON {
 }
 
 interface ProverCommitmentsJSON {
-    w_comm: PolyCommJSON[]
-    z_comm: PolyCommJSON
+    w_comm: GroupJSON[]
+    z_comm: GroupJSON
     t_comm: PolyCommJSON
 }
 
@@ -72,11 +74,21 @@ export function deserDecScalar(str: string): ForeignScalar {
  * Deserializes a scalar point evaluation from JSON
  */
 export function deserPointEval(json: PointEvalsJSON): PointEvals {
-    const zeta = json[0].map(deserHexScalar);
-    const zetaOmega = json[1].map(deserHexScalar);
-    let ret = new PointEvaluations(zeta, zetaOmega);
+    let zeta;
+    let zetaOmega;
 
-    return ret;
+    if (Array.isArray(json[0])) {
+        zeta = json[0].map(deserHexScalar)[0];
+    } else {
+        zeta = deserHexScalar(json[0]);
+    }
+    if (Array.isArray(json[1])) {
+        zetaOmega = json[1].map(deserHexScalar)[0];
+    } else {
+        zetaOmega = deserHexScalar(json[1]);
+    }
+
+    return new PointEvaluations(zeta, zetaOmega);
 }
 
 /**
@@ -180,15 +192,15 @@ export function deserProofEvals(proofEvalsJson: ProofEvalsJSON, publicInputJson:
 
 export function deserProverCommitments(json: ProverCommitmentsJSON): ProverCommitments {
     return new ProverCommitments(
-        json.w_comm.map(deserPolyComm),
-        deserPolyComm(json.z_comm),
+        json.w_comm.map((item) => new PolyComm<ForeignPallas>([deserGroup(item)], undefined)),
+        new PolyComm<ForeignPallas>([deserGroup((json.z_comm))], undefined),
         deserPolyComm(json.t_comm)
     );
 }
 
 
 export interface OpeningProofJSON {
-    lr: GroupJSON[][] // [GroupJSON, GroupJSON]
+    lr: GroupJSON[][] // [GroupJSON, GroupJSON][]
     delta: GroupJSON
     z_1: string
     z_2: string
@@ -205,25 +217,17 @@ export function deserOpeningProof(json: OpeningProofJSON): OpeningProof {
     )
 }
 
-interface ProverProofJSON {
-    evals: ProofEvalsJSON
-    prev_challenges: RecursionChallenge[]
-    commitments: ProverCommitmentsJSON
-    ft_eval1: string
-    proof: OpeningProofJSON
-}
-
 interface PrevEvalsJSON {
     evals: { evals: ProofEvalsJSON, public_input: PointEvalsJSON }
     ft_eval1: string
 }
 
-interface ProtocolStateProofJSON {
+interface ProverProofJSON {
     prev_evals: PrevEvalsJSON,
     proof: { bulletproof: OpeningProofJSON, commitments: ProverCommitmentsJSON }
 }
 
-export function deserProverProof(json: ProtocolStateProofJSON): ProverProof {
+export function deserProverProof(json: ProverProofJSON): ProverProof {
     const { prev_evals, proof } = json;
     const { evals: { evals, public_input }, ft_eval1 } = prev_evals;
     const { bulletproof, commitments } = proof;
