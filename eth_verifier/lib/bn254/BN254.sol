@@ -170,13 +170,43 @@ library BN254 {
         view
         returns (G1Point memory r)
     {
+        bool success;
+        uint256[3] memory input;
+        G1Point memory r_aux;
+
         if (scalars.length != bases.length) {
             revert LengthDoesNotMatch();
         }
 
-        r = scalarMul(bases[0], scalars[0]);
+        // compute scalarMul inline for the first element
+        input[0] = bases[0].x;
+        input[1] = bases[0].y;
+        input[2] = scalars[0];
+        assembly ("memory-safe") {
+            success := staticcall(sub(gas(), 2000), 7, input, 0x80, r, 0x60)
+            // Use "invalid" to make gas estimation work
+            switch success
+            case 0 { revert(0, 0) }
+        }
+        if (!success) {
+            revert ScalarMulFailed();
+        }
+
         for (uint256 i = 1; i < scalars.length; i++) {
-            r = add(r, scalarMul(bases[i], scalars[i]));
+            // compute scalarMul inline for the first element
+            input[0] = bases[i].x;
+            input[1] = bases[i].y;
+            input[2] = scalars[i];
+            assembly ("memory-safe") {
+                success := staticcall(sub(gas(), 2000), 7, input, 0x80, r_aux, 0x60)
+                // Use "invalid" to make gas estimation work
+                switch success
+                case 0 { revert(0, 0) }
+            }
+            if (!success) {
+                revert ScalarMulFailed();
+            }
+            r = add(r, r_aux);
         }
     }
 
