@@ -17,12 +17,18 @@ import {deser_linearization, deser_literal_tokens} from "../lib/deserialize/Line
 import {KimchiPartialVerifier} from "./KimchiPartialVerifier.sol";
 
 contract KimchiVerifier {
+    uint256 internal constant G2_X0 = 0x198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2;
+    uint256 internal constant G2_X1 = 0x1800deef121f1e76426a00665e5c4479674322d4f75edadd46debd5cd992f6ed;
+    uint256 internal constant G2_Y0 = 0x090689d0585ff075ec9e99ad690c3395bc4b313370b38ef355acdadcd122975b;
+    uint256 internal constant G2_Y1 = 0x12c85ea5db8c6deb4aab71808dcb408fe3d1e7690c43d37b4ce6cc0166fa7daa;
+
     using {get_alphas, register} for Alphas;
     using {it_next} for AlphasIterator;
 
     error IncorrectPublicInputLength();
     error PolynomialsAreChunked(uint256 chunk_size);
     error MoreThanTwoEvals(); // more than two evals
+    error PairingCheckFailed(); // Bn254: pairing check failed!
 
     Proof.ProverProof internal proof;
     VerifierIndexLib.VerifierIndex internal verifier_index;
@@ -117,8 +123,34 @@ contract KimchiVerifier {
         BN254.G1Point memory numerator =
             BN254.sub(poly_commitment, BN254.add(eval_commitment(evaluation_points, evals, urs), blinding_commitment));
 
+        uint256 out;
+        bool success;
         // quotient commitment needs to be negated. See the doc of pairingProd2().
-        return BN254.pairingProd2(numerator, BN254.P2(), BN254.neg(quotient), divisor);
+        quotient = BN254.neg(quotient);
+
+        assembly ("memory-safe") {
+            let mPtr := mload(0x40)
+            mstore(mPtr, mload(numerator))
+            mstore(add(mPtr, 0x20), mload(add(numerator, 0x20)))
+
+            mstore(add(mPtr, 0x40), G2_X0)
+            mstore(add(mPtr, 0x60), G2_X1)
+            mstore(add(mPtr, 0x80), G2_Y0)
+            mstore(add(mPtr, 0xa0), G2_Y1)
+
+            mstore(add(mPtr, 0xc0), mload(quotient))
+            mstore(add(mPtr, 0xe0), mload(add(quotient, 0x20)))
+            mstore(add(mPtr, 0x100), mload(divisor))
+            mstore(add(mPtr, 0x120), mload(add(divisor, 0x20)))
+            mstore(add(mPtr, 0x140), mload(add(divisor, 0x40)))
+            mstore(add(mPtr, 0x160), mload(add(divisor, 0x60)))
+            success := staticcall(gas(), 8, mPtr, 0x180, 0x00, 0x20)
+            out := mload(0x00)
+        }
+        if (!success) {
+            revert PairingCheckFailed();
+        }
+        return (out != 0);
     }
 
     function divisor_commitment(uint256[2] memory evaluation_points)
