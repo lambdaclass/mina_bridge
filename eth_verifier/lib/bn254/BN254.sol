@@ -146,7 +146,7 @@ library BN254 {
 
     /// @return r the product of a point on G1 and a scalar, i.e.
     /// p == p.mul(1) and p.add(p) == p.mul(2) for all points p.
-    function scalarMul(G1Point memory p, uint256 s) public view returns (G1Point memory r) {
+    function scalarMul(G1Point memory p, uint256 s) internal view returns (G1Point memory r) {
         uint256[3] memory input;
         input[0] = p.x;
         input[1] = p.y;
