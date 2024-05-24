@@ -118,7 +118,7 @@ contract KimchiVerifier {
             BN254.sub(poly_commitment, BN254.add(eval_commitment(evaluation_points, evals, urs), blinding_commitment));
 
         // quotient commitment needs to be negated. See the doc of pairingProd2().
-        return BN254.pairingProd2(numerator, BN254.P2(), BN254.neg(quotient), divisor);
+        return BN254.pairingProd2(numerator, BN254.neg(quotient), divisor);
     }
 
     function divisor_commitment(uint256[2] memory evaluation_points)
