@@ -27,36 +27,26 @@ library Commitment {
         view
         returns (BN254.G1Point memory poly_commitment, uint256[] memory acc)
     {
-        uint256 xi_i = 1;
-        poly_commitment = BN254.point_at_inf();
+        uint256 xi_i = polyscale;
+        poly_commitment = evaluations[0].commitment.scalarMul(rand_base);
         uint256 num_evals = evaluations.length != 0 ? evaluations[0].evaluations.length : 0;
         acc = new uint256[](num_evals);
         for (uint256 i = 0; i < num_evals; i++) {
-            acc[i] = 0;
+            acc[i] = evaluations[0].evaluations[i];
         }
 
         // WARN: the actual length might be more than evaluations.length
         // but for our test proof it will not.
 
-        for (uint256 i = 0; i < evaluations.length; i++) {
+        for (uint256 i = 1; i < evaluations.length; i++) {
             BN254.G1Point memory commitment = evaluations[i].commitment;
             uint256[2] memory inner_evaluations = evaluations[i].evaluations;
-            uint256 commitment_steps = 1;
-            uint256 evaluation_steps = 1;
-            uint256 steps = commitment_steps > evaluation_steps ? commitment_steps : evaluation_steps;
-
-            for (uint256 j = 0; j < steps; j++) {
-                if (j < commitment_steps) {
-                    BN254.G1Point memory comm_ch = commitment;
-                    poly_commitment = poly_commitment.add(comm_ch.scalarMul(Scalar.mul(rand_base, xi_i)));
-                }
-                if (j < evaluation_steps) {
-                    for (uint256 k = 0; k < inner_evaluations.length; k++) {
-                        acc[k] = Scalar.add(acc[k], Scalar.mul(inner_evaluations[k], xi_i));
-                    }
-                }
-                xi_i = Scalar.mul(xi_i, polyscale);
+            BN254.G1Point memory comm_ch = commitment;
+            poly_commitment = poly_commitment.add(comm_ch.scalarMul(Scalar.mul(rand_base, xi_i)));
+            for (uint256 k = 0; k < inner_evaluations.length; k++) {
+                acc[k] = Scalar.add(acc[k], Scalar.mul(inner_evaluations[k], xi_i));
             }
+            xi_i = Scalar.mul(xi_i, polyscale);
             // TODO: degree bound, shifted part
         }
     }
