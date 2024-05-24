@@ -62,6 +62,8 @@ function instantiate(Alphas storage self, uint256 alpha) {
 
 error NotEnoughPowersOfAlpha(uint256 asked_for, uint256 available);
 error NonInstantiatedPowersOfAlpha();
+error PowersOfAlphaIteratorOutOfBounds(); // powers of alpha iterator out of bounds
+
 /// @notice retrieves the powers of alpha, upperbounded by `num`
 
 function get_alphas(Alphas storage self, ArgumentType ty, uint256 num) view returns (AlphasIterator memory) {
@@ -102,7 +104,9 @@ struct AlphasIterator {
 }
 
 function it_next(AlphasIterator memory self) pure returns (uint256) {
-    require(self.current_index < self.powers.length, "powers of alpha iterator out of bounds");
+    if (self.current_index >= self.powers.length) {
+        revert PowersOfAlphaIteratorOutOfBounds();
+    }
     return self.powers[self.current_index++];
 }
 

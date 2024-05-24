@@ -12,6 +12,8 @@ contract Verify is Script {
     bytes linearization_serialized;
     bytes public_input_serialized;
 
+    error VerificationFailed();
+
     function run() public {
         linearization_literals_serialized = vm.readFileBinary("linearization_literals.bin");
         verifier_index_serialized = vm.readFileBinary("verifier_index.bin");
@@ -34,7 +36,9 @@ contract Verify is Script {
 
         bool success = verifier.full_verify();
 
-        require(success, "Verification failed.");
+        if (!success) {
+            revert VerificationFailed();
+        }
 
         vm.stopBroadcast();
     }

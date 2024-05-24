@@ -11,6 +11,8 @@ contract KimchiVerifierTest is Test {
     bytes linearization_literals_serialized;
     bytes public_input_serialized;
 
+    error VerificationFailed();
+
     KimchiVerifier global_verifier;
 
     function setUp() public {
@@ -64,7 +66,9 @@ contract KimchiVerifierTest is Test {
         verifier.store_public_input(public_input_serialized);
 
         bool success = verifier.full_verify();
-        require(success, "Verification failed!");
+        if (!success) {
+            revert VerificationFailed();
+        }
     }
 
     function test_deserialize_and_full_verify_existing_verifier() public {
@@ -73,7 +77,9 @@ contract KimchiVerifierTest is Test {
         global_verifier.store_public_input(public_input_serialized);
 
         bool success = global_verifier.full_verify();
-        require(success, "Verification failed!");
+        if (!success) {
+            revert VerificationFailed();
+        }
     }
 
     function test_partial_verify_and_store() public {
@@ -83,7 +89,9 @@ contract KimchiVerifierTest is Test {
     function test_final_verify() public {
         global_verifier.final_verify_and_store();
         bool success = global_verifier.is_last_proof_valid();
-        require(success, "Verification failed!");
+        if (!success) {
+            revert VerificationFailed();
+        }
     }
 
     function test_multiple_setups_and_verifications() public {
@@ -103,7 +111,9 @@ contract KimchiVerifierTest is Test {
                 verifier.store_public_input(public_input_serialized);
 
                 bool success = verifier.full_verify();
-                require(success, "Verification failed!");
+                if (!success) {
+                    revert VerificationFailed();
+                }
             }
         }
     }
