@@ -1,7 +1,7 @@
 import { Polynomial } from "../polynomial.js"
 import { FieldBn254, PoseidonBn254, ProvableBn254, Scalar } from "o1js"
 import { PolyComm, bPoly, bPolyCoefficients } from "../poly_commitment/commitment.js";
-import { arrayToFields, scalarFromFields, optionalToFields, pallasCommFromFields, pallasCommArrayFromFields, lookupCommitmentsFromFields, pointEvaluationsArrayFromFields, pointEvaluationsFromFields, optionalPointEvaluationsFromFields, optionalPointEvaluationsArrayFromFields } from "../field_serializable.js";
+import { arrayToFields, scalarFromFields, pallasCommFromFields, pallasCommArrayFromFields, pointEvaluationsArrayFromFields, pointEvaluationsFromFields, optionalPointEvaluationsFromFields, optionalPointEvaluationsArrayFromFields } from "../field_serializable.js";
 import { ScalarChallenge } from "../verifier/scalar_challenge.js";
 import { fp_sponge_initial_state, fp_sponge_params, fq_sponge_initial_state, fq_sponge_params, Sponge } from "../verifier/sponge.js";
 import { Verifier, VerifierIndex } from "../verifier/verifier.js";
@@ -1112,9 +1112,9 @@ export class LookupCommitments {
     }
 
     static fromFields(fields: FieldBn254[]) {
-        let [sorted, aggregOffset] = pallasCommArrayFromFields(fields, 0);
-        let [aggreg, runtimeOffset] = pallasCommFromFields(fields, aggregOffset);
-        let [runtime, _] = pallasCommFromFields(fields, runtimeOffset);
+        let [sorted, aggregOffset] = pallasCommArrayFromFields(fields, 1, 1, 0);
+        let [aggreg, runtimeOffset] = pallasCommFromFields(fields, 1, aggregOffset);
+        let [runtime, _] = pallasCommFromFields(fields, 1, runtimeOffset);
 
         return new LookupCommitments(sorted, aggreg, runtime);
     }
@@ -1146,21 +1146,21 @@ export class ProverCommitments {
     }
 
     static fromFields(fields: FieldBn254[]) {
-        let [wComm, zCommOffset] = pallasCommArrayFromFields(fields, 0);
-        let [zComm, tCommOffset] = pallasCommFromFields(fields, zCommOffset);
-        let [tComm, lookupOffset] = pallasCommFromFields(fields, tCommOffset);
-        let [lookup, _] = lookupCommitmentsFromFields(fields, lookupOffset);
+        let [wComm, zCommOffset] = pallasCommArrayFromFields(fields, 15, 1, 0);
+        let [zComm, tCommOffset] = pallasCommFromFields(fields, 1, zCommOffset);
+        let [tComm, _] = pallasCommFromFields(fields, 7, tCommOffset);
+        //TODO: Add lookup
 
-        return new ProverCommitments(wComm, zComm, tComm, lookup);
+        return new ProverCommitments(wComm, zComm, tComm);
     }
 
     toFields() {
         let wComm = arrayToFields(this.wComm);
         let zComm = this.zComm.toFields();
         let tComm = this.tComm.toFields();
-        let lookup = optionalToFields(this.lookup);
+        //TODO: Add lookup
 
-        return [...wComm, ...zComm, ...tComm, ...lookup];
+        return [...wComm, ...zComm, ...tComm];
     }
 
     static sizeInFields() {

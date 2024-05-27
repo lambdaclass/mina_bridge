@@ -143,18 +143,18 @@ export class PolyComm<A extends FieldSerializable> {
         return new PolyComm([res], comm.shifted);
     }
 
-    static fromFields(fields: FieldBn254[]): PolyComm<ForeignPallas> {
-        let [unshifted, shiftedOffset] = pallasArrayFromFields(fields, 0);
-        let [shifted, _] = optionalPallasFromFields(fields, shiftedOffset)
+    static fromFields(fields: FieldBn254[], length: number): PolyComm<ForeignPallas> {
+        let [unshifted, _] = pallasArrayFromFields(fields, length, 0);
 
-        return new PolyComm(unshifted, shifted);
+        return new PolyComm(unshifted);
     }
 
     toFields() {
-        let unshifted = arrayToFields(this.unshifted);
-        let shifted = optionalToFields(this.shifted);
+        return arrayToFields(this.unshifted);
+    }
 
-        return [...unshifted, ...shifted];
+    static sizeInFields(length: number) {
+        return ForeignPallas.sizeInFields() * length;
     }
 }
 

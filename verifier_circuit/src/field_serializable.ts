@@ -40,9 +40,9 @@ export function pallasFromFields(fields: FieldBn254[], offset: number): [Foreign
  * Returns `[commitment, newOffset]` where `newOffset` is `offset + length`, where `length` is the size of `PolyComm` 
  * in fields.
  */
-export function pallasCommFromFields(fields: FieldBn254[], offset: number): [PolyComm<ForeignPallas>, number] {
-    let pallasComm = PolyComm.fromFields(fields);
-    let newOffset = offset + pallasCommSizeInFields(pallasComm);
+export function pallasCommFromFields(fields: FieldBn254[], length: number, offset: number): [PolyComm<ForeignPallas>, number] {
+    let pallasComm = PolyComm.fromFields(fields, length);
+    let newOffset = offset + PolyComm.sizeInFields(length);
 
     return [pallasComm, newOffset];
 }
@@ -132,15 +132,10 @@ export function scalarArrayFromFields(fields: FieldBn254[], offset: number): [Fo
  * Returns `[points, newOffset]` where `newOffset` is `offset + length`, where `length` is the length of the field array 
  * used for deserializing.
  */
-export function pallasArrayFromFields(fields: FieldBn254[], offset: number): [ForeignPallas[], number] {
-    let fieldsLength = 0;
-    ProvableBn254.asProver(() => {
-        fieldsLength = Number(fields[offset].toBigInt());
-    });
-    let offsetWithLength = offset + 1;
-    let cursor = offsetWithLength;
+export function pallasArrayFromFields(fields: FieldBn254[], length: number, offset: number): [ForeignPallas[], number] {
+    let cursor = offset;
     let foreignPallasArray = [];
-    for (let i = 0; i < fieldsLength; i++) {
+    for (let i = 0; i < length; i++) {
         let [foreignPallas, newStart] = pallasFromFields(fields, cursor);
         foreignPallasArray.push(foreignPallas);
         cursor = newStart;
@@ -153,16 +148,11 @@ export function pallasArrayFromFields(fields: FieldBn254[], offset: number): [Fo
  * Returns `[commitments, newOffset]` where `newOffset` is `offset + length`, where `length` is the length of the field array 
  * used for deserializing.
  */
-export function pallasCommArrayFromFields(fields: FieldBn254[], offset: number): [PolyComm<ForeignPallas>[], number] {
-    let fieldsLength = 0;
-    ProvableBn254.asProver(() => {
-        fieldsLength = Number(fields[offset].toBigInt());
-    });
-    let offsetWithLength = offset + 1;
-    let cursor = offsetWithLength;
+export function pallasCommArrayFromFields(fields: FieldBn254[], arrayLength: number, commLength: number, offset: number): [PolyComm<ForeignPallas>[], number] {
+    let cursor = offset;
     let pallasCommArray = [];
-    for (let i = 0; i < fieldsLength; i++) {
-        let [foreignPallas, newStart] = pallasCommFromFields(fields, cursor);
+    for (let i = 0; i < arrayLength; i++) {
+        let [foreignPallas, newStart] = pallasCommFromFields(fields, commLength, cursor);
         pallasCommArray.push(foreignPallas);
         cursor = newStart;
     }
