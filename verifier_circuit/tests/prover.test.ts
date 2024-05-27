@@ -1,8 +1,10 @@
 import { ScalarChallenge } from "../src/verifier/scalar_challenge.js";
 import { ForeignScalar } from "../src/foreign_fields/foreign_scalar";
 import { test, expect } from "@jest/globals";
-import { PointEvaluations, ProofEvaluations, ProverCommitments } from "../src/prover/prover.js";
+import { PointEvaluations, ProofEvaluations, ProverCommitments, ProverProof } from "../src/prover/prover.js";
 import { createPolyComm, stringifyWithBigInt } from "./helpers.js";
+import { OpeningProof } from "../src/poly_commitment/opening_proof.js";
+import { ForeignPallas } from "../src/foreign_fields/foreign_pallas.js";
 
 // This test has a twin in the 'verifier_circuit_tests' Rust crate.
 test("toFieldWithLength", () => {
@@ -27,6 +29,35 @@ test("pointEvaluationsToFields", () => {
 });
 
 test("proofEvaluationsWithNullsToFields", () => {
+    const original = createProofEvaluations();
+
+    const deserialized = ProofEvaluations.fromFields(original.toFields());
+
+    expect(stringifyWithBigInt(deserialized)).toEqual(stringifyWithBigInt(original));
+});
+
+test("proverCommitmentsToFields", () => {
+    const original = createProverCommitments();
+
+    const deserialized = ProverCommitments.fromFields(original.toFields());
+
+    expect(stringifyWithBigInt(deserialized)).toEqual(stringifyWithBigInt(original));
+});
+
+test("proverProofToFields", () => {
+    const evals = createProofEvaluations();
+    const commitments = createProverCommitments();
+    const ftEval1 = ForeignScalar.from(42).assertAlmostReduced();
+    const openingProof = createOpeningProof();
+
+    const original = new ProverProof(evals, [], commitments, ftEval1, openingProof);
+
+    const deserialized = ProverProof.fromFields(original.toFields());
+
+    expect(stringifyWithBigInt(deserialized)).toEqual(stringifyWithBigInt(original));
+});
+
+function createProofEvaluations() {
     const w = createPointEvaluationsArray(15);
     const z = createPointEvaluations();
     const s = createPointEvaluationsArray(6);
@@ -38,7 +69,8 @@ test("proofEvaluationsWithNullsToFields", () => {
     const emulSelector = createPointEvaluations();
     const endomulScalarSelector = createPointEvaluations();
 
-    const original = new ProofEvaluations(w,
+    return new ProofEvaluations(
+        w,
         z,
         s,
         coefficients,
@@ -49,23 +81,25 @@ test("proofEvaluationsWithNullsToFields", () => {
         emulSelector,
         endomulScalarSelector
     );
+}
 
-    const deserialized = ProofEvaluations.fromFields(original.toFields());
-
-    expect(stringifyWithBigInt(deserialized)).toEqual(stringifyWithBigInt(original));
-});
-
-test("proverCommitmentsToFields", () => {
+function createProverCommitments() {
     const wComm = Array(15).fill(createPolyComm(1));
     const zComm = createPolyComm(1);
     const tComm = createPolyComm(7);
 
-    const original = new ProverCommitments(wComm, zComm, tComm);
+    return new ProverCommitments(wComm, zComm, tComm);
+}
 
-    const deserialized = ProverCommitments.fromFields(original.toFields());
+function createOpeningProof() {
+    const lr = Array(15).fill([ForeignPallas.generator, ForeignPallas.generator]);
+    const delta = ForeignPallas.generator.scale(2) as ForeignPallas;
+    const z1 = ForeignScalar.from(80).assertAlmostReduced();
+    const z2 = ForeignScalar.from(64).assertAlmostReduced();
+    const sg = ForeignPallas.generator as ForeignPallas;
 
-    expect(stringifyWithBigInt(deserialized)).toEqual(stringifyWithBigInt(original));
-});
+    return new OpeningProof(lr, delta, z1, z2, sg);
+}
 
 function createPointEvaluations() {
     const zeta = ForeignScalar.from(42).assertAlmostReduced();
