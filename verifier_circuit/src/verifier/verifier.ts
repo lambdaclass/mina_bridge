@@ -17,7 +17,8 @@ import { deserVerifierIndex } from "../serde/serde_index.js";
 import { ForeignPallas, pallasZero } from '../foreign_fields/foreign_pallas.js';
 import { isErr, isOk, unwrap, VerifierResult, verifierOk } from '../error.js';
 import { finalVerify, BWParameters } from "./commitment.js";
-import { ProverProof } from '../prover/prover.js';
+import { PointEvaluations, ProofEvaluations, ProverCommitments, ProverProof } from '../prover/prover.js';
+import { OpeningProof } from '../poly_commitment/opening_proof.js';
 
 let steps: bigint[][];
 try {
@@ -216,11 +217,11 @@ export class Verifier extends CircuitBn254 {
 
     @circuitMainBn254
     static main(@publicBn254 proofHash: FieldBn254) {
-        // FIXME: This witness is too big and is causing o1js to fail with an out of memory error
-        let proof = ProvableBn254.witness(ProverProof, () => {
+        let proof = this.#dummyProof();
+        ProvableBn254.asProver(() => {
             let proverProofFields: string[] = JSON.parse(readFileSync("./src/prover_proof_fields.json", "utf-8"));
 
-            return ProverProof.fromFields(proverProofFields.map(FieldBn254))
+            proof = ProverProof.fromFields(proverProofFields.map(FieldBn254));
         });
         proofHash.assertEquals(proof.hash());
 
@@ -261,5 +262,16 @@ export class Verifier extends CircuitBn254 {
         }
 
         return result;
+    }
+
+    static #dummyProof() {
+        let scalar = ForeignScalar.from(42);
+        let point = ForeignPallas.generator as ForeignPallas;
+        let pointEvals = new PointEvaluations(scalar, scalar);
+        let evals = new ProofEvaluations([], pointEvals, [], [], pointEvals, pointEvals, pointEvals, pointEvals, pointEvals, pointEvals);
+        let polyComm = new PolyComm([]);
+        let commitments = new ProverCommitments([], polyComm, polyComm);
+        let proof = new OpeningProof([], point, scalar, scalar, point);
+        return new ProverProof(evals, [], commitments, scalar, proof);
     }
 }
