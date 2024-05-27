@@ -104,10 +104,7 @@ export function openingProofFromFields(fields: FieldBn254[], offset: number): [O
 //   - Array deserialization functions
 
 export function arrayToFields(input: FieldSerializable[]) {
-    let inputLength = FieldBn254(input.length);
-    let fields = input.map((item) => item.toFields()).reduce((acc, fields) => acc.concat(fields), []);
-
-    return [inputLength, ...fields];
+    return input.map((item) => item.toFields()).reduce((acc, fields) => acc.concat(fields), []);
 }
 
 /**
@@ -174,18 +171,13 @@ export function pallasCommArrayFromFields(fields: FieldBn254[], offset: number):
 }
 
 /**
- * Returns `[evals, newOffset]` where `newOffset` is `offset + length`, where `length`is the length of the field array 
+ * Returns `[evals, newOffset]` where `newOffset` is `offset + length`, where `length` is the length of the field array 
  * used for deserializing.
  */
-export function pointEvaluationsArrayFromFields(fields: FieldBn254[], offset: number): [PointEvaluations[], number] {
-    let fieldsLength = 0;
-    ProvableBn254.asProver(() => {
-        fieldsLength = Number(fields[offset].toBigInt());
-    });
-    let offsetWithLength = offset + 1;
-    let cursor = offsetWithLength;
+export function pointEvaluationsArrayFromFields(fields: FieldBn254[], length: number, offset: number): [PointEvaluations[], number] {
+    let cursor = offset;
     let pallasCommArray = [];
-    for (let i = 0; i < fieldsLength; i++) {
+    for (let i = 0; i < length; i++) {
         let [foreignPallas, newStart] = pointEvaluationsFromFields(fields, cursor);
         pallasCommArray.push(foreignPallas);
         cursor = newStart;
@@ -273,14 +265,14 @@ export function optionalScalarArrayFromFields(fields: FieldBn254[], offset: numb
     return scalarArrayFromFields(fields, offsetWithFlag);
 }
 
-export function optionalPointEvaluationsArrayFromFields(fields: FieldBn254[], offset: number): [PointEvaluations[] | undefined, number] {
+export function optionalPointEvaluationsArrayFromFields(fields: FieldBn254[], length: number, offset: number): [PointEvaluations[] | undefined, number] {
     let offsetWithFlag = offset + 1;
 
     if (fields[offset].equals(0)) {
         return [undefined, offsetWithFlag];
     }
 
-    return pointEvaluationsArrayFromFields(fields, offsetWithFlag);
+    return pointEvaluationsArrayFromFields(fields, length, offsetWithFlag);
 }
 
 // - Size functions

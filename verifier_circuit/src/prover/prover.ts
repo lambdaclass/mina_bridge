@@ -790,11 +790,23 @@ export class ProofEvaluations {
         }
     }
 
+    static #wLength() {
+        return 15;
+    }
+
+    static #sLength() {
+        return 6;
+    }
+
+    static #coefficientsLength() {
+        return 15;
+    }
+
     static fromFields(fields: FieldBn254[]): ProofEvaluations {
-        let [w, zOffset] = pointEvaluationsArrayFromFields(fields, 0);
+        let [w, zOffset] = pointEvaluationsArrayFromFields(fields, this.#wLength(), 0);
         let [z, sOffset] = pointEvaluationsFromFields(fields, zOffset);
-        let [s, coefficientsOffset] = pointEvaluationsArrayFromFields(fields, sOffset);
-        let [coefficients, genericSelectorOffset] = pointEvaluationsArrayFromFields(fields, coefficientsOffset);
+        let [s, coefficientsOffset] = pointEvaluationsArrayFromFields(fields, this.#sLength(), sOffset);
+        let [coefficients, genericSelectorOffset] = pointEvaluationsArrayFromFields(fields, this.#coefficientsLength(), coefficientsOffset);
         let [genericSelector, poseidonSelectorOffset] = pointEvaluationsFromFields(fields, genericSelectorOffset);
         let [poseidonSelector, completeAddSelectorOffset] = pointEvaluationsFromFields(fields, poseidonSelectorOffset);
         let [completeAddSelector, mulSelectorOffset] = pointEvaluationsFromFields(fields, completeAddSelectorOffset);
@@ -810,7 +822,8 @@ export class ProofEvaluations {
         let [rotSelector, lookupAggregationOffset] = optionalPointEvaluationsFromFields(fields, rotSelectorOffset);
         let [lookupAggregation, lookupTableOffset] = optionalPointEvaluationsFromFields(fields, lookupAggregationOffset);
         let [lookupTable, lookupSortedOffset] = optionalPointEvaluationsFromFields(fields, lookupTableOffset);
-        let [lookupSorted, runtimeLookupTableOffset] = optionalPointEvaluationsArrayFromFields(fields, lookupSortedOffset);
+        // TODO: Check `lookupSorted` length
+        let [lookupSorted, runtimeLookupTableOffset] = optionalPointEvaluationsArrayFromFields(fields, 0, lookupSortedOffset);
         let [runtimeLookupTable, runtimeLookupTableSelectorOffset] = optionalPointEvaluationsFromFields(fields, runtimeLookupTableOffset);
         let [runtimeLookupTableSelector, xorLookupSelectorOffset] = optionalPointEvaluationsFromFields(fields, runtimeLookupTableSelectorOffset);
         let [xorLookupSelector, lookupGateLookupSelectorOffset] = optionalPointEvaluationsFromFields(fields, xorLookupSelectorOffset);
@@ -907,10 +920,10 @@ export class ProofEvaluations {
     }
 
     static sizeInFields() {
-        const wSize = 15 * PointEvaluations.sizeInFields();
+        const wSize = this.#wLength() * PointEvaluations.sizeInFields();
         const zSize = PointEvaluations.sizeInFields();
-        const sSize = 6 * PointEvaluations.sizeInFields();
-        const coefficientsSize = 15 * PointEvaluations.sizeInFields();
+        const sSize = this.#sLength() * PointEvaluations.sizeInFields();
+        const coefficientsSize = this.#coefficientsLength() * PointEvaluations.sizeInFields();
         const genericSelectorSize = PointEvaluations.sizeInFields();
         const poseidonSelectorSize = PointEvaluations.sizeInFields();
         const completeAddSelectorSize = PointEvaluations.sizeInFields();
@@ -975,7 +988,7 @@ export class PointEvaluations {
         this.zetaOmega = zetaOmega;
     }
 
-    static fromFields(fields: FieldBn254[]): PointEvaluations {
+    static fromFields(fields: FieldBn254[]) {
         let [zeta, zetaOmegaOffset] = scalarFromFields(fields, 0);
         let [zetaOmega, _] = scalarFromFields(fields, zetaOmegaOffset);
 
