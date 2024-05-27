@@ -931,28 +931,31 @@ export class ProofEvaluations {
         const mulSelectorSize = PointEvaluations.sizeInFields();
         const emulSelectorSize = PointEvaluations.sizeInFields();
         const endomulScalarSelectorSize = PointEvaluations.sizeInFields();
-        const publicInputSize = PointEvaluations.sizeInFields();
+        const publicInputSize = 1 + PointEvaluations.sizeInFields();
         // TODO: Check the proof fields size defined above with a proof that has non-null values
-        const rangeCheck0SelectorSize = PointEvaluations.sizeInFields();
-        const rangeCheck1SelectorSize = PointEvaluations.sizeInFields();
-        const foreignFieldAddSelectorSize = PointEvaluations.sizeInFields();
-        const foreignFieldMulSelectorSize = PointEvaluations.sizeInFields();
-        const xorSelectorSize = PointEvaluations.sizeInFields();
-        const rotSelectorSize = PointEvaluations.sizeInFields();
-        const lookupAggregationSize = PointEvaluations.sizeInFields();
-        const lookupTableSize = PointEvaluations.sizeInFields();
-        const lookupTableSelectorSize = PointEvaluations.sizeInFields();
-        const xorLookupSelectorSize = PointEvaluations.sizeInFields();
-        const lookupGateLookupSelectorSize = PointEvaluations.sizeInFields();
-        const rangeCheckLookupSelectorSize = PointEvaluations.sizeInFields();
-        const foreignFieldMulLookupSelectorSize = PointEvaluations.sizeInFields();
+        const rangeCheck0SelectorSize = 1 + PointEvaluations.sizeInFields();
+        const rangeCheck1SelectorSize = 1 + PointEvaluations.sizeInFields();
+        const foreignFieldAddSelectorSize = 1 + PointEvaluations.sizeInFields();
+        const foreignFieldMulSelectorSize = 1 + PointEvaluations.sizeInFields();
+        const xorSelectorSize = 1 + PointEvaluations.sizeInFields();
+        const rotSelectorSize = 1 + PointEvaluations.sizeInFields();
+        const lookupAggregationSize = 1 + PointEvaluations.sizeInFields();
+        const lookupTableSize = 1 + PointEvaluations.sizeInFields();
+        // TODO: Check `lookupSorted` length
+        const lookupSortedSize = 1;
+        const runtimeLookupTableSize = 1 + PointEvaluations.sizeInFields();
+        const runtimeLookupTableSelectorSize = 1 + PointEvaluations.sizeInFields();
+        const xorLookupSelectorSize = 1 + PointEvaluations.sizeInFields();
+        const lookupGateLookupSelectorSize = 1 + PointEvaluations.sizeInFields();
+        const rangeCheckLookupSelectorSize = 1 + PointEvaluations.sizeInFields();
+        const foreignFieldMulLookupSelectorSize = 1 + PointEvaluations.sizeInFields();
 
         return wSize + zSize + sSize + coefficientsSize + genericSelectorSize + poseidonSelectorSize +
             completeAddSelectorSize + mulSelectorSize + emulSelectorSize + endomulScalarSelectorSize + publicInputSize +
             rangeCheck0SelectorSize + rangeCheck1SelectorSize + foreignFieldAddSelectorSize + foreignFieldMulSelectorSize +
-            xorSelectorSize + rotSelectorSize + lookupAggregationSize + lookupTableSize + lookupTableSelectorSize +
-            xorLookupSelectorSize + lookupGateLookupSelectorSize + rangeCheckLookupSelectorSize +
-            foreignFieldMulLookupSelectorSize;
+            xorSelectorSize + rotSelectorSize + lookupAggregationSize + lookupTableSize + lookupSortedSize +
+            runtimeLookupTableSize + runtimeLookupTableSelectorSize + xorLookupSelectorSize + lookupGateLookupSelectorSize +
+            rangeCheckLookupSelectorSize + foreignFieldMulLookupSelectorSize;
     }
 }
 
