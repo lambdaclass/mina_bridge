@@ -1,8 +1,8 @@
 import { ScalarChallenge } from "../src/verifier/scalar_challenge.js";
 import { ForeignScalar } from "../src/foreign_fields/foreign_scalar";
 import { test, expect } from "@jest/globals";
-import { PointEvaluations, ProofEvaluations } from "../src/prover/prover.js";
-import { stringifyWithBigInt } from "./helpers.js";
+import { PointEvaluations, ProofEvaluations, ProverCommitments } from "../src/prover/prover.js";
+import { createPolyComm, stringifyWithBigInt } from "./helpers.js";
 
 // This test has a twin in the 'verifier_circuit_tests' Rust crate.
 test("toFieldWithLength", () => {
@@ -51,6 +51,18 @@ test("proofEvaluationsWithNullsToFields", () => {
     );
 
     const deserialized = ProofEvaluations.fromFields(original.toFields());
+
+    expect(stringifyWithBigInt(deserialized)).toEqual(stringifyWithBigInt(original));
+});
+
+test("proverCommitmentsToFields", () => {
+    const wComm = Array(15).fill(createPolyComm(1));
+    const zComm = createPolyComm(1);
+    const tComm = createPolyComm(7);
+
+    const original = new ProverCommitments(wComm, zComm, tComm);
+
+    const deserialized = ProverCommitments.fromFields(original.toFields());
 
     expect(stringifyWithBigInt(deserialized)).toEqual(stringifyWithBigInt(original));
 });

@@ -2,7 +2,7 @@ import { bPoly, bPolyCoefficients, PolyComm } from "../src/poly_commitment/commi
 import { ForeignScalar } from "../src/foreign_fields/foreign_scalar";
 import { test, expect } from "@jest/globals";
 import { ForeignPallas } from "../src/foreign_fields/foreign_pallas";
-import { stringifyWithBigInt } from "./helpers";
+import { createPolyComm, stringifyWithBigInt } from "./helpers";
 
 test("bPoly", () => {
     const coeffs = [42, 25, 420].map((x) => ForeignScalar.from(x).assertAlmostReduced());
@@ -27,7 +27,7 @@ test("bPolyCoefficients", () => {
 })
 
 test("polyCommToFields", () => {
-    const original = new PolyComm([ForeignPallas.generator as ForeignPallas]);
+    const original = createPolyComm(1);
 
     const deserialized = PolyComm.fromFields(original.toFields(), 1);
 
