@@ -1,5 +1,8 @@
 import { ScalarChallenge } from "../src/verifier/scalar_challenge.js";
 import { ForeignScalar } from "../src/foreign_fields/foreign_scalar";
+import { test, expect } from "@jest/globals";
+import { PointEvaluations } from "../src/prover/prover.js";
+import { stringifyWithBigInt } from "./helpers.js";
 
 // This test has a twin in the 'verifier_circuit_tests' Rust crate.
 test("toFieldWithLength", () => {
@@ -14,3 +17,13 @@ test("toFieldWithLength", () => {
         ForeignScalar.from("0x388fcbe4fef56d15d1e08ce81471cd60b753819eae172506b7c7afb1f1801665").toBigInt().toString()
     );
 })
+
+test("pointEvaluationsToFields", () => {
+    const zeta = ForeignScalar.from(42).assertAlmostReduced();
+    const zetaOmega = ForeignScalar.from(80).assertAlmostReduced();
+    const original = new PointEvaluations(zeta, zetaOmega);
+
+    const deserialized = PointEvaluations.fromFields(original.toFields());
+
+    expect(stringifyWithBigInt(deserialized)).toEqual(stringifyWithBigInt(original));
+});
