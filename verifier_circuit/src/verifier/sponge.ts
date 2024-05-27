@@ -284,10 +284,14 @@ export class Sponge {
             this.lastSqueezed = remaining;
             return limbs;
         } else {
-            let x = this.#internalSponge.squeeze().toBigInt();
-            let xLimbs = getLimbs64(x).slice(0, Sponge.HIGH_ENTROPY_LIMBS);
+            let x = 0n;
+            ProvableBn254.asProver(() => {
+                x = this.#internalSponge.squeeze().toBigInt();
+            });
 
+            let xLimbs = getLimbs64(x).slice(0, Sponge.HIGH_ENTROPY_LIMBS);
             this.lastSqueezed = this.lastSqueezed.concat(xLimbs);
+
             return this.squeezeLimbs(numLimbs);
         }
     }
