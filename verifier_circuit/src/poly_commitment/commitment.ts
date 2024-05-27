@@ -1,8 +1,7 @@
-import { FieldBn254, Provable } from "o1js";
+import { FieldBn254 } from "o1js";
 import { Sponge } from "../verifier/sponge";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
-import { SRS } from "../SRS.js";
-import { FieldSerializable, arrayToFields, pallasArrayFromFields, pallasFromFields, optionalArrayToFields, optionalToFields, optionalPallasFromFields } from "../field_serializable.js";
+import { FieldSerializable, arrayToFields, pallasArrayFromFields, optionalToFields, optionalPallasFromFields } from "../field_serializable.js";
 import { ForeignPallas } from "../foreign_fields/foreign_pallas.js";
 import { OpeningProof } from "./opening_proof";
 

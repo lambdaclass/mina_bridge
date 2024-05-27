@@ -1,7 +1,7 @@
 import { Polynomial } from "../polynomial.js"
 import { FieldBn254, PoseidonBn254, ProvableBn254, Scalar } from "o1js"
 import { PolyComm, bPoly, bPolyCoefficients } from "../poly_commitment/commitment.js";
-import { arrayToFields, scalarFromFields, optionalArrayToFields, optionalToFields, pallasCommFromFields, pallasCommArrayFromFields, lookupCommitmentsFromFields, pointEvaluationsArrayFromFields, pointEvaluationsFromFields, optionalPointEvaluationsFromFields, optionalPointEvaluationsArrayFromFields } from "../field_serializable.js";
+import { arrayToFields, scalarFromFields, optionalToFields, pallasCommFromFields, pallasCommArrayFromFields, lookupCommitmentsFromFields, pointEvaluationsArrayFromFields, pointEvaluationsFromFields, optionalPointEvaluationsFromFields, optionalPointEvaluationsArrayFromFields } from "../field_serializable.js";
 import { ScalarChallenge } from "../verifier/scalar_challenge.js";
 import { fp_sponge_initial_state, fp_sponge_params, fq_sponge_initial_state, fq_sponge_params, Sponge } from "../verifier/sponge.js";
 import { Verifier, VerifierIndex } from "../verifier/verifier.js";
@@ -872,22 +872,23 @@ export class ProofEvaluations {
         let mulSelector = this.mulSelector.toFields();
         let emulSelector = this.emulSelector.toFields();
         let endomulScalarSelector = this.endomulScalarSelector.toFields();
-        let public_input = optionalToFields(this.public_input);
-        let rangeCheck0Selector = optionalToFields(this.rangeCheck0Selector);
-        let rangeCheck1Selector = optionalToFields(this.rangeCheck1Selector);
-        let foreignFieldAddSelector = optionalToFields(this.foreignFieldAddSelector);
-        let foreignFieldMulSelector = optionalToFields(this.foreignFieldMulSelector);
-        let xorSelector = optionalToFields(this.xorSelector);
-        let rotSelector = optionalToFields(this.rotSelector);
-        let lookupAggregation = optionalToFields(this.lookupAggregation);
-        let lookupTable = optionalToFields(this.lookupTable);
-        let lookupSorted = optionalArrayToFields(this.lookupSorted);
-        let runtimeLookupTable = optionalToFields(this.runtimeLookupTable);
-        let runtimeLookupTableSelector = optionalToFields(this.runtimeLookupTableSelector);
-        let xorLookupSelector = optionalToFields(this.xorLookupSelector);
-        let lookupGateLookupSelector = optionalToFields(this.lookupGateLookupSelector);
-        let rangeCheckLookupSelector = optionalToFields(this.rangeCheckLookupSelector);
-        let foreignFieldMulLookupSelector = optionalToFields(this.foreignFieldMulLookupSelector);
+        let public_input = PointEvaluations.optionalToFields(this.public_input);
+        let rangeCheck0Selector = PointEvaluations.optionalToFields(this.rangeCheck0Selector);
+        let rangeCheck1Selector = PointEvaluations.optionalToFields(this.rangeCheck1Selector);
+        let foreignFieldAddSelector = PointEvaluations.optionalToFields(this.foreignFieldAddSelector);
+        let foreignFieldMulSelector = PointEvaluations.optionalToFields(this.foreignFieldMulSelector);
+        let xorSelector = PointEvaluations.optionalToFields(this.xorSelector);
+        let rotSelector = PointEvaluations.optionalToFields(this.rotSelector);
+        let lookupAggregation = PointEvaluations.optionalToFields(this.lookupAggregation);
+        let lookupTable = PointEvaluations.optionalToFields(this.lookupTable);
+        // TODO: Check `lookupSorted` length
+        let lookupSorted = PointEvaluations.optionalArrayToFields(0, this.lookupSorted);
+        let runtimeLookupTable = PointEvaluations.optionalToFields(this.runtimeLookupTable);
+        let runtimeLookupTableSelector = PointEvaluations.optionalToFields(this.runtimeLookupTableSelector);
+        let xorLookupSelector = PointEvaluations.optionalToFields(this.xorLookupSelector);
+        let lookupGateLookupSelector = PointEvaluations.optionalToFields(this.lookupGateLookupSelector);
+        let rangeCheckLookupSelector = PointEvaluations.optionalToFields(this.rangeCheckLookupSelector);
+        let foreignFieldMulLookupSelector = PointEvaluations.optionalToFields(this.foreignFieldMulLookupSelector);
 
         return [
             ...w,
@@ -1007,6 +1008,39 @@ export class PointEvaluations {
         let zetaOmegaSize = ForeignScalar.sizeInFields();
 
         return zetaSize + zetaOmegaSize;
+    }
+
+    static optionalFromFields(fields: FieldBn254[]) {
+        let [optionFlag, ...input] = fields;
+
+        if (optionFlag.equals(0)) {
+            // Field representation must have the same length in both option cases
+            return undefined;
+        }
+
+        return PointEvaluations.fromFields(input);
+    }
+
+    static optionalToFields(input?: PointEvaluations) {
+        if (typeof input === "undefined") {
+            // [option_flag, ...zeros]
+            return Array(PointEvaluations.sizeInFields() + 1).fill(FieldBn254(0));
+        }
+
+        let fields = input?.toFields();
+
+        return [FieldBn254(1), ...fields];
+    }
+
+    static optionalArrayToFields(length: number, input?: PointEvaluations[]) {
+        if (typeof input === "undefined") {
+            // [option_flag, ...zeros]
+            return Array(PointEvaluations.sizeInFields() * length + 1).fill(FieldBn254(0));
+        }
+
+        let fields = arrayToFields(input);
+
+        return [FieldBn254(1), ...fields];
     }
 }
 

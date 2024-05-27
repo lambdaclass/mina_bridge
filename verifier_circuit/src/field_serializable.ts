@@ -234,26 +234,13 @@ export function optionalPallasFromFields(fields: FieldBn254[], offset: number): 
  * `PointEvaluations` in fields.
  */
 export function optionalPointEvaluationsFromFields(fields: FieldBn254[], offset: number): [PointEvaluations | undefined, number] {
+    let pointEvaluations = PointEvaluations.optionalFromFields(fields);
     let offsetWithFlag = offset + 1;
 
-    if (fields[offset].equals(0)) {
-        return [undefined, offsetWithFlag];
-    }
-
-    return pointEvaluationsFromFields(fields, offsetWithFlag);
+    return [pointEvaluations, offsetWithFlag + PointEvaluations.sizeInFields()];
 }
 
 //   - Option array deserialization functions
-
-export function optionalArrayToFields(input?: FieldSerializable[]) {
-    if (typeof input === "undefined") {
-        return [FieldBn254(0)];
-    }
-
-    let fields = arrayToFields(input);
-
-    return [FieldBn254(1), ...fields];
-}
 
 export function optionalScalarArrayFromFields(fields: FieldBn254[], offset: number): [ForeignScalar[] | undefined, number] {
     let offsetWithFlag = offset + 1;
