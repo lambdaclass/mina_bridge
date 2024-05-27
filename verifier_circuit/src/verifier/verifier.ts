@@ -216,6 +216,7 @@ export class Verifier extends CircuitBn254 {
 
     @circuitMainBn254
     static main(@publicBn254 proofHash: FieldBn254) {
+        // FIXME: This witness is too big and is causing o1js to fail with an out of memory error
         let proof = ProvableBn254.witness(ProverProof, () => {
             let proverProofFields: string[] = JSON.parse(readFileSync("./src/prover_proof_fields.json", "utf-8"));
 
