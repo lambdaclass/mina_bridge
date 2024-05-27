@@ -1,7 +1,7 @@
 import { ScalarChallenge } from "../src/verifier/scalar_challenge.js";
 import { ForeignScalar } from "../src/foreign_fields/foreign_scalar";
 import { test, expect } from "@jest/globals";
-import { PointEvaluations } from "../src/prover/prover.js";
+import { PointEvaluations, ProofEvaluations } from "../src/prover/prover.js";
 import { stringifyWithBigInt } from "./helpers.js";
 
 // This test has a twin in the 'verifier_circuit_tests' Rust crate.
@@ -19,11 +19,48 @@ test("toFieldWithLength", () => {
 })
 
 test("pointEvaluationsToFields", () => {
-    const zeta = ForeignScalar.from(42).assertAlmostReduced();
-    const zetaOmega = ForeignScalar.from(80).assertAlmostReduced();
-    const original = new PointEvaluations(zeta, zetaOmega);
+    const original = createPointEvaluations();
 
     const deserialized = PointEvaluations.fromFields(original.toFields());
 
     expect(stringifyWithBigInt(deserialized)).toEqual(stringifyWithBigInt(original));
 });
+
+test("proofEvaluationsWithNullsToFields", () => {
+    const w = createPointEvaluationsArray(15);
+    const z = createPointEvaluations();
+    const s = createPointEvaluationsArray(6);
+    const coefficients = createPointEvaluationsArray(15);
+    const genericSelector = createPointEvaluations();
+    const poseidonSelector = createPointEvaluations();
+    const completeAddSelector = createPointEvaluations();
+    const mulSelector = createPointEvaluations();
+    const emulSelector = createPointEvaluations();
+    const endomulScalarSelector = createPointEvaluations();
+
+    const original = new ProofEvaluations(w,
+        z,
+        s,
+        coefficients,
+        genericSelector,
+        poseidonSelector,
+        completeAddSelector,
+        mulSelector,
+        emulSelector,
+        endomulScalarSelector
+    );
+
+    const deserialized = ProofEvaluations.fromFields(original.toFields());
+
+    expect(stringifyWithBigInt(deserialized)).toEqual(stringifyWithBigInt(original));
+});
+
+function createPointEvaluations() {
+    const zeta = ForeignScalar.from(42).assertAlmostReduced();
+    const zetaOmega = ForeignScalar.from(80).assertAlmostReduced();
+    return new PointEvaluations(zeta, zetaOmega);
+}
+
+function createPointEvaluationsArray(length: number): PointEvaluations[] {
+    return Array(length).fill(createPointEvaluations());
+}
