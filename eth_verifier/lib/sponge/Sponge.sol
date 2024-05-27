@@ -80,28 +80,28 @@ library KeccakSponge {
 
     // KZG methods
 
-    function absorb_base(Sponge memory self, uint256 elem) internal pure {
-        bytes memory b = abi.encodePacked(elem);
-        absorb(self, b);
-    }
-
     function absorb_scalar(Sponge memory self, uint256 elem) internal pure {
-        bytes memory b = abi.encodePacked(elem);
-        absorb(self, b);
-    }
+        bytes memory b = new bytes(32);
+        assembly ("memory-safe") {
+            mstore(add(b, 32), elem)
+        }
 
-    function absorb_scalar_multiple(Sponge memory self, uint256[] memory elems) internal pure {
-        bytes memory b = abi.encodePacked(elems);
-        absorb(self, b);
+        for (uint256 i = 0; i < 32; i++) {
+            if (self.last_index >= MAX_SPONGE_STATE_SIZE) {
+                revert SizeExceeded();
+            }
+            self.pending[self.last_index] = b[i];
+            self.last_index += 1;
+        }
     }
 
     function absorb_g_single(Sponge memory self, BN254.G1Point memory point) internal pure {
         if (point.isInfinity()) {
-            absorb_base(self, 0);
-            absorb_base(self, 0);
+            absorb_scalar(self, 0);
+            absorb_scalar(self, 0);
         } else {
-            absorb_base(self, Base.from(point.x));
-            absorb_base(self, Base.from(point.y));
+            absorb_scalar(self, Base.from(point.x));
+            absorb_scalar(self, Base.from(point.y));
         }
     }
 
@@ -109,11 +109,11 @@ library KeccakSponge {
         for (uint256 i = 0; i < points.length; i++) {
             BN254.G1Point memory point = points[i];
             if (point.isInfinity()) {
-                absorb_base(self, 0);
-                absorb_base(self, 0);
+                absorb_scalar(self, 0);
+                absorb_scalar(self, 0);
             } else {
-                absorb_base(self, Base.from(point.x));
-                absorb_base(self, Base.from(point.y));
+                absorb_scalar(self, Base.from(point.x));
+                absorb_scalar(self, Base.from(point.y));
             }
         }
     }
@@ -191,13 +191,6 @@ library KeccakSponge {
     function absorb_point_evaluation(Sponge memory self, PointEvaluations memory eval) internal pure {
         absorb_scalar(self, eval.zeta);
         absorb_scalar(self, eval.zeta_omega);
-    }
-
-    function absorb_point_evaluations(Sponge memory self, PointEvaluationsArray[] memory evals) internal pure {
-        for (uint256 i; i < evals.length; i++) {
-            absorb_scalar_multiple(self, evals[i].zeta);
-            absorb_scalar_multiple(self, evals[i].zeta_omega);
-        }
     }
 
     function challenge_base(Sponge memory self) internal pure returns (uint256 chal) {

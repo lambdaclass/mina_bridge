@@ -43,9 +43,7 @@ import {
 
 using {
     KeccakSponge.reinit,
-    KeccakSponge.absorb_base,
     KeccakSponge.absorb_scalar,
-    KeccakSponge.absorb_scalar_multiple,
     KeccakSponge.absorb_evaluations,
     KeccakSponge.absorb_g,
     KeccakSponge.absorb_g_single,
