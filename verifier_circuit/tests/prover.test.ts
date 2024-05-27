@@ -3,6 +3,8 @@ import { ForeignScalar } from "../src/foreign_fields/foreign_scalar";
 import { test, expect } from "@jest/globals";
 import { PointEvaluations, ProofEvaluations } from "../src/prover/prover.js";
 import { stringifyWithBigInt } from "./helpers.js";
+import { PolyComm } from "../src/poly_commitment/commitment.js";
+import { ForeignPallas } from "../src/foreign_fields/foreign_pallas.js";
 
 // This test has a twin in the 'verifier_circuit_tests' Rust crate.
 test("toFieldWithLength", () => {
@@ -54,6 +56,14 @@ test("proofEvaluationsWithNullsToFields", () => {
 
     expect(stringifyWithBigInt(deserialized)).toEqual(stringifyWithBigInt(original));
 });
+
+test("polyCommToFields", () => {
+    const original = new PolyComm([ForeignPallas.generator as ForeignPallas]);
+
+    const deserialized = PolyComm.fromFields(original.toFields(), 1);
+
+    expect(stringifyWithBigInt(deserialized)).toEqual(stringifyWithBigInt(original));
+})
 
 function createPointEvaluations() {
     const zeta = ForeignScalar.from(42).assertAlmostReduced();
