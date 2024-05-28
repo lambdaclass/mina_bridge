@@ -9,9 +9,7 @@ export abstract class FieldSerializable {
     toFields: () => FieldBn254[];
 }
 
-// - Deserialization functions
-
-//   - Item deserialization functions
+// - Item deserialization functions
 
 /**
  * Returns `[scalar, newOffset]` where `newOffset` is `offset + length`, where `length` is the size of `ForeignScalar` 
@@ -57,7 +55,7 @@ export function pointEvaluationsFromFields(fields: FieldBn254[], offset: number)
     return [pointEvaluations, newOffset];
 }
 
-//   - Array deserialization functions
+// - Array deserialization functions
 
 export function arrayToFields(input: FieldSerializable[]) {
     return input.map((item) => item.toFields()).reduce((acc, fields) => acc.concat(fields), []);
@@ -111,7 +109,7 @@ export function pointEvaluationsArrayFromFields(fields: FieldBn254[], length: nu
     return [pallasCommArray, cursor];
 }
 
-//   - Option deserialization functions
+// - Option deserialization functions
 
 /**
  * If `fields[offset] == 0` returns `[undefined, offset]`.
@@ -125,7 +123,7 @@ export function optionalPointEvaluationsFromFields(fields: FieldBn254[], offset:
     return [pointEvaluations, offsetWithFlag + PointEvaluations.sizeInFields()];
 }
 
-//   - Option array deserialization functions
+// - Option array deserialization functions
 
 export function optionalPointEvaluationsArrayFromFields(fields: FieldBn254[], length: number, offset: number): [PointEvaluations[] | undefined, number] {
     let offsetWithFlag = offset + 1;
