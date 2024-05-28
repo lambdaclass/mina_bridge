@@ -65,9 +65,9 @@ library KeccakSponge {
         // pending <- output
         reinit(self);
         for (uint256 i = 0; i < 32; i++) {
-            self.pending[self.last_index] = output[i];
-            self.last_index += 1;
+            self.pending[i] = output[i];
         }
+        self.last_index = 32;
     }
 
     // KZG methods
