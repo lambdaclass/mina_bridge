@@ -1,37 +1,55 @@
-//! A simple program that takes a number `n` as input, and writes the `n-1`th and `n`th fibonacci
-//! number as an output.
+//! A simple program to be proven inside the zkVM.
 
-// These two lines are necessary for the program to properly compile.
-//
-// Under the hood, we wrap your main function with some extra code so that it behaves properly
-// inside the zkVM.
 #![no_main]
+
+use std::{collections::HashMap, sync::Arc};
+
+use kimchi::{
+    mina_curves::pasta::Vesta,
+    poly_commitment::{evaluation_proof::OpeningProof, srs::SRS, PolyComm},
+    proof::ProverProof,
+    verifier_index::VerifierIndex,
+};
+use kimchi_verifier_ffi::kimchi_verify;
+
 sp1_zkvm::entrypoint!(main);
 
+type Curve = Vesta;
+type KimchiOpeningProof = OpeningProof<Curve>;
+type KimchiProof = ProverProof<Curve, KimchiOpeningProof>;
+type KimchiVerifierIndex = VerifierIndex<Curve, KimchiOpeningProof>;
+type KimchiSRS = SRS<Curve>;
+type KimchiLagrangeBases = HashMap<usize, Vec<PolyComm<Curve>>>;
+
 pub fn main() {
-    // Read an input to the program.
-    //
-    // Behind the scenes, this compiles down to a custom system call which handles reading inputs
-    // from the prover.
-    let n = sp1_zkvm::io::read::<u32>();
+    println!("cycle-tracker-start: deserialize data");
 
-    // Write n to public input
-    sp1_zkvm::io::commit(&n);
+    println!("cycle-tracker-start: deserialize proof");
+    let proof = sp1_zkvm::io::read::<KimchiProof>();
+    println!("cycle-tracker-end: deserialize proof");
 
-    // Compute the n'th fibonacci number, using normal Rust code.
-    let mut a = 0;
-    let mut b = 1;
-    for _ in 0..n {
-        let mut c = a + b;
-        c %= 7919; // Modulus to prevent overflow.
-        a = b;
-        b = c;
-    }
+    println!("cycle-tracker-start: deserialize verifier index");
+    let mut verifier_index = sp1_zkvm::io::read::<KimchiVerifierIndex>();
+    println!("cycle-tracker-end: deserialize verifier index");
 
-    // Write the output of the program.
-    //
-    // Behind the scenes, this also compiles down to a custom system call which handles writing
-    // outputs to the prover.
-    sp1_zkvm::io::commit(&a);
-    sp1_zkvm::io::commit(&b);
+    println!("cycle-tracker-start: deserialize srs");
+    let mut srs = sp1_zkvm::io::read::<KimchiSRS>();
+    println!("cycle-tracker-end: deserialize srs");
+
+    println!("cycle-tracker-start: deserialize lagrange_bases");
+    let lagrange_bases = sp1_zkvm::io::read::<KimchiLagrangeBases>();
+    println!("cycle-tracker-end: deserialize lagrange_bases");
+
+    println!("cycle-tracker-end: deserialize data");
+
+    println!("cycle-tracker-start: srs");
+    srs.lagrange_bases = lagrange_bases;
+    verifier_index.srs = Arc::new(srs);
+    println!("cycle-tracker-end: srs");
+
+    println!("cycle-tracker-start: verify");
+    let result = kimchi_verify(&proof, &verifier_index);
+    println!("cycle-tracker-end: verify");
+
+    sp1_zkvm::io::commit(&result);
 }
