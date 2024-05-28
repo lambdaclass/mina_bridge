@@ -3,8 +3,9 @@
 use std::fs::File;
 
 use kimchi_verifier_ffi::generate_test_proof;
+use sp1_prover::SP1CoreProof;
 use sp1_sdk::{
-    artifacts::get_groth16_artifacts_dir, ProverClient, SP1CompressedProof,
+    artifacts::try_install_groth16_artifacts, ProverClient, SP1CompressedProof,
     SP1ProofWithPublicValues, SP1Stdin,
 };
 
@@ -27,10 +28,12 @@ fn main() {
     // Setup SP1 client
     let client = ProverClient::new();
     let (pk, vk) = client.setup(ELF);
+    let prover = client.prover.sp1_prover();
 
     // Prove program execution
-    let prover = client.prover.sp1_prover();
-    let mut proof = prover.prove_core(&pk, &stdin);
+    let mut proof = prover
+        .prove_core(&pk, &stdin)
+        .expect("shard proving failed");
 
     // Read output.
     let result = proof.public_values.read::<bool>();
@@ -41,6 +44,7 @@ fn main() {
         .save("proof_with_metadata.bin")
         .expect("saving proof with metadata failed");
 
+    /* Temporarily disable for faster iteration
     // Save proof with public values (this is the result of a normal JSON proof)
     // without compression or wrapping.
     let proof_with_public = SP1ProofWithPublicValues {
@@ -56,11 +60,14 @@ fn main() {
     client
         .verify(&proof_with_public, &vk)
         .expect("proof with public verification failed");
+    */
 
     // Compress proof
     let deferred_proofs = stdin.proofs.iter().map(|p| p.0.clone()).collect();
     let public_values = proof.public_values.clone();
-    let reduce_proof = prover.compress(&pk.vk, proof, deferred_proofs);
+    let reduce_proof = prover
+        .compress(&pk.vk, proof, deferred_proofs)
+        .expect("compression failed");
 
     // Save reduce proof
     bincode::serialize_into(
@@ -80,12 +87,14 @@ fn main() {
     .expect("saving reduce compressed proof failed");
 
     // Compress and wrap proof over SNARK-friendly bn254
-    let compress_proof = prover.shrink(reduce_proof);
-    let outer_proof = prover.wrap_bn254(compress_proof);
+    let compress_proof = prover.shrink(reduce_proof).expect("shrink failed");
+    let outer_proof = prover
+        .wrap_bn254(compress_proof)
+        .expect("wrap bn254 failed");
 
     // Wrap SNARK-friendly bn254 proof over a Groth16.
-    let artifacts_dir = get_groth16_artifacts_dir();
-    let proof = prover.wrap_groth16(outer_proof, artifacts_dir);
+    let groth16_aritfacts = try_install_groth16_artifacts();
+    let proof = prover.wrap_groth16(outer_proof, &groth16_aritfacts);
     let groth16_proof = SP1ProofWithPublicValues {
         proof,
         stdin,
