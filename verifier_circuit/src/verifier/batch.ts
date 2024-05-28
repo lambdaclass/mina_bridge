@@ -76,7 +76,8 @@ export class Batch {
     */
     static toBatch(verifier_index: VerifierIndex, proof: ProverProof, public_input: ForeignScalar[]): VerifierResult<AggregatedEvaluationProof> {
         //~ 1. Check the length of evaluations inside the proof.
-        this.#check_proof_evals_len(proof)
+        // TODO: check the JSON file instead of checking the proof.
+        // this.#check_proof_evals_len(proof)
 
         //~ 2. Commit to the negated public input polynomial.
         let lgr_comm = verifier_index.srs.lagrangeBases.get(verifier_index.domain_size)!;
@@ -202,7 +203,7 @@ export class Batch {
             const eva = proof.evals.getColumn(col)!;
             evaluations.push(new Evaluation(
                 context.getColumn(col)!,
-                [eva?.zeta, eva?.zetaOmega]
+                [[eva?.zeta], [eva?.zetaOmega]]
             ));
         }
 
@@ -227,13 +228,13 @@ export class Batch {
 
             evaluations.push(new Evaluation(
                 table_comm,
-                [lookup_table.zeta, lookup_table.zetaOmega]
+                [[lookup_table.zeta], [lookup_table.zetaOmega]]
             ))
 
             if (li.runtime_tables_selector) {
                 evaluations.push(new Evaluation(
                     lookup_comms.runtime!,
-                    [runtime_lookup_table.zeta, runtime_lookup_table.zetaOmega]
+                    [[runtime_lookup_table.zeta], [runtime_lookup_table.zetaOmega]]
                 ));
             }
 
@@ -247,7 +248,7 @@ export class Batch {
                 const evals = proof.evals.getColumn(col)!;
                 evaluations.push(new Evaluation(
                     context.getColumn(col)!,
-                    [evals.zeta, evals.zetaOmega]
+                    [[evals.zeta], [evals.zetaOmega]]
                 ));
             }
         }
@@ -267,7 +268,7 @@ export class Batch {
     }
 
     static permScalars(
-        e: ProofEvaluations<PointEvaluations<ForeignScalar>>,
+        e: ProofEvaluations,
         beta: ForeignScalar,
         gamma: ForeignScalar,
         alphas: AlphasIterator,
@@ -293,29 +294,31 @@ export class Batch {
     * Atm, the length of evaluations(both `zeta` and `zeta_omega`) SHOULD be 1.
     * The length value is prone to future change.
     */
-    static #check_proof_evals_len(proof: ProverProof): boolean {
-        const {
-            w,
-            z,
-            s,
-            coefficients,
-            genericSelector,
-            poseidonSelector
-        } = proof.evals;
+    // TODO: make this function check the JSON file instead of the object
+    // static #check_proof_evals_len(proof: ProverProof): boolean {
+    //     const {
+    //         w,
+    //         z,
+    //         s,
+    //         coefficients,
+    //         genericSelector,
+    //         poseidonSelector
+    //     } = proof.evals;
 
-        const valid_evals_len = (evals: PointEvaluations<Array<ForeignScalar>>): boolean =>
-            evals.zeta.length === 1 && evals.zetaOmega.length === 1;
+    //     const valid_evals_len = (evals: PointEvaluations): boolean =>
+    //         evals.zeta.length === 1 && evals.zetaOmega.length === 1;
 
-        // auxiliary
-        let arrays = [w, s, coefficients];
-        let singles = [z, genericSelector, poseidonSelector];
 
-        // true if all evaluation lengths are valid
-        return arrays.every((evals) => evals.every(valid_evals_len)) &&
-            singles.every(valid_evals_len);
+    //     // auxiliary
+    //     let arrays = [w, s, coefficients];
+    //     let singles = [z, genericSelector, poseidonSelector];
 
-        // TODO: check the rest of evaluations (don't really needed for our purposes)
-    }
+    //     // true if all evaluation lengths are valid
+    //     return arrays.every((evals) => evals.every(valid_evals_len)) &&
+    //         singles.every(valid_evals_len);
+
+    //     // TODO: check the rest of evaluations (don't really needed for our purposes)
+    // }
 
     static combineTable(
         columns: PolyComm<ForeignPallas>[],
