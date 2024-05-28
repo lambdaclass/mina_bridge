@@ -52,20 +52,14 @@ library KeccakSponge {
 
     function squeeze(Sponge memory self, uint256 byte_count) internal pure returns (bytes memory digest) {
         digest = new bytes(byte_count);
-
-        uint256 counter = 0;
         bytes memory pending = new bytes(self.last_index);
         for (uint256 i = 0; i < pending.length; i++) {
             pending[i] = self.pending[i];
         }
         bytes32 output = keccak256(pending);
 
-        for (uint256 i = 0; i < 32; i++) {
-            counter++;
-            if (counter >= byte_count) {
-                break;
-            }
-            digest[counter] = output[i];
+        for (uint256 i = 0; i < byte_count - 1; i++) {
+            digest[i + 1] = output[i];
         }
 
         // pending <- output
