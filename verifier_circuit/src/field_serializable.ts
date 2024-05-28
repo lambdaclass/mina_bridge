@@ -126,11 +126,12 @@ export function optionalPointEvaluationsFromFields(fields: FieldBn254[], offset:
 // - Option array deserialization functions
 
 export function optionalPointEvaluationsArrayFromFields(fields: FieldBn254[], length: number, offset: number): [PointEvaluations[] | undefined, number] {
+    let pointEvaluationsArray = PointEvaluations.optionalArrayFromFields(fields);
     let offsetWithFlag = offset + 1;
 
     if (fields[offset].equals(0)) {
         return [undefined, offsetWithFlag];
     }
 
-    return pointEvaluationsArrayFromFields(fields, length, offsetWithFlag);
+    return [pointEvaluationsArray, offsetWithFlag + PointEvaluations.sizeInFields() * length];
 }

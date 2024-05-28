@@ -1017,7 +1017,6 @@ export class PointEvaluations {
         let [optionFlag, ...input] = fields;
 
         if (optionFlag.equals(0)) {
-            // Field representation must have the same length in both option cases
             return undefined;
         }
 
@@ -1033,6 +1032,18 @@ export class PointEvaluations {
         let fields = input?.toFields();
 
         return [FieldBn254(1), ...fields];
+    }
+
+    static optionalArrayFromFields(length: number, fields: FieldBn254[]) {
+        let [optionFlag, ...input] = fields;
+
+        if (optionFlag.equals(0)) {
+            return undefined;
+        }
+
+        let [array, _] = pointEvaluationsArrayFromFields(input, length, 0);
+
+        return array;
     }
 
     static optionalArrayToFields(length: number, input?: PointEvaluations[]) {
