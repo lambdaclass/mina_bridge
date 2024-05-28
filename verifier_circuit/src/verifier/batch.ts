@@ -76,6 +76,7 @@ export class Batch {
     */
     static toBatch(verifier_index: VerifierIndex, proof: ProverProof, public_input: ForeignScalar[]): VerifierResult<AggregatedEvaluationProof> {
         //~ 1. Check the length of evaluations inside the proof.
+        // TODO: check the JSON file instead of checking the proof.
         // this.#check_proof_evals_len(proof)
 
         //~ 2. Commit to the negated public input polynomial.
