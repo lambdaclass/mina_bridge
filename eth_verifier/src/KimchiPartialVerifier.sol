@@ -25,6 +25,7 @@ library KimchiPartialVerifier {
     error IncorrectPublicInputLength();
     error PolynomialsAreChunked(uint256 chunk_size);
     error NotEnoughPowersOfAlphaForPermutation(); // not enough powers of alpha for permutation
+    error ScalarMulFailed(); // Bn254: scalar multiplication failed!
 
     // This takes Kimchi's `to_batch()` as reference.
     function partial_verify(
@@ -231,7 +232,7 @@ library KimchiPartialVerifier {
         VerifierIndexLib.VerifierIndex storage verifier_index,
         Commitment.URS storage urs,
         uint256 public_input
-    ) internal view returns (BN254.G1Point memory) {
+    ) internal view returns (BN254.G1Point memory public_comm) {
         if (verifier_index.domain_size < verifier_index.max_poly_size) {
             revert PolynomialsAreChunked(verifier_index.domain_size / verifier_index.max_poly_size);
         }
@@ -239,19 +240,23 @@ library KimchiPartialVerifier {
         if (verifier_index.public_len != 1) {
             revert IncorrectPublicInputLength();
         }
-
-        BN254.G1Point memory public_comm;
-        BN254.G1Point memory lagrange_base = BN254.G1Point(
-            0x280c10e2f52fb4ab3ba21204b30df5b69560978e0911a5c673ad0558070f17c1,
-            0x287897da7c8db33cd988a1328770890b2754155612290448267f9ca4c549cb39
-        );
-        public_comm = BN254.scalarMul(lagrange_base, public_input);
-        // negate the results of the MSM
-        public_comm = BN254.neg(public_comm);
+        // scalarMul lagrange_base, public_input and negate
+        uint256[3] memory input;
+        input[0] = 18113832654818628032992755859209290802008519287100762914206176582473178093505;
+        input[1] = 3582659226651458527375464564944664881520537990280688997853301801774302310926;
+        input[2] = public_input;
+        bool success;
+        assembly ("memory-safe") {
+            success := staticcall(sub(gas(), 2000), 7, input, 0x80, public_comm, 0x60)
+            // Use "invalid" to make gas estimation work
+            switch success
+            case 0 { revert(0, 0) }
+        }
+        if (!success) {
+            revert ScalarMulFailed();
+        }
 
         public_comm = BN254.add(urs.h, public_comm);
-
-        return public_comm;
     }
 
     function perm_scalars(
