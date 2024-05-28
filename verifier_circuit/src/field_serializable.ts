@@ -2,7 +2,7 @@ import { FieldBn254 } from "o1js";
 import { ForeignScalar } from "./foreign_fields/foreign_scalar.js";
 import { ForeignPallas } from "./foreign_fields/foreign_pallas.js";
 import { PolyComm } from "./poly_commitment/commitment.js";
-import { PointEvaluations } from "./prover/prover.js";
+import { PointEvaluations } from "./prover/point_evaluations.js";
 
 export abstract class FieldSerializable {
     static fromFields: (_fields: FieldBn254[]) => FieldSerializable;

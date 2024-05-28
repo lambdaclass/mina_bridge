@@ -1,9 +1,12 @@
 import { OpeningProof } from "../poly_commitment/opening_proof.js";
-import { PointEvaluations, ProofEvaluations, ProverCommitments, ProverProof, RecursionChallenge } from "../prover/prover.js"
 import { deserPolyComm, PolyCommJSON, deserGroup, GroupJSON } from "./serde_index.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { PolyComm } from "../poly_commitment/commitment.js";
 import { ForeignPallas } from "../foreign_fields/foreign_pallas.js";
+import { PointEvaluations } from "../prover/point_evaluations.js";
+import { ProverCommitments } from "../prover/prover_commitments.js";
+import { ProofEvaluations } from "../prover/prover_evaluations.js";
+import { ProverProof } from "../prover/prover_proof.js";
 
 type PointEvals = PointEvaluations;
 
