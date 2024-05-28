@@ -54,27 +54,25 @@ library KeccakSponge {
         digest = new bytes(byte_count);
 
         uint256 counter = 0;
-        while (counter < byte_count) {
-            bytes memory pending = new bytes(self.last_index);
-            for (uint256 i = 0; i < pending.length; i++) {
-                pending[i] = self.pending[i];
-            }
-            bytes32 output = keccak256(pending);
+        bytes memory pending = new bytes(self.last_index);
+        for (uint256 i = 0; i < pending.length; i++) {
+            pending[i] = self.pending[i];
+        }
+        bytes32 output = keccak256(pending);
 
-            for (uint256 i = 0; i < 32; i++) {
-                counter++;
-                if (counter >= byte_count) {
-                    break;
-                }
-                digest[counter] = output[i];
+        for (uint256 i = 0; i < 32; i++) {
+            counter++;
+            if (counter >= byte_count) {
+                break;
             }
+            digest[counter] = output[i];
+        }
 
-            // pending <- output
-            reinit(self);
-            for (uint256 i = 0; i < 32; i++) {
-                self.pending[self.last_index] = output[i];
-                self.last_index += 1;
-            }
+        // pending <- output
+        reinit(self);
+        for (uint256 i = 0; i < 32; i++) {
+            self.pending[self.last_index] = output[i];
+            self.last_index += 1;
         }
     }
 
