@@ -89,25 +89,15 @@ library KeccakSponge {
     }
 
     function absorb_g_single(Sponge memory self, BN254.G1Point memory point) internal pure {
-        if (point.isInfinity()) {
-            absorb_scalar(self, 0);
-            absorb_scalar(self, 0);
-        } else {
-            absorb_scalar(self, point.x);
-            absorb_scalar(self, point.y);
-        }
+        absorb_scalar(self, point.x);
+        absorb_scalar(self, point.y);
     }
 
     function absorb_g(Sponge memory self, BN254.G1Point[] memory points) internal pure {
         for (uint256 i = 0; i < points.length; i++) {
             BN254.G1Point memory point = points[i];
-            if (point.isInfinity()) {
-                absorb_scalar(self, 0);
-                absorb_scalar(self, 0);
-            } else {
-                absorb_scalar(self, point.x);
-                absorb_scalar(self, point.y);
-            }
+            absorb_scalar(self, point.x);
+            absorb_scalar(self, point.y);
         }
     }
 
