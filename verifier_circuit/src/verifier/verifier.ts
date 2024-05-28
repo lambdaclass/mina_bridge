@@ -217,11 +217,10 @@ export class Verifier extends CircuitBn254 {
 
     @circuitMainBn254
     static main(@publicBn254 proofHash: FieldBn254) {
-        let proof = this.#dummyProof();
-        ProvableBn254.asProver(() => {
+        let proof = ProvableBn254.witness(ProverProof, () => {
             let proverProofFields: string[] = JSON.parse(readFileSync("./src/prover_proof_fields.json", "utf-8"));
 
-            proof = ProverProof.fromFields(proverProofFields.map(FieldBn254));
+            return ProverProof.fromFields(proverProofFields.map(FieldBn254));
         });
         proofHash.assertEquals(proof.hash());
 
