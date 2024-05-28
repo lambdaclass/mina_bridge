@@ -18,9 +18,7 @@ library Oracles {
     using {it_next} for AlphasIterator;
     using {
         KeccakSponge.reinit,
-        KeccakSponge.absorb_base,
         KeccakSponge.absorb_scalar,
-        KeccakSponge.absorb_scalar_multiple,
         KeccakSponge.absorb_g_single,
         KeccakSponge.absorb_evaluations,
         KeccakSponge.challenge_base,
@@ -53,7 +51,7 @@ library Oracles {
 
         // 2. Absorb the digest of the VerifierIndex.
         uint256 verifier_index_digest = VerifierIndexLib.verifier_digest(index);
-        base_sponge.absorb_base(verifier_index_digest);
+        base_sponge.absorb_scalar(verifier_index_digest);
 
         // TODO: 3. Absorb the commitment to the previous challenges.
         // WARN: is this necessary?

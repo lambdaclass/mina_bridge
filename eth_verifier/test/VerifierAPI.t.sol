@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity >=0.4.16 <0.9.0;
+pragma solidity ^0.8.0;
 
 import {Test, console2} from "forge-std/Test.sol";
 import "../src/Verifier.sol";
+import {Oracles} from "../lib/Oracles.sol";
 
 contract KimchiVerifierTest is Test {
     bytes verifier_index_serialized;
@@ -10,6 +11,10 @@ contract KimchiVerifierTest is Test {
     bytes linearization_serialized;
     bytes linearization_literals_serialized;
     bytes public_input_serialized;
+    Proof.ProverProof proof;
+    VerifierIndexLib.VerifierIndex verifier_index;
+    uint256 public_input;
+    BN254.G1Point public_comm;
 
     error VerificationFailed();
 
@@ -22,6 +27,11 @@ contract KimchiVerifierTest is Test {
         linearization_serialized = vm.readFileBinary("linearization.bin");
         linearization_literals_serialized = vm.readFileBinary("linearization_literals.bin");
         public_input_serialized = vm.readFileBinary("public_input.bin");
+
+        deser_prover_proof(prover_proof_serialized, proof);
+        deser_verifier_index(verifier_index_serialized, verifier_index);
+        public_input = deser_public_input(public_input_serialized);
+        public_comm = BN254.scalarMul(BN254.G1Point(1, 2), 42);
 
         // setup verifier contract
         global_verifier = new KimchiVerifier();
@@ -117,4 +127,11 @@ contract KimchiVerifierTest is Test {
             }
         }
     }
+
+    /*
+    function test_oracles_fiat_shamir() public {
+        Oracles.Result memory oracles_res = Oracles.fiat_shamir(proof, verifier_index, 
+            public_comm, public_input, true);
+    }
+    */
 }

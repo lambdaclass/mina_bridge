@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity >=0.4.16 <0.9.0;
+pragma solidity ^0.8.0;
 
 import {Test, console2} from "forge-std/Test.sol";
 import "../lib/sponge/Sponge.sol";
@@ -10,7 +10,6 @@ using {
     KeccakSponge.absorb_scalar,
     KeccakSponge.digest_scalar,
     KeccakSponge.challenge_scalar,
-    KeccakSponge.absorb_base,
     KeccakSponge.digest_base,
     KeccakSponge.challenge_base,
     KeccakSponge.absorb_g
@@ -53,7 +52,7 @@ contract KeccakSpongeTest is Test {
         KeccakSponge.Sponge memory sponge;
         sponge.reinit();
         uint256 input = Base.from(42);
-        sponge.absorb_base(input);
+        sponge.absorb_scalar(input);
 
         uint256 digest = sponge.digest_base();
         assertEq(digest, 0x00BECED09521047D05B8960B7E7BCC1D1292CF3E4B2A6B63F48335CBDE5F7545);
@@ -65,7 +64,7 @@ contract KeccakSpongeTest is Test {
         KeccakSponge.Sponge memory sponge;
         sponge.reinit();
         uint256 input = Base.from(42);
-        sponge.absorb_base(input);
+        sponge.absorb_scalar(input);
 
         uint256 digest = sponge.challenge_base();
         assertEq(digest, 0x0000000000000000000000000000000000BECED09521047D05B8960B7E7BCC1D);
