@@ -78,13 +78,14 @@ library KeccakSponge {
             mstore(add(b, 32), elem)
         }
 
-        for (uint256 i = 0; i < 32; i++) {
-            if (self.last_index >= MAX_SPONGE_STATE_SIZE) {
-                revert SizeExceeded();
-            }
-            self.pending[self.last_index] = b[i];
-            self.last_index += 1;
+        if ((self.last_index + 32) >= MAX_SPONGE_STATE_SIZE) {
+            revert SizeExceeded();
         }
+
+        for (uint256 i = 0; i < 32; i++) {
+            self.pending[self.last_index + i] = b[i];
+        }
+        self.last_index += 32;
     }
 
     function absorb_g_single(Sponge memory self, BN254.G1Point memory point) internal pure {
