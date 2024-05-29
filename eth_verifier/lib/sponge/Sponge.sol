@@ -52,69 +52,52 @@ library KeccakSponge {
 
     function squeeze(Sponge memory self, uint256 byte_count) internal pure returns (bytes memory digest) {
         digest = new bytes(byte_count);
-
-        uint256 counter = 0;
-        while (counter < byte_count) {
-            bytes memory pending = new bytes(self.last_index);
-            for (uint256 i = 0; i < pending.length; i++) {
-                pending[i] = self.pending[i];
-            }
-            bytes32 output = keccak256(pending);
-
-            for (uint256 i = 0; i < 32; i++) {
-                counter++;
-                if (counter >= byte_count) {
-                    break;
-                }
-                digest[counter] = output[i];
-            }
-
-            // pending <- output
-            reinit(self);
-            for (uint256 i = 0; i < 32; i++) {
-                self.pending[self.last_index] = output[i];
-                self.last_index += 1;
-            }
+        bytes memory pending = new bytes(self.last_index);
+        for (uint256 i = 0; i < pending.length; i++) {
+            pending[i] = self.pending[i];
         }
+        bytes32 output = keccak256(pending);
+
+        for (uint256 i = 0; i < byte_count - 1; i++) {
+            digest[i + 1] = output[i];
+        }
+
+        // pending <- output
+        reinit(self);
+        for (uint256 i = 0; i < 32; i++) {
+            self.pending[i] = output[i];
+        }
+        self.last_index = 32;
     }
 
     // KZG methods
 
     function absorb_scalar(Sponge memory self, uint256 elem) internal pure {
+        if ((self.last_index + 32) >= MAX_SPONGE_STATE_SIZE) {
+            revert SizeExceeded();
+        }
+
         bytes memory b = new bytes(32);
         assembly ("memory-safe") {
             mstore(add(b, 32), elem)
         }
 
         for (uint256 i = 0; i < 32; i++) {
-            if (self.last_index >= MAX_SPONGE_STATE_SIZE) {
-                revert SizeExceeded();
-            }
-            self.pending[self.last_index] = b[i];
-            self.last_index += 1;
+            self.pending[self.last_index + i] = b[i];
         }
+        self.last_index += 32;
     }
 
     function absorb_g_single(Sponge memory self, BN254.G1Point memory point) internal pure {
-        if (point.isInfinity()) {
-            absorb_scalar(self, 0);
-            absorb_scalar(self, 0);
-        } else {
-            absorb_scalar(self, Base.from(point.x));
-            absorb_scalar(self, Base.from(point.y));
-        }
+        absorb_scalar(self, point.x);
+        absorb_scalar(self, point.y);
     }
 
     function absorb_g(Sponge memory self, BN254.G1Point[] memory points) internal pure {
         for (uint256 i = 0; i < points.length; i++) {
             BN254.G1Point memory point = points[i];
-            if (point.isInfinity()) {
-                absorb_scalar(self, 0);
-                absorb_scalar(self, 0);
-            } else {
-                absorb_scalar(self, Base.from(point.x));
-                absorb_scalar(self, Base.from(point.y));
-            }
+            absorb_scalar(self, point.x);
+            absorb_scalar(self, point.y);
         }
     }
 
@@ -212,19 +195,19 @@ library KeccakSponge {
     function mds() internal pure returns (uint256[3][3] memory) {
         return [
             [
-                Scalar.from(12035446894107573964500871153637039653510326950134440362813193268448863222019),
-                Scalar.from(25461374787957152039031444204194007219326765802730624564074257060397341542093),
-                Scalar.from(27667907157110496066452777015908813333407980290333709698851344970789663080149)
+                12035446894107573964500871153637039653510326950134440362813193268448863222019,
+                25461374787957152039031444204194007219326765802730624564074257060397341542093,
+                27667907157110496066452777015908813333407980290333709698851344970789663080149
             ],
             [
-                Scalar.from(4491931056866994439025447213644536587424785196363427220456343191847333476930),
-                Scalar.from(14743631939509747387607291926699970421064627808101543132147270746750887019919),
-                Scalar.from(9448400033389617131295304336481030167723486090288313334230651810071857784477)
+                4491931056866994439025447213644536587424785196363427220456343191847333476930,
+                14743631939509747387607291926699970421064627808101543132147270746750887019919,
+                9448400033389617131295304336481030167723486090288313334230651810071857784477
             ],
             [
-                Scalar.from(10525578725509990281643336361904863911009900817790387635342941550657754064843),
-                Scalar.from(27437632000253211280915908546961303399777448677029255413769125486614773776695),
-                Scalar.from(27566319851776897085443681456689352477426926500749993803132851225169606086988)
+                10525578725509990281643336361904863911009900817790387635342941550657754064843,
+                27437632000253211280915908546961303399777448677029255413769125486614773776695,
+                27566319851776897085443681456689352477426926500749993803132851225169606086988
             ]
         ];
     }
