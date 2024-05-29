@@ -18,7 +18,7 @@ writeFileSync("./src/prover_proof_fields.json", JSON.stringify(proverProof.toFie
 
 console.log("Generating verifier circuit keypair...");
 
-let proofHash = proverProof.hash;
+let proofHash = proverProof.hash();
 let keypair = await Verifier.generateKeypair();
 console.log("Proving...");
 let { value } = await Verifier.prove([], [proofHash], keypair);
