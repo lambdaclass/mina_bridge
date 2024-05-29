@@ -1,5 +1,4 @@
 import { AggregatedEvaluationProof, Evaluation, PolyComm } from "../poly_commitment/commitment.js";
-import { ProverProof, PointEvaluations, ProofEvaluations, Constants, Oracles } from "../prover/prover.js";
 import { Verifier, VerifierIndex } from "./verifier.js";
 import { Column, PolishToken } from "../prover/expr.js";
 import { GateType } from "../circuits/gate.js";
@@ -11,8 +10,9 @@ import { isErr, isOk, unwrap, verifierOk, VerifierResult } from "../error.js";
 import { fq_sponge_params } from "./sponge.js";
 import { AlphasIterator } from "../alphas.js";
 import { LookupPattern } from "../lookups/lookups.js";
-
-import { fp_sponge_initial_state, fp_sponge_params, fq_sponge_initial_state, Sponge } from "../verifier/sponge.js";
+import { Constants } from "../prover/prover.js";
+import { ProofEvaluations } from "../prover/prover_evaluations.js";
+import { ProverProof } from "../prover/prover_proof.js";
 
 export class Context {
     verifier_index: VerifierIndex

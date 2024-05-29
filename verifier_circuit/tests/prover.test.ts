@@ -1,10 +1,13 @@
 import { ScalarChallenge } from "../src/verifier/scalar_challenge.js";
 import { ForeignScalar } from "../src/foreign_fields/foreign_scalar";
 import { test, expect } from "@jest/globals";
-import { PointEvaluations, ProofEvaluations, ProverCommitments, ProverProof } from "../src/prover/prover.js";
 import { createPolyComm, stringifyWithBigInt } from "./helpers.js";
 import { OpeningProof } from "../src/poly_commitment/opening_proof.js";
 import { ForeignPallas } from "../src/foreign_fields/foreign_pallas.js";
+import { PointEvaluations } from "../src/prover/point_evaluations.js";
+import { ProverCommitments } from "../src/prover/prover_commitments.js";
+import { ProofEvaluations } from "../src/prover/prover_evaluations.js";
+import { ProverProof } from "../src/prover/prover_proof.js";
 
 // This test has a twin in the 'verifier_circuit_tests' Rust crate.
 test("toFieldWithLength", () => {

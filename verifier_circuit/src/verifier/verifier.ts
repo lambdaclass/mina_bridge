@@ -17,8 +17,11 @@ import { deserVerifierIndex } from "../serde/serde_index.js";
 import { ForeignPallas, pallasZero } from '../foreign_fields/foreign_pallas.js';
 import { isErr, isOk, unwrap, VerifierResult, verifierOk } from '../error.js';
 import { finalVerify, BWParameters } from "./commitment.js";
-import { PointEvaluations, ProofEvaluations, ProverCommitments, ProverProof } from '../prover/prover.js';
 import { OpeningProof } from '../poly_commitment/opening_proof.js';
+import { PointEvaluations } from '../prover/point_evaluations.js';
+import { ProverCommitments } from '../prover/prover_commitments.js';
+import { ProofEvaluations } from '../prover/prover_evaluations.js';
+import { ProverProof } from '../prover/prover_proof.js';
 
 let steps: bigint[][];
 try {
