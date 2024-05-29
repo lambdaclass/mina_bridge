@@ -30,7 +30,8 @@ export function pallasFromFields(fields: FieldBn254[], offset: number): [Foreign
     let newOffset = offset + ForeignPallas.sizeInFields();
     let foreignPallas = ForeignPallas.fromFields(fields.slice(offset, newOffset));
 
-    return [foreignPallas, newOffset];
+    // Force first item of return value to be of type `ForeignPallas` instead of `Curve`
+    return [new ForeignPallas(foreignPallas), newOffset];
 }
 
 /**
@@ -85,8 +86,8 @@ export function pallasCommArrayFromFields(fields: FieldBn254[], arrayLength: num
     let cursor = offset;
     let pallasCommArray = [];
     for (let i = 0; i < arrayLength; i++) {
-        let [foreignPallas, newStart] = pallasCommFromFields(fields, commLength, cursor);
-        pallasCommArray.push(foreignPallas);
+        let [pallasComm, newStart] = pallasCommFromFields(fields, commLength, cursor);
+        pallasCommArray.push(pallasComm);
         cursor = newStart;
     }
 
@@ -99,14 +100,14 @@ export function pallasCommArrayFromFields(fields: FieldBn254[], arrayLength: num
  */
 export function pointEvaluationsArrayFromFields(fields: FieldBn254[], length: number, offset: number): [PointEvaluations[], number] {
     let cursor = offset;
-    let pallasCommArray = [];
+    let pointEvaluationsArray = [];
     for (let i = 0; i < length; i++) {
-        let [foreignPallas, newStart] = pointEvaluationsFromFields(fields, cursor);
-        pallasCommArray.push(foreignPallas);
+        let [pointEvaluations, newStart] = pointEvaluationsFromFields(fields, cursor);
+        pointEvaluationsArray.push(pointEvaluations);
         cursor = newStart;
     }
 
-    return [pallasCommArray, cursor];
+    return [pointEvaluationsArray, cursor];
 }
 
 // - Option deserialization functions

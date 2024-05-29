@@ -217,11 +217,10 @@ export class Verifier extends CircuitBn254 {
 
     @circuitMainBn254
     static main(@publicBn254 proofHash: FieldBn254) {
-        let proof = this.#dummyProof();
-        ProvableBn254.asProver(() => {
+        let proof = ProvableBn254.witness(ProverProof, () => {
             let proverProofFields: string[] = JSON.parse(readFileSync("./src/prover_proof_fields.json", "utf-8"));
 
-            proof = ProverProof.fromFields(proverProofFields.map(FieldBn254));
+            return ProverProof.fromFields(proverProofFields.map(FieldBn254));
         });
         proofHash.assertEquals(proof.hash());
 
@@ -268,10 +267,32 @@ export class Verifier extends CircuitBn254 {
         let scalar = ForeignScalar.from(42);
         let point = ForeignPallas.generator as ForeignPallas;
         let pointEvals = new PointEvaluations(scalar, scalar);
-        let evals = new ProofEvaluations([], pointEvals, [], [], pointEvals, pointEvals, pointEvals, pointEvals, pointEvals, pointEvals);
-        let polyComm = new PolyComm([]);
-        let commitments = new ProverCommitments([], polyComm, polyComm);
-        let proof = new OpeningProof([], point, scalar, scalar, point);
+        let evals = new ProofEvaluations(
+            Array(15).fill(pointEvals),
+            pointEvals,
+            Array(6).fill(pointEvals),
+            Array(15).fill(pointEvals),
+            pointEvals,
+            pointEvals,
+            pointEvals,
+            pointEvals,
+            pointEvals,
+            pointEvals
+        );
+        let polyComm = new PolyComm([point]);
+        let bigPolyComm = new PolyComm(Array(7).fill(point));
+        let commitments = new ProverCommitments(
+            Array(15).fill(polyComm),
+            polyComm,
+            bigPolyComm
+        );
+        let proof = new OpeningProof(
+            Array(15).fill([point, point]),
+            point,
+            scalar,
+            scalar,
+            point
+        );
         return new ProverProof(evals, [], commitments, scalar, proof);
     }
 }

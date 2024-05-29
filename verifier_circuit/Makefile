@@ -3,4 +3,4 @@
 build:
 	@npm run preinstall
 	@npm run build
-	@node build/src/main.js
+	@node --max-old-space-size=16384 build/src/main.js

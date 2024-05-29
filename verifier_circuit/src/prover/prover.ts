@@ -5,16 +5,17 @@ import { arrayToFields, scalarFromFields, pallasCommFromFields, pallasCommArrayF
 import { ScalarChallenge } from "../verifier/scalar_challenge.js";
 import { fp_sponge_initial_state, fp_sponge_params, fq_sponge_initial_state, fq_sponge_params, Sponge } from "../verifier/sponge.js";
 import { Verifier, VerifierIndex } from "../verifier/verifier.js";
-import { powScalar } from "../util/scalar.js";
+import { invScalar, powScalar } from "../util/scalar.js";
 import { GateType } from "../circuits/gate.js";
 import { Alphas } from "../alphas.js";
-import { Column } from "./expr.js";
+import { Column, PolishToken } from "./expr.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { ForeignPallas } from "../foreign_fields/foreign_pallas.js";
-import { VerifierResult, verifierErr } from "../error.js";
+import { VerifierResult, isErr, unwrap, verifierErr, verifierOk } from "../error.js";
 import { LookupPattern } from "../lookups/lookups.js";
 import { OpeningProof } from "../poly_commitment/opening_proof.js";
 import { readFileSync } from "fs";
+import { range } from "../util/misc.js";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
@@ -30,7 +31,7 @@ export class ProverProof {
         prev_challenges: RecursionChallenge[],
         commitments: ProverCommitments,
         ft_eval1: ForeignScalar,
-        proof: OpeningProof
+        proof: OpeningProof,
     ) {
         this.evals = evals;
         this.prev_challenges = prev_challenges;
@@ -85,7 +86,7 @@ export class ProverProof {
                 fq_sponge.absorbCommitment(runtime_commit);
             }
 
-            const zero = ProvableBn254.witness(ForeignScalar.provable, () => ForeignScalar.from(0).assertAlmostReduced());
+            const zero = ForeignScalar.from(0).assertAlmostReduced();
             const joint_combiner_scalar = l.joint_lookup_used
                 ? fq_sponge.challenge()
                 : zero;
@@ -134,8 +135,6 @@ export class ProverProof {
         let fr_sponge = new Sponge(fq_sponge_params(), fq_sponge_initial_state());
 
         const digest = fq_sponge.digest();
-        return verifierErr("a");
-        /*
 
         //~ 18. Squeeze the Fq-sponge and absorb the result with the Fr-Sponge.
         fr_sponge.absorbFr(digest);
@@ -152,10 +151,10 @@ export class ProverProof {
         let zeta1 = powScalar(zeta, n);
         const zetaw = zeta.mul(index.domain_gen).assertAlmostReduced();
         const evaluation_points = [zeta, zetaw];
-        const powers_of_eval_points_for_chunks: PointEvaluations<ForeignScalar> = {
-            zeta: powScalar(zeta, index.max_poly_size),
-            zetaOmega: powScalar(zetaw, index.max_poly_size)
-        };
+        const powers_of_eval_points_for_chunks = new PointEvaluations(
+            powScalar(zeta, index.max_poly_size),
+            powScalar(zetaw, index.max_poly_size)
+        );
 
         //~ 20. Compute evaluations for the previous recursion challenges.
         const polys: [PolyComm<ForeignPallas>, ForeignScalar[][]][] = this.prev_challenges.map((chal) => {
@@ -174,9 +173,10 @@ export class ProverProof {
         let all_alphas = index.powers_of_alpha;
         all_alphas.instantiate(alpha);
 
+
         let public_evals: ForeignScalar[][] | undefined;
         if (this.evals.public_input) {
-            public_evals = [this.evals.public_input.zeta, this.evals.public_input.zetaOmega];
+            public_evals = [[this.evals.public_input.zeta], [this.evals.public_input.zetaOmega]];
         } else if (chunk_size > 1) {
             return verifierErr("missing public input evaluation");
         } else if (public_input) {
@@ -256,17 +256,13 @@ export class ProverProof {
         ProvableBn254.asProver(() => fr_sponge.absorbEvals(this.evals));
 
         //~ 24. Sample $v'$ with the Fr-Sponge.
-        const v_chal = new ScalarChallenge(
-            ProvableBn254.witness(ForeignScalar.provable, () => fr_sponge.challenge())
-        );
+        const v_chal = new ScalarChallenge(fr_sponge.challenge());
 
         //~ 25. Derive $v$ from $v'$ using the endomorphism (TODO: specify).
         const v = v_chal.toField(endo_r);
 
         //~ 26. Sample $u'$ with the Fr-Sponge.
-        const u_chal = new ScalarChallenge(
-            ProvableBn254.witness(ForeignScalar.provable, () => fr_sponge.challenge())
-        );
+        const u_chal = new ScalarChallenge(fr_sponge.challenge());
 
         //~ 27. Derive $u$ from $u'$ using the endomorphism (TODO: specify).
         const u = u_chal.toField(endo_r);
@@ -352,7 +348,7 @@ export class ProverProof {
             const evals = this
                 .evals
                 .getColumn(col)!;
-            es.push([[evals.zeta, evals.zetaOmega], undefined]);
+            es.push([[[evals.zeta], [evals.zetaOmega]], undefined]);
         };
 
         push_column_eval({ kind: "z" })
@@ -429,15 +425,10 @@ export class ProverProof {
         }
 
         return verifierOk(result);
-        */
     }
 
     hash() {
-        return ProvableBn254.witness(FieldBn254, () => {
-            let fieldsStr: string[] = JSON.parse(readFileSync("./src/prover_proof_fields.json", "utf-8"));
-            let fieldsRepr = fieldsStr.map(FieldBn254);
-            return PoseidonBn254.hash(fieldsRepr);
-        });
+        return PoseidonBn254.hash(this.toFields());
     }
 
     static fromFields(fields: FieldBn254[]) {
