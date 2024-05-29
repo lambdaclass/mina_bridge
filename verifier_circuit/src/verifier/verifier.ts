@@ -267,10 +267,32 @@ export class Verifier extends CircuitBn254 {
         let scalar = ForeignScalar.from(42);
         let point = ForeignPallas.generator as ForeignPallas;
         let pointEvals = new PointEvaluations(scalar, scalar);
-        let evals = new ProofEvaluations([], pointEvals, [], [], pointEvals, pointEvals, pointEvals, pointEvals, pointEvals, pointEvals);
-        let polyComm = new PolyComm([]);
-        let commitments = new ProverCommitments([], polyComm, polyComm);
-        let proof = new OpeningProof([], point, scalar, scalar, point);
+        let evals = new ProofEvaluations(
+            Array(15).fill(pointEvals),
+            pointEvals,
+            Array(6).fill(pointEvals),
+            Array(15).fill(pointEvals),
+            pointEvals,
+            pointEvals,
+            pointEvals,
+            pointEvals,
+            pointEvals,
+            pointEvals
+        );
+        let polyComm = new PolyComm([point]);
+        let bigPolyComm = new PolyComm(Array(7).fill(point));
+        let commitments = new ProverCommitments(
+            Array(15).fill(polyComm),
+            polyComm,
+            bigPolyComm
+        );
+        let proof = new OpeningProof(
+            Array(15).fill([point, point]),
+            point,
+            scalar,
+            scalar,
+            point
+        );
         return new ProverProof(evals, [], commitments, scalar, proof);
     }
 }

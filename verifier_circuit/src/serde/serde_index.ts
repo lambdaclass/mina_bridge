@@ -309,7 +309,7 @@ export function deserVerifierIndex(json: VerifierIndexJSON): VerifierIndex {
         max_poly_size,
         zk_rows,
         public_size,
-        sigma_comm.map(deserPolyComm),
+        sigma_comm[0].map((comm) => new PolyComm([deserGroup(comm)])),
         coefficients_comm.map(deserPolyComm),
         deserPolyComm(generic_comm),
         deserPolyComm(psm_comm),
