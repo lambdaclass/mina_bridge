@@ -1,3 +1,3 @@
-import { Addition } from './Addition.js';
+import { Addition } from './Addition.ts';
 
 export { Addition };

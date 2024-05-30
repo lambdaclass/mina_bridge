@@ -1,6 +1,6 @@
-import { ArgumentType, ArgumentTypeID, GateType } from "./circuits/gate.js";
-import { ForeignScalar } from "./foreign_fields/foreign_scalar.js";
-import { VerifierResult, verifierErr, verifierOk } from "./error.js";
+import { ArgumentType, ArgumentTypeID, GateType } from "./circuits/gate.ts";
+import { ForeignScalar } from "./foreign_fields/foreign_scalar.ts";
+import { VerifierResult, verifierErr, verifierOk } from "./error.ts";
 
 /**
  * This type can be used to create a mapping between powers of alpha and constraint types.

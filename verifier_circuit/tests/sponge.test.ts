@@ -1,4 +1,4 @@
-import { ProvableBn254 } from "o1js";
+import { ProvableBn254 } from "../o1js/src/index.ts";
 import { ForeignBase } from "../src/foreign_fields/foreign_field";
 import { ForeignScalar } from "../src/foreign_fields/foreign_scalar";
 import { ArithmeticSponge, fp_sponge_initial_state, fp_sponge_params, fq_sponge_initial_state, fq_sponge_params, Sponge } from "../src/verifier/sponge";

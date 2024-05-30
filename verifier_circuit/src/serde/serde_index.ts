@@ -1,13 +1,13 @@
-import { ForeignCurveBn254, Group, Scalar } from "o1js"
-import { PolyComm } from "../poly_commitment/commitment.js"
-import { LookupVerifierIndex, VerifierIndex } from "../verifier/verifier.js"
-import { deserHexScalar } from "./serde_proof.js"
-import { PolishToken, CurrOrNext, Variable, Column, Linearization } from "../prover/expr.js"
-import { ArgumentType, GateType } from "../circuits/gate.js"
-import { Polynomial } from "../polynomial.js"
-import { Alphas } from "../alphas.js"
-import { ForeignPallas } from "../foreign_fields/foreign_pallas.js"
-import { LookupFeatures, LookupInfo, LookupPatterns, LookupSelectors } from "../lookups/lookups.js"
+import { ForeignCurveBn254, Group, Scalar } from "../o1js/src/index.ts"
+import { PolyComm } from "../poly_commitment/commitment.ts"
+import { LookupVerifierIndex, VerifierIndex } from "../verifier/verifier.ts"
+import { deserHexScalar } from "./serde_proof.ts"
+import { PolishToken, CurrOrNext, Variable, Column, Linearization } from "../prover/expr.ts"
+import { ArgumentType, GateType } from "../circuits/gate.ts"
+import { Polynomial } from "../polynomial.ts"
+import { Alphas } from "../alphas.ts"
+import { ForeignPallas } from "../foreign_fields/foreign_pallas.ts"
+import { LookupFeatures, LookupInfo, LookupPatterns, LookupSelectors } from "../lookups/lookups.ts"
 
 export type PolyCommJSON = GroupJSON[];
 

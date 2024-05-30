@@ -1,11 +1,11 @@
-import { AlmostForeignFieldBn254, ForeignFieldBn254, ProvableBn254 } from "../../o1js/src/index.js";
-import { PolyComm } from "../poly_commitment/commitment.js";
-import { PointEvaluations, ProofEvaluations } from "../prover/prover.js";
-import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
-import { ForeignBase } from "../foreign_fields/foreign_field.js";
+import { AlmostForeignFieldBn254, ForeignFieldBn254, ProvableBn254 } from "../../o1js/src/index.ts";
+import { PolyComm } from "../poly_commitment/commitment.ts";
+import { PointEvaluations, ProofEvaluations } from "../prover/prover.ts";
+import { ForeignScalar } from "../foreign_fields/foreign_scalar.ts";
+import { ForeignBase } from "../foreign_fields/foreign_field.ts";
 import { assert } from "node:console";
-import { ForeignPallas } from "../foreign_fields/foreign_pallas.js";
-import { fromLimbs64Rev, getLimbs64 } from "../util/bigint.js";
+import { ForeignPallas } from "../foreign_fields/foreign_pallas.ts";
+import { fromLimbs64Rev, getLimbs64 } from "../util/bigint.ts";
 
 enum SpongeMode {
     Squeezing,

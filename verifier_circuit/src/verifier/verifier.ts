@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync } from 'https://deno.land/std@0.51.0/fs/mod.ts';
 import { CircuitBn254, FieldBn254, ProvableBn254, circuitMainBn254, publicBn254 } from '../../o1js/src/index.ts';
 import { PolyComm } from '../poly_commitment/commitment.ts';
 import { SRS } from '../SRS.ts';
@@ -13,10 +13,10 @@ import {
 } from '../lookups/lookups.ts';
 import { Batch } from './batch.ts';
 import verifier_index_json from "../../test_data/verifier_index.json" assert { type: "json" };
-import { deserVerifierIndex } from "../serde/serde_index.js";
+import { deserVerifierIndex } from "../serde/serde_index.ts";
 import { ForeignPallas, pallasZero } from '../foreign_fields/foreign_pallas.ts';
 import { isErr, isOk, unwrap, VerifierResult, verifierOk } from '../error.ts';
-import { finalVerify, BWParameters } from "./commitment.js";
+import { finalVerify, BWParameters } from "./commitment.ts";
 import { PointEvaluations, ProofEvaluations, ProverCommitments, ProverProof } from '../prover/prover.ts';
 import { OpeningProof } from '../poly_commitment/opening_proof.ts';
 

@@ -1,12 +1,12 @@
-import { ForeignBase } from '../foreign_fields/foreign_field.js';
-import { ForeignScalar } from '../foreign_fields/foreign_scalar.js';
-import { ForeignPallas, pallasZero } from '../foreign_fields/foreign_pallas.js';
-import { AggregatedEvaluationProof, bPoly, bPolyCoefficients, combineCommitments } from '../poly_commitment/commitment.js';
-import { ScalarChallenge } from "../verifier/scalar_challenge.js";
-import { SRS } from '../SRS.js';
-import { sqrtBase } from '../util/field.js';
-import { logField } from '../util/log.js';
-import { powScalar } from "../util/scalar.js";
+import { ForeignBase } from '../foreign_fields/foreign_field.ts';
+import { ForeignScalar } from '../foreign_fields/foreign_scalar.ts';
+import { ForeignPallas, pallasZero } from '../foreign_fields/foreign_pallas.ts';
+import { AggregatedEvaluationProof, bPoly, bPolyCoefficients, combineCommitments } from '../poly_commitment/commitment.ts';
+import { ScalarChallenge } from "../verifier/scalar_challenge.ts";
+import { SRS } from '../SRS.ts';
+import { sqrtBase } from '../util/field.ts';
+import { logField } from '../util/log.ts';
+import { powScalar } from "../util/scalar.ts";
 
 export function finalVerify(
     srs: SRS,

@@ -1,18 +1,18 @@
-import { AggregatedEvaluationProof, Evaluation, PolyComm } from "../poly_commitment/commitment.js";
-import { ProverProof, PointEvaluations, ProofEvaluations, Constants, Oracles } from "../prover/prover.js";
-import { Verifier, VerifierIndex } from "./verifier.js";
-import { Column, PolishToken } from "../prover/expr.js";
-import { GateType } from "../circuits/gate.js";
-import { powScalar } from "../util/scalar.js";
-import { range } from "../util/misc.js";
-import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
-import { ForeignPallas } from "../foreign_fields/foreign_pallas.js";
-import { isErr, isOk, unwrap, verifierOk, VerifierResult } from "../error.js";
-import { fq_sponge_params } from "./sponge.js";
-import { AlphasIterator } from "../alphas.js";
-import { LookupPattern } from "../lookups/lookups.js";
+import { AggregatedEvaluationProof, Evaluation, PolyComm } from "../poly_commitment/commitment.ts";
+import { ProverProof, PointEvaluations, ProofEvaluations, Constants, Oracles } from "../prover/prover.ts";
+import { Verifier, VerifierIndex } from "./verifier.ts";
+import { Column, PolishToken } from "../prover/expr.ts";
+import { GateType } from "../circuits/gate.ts";
+import { powScalar } from "../util/scalar.ts";
+import { range } from "../util/misc.ts";
+import { ForeignScalar } from "../foreign_fields/foreign_scalar.ts";
+import { ForeignPallas } from "../foreign_fields/foreign_pallas.ts";
+import { isErr, isOk, unwrap, verifierOk, VerifierResult } from "../error.ts";
+import { fq_sponge_params } from "./sponge.ts";
+import { AlphasIterator } from "../alphas.ts";
+import { LookupPattern } from "../lookups/lookups.ts";
 
-import { fp_sponge_initial_state, fp_sponge_params, fq_sponge_initial_state, Sponge } from "../verifier/sponge.js";
+import { fp_sponge_initial_state, fp_sponge_params, fq_sponge_initial_state, Sponge } from "../verifier/sponge.ts";
 
 export class Context {
     verifier_index: VerifierIndex

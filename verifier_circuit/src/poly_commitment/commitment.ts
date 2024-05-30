@@ -1,9 +1,9 @@
-import { FieldBn254 } from "o1js";
-import { Sponge } from "../verifier/sponge";
-import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
-import { FieldSerializable, arrayToFields, pallasArrayFromFields } from "../field_serializable.js";
-import { ForeignPallas } from "../foreign_fields/foreign_pallas.js";
-import { OpeningProof } from "./opening_proof";
+import { FieldBn254 } from "../../o1js/src/index.ts";
+import { Sponge } from "../verifier/sponge.ts";
+import { ForeignScalar } from "../foreign_fields/foreign_scalar.ts";
+import { FieldSerializable, arrayToFields, pallasArrayFromFields } from "../field_serializable.ts";
+import { ForeignPallas } from "../foreign_fields/foreign_pallas.ts";
+import { OpeningProof } from "./opening_proof.ts";
 
 /**
 * A polynomial commitment

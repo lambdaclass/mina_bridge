@@ -14,7 +14,7 @@
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",
   "tasks": {
-    "build": "tsc",
+    "build": "deno compile src/main.ts",
     "buildw": "tsc --watch",
     "coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
     "format": "prettier --write --ignore-unknown **/*",
@@ -23,7 +23,7 @@
     "testw": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
     "lint": "npx eslint src/* --fix"
   },
-  "devDependencies": {
+  "imports": {
     "@babel/preset-env": "npm:@babel/preset-env@^7.16.4",
     "@babel/preset-typescript": "npm:@babel/preset-typescript@^7.16.0",
     "@types/jest": "npm:@types/jest@^27.5.2",
@@ -37,9 +37,7 @@
     "o1js": "file:o1js",
     "prettier": "npm:prettier@^2.3.2",
     "ts-jest": "npm:ts-jest@^28.0.8",
-    "typescript": "npm:typescript@^4.9.5"
-  },
-  "dependencies": {
+    "typescript": "npm:typescript@^4.9.5",
     "fs-extra": "npm:fs-extra@^11.2.0"
-  }
+  },
 }

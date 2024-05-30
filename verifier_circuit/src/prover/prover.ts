@@ -1,20 +1,20 @@
-import { Polynomial } from "../polynomial.js";
-import { FieldBn254, PoseidonBn254, ProvableBn254, Scalar } from "../../o1js/src/index.js";
-import { PolyComm, bPoly, bPolyCoefficients } from "../poly_commitment/commitment.js";
-import { arrayToFields, scalarFromFields, pallasCommFromFields, pallasCommArrayFromFields, pointEvaluationsArrayFromFields, pointEvaluationsFromFields, optionalPointEvaluationsFromFields, optionalPointEvaluationsArrayFromFields } from "../field_serializable.js";
-import { ScalarChallenge } from "../verifier/scalar_challenge.js";
-import { fp_sponge_initial_state, fp_sponge_params, fq_sponge_initial_state, fq_sponge_params, Sponge } from "../verifier/sponge.js";
-import { Verifier, VerifierIndex } from "../verifier/verifier.js";
-import { invScalar, powScalar } from "../util/scalar.js";
-import { GateType } from "../circuits/gate.js";
-import { Alphas } from "../alphas.js";
-import { Column, PolishToken } from "./expr.js";
-import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
-import { ForeignPallas } from "../foreign_fields/foreign_pallas.js";
-import { VerifierResult, isErr, unwrap, verifierErr, verifierOk } from "../error.js";
-import { LookupPattern } from "../lookups/lookups.js";
-import { OpeningProof } from "../poly_commitment/opening_proof.js";
-import { range } from "../util/misc.js";
+import { Polynomial } from "../polynomial.ts";
+import { FieldBn254, PoseidonBn254, ProvableBn254, Scalar } from "../../o1js/src/index.ts";
+import { PolyComm, bPoly, bPolyCoefficients } from "../poly_commitment/commitment.ts";
+import { arrayToFields, scalarFromFields, pallasCommFromFields, pallasCommArrayFromFields, pointEvaluationsArrayFromFields, pointEvaluationsFromFields, optionalPointEvaluationsFromFields, optionalPointEvaluationsArrayFromFields } from "../field_serializable.ts";
+import { ScalarChallenge } from "../verifier/scalar_challenge.ts";
+import { fp_sponge_initial_state, fp_sponge_params, fq_sponge_initial_state, fq_sponge_params, Sponge } from "../verifier/sponge.ts";
+import { Verifier, VerifierIndex } from "../verifier/verifier.ts";
+import { invScalar, powScalar } from "../util/scalar.ts";
+import { GateType } from "../circuits/gate.ts";
+import { Alphas } from "../alphas.ts";
+import { Column, PolishToken } from "./expr.ts";
+import { ForeignScalar } from "../foreign_fields/foreign_scalar.ts";
+import { ForeignPallas } from "../foreign_fields/foreign_pallas.ts";
+import { VerifierResult, isErr, unwrap, verifierErr, verifierOk } from "../error.ts";
+import { LookupPattern } from "../lookups/lookups.ts";
+import { OpeningProof } from "../poly_commitment/opening_proof.ts";
+import { range } from "../util/misc.ts";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {

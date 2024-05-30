@@ -1,11 +1,10 @@
-import { SRS } from "../SRS.js";
-import { ScalarChallenge } from "../verifier/scalar_challenge.js";
-import { invScalar } from "../util/scalar.js";
-import { FieldBn254, PoseidonBn254, Provable, ProvableBn254 } from "../../o1js/src/index.js";
-import { ForeignPallas } from "../foreign_fields/foreign_pallas.js";
+import { SRS } from "../SRS.ts";
+import { ScalarChallenge } from "../verifier/scalar_challenge.ts";
+import { invScalar } from "../util/scalar.ts";
+import { FieldBn254, PoseidonBn254, Provable, ProvableBn254 } from "../../o1js/src/index.ts";
+import { ForeignPallas } from "../foreign_fields/foreign_pallas.ts";
 import { Sponge } from "../verifier/sponge";
-import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
-import { readFileSync } from "node:fs";
+import { ForeignScalar } from "../foreign_fields/foreign_scalar.ts";
 
 export class OpeningProof {
     /** vector of rounds of L & R commitments */
