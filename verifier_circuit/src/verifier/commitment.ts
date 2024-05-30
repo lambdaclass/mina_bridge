@@ -2,11 +2,11 @@ import { ForeignBase } from '../foreign_fields/foreign_field.js';
 import { ForeignScalar } from '../foreign_fields/foreign_scalar.js';
 import { ForeignPallas, pallasZero } from '../foreign_fields/foreign_pallas.js';
 import { AggregatedEvaluationProof, bPoly, bPolyCoefficients, combineCommitments } from '../poly_commitment/commitment.js';
-import { ScalarChallenge } from "../verifier/scalar_challenge.js";
+import { ScalarChallenge } from "../verifier/scalar_challenge.ts";
 import { SRS } from '../SRS.js';
 import { sqrtBase } from '../util/field.js';
 import { logField } from '../util/log.js';
-import { powScalar } from "../util/scalar.js";
+import { powScalar } from "../util/scalar.ts";
 
 export function finalVerify(
     srs: SRS,
@@ -44,7 +44,7 @@ export function finalVerify(
 
     // absorb x - 2^n where n is the bits used to represent the scalar field modulus
     const MODULUS_BITS = 255;
-    sponge.absorbFr(combined_inner_product.sub(powScalar(ForeignScalar.from(2), MODULUS_BITS) ).assertAlmostReduced());
+    sponge.absorbFr(combined_inner_product.sub(powScalar(ForeignScalar.from(2), MODULUS_BITS)).assertAlmostReduced());
 
     const t = sponge.challengeFq();
     const u = group_map.toGroup(t.assertAlmostReduced());

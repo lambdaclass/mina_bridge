@@ -1,4 +1,4 @@
-import { ForeignScalar } from "./foreign_fields/foreign_scalar.js"
+import { ForeignScalar } from "./foreign_fields/foreign_scalar.ts";
 
 export class Polynomial {
     coef: Array<ForeignScalar>

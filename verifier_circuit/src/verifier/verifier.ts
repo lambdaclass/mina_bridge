@@ -1,24 +1,24 @@
-import { readFileSync } from 'fs';
-import { CircuitBn254, FieldBn254, ProvableBn254, circuitMainBn254, publicBn254 } from 'o1js';
-import { PolyComm } from '../poly_commitment/commitment.js';
-import { SRS } from '../SRS.js';
-import { fp_sponge_initial_state, fp_sponge_params, Sponge } from './sponge.js';
-import { Alphas } from '../alphas.js';
-import { Polynomial } from '../polynomial.js';
-import { Linearization, PolishToken } from '../prover/expr.js';
-import { ForeignBase } from '../foreign_fields/foreign_field.js';
-import { ForeignScalar } from '../foreign_fields/foreign_scalar.js';
+import { readFileSync } from 'node:fs';
+import { CircuitBn254, FieldBn254, ProvableBn254, circuitMainBn254, publicBn254 } from '../../o1js/src/index.ts';
+import { PolyComm } from '../poly_commitment/commitment.ts';
+import { SRS } from '../SRS.ts';
+import { fp_sponge_initial_state, fp_sponge_params, Sponge } from './sponge.ts';
+import { Alphas } from '../alphas.ts';
+import { Polynomial } from '../polynomial.ts';
+import { Linearization, PolishToken } from '../prover/expr.ts';
+import { ForeignBase } from '../foreign_fields/foreign_field.ts';
+import { ForeignScalar } from '../foreign_fields/foreign_scalar.ts';
 import {
     LookupInfo, LookupSelectors
-} from '../lookups/lookups.js';
-import { Batch } from './batch.js';
+} from '../lookups/lookups.ts';
+import { Batch } from './batch.ts';
 import verifier_index_json from "../../test_data/verifier_index.json" assert { type: "json" };
-import { deserVerifierIndex } from "../serde/serde_index.js";
-import { ForeignPallas, pallasZero } from '../foreign_fields/foreign_pallas.js';
-import { isErr, isOk, unwrap, VerifierResult, verifierOk } from '../error.js';
-import { finalVerify, BWParameters } from "./commitment.js";
-import { PointEvaluations, ProofEvaluations, ProverCommitments, ProverProof } from '../prover/prover.js';
-import { OpeningProof } from '../poly_commitment/opening_proof.js';
+import { deserVerifierIndex } from "../serde/serde_index.ts";
+import { ForeignPallas, pallasZero } from '../foreign_fields/foreign_pallas.ts';
+import { isErr, isOk, unwrap, VerifierResult, verifierOk } from '../error.ts';
+import { finalVerify, BWParameters } from "./commitment.ts";
+import { PointEvaluations, ProofEvaluations, ProverCommitments, ProverProof } from '../prover/prover.ts';
+import { OpeningProof } from '../poly_commitment/opening_proof.ts';
 
 let steps: bigint[][];
 try {

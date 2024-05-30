@@ -1,5 +1,5 @@
-import { ForeignPallas } from "../foreign_fields/foreign_pallas"
-import { PolyComm } from "../poly_commitment/commitment"
+import { ForeignPallas } from "../foreign_fields/foreign_pallas.ts";
+import { PolyComm } from "../poly_commitment/commitment.ts";
 
 /**
 * Flags for each of the hard-coded lookup patterns.
