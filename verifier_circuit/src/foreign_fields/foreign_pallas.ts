@@ -1,4 +1,4 @@
-import { FieldBn254, createForeignCurveBn254 } from '../../src/o1js/index.ts';
+import { FieldBn254, createForeignCurveBn254 } from '../../o1js/src/index.ts';
 
 const p = 0x40000000000000000000000000000000224698fc094cf91b992d30ed00000001n;
 const q = 0x40000000000000000000000000000000224698fc0994a8dd8c46eb2100000001n;

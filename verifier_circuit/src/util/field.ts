@@ -1,4 +1,4 @@
-import { Provable, ProvableBn254 } from "../o1js/src/index.ts";
+import { Provable, ProvableBn254 } from "../../o1js/src/index.ts";
 import { ForeignBase } from "../foreign_fields/foreign_field.ts";
 
 export function sqrtBase(a: ForeignBase): ForeignBase | undefined {

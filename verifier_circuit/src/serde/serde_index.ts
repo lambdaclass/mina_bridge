@@ -1,4 +1,4 @@
-import { ForeignCurveBn254, Group, Scalar } from "../o1js/src/index.ts"
+import { ForeignCurveBn254, Group, Scalar } from "../../o1js/src/index.ts"
 import { PolyComm } from "../poly_commitment/commitment.ts"
 import { LookupVerifierIndex, VerifierIndex } from "../verifier/verifier.ts"
 import { deserHexScalar } from "./serde_proof.ts"

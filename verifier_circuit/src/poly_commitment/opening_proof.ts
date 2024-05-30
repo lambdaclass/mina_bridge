@@ -3,7 +3,7 @@ import { ScalarChallenge } from "../verifier/scalar_challenge.ts";
 import { invScalar } from "../util/scalar.ts";
 import { FieldBn254, PoseidonBn254, Provable, ProvableBn254 } from "../../o1js/src/index.ts";
 import { ForeignPallas } from "../foreign_fields/foreign_pallas.ts";
-import { Sponge } from "../verifier/sponge";
+import { Sponge } from "../verifier/sponge.ts";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.ts";
 
 export class OpeningProof {

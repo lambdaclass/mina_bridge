@@ -3,7 +3,7 @@ import { PolyComm } from "../poly_commitment/commitment.ts";
 import { PointEvaluations, ProofEvaluations } from "../prover/prover.ts";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.ts";
 import { ForeignBase } from "../foreign_fields/foreign_field.ts";
-import { assert } from "node:console";
+import { assert } from "npm:console";
 import { ForeignPallas } from "../foreign_fields/foreign_pallas.ts";
 import { fromLimbs64Rev, getLimbs64 } from "../util/bigint.ts";
 
