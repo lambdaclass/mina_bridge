@@ -1,6 +1,6 @@
 .PHONY: build
 
 build:
-	@npm run preinstall
-	@npm run build
-	@node --max-old-space-size=16384 build/src/main.js
+	@deno task preinstall
+	@deno task build
+	@deno run --max-old-space-size=32768 --unstable-sloppy-imports src/main.ts
