@@ -1,4 +1,4 @@
-import { Addition } from "./Addition.ts";
+import { Addition } from "./Addition.js";
 import {
     Field,
     Mina,

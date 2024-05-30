@@ -1,7 +1,7 @@
 import { ProvableBn254 } from "../../o1js/src/index.ts"
-import { ForeignScalar } from "../foreign_fields/foreign_scalar.ts";
-import { Sponge } from "./sponge.ts";
-import { getLimbs64 } from "../util/bigint.ts";
+import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
+import { Sponge } from "./sponge.js";
+import { getLimbs64 } from "../util/bigint.js";
 
 export class ScalarChallenge {
     chal: ForeignScalar

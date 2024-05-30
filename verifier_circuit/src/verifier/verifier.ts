@@ -13,10 +13,10 @@ import {
 } from '../lookups/lookups.ts';
 import { Batch } from './batch.ts';
 import verifier_index_json from "../../test_data/verifier_index.json" assert { type: "json" };
-import { deserVerifierIndex } from "../serde/serde_index.ts";
+import { deserVerifierIndex } from "../serde/serde_index.js";
 import { ForeignPallas, pallasZero } from '../foreign_fields/foreign_pallas.ts';
 import { isErr, isOk, unwrap, VerifierResult, verifierOk } from '../error.ts';
-import { finalVerify, BWParameters } from "./commitment.ts";
+import { finalVerify, BWParameters } from "./commitment.js";
 import { PointEvaluations, ProofEvaluations, ProverCommitments, ProverProof } from '../prover/prover.ts';
 import { OpeningProof } from '../poly_commitment/opening_proof.ts';
 

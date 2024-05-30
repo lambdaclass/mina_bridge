@@ -1,5 +1,5 @@
-import { Provable, ProvableBn254, Scalar } from "../../o1js/src/index.ts";
-import { ForeignScalar } from "../foreign_fields/foreign_scalar.ts";
+import { Provable, ProvableBn254, Scalar } from "../../o1js/src/index.js";
+import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 
 export function powScalar(f: ForeignScalar, exp: number): ForeignScalar {
     if (exp === 0) return ForeignScalar.from(1);

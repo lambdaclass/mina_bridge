@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
-import { deserProverProof } from "./serde/serde_proof.ts";
+import { deserProverProof } from "./serde/serde_proof.js";
 import testInputs from "../test_data/inputs.json" assert { type: "json" };
-import { Verifier } from "./verifier/verifier.ts";
+import { Verifier } from "./verifier/verifier.js";
 
 let inputs;
 try {
