@@ -14,5 +14,5 @@ keys
 
 proof.txt
 src/proof.json
-src/prover_proof_fields.json
+src/opening_proof_fields.json
 steps.json

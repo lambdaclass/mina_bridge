@@ -432,14 +432,6 @@ export class ProverProof {
         */
     }
 
-    hash() {
-        return ProvableBn254.witness(FieldBn254, () => {
-            let fieldsStr: string[] = JSON.parse(readFileSync("./src/prover_proof_fields.json", "utf-8"));
-            let fieldsRepr = fieldsStr.map(FieldBn254);
-            return PoseidonBn254.hash(fieldsRepr);
-        });
-    }
-
     static fromFields(fields: FieldBn254[]) {
         let evalsEnd = ProofEvaluations.sizeInFields();
         let evals = ProofEvaluations.fromFields(fields.slice(0, evalsEnd));
