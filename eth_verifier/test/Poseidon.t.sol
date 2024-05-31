@@ -15,16 +15,34 @@ contract PoseidonTest is Test {
     }
 
     function test_squeeze() public {
-        PoseidonSponge.Sponge memory sponge;
+        PoseidonSponge.Sponge memory sponge = poseidon_sponge_contract
+            .new_sponge();
 
-        Pasta.Fp result = poseidon_sponge_contract.squeeze(sponge);
+        (
+            PoseidonSponge.Sponge memory _s,
+            Pasta.Fp result
+        ) = poseidon_sponge_contract.squeeze(sponge);
         assertEq(
             Pasta.Fp.unwrap(result),
-            0xa8eb9ee0f30046308abbfa5d20af73c81bbdabc25b459785024d045228bead2f
+            0x2fadbe2852044d028597455bc2abbd1bc873af205dfabb8a304600f3e09eeba8
         );
     }
 
-    function test_absorb_squeeze() public {}
+    function test_absorb_squeeze() public {
+        PoseidonSponge.Sponge memory sponge = poseidon_sponge_contract
+            .new_sponge();
+        Pasta.Fp input = Pasta.Fp.wrap(
+            0x36fb00ad544e073b92b4e700d9c49de6fc93536cae0c612c18fbe5f6d8e8eef2
+        );
+        sponge = poseidon_sponge_contract.absorb(sponge, input);
 
-    function test_2absorb_squeeze() public {}
+        (
+            PoseidonSponge.Sponge memory _s,
+            Pasta.Fp result
+        ) = poseidon_sponge_contract.squeeze(sponge);
+        assertEq(
+            Pasta.Fp.unwrap(result),
+            0x3d4f050775295c04619e72176746ad1290d391d73ff4955933f9075cf69259fb
+        );
+    }
 }

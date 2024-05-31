@@ -10,8 +10,8 @@ contract PoseidonSponge {
     uint256 constant ROUNDS = 55;
 
     enum SpongeMode {
-        Squeezing,
-        Absorbing
+        Absorbing,
+        Squeezing
     }
 
     struct Sponge {
@@ -20,28 +20,45 @@ contract PoseidonSponge {
         SpongeMode mode;
     }
 
-    function absorb(Sponge memory self, Pasta.Fp fe) public view {
-        if (self.mode == SpongeMode.Squeezing) {
-            self.mode = SpongeMode.Absorbing;
-            self.offset = 0;
-        } else if (self.offset == RATE) {
-            permutation(self);
-            self.offset = 0;
-        }
-
-        self.state[self.offset] = self.state[self.offset].add(fe);
-        self.offset = 0;
+    function new_sponge() public pure returns (Sponge memory sponge) {
+        sponge.offset = 0;
+        sponge.mode = SpongeMode.Absorbing;
     }
 
-    function squeeze(Sponge memory self) public view returns (Pasta.Fp result) {
-        if (self.mode == SpongeMode.Absorbing || self.offset == RATE) {
-            self.mode = SpongeMode.Squeezing;
+    function absorb(
+        Sponge memory self,
+        Pasta.Fp fe
+    ) public view returns (Sponge memory updated_self) {
+        updated_self = self;
+        if (updated_self.mode == SpongeMode.Squeezing) {
+            updated_self.mode = SpongeMode.Absorbing;
+            updated_self.offset = 0;
+        } else if (self.offset == RATE) {
             permutation(self);
-            self.offset = 0;
+            updated_self.offset = 0;
         }
 
-        result = self.state[self.offset];
-        self.offset += 1;
+        updated_self.state[self.offset] = updated_self
+            .state[updated_self.offset]
+            .add(fe);
+        updated_self.offset = 0;
+    }
+
+    function squeeze(
+        Sponge memory self
+    ) public view returns (Sponge memory updated_self, Pasta.Fp result) {
+        updated_self = self;
+        if (
+            updated_self.mode == SpongeMode.Absorbing ||
+            updated_self.offset == RATE
+        ) {
+            updated_self.mode = SpongeMode.Squeezing;
+            permutation(self);
+            updated_self.offset = 0;
+        }
+
+        result = updated_self.state[updated_self.offset];
+        updated_self.offset += 1;
     }
 
     function sbox(Pasta.Fp f) private view returns (Pasta.Fp) {
