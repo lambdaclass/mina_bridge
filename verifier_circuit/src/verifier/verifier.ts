@@ -13,12 +13,13 @@ import {
 } from '../lookups/lookups.js';
 import { Batch } from './batch.js';
 import verifier_index_json from "../../test_data/verifier_index.json" assert { type: "json" };
+import proof_json from "../../test_data/proof.json" assert { type: "json" };
 import { deserVerifierIndex } from "../serde/serde_index.js";
 import { ForeignPallas, pallasZero } from '../foreign_fields/foreign_pallas.js';
 import { isErr, isOk, unwrap, VerifierResult, verifierOk } from '../error.js';
 import { finalVerify, BWParameters } from "./commitment.js";
-import { PointEvaluations, ProofEvaluations, ProverCommitments, ProverProof } from '../prover/prover.js';
 import { OpeningProof } from '../poly_commitment/opening_proof.js';
+import { deserProverProof } from '../serde/serde_proof.js';
 
 let steps: bigint[][];
 try {
@@ -217,11 +218,10 @@ export class Verifier extends CircuitBn254 {
 
     @circuitMainBn254
     static main(@publicBn254 proofHash: FieldBn254) {
-        let proof = this.#dummyProof();
-        ProvableBn254.asProver(() => {
-            let proverProofFields: string[] = JSON.parse(readFileSync("./src/prover_proof_fields.json", "utf-8"));
+        let proof = ProvableBn254.witness(OpeningProof, () => {
+            let openingProofFields: string[] = JSON.parse(readFileSync("./src/opening_proof_fields.json", "utf-8"));
 
-            proof = ProverProof.fromFields(proverProofFields.map(FieldBn254));
+            return OpeningProof.fromFields(openingProofFields.map(FieldBn254));
         });
         proofHash.assertEquals(proof.hash());
 
@@ -237,7 +237,9 @@ export class Verifier extends CircuitBn254 {
         //success.assertEquals(ForeignScalar.from(1).assertAlmostReduced());
     }
 
-    static verifyProof(proverProof: ProverProof): VerifierResult<boolean> {
+    static verifyProof(openingProof: OpeningProof): VerifierResult<boolean> {
+        const proverProof = deserProverProof(proof_json);
+        proverProof.proof = openingProof;
         const verifierIndex = deserVerifierIndex(verifier_index_json);
         let evaluationProofResult = Batch.toBatch(verifierIndex, proverProof, []);
         if (isErr(evaluationProofResult)) return evaluationProofResult;
@@ -262,16 +264,5 @@ export class Verifier extends CircuitBn254 {
         }
 
         return result;
-    }
-
-    static #dummyProof() {
-        let scalar = ForeignScalar.from(42);
-        let point = ForeignPallas.generator as ForeignPallas;
-        let pointEvals = new PointEvaluations(scalar, scalar);
-        let evals = new ProofEvaluations([], pointEvals, [], [], pointEvals, pointEvals, pointEvals, pointEvals, pointEvals, pointEvals);
-        let polyComm = new PolyComm([]);
-        let commitments = new ProverCommitments([], polyComm, polyComm);
-        let proof = new OpeningProof([], point, scalar, scalar, point);
-        return new ProverProof(evals, [], commitments, scalar, proof);
     }
 }

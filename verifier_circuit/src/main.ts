@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from "fs";
-import { deserProverProof } from "./serde/serde_proof.js";
+import { deserOpeningProof } from "./serde/serde_proof.js";
 import testInputs from "../test_data/inputs.json" assert { type: "json" };
 import { Verifier } from "./verifier/verifier.js";
 
@@ -11,14 +11,14 @@ try {
     inputs = testInputs;
 }
 
-let proverProof = deserProverProof(inputs);
-writeFileSync("./src/prover_proof_fields.json", JSON.stringify(proverProof.toFields()));
+let openingProof = deserOpeningProof(inputs.proof.bulletproof);
+writeFileSync("./src/opening_proof_fields.json", JSON.stringify(openingProof.toFields()));
 
 // ----------------------------------------------------
 
 console.log("Generating verifier circuit keypair...");
 
-let proofHash = proverProof.hash();
+let proofHash = openingProof.hash();
 let keypair = await Verifier.generateKeypair();
 console.log("Proving...");
 let { value } = await Verifier.prove([], [proofHash], keypair);

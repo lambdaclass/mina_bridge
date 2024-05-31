@@ -23,6 +23,14 @@ export class OpeningProof {
         this.sg = sg;
     }
 
+    hash() {
+        return ProvableBn254.witness(FieldBn254, () => {
+            let fieldsStr: string[] = JSON.parse(readFileSync("./src/opening_proof_fields.json", "utf-8"));
+            let fieldsRepr = fieldsStr.map(FieldBn254);
+            return PoseidonBn254.hash(fieldsRepr);
+        });
+    }
+
     static #rounds() {
         // TODO: this value is hardcoded, it should be calculated based on how the `lr` field is computed in the Kimchi prover.
         return 15;

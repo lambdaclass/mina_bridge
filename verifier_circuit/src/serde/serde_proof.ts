@@ -94,7 +94,7 @@ export function deserPointEval(json: PointEvalsJSON): PointEvals {
 /**
  * Deserializes scalar proof evaluations from JSON
  */
-export function deserProofEvals(proofEvalsJson: ProofEvalsJSON, publicInputJson: PointEvalsJSON): ProofEvaluations {
+export function deserProofEvals(proofEvalsJson: ProofEvalsJSON, publicInputJson: GroupJSON): ProofEvaluations {
     const [
         w,
         s,
@@ -157,7 +157,7 @@ export function deserProofEvals(proofEvalsJson: ProofEvalsJSON, publicInputJson:
         ? proofEvalsJson.lookup_sorted.map((evals) => deserPointEval(evals!))
         : undefined;
 
-    const publicInput = deserPointEval(publicInputJson);
+    // const publicInput = deserPointEval(publicInputJson);
 
     return new ProofEvaluations(
         w,
@@ -218,7 +218,7 @@ export function deserOpeningProof(json: OpeningProofJSON): OpeningProof {
 }
 
 interface PrevEvalsJSON {
-    evals: { evals: ProofEvalsJSON, public_input: PointEvalsJSON }
+    evals: { evals: ProofEvalsJSON, public_input: GroupJSON }
     ft_eval1: string
 }
 
