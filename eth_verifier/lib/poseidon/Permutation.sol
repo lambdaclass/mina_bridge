@@ -40,6 +40,14 @@ contract PoseidonPermutation {
         sponge.state[2] = sponge.state[2].add(round_constants[round * 3 + 2]);
     }
 
+    function permutation(PoseidonSponge.Sponge memory sponge) private view {
+        for (uint256 round = 0; round < ROUNDS; round++) {
+            apply_round(round, sponge);
+        }
+    }
+
+    uint256 ROUNDS = 55;
+
     Pasta.Fp internal constant mds0 =
         Pasta.Fp.wrap(
             12035446894107573964500871153637039653510326950134440362813193268448863222019
