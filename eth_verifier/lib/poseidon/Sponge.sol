@@ -20,7 +20,7 @@ contract PoseidonSponge {
         SpongeMode mode;
     }
 
-    function absorb(Sponge memory self, Pasta.Fp fe) internal view {
+    function absorb(Sponge memory self, Pasta.Fp fe) public view {
         if (self.mode == SpongeMode.Squeezing) {
             self.mode = SpongeMode.Absorbing;
             self.offset = 0;
@@ -33,9 +33,7 @@ contract PoseidonSponge {
         self.offset = 0;
     }
 
-    function squeeze(
-        Sponge memory self
-    ) internal view returns (Pasta.Fp result) {
+    function squeeze(Sponge memory self) public view returns (Pasta.Fp result) {
         if (self.mode == SpongeMode.Absorbing || self.offset == RATE) {
             self.mode = SpongeMode.Squeezing;
             permutation(self);
