@@ -14,8 +14,14 @@
 
 pragma solidity ^0.8.0;
 
-import "../UtilsExternal.sol";
-import "./Fields.sol";
+import {Scalar, Base} from "./Fields.sol";
+
+error GroupAdditionFailed(); // Bn254: group addition failed!
+error ScalarMulFailed(); // Bn254: scalar multiplication failed!
+error LengthDoesNotMatch(); // Bn254: MSM length does not match!
+error PowPrecompileFailed(); // Bn254: pow precompile failed!
+error InvalidG1Point(); // Bn254: invalid G1 point!
+error InvalidScalarField(); // Bn254: invalid scalar field!
 
 /// @notice Barreto-Naehrig curve over a 254 bit prime field
 library BN254 {
@@ -40,10 +46,10 @@ library BN254 {
     // and G_T as a subgroup of a multiplicative group (GF(p^12))^* of order r.
     //
     // BN254 is defined over a 254-bit prime order p, embedding degree k = 12.
-    uint256 public constant P_MOD = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
-    uint256 public constant R_MOD = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
+    uint256 internal constant P_MOD = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
+    uint256 internal constant R_MOD = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
-    using {add, scalarMul, scale_scalar} for G1Point;
+    using {add, scalarMul} for G1Point;
 
     struct G1Point {
         uint256 x;
@@ -64,17 +70,6 @@ library BN254 {
         return G1Point(1, 2);
     }
 
-    /// @return the generator of G2
-    // solhint-disable-next-line func-name-mixedcase
-    function P2() internal pure returns (G2Point memory) {
-        return G2Point({
-            x0: 0x198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2,
-            x1: 0x1800deef121f1e76426a00665e5c4479674322d4f75edadd46debd5cd992f6ed,
-            y0: 0x090689d0585ff075ec9e99ad690c3395bc4b313370b38ef355acdadcd122975b,
-            y1: 0x12c85ea5db8c6deb4aab71808dcb408fe3d1e7690c43d37b4ce6cc0166fa7daa
-        });
-    }
-
     /// @return the point at infinity of G1
     function point_at_inf() internal pure returns (G1Point memory) {
         return G1Point(0, 0);
@@ -85,7 +80,7 @@ library BN254 {
         return G2Point(0, 0, 0, 0);
     }
 
-    function endo_coeffs_g1() internal pure returns (Base.FE endo_q, Scalar.FE endo_r) {
+    function endo_coeffs_g1() internal pure returns (uint256 endo_q, uint256 endo_r) {
         // INFO: values taken from Kimchi\'s Rust implementation.
         return (
             Base.from(0x30644E72E131A0295E6DD9E7E0ACCCB0C28F069FBB966E3DE4BD44E5607CFD48),
@@ -110,7 +105,7 @@ library BN254 {
         if (isInfinity(p)) {
             return p;
         }
-        return G1Point(p.x, P_MOD - (p.y % P_MOD));
+        return G1Point(p.x, Base.neg(p.y));
     }
 
     /// @return r the sum of two points of G1
@@ -127,7 +122,9 @@ library BN254 {
             switch success
             case 0 { revert(0, 0) }
         }
-        require(success, "Bn254: group addition failed!");
+        if (!success) {
+            revert GroupAdditionFailed();
+        }
     }
 
     /// @return r the substraction of two points of G1
@@ -149,11 +146,9 @@ library BN254 {
             switch success
             case 0 { revert(0, 0) }
         }
-        require(success, "Bn254: scalar mul failed!");
-    }
-
-    function scale_scalar(G1Point memory p, Scalar.FE s) internal view returns (G1Point memory) {
-        return scalarMul(p, Scalar.FE.unwrap(s));
+        if (!success) {
+            revert ScalarMulFailed();
+        }
     }
 
     /// @dev Multi-scalar Mulitiplication (MSM)
@@ -163,11 +158,43 @@ library BN254 {
         view
         returns (G1Point memory r)
     {
-        require(scalars.length == bases.length, "MSM error: length does not match");
+        bool success;
+        uint256[3] memory input;
+        G1Point memory r_aux;
 
-        r = scalarMul(bases[0], scalars[0]);
+        if (scalars.length != bases.length) {
+            revert LengthDoesNotMatch();
+        }
+
+        // compute scalarMul inline for the first element
+        input[0] = bases[0].x;
+        input[1] = bases[0].y;
+        input[2] = scalars[0];
+        assembly ("memory-safe") {
+            success := staticcall(sub(gas(), 2000), 7, input, 0x80, r, 0x60)
+            // Use "invalid" to make gas estimation work
+            switch success
+            case 0 { revert(0, 0) }
+        }
+        if (!success) {
+            revert ScalarMulFailed();
+        }
+
         for (uint256 i = 1; i < scalars.length; i++) {
-            r = add(r, scalarMul(bases[i], scalars[i]));
+            // compute scalarMul inline for the first element
+            input[0] = bases[i].x;
+            input[1] = bases[i].y;
+            input[2] = scalars[i];
+            assembly ("memory-safe") {
+                success := staticcall(sub(gas(), 2000), 7, input, 0x80, r_aux, 0x60)
+                // Use "invalid" to make gas estimation work
+                switch success
+                case 0 { revert(0, 0) }
+            }
+            if (!success) {
+                revert ScalarMulFailed();
+            }
+            r = add(r, r_aux);
         }
     }
 
@@ -187,7 +214,9 @@ library BN254 {
             success := staticcall(gas(), 0x05, mPtr, 0xc0, 0x00, 0x20)
             output := mload(0x00)
         }
-        require(success, "Bn254: pow precompile failed!");
+        if (!success) {
+            revert PowPrecompileFailed();
+        }
     }
 
     /**
@@ -213,7 +242,9 @@ library BN254 {
                     eq(mulmod(y, y, p), addmod(mulmod(x, mulmod(x, x, p), p), 3, p))
                 )
         }
-        require(isWellFormed, "Bn254: invalid G1 point");
+        if (!isWellFormed) {
+            revert InvalidG1Point();
+        }
     }
 
     /// @dev Validate scalar field, revert if invalid (namely if fr > r_mod).
@@ -223,40 +254,9 @@ library BN254 {
         assembly ("memory-safe") {
             isValid := lt(fr, R_MOD)
         }
-        require(isValid, "Bn254: invalid scalar field");
-    }
-
-    /// @dev Evaluate the following pairing product:
-    /// @dev e(a1, a2).e(-b1, b2) == 1
-    /// @dev caller needs to ensure that a1, a2, b1 and b2 are within proper group
-    /// @notice credit: Aztec, Spilsbury Holdings Ltd
-    function pairingProd2(G1Point memory a1, G2Point memory a2, G1Point memory b1, G2Point memory b2)
-        internal
-        view
-        returns (bool)
-    {
-        uint256 out;
-        bool success;
-        assembly ("memory-safe") {
-            let mPtr := mload(0x40)
-            mstore(mPtr, mload(a1))
-            mstore(add(mPtr, 0x20), mload(add(a1, 0x20)))
-            mstore(add(mPtr, 0x40), mload(a2))
-            mstore(add(mPtr, 0x60), mload(add(a2, 0x20)))
-            mstore(add(mPtr, 0x80), mload(add(a2, 0x40)))
-            mstore(add(mPtr, 0xa0), mload(add(a2, 0x60)))
-
-            mstore(add(mPtr, 0xc0), mload(b1))
-            mstore(add(mPtr, 0xe0), mload(add(b1, 0x20)))
-            mstore(add(mPtr, 0x100), mload(b2))
-            mstore(add(mPtr, 0x120), mload(add(b2, 0x20)))
-            mstore(add(mPtr, 0x140), mload(add(b2, 0x40)))
-            mstore(add(mPtr, 0x160), mload(add(b2, 0x60)))
-            success := staticcall(gas(), 8, mPtr, 0x180, 0x00, 0x20)
-            out := mload(0x00)
+        if (!isValid) {
+            revert InvalidScalarField();
         }
-        require(success, "Bn254: Pairing check failed!");
-        return (out != 0);
     }
 
     function fromLeBytesModOrder(bytes memory leBytes) internal pure returns (uint256 ret) {
@@ -289,90 +289,5 @@ library BN254 {
         }
 
         return result;
-    }
-
-    function g1Serialize(G1Point memory point) internal pure returns (bytes memory) {
-        uint256 mask = 0;
-
-        // Set the 254-th bit to 1 for infinity
-        // https://docs.rs/ark-serialize/0.3.0/src/ark_serialize/flags.rs.html#117
-        if (isInfinity(point)) {
-            mask |= 0x4000000000000000000000000000000000000000000000000000000000000000;
-        }
-
-        // Set the 255-th bit to 1 for positive Y
-        // https://docs.rs/ark-serialize/0.3.0/src/ark_serialize/flags.rs.html#118
-        if (!isYNegative(point)) {
-            mask = 0x8000000000000000000000000000000000000000000000000000000000000000;
-        }
-
-        return abi.encodePacked(UtilsExternal.reverseEndianness(point.x | mask));
-    }
-
-    function g1Deserialize(bytes32 input) internal view returns (G1Point memory point) {
-        uint256 mask = 0x4000000000000000000000000000000000000000000000000000000000000000;
-        uint256 x = UtilsExternal.reverseEndianness(uint256(input));
-        uint256 y;
-        bool isQuadraticResidue;
-        bool isYPositive;
-        if (x & mask != 0) {
-            // the 254-th bit == 1 for infinity
-            x = 0;
-            y = 0;
-        } else {
-            // Set the 255-th bit to 1 for positive Y
-            mask = 0x8000000000000000000000000000000000000000000000000000000000000000;
-            isYPositive = (x & mask != 0);
-            // mask off the first two bits of x
-            mask = 0x3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
-            x &= mask;
-
-            // solve for y where E: y^2 = x^3 + 3
-            y = mulmod(x, x, P_MOD);
-            y = mulmod(y, x, P_MOD);
-            y = addmod(y, 3, P_MOD);
-            (isQuadraticResidue, y) = quadraticResidue(y);
-
-            require(isQuadraticResidue, "deser fail: not on curve");
-
-            if (isYPositive) {
-                y = P_MOD - y;
-            }
-        }
-
-        point = G1Point(x, y);
-    }
-
-    function quadraticResidue(uint256 x) internal view returns (bool isQuadraticResidue, uint256 a) {
-        bool success;
-        // e = (p+1)/4
-        uint256 e = 0xc19139cb84c680a6e14116da060561765e05aa45a1c72a34f082305b61f3f52;
-        uint256 p = P_MOD;
-
-        // we have p == 3 mod 4 therefore
-        // a = x^((p+1)/4)
-        assembly ("memory-safe") {
-            // credit: Aztec
-            let mPtr := mload(0x40)
-            mstore(mPtr, 0x20)
-            mstore(add(mPtr, 0x20), 0x20)
-            mstore(add(mPtr, 0x40), 0x20)
-            mstore(add(mPtr, 0x60), x)
-            mstore(add(mPtr, 0x80), e)
-            mstore(add(mPtr, 0xa0), p)
-            success := staticcall(gas(), 0x05, mPtr, 0xc0, 0x00, 0x20)
-            a := mload(0x00)
-        }
-        require(success, "pow precompile call failed!");
-
-        // ensure a < p/2
-        if (a << 1 > p) {
-            a = p - a;
-        }
-
-        // check if a^2 = x, if not x is not a quadratic residue
-        e = mulmod(a, a, p);
-
-        isQuadraticResidue = (e == x);
     }
 }

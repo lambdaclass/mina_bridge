@@ -1,14 +1,14 @@
-import { FieldBn254, Provable } from "o1js";
+import { FieldBn254 } from "o1js";
 import { Sponge } from "../verifier/sponge";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
-import { SRS } from "../SRS.js";
+import { FieldSerializable, arrayToFields, pallasArrayFromFields } from "../field_serializable.js";
 import { ForeignPallas } from "../foreign_fields/foreign_pallas.js";
 import { OpeningProof } from "./opening_proof";
 
 /**
 * A polynomial commitment
 */
-export class PolyComm<A> {
+export class PolyComm<A extends FieldSerializable> {
     unshifted: A[]
     shifted?: A
 
@@ -18,29 +18,31 @@ export class PolyComm<A> {
     }
 
     /**
-    * Zips two commitments into one
-    */
-    zip<B>(other: PolyComm<B>): PolyComm<[A, B]> {
-        let unshifted = this.unshifted.map((u, i) => [u, other.unshifted[i]] as [A, B]);
-        let shifted = (this.shifted && other.shifted) ?
-            [this.shifted, other.shifted] as [A, B] : undefined;
-        return new PolyComm<[A, B]>(unshifted, shifted);
-    }
-
-    /**
     * Maps over self's `unshifted` and `shifted`
     */
-    map<B>(f: (x: A) => B): PolyComm<B> {
+    map<B extends FieldSerializable>(f: (x: A) => B): PolyComm<B> {
         let unshifted = this.unshifted.map(f);
         let shifted = (this.shifted) ? f(this.shifted) : undefined;
         return new PolyComm<B>(unshifted, shifted);
     }
 
     /**
+    * Zips two commitments into one and maps over zipped's `unshifted` and `shifted`
+    */
+    zip_and_map<B extends FieldSerializable, C extends FieldSerializable>(other: PolyComm<B>, f: (x: [A, B]) => C): PolyComm<C> {
+        let unshifted_zip = this.unshifted.map((u, i) => [u, other.unshifted[i]] as [A, B]);
+        let shifted_zip = (this.shifted && other.shifted) ?
+            [this.shifted, other.shifted] as [A, B] : undefined;
+        let unshifted = unshifted_zip.map(f);
+        let shifted = shifted_zip ? f(shifted_zip) : undefined;
+        return new PolyComm<C>(unshifted, shifted);
+    }
+
+    /**
      * Substract two commitments
      */
     static sub(lhs: PolyComm<ForeignPallas>, rhs: PolyComm<ForeignPallas>): PolyComm<ForeignPallas> {
-        let unshifted = [];
+        let unshifted: ForeignPallas[] = [];
         const n1 = lhs.unshifted.length;
         const n2 = rhs.unshifted.length;
 
@@ -48,22 +50,22 @@ export class PolyComm<A> {
             const pt = i < n1 && i < n2 ?
                 lhs.unshifted[i].completeAdd(rhs.unshifted[i].negate()) :
                 i < n1 ? lhs.unshifted[i] : rhs.unshifted[i];
-            unshifted.push(pt);
+            unshifted.push(pt as ForeignPallas);
         }
 
-        let shifted;
+        let shifted: ForeignPallas | undefined;
         if (lhs.shifted == undefined) shifted = rhs.shifted;
         else if (rhs.unshifted == undefined) shifted = lhs.shifted;
-        else shifted = rhs.shifted?.completeAdd(lhs.shifted.negate());
+        else shifted = rhs.shifted?.completeAdd(lhs.shifted.negate()) as ForeignPallas;
 
-        return new PolyComm(unshifted, shifted);
+        return new PolyComm<ForeignPallas>(unshifted, shifted);
     }
 
     /**
      * Scale a commitments
      */
     static scale(v: PolyComm<ForeignPallas>, c: ForeignScalar) {
-        return new PolyComm(v.unshifted.map((u) => u.scale(c)), v.shifted?.scale(c));
+        return new PolyComm(v.unshifted.map((u) => u.scale(c) as ForeignPallas), v.shifted?.scale(c) as ForeignPallas);
     }
 
     /**
@@ -76,7 +78,7 @@ export class PolyComm<A> {
             let point = points[i];
             let scalar = scalars[i];
             let scaled = point.completeScale(scalar);
-            result = result.completeAdd(scaled);
+            result = result.completeAdd(scaled) as ForeignPallas;
         }
 
         return result;
@@ -135,17 +137,31 @@ export class PolyComm<A> {
         // use Horner's to compute chunk[0] + z^n chunk[1] + z^2n chunk[2] + ...
         // as ( chunk[-1] * z^n + chunk[-2] ) * z^n + chunk[-3]
         for (const chunk of comm.unshifted.reverse().slice(1)) {
-            res = res.completeScale(zeta_n);
-            res = res.completeAdd(chunk);
+            res = res.completeScale(zeta_n) as ForeignPallas;
+            res = res.completeAdd(chunk) as ForeignPallas;
         }
         return new PolyComm([res], comm.shifted);
+    }
+
+    static fromFields(fields: FieldBn254[], length: number): PolyComm<ForeignPallas> {
+        let [unshifted, _] = pallasArrayFromFields(fields, length, 0);
+
+        return new PolyComm(unshifted);
+    }
+
+    toFields() {
+        return arrayToFields(this.unshifted);
+    }
+
+    static sizeInFields(length: number) {
+        return ForeignPallas.sizeInFields() * length;
     }
 }
 
 /**
  * Represents a blinded commitment
  */
-export class BlindedCommitment<C, S> {
+export class BlindedCommitment<C extends FieldSerializable, S extends FieldSerializable> {
     commitment: PolyComm<C>
     blinders: PolyComm<S>
 }

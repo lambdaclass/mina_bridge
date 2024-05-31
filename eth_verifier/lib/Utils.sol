@@ -1,14 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
-import "./bn254/BN254.sol";
-import "./bn254/Fields.sol";
-import "./UtilsExternal.sol";
-
-using {BN254.add, BN254.neg, BN254.scalarMul} for BN254.G1Point;
-using {Scalar.pow, Scalar.inv, Scalar.add, Scalar.mul, Scalar.neg} for Scalar.FE;
-
 library Utils {
+    error NotEnoughBytesInArray(); // not enough bytes in array
+
     /// @notice returns minimum between a and b.
     function min(uint256 a, uint256 b) internal pure returns (uint256) {
         return a < b ? a : b;
@@ -65,7 +60,9 @@ library Utils {
     /// @notice of a `bytes[]` and reinterprets the result as a big-endian uint256.
     function padded_be_bytes_array_to_uint256(bytes[] memory b) internal pure returns (uint256 integer) {
         bytes memory data_b = flatten_padded_be_bytes_array(b);
-        require(data_b.length == 32, "not enough bytes in array");
+        if (data_b.length < 32) {
+            revert NotEnoughBytesInArray();
+        }
         return uint256(bytes32(data_b));
     }
 
@@ -73,7 +70,9 @@ library Utils {
     /// @notice of a `bytes[]` and reinterprets the result as a little-endian uint256.
     function padded_le_bytes_array_to_uint256(bytes[] memory b) internal pure returns (uint256 integer) {
         bytes memory data_b = flatten_padded_le_bytes_array(b);
-        require(data_b.length == 32, "not enough bytes in array");
+        if (data_b.length < 32) {
+            revert NotEnoughBytesInArray();
+        }
         return uint256(bytes32(data_b));
     }
 

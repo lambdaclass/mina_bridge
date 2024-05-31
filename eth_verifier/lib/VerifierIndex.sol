@@ -1,22 +1,49 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity >=0.4.16 <0.9.0;
+pragma solidity ^0.8.0;
 
-import "./bn254/BN254.sol";
-import "./Commitment.sol";
-import "./bn254/Fields.sol";
-import "./Alphas.sol";
-import "./Evaluations.sol";
-import "./expr/Expr.sol";
-import "./Proof.sol";
-import "./sponge/Sponge.sol";
-import "./Constants.sol";
-import "./Proof.sol";
+import {BN254} from "./bn254/BN254.sol";
+import {Scalar, Base} from "./bn254/Fields.sol";
+import {Alphas} from "./Alphas.sol";
+import {KeccakSponge} from "./sponge/Sponge.sol";
+import {ColumnVariant} from "./expr/Expr.sol";
+import {Proof} from "./Proof.sol";
+import {Linearization, Column} from "./expr/Expr.sol";
+import {
+    LOOKUP_RUNTIME_COMM_FLAG,
+    RANGE_CHECK0_COMM_FLAG,
+    RANGE_CHECK1_COMM_FLAG,
+    FOREIGN_FIELD_ADD_COMM_FLAG,
+    FOREIGN_FIELD_MUL_COMM_FLAG,
+    XOR_COMM_FLAG,
+    ROT_COMM_FLAG,
+    LOOKUP_VERIFIER_INDEX_FLAG,
+    XOR_FLAG,
+    LOOKUP_FLAG,
+    RANGE_CHECK_FLAG,
+    FFMUL_FLAG,
+    TABLE_IDS_FLAG,
+    RUNTIME_TABLES_SELECTOR_FLAG,
+    GATE_TYPE_GENERIC,
+    GATE_TYPE_POSEIDON,
+    GATE_TYPE_COMPLETE_ADD,
+    GATE_TYPE_VAR_BASE_MUL,
+    GATE_TYPE_ENDO_MUL,
+    GATE_TYPE_ENDO_MUL_SCALAR,
+    GATE_TYPE_RANGE_CHECK_0,
+    GATE_TYPE_RANGE_CHECK_1,
+    GATE_TYPE_FOREIGN_FIELD_ADD,
+    GATE_TYPE_FOREIGN_FIELD_MUL,
+    GATE_TYPE_XOR_16,
+    GATE_TYPE_ROT_64,
+    LOOKUP_PATTERN_XOR,
+    LOOKUP_PATTERN_LOOKUP,
+    LOOKUP_PATTERN_RANGE_CHECK,
+    LOOKUP_PATTERN_FOREIGN_FIELD_MUL
+} from "./Constants.sol";
 
 using {
     KeccakSponge.reinit,
-    KeccakSponge.absorb_base,
     KeccakSponge.absorb_scalar,
-    KeccakSponge.absorb_scalar_multiple,
     KeccakSponge.absorb_evaluations,
     KeccakSponge.absorb_g,
     KeccakSponge.absorb_g_single,
@@ -37,7 +64,7 @@ library VerifierIndexLib {
         uint256 optional_field_flags;
         // domain
         uint256 domain_size;
-        Scalar.FE domain_gen;
+        uint256 domain_gen;
         // maximal size of polynomial section
         uint256 max_poly_size;
         // the number of randomized rows to achieve zero knowledge
@@ -65,10 +92,10 @@ library VerifierIndexLib {
         // endoscalar multiplication scalar computation selector polynomial commitment
         BN254.G1Point endomul_scalar_comm;
         // wire shift coordinates
-        Scalar.FE[7] shift; // TODO: use Consants.PERMUTS
+        uint256[7] shift; // TODO: use Consants.PERMUTS
         /// domain offset for zero-knowledge
-        Scalar.FE w;
-        Scalar.FE endo;
+        uint256 w;
+        uint256 endo;
         // RangeCheck0 polynomial commitments
         BN254.G1Point range_check0_comm; // INFO: optional
         // RangeCheck1 polynomial commitments
@@ -119,7 +146,7 @@ library VerifierIndexLib {
     }
     // TODO: lookup features
 
-    function verifier_digest(VerifierIndex storage index) internal view returns (Base.FE) {
+    function verifier_digest(VerifierIndex storage index) internal view returns (uint256) {
         KeccakSponge.Sponge memory sponge;
         sponge.reinit();
 

@@ -1,13 +1,16 @@
 // SPDX-License-Identifier: LGPL-3.0
-pragma solidity >=0.4.16 <0.9.0;
+pragma solidity ^0.8.0;
 
-import "./BN254.sol";
+import {BN254} from "./BN254.sol";
 
+error G2PointNotInCurve(); // G2 point is not on curve
+error BN256modInvStaticcallFailed(); // BN256 _modInv staticcall failed
 /**
  * @title Elliptic curve operations on twist points for alt_bn128
  * @author Mustafa Al-Bassam (mus@musalbas.com)
  * @dev Homepage: https://github.com/musalbas/solidity-BN256G2
  */
+
 library BN256G2 {
     uint256 internal constant FIELD_MODULUS = 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47;
     uint256 internal constant TWISTBX = 0x2b149d40ceb8aaae81be18991be06ac3b5b4c5e559dbefa33267e6dc24a138e5;
@@ -59,7 +62,11 @@ library BN256G2 {
         return _fromJacobian(pt3[PTXX], pt3[PTXY], pt3[PTYX], pt3[PTYY], pt3[PTZX], pt3[PTZY]);
     }
 
-    function ECTwistAdd(BN254.G2Point memory p1, BN254.G2Point memory p2) internal view returns (BN254.G2Point memory) {
+    function ECTwistAdd(BN254.G2Point memory p1, BN254.G2Point memory p2)
+        internal
+        view
+        returns (BN254.G2Point memory)
+    {
         uint256 p1xx = p1.x1;
         uint256 p1xy = p1.x0;
         uint256 p1yx = p1.y1;
@@ -96,7 +103,9 @@ library BN256G2 {
             pt1yx = 1;
             pt1zx = 0;
         } else {
-            require(_isOnCurve(pt1xx, pt1xy, pt1yx, pt1yy), "G2 point is not on curve");
+            if (!_isOnCurve(pt1xx, pt1xy, pt1yx, pt1yy)) {
+                revert G2PointNotInCurve();
+            }
         }
 
         uint256[6] memory pt2 = _ECTwistMulJacobian(s, pt1xx, pt1xy, pt1yx, pt1yy, pt1zx, 0);
@@ -146,28 +155,6 @@ library BN256G2 {
 
     // FIXME: we should clean up this library and use the `Fields.sol` functions.
 
-    function _FQ1Sqrt(uint256 a) internal view returns (uint256) {
-        // p = 3 mod 4, so the residue is a^( (p+1)/4 )
-        (bool success, bytes memory result_bytes) =
-            address(0x05).staticcall(abi.encode(0x20, 0x20, 0x20, a, (FIELD_MODULUS + 1) / 4, FIELD_MODULUS));
-
-        require(success, "FQ1Sqrt modexp precompile call failed");
-        return abi.decode(result_bytes, (uint256));
-    }
-
-    // @returns true if a is a quadratic residue (there exists x such that x^2 = a)
-    function _FQ1EulerCriterion(uint256 a) internal view returns (bool) {
-        // p = 3 mod 4, so the residue is a^( (p-1)/2 )
-        (bool success, bytes memory result_bytes) =
-            address(0x05).staticcall(abi.encode(0x20, 0x20, 0x20, a, (FIELD_MODULUS - 1) / 2, FIELD_MODULUS));
-
-        require(success, "FQ1Sqrt modexp precompile call failed");
-        uint256 crit = abi.decode(result_bytes, (uint256));
-
-        require(crit == 1 || crit == FIELD_MODULUS - 1, "Euler\'s criterion failed");
-        return crit == 1;
-    }
-
     function _FQ1Add(uint256 a, uint256 b) internal pure returns (uint256 res) {
         assembly {
             res := addmod(a, b, FIELD_MODULUS)
@@ -194,123 +181,6 @@ library BN256G2 {
         }
     }
 
-    function _FQ1Inv(uint256 a) internal pure returns (uint256) {
-        require(a != 0, "tried to get inverse of 0 in BN254G2 lib");
-        (uint256 gcd, uint256 inverse) = Aux.xgcd(a, FIELD_MODULUS);
-        require(gcd == 1, "gcd not 1");
-
-        return inverse;
-    }
-
-    function _FQ1Div(uint256 a, uint256 b) internal pure returns (uint256) {
-        uint256 b_inv = _FQ1Inv(b);
-        return _FQ1Mul(a, b_inv);
-    }
-
-    // @returns both components of the Fq2 result, and a boolean that is set if
-    // @returns the root was found.
-    //
-    // @notice reference: Algorithm 8 of https://eprint.iacr.org/2012/685.pdf
-    function FQ2Sqrt(uint256 a0, uint256 a1) internal view returns (uint256, uint256) {
-        if (a1 == 0) return (_FQ1Sqrt(a0), 0);
-
-        // 4: alpha <- a_0^2 - beta * a_1^2
-        // for BN254, beta = -1
-        uint256 alpha = _FQ1Add(_FQ1Square(a0), _FQ1Square(a1));
-
-        // 5: gamma <- x_q(alpha)
-        // x_q refers to the Euler criterion: x_q(a) = a^( (p-1)/2 )
-        // 6: if gamma = 1
-        // 7:    return false;
-        // 8: end if;
-        // returning false indicates that a is not a quadratic residue.
-        // in that case the contract reverts.
-        require(
-            _FQ1EulerCriterion(alpha),
-            "couldn\'t find the square root of alpha, meaning that this is not a quadratic residue."
-        );
-
-        // 9: alpha <- SQRT(alpha)
-        alpha = _FQ1Sqrt(alpha);
-
-        // 10: delta <- (a_0 + alpha) / 2
-        uint256 delta = _FQ1Div(_FQ1Add(a0, alpha), 2);
-
-        // 11: gamma <- x_q(alpha)
-        // 12: if gamma = 1
-        // 14:    delta <- (a_0 - alpha) / 2
-        // 14: end if;
-        if (!_FQ1EulerCriterion(delta)) {
-            delta = _FQ1Div(_FQ1Sub(a0, alpha), 2);
-        }
-
-        // 15: x_0 <- SQRT(delta)
-        uint256 x0 = _FQ1Sqrt(delta);
-        // 16: x_1 <- (a1 / (2*x_0))
-        uint256 x1 = _FQ1Div(a1, _FQ1Mul(x0, 2));
-
-        // 17: x <- x_0 + x_1*y
-        return (x0, x1);
-    }
-
-    function G2Deserialize(bytes memory input) internal view returns (BN254.G2Point memory point) {
-        require(input.length == 64, "Compressed G2 point is not 64 bytes long");
-        bytes memory x = UtilsExternal.reverseEndianness(input);
-
-        if (x[0] & 0x40 != 0x00) {
-            // if the 254-th bit is set then this is the point at infinity
-            return BN254.G2Point(0, 0, 0, 0);
-        }
-
-        // if the 255-th bit is set then y is positive
-        bool y_needs_to_be_positive = (x[0] & 0x80 != 0);
-
-        // mask off the first two bits of x
-        x[0] &= 0x3F;
-
-        // decompose both components of the element
-        uint256 xx = 0;
-        uint256 xy = 0;
-
-        for (uint256 i = 0; i < 32; i++) {
-            uint256 order = (32 - i - 1) * 8;
-            xy |= uint256(uint8(x[i])) << order;
-            xx |= uint256(uint8(x[i + 32])) << order;
-        }
-
-        // solve for y where E: y^2 = x^3 + B
-        // equation taken from: https://hackmd.io/@jpw/bn254#Twists
-
-        // x^3
-        uint256 yx;
-        uint256 yy;
-        (yx, yy) = _FQ2Mul(xx, xy, xx, xy);
-        (yx, yy) = _FQ2Mul(yx, yy, xx, xy);
-
-        // x^3 + B
-        uint256 Bx = 19485874751759354771024239261021720505790618469301721065564631296452457478373;
-        uint256 By = 266929791119991161246907387137283842545076965332900288569378510910307636690;
-        (yx, yy) = _FQ2Add(yx, yy, Bx, By);
-
-        // sqrt(x^3 + B)
-        (yx, yy) = FQ2Sqrt(yx, yy);
-
-        // define "sign" of y
-        uint256 neg_yx = FIELD_MODULUS - yx;
-        uint256 neg_yy = FIELD_MODULUS - yy;
-
-        // is_y_positive == y > -y
-        // a > b == a.c1 > b.c1 || (a.c1 == b.c1 && a.c0 > a.c0)
-        bool is_y_positive = yy > neg_yy || (yy == neg_yy && yx > neg_yx);
-
-        if (y_needs_to_be_positive && !is_y_positive) {
-            yx = neg_yx;
-            yy = neg_yy;
-        }
-
-        return BN254.G2Point(xx, xy, yx, yy);
-    }
-
     function _isOnCurve(uint256 xx, uint256 xy, uint256 yx, uint256 yy) internal pure returns (bool) {
         uint256 yyx;
         uint256 yyy;
@@ -333,7 +203,9 @@ library BN256G2 {
             address(0x05).staticcall(abi.encode(length_of_base, length_of_exponent, length_of_modulus, a, n - 2, n));
 
         result = abi.decode(result_bytes, (uint256));
-        require(success, "BN256 _modInv staticcall failed");
+        if (!success) {
+            revert BN256modInvStaticcallFailed();
+        }
     }
 
     function _fromJacobian(uint256 pt1xx, uint256 pt1xy, uint256 pt1yx, uint256 pt1yy, uint256 pt1zx, uint256 pt1zy)

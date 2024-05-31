@@ -13,6 +13,6 @@ coverage
 keys
 
 proof.txt
-src/inputs.json
-src/opening_proof_fields.json
+src/proof.json
+src/prover_proof_fields.json
 steps.json
