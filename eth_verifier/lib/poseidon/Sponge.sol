@@ -3,7 +3,7 @@ pragma solidity >=0.4.16 <0.9.0;
 
 import "../pasta/Fields.sol";
 
-contract PoseidonSponge {
+contract Poseidon {
     using {Pasta.add, Pasta.mul, Pasta.pow} for Pasta.Fp;
 
     uint256 constant RATE = 2;
@@ -66,7 +66,7 @@ contract PoseidonSponge {
     }
 
     function apply_mds(
-        PoseidonSponge.Sponge memory sponge
+        Poseidon.Sponge memory sponge
     ) private pure returns (Pasta.Fp[3] memory n) {
         n[0] = sponge.state[0].mul(mds0).add(sponge.state[1].mul(mds1)).add(
             sponge.state[2].mul(mds2)
@@ -81,7 +81,7 @@ contract PoseidonSponge {
 
     function apply_round(
         uint256 round,
-        PoseidonSponge.Sponge memory sponge
+        Poseidon.Sponge memory sponge
     ) private view {
         sponge.state[0] = sbox(sponge.state[0]);
         sponge.state[1] = sbox(sponge.state[1]);
@@ -94,7 +94,7 @@ contract PoseidonSponge {
         sponge.state[2] = sponge.state[2].add(round_constants[round * 3 + 2]);
     }
 
-    function permutation(PoseidonSponge.Sponge memory sponge) internal view {
+    function permutation(Poseidon.Sponge memory sponge) internal view {
         for (uint256 round = 0; round < ROUNDS; round++) {
             apply_round(round, sponge);
         }

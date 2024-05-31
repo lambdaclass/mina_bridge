@@ -8,18 +8,18 @@ import "poseidon/Sponge.sol";
 import "pasta/Fields.sol";
 
 contract PoseidonTest is Test {
-    PoseidonSponge poseidon_sponge_contract;
+    Poseidon poseidon_sponge_contract;
 
     function setUp() public {
-        poseidon_sponge_contract = new PoseidonSponge();
+        poseidon_sponge_contract = new Poseidon();
     }
 
     function test_squeeze() public {
-        PoseidonSponge.Sponge memory sponge = poseidon_sponge_contract
+        Poseidon.Sponge memory sponge = poseidon_sponge_contract
             .new_sponge();
 
         (
-            PoseidonSponge.Sponge memory _s,
+            Poseidon.Sponge memory _s,
             Pasta.Fp result
         ) = poseidon_sponge_contract.squeeze(sponge);
         assertEq(
@@ -29,7 +29,7 @@ contract PoseidonTest is Test {
     }
 
     function test_absorb_squeeze() public {
-        PoseidonSponge.Sponge memory sponge = poseidon_sponge_contract
+        Poseidon.Sponge memory sponge = poseidon_sponge_contract
             .new_sponge();
         Pasta.Fp input = Pasta.Fp.wrap(
             0x36fb00ad544e073b92b4e700d9c49de6fc93536cae0c612c18fbe5f6d8e8eef2
@@ -37,7 +37,7 @@ contract PoseidonTest is Test {
         sponge = poseidon_sponge_contract.absorb(sponge, input);
 
         (
-            PoseidonSponge.Sponge memory _s,
+            Poseidon.Sponge memory _s,
             Pasta.Fp result
         ) = poseidon_sponge_contract.squeeze(sponge);
         assertEq(
