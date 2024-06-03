@@ -2,6 +2,7 @@
 pragma solidity >=0.4.16 <0.9.0;
 
 import "../pasta/Fields.sol";
+import {console} from "forge-std/console.sol";
 
 contract Poseidon {
     using {Pasta.add, Pasta.mul, Pasta.pow} for Pasta.Fp;
@@ -34,14 +35,14 @@ contract Poseidon {
             updated_self.mode = SpongeMode.Absorbing;
             updated_self.offset = 0;
         } else if (self.offset == RATE) {
-            permutation(self);
+            updated_self.state = permutation(updated_self.state);
             updated_self.offset = 0;
         }
 
-        updated_self.state[self.offset] = updated_self
+        updated_self.state[updated_self.offset] = updated_self
             .state[updated_self.offset]
             .add(fe);
-        updated_self.offset = 0;
+        updated_self.offset += 1;
     }
 
     function squeeze(
@@ -53,7 +54,7 @@ contract Poseidon {
             updated_self.offset == RATE
         ) {
             updated_self.mode = SpongeMode.Squeezing;
-            permutation(self);
+            self.state = permutation(self.state);
             updated_self.offset = 0;
         }
 
@@ -66,38 +67,43 @@ contract Poseidon {
     }
 
     function apply_mds(
-        Poseidon.Sponge memory sponge
+        Pasta.Fp[3] memory state
     ) private pure returns (Pasta.Fp[3] memory n) {
-        n[0] = sponge.state[0].mul(mds0).add(sponge.state[1].mul(mds1)).add(
-            sponge.state[2].mul(mds2)
+        n[0] = state[0].mul(mds0).add(state[1].mul(mds1)).add(
+            state[2].mul(mds2)
         );
-        n[1] = sponge.state[0].mul(mds3).add(sponge.state[1].mul(mds4)).add(
-            sponge.state[2].mul(mds5)
+        n[1] = state[0].mul(mds3).add(state[1].mul(mds4)).add(
+            state[2].mul(mds5)
         );
-        n[2] = sponge.state[0].mul(mds6).add(sponge.state[1].mul(mds7)).add(
-            sponge.state[2].mul(mds8)
+        n[2] = state[0].mul(mds6).add(state[1].mul(mds7)).add(
+            state[2].mul(mds8)
         );
     }
 
     function apply_round(
         uint256 round,
-        Poseidon.Sponge memory sponge
-    ) private view {
-        sponge.state[0] = sbox(sponge.state[0]);
-        sponge.state[1] = sbox(sponge.state[1]);
-        sponge.state[2] = sbox(sponge.state[2]);
+        Pasta.Fp[3] memory state
+    ) private view returns (Pasta.Fp[3] memory) {
+        state[0] = sbox(state[0]);
+        state[1] = sbox(state[1]);
+        state[2] = sbox(state[2]);
 
-        sponge.state = apply_mds(sponge);
+        state = apply_mds(state);
 
-        sponge.state[0] = sponge.state[0].add(round_constants[round * 3]);
-        sponge.state[1] = sponge.state[1].add(round_constants[round * 3 + 1]);
-        sponge.state[2] = sponge.state[2].add(round_constants[round * 3 + 2]);
+        state[0] = state[0].add(round_constants[round * 3]);
+        state[1] = state[1].add(round_constants[round * 3 + 1]);
+        state[2] = state[2].add(round_constants[round * 3 + 2]);
+
+        return state;
     }
 
-    function permutation(Poseidon.Sponge memory sponge) internal view {
+    function permutation(
+        Pasta.Fp[3] memory state
+    ) internal view returns (Pasta.Fp[3] memory) {
         for (uint256 round = 0; round < ROUNDS; round++) {
-            apply_round(round, sponge);
+            state = apply_round(round, state);
         }
+        return state;
     }
 
     Pasta.Fp internal constant mds0 =
