@@ -10,17 +10,17 @@ contract MerkleVerifier {
         Right
     }
 
-    struct MerklePathElement {
+    struct PathElement {
         Pasta.Fp hash;
         LeftOrRight left_or_right;
     }
 
-    function verify_path(
-        MerklePathElement[] memory merkle_path,
-        MerklePathElement memory leaf_hash,
+    function calc_path_root(
+        PathElement[] memory merkle_path,
+        Pasta.Fp leaf_hash,
         Poseidon poseidon
-    ) internal view returns (Pasta.Fp) {
-        Pasta.Fp acc = leaf_hash.hash;
+    ) public view returns (Pasta.Fp) {
+        Pasta.Fp acc = leaf_hash;
 
         for (uint256 i = 0; i < merkle_path.length; i++) {
             Poseidon.Sponge memory sponge = poseidon.new_sponge();
