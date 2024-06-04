@@ -1,12 +1,12 @@
 use binprot::{BinProtRead, BinProtWrite};
 use mina_p2p_messages::{
     bigint::BigInt,
-    string::{self, ByteString},
+    string,
     v2::{
         CurrencyAmountStableV1, CurrencyBalanceStableV1, DataHashLibStateHashStableV1,
         MinaBaseAccountBinableArgStableV2, MinaBaseAccountTimingStableV2,
         MinaBasePermissionsAuthRequiredStableV2, MinaBasePermissionsStableV2,
-        MinaBaseReceiptChainHashStableV1, NonZeroCurvePoint, StateHash, TokenIdKeyHash,
+        MinaBaseReceiptChainHashStableV1, StateHash,
         UnsignedExtendedUInt32StableV1, UnsignedExtendedUInt64Int64ForVersionTagsStableV1,
     },
     versioned::Versioned,
