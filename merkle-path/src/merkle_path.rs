@@ -1,12 +1,8 @@
-use std::str::FromStr;
-
 use crate::serialize::EVMSerializable;
-use ark_ff::{biginteger::BigInteger256, BigInteger, ToConstraintField};
-use bigint::U256;
+use ark_serialize::CanonicalSerialize;
 use mina_hasher::Fp;
 use reqwest::header::CONTENT_TYPE;
 use serde::{Deserialize, Serialize};
-use ark_serialize::CanonicalSerialize;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -118,8 +114,7 @@ fn from_str(s: &str) -> Result<Fp, ()> {
 
 fn to_bytes(f: &Fp) -> Vec<u8> {
     let mut bytes: Vec<u8> = vec![];
-    f.serialize(&mut bytes)
-        .expect("Failed to serialize field");
+    f.serialize(&mut bytes).expect("Failed to serialize field");
 
     bytes.into_iter().rev().collect()
 }
@@ -167,13 +162,13 @@ impl EVMSerializable for Vec<MerkleLeaf> {
 }
 
 mod test {
-
+    use super::MerkleLeaf;
     use crate::serialize::EVMSerializable;
-    use super::{MerkleLeaf, MerkleTree};
+    use crate::MerkleTree;
 
     #[test]
     fn test_merkle_leaf() {
-//        "left": "8196401609013649445499057870676218044178796697776855327762810874439081359829",
+        //        "left": "8196401609013649445499057870676218044178796697776855327762810874439081359829",
 
         let serialized = r#"{
             "right": "42",
