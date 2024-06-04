@@ -1,6 +1,7 @@
 pub mod account;
 pub mod merkle_path;
 pub mod merkle_root;
+pub mod serialize;
 
 use crate::merkle_path::MerkleTree;
 use crate::merkle_root::MerkleRoot;
