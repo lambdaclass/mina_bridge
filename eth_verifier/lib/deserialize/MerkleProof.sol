@@ -17,6 +17,9 @@ function deser_merkle_path(
         // address of merkle path's first element
         let merkle_path_addr := add(merkle_path, 0x20)
 
+        // store array length
+        mstore(merkle_path, div(data_word_length, 2))
+
         // fill merkle path with data
         for { let i := 0 } lt(i, data_word_length) { i := add(i, 1) } {
             mstore(merkle_path_addr, mload(data_addr))
