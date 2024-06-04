@@ -17,7 +17,7 @@ contract DecodeProverProof is Test {
     Proof.ProofEvaluations proof_evals;
     Proof.ProverCommitments proof_comms;
     Proof.ProverProof prover_proof;
-    Scalar.FE public_input;
+    uint256 public_input;
 
     function setUp() public {
         pairing_proof_bytes = vm.readFileBinary("./unit_test_data/pairing_proof.bin");
@@ -27,13 +27,13 @@ contract DecodeProverProof is Test {
     }
 
     function assertTestEval(PointEvaluations memory eval) internal {
-        assertEq(Scalar.FE.unwrap(eval.zeta), 1);
-        assertEq(Scalar.FE.unwrap(eval.zeta_omega), 42);
+        assertEq(eval.zeta, 1);
+        assertEq(eval.zeta_omega, 42);
     }
 
     function assertEmptyEval(PointEvaluations memory eval) internal {
-        assertEq(Scalar.FE.unwrap(eval.zeta), 0);
-        assertEq(Scalar.FE.unwrap(eval.zeta_omega), 0);
+        assertEq(eval.zeta, 0);
+        assertEq(eval.zeta_omega, 0);
     }
 
     function assertTestG1Point(BN254.G1Point memory p) internal {
@@ -45,7 +45,7 @@ contract DecodeProverProof is Test {
         deser_pairing_proof(pairing_proof_bytes, pairing_proof);
 
         assertTestG1Point(pairing_proof.quotient);
-        assertEq(Scalar.FE.unwrap(pairing_proof.blinding), 1);
+        assertEq(pairing_proof.blinding, 1);
     }
 
     function test_deser_new_proof_evals() public {
@@ -119,7 +119,7 @@ contract DecodeProverProof is Test {
          * Test opening *
          */
         assertTestG1Point(prover_proof.opening.quotient);
-        assertEq(Scalar.FE.unwrap(prover_proof.opening.blinding), 1);
+        assertEq(prover_proof.opening.blinding, 1);
 
         /**
          * Test evals *
@@ -138,7 +138,7 @@ contract DecodeProverProof is Test {
         /**
          * Test ft_eval1 *
          */
-        assertEq(Scalar.FE.unwrap(prover_proof.ft_eval1), 10);
+        assertEq(prover_proof.ft_eval1, 10);
     }
 
     // INFO: this doesn't assert anything, it only executes this deserialization

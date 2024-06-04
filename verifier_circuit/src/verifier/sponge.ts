@@ -202,7 +202,7 @@ export class Sponge {
         if (commitment.shifted) this.absorbGroup(commitment.shifted);
     }
 
-    absorbEvals(evals: ProofEvaluations<PointEvaluations<ForeignScalar[]>>) {
+    absorbEvals(evals: ProofEvaluations) {
         const {
             w,
             z,
@@ -246,7 +246,7 @@ export class Sponge {
         points = points.concat(s);
 
         // optional:
-        const add_optional = (evals?: PointEvaluations<ForeignScalar[]>) => {
+        const add_optional = (evals?: PointEvaluations) => {
             if (evals) points.push(evals);
         }
 
@@ -267,8 +267,8 @@ export class Sponge {
         add_optional(foreignFieldMulLookupSelector);
 
         for (const p of points) {
-            for (const z of p.zeta) this.#internalSponge.absorb(z);
-            for (const zO of p.zetaOmega) this.#internalSponge.absorb(zO);
+            this.#internalSponge.absorb(p.zeta);
+            this.#internalSponge.absorb(p.zetaOmega);
         }
         console.log(points.length);
     }
@@ -284,10 +284,14 @@ export class Sponge {
             this.lastSqueezed = remaining;
             return limbs;
         } else {
-            let x = this.#internalSponge.squeeze().toBigInt();
-            let xLimbs = getLimbs64(x).slice(0, Sponge.HIGH_ENTROPY_LIMBS);
+            let x = 0n;
+            ProvableBn254.asProver(() => {
+                x = this.#internalSponge.squeeze().toBigInt();
+            });
 
+            let xLimbs = getLimbs64(x).slice(0, Sponge.HIGH_ENTROPY_LIMBS);
             this.lastSqueezed = this.lastSqueezed.concat(xLimbs);
+
             return this.squeezeLimbs(numLimbs);
         }
     }

@@ -4,6 +4,7 @@
     "func-visibility": "error",
     "var-name-mixedcase": "off",
     "func-name-mixedcase": "off",
-    "no-inline-assembly": "off"
+    "no-inline-assembly": "off",
+    "one-contract-per-file": "off"
   }
 }

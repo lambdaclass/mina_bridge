@@ -1,12 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity >=0.4.16 <0.9.0;
+pragma solidity ^0.8.0;
 
-import "./Evaluations.sol";
-import "./Polynomial.sol";
-import "./Constants.sol";
 import "./expr/Expr.sol";
 import "./Commitment.sol";
-import "./bn254/BN254.sol";
+import {BN254} from "./bn254/BN254.sol";
 import "./bn254/Fields.sol";
 import "./VerifierIndex.sol";
 import "./Constants.sol";
@@ -18,24 +15,22 @@ library Proof {
     error MissingIndexColumnEvaluation(uint256 gate);
     error UnhandledColumnVariant(uint256 id);
 
-    using {Scalar.mul} for Scalar.FE;
-
     struct PairingProof {
         BN254.G1Point quotient;
-        Scalar.FE blinding;
+        uint256 blinding;
     }
 
     struct ProverProof {
         ProverCommitments commitments;
         PairingProof opening;
         ProofEvaluations evals;
-        Scalar.FE ft_eval1;
+        uint256 ft_eval1;
     }
 
     struct AggregatedEvaluationProof {
         Evaluation[] evaluations;
-        Scalar.FE[2] evaluation_points;
-        Scalar.FE polyscale;
+        uint256[2] evaluation_points;
+        uint256 polyscale;
         PairingProof opening;
     }
 
@@ -267,8 +262,8 @@ library Proof {
 
     function combine_table(
         BN254.G1Point memory column,
-        Scalar.FE column_combiner,
-        Scalar.FE table_id_combiner,
+        uint256 column_combiner,
+        uint256 table_id_combiner,
         bool is_table_id_vector_set,
         BN254.G1Point memory table_id_vector,
         bool is_runtime_vector_set,
@@ -276,8 +271,8 @@ library Proof {
     ) internal view returns (BN254.G1Point memory) {
         uint256 total_len = 1 + (is_table_id_vector_set ? 1 : 0) + (is_runtime_vector_set ? 1 : 0);
 
-        Scalar.FE j = Scalar.one();
-        Scalar.FE[] memory scalars = new Scalar.FE[](total_len);
+        uint256 j = 1;
+        uint256[] memory scalars = new uint256[](total_len);
         BN254.G1Point[] memory commitments = new BN254.G1Point[](total_len);
 
         uint256 index = 0;
@@ -297,7 +292,7 @@ library Proof {
             index += 1;
         }
 
-        return Commitment.msm(commitments, scalars);
+        return BN254.multiScalarMul(commitments, scalars);
     }
 
     function is_field_set(uint256 optional_field_flags, uint256 flag_pos) internal pure returns (bool) {

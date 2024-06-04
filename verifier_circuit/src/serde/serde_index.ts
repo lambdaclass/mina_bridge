@@ -9,10 +9,7 @@ import { Alphas } from "../alphas.js"
 import { ForeignPallas } from "../foreign_fields/foreign_pallas.js"
 import { LookupFeatures, LookupInfo, LookupPatterns, LookupSelectors } from "../lookups/lookups.js"
 
-export interface PolyCommJSON {
-    unshifted: GroupJSON[]
-    shifted: null
-}
+export type PolyCommJSON = GroupJSON[];
 
 export interface AlphasJSON {
 
@@ -153,21 +150,17 @@ export interface LookupPatternsJSON {
 
 export type GroupJSON = string[];
 
-export function deserGroup(json: GroupJSON): ForeignCurveBn254 {
+export function deserGroup(json: GroupJSON): ForeignPallas {
     if (json[0] === "0" && json[1] === "1") {
-        return ForeignPallas.generator.add(ForeignPallas.generator.negate());
+        return ForeignPallas.generator.add(ForeignPallas.generator.negate()) as ForeignPallas;
     } else {
         return new ForeignPallas({ x: BigInt(json[0]), y: BigInt(json[1]) });
     }
 }
 
-export function deserPolyComm(json: PolyCommJSON): PolyComm<ForeignCurveBn254> {
-    const unshifted = json.unshifted.map(deserGroup);
-    let shifted = undefined;
-    if (json.shifted != null) {
-        shifted = json.shifted;
-    }
-    return new PolyComm<ForeignCurveBn254>(unshifted, shifted);
+export function deserPolyComm(json: PolyCommJSON): PolyComm<ForeignPallas> {
+    const unshifted = json.map(deserGroup);
+    return new PolyComm<ForeignPallas>(unshifted, undefined);
 }
 
 export function deserGateType(json: GateTypeJSON): GateType {

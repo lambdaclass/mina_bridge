@@ -6,10 +6,14 @@ export class ForeignScalar extends createForeignFieldBn254(Scalar.ORDER).AlmostR
     }
 
     static fromFields(fields: FieldBn254[]) {
-        return ForeignScalar.provable.fromFields(fields);
+        return ForeignScalar.provable.fromFields(fields) as ForeignScalar;
     }
 
-    static toFields(one: ForeignScalar) {
+    static toFields(one: ForeignScalar): FieldBn254[] {
         return ForeignScalar.provable.toFields(one);
+    }
+
+    toFields() {
+        return ForeignScalar.toFields(this);
     }
 }

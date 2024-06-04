@@ -1,9 +1,8 @@
 import { readFileSync } from 'fs';
 import { CircuitBn254, FieldBn254, ProvableBn254, circuitMainBn254, publicBn254 } from 'o1js';
 import { PolyComm } from '../poly_commitment/commitment.js';
-import { OpeningProof } from "../poly_commitment/opening_proof.js";
 import { SRS } from '../SRS.js';
-import { fp_sponge_initial_state, fp_sponge_params, fq_sponge_initial_state, fq_sponge_params, Sponge } from './sponge.js';
+import { fp_sponge_initial_state, fp_sponge_params, Sponge } from './sponge.js';
 import { Alphas } from '../alphas.js';
 import { Polynomial } from '../polynomial.js';
 import { Linearization, PolishToken } from '../prover/expr.js';
@@ -13,13 +12,14 @@ import {
     LookupInfo, LookupSelectors
 } from '../lookups/lookups.js';
 import { Batch } from './batch.js';
-import proof_json from "../../test_data/proof.json" assert { type: "json" };
 import verifier_index_json from "../../test_data/verifier_index.json" assert { type: "json" };
+import proof_json from "../../test_data/proof.json" assert { type: "json" };
 import { deserVerifierIndex } from "../serde/serde_index.js";
-import { deserProverProof } from '../serde/serde_proof.js';
 import { ForeignPallas, pallasZero } from '../foreign_fields/foreign_pallas.js';
 import { isErr, isOk, unwrap, VerifierResult, verifierOk } from '../error.js';
 import { finalVerify, BWParameters } from "./commitment.js";
+import { OpeningProof } from '../poly_commitment/opening_proof.js';
+import { deserProverProof } from '../serde/serde_proof.js';
 
 let steps: bigint[][];
 try {
@@ -221,7 +221,7 @@ export class Verifier extends CircuitBn254 {
         let proof = ProvableBn254.witness(OpeningProof, () => {
             let openingProofFields: string[] = JSON.parse(readFileSync("./src/opening_proof_fields.json", "utf-8"));
 
-            return OpeningProof.fromFields(openingProofFields.map(FieldBn254))
+            return OpeningProof.fromFields(openingProofFields.map(FieldBn254));
         });
         proofHash.assertEquals(proof.hash());
 
@@ -238,9 +238,8 @@ export class Verifier extends CircuitBn254 {
     }
 
     static verifyProof(openingProof: OpeningProof): VerifierResult<boolean> {
-        let proverProof = deserProverProof(proof_json);
+        const proverProof = deserProverProof(proof_json);
         proverProof.proof = openingProof;
-
         const verifierIndex = deserVerifierIndex(verifier_index_json);
         let evaluationProofResult = Batch.toBatch(verifierIndex, proverProof, []);
         if (isErr(evaluationProofResult)) return evaluationProofResult;
@@ -261,7 +260,7 @@ export class Verifier extends CircuitBn254 {
             let scalar = scalars[i];
             // FIXME: This should scale the point, but it is not working yet
             // result = result.completeAdd(point.completeScale(scalar));
-            result = result.completeAdd(point);
+            result = result.completeAdd(point) as ForeignPallas;
         }
 
         return result;

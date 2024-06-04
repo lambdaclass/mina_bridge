@@ -1,23 +1,24 @@
 import { Polynomial } from "../polynomial.js"
-import { ProvableBn254, Scalar } from "o1js"
+import { FieldBn254, PoseidonBn254, ProvableBn254, Scalar } from "o1js"
 import { PolyComm, bPoly, bPolyCoefficients } from "../poly_commitment/commitment.js";
+import { arrayToFields, scalarFromFields, pallasCommFromFields, pallasCommArrayFromFields, pointEvaluationsArrayFromFields, pointEvaluationsFromFields, optionalPointEvaluationsFromFields, optionalPointEvaluationsArrayFromFields } from "../field_serializable.js";
 import { ScalarChallenge } from "../verifier/scalar_challenge.js";
 import { fp_sponge_initial_state, fp_sponge_params, fq_sponge_initial_state, fq_sponge_params, Sponge } from "../verifier/sponge.js";
 import { Verifier, VerifierIndex } from "../verifier/verifier.js";
-import { invScalar, powScalar } from "../util/scalar.js";
+import { powScalar } from "../util/scalar.js";
 import { GateType } from "../circuits/gate.js";
 import { Alphas } from "../alphas.js";
-import { Column, PolishToken } from "./expr.js";
-import { range } from "../util/misc.js";
+import { Column } from "./expr.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
 import { ForeignPallas } from "../foreign_fields/foreign_pallas.js";
-import { VerifierResult, verifierErr, verifierOk, isErr, unwrap } from "../error.js";
+import { VerifierResult, verifierErr } from "../error.js";
 import { LookupPattern } from "../lookups/lookups.js";
 import { OpeningProof } from "../poly_commitment/opening_proof.js";
+import { readFileSync } from "fs";
 
 /** The proof that the prover creates from a ProverIndex `witness`. */
 export class ProverProof {
-    evals: ProofEvaluations<PointEvaluations<ForeignScalar[]>>
+    evals: ProofEvaluations
     prev_challenges: RecursionChallenge[]
     commitments: ProverCommitments
     /** Required evaluation for Maller's optimization */
@@ -25,7 +26,7 @@ export class ProverProof {
     proof: OpeningProof
 
     constructor(
-        evals: ProofEvaluations<PointEvaluations<ForeignScalar[]>>,
+        evals: ProofEvaluations,
         prev_challenges: RecursionChallenge[],
         commitments: ProverCommitments,
         ft_eval1: ForeignScalar,
@@ -430,6 +431,50 @@ export class ProverProof {
         return verifierOk(result);
         */
     }
+
+    static fromFields(fields: FieldBn254[]) {
+        let evalsEnd = ProofEvaluations.sizeInFields();
+        let evals = ProofEvaluations.fromFields(fields.slice(0, evalsEnd));
+        let commitmentsEnd = evalsEnd + ProverCommitments.sizeInFields();
+        let commitments = ProverCommitments.fromFields(fields.slice(evalsEnd, commitmentsEnd));
+        let ftEval1End = commitmentsEnd + ForeignScalar.sizeInFields();
+        let ft_eval1 = ForeignScalar.fromFields(fields.slice(commitmentsEnd, ftEval1End));
+        let proofEnd = ftEval1End + OpeningProof.sizeInFields();
+        let proof = OpeningProof.fromFields(fields.slice(ftEval1End, proofEnd));
+
+        // TODO: add `prev_challenges`
+        return new ProverProof(evals, [], commitments, ft_eval1, proof);
+    }
+
+    toFields() {
+        return ProverProof.toFields(this);
+    }
+
+    static toFields(one: ProverProof) {
+        let evals = one.evals.toFields();
+        let commitments = one.commitments.toFields();
+        // TODO: add prev_challenges
+        let ft_eval1 = one.ft_eval1.toFields();
+        let proof = one.proof.toFields();
+
+        return [...evals, ...commitments, ...ft_eval1, ...proof];
+    }
+
+    static sizeInFields() {
+        let evalsSize = ProofEvaluations.sizeInFields();
+        let commitmentsSize = ProverCommitments.sizeInFields();
+        // TODO: add `prev_challenges`
+        let ftEval1Size = ForeignScalar.sizeInFields();
+        let proofSize = OpeningProof.sizeInFields();
+
+        return evalsSize + commitmentsSize + ftEval1Size + proofSize;
+    }
+
+    static toAuxiliary() {
+        return [];
+    }
+
+    static check() { }
 }
 
 export function combinedInnerProduct(
@@ -486,96 +531,96 @@ export class Context {
  * **Chunked evaluations** `Field` is instantiated with vectors with a length that equals the length of the chunk
  * **Non chunked evaluations** `Field` is instantiated with a field, so they are single-sized#[serde_as]
  */
-export class ProofEvaluations<Evals> {
+export class ProofEvaluations {
     /* public input polynomials */
-    public_input?: Evals
+    public_input?: PointEvaluations
     /* witness polynomials */
-    w: Array<Evals> // of size 15, total num of registers (columns)
+    w: Array<PointEvaluations> // of size 15, total num of registers (columns)
     /* permutation polynomial */
-    z: Evals
+    z: PointEvaluations
     /*
      * permutation polynomials
      * (PERMUTS-1 evaluations because the last permutation is only used in commitment form)
      */
-    s: Array<Evals> // of size 7 - 1, total num of wirable registers minus one
+    s: Array<PointEvaluations> // of size 7 - 1, total num of wirable registers minus one
     /* coefficient polynomials */
-    coefficients: Array<Evals> // of size 15, total num of registers (columns)
+    coefficients: Array<PointEvaluations> // of size 15, total num of registers (columns)
     /* evaluation of the generic selector polynomial */
-    genericSelector: Evals
+    genericSelector: PointEvaluations
     /* evaluation of the poseidon selector polynomial */
-    poseidonSelector: Evals
+    poseidonSelector: PointEvaluations
     /** evaluation of the elliptic curve addition selector polynomial */
-    completeAddSelector: Evals
+    completeAddSelector: PointEvaluations
     /** evaluation of the elliptic curve variable base scalar multiplication selector polynomial */
-    mulSelector: Evals
+    mulSelector: PointEvaluations
     /** evaluation of the endoscalar multiplication selector polynomial */
-    emulSelector: Evals
+    emulSelector: PointEvaluations
     /** evaluation of the endoscalar multiplication scalar computation selector polynomial */
-    endomulScalarSelector: Evals
+    endomulScalarSelector: PointEvaluations
 
     // Optional gates
     /** evaluation of the RangeCheck0 selector polynomial **/
-    rangeCheck0Selector?: Evals
+    rangeCheck0Selector?: PointEvaluations
     /** evaluation of the RangeCheck1 selector polynomial **/
-    rangeCheck1Selector?: Evals
+    rangeCheck1Selector?: PointEvaluations
     /** evaluation of the ForeignFieldAdd selector polynomial **/
-    foreignFieldAddSelector?: Evals
+    foreignFieldAddSelector?: PointEvaluations
     /** evaluation of the ForeignFieldMul selector polynomial **/
-    foreignFieldMulSelector?: Evals
+    foreignFieldMulSelector?: PointEvaluations
     /** evaluation of the Xor selector polynomial **/
-    xorSelector?: Evals
+    xorSelector?: PointEvaluations
     /** evaluation of the Rot selector polynomial **/
-    rotSelector?: Evals
+    rotSelector?: PointEvaluations
 
     // lookup-related evaluations
     /** evaluation of lookup aggregation polynomial **/
-    lookupAggregation?: Evals
+    lookupAggregation?: PointEvaluations
     /** evaluation of lookup table polynomial **/
-    lookupTable?: Evals
+    lookupTable?: PointEvaluations
     /** evaluation of lookup sorted polynomials **/
-    lookupSorted?: Evals[] // fixed size of 5
+    lookupSorted?: PointEvaluations[] // fixed size of 5
     /** evaluation of runtime lookup table polynomial **/
-    runtimeLookupTable?: Evals
+    runtimeLookupTable?: PointEvaluations
 
     // lookup selectors
     /** evaluation of the runtime lookup table selector polynomial **/
-    runtimeLookupTableSelector?: Evals
+    runtimeLookupTableSelector?: PointEvaluations
     /** evaluation of the Xor range check pattern selector polynomial **/
-    xorLookupSelector?: Evals
+    xorLookupSelector?: PointEvaluations
     /** evaluation of the Lookup range check pattern selector polynomial **/
-    lookupGateLookupSelector?: Evals
+    lookupGateLookupSelector?: PointEvaluations
     /** evaluation of the RangeCheck range check pattern selector polynomial **/
-    rangeCheckLookupSelector?: Evals
+    rangeCheckLookupSelector?: PointEvaluations
     /** evaluation of the ForeignFieldMul range check pattern selector polynomial **/
-    foreignFieldMulLookupSelector?: Evals
+    foreignFieldMulLookupSelector?: PointEvaluations
 
     constructor(
-        w: Array<Evals>,
-        z: Evals,
-        s: Array<Evals>,
-        coefficients: Array<Evals>,
-        genericSelector: Evals,
-        poseidonSelector: Evals,
-        completeAddSelector: Evals,
-        mulSelector: Evals,
-        emulSelector: Evals,
-        endomulScalarSelector: Evals,
-        public_input?: Evals,
-        rangeCheck0Selector?: Evals,
-        rangeCheck1Selector?: Evals,
-        foreignFieldAddSelector?: Evals,
-        foreignFieldMulSelector?: Evals,
-        xorSelector?: Evals,
-        rotSelector?: Evals,
-        lookupAggregation?: Evals,
-        lookupTable?: Evals,
-        lookupSorted?: Evals[], // fixed size of 5
-        runtimeLookupTable?: Evals,
-        runtimeLookupTableSelector?: Evals,
-        xorLookupSelector?: Evals,
-        lookupGateLookupSelector?: Evals,
-        rangeCheckLookupSelector?: Evals,
-        foreignFieldMulLookupSelector?: Evals,
+        w: Array<PointEvaluations>,
+        z: PointEvaluations,
+        s: Array<PointEvaluations>,
+        coefficients: Array<PointEvaluations>,
+        genericSelector: PointEvaluations,
+        poseidonSelector: PointEvaluations,
+        completeAddSelector: PointEvaluations,
+        mulSelector: PointEvaluations,
+        emulSelector: PointEvaluations,
+        endomulScalarSelector: PointEvaluations,
+        public_input?: PointEvaluations,
+        rangeCheck0Selector?: PointEvaluations,
+        rangeCheck1Selector?: PointEvaluations,
+        foreignFieldAddSelector?: PointEvaluations,
+        foreignFieldMulSelector?: PointEvaluations,
+        xorSelector?: PointEvaluations,
+        rotSelector?: PointEvaluations,
+        lookupAggregation?: PointEvaluations,
+        lookupTable?: PointEvaluations,
+        lookupSorted?: PointEvaluations[], // fixed size of 5
+        runtimeLookupTable?: PointEvaluations,
+        runtimeLookupTableSelector?: PointEvaluations,
+        xorLookupSelector?: PointEvaluations,
+        lookupGateLookupSelector?: PointEvaluations,
+        rangeCheckLookupSelector?: PointEvaluations,
+        foreignFieldMulLookupSelector?: PointEvaluations,
     ) {
         this.w = w;
         this.z = z;
@@ -606,7 +651,7 @@ export class ProofEvaluations<Evals> {
         return this;
     }
 
-    map<Evals2>(f: (e: Evals) => Evals2): ProofEvaluations<Evals2> {
+    map(f: (e: PointEvaluations) => PointEvaluations): ProofEvaluations {
         let {
             w,
             z,
@@ -638,9 +683,9 @@ export class ProofEvaluations<Evals> {
         let public_input = undefined;
         if (this.public_input) public_input = f(this.public_input);
 
-        const optional_f = (e?: Evals) => e ? f(e) : undefined;
+        const optional_f = (e?: PointEvaluations) => e ? f(e) : undefined;
 
-        return new ProofEvaluations<Evals2>(
+        return new ProofEvaluations(
             w.map(f),
             f(z),
             s.map(f),
@@ -674,30 +719,16 @@ export class ProofEvaluations<Evals> {
     Returns a new PointEvaluations struct with the combined evaluations.
     */
     static combine(
-        evals: ProofEvaluations<PointEvaluations<ForeignScalar[]>>,
-        pt: PointEvaluations<ForeignScalar>
-    ): ProofEvaluations<PointEvaluations<ForeignScalar>> {
+        evals: ProofEvaluations,
+        pt: PointEvaluations
+    ): ProofEvaluations {
         return evals.map((orig) => new PointEvaluations(
-            Polynomial.buildAndEvaluate(orig.zeta, pt.zeta),
-            Polynomial.buildAndEvaluate(orig.zetaOmega, pt.zetaOmega)
+            Polynomial.buildAndEvaluate([orig.zeta], pt.zeta),
+            Polynomial.buildAndEvaluate([orig.zetaOmega], pt.zetaOmega)
         ));
     }
 
-    evaluate_coefficients(point: ForeignScalar): ForeignScalar {
-        const zero = ForeignScalar.from(0);
-
-        let coeffs = this.coefficients.map((value) => value as ForeignScalar);
-        let p = new Polynomial(coeffs);
-        if (this.coefficients.length == 0) {
-            return zero;
-        }
-        if (point == zero) {
-            return this.coefficients[0] as ForeignScalar;
-        }
-        return p.evaluate(point);
-    }
-
-    getColumn(col: Column): Evals | undefined {
+    getColumn(col: Column): PointEvaluations | undefined {
         switch (col.kind) {
             case "witness": {
                 return this.w[col.index];
@@ -750,6 +781,174 @@ export class ProofEvaluations<Evals> {
             }
         }
     }
+
+    static #wLength() {
+        return 15;
+    }
+
+    static #sLength() {
+        return 6;
+    }
+
+    static #coefficientsLength() {
+        return 15;
+    }
+
+    static fromFields(fields: FieldBn254[]): ProofEvaluations {
+        let [w, zOffset] = pointEvaluationsArrayFromFields(fields, this.#wLength(), 0);
+        let [z, sOffset] = pointEvaluationsFromFields(fields, zOffset);
+        let [s, coefficientsOffset] = pointEvaluationsArrayFromFields(fields, this.#sLength(), sOffset);
+        let [coefficients, genericSelectorOffset] = pointEvaluationsArrayFromFields(fields, this.#coefficientsLength(), coefficientsOffset);
+        let [genericSelector, poseidonSelectorOffset] = pointEvaluationsFromFields(fields, genericSelectorOffset);
+        let [poseidonSelector, completeAddSelectorOffset] = pointEvaluationsFromFields(fields, poseidonSelectorOffset);
+        let [completeAddSelector, mulSelectorOffset] = pointEvaluationsFromFields(fields, completeAddSelectorOffset);
+        let [mulSelector, emulSelectorOffset] = pointEvaluationsFromFields(fields, mulSelectorOffset);
+        let [emulSelector, endomulScalarSelectorOffset] = pointEvaluationsFromFields(fields, emulSelectorOffset);
+        let [endomulScalarSelector, publicInputOffset] = pointEvaluationsFromFields(fields, endomulScalarSelectorOffset);
+        let [public_input, rangeCheck0SelectorOffset] = optionalPointEvaluationsFromFields(fields, publicInputOffset);
+        let [rangeCheck0Selector, rangeCheck1SelectorOffset] = optionalPointEvaluationsFromFields(fields, rangeCheck0SelectorOffset);
+        let [rangeCheck1Selector, foreignFieldAddSelectorOffset] = optionalPointEvaluationsFromFields(fields, rangeCheck1SelectorOffset);
+        let [foreignFieldAddSelector, foreignFieldMulSelectorOffset] = optionalPointEvaluationsFromFields(fields, foreignFieldAddSelectorOffset);
+        let [foreignFieldMulSelector, xorSelectorOffset] = optionalPointEvaluationsFromFields(fields, foreignFieldMulSelectorOffset);
+        let [xorSelector, rotSelectorOffset] = optionalPointEvaluationsFromFields(fields, xorSelectorOffset);
+        let [rotSelector, lookupAggregationOffset] = optionalPointEvaluationsFromFields(fields, rotSelectorOffset);
+        let [lookupAggregation, lookupTableOffset] = optionalPointEvaluationsFromFields(fields, lookupAggregationOffset);
+        let [lookupTable, lookupSortedOffset] = optionalPointEvaluationsFromFields(fields, lookupTableOffset);
+        // TODO: Check `lookupSorted` length
+        let [lookupSorted, runtimeLookupTableOffset] = optionalPointEvaluationsArrayFromFields(fields, 0, lookupSortedOffset);
+        let [runtimeLookupTable, runtimeLookupTableSelectorOffset] = optionalPointEvaluationsFromFields(fields, runtimeLookupTableOffset);
+        let [runtimeLookupTableSelector, xorLookupSelectorOffset] = optionalPointEvaluationsFromFields(fields, runtimeLookupTableSelectorOffset);
+        let [xorLookupSelector, lookupGateLookupSelectorOffset] = optionalPointEvaluationsFromFields(fields, xorLookupSelectorOffset);
+        let [lookupGateLookupSelector, rangeCheckLookupSelectorOffset] = optionalPointEvaluationsFromFields(fields, lookupGateLookupSelectorOffset);
+        let [rangeCheckLookupSelector, foreignFieldMulLookupSelectorOffset] = optionalPointEvaluationsFromFields(fields, rangeCheckLookupSelectorOffset);
+        let [foreignFieldMulLookupSelector, _] = optionalPointEvaluationsFromFields(fields, foreignFieldMulLookupSelectorOffset);
+
+        return new ProofEvaluations(
+            w,
+            z,
+            s,
+            coefficients,
+            genericSelector,
+            poseidonSelector,
+            completeAddSelector,
+            mulSelector,
+            emulSelector,
+            endomulScalarSelector,
+            public_input,
+            rangeCheck0Selector,
+            rangeCheck1Selector,
+            foreignFieldAddSelector,
+            foreignFieldMulSelector,
+            xorSelector,
+            rotSelector,
+            lookupAggregation,
+            lookupTable,
+            lookupSorted,
+            runtimeLookupTable,
+            runtimeLookupTableSelector,
+            xorLookupSelector,
+            lookupGateLookupSelector,
+            rangeCheckLookupSelector,
+            foreignFieldMulLookupSelector
+        );
+    }
+
+    toFields() {
+        let w = arrayToFields(this.w);
+        let z = this.z.toFields();
+        let s = arrayToFields(this.s);
+        let coefficients = arrayToFields(this.coefficients);
+        let genericSelector = this.genericSelector.toFields();
+        let poseidonSelector = this.poseidonSelector.toFields();
+        let completeAddSelector = this.completeAddSelector.toFields();
+        let mulSelector = this.mulSelector.toFields();
+        let emulSelector = this.emulSelector.toFields();
+        let endomulScalarSelector = this.endomulScalarSelector.toFields();
+        let public_input = PointEvaluations.optionalToFields(this.public_input);
+        let rangeCheck0Selector = PointEvaluations.optionalToFields(this.rangeCheck0Selector);
+        let rangeCheck1Selector = PointEvaluations.optionalToFields(this.rangeCheck1Selector);
+        let foreignFieldAddSelector = PointEvaluations.optionalToFields(this.foreignFieldAddSelector);
+        let foreignFieldMulSelector = PointEvaluations.optionalToFields(this.foreignFieldMulSelector);
+        let xorSelector = PointEvaluations.optionalToFields(this.xorSelector);
+        let rotSelector = PointEvaluations.optionalToFields(this.rotSelector);
+        let lookupAggregation = PointEvaluations.optionalToFields(this.lookupAggregation);
+        let lookupTable = PointEvaluations.optionalToFields(this.lookupTable);
+        // TODO: Check `lookupSorted` length
+        let lookupSorted = PointEvaluations.optionalArrayToFields(0, this.lookupSorted);
+        let runtimeLookupTable = PointEvaluations.optionalToFields(this.runtimeLookupTable);
+        let runtimeLookupTableSelector = PointEvaluations.optionalToFields(this.runtimeLookupTableSelector);
+        let xorLookupSelector = PointEvaluations.optionalToFields(this.xorLookupSelector);
+        let lookupGateLookupSelector = PointEvaluations.optionalToFields(this.lookupGateLookupSelector);
+        let rangeCheckLookupSelector = PointEvaluations.optionalToFields(this.rangeCheckLookupSelector);
+        let foreignFieldMulLookupSelector = PointEvaluations.optionalToFields(this.foreignFieldMulLookupSelector);
+
+        return [
+            ...w,
+            ...z,
+            ...s,
+            ...coefficients,
+            ...genericSelector,
+            ...poseidonSelector,
+            ...completeAddSelector,
+            ...mulSelector,
+            ...emulSelector,
+            ...endomulScalarSelector,
+            ...public_input,
+            ...rangeCheck0Selector,
+            ...rangeCheck1Selector,
+            ...foreignFieldAddSelector,
+            ...foreignFieldMulSelector,
+            ...xorSelector,
+            ...rotSelector,
+            ...lookupAggregation,
+            ...lookupTable,
+            ...lookupSorted,
+            ...runtimeLookupTable,
+            ...runtimeLookupTableSelector,
+            ...xorLookupSelector,
+            ...lookupGateLookupSelector,
+            ...rangeCheckLookupSelector,
+            ...foreignFieldMulLookupSelector
+        ];
+    }
+
+    static sizeInFields() {
+        const wSize = this.#wLength() * PointEvaluations.sizeInFields();
+        const zSize = PointEvaluations.sizeInFields();
+        const sSize = this.#sLength() * PointEvaluations.sizeInFields();
+        const coefficientsSize = this.#coefficientsLength() * PointEvaluations.sizeInFields();
+        const genericSelectorSize = PointEvaluations.sizeInFields();
+        const poseidonSelectorSize = PointEvaluations.sizeInFields();
+        const completeAddSelectorSize = PointEvaluations.sizeInFields();
+        const mulSelectorSize = PointEvaluations.sizeInFields();
+        const emulSelectorSize = PointEvaluations.sizeInFields();
+        const endomulScalarSelectorSize = PointEvaluations.sizeInFields();
+        const publicInputSize = 1 + PointEvaluations.sizeInFields();
+        // TODO: Check the proof fields size defined above with a proof that has non-null values
+        const rangeCheck0SelectorSize = 1 + PointEvaluations.sizeInFields();
+        const rangeCheck1SelectorSize = 1 + PointEvaluations.sizeInFields();
+        const foreignFieldAddSelectorSize = 1 + PointEvaluations.sizeInFields();
+        const foreignFieldMulSelectorSize = 1 + PointEvaluations.sizeInFields();
+        const xorSelectorSize = 1 + PointEvaluations.sizeInFields();
+        const rotSelectorSize = 1 + PointEvaluations.sizeInFields();
+        const lookupAggregationSize = 1 + PointEvaluations.sizeInFields();
+        const lookupTableSize = 1 + PointEvaluations.sizeInFields();
+        // TODO: Check `lookupSorted` length
+        const lookupSortedSize = 1;
+        const runtimeLookupTableSize = 1 + PointEvaluations.sizeInFields();
+        const runtimeLookupTableSelectorSize = 1 + PointEvaluations.sizeInFields();
+        const xorLookupSelectorSize = 1 + PointEvaluations.sizeInFields();
+        const lookupGateLookupSelectorSize = 1 + PointEvaluations.sizeInFields();
+        const rangeCheckLookupSelectorSize = 1 + PointEvaluations.sizeInFields();
+        const foreignFieldMulLookupSelectorSize = 1 + PointEvaluations.sizeInFields();
+
+        return wSize + zSize + sSize + coefficientsSize + genericSelectorSize + poseidonSelectorSize +
+            completeAddSelectorSize + mulSelectorSize + emulSelectorSize + endomulScalarSelectorSize + publicInputSize +
+            rangeCheck0SelectorSize + rangeCheck1SelectorSize + foreignFieldAddSelectorSize + foreignFieldMulSelectorSize +
+            xorSelectorSize + rotSelectorSize + lookupAggregationSize + lookupTableSize + lookupSortedSize +
+            runtimeLookupTableSize + runtimeLookupTableSelectorSize + xorLookupSelectorSize + lookupGateLookupSelectorSize +
+            rangeCheckLookupSelectorSize + foreignFieldMulLookupSelectorSize;
+    }
 }
 
 /**
@@ -774,15 +973,80 @@ export class LookupEvaluations<Evals> {
 /**
  * Evaluations of a polynomial at 2 points.
  */
-export class PointEvaluations<Evals> {
+export class PointEvaluations {
     /* evaluation at the challenge point zeta */
-    zeta: Evals
+    zeta: ForeignScalar
     /* Evaluation at `zeta . omega`, the product of the challenge point and the group generator */
-    zetaOmega: Evals
+    zetaOmega: ForeignScalar
 
-    constructor(zeta: Evals, zetaOmega: Evals) {
+    constructor(zeta: ForeignScalar, zetaOmega: ForeignScalar) {
         this.zeta = zeta;
         this.zetaOmega = zetaOmega;
+    }
+
+    static fromFields(fields: FieldBn254[]) {
+        let [zeta, zetaOmegaOffset] = scalarFromFields(fields, 0);
+        let [zetaOmega, _] = scalarFromFields(fields, zetaOmegaOffset);
+
+        return new PointEvaluations(zeta, zetaOmega);
+    }
+
+    toFields() {
+        let zeta = this.zeta.toFields();
+        let zetaOmega = this.zetaOmega.toFields();
+
+        return [...zeta, ...zetaOmega];
+    }
+
+    static sizeInFields() {
+        let zetaSize = ForeignScalar.sizeInFields();
+        let zetaOmegaSize = ForeignScalar.sizeInFields();
+
+        return zetaSize + zetaOmegaSize;
+    }
+
+    static optionalFromFields(fields: FieldBn254[]) {
+        let [optionFlag, ...input] = fields;
+
+        if (optionFlag.equals(0)) {
+            return undefined;
+        }
+
+        return PointEvaluations.fromFields(input);
+    }
+
+    static optionalToFields(input?: PointEvaluations) {
+        if (typeof input === "undefined") {
+            // [option_flag, ...zeros]
+            return Array(PointEvaluations.sizeInFields() + 1).fill(FieldBn254(0));
+        }
+
+        let fields = input?.toFields();
+
+        return [FieldBn254(1), ...fields];
+    }
+
+    static optionalArrayFromFields(length: number, fields: FieldBn254[]) {
+        let [optionFlag, ...input] = fields;
+
+        if (optionFlag.equals(0)) {
+            return undefined;
+        }
+
+        let [array, _] = pointEvaluationsArrayFromFields(input, length, 0);
+
+        return array;
+    }
+
+    static optionalArrayToFields(length: number, input?: PointEvaluations[]) {
+        if (typeof input === "undefined") {
+            // [option_flag, ...zeros]
+            return Array(PointEvaluations.sizeInFields() * length + 1).fill(FieldBn254(0));
+        }
+
+        let fields = arrayToFields(input);
+
+        return [FieldBn254(1), ...fields];
     }
 }
 
@@ -846,6 +1110,28 @@ export class LookupCommitments {
     aggreg: PolyComm<ForeignPallas>
     /// Optional commitment to concatenated runtime tables
     runtime?: PolyComm<ForeignPallas>
+
+    constructor(sorted: PolyComm<ForeignPallas>[], aggreg: PolyComm<ForeignPallas>, runtime?: PolyComm<ForeignPallas>) {
+        this.sorted = sorted;
+        this.aggreg = aggreg;
+        this.runtime = runtime;
+    }
+
+    static fromFields(fields: FieldBn254[]) {
+        let [sorted, aggregOffset] = pallasCommArrayFromFields(fields, 1, 1, 0);
+        let [aggreg, runtimeOffset] = pallasCommFromFields(fields, 1, aggregOffset);
+        let [runtime, _] = pallasCommFromFields(fields, 1, runtimeOffset);
+
+        return new LookupCommitments(sorted, aggreg, runtime);
+    }
+
+    toFields() {
+        let sorted = arrayToFields(this.sorted);
+        let aggreg = this.aggreg.toFields();
+        let runtime = typeof this.runtime === "undefined" ? [] : this.runtime.toFields();
+
+        return [...sorted, ...aggreg, ...runtime];
+    }
 }
 
 export class ProverCommitments {
@@ -857,6 +1143,40 @@ export class ProverCommitments {
     tComm: PolyComm<ForeignPallas>
     /// Commitments related to the lookup argument
     lookup?: LookupCommitments
+
+    constructor(wComm: PolyComm<ForeignPallas>[], zComm: PolyComm<ForeignPallas>, tComm: PolyComm<ForeignPallas>, lookup?: LookupCommitments) {
+        this.wComm = wComm;
+        this.zComm = zComm;
+        this.tComm = tComm;
+        this.lookup = lookup;
+    }
+
+    static fromFields(fields: FieldBn254[]) {
+        let [wComm, zCommOffset] = pallasCommArrayFromFields(fields, 15, 1, 0);
+        let [zComm, tCommOffset] = pallasCommFromFields(fields, 1, zCommOffset);
+        let [tComm, _] = pallasCommFromFields(fields, 7, tCommOffset);
+        //TODO: Add lookup
+
+        return new ProverCommitments(wComm, zComm, tComm);
+    }
+
+    toFields() {
+        let wComm = arrayToFields(this.wComm);
+        let zComm = this.zComm.toFields();
+        let tComm = this.tComm.toFields();
+        //TODO: Add lookup
+
+        return [...wComm, ...zComm, ...tComm];
+    }
+
+    static sizeInFields() {
+        let wCommSize = 15 * ForeignPallas.sizeInFields();
+        let zCommSize = ForeignPallas.sizeInFields();
+        let tCommSize = 7 * ForeignPallas.sizeInFields();
+        // TODO: Check lookup size
+
+        return wCommSize + zCommSize + tCommSize;
+    }
 }
 
 export class Constants<F> {
@@ -906,7 +1226,7 @@ export class Oracles {
     /** public polynomial evaluations */
     public_evals: ForeignScalar[][] // array of size 2 of vecs of scalar
     /** zeta^n and (zeta * omega)^n */
-    powers_of_eval_points_for_chunks: PointEvaluations<ForeignScalar>
+    powers_of_eval_points_for_chunks: PointEvaluations
     /** recursion data */
     polys: [PolyComm<ForeignPallas>, ForeignScalar[][]][]
     /** pre-computed zeta^n */

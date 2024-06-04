@@ -32,11 +32,15 @@ export class ForeignPallas extends createForeignCurveBn254({
     }
 
     static fromFields(fields: FieldBn254[]) {
-        return ForeignPallas.provable.fromFields(fields);
+        return ForeignPallas.provable.fromFields(fields) as ForeignPallas;
     }
 
     static toFields(one: ForeignPallas) {
         return ForeignPallas.provable.toFields(one);
+    }
+
+    toFields() {
+        return ForeignPallas.toFields(this);
     }
 
     static assertEquals(one: ForeignPallas, other: ForeignPallas) {

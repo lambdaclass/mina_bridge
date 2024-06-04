@@ -1,16 +1,15 @@
 import { OpeningProof } from "../poly_commitment/opening_proof.js";
-import { LookupEvaluations, PointEvaluations, ProofEvaluations, ProverCommitments, ProverProof, RecursionChallenge } from "../prover/prover.js"
+import { PointEvaluations, ProofEvaluations, ProverCommitments, ProverProof, RecursionChallenge } from "../prover/prover.js"
 import { deserPolyComm, PolyCommJSON, deserGroup, GroupJSON } from "./serde_index.js";
 import { ForeignScalar } from "../foreign_fields/foreign_scalar.js";
+import { PolyComm } from "../poly_commitment/commitment.js";
+import { ForeignPallas } from "../foreign_fields/foreign_pallas.js";
 
-type PointEvals = PointEvaluations<ForeignScalar[]>;
+type PointEvals = PointEvaluations;
 
-// NOTE: snake_case is necessary to match the JSON schemes.
-interface PointEvalsJSON {
-    zeta: string[]
-    zeta_omega: string[]
-}
-interface ProofEvalsJSON {
+export type PointEvalsJSON = string[][];
+
+export interface ProofEvalsJSON {
     w: PointEvalsJSON[] // of size 15, total num of registers (columns)
     z: PointEvalsJSON
     s: PointEvalsJSON[] // of size 7 - 1, total num of wirable registers minus one
@@ -43,8 +42,8 @@ interface ProofEvalsJSON {
 }
 
 interface ProverCommitmentsJSON {
-    w_comm: PolyCommJSON[]
-    z_comm: PolyCommJSON
+    w_comm: GroupJSON[]
+    z_comm: GroupJSON
     t_comm: PolyCommJSON
 }
 
@@ -75,22 +74,32 @@ export function deserDecScalar(str: string): ForeignScalar {
  * Deserializes a scalar point evaluation from JSON
  */
 export function deserPointEval(json: PointEvalsJSON): PointEvals {
-    const zeta = json.zeta.map(deserHexScalar);
-    const zetaOmega = json.zeta_omega.map(deserHexScalar);
-    let ret = new PointEvaluations(zeta, zetaOmega);
+    let zeta;
+    let zetaOmega;
 
-    return ret;
+    if (Array.isArray(json[0])) {
+        zeta = json[0].map(deserHexScalar)[0];
+    } else {
+        zeta = deserHexScalar(json[0]);
+    }
+    if (Array.isArray(json[1])) {
+        zetaOmega = json[1].map(deserHexScalar)[0];
+    } else {
+        zetaOmega = deserHexScalar(json[1]);
+    }
+
+    return new PointEvaluations(zeta, zetaOmega);
 }
 
 /**
  * Deserializes scalar proof evaluations from JSON
  */
-export function deserProofEvals(json: ProofEvalsJSON): ProofEvaluations<PointEvals> {
+export function deserProofEvals(proofEvalsJson: ProofEvalsJSON, publicInputJson: GroupJSON): ProofEvaluations {
     const [
         w,
         s,
         coefficients
-    ] = [json.w, json.s, json.coefficients].map(field => field.map(deserPointEval));
+    ] = [proofEvalsJson.w, proofEvalsJson.s, proofEvalsJson.coefficients].map(field => field.map(deserPointEval));
     const [
         z,
         genericSelector,
@@ -100,13 +109,13 @@ export function deserProofEvals(json: ProofEvalsJSON): ProofEvaluations<PointEva
         emulSelector,
         endomulScalarSelector,
     ] = [
-        json.z,
-        json.generic_selector,
-        json.poseidon_selector,
-        json.complete_add_selector,
-        json.mul_selector,
-        json.emul_selector,
-        json.endomul_scalar_selector
+        proofEvalsJson.z,
+        proofEvalsJson.generic_selector,
+        proofEvalsJson.poseidon_selector,
+        proofEvalsJson.complete_add_selector,
+        proofEvalsJson.mul_selector,
+        proofEvalsJson.emul_selector,
+        proofEvalsJson.endomul_scalar_selector
     ].map(deserPointEval);
 
     const [
@@ -125,28 +134,30 @@ export function deserProofEvals(json: ProofEvalsJSON): ProofEvaluations<PointEva
         rangeCheckLookupSelector,
         foreignFieldMulLookupSelector,
     ] = [
-        json.range_check0_selector,
-        json.range_check1_selector,
-        json.foreign_field_add_selector,
-        json.foreign_field_mul_selector,
-        json.xor_selector,
-        json.rot_selector,
-        json.lookup_aggregation,
-        json.lookup_table,
-        json.runtime_lookup_table,
-        json.runtime_lookup_table_selector,
-        json.xor_lookup_selector,
-        json.lookup_gate_lookup_selector,
-        json.range_check_lookup_selector,
-        json.foreign_field_mul_lookup_selector,
+        proofEvalsJson.range_check0_selector,
+        proofEvalsJson.range_check1_selector,
+        proofEvalsJson.foreign_field_add_selector,
+        proofEvalsJson.foreign_field_mul_selector,
+        proofEvalsJson.xor_selector,
+        proofEvalsJson.rot_selector,
+        proofEvalsJson.lookup_aggregation,
+        proofEvalsJson.lookup_table,
+        proofEvalsJson.runtime_lookup_table,
+        proofEvalsJson.runtime_lookup_table_selector,
+        proofEvalsJson.xor_lookup_selector,
+        proofEvalsJson.lookup_gate_lookup_selector,
+        proofEvalsJson.range_check_lookup_selector,
+        proofEvalsJson.foreign_field_mul_lookup_selector,
     ].map((evals) => {
         if (evals) return deserPointEval(evals);
         return undefined;
     });
 
-    const lookupSorted = json.lookup_sorted[0]
-        ? json.lookup_sorted.map((evals) => deserPointEval(evals!))
+    const lookupSorted = proofEvalsJson.lookup_sorted[0]
+        ? proofEvalsJson.lookup_sorted.map((evals) => deserPointEval(evals!))
         : undefined;
+
+    // const publicInput = deserPointEval(publicInputJson);
 
     return new ProofEvaluations(
         w,
@@ -159,6 +170,7 @@ export function deserProofEvals(json: ProofEvalsJSON): ProofEvaluations<PointEva
         mulSelector,
         emulSelector,
         endomulScalarSelector,
+        // publicInput,
         undefined,
         rangeCheck0Selector,
         rangeCheck1Selector,
@@ -179,16 +191,16 @@ export function deserProofEvals(json: ProofEvalsJSON): ProofEvaluations<PointEva
 }
 
 export function deserProverCommitments(json: ProverCommitmentsJSON): ProverCommitments {
-    return {
-        wComm: json.w_comm.map(deserPolyComm),
-        zComm: deserPolyComm(json.z_comm),
-        tComm: deserPolyComm(json.t_comm)
-    };
+    return new ProverCommitments(
+        json.w_comm.map((item) => new PolyComm<ForeignPallas>([deserGroup(item)], undefined)),
+        new PolyComm<ForeignPallas>([deserGroup((json.z_comm))], undefined),
+        deserPolyComm(json.t_comm)
+    );
 }
 
 
-interface OpeningProofJSON {
-    lr: GroupJSON[][] // [GroupJSON, GroupJSON]
+export interface OpeningProofJSON {
+    lr: GroupJSON[][] // [GroupJSON, GroupJSON][]
     delta: GroupJSON
     z_1: string
     z_2: string
@@ -205,22 +217,25 @@ export function deserOpeningProof(json: OpeningProofJSON): OpeningProof {
     )
 }
 
-interface ProverProofJSON {
-    evals: ProofEvalsJSON
-    prev_challenges: RecursionChallenge[]
-    commitments: ProverCommitmentsJSON
+interface PrevEvalsJSON {
+    evals: { evals: ProofEvalsJSON, public_input: GroupJSON }
     ft_eval1: string
-    proof: OpeningProofJSON
 }
 
+interface ProverProofJSON {
+    prev_evals: PrevEvalsJSON,
+    proof: { bulletproof: OpeningProofJSON, commitments: ProverCommitmentsJSON }
+}
 
 export function deserProverProof(json: ProverProofJSON): ProverProof {
-    const { evals, prev_challenges, commitments, ft_eval1, proof } = json;
+    const { prev_evals, proof } = json;
+    const { evals: { evals, public_input }, ft_eval1 } = prev_evals;
+    const { bulletproof, commitments } = proof;
     return new ProverProof(
-        deserProofEvals(evals),
-        prev_challenges,
+        deserProofEvals(evals, public_input),
+        [], //TODO
         deserProverCommitments(commitments),
         deserHexScalar(ft_eval1),
-        deserOpeningProof(proof)
+        deserOpeningProof(bulletproof)
     );
 }
