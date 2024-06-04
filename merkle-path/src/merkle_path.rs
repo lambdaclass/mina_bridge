@@ -14,7 +14,6 @@ use num_bigint::BigUint;
 use reqwest::header::CONTENT_TYPE;
 use serde::{Deserialize, Serialize};
 use std::convert::Into;
-use std::fmt::Write as _;
 use std::str::FromStr as _;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -62,11 +61,11 @@ impl MerkleTree {
         serde_json::from_str(&res).unwrap()
     }
 
-    fn string_to_field(input: &str) -> Fp {
+    pub fn string_to_field(input: &str) -> Fp {
         Fp::from_biguint(&BigUint::from_str(&input).unwrap()).unwrap()
     }
 
-    fn hash_with_kimchi(param: &str, fields: &[Fp]) -> Fp {
+    pub fn hash_with_kimchi(param: &str, fields: &[Fp]) -> Fp {
         let mut sponge = ArithmeticSponge::<Fp, PlonkSpongeConstantsKimchi>::new(static_params());
 
         sponge.absorb(&[Self::param_to_field(param)]);
@@ -76,7 +75,7 @@ impl MerkleTree {
         sponge.squeeze()
     }
 
-    fn param_to_field_impl(param: &str, default: [u8; 32]) -> Fp {
+    pub fn param_to_field_impl(param: &str, default: [u8; 32]) -> Fp {
         let param_bytes = param.as_bytes();
         let len = param_bytes.len();
 
@@ -86,7 +85,7 @@ impl MerkleTree {
         Fp::read(&fp[..]).expect("fp read failed")
     }
 
-    fn param_to_field(param: &str) -> Fp {
+    pub fn param_to_field(param: &str) -> Fp {
         const DEFAULT: [u8; 32] = [
             b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*', b'*',
             b'*', b'*', b'*', b'*', b'*', b'*', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,

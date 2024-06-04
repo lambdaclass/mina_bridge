@@ -246,9 +246,6 @@ pub fn query_account(public_key: &str) -> MinaBaseAccountBinableArgStableV2 {
 
 #[cfg(test)]
 mod test {
-    use std::str::from_utf8;
-
-    use mina_p2p_messages::{bigint::BigInt, v2::MinaBaseReceiptChainHashStableV1};
     use reqwest::header::CONTENT_TYPE;
     use serde::Deserialize;
 
