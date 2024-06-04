@@ -147,4 +147,10 @@ contract DecodeProverProof is Test {
         bytes memory public_input_serialized = vm.readFileBinary("public_input.bin");
         public_input = deser_public_input(public_input_serialized);
     }
+
+    function test_deserialize_merkle_path() public {
+        bytes memory merkle_path_serialized = vm.readFileBinary("merkle_path.bin");
+        MerkleVerifier.PathElement[] memory merkle_path = deser_merkle_path(merkle_path_serialized);
+        assertEq(Pasta.Fp.unwrap(merkle_path[0].hash), 42);
+    }
 }
