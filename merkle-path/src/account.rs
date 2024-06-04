@@ -3,18 +3,18 @@ use serde_enum_str::{Deserialize_enum_str, Serialize_enum_str};
 use std::fmt::Debug;
 
 #[derive(Deserialize)]
-struct Response {
+pub struct Response {
     pub data: Data,
 }
 
 #[derive(Deserialize)]
-struct Data {
+pub struct Data {
     pub account: Account,
 }
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-struct Account {
+pub struct Account {
     pub public_key: String,
     pub token_id: String,
     //pub token_symbol: string::ByteString,
@@ -27,13 +27,13 @@ struct Account {
 }
 
 #[derive(Deserialize, Debug)]
-struct Balance {
+pub struct Balance {
     pub total: String,
 }
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-struct Permissions {
+pub struct Permissions {
     pub edit_state: PermissionType,
     pub access: PermissionType,
     pub send: PermissionType,
@@ -50,7 +50,7 @@ struct Permissions {
 }
 
 #[derive(Serialize_enum_str, Deserialize_enum_str, Debug)]
-enum PermissionType {
+pub enum PermissionType {
     #[serde(rename = "None")]
     None,
     #[serde(rename = "Either")]
@@ -65,9 +65,9 @@ enum PermissionType {
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-struct SetVerificationKey {
-    auth: PermissionType,
-    txn_version: String,
+pub struct SetVerificationKey {
+    pub auth: PermissionType,
+    pub txn_version: String,
 }
 
 #[cfg(test)]
@@ -76,19 +76,19 @@ mod test {
 
     #[derive(Deserialize)]
     #[serde(rename_all = "camelCase")]
-    struct ReceiptChainHashResponse {
+    pub struct ReceiptChainHashResponse {
         pub data: ReceiptChainHashData,
     }
 
     #[derive(Deserialize)]
     #[serde(rename_all = "camelCase")]
-    struct ReceiptChainHashData {
+    pub struct ReceiptChainHashData {
         pub account: ReceiptChainHashAccount,
     }
 
     #[derive(Deserialize)]
     #[serde(rename_all = "camelCase")]
-    struct ReceiptChainHashAccount {
+    pub struct ReceiptChainHashAccount {
         pub receipt_chain_hash: String,
     }
 }
