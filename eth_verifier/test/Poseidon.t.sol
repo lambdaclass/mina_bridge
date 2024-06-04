@@ -45,4 +45,26 @@ contract PoseidonTest is Test {
             0x3d4f050775295c04619e72176746ad1290d391d73ff4955933f9075cf69259fb
         );
     }
+
+    function test_absorb_absorb_squeeze() public {
+        Poseidon.Sponge memory sponge = poseidon_sponge_contract
+            .new_sponge();
+        Pasta.Fp input = Pasta.Fp.wrap(
+            0x3793e30ac691700012baf26bb813d6d70bd379beed8050a1deee3c188f1c3fbd
+        );
+        Pasta.Fp input2 = Pasta.Fp.wrap(
+            0x2fc4c98e50e0b1aae6ecb468e28c0b7d80a7e0eec7136db0ba0677b84af0e465
+        );
+        sponge = poseidon_sponge_contract.absorb(sponge, input);
+        sponge = poseidon_sponge_contract.absorb(sponge, input2);
+
+        (
+            Poseidon.Sponge memory _s,
+            Pasta.Fp result
+        ) = poseidon_sponge_contract.squeeze(sponge);
+        assertEq(
+            Pasta.Fp.unwrap(result),
+            0x336c73d08ad408ceb7d1264867096f0817a1d0558b313312a1207602f23624fe
+        );
+    }
 }
