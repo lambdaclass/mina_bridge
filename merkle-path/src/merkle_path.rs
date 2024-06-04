@@ -62,30 +62,6 @@ impl MerkleTree {
         serde_json::from_str(&res).unwrap()
     }
 
-    pub fn get_root(&self) -> Vec<u8> {
-        let input_field = Self::string_to_field(&self.data.account.leaf_hash.clone().unwrap());
-        let mut param = String::with_capacity(16);
-        let merkle_path_map = self.create_map();
-
-        merkle_path_map
-            .iter()
-            .enumerate()
-            .fold(input_field, |child, (depth, path)| {
-                let (direction, split_path) = path.split_at(1);
-                let hashes = match direction {
-                    "0" => [Self::string_to_field(split_path), child],
-                    "1" => [child, Self::string_to_field(split_path)],
-                    _ => panic!("Path direction must be 0 or 1 but is {}", direction),
-                };
-
-                param.clear();
-                write!(&mut param, "MinaMklTree{:03}", depth).unwrap();
-
-                Self::hash_with_kimchi(&param, &hashes)
-            })
-            .to_bytes()
-    }
-
     fn string_to_field(input: &str) -> Fp {
         Fp::from_biguint(&BigUint::from_str(&input).unwrap()).unwrap()
     }
@@ -174,15 +150,6 @@ impl Into<MerkleTreeNode> for MerkleLeaf {
 mod test {
 
     use super::{MerkleLeaf, MerkleTree};
-    use ark_ff::FromBytes as _;
-    use kimchi::{
-        mina_poseidon::{
-            constants::PlonkSpongeConstantsKimchi,
-            pasta::fp_kimchi::static_params,
-            poseidon::{ArithmeticSponge, Sponge as _},
-        },
-        o1_utils::FieldHelpers as _,
-    };
     use mina_hasher::Fp;
     use num_bigint::BigUint;
     use std::str::FromStr as _;
@@ -229,34 +196,5 @@ mod test {
         let fp = Fp::from_biguint(&BigUint::from_str(&f).unwrap());
 
         println!("{:?}", fp);
-    }
-
-    #[test]
-    fn test_hash() {
-        let serialized_merkle_path = r#"{
-            "data": {
-              "account": {
-                "leafHash": "8186407070323331717412068877244574160296972200577316395640080416951883426150",
-                "merklePath": [
-                  {
-                    "left": null,
-                    "right": "25269606294916619424328783876704640983264873133815222226208603489064938585963"
-                  },
-                  {
-                    "left": "8196401609013649445499057870676218044178796697776855327762810874439081359829",
-                    "right": null
-                  }
-                  ]
-                }
-              }
-            }"#;
-        let merkle_path: MerkleTree = serde_json::from_str(&serialized_merkle_path).unwrap();
-        let merkle_root = merkle_path.get_root();
-
-        // convert merkle tree to open mina format
-        let open_mina_merkle_path: Vec<mina_p2p_messages::v2::MerkleTreeNode> = merkle_path.into();
-        println!("{:?}", open_mina_merkle_path);
-
-        // TODO: compare merkle_root with expected value
     }
 }

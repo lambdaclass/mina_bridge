@@ -6,8 +6,8 @@ use mina_p2p_messages::{
         CurrencyAmountStableV1, CurrencyBalanceStableV1, DataHashLibStateHashStableV1,
         MinaBaseAccountBinableArgStableV2, MinaBaseAccountTimingStableV2,
         MinaBasePermissionsAuthRequiredStableV2, MinaBasePermissionsStableV2,
-        MinaBaseReceiptChainHashStableV1, StateHash,
-        UnsignedExtendedUInt32StableV1, UnsignedExtendedUInt64Int64ForVersionTagsStableV1,
+        MinaBaseReceiptChainHashStableV1, StateHash, UnsignedExtendedUInt32StableV1,
+        UnsignedExtendedUInt64Int64ForVersionTagsStableV1,
     },
     versioned::Versioned,
 };
