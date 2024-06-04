@@ -10,7 +10,9 @@
 
 This project introduces the proof generation, posting and verification of the validity of [Mina](https://minaprotocol.com/) states into a EVM chain, which will serve as a foundation for token bridging.
 
-We are working on delivering an MVP for mid March 2024. This MVP verifies Mina state opening proofs in Ethereum without taking into account consensus validation and Pickles verification.
+This MVP verifies Mina state opening proofs in Ethereum without taking into account consensus validation and Pickles verification.
+
+⚠️ We're currently focused on orchestrating the end-to-end integration of Mina proof verification, from extraction on the node to final validation on the Sepolia Ethereum testnet. Including the verification of account inclusion in the stored state to our process.
 
 * **Circuit for verification algorithm.** :no_entry_sign: All the tasks described below can be started once the new circuit framework and its API in Rust is ready to be used
   * Integrate current Kimchi partial verification in o1js with the verifier circuit. The rework in Rust should take 2 weeks, depending on the new API.
