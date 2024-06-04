@@ -15,8 +15,6 @@ ark-serialize = { version = "0.3.0" }
 num-bigint = "0.4.3"
 ark-ff = { version = "0.3.0", features = ["parallel", "asm"] }
 ark-ec = { version = "0.3.0" }
-generic-array = "1.0.0"
 bs58 = { version = "0.5.1", features = ["check"] }
 
 mina-hasher = { git = "https://github.com/o1-labs/proof-systems" }
-bigint = "4.4.3"
