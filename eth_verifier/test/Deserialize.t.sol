@@ -4,6 +4,7 @@ pragma solidity >=0.4.16 <0.9.0;
 import {Test, console2} from "forge-std/Test.sol";
 import "../lib/deserialize/ProverProof.sol";
 import "../lib/deserialize/PublicInputs.sol";
+import "../lib/deserialize/MerkleProof.sol";
 import "../lib/Proof.sol";
 import "../lib/Constants.sol";
 
@@ -149,8 +150,11 @@ contract DecodeProverProof is Test {
     }
 
     function test_deserialize_merkle_path() public {
-        bytes memory merkle_path_serialized = vm.readFileBinary("merkle_path.bin");
+        bytes memory merkle_path_serialized = vm.readFileBinary("test_merkle_path.bin");
+        console.logBytes(merkle_path_serialized);
         MerkleVerifier.PathElement[] memory merkle_path = deser_merkle_path(merkle_path_serialized);
+        assertEq(merkle_path.length, 1);
+        assertEq(uint256(merkle_path[0].left_or_right), 1);
         assertEq(Pasta.Fp.unwrap(merkle_path[0].hash), 42);
     }
 }
