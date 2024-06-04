@@ -1,8 +1,5 @@
-use binprot_derive::BinProtRead;
 use reqwest::header::CONTENT_TYPE;
 use serde::{Deserialize, Serialize};
-
-use crate::big_int::BigInt;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -21,9 +18,6 @@ pub struct Data {
 pub struct LedgerMerkleRoot {
     pub ledger_merkle_root: String,
 }
-
-#[derive(BinProtRead)]
-pub struct LedgerHash(pub BigInt);
 
 impl MerkleRoot {
     pub fn query_merkle_root() -> Vec<u8> {

@@ -1,11 +1,9 @@
 pub mod account;
-pub mod big_int;
 pub mod merkle_path;
 pub mod merkle_root;
 
 use crate::merkle_path::MerkleTree;
 use crate::merkle_root::MerkleRoot;
-use mina_p2p_messages::v2::MerkleTreeNode;
 
 static PUBLIC_KEY: &str = "B62qjpfEV5NEK2LMHqD5t7KkEYcZvsqwf7RBz4qz2hXX5vZPDSF7U9s";
 
@@ -15,5 +13,5 @@ fn main() {
     let root = MerkleRoot::query_merkle_root();
     println!("queried root: {:?}", root);
 
-    let received_merkle_path_vec: Vec<MerkleTreeNode> = received_merkle_path.into();
+    //let received_merkle_path_vec: Vec<MerkleTreeNode> = received_merkle_path.into();
 }
