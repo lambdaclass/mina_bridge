@@ -140,9 +140,7 @@ impl EVMSerializable for Vec<MerkleLeaf> {
                     let bytes = to_bytes(&f);
                     let padding_count = 32 - bytes.len();
                     ret.extend(std::iter::repeat(0_u8).take(padding_count));
-                    for byte in bytes {
-                        ret.push(byte);
-                    }
+                    ret.extend(bytes);
                     ret.extend(std::iter::repeat(0_u8).take(32));
                 }
                 (None, Some(right)) => {
@@ -150,9 +148,7 @@ impl EVMSerializable for Vec<MerkleLeaf> {
                     let bytes = to_bytes(&f);
                     let padding_count = 32 - bytes.len();
                     ret.extend(std::iter::repeat(0_u8).take(padding_count));
-                    for byte in bytes {
-                        ret.push(byte);
-                    }
+                    ret.extend(bytes);
                     ret.extend(std::iter::repeat(0_u8).take(31));
                     ret.push(0b1);
                 }
