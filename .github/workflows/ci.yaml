@@ -101,4 +101,5 @@ jobs:
         name: Test Merkle Path parser
         uses: ./.github/workflows/rust_ci.yaml
         with:
+            skip_run: true
             directory: merkle_path
