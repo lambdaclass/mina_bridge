@@ -1,6 +1,4 @@
-use crate::serialize::EVMSerializable;
-use ark_serialize::CanonicalSerialize;
-use mina_hasher::Fp;
+use crate::{field, serialize::EVMSerializable};
 use reqwest::header::CONTENT_TYPE;
 use serde::{Deserialize, Serialize};
 
@@ -37,27 +35,27 @@ impl MerkleTree {
     /// Returns a string slice with an error message if the request cannot be made,
     /// or the response cannot be converted to JSON.
     pub fn query_merkle_path(public_key: &str) -> Result<Self, String> {
-        let body = format!(
-            "{{\"query\": \"{{
-            account(publicKey: \\\"{public_key}\\\") {{
-              leafHash
-              merklePath {{
-                  left 
-                  right
-              }}
-            }}
-        }}\"}}"
-        );
-        let client = reqwest::blocking::Client::new();
-        let res = client
-            .post("http://5.9.57.89:3085/graphql")
-            .header(CONTENT_TYPE, "application/json")
-            .body(body)
-            .send()
-            .map_err(|err| format!("Error making request {err}"))?
-            .text()
-            .map_err(|err| format!("Error getting text {err}"))?;
-        serde_json::from_str(&res).map_err(|err| format!("Error converting to json {err}"))
+        serde_json::from_str(
+            &reqwest::blocking::Client::new()
+                .post("http://5.9.57.89:3085/graphql")
+                .header(CONTENT_TYPE, "application/json")
+                .body(format!(
+                    "{{\"query\": \"{{
+                    account(publicKey: \\\"{public_key}\\\") {{
+                      leafHash
+                      merklePath {{
+                          left 
+                          right
+                      }}
+                    }}
+                }}\"}}"
+                ))
+                .send()
+                .map_err(|err| format!("Error making request {err}"))?
+                .text()
+                .map_err(|err| format!("Error getting text {err}"))?,
+        )
+        .map_err(|err| format!("Error converting to json {err}"))
     }
 }
 
@@ -80,72 +78,22 @@ pub struct MerkleLeaf {
     pub right: Option<String>,
 }
 
-fn from_str(s: &str) -> Result<Fp, ()> {
-    if s.is_empty() {
-        return Err(());
-    }
-
-    if s == "0" {
-        return Ok(Fp::from(0u8));
-    }
-
-    let mut res = Fp::from(0u8);
-
-    let ten = Fp::from(10u8);
-
-    let mut first_digit = true;
-
-    for c in s.chars() {
-        match c.to_digit(10) {
-            Some(c) => {
-                if first_digit {
-                    if c == 0 {
-                        return Err(());
-                    }
-
-                    first_digit = false;
-                }
-
-                res *= &ten;
-                let digit = Fp::from(u64::from(c));
-                res += &digit;
-            }
-            None => {
-                return Err(());
-            }
-        }
-    }
-    Ok(res)
-    //if res.0 > ark_ff::FpParameters::MODULUS {
-    //    Err(())
-    //} else {
-    //    Ok(res)
-    //}
-}
-
-fn to_bytes(f: &Fp) -> Vec<u8> {
-    let mut bytes: Vec<u8> = vec![];
-    f.serialize(&mut bytes).expect("Failed to serialize field");
-
-    bytes.into_iter().rev().collect()
-}
-
 impl EVMSerializable for Vec<MerkleLeaf> {
     fn to_bytes(self) -> Vec<u8> {
         let mut ret = Vec::new();
         for leaf in self {
             match (leaf.left, leaf.right) {
                 (Some(left), None) => {
-                    let f = from_str(&left).unwrap();
-                    let bytes = to_bytes(&f);
+                    let f = field::from_str(&left).unwrap();
+                    let bytes = field::to_bytes(&f).unwrap();
                     let padding_count = 32 - bytes.len();
                     ret.extend(std::iter::repeat(0_u8).take(padding_count));
                     ret.extend(bytes);
                     ret.extend(std::iter::repeat(0_u8).take(32));
                 }
                 (None, Some(right)) => {
-                    let f = from_str(&right).unwrap();
-                    let bytes = to_bytes(&f);
+                    let f = field::from_str(&right).unwrap();
+                    let bytes = field::to_bytes(&f).unwrap();
                     let padding_count = 32 - bytes.len();
                     ret.extend(std::iter::repeat(0_u8).take(padding_count));
                     ret.extend(bytes);
