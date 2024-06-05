@@ -22,6 +22,7 @@ fn main() {
 
     let mut file = fs::OpenOptions::new()
         .create(true) // To create a new file
+        .truncate(true)
         .write(true)
         .open("./out.bin")
         .unwrap();
