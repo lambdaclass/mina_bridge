@@ -4,7 +4,6 @@ pub mod merkle_root;
 pub mod serialize;
 
 use crate::merkle_path::MerkleTree;
-use merkle_path::MerkleLeaf;
 use serialize::EVMSerializable;
 use std::env;
 use std::fs;

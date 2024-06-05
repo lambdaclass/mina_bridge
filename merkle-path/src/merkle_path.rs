@@ -95,9 +95,9 @@ fn from_str(s: &str) -> Result<Fp, ()> {
                     first_digit = false;
                 }
 
-                res = res * &ten;
+                res *= &ten;
                 let digit = Fp::from(u64::from(c));
-                res = res + &digit;
+                res += &digit;
             }
             None => {
                 return Err(());
@@ -162,9 +162,9 @@ impl EVMSerializable for Vec<MerkleLeaf> {
 }
 
 mod test {
-    use super::MerkleLeaf;
-    use crate::serialize::EVMSerializable;
-    use crate::MerkleTree;
+    
+    
+    
 
     #[test]
     fn test_merkle_leaf() {
