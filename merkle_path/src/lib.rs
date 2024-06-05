@@ -1,4 +1,3 @@
-pub mod account;
 pub mod merkle_path;
 pub mod merkle_root;
 pub mod serialize;
