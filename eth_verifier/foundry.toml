@@ -10,6 +10,8 @@ fs_permissions = [
     { access = "read", path = "./prover_proof.bin"},
     { access = "read", path = "./public_input.bin"},
     { access = "read", path = "./merkle_path.bin"},
+    { access = "read", path = "./merkle_root.bin"},
+    { access = "read", path = "./merkle_leaf.bin"},
     { access = "read", path = "./test_merkle_path.bin"},
     { access = "read", path = "./linearization.bin"},
     { access = "read", path = "./linearization_literals.bin"},
