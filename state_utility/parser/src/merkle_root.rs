@@ -27,11 +27,11 @@ impl MerkleRoot {
     ///
     /// If the request fails, an error will be returned.
     pub fn query_merkle_root() -> Result<Self, String> {
-        let body = "{{\"query\": \"{{
-                daemonStatus {{
+        let body = "{\"query\": \"{
+                daemonStatus {
                   ledgerMerkleRoot
-                }}
-              }}\"}}"
+                }
+              }\"}"
             .to_owned();
         let client = reqwest::blocking::Client::new();
         let res = client
