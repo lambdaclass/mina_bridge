@@ -21,13 +21,12 @@ pub struct LedgerMerkleRoot {
 
 impl MerkleRoot {
     pub fn query_merkle_root() -> Vec<u8> {
-        let body = format!(
-            "{{\"query\": \"{{
+        let body = "{{\"query\": \"{{
                 daemonStatus {{
                   ledgerMerkleRoot
                 }}
               }}\"}}"
-        );
+            .to_owned();
         let client = reqwest::blocking::Client::new();
         let res = client
             .post("http://5.9.57.89:3085/graphql")

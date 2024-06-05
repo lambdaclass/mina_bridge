@@ -1,9 +1,16 @@
 use ark_serialize::CanonicalSerialize;
 use mina_hasher::Fp;
 
-pub fn from_str(s: &str) -> Result<Fp, ()> {
+#[derive(Debug)]
+pub enum FieldStringError {
+    FieldStringIsEmpty,
+    FirstDigitIsZero,
+    DigitIsNotDecimalNumber,
+}
+
+pub fn from_str(s: &str) -> Result<Fp, FieldStringError> {
     if s.is_empty() {
-        return Err(());
+        return Err(FieldStringError::FieldStringIsEmpty);
     }
 
     if s == "0" {
@@ -21,27 +28,22 @@ pub fn from_str(s: &str) -> Result<Fp, ()> {
             Some(c) => {
                 if first_digit {
                     if c == 0 {
-                        return Err(());
+                        return Err(FieldStringError::FirstDigitIsZero);
                     }
 
                     first_digit = false;
                 }
 
-                res = res * &ten;
+                res *= &ten;
                 let digit = Fp::from(u64::from(c));
-                res = res + &digit;
+                res += &digit;
             }
             None => {
-                return Err(());
+                return Err(FieldStringError::DigitIsNotDecimalNumber);
             }
         }
     }
     Ok(res)
-    //if res.0 > ark_ff::FpParameters::MODULUS {
-    //    Err(())
-    //} else {
-    //    Ok(res)
-    //}
 }
 
 pub fn to_bytes(f: &Fp) -> Vec<u8> {
