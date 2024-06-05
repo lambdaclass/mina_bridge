@@ -164,7 +164,7 @@ mod test {
             "right": "42",
             "left": null
           }"#;
-        let deserialized: MerkleLeaf = serde_json::from_str(&serialized).unwrap();
+        let deserialized: MerkleLeaf = serde_json::from_str(serialized).unwrap();
 
         let v = vec![deserialized.clone()];
         let ret_to_bytes = v.to_bytes();
@@ -191,7 +191,7 @@ mod test {
                 }
               }
             }"#;
-        let deserialized: MerkleTree = serde_json::from_str(&serialized).unwrap();
+        let deserialized: MerkleTree = serde_json::from_str(serialized).unwrap();
         let flatten = deserialized.create_map();
         println!("{:?}", flatten);
     }
