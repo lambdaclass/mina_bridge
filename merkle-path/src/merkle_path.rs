@@ -162,9 +162,6 @@ impl EVMSerializable for Vec<MerkleLeaf> {
 }
 
 mod test {
-    
-    
-    
 
     #[test]
     fn test_merkle_leaf() {
