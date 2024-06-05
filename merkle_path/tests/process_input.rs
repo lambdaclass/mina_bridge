@@ -4,7 +4,7 @@ mod test {
     #[test]
     fn test_input_json() {
         process_input_json(
-            "./tests/input.json",
+            "./tests/public_key.txt",
             "./tests/merkle_root.txt",
             "./tests/out.bin",
         )

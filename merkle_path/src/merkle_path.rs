@@ -67,7 +67,7 @@ pub struct Data {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Account {
-    pub leaf_hash: Option<String>,
+    pub leaf_hash: String,
     pub merkle_path: Vec<MerkleLeaf>,
 }
 
@@ -133,6 +133,7 @@ mod test {
         let serialized = r#"{
             "data": {
               "account": {
+                "leafHash": "25269606294916619424328783876704640983264873133815222226208603489064938585963",
                 "merklePath": [
                   {
                     "left": null,
