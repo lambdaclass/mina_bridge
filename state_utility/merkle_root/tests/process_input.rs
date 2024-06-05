@@ -1,13 +1,8 @@
 #[cfg(test)]
 mod test {
-    use merkle_path::process_input_json;
+    use merkle_root::process_merkle_root;
     #[test]
-    fn test_input_json() {
-        process_input_json(
-            "./tests/public_key.txt",
-            "./tests/merkle_root.txt",
-            "./tests/out.bin",
-        )
-        .unwrap();
+    fn test_process_merkle_root() {
+        process_merkle_root("./tests/merkle_root.txt", "./tests/out.bin").unwrap();
     }
 }
