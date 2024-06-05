@@ -11,6 +11,7 @@ pub struct MerkleTree {
 }
 
 impl MerkleTree {
+    #[must_use]
     pub fn create_map(&self) -> Vec<String> {
         self.data
             .account
@@ -25,7 +26,17 @@ impl MerkleTree {
             .collect()
     }
 
-    pub fn query_merkle_path(public_key: &str) -> Self {
+    /// Queries the merkle path from the GraphQL endpoint.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `public_key` - A string slice that holds the public key.
+    /// 
+    /// # Errors
+    /// 
+    /// Returns a string slice with an error message if the request cannot be made,
+    /// or the response cannot be converted to JSON.
+    pub fn query_merkle_path(public_key: &str) -> Result<Self, String> {
         let body = format!(
             "{{\"query\": \"{{
             account(publicKey: \\\"{public_key}\\\") {{
@@ -43,10 +54,10 @@ impl MerkleTree {
             .header(CONTENT_TYPE, "application/json")
             .body(body)
             .send()
-            .unwrap()
+            .map_err(|err| format!("Error making request {err}"))?
             .text()
-            .unwrap();
-        serde_json::from_str(&res).unwrap()
+            .map_err(|err| format!("Error getting text {err}"))?;
+        serde_json::from_str(&res).map_err(|err| format!("Error converting to json {err}"))
     }
 }
 
@@ -169,7 +180,7 @@ mod test {
         let v = vec![deserialized.clone()];
         let ret_to_bytes = v.to_bytes();
 
-        println!("{:?}", ret_to_bytes);
+        println!("{ret_to_bytes:?}");
         assert_eq!(deserialized.left, None);
     }
 
@@ -193,6 +204,6 @@ mod test {
             }"#;
         let deserialized: MerkleTree = serde_json::from_str(serialized).unwrap();
         let flatten = deserialized.create_map();
-        println!("{:?}", flatten);
+        println!("{flatten:?}");
     }
 }
