@@ -85,7 +85,7 @@ impl EVMSerializable for Vec<MerkleLeaf> {
             match (leaf.left, leaf.right) {
                 (Some(left), None) => {
                     let f = field::from_str(&left).unwrap();
-                    let bytes = field::to_bytes(&f);
+                    let bytes = field::to_bytes(&f).unwrap();
                     let padding_count = 32 - bytes.len();
                     ret.extend(std::iter::repeat(0_u8).take(padding_count));
                     ret.extend(bytes);
@@ -93,7 +93,7 @@ impl EVMSerializable for Vec<MerkleLeaf> {
                 }
                 (None, Some(right)) => {
                     let f = field::from_str(&right).unwrap();
-                    let bytes = field::to_bytes(&f);
+                    let bytes = field::to_bytes(&f).unwrap();
                     let padding_count = 32 - bytes.len();
                     ret.extend(std::iter::repeat(0_u8).take(padding_count));
                     ret.extend(bytes);
