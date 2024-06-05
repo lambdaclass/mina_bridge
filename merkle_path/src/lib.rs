@@ -38,7 +38,7 @@ pub fn process_input_json(
         .map_err(|err| format!("Error deserializing leaf hash to field {err}"))?;
 
     let ret_to_bytes = [
-        field::to_bytes(&leaf_hash),
+        field::to_bytes(&leaf_hash)?,
         merkle_tree.data.account.merkle_path.to_bytes(),
         field::to_bytes(&merkle_root)?,
     ]
