@@ -151,10 +151,11 @@ contract DecodeProverProof is Test {
 
     function test_deserialize_merkle_path() public {
         bytes memory merkle_path_serialized = vm.readFileBinary("test_merkle_path.bin");
-        console.logBytes(merkle_path_serialized);
         MerkleVerifier.PathElement[] memory merkle_path = deser_merkle_path(merkle_path_serialized);
-        assertEq(merkle_path.length, 1);
-        assertEq(uint256(merkle_path[0].left_or_right), 1);
+        assertEq(merkle_path.length, 2);
         assertEq(Pasta.Fp.unwrap(merkle_path[0].hash), 42);
+        assertEq(uint256(merkle_path[0].left_or_right), 1);
+        assertEq(Pasta.Fp.unwrap(merkle_path[1].hash), 28);
+        assertEq(uint256(merkle_path[1].left_or_right), 0);
     }
 }

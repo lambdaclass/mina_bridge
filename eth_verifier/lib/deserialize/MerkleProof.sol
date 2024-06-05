@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.4.16 <0.9.0;
 
-import "../bn254/Fields.sol";
+import "../pasta/Fields.sol";
 import "../merkle/Verify.sol";
+import {Test, console2} from "forge-std/Test.sol";
 
 function deser_merkle_path(
     bytes memory data
@@ -10,21 +11,16 @@ function deser_merkle_path(
     uint256 data_word_length = data.length / 32;
     merkle_path = new MerkleVerifier.PathElement[](data_word_length / 2);
 
-    assembly ("memory-safe") {
-        // first 32 bytes is the length of the bytes array, we'll skip them.
-        let data_addr := add(data, 0x20)
-
-        // address of merkle path's first element
-        let merkle_path_addr := add(merkle_path, 0x20)
-
-        // store array length
-        mstore(merkle_path, div(data_word_length, 2))
-
-        // fill merkle path with data
-        for { let i := 0 } lt(i, data_word_length) { i := add(i, 1) } {
-            mstore(merkle_path_addr, mload(data_addr))
-            data_addr := add(data_addr, 0x20)
-            merkle_path_addr := add(merkle_path_addr, 0x20)
+    for (uint256 i = 0; i < merkle_path.length; i++) {
+        uint256 hash = 0;
+        uint256 left_or_right = 0;
+        assembly ("memory-safe") {
+            let data_addr := add(data, 0x20)
+            data_addr := add(data_addr, mul(i, 0x40))
+            hash := mload(data_addr)
+            left_or_right := mload(add(data_addr, 0x20))
         }
+        merkle_path[i].hash = Pasta.from(hash);
+        merkle_path[i].left_or_right = MerkleVerifier.LeftOrRight(left_or_right);
     }
 }
