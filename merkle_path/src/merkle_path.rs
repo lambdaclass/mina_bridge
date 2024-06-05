@@ -35,27 +35,27 @@ impl MerkleTree {
     /// Returns a string slice with an error message if the request cannot be made,
     /// or the response cannot be converted to JSON.
     pub fn query_merkle_path(public_key: &str) -> Result<Self, String> {
-        let body = format!(
-            "{{\"query\": \"{{
-            account(publicKey: \\\"{public_key}\\\") {{
-              leafHash
-              merklePath {{
-                  left 
-                  right
-              }}
-            }}
-        }}\"}}"
-        );
-        let client = reqwest::blocking::Client::new();
-        let res = client
-            .post("http://5.9.57.89:3085/graphql")
-            .header(CONTENT_TYPE, "application/json")
-            .body(body)
-            .send()
-            .map_err(|err| format!("Error making request {err}"))?
-            .text()
-            .map_err(|err| format!("Error getting text {err}"))?;
-        serde_json::from_str(&res).map_err(|err| format!("Error converting to json {err}"))
+        serde_json::from_str(
+            &reqwest::blocking::Client::new()
+                .post("http://5.9.57.89:3085/graphql")
+                .header(CONTENT_TYPE, "application/json")
+                .body(format!(
+                    "{{\"query\": \"{{
+                    account(publicKey: \\\"{public_key}\\\") {{
+                      leafHash
+                      merklePath {{
+                          left 
+                          right
+                      }}
+                    }}
+                }}\"}}"
+                ))
+                .send()
+                .map_err(|err| format!("Error making request {err}"))?
+                .text()
+                .map_err(|err| format!("Error getting text {err}"))?,
+        )
+        .map_err(|err| format!("Error converting to json {err}"))
     }
 }
 
