@@ -7,6 +7,7 @@ mod test {
             "./tests/input.json",
             "./tests/merkle_root.txt",
             "./tests/out.bin",
-        );
+        )
+        .unwrap();
     }
 }

@@ -1,16 +1,9 @@
 use ark_serialize::CanonicalSerialize;
 use mina_hasher::Fp;
 
-#[derive(Debug)]
-pub enum FieldStringError {
-    FieldStringIsEmpty,
-    FirstDigitIsZero,
-    DigitIsNotDecimalNumber,
-}
-
-pub fn from_str(s: &str) -> Result<Fp, FieldStringError> {
+pub fn from_str(s: &str) -> Result<Fp, String> {
     if s.is_empty() {
-        return Err(FieldStringError::FieldStringIsEmpty);
+        return Err("Field string is empty".to_owned());
     }
 
     if s == "0" {
@@ -28,7 +21,7 @@ pub fn from_str(s: &str) -> Result<Fp, FieldStringError> {
             Some(c) => {
                 if first_digit {
                     if c == 0 {
-                        return Err(FieldStringError::FirstDigitIsZero);
+                        return Err("First digit is zero".to_owned());
                     }
 
                     first_digit = false;
@@ -39,7 +32,7 @@ pub fn from_str(s: &str) -> Result<Fp, FieldStringError> {
                 res += &digit;
             }
             None => {
-                return Err(FieldStringError::DigitIsNotDecimalNumber);
+                return Err("Digit is not decimal".to_owned());
             }
         }
     }

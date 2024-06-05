@@ -1,9 +1,9 @@
 use merkle_path::process_input_json;
 
-fn main() {
-    let args: Vec<String> = std::env::args().collect();
+fn main() -> Result<(), String> {
+    let mut args = std::env::args();
 
-    let merkle_tree_path = &args[1];
-    let merkle_root_path = &args[2];
-    process_input_json(merkle_tree_path, merkle_root_path, "./out.bin");
+    let merkle_tree_path = args.nth(1).ok_or("Error: No merkle tree file provided")?;
+    let merkle_root_path = args.nth(2).ok_or("Error: No merkle root file provided")?;
+    process_input_json(&merkle_tree_path, &merkle_root_path, "./out.bin")
 }

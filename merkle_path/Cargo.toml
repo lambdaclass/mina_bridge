@@ -6,7 +6,6 @@ edition = "2021"
 [dependencies]
 serde_json = "1.0.108"
 serde = { version = "1.0.192", features = ["derive"] }
-serde-enum-str = "0.4.0"
 hex = "0.4.3"
 reqwest = { version = "0.12", features = ["blocking"] }
 
