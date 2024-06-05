@@ -17,24 +17,19 @@ pub fn from_str(s: &str) -> Result<Fp, String> {
     let mut first_digit = true;
 
     for c in s.chars() {
-        match c.to_digit(10) {
-            Some(c) => {
-                if first_digit {
-                    if c == 0 {
-                        return Err("First digit is zero".to_owned());
-                    }
+        let c_digit = c.to_digit(10).ok_or("Digit is not decimal".to_owned())?;
 
-                    first_digit = false;
-                }
+        if first_digit {
+            if c_digit == 0 {
+                return Err("First digit is zero".to_owned());
+            }
 
-                res *= &ten;
-                let digit = Fp::from(u64::from(c));
-                res += &digit;
-            }
-            None => {
-                return Err("Digit is not decimal".to_owned());
-            }
+            first_digit = false;
         }
+
+        res *= &ten;
+        let digit = Fp::from(u64::from(c_digit));
+        res += &digit;
     }
     Ok(res)
 }
