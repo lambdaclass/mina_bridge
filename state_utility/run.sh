@@ -7,9 +7,11 @@ cargo r \
     --release \
     -- ./mina_3_0_0_devnet/src/lib/merkle_root_parser/merkle_root.txt
 
-opam exec -- dune exec ./mina_3_0_0_devnet/src/lib/merkle_root_parser/bin/main.exe > ../../../../../state_utility/merkle_root/merkle_root.txt
+cd mina_3_0_0_devnet/src/lib/merkle_root_parser
+opam exec -- dune exec ./bin/main.exe > ../../../../merkle_root/merkle_root.txt
+cd ../../../..
 
 cargo r \
     --manifest-path ./merkle_root/Cargo.toml\
     --release \
-    -- ../eth_verifier/merkle_root.bin
+    -- ./merkle_root/merkle_root.txt ../eth_verifier/merkle_root.bin
