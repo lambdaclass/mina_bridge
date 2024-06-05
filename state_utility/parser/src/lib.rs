@@ -13,8 +13,12 @@ use std::io::{Error, ErrorKind};
 ///
 /// If the file cannot be written to, an error will be returned.
 pub fn parse_merkle_root(output_path: &str) -> Result<(), Error> {
-    let received_merkle_root = MerkleRoot::query_merkle_root()
-        .map_err(|_err| Error::new(ErrorKind::Other, "Error querying merkle root"))?;
+    let received_merkle_root = MerkleRoot::query_merkle_root().map_err(|err| {
+        Error::new(
+            ErrorKind::Other,
+            format!("Error querying merkle root: {err}"),
+        )
+    })?;
     std::fs::write(
         output_path,
         received_merkle_root
