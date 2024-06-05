@@ -17,8 +17,8 @@ fn main() {
 
     let input_file = &args[1];
     let content = std::fs::read_to_string(input_file).unwrap();
-    let deserialized: Vec<MerkleLeaf> = serde_json::from_str(&content).unwrap();
-    let ret_to_bytes = deserialized.to_bytes();
+    let deserialized: MerkleTree = serde_json::from_str(&content).unwrap();
+    let ret_to_bytes = deserialized.data.account.merkle_path.to_bytes();
 
     let mut file = fs::OpenOptions::new()
         .create(true) // To create a new file
