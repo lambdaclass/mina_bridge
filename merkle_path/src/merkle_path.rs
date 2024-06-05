@@ -44,7 +44,7 @@ impl MerkleTree {
                     account(publicKey: \\\"{public_key}\\\") {{
                       leafHash
                       merklePath {{
-                          left 
+                          left
                           right
                       }}
                     }}
