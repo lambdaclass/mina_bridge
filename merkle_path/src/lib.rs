@@ -4,7 +4,6 @@ pub mod merkle_root;
 pub mod serialize;
 
 use merkle_path::MerkleTree;
-use mina_hasher::Fp;
 use serialize::EVMSerializable;
 use std::fs;
 use std::io::Write;
