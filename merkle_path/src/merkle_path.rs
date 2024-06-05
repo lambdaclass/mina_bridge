@@ -1,6 +1,4 @@
-use crate::serialize::EVMSerializable;
-use ark_serialize::CanonicalSerialize;
-use mina_hasher::Fp;
+use crate::{field, serialize::EVMSerializable};
 use reqwest::header::CONTENT_TYPE;
 use serde::{Deserialize, Serialize};
 
@@ -11,6 +9,7 @@ pub struct MerkleTree {
 }
 
 impl MerkleTree {
+    #[must_use]
     pub fn create_map(&self) -> Vec<String> {
         self.data
             .account
@@ -25,28 +24,38 @@ impl MerkleTree {
             .collect()
     }
 
-    pub fn query_merkle_path(public_key: &str) -> Self {
-        let body = format!(
-            "{{\"query\": \"{{
-            account(publicKey: \\\"{public_key}\\\") {{
-              leafHash
-              merklePath {{
-                  left 
-                  right
-              }}
-            }}
-        }}\"}}"
-        );
-        let client = reqwest::blocking::Client::new();
-        let res = client
-            .post("http://5.9.57.89:3085/graphql")
-            .header(CONTENT_TYPE, "application/json")
-            .body(body)
-            .send()
-            .unwrap()
-            .text()
-            .unwrap();
-        serde_json::from_str(&res).unwrap()
+    /// Queries the merkle path from the GraphQL endpoint.
+    ///
+    /// # Arguments
+    ///
+    /// * `public_key` - A string slice that holds the public key.
+    ///
+    /// # Errors
+    ///
+    /// Returns a string slice with an error message if the request cannot be made,
+    /// or the response cannot be converted to JSON.
+    pub fn query_merkle_path(public_key: &str) -> Result<Self, String> {
+        serde_json::from_str(
+            &reqwest::blocking::Client::new()
+                .post("http://5.9.57.89:3085/graphql")
+                .header(CONTENT_TYPE, "application/json")
+                .body(format!(
+                    "{{\"query\": \"{{
+                    account(publicKey: \\\"{public_key}\\\") {{
+                      leafHash
+                      merklePath {{
+                          left
+                          right
+                      }}
+                    }}
+                }}\"}}"
+                ))
+                .send()
+                .map_err(|err| format!("Error making request {err}"))?
+                .text()
+                .map_err(|err| format!("Error getting text {err}"))?,
+        )
+        .map_err(|err| format!("Error converting to json {err}"))
     }
 }
 
@@ -69,89 +78,26 @@ pub struct MerkleLeaf {
     pub right: Option<String>,
 }
 
-fn from_str(s: &str) -> Result<Fp, ()> {
-    if s.is_empty() {
-        return Err(());
-    }
-
-    if s == "0" {
-        return Ok(Fp::from(0u8));
-    }
-
-    let mut res = Fp::from(0u8);
-
-    let ten = Fp::from(10u8);
-
-    let mut first_digit = true;
-
-    for c in s.chars() {
-        match c.to_digit(10) {
-            Some(c) => {
-                if first_digit {
-                    if c == 0 {
-                        return Err(());
-                    }
-
-                    first_digit = false;
-                }
-
-                res = res * &ten;
-                let digit = Fp::from(u64::from(c));
-                res = res + &digit;
-            }
-            None => {
-                return Err(());
-            }
-        }
-    }
-    Ok(res)
-    //if res.0 > ark_ff::FpParameters::MODULUS {
-    //    Err(())
-    //} else {
-    //    Ok(res)
-    //}
-}
-
-fn to_bytes(f: &Fp) -> Vec<u8> {
-    let mut bytes: Vec<u8> = vec![];
-    f.serialize(&mut bytes).expect("Failed to serialize field");
-
-    bytes.into_iter().rev().collect()
-}
-
 impl EVMSerializable for Vec<MerkleLeaf> {
     fn to_bytes(self) -> Vec<u8> {
         let mut ret = Vec::new();
         for leaf in self {
             match (leaf.left, leaf.right) {
                 (Some(left), None) => {
-                    let f = from_str(&left).unwrap();
-                    let bytes = to_bytes(&f);
+                    let f = field::from_str(&left).unwrap();
+                    let bytes = field::to_bytes(&f).unwrap();
                     let padding_count = 32 - bytes.len();
-                    for _ in 0..padding_count {
-                        ret.push(0);
-                    }
-                    for byte in bytes {
-                        ret.push(byte);
-                    }
-                    for _ in 0..31 {
-                        ret.push(0);
-                    }
-                    ret.push(0b0);
+                    ret.extend(std::iter::repeat(0_u8).take(padding_count));
+                    ret.extend(bytes);
+                    ret.extend(std::iter::repeat(0_u8).take(32));
                 }
                 (None, Some(right)) => {
-                    let f = from_str(&right).unwrap();
-                    let bytes = to_bytes(&f);
+                    let f = field::from_str(&right).unwrap();
+                    let bytes = field::to_bytes(&f).unwrap();
                     let padding_count = 32 - bytes.len();
-                    for _ in 0..padding_count {
-                        ret.push(0);
-                    }
-                    for byte in bytes {
-                        ret.push(byte);
-                    }
-                    for _ in 0..31 {
-                        ret.push(0);
-                    }
+                    ret.extend(std::iter::repeat(0_u8).take(padding_count));
+                    ret.extend(bytes);
+                    ret.extend(std::iter::repeat(0_u8).take(31));
                     ret.push(0b1);
                 }
                 _ => unreachable!(),
@@ -161,25 +107,24 @@ impl EVMSerializable for Vec<MerkleLeaf> {
     }
 }
 
+#[cfg(test)]
 mod test {
-    use super::MerkleLeaf;
+    use crate::merkle_path::MerkleLeaf;
     use crate::serialize::EVMSerializable;
     use crate::MerkleTree;
 
     #[test]
     fn test_merkle_leaf() {
-        //        "left": "8196401609013649445499057870676218044178796697776855327762810874439081359829",
-
         let serialized = r#"{
             "right": "42",
             "left": null
           }"#;
-        let deserialized: MerkleLeaf = serde_json::from_str(&serialized).unwrap();
+        let deserialized: MerkleLeaf = serde_json::from_str(serialized).unwrap();
 
         let v = vec![deserialized.clone()];
         let ret_to_bytes = v.to_bytes();
 
-        println!("{:?}", ret_to_bytes);
+        println!("{ret_to_bytes:?}");
         assert_eq!(deserialized.left, None);
     }
 
@@ -201,8 +146,8 @@ mod test {
                 }
               }
             }"#;
-        let deserialized: MerkleTree = serde_json::from_str(&serialized).unwrap();
+        let deserialized: MerkleTree = serde_json::from_str(serialized).unwrap();
         let flatten = deserialized.create_map();
-        println!("{:?}", flatten);
+        println!("{flatten:?}");
     }
 }

@@ -96,3 +96,17 @@ jobs:
                 # delete the comment in case changes no longer impact gas costs
                 delete: ${{ !steps.gas_diff.outputs.markdown }}
                 message: ${{ steps.gas_diff.outputs.markdown }}
+
+    merkle_path:
+        name: Test Merkle Path parser
+        uses: ./.github/workflows/rust_ci.yaml
+        with:
+            skip_run: true
+            directory: merkle_path
+
+    merkle_root_parser:
+        name: Test Merkle Root parser
+        uses: ./.github/workflows/rust_ci.yaml
+        with:
+            skip_run: true
+            directory: state_utility/parser
