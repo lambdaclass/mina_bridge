@@ -27,13 +27,13 @@ impl MerkleTree {
     }
 
     /// Queries the merkle path from the GraphQL endpoint.
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `public_key` - A string slice that holds the public key.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Returns a string slice with an error message if the request cannot be made,
     /// or the response cannot be converted to JSON.
     pub fn query_merkle_path(public_key: &str) -> Result<Self, String> {

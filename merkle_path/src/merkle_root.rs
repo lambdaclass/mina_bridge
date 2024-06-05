@@ -22,9 +22,9 @@ pub struct LedgerMerkleRoot {
 
 impl MerkleRoot {
     /// Queries the ledger merkle root from the GraphQL endpoint.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Returns a string slice with an error message if the request cannot be made,
     /// the response cannot be converted to JSON,
     /// or the base 58 decoding fails.
