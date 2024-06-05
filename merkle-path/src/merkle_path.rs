@@ -161,7 +161,11 @@ impl EVMSerializable for Vec<MerkleLeaf> {
     }
 }
 
+#[cfg(test)]
 mod test {
+    use crate::merkle_path::MerkleLeaf;
+    use crate::serialize::EVMSerializable;
+    use crate::MerkleTree;
 
     #[test]
     fn test_merkle_leaf() {
