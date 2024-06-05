@@ -12,6 +12,9 @@ run:
 	@echo "Creating KZG proof..."
 	@cd kzg_prover && cargo r --release
 	@echo "Done!"
+	@echo "Fetching Merkle root..."
+	@cd state_utility && sh run.sh
+	@echo "Done!"
 	@echo "Deploying and verifying in Anvil..."
 	@cd eth_verifier && make setup && sh run.sh
 	@echo "Done!"
