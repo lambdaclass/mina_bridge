@@ -29,11 +29,11 @@ impl MerkleRoot {
     /// the response cannot be converted to JSON,
     /// or the base 58 decoding fails.
     pub fn query_merkle_root() -> Result<Vec<u8>, String> {
-        let body = "{{\"query\": \"{{
-                daemonStatus {{
+        let body = "{\"query\": \"{
+                daemonStatus {
                   ledgerMerkleRoot
-                }}
-              }}\"}}"
+                }
+              }\"}"
             .to_owned();
         let client = reqwest::blocking::Client::new();
         let res = client
