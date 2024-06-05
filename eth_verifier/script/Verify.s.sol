@@ -11,8 +11,12 @@ contract Verify is Script {
     bytes prover_proof_serialized;
     bytes linearization_serialized;
     bytes public_input_serialized;
+    bytes merkle_root_serialized;
+    bytes merkle_leaf_serialized;
+    bytes merkle_path_serialized;
 
     error VerificationFailed();
+    error MerkleFailed();
 
     function run() public {
         linearization_literals_serialized = vm.readFileBinary("linearization_literals.bin");
@@ -20,6 +24,9 @@ contract Verify is Script {
         prover_proof_serialized = vm.readFileBinary("prover_proof.bin");
         linearization_serialized = vm.readFileBinary("linearization.bin");
         public_input_serialized = vm.readFileBinary("public_input.bin");
+        merkle_root_serialized = vm.readFileBinary("merkle_root.bin");
+        merkle_leaf_serialized = vm.readFileBinary("merkle_leaf.bin");
+        merkle_path_serialized = vm.readFileBinary("merkle_path.bin");
 
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
@@ -33,11 +40,21 @@ contract Verify is Script {
         verifier.store_linearization(linearization_serialized);
         verifier.store_prover_proof(prover_proof_serialized);
         verifier.store_public_input(public_input_serialized);
+        verifier.store_potential_merkle_root(merkle_root_serialized);
 
-        bool success = verifier.full_verify();
+        bool verify_success = verifier.full_verify();
 
-        if (!success) {
+        if (!verify_success) {
             revert VerificationFailed();
+        }
+
+        bool merkle_success = verifier.verify_account_inclusion(
+            bytes32(merkle_leaf_serialized),
+            merkle_path_serialized
+        );
+
+        if (!merkle_success) {
+            revert MerkleFailed();
         }
 
         vm.stopBroadcast();
@@ -61,6 +78,30 @@ contract PartialAndFinalVerify is Script {
         verifier.partial_verify_and_store();
         verifier.final_verify_and_store();
         console.log("is proof valid?: %s", verifier.is_last_proof_valid());
+
+        vm.stopBroadcast();
+    }
+}
+
+contract MerkleVerify is Script {
+    bytes merkle_leaf_serialized;
+    bytes merkle_path_serialized;
+
+    function run() public {
+        merkle_leaf_serialized = vm.readFileBinary("merkle_leaf.bin");
+        merkle_path_serialized = vm.readFileBinary("merkle_path.bin");
+
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        vm.startBroadcast(deployerPrivateKey);
+
+        address verifierAddress = vm.envAddress("CONTRACT_ADDRESS");
+        KimchiVerifier verifier = KimchiVerifier(verifierAddress);
+
+        bool success = verifier.verify_account_inclusion(
+            bytes32(merkle_leaf_serialized),
+            merkle_path_serialized
+        );
+        console.log("is account included in verified state?: %s", success);
 
         vm.stopBroadcast();
     }

@@ -11,6 +11,10 @@ contract KimchiVerifierTest is Test {
     bytes linearization_serialized;
     bytes linearization_literals_serialized;
     bytes public_input_serialized;
+    bytes merkle_root_serialized;
+    bytes merkle_leaf_serialized;
+    bytes merkle_path_serialized;
+
     Proof.ProverProof proof;
     VerifierIndexLib.VerifierIndex verifier_index;
     uint256 public_input;
@@ -27,6 +31,9 @@ contract KimchiVerifierTest is Test {
         linearization_serialized = vm.readFileBinary("linearization.bin");
         linearization_literals_serialized = vm.readFileBinary("linearization_literals.bin");
         public_input_serialized = vm.readFileBinary("public_input.bin");
+        merkle_root_serialized = vm.readFileBinary("merkle_root.bin");
+        merkle_leaf_serialized = vm.readFileBinary("merkle_leaf.bin");
+        merkle_path_serialized = vm.readFileBinary("merkle_path.bin");
 
         deser_prover_proof(prover_proof_serialized, proof);
         deser_verifier_index(verifier_index_serialized, verifier_index);
@@ -43,8 +50,10 @@ contract KimchiVerifierTest is Test {
         global_verifier.store_literal_tokens(linearization_literals_serialized);
         global_verifier.store_prover_proof(prover_proof_serialized);
         global_verifier.store_public_input(public_input_serialized);
+        global_verifier.store_potential_merkle_root(merkle_root_serialized);
 
         global_verifier.partial_verify_and_store();
+        global_verifier.final_verify_and_store();
     }
 
     function test_deploy() public {
@@ -62,6 +71,7 @@ contract KimchiVerifierTest is Test {
         verifier.store_literal_tokens(linearization_literals_serialized);
         verifier.store_prover_proof(prover_proof_serialized);
         verifier.store_public_input(public_input_serialized);
+        verifier.store_potential_merkle_root(merkle_root_serialized);
     }
 
     function test_deserialize_and_full_verify() public {
@@ -74,6 +84,7 @@ contract KimchiVerifierTest is Test {
         verifier.store_literal_tokens(linearization_literals_serialized);
         verifier.store_prover_proof(prover_proof_serialized);
         verifier.store_public_input(public_input_serialized);
+        verifier.store_potential_merkle_root(merkle_root_serialized);
 
         bool success = verifier.full_verify();
         if (!success) {
@@ -85,6 +96,7 @@ contract KimchiVerifierTest is Test {
         global_verifier.store_literal_tokens(linearization_literals_serialized);
         global_verifier.store_prover_proof(prover_proof_serialized);
         global_verifier.store_public_input(public_input_serialized);
+        global_verifier.store_potential_merkle_root(merkle_root_serialized);
 
         bool success = global_verifier.full_verify();
         if (!success) {
@@ -125,6 +137,16 @@ contract KimchiVerifierTest is Test {
                     revert VerificationFailed();
                 }
             }
+        }
+    }
+
+    function test_merkle_verify() public {
+        bool success = global_verifier.verify_account_inclusion(
+            bytes32(merkle_leaf_serialized),
+            merkle_path_serialized
+        );
+        if (!success) {
+            revert VerificationFailed();
         }
     }
 
