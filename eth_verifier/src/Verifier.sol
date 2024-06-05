@@ -14,7 +14,11 @@ import {deser_prover_proof} from "../lib/deserialize/ProverProof.sol";
 import {deser_public_input} from "../lib/deserialize/PublicInputs.sol";
 import {deser_verifier_index, VerifierIndexLib} from "../lib/deserialize/VerifierIndex.sol";
 import {deser_linearization, deser_literal_tokens} from "../lib/deserialize/Linearization.sol";
+import {deser_merkle_path} from "../lib/deserialize/MerkleProof.sol";
 import {KimchiPartialVerifier} from "./KimchiPartialVerifier.sol";
+import {Pasta} from "../lib/pasta/Fields.sol";
+import {MerkleVerifier} from "../lib/merkle/Verify.sol";
+import {Poseidon} from "../lib/poseidon/Sponge.sol";
 
 contract KimchiVerifier {
     uint256 internal constant G2_X0 = 0x198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2;
@@ -39,6 +43,11 @@ contract KimchiVerifier {
     Proof.AggregatedEvaluationProof internal aggregated_proof;
 
     bool internal last_verification_result;
+
+    MerkleVerifier merkle_verifier = new MerkleVerifier();
+    Poseidon poseidon = new Poseidon();
+    Pasta.Fp internal potential_merkle_root;
+    Pasta.Fp internal merkle_root = Pasta.from(0);
 
     function setup() public {
         // Setup URS
@@ -82,6 +91,22 @@ contract KimchiVerifier {
         public_input = deser_public_input(data_serialized);
     }
 
+    function store_potential_merkle_root(bytes calldata data_serialized) public {
+        potential_merkle_root = Pasta.from(uint256(bytes32(data_serialized)));
+    }
+
+    function verify_account_inclusion(bytes32 leaf_hash_bytes, bytes calldata path_serialized) public view returns (bool) {
+        if (Pasta.Fp.unwrap(merkle_root) == 0) {
+            revert("the merkle root is missing, verify a state before calling this.");
+        }
+ 
+        Pasta.Fp leaf_hash = Pasta.from(uint256(leaf_hash_bytes));
+        MerkleVerifier.PathElement[] memory merkle_path = deser_merkle_path(path_serialized);
+
+        Pasta.Fp calculated_root = merkle_verifier.calc_path_root(merkle_path, leaf_hash, poseidon);
+        return Pasta.Fp.unwrap(calculated_root) == Pasta.Fp.unwrap(merkle_root);
+    }
+
     function full_verify() public returns (bool) {
         Proof.AggregatedEvaluationProof memory agg_proof =
             KimchiPartialVerifier.partial_verify(proof, verifier_index, urs, public_input);
@@ -100,7 +125,7 @@ contract KimchiVerifier {
         return last_verification_result;
     }
 
-    function final_verify(Proof.AggregatedEvaluationProof memory agg_proof) public view returns (bool) {
+    function final_verify(Proof.AggregatedEvaluationProof memory agg_proof) public returns (bool) {
         Evaluation[] memory evaluations = agg_proof.evaluations;
         uint256[2] memory evaluation_points = agg_proof.evaluation_points;
         uint256 polyscale = agg_proof.polyscale;
@@ -150,7 +175,13 @@ contract KimchiVerifier {
         if (!success) {
             revert PairingCheckFailed();
         }
-        return (out != 0);
+
+        if (out != 0) {
+            // save "verified" merkle root (we would need a way to check that the potential merkle
+            // root corresponds to the verified proof).
+            merkle_root = potential_merkle_root;
+            return true;
+        }
     }
 
     function divisor_commitment(uint256[2] memory evaluation_points)
