@@ -40,7 +40,7 @@ pub fn process_input_json(
     let ret_to_bytes = [
         field::to_bytes(&leaf_hash),
         merkle_tree.data.account.merkle_path.to_bytes(),
-        field::to_bytes(&merkle_root),
+        field::to_bytes(&merkle_root)?,
     ]
     .concat();
 

@@ -1,6 +1,15 @@
 use ark_serialize::CanonicalSerialize;
 use mina_hasher::Fp;
 
+/// Converts a string slice to a field element.
+///
+/// # Arguments
+///
+/// * `s` - A string slice that holds the field element.
+///
+/// # Errors
+///
+/// Returns a string slice with an error message if the field element cannot be converted.
 pub fn from_str(s: &str) -> Result<Fp, String> {
     if s.is_empty() {
         return Err("Field string is empty".to_owned());
@@ -34,9 +43,19 @@ pub fn from_str(s: &str) -> Result<Fp, String> {
     Ok(res)
 }
 
-pub fn to_bytes(f: &Fp) -> Vec<u8> {
+/// Converts a field element to a byte vector.
+///
+/// # Arguments
+///
+/// * `f` - A reference to a field element.
+///
+/// # Errors
+///
+/// Returns a string slice with an error message if the field element cannot be serialized.
+pub fn to_bytes(f: &Fp) -> Result<Vec<u8>, String> {
     let mut bytes: Vec<u8> = vec![];
-    f.serialize(&mut bytes).expect("Failed to serialize field");
+    f.serialize(&mut bytes)
+        .map_err(|_err| "Failed to serialize field")?;
 
-    bytes.into_iter().rev().collect()
+    Ok(bytes.into_iter().rev().collect())
 }
