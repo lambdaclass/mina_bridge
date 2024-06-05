@@ -128,30 +128,21 @@ impl EVMSerializable for Vec<MerkleLeaf> {
                     let f = from_str(&left).unwrap();
                     let bytes = to_bytes(&f);
                     let padding_count = 32 - bytes.len();
-                    for _ in 0..padding_count {
-                        ret.push(0);
-                    }
+                    ret.extend(std::iter::repeat(0_u8).take(padding_count));
                     for byte in bytes {
                         ret.push(byte);
                     }
-                    for _ in 0..31 {
-                        ret.push(0);
-                    }
-                    ret.push(0b0);
+                    ret.extend(std::iter::repeat(0_u8).take(32));
                 }
                 (None, Some(right)) => {
                     let f = from_str(&right).unwrap();
                     let bytes = to_bytes(&f);
                     let padding_count = 32 - bytes.len();
-                    for _ in 0..padding_count {
-                        ret.push(0);
-                    }
+                    ret.extend(std::iter::repeat(0_u8).take(padding_count));
                     for byte in bytes {
                         ret.push(byte);
                     }
-                    for _ in 0..31 {
-                        ret.push(0);
-                    }
+                    ret.extend(std::iter::repeat(0_u8).take(31));
                     ret.push(0b1);
                 }
                 _ => unreachable!(),
@@ -169,8 +160,6 @@ mod test {
 
     #[test]
     fn test_merkle_leaf() {
-        //        "left": "8196401609013649445499057870676218044178796697776855327762810874439081359829",
-
         let serialized = r#"{
             "right": "42",
             "left": null
