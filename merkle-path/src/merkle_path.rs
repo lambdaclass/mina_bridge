@@ -1,6 +1,4 @@
-use crate::serialize::EVMSerializable;
-use ark_serialize::CanonicalSerialize;
-use mina_hasher::Fp;
+use crate::{field, serialize::EVMSerializable};
 use reqwest::header::CONTENT_TYPE;
 use serde::{Deserialize, Serialize};
 
@@ -69,64 +67,14 @@ pub struct MerkleLeaf {
     pub right: Option<String>,
 }
 
-fn from_str(s: &str) -> Result<Fp, ()> {
-    if s.is_empty() {
-        return Err(());
-    }
-
-    if s == "0" {
-        return Ok(Fp::from(0u8));
-    }
-
-    let mut res = Fp::from(0u8);
-
-    let ten = Fp::from(10u8);
-
-    let mut first_digit = true;
-
-    for c in s.chars() {
-        match c.to_digit(10) {
-            Some(c) => {
-                if first_digit {
-                    if c == 0 {
-                        return Err(());
-                    }
-
-                    first_digit = false;
-                }
-
-                res = res * &ten;
-                let digit = Fp::from(u64::from(c));
-                res = res + &digit;
-            }
-            None => {
-                return Err(());
-            }
-        }
-    }
-    Ok(res)
-    //if res.0 > ark_ff::FpParameters::MODULUS {
-    //    Err(())
-    //} else {
-    //    Ok(res)
-    //}
-}
-
-fn to_bytes(f: &Fp) -> Vec<u8> {
-    let mut bytes: Vec<u8> = vec![];
-    f.serialize(&mut bytes).expect("Failed to serialize field");
-
-    bytes.into_iter().rev().collect()
-}
-
 impl EVMSerializable for Vec<MerkleLeaf> {
     fn to_bytes(self) -> Vec<u8> {
         let mut ret = Vec::new();
         for leaf in self {
             match (leaf.left, leaf.right) {
                 (Some(left), None) => {
-                    let f = from_str(&left).unwrap();
-                    let bytes = to_bytes(&f);
+                    let f = field::from_str(&left).unwrap();
+                    let bytes = field::to_bytes(&f);
                     let padding_count = 32 - bytes.len();
                     for _ in 0..padding_count {
                         ret.push(0);
@@ -140,8 +88,8 @@ impl EVMSerializable for Vec<MerkleLeaf> {
                     ret.push(0b0);
                 }
                 (None, Some(right)) => {
-                    let f = from_str(&right).unwrap();
-                    let bytes = to_bytes(&f);
+                    let f = field::from_str(&right).unwrap();
+                    let bytes = field::to_bytes(&f);
                     let padding_count = 32 - bytes.len();
                     for _ in 0..padding_count {
                         ret.push(0);
