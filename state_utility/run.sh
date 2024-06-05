@@ -3,7 +3,7 @@
 git clone https://github.com/lambdaclass/mina.git -b merkle_root_parser --recursive mina_3_0_0_devnet
 
 cargo r \
-    --manifest-path parser/\
+    --manifest-path parser/Cargo.toml\
     --release \
     -- ./mina_3_0_0_devnet/src/lib/merkle_root_parser/merkle_root.txt
 
