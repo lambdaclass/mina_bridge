@@ -1,16 +1,8 @@
-pub mod merkle_root;
-
-use crate::merkle_root::MerkleRoot;
+use merkle_root_parser::parse_merkle_root;
 
 fn main() {
-    let received_merkle_root = MerkleRoot::query_merkle_root();
-    std::fs::write(
-        "../mina_3_0_0_devnet/src/lib/merkle_root_parser/merkle_root.txt",
-        received_merkle_root
-            .data
-            .daemon_status
-            .ledger_merkle_root
-            .clone(),
-    )
-    .unwrap();
+    let args: Vec<String> = std::env::args().collect();
+
+    let output_path = &args[1];
+    parse_merkle_root(output_path);
 }
