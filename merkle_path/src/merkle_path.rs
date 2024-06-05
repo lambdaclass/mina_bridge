@@ -1,4 +1,10 @@
+<<<<<<< HEAD
 use crate::{field, serialize::EVMSerializable};
+=======
+use crate::serialize::EVMSerializable;
+use ark_serialize::CanonicalSerialize;
+use mina_hasher::Fp;
+>>>>>>> main
 use reqwest::header::CONTENT_TYPE;
 use serde::{Deserialize, Serialize};
 
