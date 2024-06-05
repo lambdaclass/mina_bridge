@@ -103,3 +103,10 @@ jobs:
         with:
             skip_run: true
             directory: merkle_path
+
+    merkle_root_parser:
+        name: Test Merkle Root parser
+        uses: ./.github/workflows/rust_ci.yaml
+        with:
+            skip_run: true
+            directory: state_utility/parser
