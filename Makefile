@@ -1,4 +1,4 @@
-.PHONY: run
+.PHONY: run check_account
 
 run:
 	@echo "Setting up o1js..."
@@ -25,3 +25,11 @@ run:
 	@echo "    cast call <CONTRACT_ADDR> 'retrieve_state_creator()(string)'"
 	@echo "    cast call <CONTRACT_ADDR> 'retrieve_state_hash()(uint256)'"
 	@echo "    cast call <CONTRACT_ADDR> 'retrieve_state_height()(uint256)'"
+
+check_account:
+	@echo "Fetching Merkle path and leaf hash..."
+	@cd merkle_path && cargo r --release -- ../public_key.txt
+	@echo "Done!"
+	@echo "Verifying Merkle proof inclusion..."
+	@cd eth_verifier && make setup && make merkle_locally
+	@echo "Done!"
