@@ -48,10 +48,7 @@ contract Verify is Script {
             revert VerificationFailed();
         }
 
-        bool merkle_success = verifier.verify_account_inclusion(
-            bytes32(merkle_leaf_serialized),
-            merkle_path_serialized
-        );
+        bool merkle_success = verifier.verify_account_inclusion(bytes32(merkle_leaf_serialized), merkle_path_serialized);
 
         if (!merkle_success) {
             revert MerkleFailed();
@@ -97,10 +94,7 @@ contract MerkleVerify is Script {
         address verifierAddress = vm.envAddress("CONTRACT_ADDRESS");
         KimchiVerifier verifier = KimchiVerifier(verifierAddress);
 
-        bool success = verifier.verify_account_inclusion(
-            bytes32(merkle_leaf_serialized),
-            merkle_path_serialized
-        );
+        bool success = verifier.verify_account_inclusion(bytes32(merkle_leaf_serialized), merkle_path_serialized);
         console.log("is account included in verified state?: %s", success);
 
         vm.stopBroadcast();
