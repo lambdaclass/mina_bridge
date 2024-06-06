@@ -1,0 +1,16 @@
+[package]
+name = "merkle-root"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { version = "1.0.192", features = ["derive"] }
+hex = "0.4.3"
+
+ark-poly = { version = "0.3.0" }
+ark-serialize = { version = "0.3.0" }
+num-bigint = "0.4.3"
+ark-ff = { version = "0.3.0", features = ["parallel", "asm"] }
+ark-ec = { version = "0.3.0" }
+
+mina-hasher = { git = "https://github.com/o1-labs/proof-systems" }
