@@ -31,5 +31,5 @@ check_account:
 	@cd merkle_path && cargo r --release -- ../public_key.txt
 	@echo "Done!"
 	@echo "Verifying Merkle proof inclusion..."
-	@cd eth_verifier && make setup merkle_locally
+	@cd eth_verifier && make setup && make merkle_locally
 	@echo "Done!"
