@@ -6,14 +6,14 @@ run:
 	@echo "Fetching state proof from Mina node..."
 	@cd polling_service && sh run.sh
 	@echo "Done!"
+	@echo "Fetching Merkle root..."
+	@cd state_utility && sh run.sh
+	@echo "Done!"
 	@echo "Creating circuit gates..."
 	@cd verifier_circuit && npm i && make
 	@echo "Done!"
 	@echo "Creating KZG proof..."
 	@cd kzg_prover && cargo r --release
-	@echo "Done!"
-	@echo "Fetching Merkle root..."
-	@cd state_utility && sh run.sh
 	@echo "Done!"
 	@echo "Deploying and verifying in Anvil..."
 	@cd eth_verifier && make setup && sh run.sh
