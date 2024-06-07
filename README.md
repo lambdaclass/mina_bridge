@@ -116,16 +116,6 @@ This will:
 * The KZG prover will generate another proof (BN254+KZG) of this verification. This makes it suitable to verify in an Ethereum smart contract. The final proof including the embedded state will be sent to the Solidity verifier.
 * The verifier will be deployed in Anvil (a local test blockchain) and a bash script will send a transaction with the state+proof data for running the final verification. If successful, the contract will store the state data and will expose an API for the user to retrieve it, knowing that this data was zk-verified.
 
-### Account state utility
-
-On root folder run:
-
-```sh
-sh state_utility/run.sh <public_key>
-```
-
-This will return the balance of the account associated with the `<public_key>` passed as argument.
-
 #### Roadmap
 
 For the Bridge MVP, the utility will be implemented as a CLI that will receive a public key as an argument. The development stages are defined below:
