@@ -501,6 +501,7 @@ dependencies = [
  "mina-hasher",
  "num-bigint",
  "serde",
+ "serde_json",
 ]
 
 [[package]]

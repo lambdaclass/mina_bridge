@@ -41,9 +41,10 @@ pub fn process_merkle_root(
         .write_all(&field::to_bytes(&merkle_root)?)
         .map_err(|err| format!("Error writing to output file {err}"))?;
 
-    let root_json = serde_json::json!({
-        "root": BigUint::from_bytes_le(&merkle_root.into_repr().to_bytes_le()).to_string()
-    });
+    let root_json =
+        serde_json::json!([
+            BigUint::from_bytes_le(&merkle_root.into_repr().to_bytes_le()).to_string()
+        ]);
     fs::write(
         merkle_root_o1js_out_path,
         serde_json::to_string(&root_json).unwrap(),
