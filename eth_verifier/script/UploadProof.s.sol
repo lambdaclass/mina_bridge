@@ -8,11 +8,13 @@ contract UploadProof is Script {
     bytes linearization_literals_serialized;
     bytes public_input_serialized;
     bytes prover_proof_serialized;
+    bytes merkle_root_serialized;
 
     function run() public {
         linearization_literals_serialized = vm.readFileBinary("linearization_literals.bin");
         public_input_serialized = vm.readFileBinary("public_input.bin");
         prover_proof_serialized = vm.readFileBinary("prover_proof.bin");
+        merkle_root_serialized = vm.readFileBinary("merkle_root.bin");
 
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
@@ -23,6 +25,7 @@ contract UploadProof is Script {
         verifier.store_literal_tokens(linearization_literals_serialized);
         verifier.store_public_input(public_input_serialized);
         verifier.store_prover_proof(prover_proof_serialized);
+        verifier.store_potential_merkle_root(merkle_root_serialized);
 
         vm.stopBroadcast();
     }
