@@ -368,7 +368,6 @@ This component is composed of:
 ## Other components
 
 * `kzg_prover`: Rust code for generating a KZG proof. This proof is used in the `eth_verifier`.
-
 * `public_input_gen/`: Rust code for generating a Mina state proof. This proof is used in the `verifier_circuit`.
 * `srs/`: Contains tests SRSs for Pallas and Vesta curves.
 * `test_prover/`: Typescript code using `o1js` library. This is a test prover for the Kimchi proof system. It's a PoC and will be removed in the near future.
