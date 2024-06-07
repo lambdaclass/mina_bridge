@@ -25,7 +25,7 @@ This MVP verifies Mina state opening proofs in Ethereum without taking into acco
 * **Account state utility:**
   * A user will be able to query its account state and check that the retrieved state corresponds to the last verified Mina state in Ethereum.
 
-The verification of the account inclusion is done verifying the Merkle Path of the inclusion of the account in the Smart Contract. We implemented Poseidon hash function in Solidity in a _vanilla way_. Each squeeze operation consumes a hight amount (~488k).
+The verification process for account inclusion involves validating the Merkle Path within in the Smart Contract. We've implemented the Poseidon hash function in Solidity in its purest form. However, each squeeze operation consumes a significant amount of gas, approximately 488k.
 
 ## Design objectives
 
