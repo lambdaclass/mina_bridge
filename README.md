@@ -12,7 +12,7 @@ This project introduces the proof generation, posting and verification of the va
 
 This MVP verifies Mina state opening proofs in Ethereum without taking into account consensus validation and Pickles verification.
 
-⚠️ We have a PoC of the end-to-end integration of Mina proof verification, from extraction on the node to final validation on the Sepolia Ethereum testnet. Including the verification of account inclusion in the stored state to our process.
+⚠️ We're currently focused on orchestrating the end-to-end integration of Mina proof verification, from extraction on the node to final validation on the Sepolia Ethereum testnet. Including the verification of account inclusion in the stored state to our process.
 
 * **Circuit for verification algorithm.** :no_entry_sign: All the tasks described below can be started once the new circuit framework and its API in Rust is ready to be used
   * Integrate current Kimchi partial verification in o1js with the verifier circuit. The rework in Rust should take 2 weeks, depending on the new API.
@@ -26,8 +26,6 @@ This MVP verifies Mina state opening proofs in Ethereum without taking into acco
 * **Account state utility:** A user will be able to query its account state and check that the retrieved state corresponds to the last verified Mina state in Ethereum.
   * Verification of Merkle proof in Solidity. Done ✅
   * Integration between Merkle proof verification and Mina state proof verification. WIP 🔨
-
-The verification process for account inclusion involves validating the Merkle Path within in the Smart Contract. We've implemented the Poseidon hash function in Solidity in its purest form. However, each squeeze operation consumes a significant amount of gas, approximately 488k.
 
 ## Design objectives
 
@@ -52,6 +50,18 @@ In the root folder, run:
 ```sh
 make
 ```
+
+This will run the polling service, the verifier circuit, the KZG prover and the Ethereum smart contract verifier.
+
+### Account state utility
+
+In the root folder, run:
+
+```sh
+make check_account
+```
+
+This will run the account state utility. **NOTE:** To run this, run the Proof wrapper and the Verifier contract before.
 
 ## Architecture
 
