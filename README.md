@@ -357,6 +357,14 @@ For more information on Ethereum transactions and encoding you can visit the fol
 * [A Step-by-Step Guide to Generating Raw Ethereum Transactions](https://medium.com/@LucasJennings/a-step-by-step-guide-to-generating-raw-ethereum-transactions-c3292ad36ab4)
 * [Transaction Calldata Demystified - A Guide to Understanding Transaction Calldata on Ethereum](https://www.quicknode.com/guides/ethereum-development/transactions/ethereum-transaction-calldata)
 
+## Merkle proof verifier
+
+This component is composed of:
+
+* **Ledger hash parser:** Fetches the ledger hash represented as a Merkle root and parses it to be EVM-friendly. Its logic is in `state_utility`.
+* **Merkle tree parser:** Fetches the account state represented as a Merkle leaf and its corresponding Merkle path and parses them to be EVM-frienfly. Its logic is in `merkle_path`.
+* **Verifier contract:** Verifies the account state inclusion by verifying the Merkle proof in Solidity. Its logic is in `eth_verifier`.
+
 ## Other components
 
 * `kzg_prover`: Rust code for generating a KZG proof. This proof is used in the `eth_verifier`.
