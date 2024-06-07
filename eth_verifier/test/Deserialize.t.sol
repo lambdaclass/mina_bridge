@@ -18,7 +18,7 @@ contract DecodeProverProof is Test {
     Proof.ProofEvaluations proof_evals;
     Proof.ProverCommitments proof_comms;
     Proof.ProverProof prover_proof;
-    uint256 public_input;
+    uint256 proof_hash;
 
     function setUp() public {
         pairing_proof_bytes = vm.readFileBinary("./unit_test_data/pairing_proof.bin");
@@ -145,8 +145,8 @@ contract DecodeProverProof is Test {
     // INFO: this doesn't assert anything, it only executes this deserialization
     // for gas profiling.
     function test_deserialize_public_input_profiling_only() public {
-        bytes memory public_input_serialized = vm.readFileBinary("public_input.bin");
-        public_input = deser_public_input(public_input_serialized);
+        bytes memory proof_hash_serialized = vm.readFileBinary("public_input.bin");
+        proof_hash = deser_proof_hash(proof_hash_serialized);
     }
 
     function test_deserialize_merkle_path() public {

@@ -10,14 +10,14 @@ contract KimchiVerifierTest is Test {
     bytes prover_proof_serialized;
     bytes linearization_serialized;
     bytes linearization_literals_serialized;
-    bytes public_input_serialized;
+    bytes proof_hash_serialized;
     bytes merkle_root_serialized;
     bytes merkle_leaf_serialized;
     bytes merkle_path_serialized;
 
     Proof.ProverProof proof;
     VerifierIndexLib.VerifierIndex verifier_index;
-    uint256 public_input;
+    uint256 proof_hash;
     BN254.G1Point public_comm;
 
     error VerificationFailed();
@@ -30,14 +30,14 @@ contract KimchiVerifierTest is Test {
         prover_proof_serialized = vm.readFileBinary("prover_proof.bin");
         linearization_serialized = vm.readFileBinary("linearization.bin");
         linearization_literals_serialized = vm.readFileBinary("linearization_literals.bin");
-        public_input_serialized = vm.readFileBinary("public_input.bin");
+        proof_hash_serialized = vm.readFileBinary("public_input.bin");
         merkle_root_serialized = vm.readFileBinary("merkle_root.bin");
         merkle_leaf_serialized = vm.readFileBinary("merkle_leaf.bin");
         merkle_path_serialized = vm.readFileBinary("merkle_path.bin");
 
         deser_prover_proof(prover_proof_serialized, proof);
         deser_verifier_index(verifier_index_serialized, verifier_index);
-        public_input = deser_public_input(public_input_serialized);
+        proof_hash = deser_proof_hash(proof_hash_serialized);
         public_comm = BN254.scalarMul(BN254.G1Point(1, 2), 42);
 
         // setup verifier contract
@@ -49,7 +49,7 @@ contract KimchiVerifierTest is Test {
         global_verifier.store_linearization(linearization_serialized);
         global_verifier.store_literal_tokens(linearization_literals_serialized);
         global_verifier.store_prover_proof(prover_proof_serialized);
-        global_verifier.store_public_input(public_input_serialized);
+        global_verifier.store_proof_hash(proof_hash_serialized);
         global_verifier.store_potential_merkle_root(merkle_root_serialized);
 
         global_verifier.partial_verify_and_store();
@@ -70,7 +70,7 @@ contract KimchiVerifierTest is Test {
         verifier.store_linearization(linearization_serialized);
         verifier.store_literal_tokens(linearization_literals_serialized);
         verifier.store_prover_proof(prover_proof_serialized);
-        verifier.store_public_input(public_input_serialized);
+        verifier.store_proof_hash(proof_hash_serialized);
         verifier.store_potential_merkle_root(merkle_root_serialized);
     }
 
@@ -83,7 +83,7 @@ contract KimchiVerifierTest is Test {
         verifier.store_linearization(linearization_serialized);
         verifier.store_literal_tokens(linearization_literals_serialized);
         verifier.store_prover_proof(prover_proof_serialized);
-        verifier.store_public_input(public_input_serialized);
+        verifier.store_proof_hash(proof_hash_serialized);
         verifier.store_potential_merkle_root(merkle_root_serialized);
 
         bool success = verifier.full_verify();
@@ -95,7 +95,7 @@ contract KimchiVerifierTest is Test {
     function test_deserialize_and_full_verify_existing_verifier() public {
         global_verifier.store_literal_tokens(linearization_literals_serialized);
         global_verifier.store_prover_proof(prover_proof_serialized);
-        global_verifier.store_public_input(public_input_serialized);
+        global_verifier.store_proof_hash(proof_hash_serialized);
         global_verifier.store_potential_merkle_root(merkle_root_serialized);
 
         bool success = global_verifier.full_verify();
@@ -130,7 +130,7 @@ contract KimchiVerifierTest is Test {
             for (uint256 j = 0; j < num_verifications_per_update; j++) {
                 verifier.store_literal_tokens(linearization_literals_serialized);
                 verifier.store_prover_proof(prover_proof_serialized);
-                verifier.store_public_input(public_input_serialized);
+                verifier.store_proof_hash(proof_hash_serialized);
 
                 bool success = verifier.full_verify();
                 if (!success) {

@@ -41,6 +41,6 @@ contract Profiling is Test {
     // for gas profiling.
     function test_deserialize_public_input_profiling_only() public {
         bytes memory public_input_serialized = vm.readFileBinary("public_input.bin");
-        public_input = deser_public_input(public_input_serialized);
+        public_input = deser_proof_hash(public_input_serialized);
     }
 }

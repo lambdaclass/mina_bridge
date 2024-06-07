@@ -39,7 +39,7 @@ contract Verify is Script {
         verifier.store_verifier_index(verifier_index_serialized);
         verifier.store_linearization(linearization_serialized);
         verifier.store_prover_proof(prover_proof_serialized);
-        verifier.store_public_input(public_input_serialized);
+        verifier.store_proof_hash(public_input_serialized);
         verifier.store_potential_merkle_root(merkle_root_serialized);
 
         bool verify_success = verifier.full_verify();

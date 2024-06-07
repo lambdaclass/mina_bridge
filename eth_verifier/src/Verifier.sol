@@ -11,7 +11,7 @@ import {Evaluation} from "../lib/Evaluations.sol";
 import {VARBASEMUL_CONSTRAINTS, PERMUTATION_CONSTRAINTS} from "../lib/Constants.sol";
 import {ArgumentType, Alphas, AlphasIterator, get_alphas, register, it_next} from "../lib/Alphas.sol";
 import {deser_prover_proof} from "../lib/deserialize/ProverProof.sol";
-import {deser_public_input} from "../lib/deserialize/PublicInputs.sol";
+import {deser_proof_hash} from "../lib/deserialize/PublicInputs.sol";
 import {deser_verifier_index, VerifierIndexLib} from "../lib/deserialize/VerifierIndex.sol";
 import {deser_linearization, deser_literal_tokens} from "../lib/deserialize/Linearization.sol";
 import {deser_merkle_path} from "../lib/deserialize/MerkleProof.sol";
@@ -38,7 +38,7 @@ contract KimchiVerifier {
     VerifierIndexLib.VerifierIndex internal verifier_index;
     Commitment.URS internal urs;
 
-    uint256 internal public_input;
+    uint256 internal proof_hash;
 
     Proof.AggregatedEvaluationProof internal aggregated_proof;
 
@@ -87,8 +87,8 @@ contract KimchiVerifier {
         deser_prover_proof(data_serialized, proof);
     }
 
-    function store_public_input(bytes calldata data_serialized) public {
-        public_input = deser_public_input(data_serialized);
+    function store_proof_hash(bytes calldata data_serialized) public {
+        proof_hash = deser_proof_hash(data_serialized);
     }
 
     function store_potential_merkle_root(bytes calldata data_serialized) public {
@@ -109,12 +109,12 @@ contract KimchiVerifier {
 
     function full_verify() public returns (bool) {
         Proof.AggregatedEvaluationProof memory agg_proof =
-            KimchiPartialVerifier.partial_verify(proof, verifier_index, urs, public_input);
+            KimchiPartialVerifier.partial_verify(proof, verifier_index, urs, proof_hash, Pasta.Fp.unwrap(potential_merkle_root));
         return final_verify(agg_proof);
     }
 
     function partial_verify_and_store() public {
-        aggregated_proof = KimchiPartialVerifier.partial_verify(proof, verifier_index, urs, public_input);
+        aggregated_proof = KimchiPartialVerifier.partial_verify(proof, verifier_index, urs, proof_hash, Pasta.Fp.unwrap(potential_merkle_root));
     }
 
     function final_verify_and_store() public {
