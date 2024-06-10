@@ -36,7 +36,7 @@ let srs = (value as string[])[3];
 writeFileSync("../kzg_prover/proof_with_public.json", proof_with_public);
 writeFileSync("../kzg_prover/index.json", index);
 writeFileSync("../kzg_prover/srs.json", srs);
-writeFileSync("../kzg_prover/proof_hash.json", proofHash as string)
+writeFileSync("../kzg_prover/proof_hash.json", proofHash.toString())
 
 console.log("Writing circuit gates into file...");
 let gates = keypair.constraintSystem();
