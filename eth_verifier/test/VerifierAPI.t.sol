@@ -30,7 +30,7 @@ contract KimchiVerifierTest is Test {
         prover_proof_serialized = vm.readFileBinary("prover_proof.bin");
         linearization_serialized = vm.readFileBinary("linearization.bin");
         linearization_literals_serialized = vm.readFileBinary("linearization_literals.bin");
-        proof_hash_serialized = vm.readFileBinary("public_input.bin");
+        proof_hash_serialized = vm.readFileBinary("proof_hash.bin");
         merkle_root_serialized = vm.readFileBinary("merkle_root.bin");
         merkle_leaf_serialized = vm.readFileBinary("merkle_leaf.bin");
         merkle_path_serialized = vm.readFileBinary("merkle_path.bin");

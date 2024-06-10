@@ -10,7 +10,7 @@ contract Verify is Script {
     bytes verifier_index_serialized;
     bytes prover_proof_serialized;
     bytes linearization_serialized;
-    bytes public_input_serialized;
+    bytes proof_hash_serialized;
     bytes merkle_root_serialized;
     bytes merkle_leaf_serialized;
     bytes merkle_path_serialized;
@@ -23,7 +23,7 @@ contract Verify is Script {
         verifier_index_serialized = vm.readFileBinary("verifier_index.bin");
         prover_proof_serialized = vm.readFileBinary("prover_proof.bin");
         linearization_serialized = vm.readFileBinary("linearization.bin");
-        public_input_serialized = vm.readFileBinary("public_input.bin");
+        proof_hash_serialized = vm.readFileBinary("proof_hash.bin");
         merkle_root_serialized = vm.readFileBinary("merkle_root.bin");
         merkle_leaf_serialized = vm.readFileBinary("merkle_leaf.bin");
         merkle_path_serialized = vm.readFileBinary("merkle_path.bin");
@@ -39,7 +39,7 @@ contract Verify is Script {
         verifier.store_verifier_index(verifier_index_serialized);
         verifier.store_linearization(linearization_serialized);
         verifier.store_prover_proof(prover_proof_serialized);
-        verifier.store_proof_hash(public_input_serialized);
+        verifier.store_proof_hash(proof_hash_serialized);
         verifier.store_potential_merkle_root(merkle_root_serialized);
 
         bool verify_success = verifier.full_verify();
@@ -66,7 +66,7 @@ contract PartialAndFinalVerify is Script {
     bytes verifier_index_serialized;
     bytes prover_proof_serialized;
     bytes linearization_serialized;
-    bytes public_input_serialized;
+    bytes proof_hash_serialized;
 
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
