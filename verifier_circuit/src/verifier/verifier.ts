@@ -228,8 +228,7 @@ export class Verifier extends CircuitBn254 {
             return FieldBn254(rootString[0]);
         });
         let proofHash = proof.hash();
-        let merkleHash = PoseidonBn254.hash([merkleRoot]);
-        let proofAndMerkleHash = PoseidonBn254.hash([proofHash, merkleHash]);
+        let proofAndMerkleHash = PoseidonBn254.hash([proofHash, merkleRoot]);
 
         proofAndMerkleHashInput.assertEquals(proofAndMerkleHash);
 
