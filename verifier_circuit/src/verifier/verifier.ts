@@ -232,7 +232,7 @@ export class Verifier extends CircuitBn254 {
             return PoseidonBn254.hash([proofHash, merkleRoot]);
         });
 
-        //proofAndMerkleHashInput.assertEquals(proofAndMerkleHash);
+        proofAndMerkleHashInput.assertEquals(proofAndMerkleHash);
 
         // if the proof is successful, this will be 1. Else will be 0.
         let success = ForeignScalar.from(0).assertAlmostReduced();
