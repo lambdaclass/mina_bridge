@@ -16,7 +16,7 @@ import "../lib/deserialize/ProverProof.sol";
 import "../lib/expr/Expr.sol";
 import "../lib/expr/PolishToken.sol";
 import "../lib/expr/ExprConstants.sol";
-import "../lib/poseidon/BN254.sol";
+import "../lib/poseidon/Bn254.sol";
 
 using {get_alphas} for Alphas;
 using {it_next} for AlphasIterator;
