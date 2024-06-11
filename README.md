@@ -14,16 +14,18 @@ This MVP verifies Mina state opening proofs in Ethereum without taking into acco
 
 ⚠️ We're currently focused on orchestrating the end-to-end integration of Mina proof verification, from extraction on the node to final validation on the Sepolia Ethereum testnet. Including the verification of account inclusion in the stored state to our process.
 
-* **Circuit for verification algorithm.** :no_entry_sign: All the tasks described below can be started once the new circuit framework and its API in Rust is ready to be used
+* **Circuit for verification algorithm.** 🚫 All the tasks described below can be started once the new circuit framework and its API in Rust is ready to be used
   * Integrate current Kimchi partial verification in o1js with the verifier circuit. The rework in Rust should take 2 weeks, depending on the new API.
   * Complete Kimchi verifier circuit: final verification. (this will stay pending since we need some improvements in o1js for the MSM).
 * **KZG Prover** (state proof wrapper):
   * Connect Kimchi + KZG prover with current verifier circuit.
-* **Verifier Smart Contract:** Inputs deserialization.
-  * Partial verification, final steps. We are working on this.
-  * Final verification. We are working on this. :hammer::ladder: We are currently debugging the integration with the generated proof.
-* **Account state utility:**
-  * A user will be able to query its account state and check that the retrieved state corresponds to the last verified Mina state in Ethereum.
+* **Verifier Smart Contract:**
+  * Inputs deserialization.
+  * Partial verification.
+  * Final verification.
+* **Account state utility:** A user will be able to query its account state and check that the retrieved state corresponds to the last verified Mina state in Ethereum.
+  * Verification of Merkle proof in Solidity. Done ✅
+  * Integration between Merkle proof verification and Mina state proof verification. WIP 🔨
 
 ## Design objectives
 
@@ -41,13 +43,25 @@ This MVP verifies Mina state opening proofs in Ethereum without taking into acco
 
 ## ⭐ How to run the PoC script ⭐
 
+### Proof wrapper and Verifier contract
+
 In the root folder, run:
 
 ```sh
 make
 ```
 
-This command will run all the steps of the PoC, including the polling service, the verifier circuit, the KZG prover and the Ethereum smart contract verifier.
+This will run the polling service, the verifier circuit, the KZG prover and the Ethereum smart contract verifier.
+
+### Account state utility
+
+In the root folder, run:
+
+```sh
+make check_account
+```
+
+This will run the account state utility. **NOTE:** To run this, run the Proof wrapper and the Verifier contract before.
 
 ## Architecture
 
@@ -70,7 +84,7 @@ This is subject to change.
         B3-->|Proof request| S
 ```
 
-#### Data flow
+### Data flow
 
 ```mermaid
     flowchart LR
@@ -96,21 +110,11 @@ make
 
 This will:
 
-- Invoke the polling service and query the last Mina chain state and a Pasta+IPA proof, then send both to the `public_input_gen/` crate.
-- This crate will compute needed data (SRS, public inputs) for feeding the state proof into an o1js verifier circuit.
-- The circuit will verify the proof and output the gate system to a KZG prover.
-- The KZG prover will generate another proof (BN254+KZG) of this verification. This makes it suitable to verify in an Ethereum smart contract. The final proof including the embedded state will be sent to the Solidity verifier.
-- The verifier will be deployed in Anvil (a local test blockchain) and a bash script will send a transaction with the state+proof data for running the final verification. If successful, the contract will store the state data and will expose an API for the user to retrieve it, knowing that this data was zk-verified.
-
-### Account state utility
-
-On root folder run:
-
-```sh
-sh state_utility/run.sh <public_key>
-```
-
-This will return the balance of the account associated with the `<public_key>` passed as argument.
+* Invoke the polling service and query the last Mina chain state and a Pasta+IPA proof, then send both to the `public_input_gen/` crate.
+* This crate will compute needed data (SRS, public inputs) for feeding the state proof into an o1js verifier circuit.
+* The circuit will verify the proof and output the gate system to a KZG prover.
+* The KZG prover will generate another proof (BN254+KZG) of this verification. This makes it suitable to verify in an Ethereum smart contract. The final proof including the embedded state will be sent to the Solidity verifier.
+* The verifier will be deployed in Anvil (a local test blockchain) and a bash script will send a transaction with the state+proof data for running the final verification. If successful, the contract will store the state data and will expose an API for the user to retrieve it, knowing that this data was zk-verified.
 
 #### Roadmap
 
@@ -123,16 +127,16 @@ The diagram below shows the sequence of a user sending a request to the service 
 
 ```mermaid
 sequenceDiagram
-	User->>Utility: balance?
-	Utility->>Mina: balance?
-	Mina->>Utility: balance
-	Utility->>Mina: related proof?
-	Mina->>Utility: related proof
-	Utility->>Bridge: stored proof?
-	Bridge->>Utility: stored proof
-	Utility->>Bridge: are proofs equal?
-	Bridge->>Utility: yes/no
-	Utility->>User: balance (if yes)
+ User->>Utility: balance?
+ Utility->>Mina: balance?
+ Mina->>Utility: balance
+ Utility->>Mina: related proof?
+ Mina->>Utility: related proof
+ Utility->>Bridge: stored proof?
+ Bridge->>Utility: stored proof
+ Utility->>Bridge: are proofs equal?
+ Bridge->>Utility: yes/no
+ Utility->>User: balance (if yes)
 ```
 
 ## Components of this Repo
@@ -169,7 +173,7 @@ A proof of the circuit will be constructed in subsequent modules for validating 
 
 The code is written entirely in Typescript using the [o1js](https://github.com/o1-labs/o1js) library and is heavily based on [Kimchi](https://github.com/o1-labs/proof-systems/tree/master/kimchi)'s original verifier implementation.
 
-#### Running
+#### Running Verifier circuit
 
 On `verifier_circuit/` run:
 
@@ -243,7 +247,7 @@ It receives the state proof and the public inputs from the `verifier_circuit` mo
 
 and sends it with the proof, the verifier input and the SRS.
 
-### Verifier smart contract 
+### Verifier smart contract
 
 `eth_verifier/` holds the Mina state verifier in solidity, implemented using [Foundry](https://book.getfoundry.sh/). The contract exposes an API for retrieving zk-verified data from the last Mina state.
 
@@ -264,8 +268,8 @@ PRIVATE_KEY=<your_private_key> RPC_URL=<rpc_url> make sepolia.deploy
 
 Where:
 
-- `<your_private_key>` is the private key of the account you will use to sign and pay for the deployment transaction.
-- `<rpc_url>` is the URL of the Sepolia endpoint.
+* `<your_private_key>` is the private key of the account you will use to sign and pay for the deployment transaction.
+* `<rpc_url>` is the URL of the Sepolia endpoint.
 
 To upload the proof generated with `kzg_prover`, run:
 
@@ -319,38 +323,54 @@ Transactions saved to: eth_verifier/broadcast/Deploy.s.sol/31337/run-latest.json
 
 Sensitive values saved to: eth_verifier/cache/Deploy.s.sol/31337/run-latest.json
 ```
+
 the last contract deployed is the verifier, its address can be used for interacting with the contract. Check if verification was successful by running:
+
 ```bash
 cast call <CONTRACT_ADDR> 'is_state_available()(bool)'
 ```
+
 if `true`, then you can get State data from the contract storage:
+
 ```bash
 cast call <CONTRACT_ADDR> 'retrieve_state_creator()(string)'
 cast call <CONTRACT_ADDR> 'retrieve_state_hash()(uint256)'
 cast call <CONTRACT_ADDR> 'retrieve_state_height(uint256)'
 ```
-#### Testing
+
+#### Testing Verifier Smart Contract
 
 Just run:
+
 ```bash
 make test
 ```
+
 #### Notes related to cast usage
 
-- For invoking non-view functions in the contract, it's needed to publish a transaction via `cast send`. Getter functions can be invoked with `cast call`.
-- Some commands may require you to encode the calldata before sending. In this case you can use `cast calldata`.
+* For invoking non-view functions in the contract, it's needed to publish a transaction via `cast send`. Getter functions can be invoked with `cast call`.
+* Some commands may require you to encode the calldata before sending. In this case you can use `cast calldata`.
 
 For more information on Ethereum transactions and encoding you can visit the following resources:
 
-- [ABI Specification](https://docs.soliditylang.org/en/develop/abi-spec.html)
-- [A Step-by-Step Guide to Generating Raw Ethereum Transactions](https://medium.com/@LucasJennings/a-step-by-step-guide-to-generating-raw-ethereum-transactions-c3292ad36ab4)
-- [Transaction Calldata Demystified - A Guide to Understanding Transaction Calldata on Ethereum](https://www.quicknode.com/guides/ethereum-development/transactions/ethereum-transaction-calldata)
+* [ABI Specification](https://docs.soliditylang.org/en/develop/abi-spec.html)
+* [A Step-by-Step Guide to Generating Raw Ethereum Transactions](https://medium.com/@LucasJennings/a-step-by-step-guide-to-generating-raw-ethereum-transactions-c3292ad36ab4)
+* [Transaction Calldata Demystified - A Guide to Understanding Transaction Calldata on Ethereum](https://www.quicknode.com/guides/ethereum-development/transactions/ethereum-transaction-calldata)
+
+## Merkle proof verifier
+
+This component is composed of:
+
+* **Ledger hash parser:** Fetches the ledger hash represented as a Merkle root and parses it to be EVM-friendly. Its logic is in `state_utility`.
+* **Merkle tree parser:** Fetches the account state represented as a Merkle leaf and its corresponding Merkle path and parses them to be EVM-frienfly. Its logic is in `merkle_path`.
+* **Verifier contract:** Verifies the account state inclusion by verifying the Merkle proof in Solidity. Its logic is in `eth_verifier`.
 
 ## Other components
-- `kzg_prover`: Rust code for generating a KZG proof. This proof is used in the `eth_verifier`.
-- `public_input_gen/`: Rust code for generating a Mina state proof. This proof is used in the `verifier_circuit`.
-- `srs/`: Contains tests SRSs for Pallas and Vesta curves.
-- `test_prover/`: Typescript code using `o1js` library. This is a test prover for the Kimchi proof system. It's a PoC and will be removed in the near future.
+
+* `kzg_prover`: Rust code for generating a KZG proof. This proof is used in the `eth_verifier`.
+* `public_input_gen/`: Rust code for generating a Mina state proof. This proof is used in the `verifier_circuit`.
+* `srs/`: Contains tests SRSs for Pallas and Vesta curves.
+* `test_prover/`: Typescript code using `o1js` library. This is a test prover for the Kimchi proof system. It's a PoC and will be removed in the near future.
 
 ## Kimchi proving system
 
@@ -444,33 +464,34 @@ Links to the associated code.
 To efficiently provide incremental verifiable computation, Pickles employs a set of friendly curves known as Pasta.
 Within the Mina source code, these curves are denoted as "tick" and "tock."
 
-- Tick - Vesta (a.k.a. Step), constraint domain size 2¹⁸  [block and transaction proofs]
-- Tock - Pallas (a.k.a. Wrap), constraint domain size 2¹²  [signatures]
+* Tick - Vesta (a.k.a. Step), constraint domain size 2¹⁸  [block and transaction proofs]
+* Tock - Pallas (a.k.a. Wrap), constraint domain size 2¹²  [signatures]
 
 The Tock prover undertakes a more limited role, exclusively engaging in recursive verifications without involving other logical processes. As a result, it necessitates fewer constraints and operates within a more compact domain size. Within Pickles' internal terminology, Tick is denoted as _Step_, and Tock is referred to as _Wrap_.
 
 Tock is used to prove the verification of a Tick proof and outputs a Tick proof. Tick is used to prove the verification of a Tock proof and outputs a Tock proof.
 
-- Prove<sub>tock</sub> ( Verify(_Tick_) ) = Tick<sub>proof</sub>
+* Prove<sub>tock</sub> ( Verify(_Tick_) ) = Tick<sub>proof</sub>
 
-- Prove <sub>tick</sub> (Verify(_Tock_) ) = Tock<sub>proof</sub>
+* Prove <sub>tick</sub> (Verify(_Tock_) ) = Tock<sub>proof</sub>
 ​
+
 ---
 
 Analysis of the Induction (recursion) method applied in Pickles. Then the original HALO2 will be analyzed.
 
-The __Verifier__ is divided into 2 modules, one part __Slow__ and one part __Fast__.
+The **Verifier** is divided into 2 modules, one part **Slow** and one part **Fast**.
 
 ![Figure 1](/img/pickles_step_01.png)
 
-__S0__ is the initial statement, __U__ is the Update algorithm, the __Pi__ are the proofs, and the __S's__ are the updated statements.
+**S0** is the initial statement, **U** is the Update algorithm, the **Pi** are the proofs, and the **S's** are the updated statements.
 
 ![Figure 2](/img/pickles_step_02.png)
 
-On top of each __Pi__ proof, we run a __Fast__ verifier. With the __Pi__ proof and the cumulative Statement from the previous step, the __U__ algorithm is applied and a new updated Statement is created. This _new updated Statement_ is the input of the Slow part of the Verifier, but we don't run the Slow Verifier until we reach the end of the whole round.
+On top of each **Pi** proof, we run a **Fast** verifier. With the **Pi** proof and the cumulative Statement from the previous step, the **U** algorithm is applied and a new updated Statement is created. This _new updated Statement_ is the input of the Slow part of the Verifier, but we don't run the Slow Verifier until we reach the end of the whole round.
 
 ---
-Execution of __Verifier Slow__ (which is very slow) can be <ins>deferred</ins> in sequences, and the V slow current always accumulates to the previous statement. This implicitly 'runs Vs on S1' as well.
+Execution of **Verifier Slow** (which is very slow) can be <ins>deferred</ins> in sequences, and the V slow current always accumulates to the previous statement. This implicitly 'runs Vs on S1' as well.
 
 ---
 
@@ -500,11 +521,11 @@ Let's now see how the Verifier Fast is divided.
 
 ![Figure 7](/img/pickles_step_07.png)
 
-__Vf__ corresponds to field operations in a field __F__, and __Vg__ corresponds to group operations in a group __G__.
+**Vf** corresponds to field operations in a field **F**, and **Vg** corresponds to group operations in a group **G**.
 
 ![Figure 8](/img/pickles_step_08.png)
 
-The proof __Pi__ is divided into 2 parts, one corresponding to group operations __G__, and it exposes, as a public input to the circuit, the part of the proof that is necessary to execute __Vf__.
+The proof **Pi** is divided into 2 parts, one corresponding to group operations **G**, and it exposes, as a public input to the circuit, the part of the proof that is necessary to execute **Vf**.
 
 ---
 
@@ -512,19 +533,21 @@ The proof __Pi__ is divided into 2 parts, one corresponding to group operations 
 
 Mina employs [Ouroboros Samasika](https://eprint.iacr.org/2020/352.pdf) as its consensus mechanism, which will be subsequently denoted as Samasika.
 Three essential commitments provided include:
-- High decentralization - Self-bootstrap, uncapped participation and dynamic availability
-- Succinctness - Constant-time synchronization with full-validation and high interoperability
-- Universal composability - Proven security for interacting with other protocols, no slashing required
+
+* High decentralization - Self-bootstrap, uncapped participation and dynamic availability
+* Succinctness - Constant-time synchronization with full-validation and high interoperability
+* Universal composability - Proven security for interacting with other protocols, no slashing required
 
 Joseph Bonneau, Izaak Meckler, Vanishree Rao, and Evan Shapiro collaborated to create Samasika, establishing it as the initial succinct blockchain consensus algorithm.  
 The complexity of fully verifying the entire blockchain is independent of chain length.  
 Samasika takes its name from the Sanskrit term, meaning small or succinct.
 
-### Chain selection rules
+## Chain selection rules
 
 Samasika uses two consensus rules: one for _short-range forks_ and one for _long-range forks_.
 
-#### Short-range fork rule
+### Short-range fork rule
+
 This rule is triggered whenever the fork is such that the adversary has not yet had the opportunity to mutate the block density distribution.  
 A fork is considered short-range if it took place within the last **m** blocks. The straightforward implementation of this rule involves consistently storing the most recent **m** blocks. Yet, in the context of a succinct blockchain, this is considered not desirable. Mina Samasika follows a methodology that necessitates information about only two blocks, the concept involves a decentralized checkpointing algorithm.
 
@@ -534,35 +557,38 @@ When a malicious actor generates an long-range fork, it gradually distorts the l
 The reasoning is that the critical window of the honest chain is very likely to have a higher density because this chain has the most stake
 
 #### Decentralized checkpointing
+
 Samasika employs decentralized checkpointing to discern the nature of a fork, categorizing it as either short-range or long-range.
-- **Start checkpoint** - State hash of the first block of the epoch.
-- **Lock checkpoint** - State hash of the last known block in the seed update range of an epoch (not including the current block) 
+
+* **Start checkpoint** - State hash of the first block of the epoch.
+* **Lock checkpoint** - State hash of the last known block in the seed update range of an epoch (not including the current block)
 
 Remember, a fork is categorized as short-range if either:
-- The fork point of the candidate chains are in the same epoch.
-- The fork point is in the previous epoch with the same ``lock_checkpoint``
+
+* The fork point of the candidate chains are in the same epoch.
+* The fork point is in the previous epoch with the same ``lock_checkpoint``
 
 As Mina prioritizes succinctness, it implies the need to maintain checkpoints for both the current and the previous epoch.
 
-
-
 #### Short-range fork check
+
 Keep in mind that short-range forks occur when the fork point occurs after the lock_checkpoint of the previous epoch; otherwise, it qualifies as a long-range fork.  
 The position of the previous epoch is a measurement relative to a block's perspective. In cases where candidate blocks belong to distinct epochs, each will possess distinct current and previous epoch values.  
 Alternatively, if the blocks belong to the same epoch, they will both reference the identical previous epoch. Thus we can simply check whether the blocks have the same lock_checkpoint in their previous epoch data.
 
 #### Sliding window density
+
 Let describe Mina's succinct sliding window density algorithm used by the long-range fork rule. In detail how windows are represented in blocks and how to compute _minimum window density_
 
 ##### Nomenclature
 
-- We say a slot is _filled_ if it contains a valid non-orphaned block.
-- An _w-window_ is a sequential list of slots s1,...,sw of length _w_.
-- A _sub-window_ is a contiguous interval of a _w-window_.
-- The _density_ of an w-window (or sub-window) is the number non-orphan block within it.
-- We use the terms _window_, _density window_, _sliding window_ and _w-window_ synonymously.
-- v is the Length by which the window shifts in slots (shift parameter).  ``slots_per_sub_window``
-- w is the Window length in slots.  ( the sliding window is a _w_-long window that shifts _v_-slots at a time).
+* We say a slot is _filled_ if it contains a valid non-orphaned block.
+* An _w-window_ is a sequential list of slots s1,...,sw of length _w_.
+* A _sub-window_ is a contiguous interval of a _w-window_.
+* The _density_ of an w-window (or sub-window) is the number non-orphan block within it.
+* We use the terms _window_, _density window_, _sliding window_ and _w-window_ synonymously.
+* v is the Length by which the window shifts in slots (shift parameter).  ``slots_per_sub_window``
+* w is the Window length in slots.  ( the sliding window is a _w_-long window that shifts _v_-slots at a time).
 
 The Samasika research paper presents security proofs that determine the secure values for v, w, and sub-windows per window.  
 A sliding window can also be viewed as a collection of _sub-windows_.  
@@ -578,6 +604,7 @@ In the Samasika paper the window structure actually consists of the **11 previou
 The most recent sub-window may be a previous sub-window or the current sub-window.  
 
 ##### Minimum window density
+
 The **minimum window density** at a given slot is defined as the minimum window density observed over all previous sub-windows and previous windows, all the way back to genesis.  
 When a new block _B_ with parent _P_ is created, the minimum window density is computed like this.  
 ``B.min_window_density = min(P.min_window_density, current_window_density)``  
@@ -586,6 +613,7 @@ where ``current_window_density`` is the density of _B's_ projected window
 The relative sub-window _i_ of a sub-window _sw_ is its index within the window.
 
 ##### Ring-shift
+
 When we shift a window ``[d0, d1, ..., d10]`` in order to add in a new sub-window ``d11``, we could evict the oldest sub-window d0 by shifting down all of the other sub-windows. Unfortunately, shifting a list in a SNARK circuit is very expensive.  
 It is more efficient (and also equivalent) to just replace the sub-window we wish to evict by overwriting it with the new sub-window, like this:
  ``sub_window_densities: d11 | d1 | d2 | d3 | d4 | d5 | d6 | d7 | d8 | d9 | d10``
@@ -596,21 +624,25 @@ Generating a new block and determining the optimal chain in accordance with the 
 Given a window _W_ and a future global slot _next_, the projected window of _W_ to slot _next_ is a transformation of _W_ into what it would look like if it were positioned at slot _next_.  
 For example, when a new block _B_ is produced with parent block _P_, the height of _B_ will be the height of _P_ plus one, but the global slot of _B_ will depend on how much time has elapsed since _P_ was created.  
 According to the Samasika paper, the window of _B_ must be initialized based on _P's_ window, then shifted because _B_ is ahead of _P_ and finally the value of _B's_ sub-window is incremented to account for _B_ belonging to it.  
-Remember that the calculation of window density, including sub-window s, only occurs when the sub-window is greater than s, after s becomes a previous sub-window. 
+Remember that the calculation of window density, including sub-window s, only occurs when the sub-window is greater than s, after s becomes a previous sub-window.
 Therefore, if _next_ is **k** sub-windows ahead of _W_ we must shift only **k - 1** times because we must keep the most recent previous sub-window.
 
 Now that we know how much to ring-shift, the next question is what density values to shift in. Remember that when projecting W to global slot next, we said that there are no intermediate blocks. That is, all of the slots and sub-windows are empty between W's current slot and next. Consequently, we must ring-shift in zero densities. The resulting window W is the projected window.
 
 Recall this diagram:
+
 ![](/img/consensus01.png)
+
 Suppose window W's current sub-window is 11 whose density is d11 and d1 is the oldest sub-window density
 
 Now imagine we want to project W to global slot ``next = 15``. This is ``k = 15 - 11 = 4`` sub-windows ahead of the most recent sub-window. Therefore, we compute ``shift_count = min(max(k - 1, 0), sub_windows_per_window)``  in this case: ``shift_count = min(max(4 - 1, 0), 11) = 3``
 
 Ring-shift in 3 zero densities to obtain the projected window.
+
 ![](/img/consensus02.png)
 
-We can derive some instructive cases from the general rule 
+We can derive some instructive cases from the general rule
+
 ![](/img/consensus03.png)
 
 ##### Genesis window
@@ -629,42 +661,44 @@ Within Samasika, time is encapsulated and safeguarded by the notions of slots an
 The relative minimum window density solves this problem by projecting the joining peer's current block's window to the global slot of the candidate block.  
 
 ## Protocol
-This section outlines the consensus protocol in terms of events. **Initialize consensus** and **Select chain**. 
+
+This section outlines the consensus protocol in terms of events. **Initialize consensus** and **Select chain**.
 
 In the following description, dot notation is used to refer to the local data members of peers. For example, given peer P, we use P.genesis_block and P.tip, to refer to the genesis block and currently selected chain, respectively.  
 For example, given peer ``P``, we use ``P.genesis_block`` and ``P.tip``, to refer to the genesis block and currently selected chain, respectively.
 
 ### Initialize consensus
+
 Things a peer MUST do to initialize consensus includes are _Load the genesis block_, _Get the tip_, _Bootstrap_ and _Catchup_  
 Bootstrapping consensus requires the ability to synchronize epoch ledgers from the network.  
 All peers MUST have the ability to load both the staking epoch ledger and next epoch ledger from disk and by downloading them. P2P peers MUST also make these ledgers available for other peers.  
 
 ### Select chain
+
 Each time a peer's chains receive an update, the select chain event takes place.  
 A chain is said to be updated anytime a valid block is added or removed from its head. The chain selection algorithm also incorporates certain tiebreak logic.  
 Supplementary tiebreak logic becomes necessary when assessing chains with identical length or equal minimum density.
 
 Let ``P.tip`` refer to the top block of peer ``P``'s current best chain. Assuming an update to either ``P.tip`` or ``P.chains``, ``P`` must update its tip similar to this:
+
 ![](/img/consensus06.png)
 
 The following selectSecureChain algorithm receives the peer's current best chain P.tip and its set of known valid chains P.chains and produces the most secure chain as output.  
+
 ![](/img/consensus07.png)
 
 And the ``selectLongerChain`` algorithm:
 
-
 ![](/img/consensus08.png)
 
-
 ### Maintaining the k-th predecessor epoch ledger
+
 The staking and next epoch ledgers MUST be finalized ledgers and can only advance when there is sufficient depth to achieve finality.  
 The staking and next epoch ledgers must be in a finalized state and can progress only when there is enough depth to ensure finality. Peers are required to retain the epoch ledger of the k-th predecessor from the tip, where ``k`` represents the depth of finality.  
 Due to the security prerequisites of Ouroboros, the gap in slots between the staking and next epoch ledgers may be great. Consequently, at any given moment, we essentially have three "pointers": staking ``s``, next ``n``, and finality ``k``.  
 The ``final_ledger`` (epoch ledger of the k-th predecessor from the tip) is updated each time chain selection occurs, i.e., for every new tip block appended.  
 
 ### Getting the tip
+
 For a joining peer to discover the head of the current chain it MUST not only obtain the tip, but also the min(k, tip.height - 1)-th block back from the tip. For the latter the peer MUST check the block's proof of finality.  
 Peers perform the proof of finality check by verifying two zero-knowledge proofs, one for the _tip_ and one for the _root_, and a Merkle proof for the chain of protocol state hashes between them.
-
-
-
