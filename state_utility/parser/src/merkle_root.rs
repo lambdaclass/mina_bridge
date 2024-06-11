@@ -26,7 +26,7 @@ impl MerkleRoot {
     /// # Errors
     ///
     /// If the request fails, an error will be returned.
-    pub fn query_merkle_root() -> Result<Self, String> {
+    pub fn query_merkle_root(rpc_url: &str) -> Result<Self, String> {
         let body = "{\"query\": \"{
                 daemonStatus {
                   ledgerMerkleRoot
@@ -35,7 +35,7 @@ impl MerkleRoot {
             .to_owned();
         let client = reqwest::blocking::Client::new();
         let res = client
-            .post("http://5.9.57.89:3085/graphql")
+            .post(rpc_url)
             .header(CONTENT_TYPE, "application/json")
             .body(body)
             .send()
