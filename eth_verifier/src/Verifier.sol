@@ -18,7 +18,7 @@ import {deser_merkle_path} from "../lib/deserialize/MerkleProof.sol";
 import {KimchiPartialVerifier} from "./KimchiPartialVerifier.sol";
 import {Pasta} from "../lib/pasta/Fields.sol";
 import {MerkleVerifier} from "../lib/merkle/Verify.sol";
-import {Poseidon} from "../lib/poseidon/Sponge.sol";
+import {Poseidon} from "../lib/poseidon/Pasta.sol";
 
 contract KimchiVerifier {
     uint256 internal constant G2_X0 = 0x198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2;
