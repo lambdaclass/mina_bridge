@@ -1,7 +1,5 @@
 .PHONY: run check_account sepolia.wrap_and_deploy sepolia.verify
 
-export CONTRACT_ADDRESS
-
 run:
 	@echo "Setting up o1js..."
 	@git submodule update --init --recursive

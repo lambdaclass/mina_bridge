@@ -15,7 +15,7 @@ fetch() {
         json
       }
     }
-  }"}' -H 'Content-Type: application/json' http://5.9.57.89:3085/graphql
+  }"}' -H 'Content-Type: application/json' $MINA_RPC_URL
 }
 
 DATA=$(fetch)

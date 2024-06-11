@@ -19,7 +19,7 @@ merkle_locally:
 	forge script --non-interactive script/Verify.s.sol:MerkleVerify --broadcast --rpc-url http://localhost:8545
 
 sepolia.deploy:
-	@forge script --rpc-url ${RPC_URL} --broadcast \
+	@forge script --rpc-url ${ETH_RPC_URL} --broadcast \
     --private-key ${PRIVATE_KEY} \
     --chain-id 11155111 \
     --delay 5 \
@@ -27,14 +27,14 @@ sepolia.deploy:
     script/Deploy.s.sol:Deploy
 
 sepolia.upload_proof_and_merkle_root:
-	@forge script --rpc-url ${RPC_URL} --broadcast \
+	@forge script --rpc-url ${ETH_RPC_URL} --broadcast \
     --private-key ${PRIVATE_KEY} \
     --chain-id 11155111 \
 	--legacy \
     script/UploadProof.s.sol:UploadProof
 
 sepolia.deploy_deser:
-	@forge script --rpc-url ${RPC_URL} --broadcast \
+	@forge script --rpc-url ${ETH_RPC_URL} --broadcast \
     --private-key ${PRIVATE_KEY} \
     --chain-id 11155111 \
     --delay 5 \
@@ -42,7 +42,7 @@ sepolia.deploy_deser:
     script/Deploy.s.sol:DeployAndDeser
 
 sepolia.verify:
-	@forge script --rpc-url ${RPC_URL} --broadcast \
+	@forge script --rpc-url ${ETH_RPC_URL} --broadcast \
     --private-key ${PRIVATE_KEY} \
     --chain-id 11155111 \
     --delay 5 \
@@ -50,7 +50,7 @@ sepolia.verify:
     script/Verify.s.sol:PartialAndFinalVerify
 
 sepolia.merkle_verify:
-	@forge script --rpc-url ${RPC_URL} --broadcast \
+	@forge script --rpc-url ${ETH_RPC_URL} --broadcast \
     --private-key ${PRIVATE_KEY} \
     --chain-id 11155111 \
     --delay 5 \
