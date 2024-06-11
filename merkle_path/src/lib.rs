@@ -13,8 +13,8 @@ use std::io::Write;
 ///
 /// * `rpc_url` - The URL of the Mina node GraphQL API.
 /// * `public_key_path` - A string slice that holds the path to the public key used to query the Mina node.
-/// * `input_path` - A string slice that holds the path to the input JSON file.
-/// * `output_path` - A string slice that holds the path to the output binary file.
+/// * `leaf_hash_path` - A string slice that holds the path to the output leaf hash file.
+/// * `merkle_tree_path` - A string slice that holds the path to the output Merkle tree file.
 ///
 /// # Errors
 ///

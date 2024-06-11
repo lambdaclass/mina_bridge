@@ -6,8 +6,8 @@ mod test {
         process_input_json(
             "http://5.9.57.89:3085/graphql",
             "./tests/public_key.txt",
-            "./tests/merkle_root.txt",
-            "./tests/out.bin",
+            "./tests/leaf_hash.bin",
+            "./tests/merkle_path.bin",
         )
         .unwrap();
     }
