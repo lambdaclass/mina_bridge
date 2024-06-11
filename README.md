@@ -14,16 +14,18 @@ This MVP verifies Mina state opening proofs in Ethereum without taking into acco
 
 ⚠️ We're currently focused on orchestrating the end-to-end integration of Mina proof verification, from extraction on the node to final validation on the Sepolia Ethereum testnet. Including the verification of account inclusion in the stored state to our process.
 
-* **Circuit for verification algorithm.** :no_entry_sign: All the tasks described below can be started once the new circuit framework and its API in Rust is ready to be used
+* **Circuit for verification algorithm.** 🚫 All the tasks described below can be started once the new circuit framework and its API in Rust is ready to be used
   * Integrate current Kimchi partial verification in o1js with the verifier circuit. The rework in Rust should take 2 weeks, depending on the new API.
   * Complete Kimchi verifier circuit: final verification. (this will stay pending since we need some improvements in o1js for the MSM).
 * **KZG Prover** (state proof wrapper):
   * Connect Kimchi + KZG prover with current verifier circuit.
-* **Verifier Smart Contract:** Inputs deserialization.
-  * Partial verification, final steps. We are working on this.
-  * Final verification. We are working on this. :hammer::ladder: We are currently debugging the integration with the generated proof.
-* **Account state utility:**
-  * A user will be able to query its account state and check that the retrieved state corresponds to the last verified Mina state in Ethereum.
+* **Verifier Smart Contract:**
+  * Inputs deserialization.
+  * Partial verification.
+  * Final verification.
+* **Account state utility:** A user will be able to query its account state and check that the retrieved state corresponds to the last verified Mina state in Ethereum.
+  * Verification of Merkle proof in Solidity. Done ✅
+  * Integration between Merkle proof verification and Mina state proof verification. WIP 🔨
 
 ## Design objectives
 
@@ -41,13 +43,25 @@ This MVP verifies Mina state opening proofs in Ethereum without taking into acco
 
 ## ⭐ How to run the PoC script ⭐
 
+### Proof wrapper and Verifier contract
+
 In the root folder, run:
 
 ```sh
 make
 ```
 
-This command will run all the steps of the PoC, including the polling service, the verifier circuit, the KZG prover and the Ethereum smart contract verifier.
+This will run the polling service, the verifier circuit, the KZG prover and the Ethereum smart contract verifier.
+
+### Account state utility
+
+In the root folder, run:
+
+```sh
+make check_account
+```
+
+This will run the account state utility. **NOTE:** To run this, run the Proof wrapper and the Verifier contract before.
 
 ## Architecture
 
@@ -70,7 +84,7 @@ This is subject to change.
         B3-->|Proof request| S
 ```
 
-#### Data flow
+### Data flow
 
 ```mermaid
     flowchart LR
@@ -173,7 +187,7 @@ A proof of the circuit will be constructed in subsequent modules for validating 
 
 The code is written entirely in Typescript using the [o1js](https://github.com/o1-labs/o1js) library and is heavily based on [Kimchi](https://github.com/o1-labs/proof-systems/tree/master/kimchi)'s original verifier implementation.
 
-#### Running
+#### Running Verifier circuit
 
 On `verifier_circuit/` run:
 
@@ -340,7 +354,7 @@ cast call <CONTRACT_ADDR> 'retrieve_state_hash()(uint256)'
 cast call <CONTRACT_ADDR> 'retrieve_state_height(uint256)'
 ```
 
-#### Testing
+#### Testing Verifier Smart Contract
 
 Just run:
 
@@ -359,10 +373,17 @@ For more information on Ethereum transactions and encoding you can visit the fol
 * [A Step-by-Step Guide to Generating Raw Ethereum Transactions](https://medium.com/@LucasJennings/a-step-by-step-guide-to-generating-raw-ethereum-transactions-c3292ad36ab4)
 * [Transaction Calldata Demystified - A Guide to Understanding Transaction Calldata on Ethereum](https://www.quicknode.com/guides/ethereum-development/transactions/ethereum-transaction-calldata)
 
+## Merkle proof verifier
+
+This component is composed of:
+
+* **Ledger hash parser:** Fetches the ledger hash represented as a Merkle root and parses it to be EVM-friendly. Its logic is in `state_utility`.
+* **Merkle tree parser:** Fetches the account state represented as a Merkle leaf and its corresponding Merkle path and parses them to be EVM-frienfly. Its logic is in `merkle_path`.
+* **Verifier contract:** Verifies the account state inclusion by verifying the Merkle proof in Solidity. Its logic is in `eth_verifier`.
+
 ## Other components
 
 * `kzg_prover`: Rust code for generating a KZG proof. This proof is used in the `eth_verifier`.
-
 * `public_input_gen/`: Rust code for generating a Mina state proof. This proof is used in the `verifier_circuit`.
 * `srs/`: Contains tests SRSs for Pallas and Vesta curves.
 * `test_prover/`: Typescript code using `o1js` library. This is a test prover for the Kimchi proof system. It's a PoC and will be removed in the near future.
@@ -537,11 +558,11 @@ Joseph Bonneau, Izaak Meckler, Vanishree Rao, and Evan Shapiro collaborated to c
 The complexity of fully verifying the entire blockchain is independent of chain length.  
 Samasika takes its name from the Sanskrit term, meaning small or succinct.
 
-### Chain selection rules
+## Chain selection rules
 
 Samasika uses two consensus rules: one for _short-range forks_ and one for _long-range forks_.
 
-#### Short-range fork rule
+### Short-range fork rule
 
 This rule is triggered whenever the fork is such that the adversary has not yet had the opportunity to mutate the block density distribution.  
 A fork is considered short-range if it took place within the last **m** blocks. The straightforward implementation of this rule involves consistently storing the most recent **m** blocks. Yet, in the context of a succinct blockchain, this is considered not desirable. Mina Samasika follows a methodology that necessitates information about only two blocks, the concept involves a decentralized checkpointing algorithm.
@@ -625,15 +646,19 @@ Therefore, if _next_ is **k** sub-windows ahead of _W_ we must shift only **k - 
 Now that we know how much to ring-shift, the next question is what density values to shift in. Remember that when projecting W to global slot next, we said that there are no intermediate blocks. That is, all of the slots and sub-windows are empty between W's current slot and next. Consequently, we must ring-shift in zero densities. The resulting window W is the projected window.
 
 Recall this diagram:
+
 ![](/img/consensus01.png)
+
 Suppose window W's current sub-window is 11 whose density is d11 and d1 is the oldest sub-window density
 
 Now imagine we want to project W to global slot ``next = 15``. This is ``k = 15 - 11 = 4`` sub-windows ahead of the most recent sub-window. Therefore, we compute ``shift_count = min(max(k - 1, 0), sub_windows_per_window)``  in this case: ``shift_count = min(max(4 - 1, 0), 11) = 3``
 
 Ring-shift in 3 zero densities to obtain the projected window.
+
 ![](/img/consensus02.png)
 
 We can derive some instructive cases from the general rule
+
 ![](/img/consensus03.png)
 
 ##### Genesis window
@@ -671,9 +696,11 @@ A chain is said to be updated anytime a valid block is added or removed from its
 Supplementary tiebreak logic becomes necessary when assessing chains with identical length or equal minimum density.
 
 Let ``P.tip`` refer to the top block of peer ``P``'s current best chain. Assuming an update to either ``P.tip`` or ``P.chains``, ``P`` must update its tip similar to this:
+
 ![](/img/consensus06.png)
 
 The following selectSecureChain algorithm receives the peer's current best chain P.tip and its set of known valid chains P.chains and produces the most secure chain as output.  
+
 ![](/img/consensus07.png)
 
 And the ``selectLongerChain`` algorithm:
