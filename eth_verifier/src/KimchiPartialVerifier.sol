@@ -16,7 +16,7 @@ import "../lib/deserialize/ProverProof.sol";
 import "../lib/expr/Expr.sol";
 import "../lib/expr/PolishToken.sol";
 import "../lib/expr/ExprConstants.sol";
-import "../lib/poseidon/Pasta.sol";
+import "../lib/poseidon/BN254.sol";
 
 using {get_alphas} for Alphas;
 using {it_next} for AlphasIterator;
@@ -39,10 +39,9 @@ library KimchiPartialVerifier {
         // public_input = Poseidon.hash(proof_hash, merkle_root)
         Poseidon poseidon = new Poseidon();
         Poseidon.Sponge memory sponge = poseidon.new_sponge();
-        poseidon.absorb(sponge, Pasta.from(proof_hash));
-        poseidon.absorb(sponge, Pasta.from(merkle_root));
-        (Poseidon.Sponge memory _sponge, Pasta.Fp _public_input) = poseidon.squeeze(sponge);
-        uint256 public_input = Pasta.Fp.unwrap(_public_input);
+        poseidon.absorb(sponge, proof_hash);
+        poseidon.absorb(sponge, merkle_root);
+        (Poseidon.Sponge memory _sponge, uint256 public_input) = poseidon.squeeze(sponge);
 
         // TODO: 1. Check the length of evaluations insde the proof
 
