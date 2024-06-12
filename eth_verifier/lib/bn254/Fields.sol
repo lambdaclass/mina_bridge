@@ -48,26 +48,6 @@ library Base {
             res := addmod(self, sub(MODULUS, other), MODULUS)
         }
     }
-
-    function pow(uint256 self, uint256 exponent) internal view returns (uint256 result) {
-        uint256 base = self;
-        uint256 o;
-        assembly ("memory-safe") {
-            // define pointer
-            let p := mload(0x40)
-            // store data assembly-favouring ways
-            mstore(p, 0x20) // Length of Base
-            mstore(add(p, 0x20), 0x20) // Length of Exponent
-            mstore(add(p, 0x40), 0x20) // Length of Modulus
-            mstore(add(p, 0x60), base) // Base
-            mstore(add(p, 0x80), exponent) // Exponent
-            mstore(add(p, 0xa0), MODULUS) // Modulus
-            if iszero(staticcall(sub(gas(), 2000), 0x05, p, 0xc0, p, 0x20)) { revert(0, 0) }
-            // data
-            o := mload(p)
-        }
-        result = o;
-    }
 }
 
 /// @notice Implements 256 bit modular arithmetic over the scalar field of bn254.

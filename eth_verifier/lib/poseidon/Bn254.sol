@@ -5,7 +5,7 @@ import "../bn254/Fields.sol";
 import {console} from "forge-std/console.sol";
 
 contract Poseidon {
-    using {Base.add, Base.mul, Base.pow} for uint256;
+    using {Scalar.add, Scalar.mul, Scalar.pow} for uint256;
 
     uint256 constant RATE = 2;
     uint256 constant ROUNDS = 55;
