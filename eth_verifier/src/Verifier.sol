@@ -258,10 +258,10 @@ contract KimchiVerifier {
         return BN254.multiScalarMul(full_urs.g, eval_poly_coeffs);
     }
 
-    function calc_public_input() private returns (uint256) {
+    function calc_public_input() private view returns (uint256) {
         PoseidonBn254.Sponge memory sponge = poseidon_bn254.new_sponge();
         sponge = poseidon_bn254.absorb(sponge, proof_hash);
-        sponge = poseidon_bn254.absorb(sponge, Pasta.Fp.unwrap(merkle_root));
+        sponge = poseidon_bn254.absorb(sponge, Pasta.Fp.unwrap(potential_merkle_root));
         (PoseidonBn254.Sponge memory _sponge, uint256 public_input) = poseidon_bn254.squeeze(sponge);
 
         return public_input;
