@@ -131,6 +131,7 @@ contract KimchiVerifierTest is Test {
                 verifier.store_literal_tokens(linearization_literals_serialized);
                 verifier.store_prover_proof(prover_proof_serialized);
                 verifier.store_proof_hash(proof_hash_serialized);
+                verifier.store_potential_merkle_root(merkle_root_serialized);
 
                 bool success = verifier.full_verify();
                 if (!success) {

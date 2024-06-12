@@ -144,8 +144,8 @@ contract DecodeProverProof is Test {
 
     // INFO: this doesn't assert anything, it only executes this deserialization
     // for gas profiling.
-    function test_deserialize_public_input_profiling_only() public {
-        bytes memory proof_hash_serialized = vm.readFileBinary("public_input.bin");
+    function test_deserialize_proof_hash_profiling_only() public {
+        bytes memory proof_hash_serialized = vm.readFileBinary("proof_hash.bin");
         proof_hash = deser_proof_hash(proof_hash_serialized);
     }
 
