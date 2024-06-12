@@ -35,12 +35,18 @@ async fn balance(
     State(pool): State<Pool<Postgres>>,
     Path(public_key): Path<String>,
 ) -> Result<Json<String>, String> {
-    let row: (String,) = sqlx::query_as(&format!(
-        "SELECT value FROM public_keys WHERE value = '{public_key}';"
-    ))
-    .fetch_one(&pool)
-    .await
-    .map_err(|err| format!("Could not query the database: {err}"))?;
+    let query = "SELECT height, balance
+        FROM accounts_accessed
+        INNER JOIN account_identifiers ON account_identifiers.id = accounts_accessed.account_identifier_id
+        INNER JOIN public_keys ON public_keys.id = account_identifiers.public_key_id
+        INNER JOIN blocks ON blocks.id = accounts_accessed.block_id
+        WHERE public_keys.value = $1";
 
-    Ok(Json(row.0))
+    let row: (i64, String) = sqlx::query_as(query)
+        .bind(public_key)
+        .fetch_one(&pool)
+        .await
+        .map_err(|err| format!("Could not query the database: {err}"))?;
+
+    Ok(Json(row.1))
 }
