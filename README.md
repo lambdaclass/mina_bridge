@@ -476,7 +476,7 @@ Both Tick and Tock can verify at most 2 proofs of the opposite kind, though, the
 
 Currently, in Mina we have the following situation.
 
-- Every Tock always wraps 1 Tick proof, such as
+- Every Tock always wraps 1 Tick proof.  
 - Tick proofs can verify 2 Tock proofs
     - Blockchain SNARK takes previous blockchain SNARK proof and a transaction proof
     - Verifying two Tock transaction proofs
@@ -488,7 +488,7 @@ Pickles works over [Pasta](https://o1-labs.github.io/proof-systems/specs/pasta.
 
 ---
 
-Both [Step and Wrap circuits](https://o1-labs.github.io/proof-systems/pickles/overview.html#general-circuit-structure) additionally do a lot of recursive verification of the previous steps. Without getting too technical, Step (without lost of generality) does the following:
+Both [Step and Wrap circuits](https://o1-labs.github.io/proof-systems/pickles/overview.html#general-circuit-structure) additionally do a lot of recursive verification of the previous steps. Without getting too technical, Step (without loss of generality) does the following:
 
 1. Execute the application logic statement (e.g. the mina transaction is valid)
 2. Verify that the previous Wrap proof is (first-)half-valid (perform only main checks that are efficient for the curve)
