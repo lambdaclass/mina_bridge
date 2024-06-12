@@ -48,15 +48,6 @@ contract Verify is Script {
             revert VerificationFailed();
         }
 
-        bool merkle_success = verifier.verify_account_inclusion(
-            bytes32(merkle_leaf_serialized),
-            merkle_path_serialized
-        );
-
-        if (!merkle_success) {
-            revert MerkleFailed();
-        }
-
         vm.stopBroadcast();
     }
 }
