@@ -1,6 +1,5 @@
 pub mod field;
 pub mod merkle_path;
-pub mod merkle_root;
 pub mod serialize;
 
 use merkle_path::MerkleTree;
@@ -12,8 +11,10 @@ use std::io::Write;
 ///
 /// # Arguments
 ///
-/// * `input_path` - A string slice that holds the path to the input JSON file.
-/// * `output_path` - A string slice that holds the path to the output binary file.
+/// * `rpc_url` - The URL of the Mina node GraphQL API.
+/// * `public_key_path` - A string slice that holds the path to the public key used to query the Mina node.
+/// * `leaf_hash_path` - A string slice that holds the path to the output leaf hash file.
+/// * `merkle_tree_path` - A string slice that holds the path to the output Merkle tree file.
 ///
 /// # Errors
 ///
@@ -21,13 +22,14 @@ use std::io::Write;
 /// the content cannot be deserialized to JSON,
 /// or the output file cannot be created or written to.
 pub fn process_input_json(
+    rpc_url: &str,
     public_key_path: &str,
     leaf_hash_path: &str,
     merkle_tree_path: &str,
 ) -> Result<(), String> {
     let public_key = std::fs::read_to_string(public_key_path)
         .map_err(|err| format!("Error opening file {err}"))?;
-    let merkle_tree = MerkleTree::query_merkle_path(&public_key)?;
+    let merkle_tree = MerkleTree::query_merkle_path(rpc_url, &public_key)?;
 
     let leaf_hash = field::from_str(&merkle_tree.data.account.leaf_hash)
         .map_err(|err| format!("Error deserializing leaf hash to field {err}"))?;

@@ -56,6 +56,7 @@ jobs:
                 export HOME="/root/"
                 export PATH="/.foundry/bin:/root/.cargo/bin:$PATH"
                 export GOPATH="/root/go"
+                export MINA_RPC_URL="http://5.9.57.89:3085/graphql"
                 make
 
     eth_verifier:
@@ -102,7 +103,7 @@ jobs:
         uses: ./.github/workflows/rust_ci.yaml
         with:
             skip_run: true
-            directory: merkle_path
+            directory: state_utility/merkle_path
 
     merkle_root_parser:
         name: Test Merkle Root parser

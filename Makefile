@@ -1,7 +1,5 @@
 .PHONY: run check_account sepolia.wrap_and_deploy sepolia.verify
 
-export CONTRACT_ADDRESS
-
 run:
 	@echo "Setting up o1js..."
 	@git submodule update --init --recursive
@@ -30,7 +28,7 @@ run:
 
 check_account:
 	@echo "Fetching Merkle path and leaf hash..."
-	@cd merkle_path && cargo r --release -- ../public_key.txt
+	@cd state_utility/merkle_path && cargo r --release -- $(MINA_RPC_URL) ../../public_key.txt
 	@echo "Done!"
 	@echo "Verifying Merkle proof inclusion..."
 	@cd eth_verifier && make setup && make merkle_locally
