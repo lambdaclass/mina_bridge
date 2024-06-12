@@ -19,6 +19,7 @@ import {KimchiPartialVerifier} from "./KimchiPartialVerifier.sol";
 import {Pasta} from "../lib/pasta/Fields.sol";
 import {MerkleVerifier} from "../lib/merkle/Verify.sol";
 import {Poseidon} from "../lib/poseidon/Pasta.sol";
+import {PoseidonBn254} from "../lib/poseidon/Bn254.sol";
 
 contract KimchiVerifier {
     uint256 internal constant G2_X0 = 0x198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2;
@@ -46,6 +47,7 @@ contract KimchiVerifier {
 
     MerkleVerifier merkle_verifier = new MerkleVerifier();
     Poseidon poseidon = new Poseidon();
+    PoseidonBn254 poseidon_bn254 = new PoseidonBn254();
     Pasta.Fp internal potential_merkle_root;
     Pasta.Fp internal merkle_root = Pasta.from(0);
 
@@ -108,13 +110,15 @@ contract KimchiVerifier {
     }
 
     function full_verify() public returns (bool) {
+        uint256 public_input = calc_public_input();
         Proof.AggregatedEvaluationProof memory agg_proof =
-            KimchiPartialVerifier.partial_verify(proof, verifier_index, urs, proof_hash, Pasta.Fp.unwrap(potential_merkle_root));
+            KimchiPartialVerifier.partial_verify(proof, verifier_index, urs, public_input);
         return final_verify(agg_proof);
     }
 
     function partial_verify_and_store() public {
-        aggregated_proof = KimchiPartialVerifier.partial_verify(proof, verifier_index, urs, proof_hash, Pasta.Fp.unwrap(potential_merkle_root));
+        uint256 public_input = calc_public_input();
+        aggregated_proof = KimchiPartialVerifier.partial_verify(proof, verifier_index, urs, public_input);
     }
 
     function final_verify_and_store() public {
@@ -252,5 +256,14 @@ contract KimchiVerifier {
         eval_poly_coeffs[1] = a;
 
         return BN254.multiScalarMul(full_urs.g, eval_poly_coeffs);
+    }
+
+    function calc_public_input() private returns (uint256) {
+        PoseidonBn254.Sponge memory sponge = poseidon_bn254.new_sponge();
+        sponge = poseidon_bn254.absorb(sponge, proof_hash);
+        sponge = poseidon_bn254.absorb(sponge, Pasta.Fp.unwrap(merkle_root));
+        (PoseidonBn254.Sponge memory _sponge, uint256 public_input) = poseidon_bn254.squeeze(sponge);
+
+        return public_input;
     }
 }

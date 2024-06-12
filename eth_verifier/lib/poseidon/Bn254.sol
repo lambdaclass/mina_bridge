@@ -4,7 +4,7 @@ pragma solidity >=0.4.16 <0.9.0;
 import "../bn254/Fields.sol";
 import {console} from "forge-std/console.sol";
 
-contract Poseidon {
+contract PoseidonBn254 {
     using {Scalar.add, Scalar.mul, Scalar.pow} for uint256;
 
     uint256 constant RATE = 2;
