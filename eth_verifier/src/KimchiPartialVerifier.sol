@@ -39,8 +39,8 @@ library KimchiPartialVerifier {
         // public_input = Poseidon.hash(proof_hash, merkle_root)
         Poseidon poseidon = new Poseidon();
         Poseidon.Sponge memory sponge = poseidon.new_sponge();
-        poseidon.absorb(sponge, proof_hash);
-        poseidon.absorb(sponge, merkle_root);
+        sponge = poseidon.absorb(sponge, proof_hash);
+        sponge = poseidon.absorb(sponge, merkle_root);
         (Poseidon.Sponge memory _sponge, uint256 public_input) = poseidon.squeeze(sponge);
 
         // TODO: 1. Check the length of evaluations insde the proof
