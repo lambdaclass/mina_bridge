@@ -10,3 +10,7 @@ serde = "1.0.203"
 tokio = { version = "1.38.0", features = ["rt-multi-thread"] }
 axum = "0.7.5"
 sqlx = { version = "0.7", features = [ "runtime-tokio", "postgres" ] }
+alloy = { git = "https://github.com/alloy-rs/alloy", rev = "b000e16", features = ["full"] }
+alloy-primitives = "0.7.6"
+reqwest = "0.12.4"
+merkle-path = { path = "../merkle_path" }
