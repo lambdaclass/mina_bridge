@@ -29,7 +29,7 @@ async fn main() -> Result<(), String> {
     let app = Router::new()
         .route("/", get(root))
         .route("/balance/:public_key", get(balance))
-        .route("/merkle_proof/:mina_public_key/:mina_rpc_url_str/:eth_private_key/:eth_rpc_url_str/:verifier_address_str", get(merkle_proof))
+        .route("/merkle_proof/:mina_public_key/:mina_rpc_url_str/:eth_rpc_url_str/:verifier_address_str", get(merkle_proof))
         .with_state(pool);
 
     // run our app with hyper, listening globally on port 3000
@@ -66,25 +66,18 @@ async fn balance(
 
 async fn merkle_proof(
     State(_pool): State<Pool<Postgres>>,
-    Path((
-        mina_public_key,
-        mina_rpc_url_str,
-        eth_private_key,
-        eth_rpc_url_str,
-        verifier_address_str,
-    )): Path<(String, String, String, String, String)>,
+    Path((mina_public_key, mina_rpc_url_str, eth_rpc_url_str, verifier_address_str)): Path<(
+        String,
+        String,
+        String,
+        String,
+    )>,
 ) -> Result<Json<String>, String> {
-    let signer: PrivateKeySigner = eth_private_key
-        .parse()
-        .map_err(|err| format!("Could not parse private key: {err}"))?;
-    let wallet = EthereumWallet::from(signer);
-
     let eth_rpc_url =
         Url::parse(&eth_rpc_url_str).map_err(|err| format!("Could not parse RPC URL: {err}"))?;
 
     let provider = ProviderBuilder::new()
         .with_recommended_fillers()
-        .wallet(wallet)
         .on_http(eth_rpc_url);
 
     let verifier_address = verifier_address_str
