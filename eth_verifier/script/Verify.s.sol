@@ -41,9 +41,9 @@ contract Verify is Script {
         verifier.store_proof_hash(proof_hash_serialized);
         verifier.store_potential_merkle_root(merkle_root_serialized);
 
-        bool verify_success = verifier.full_verify();
+        verifier.full_verify();
 
-        if (!verify_success) {
+        if (!verifier.is_last_proof_valid()) {
             revert VerificationFailed();
         }
 
