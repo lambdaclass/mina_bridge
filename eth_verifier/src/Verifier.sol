@@ -11,14 +11,15 @@ import {Evaluation} from "../lib/Evaluations.sol";
 import {VARBASEMUL_CONSTRAINTS, PERMUTATION_CONSTRAINTS} from "../lib/Constants.sol";
 import {ArgumentType, Alphas, AlphasIterator, get_alphas, register, it_next} from "../lib/Alphas.sol";
 import {deser_prover_proof} from "../lib/deserialize/ProverProof.sol";
-import {deser_public_input} from "../lib/deserialize/PublicInputs.sol";
+import {deser_proof_hash} from "../lib/deserialize/PublicInputs.sol";
 import {deser_verifier_index, VerifierIndexLib} from "../lib/deserialize/VerifierIndex.sol";
 import {deser_linearization, deser_literal_tokens} from "../lib/deserialize/Linearization.sol";
 import {deser_merkle_path} from "../lib/deserialize/MerkleProof.sol";
 import {KimchiPartialVerifier} from "./KimchiPartialVerifier.sol";
 import {Pasta} from "../lib/pasta/Fields.sol";
 import {MerkleVerifier} from "../lib/merkle/Verify.sol";
-import {Poseidon} from "../lib/poseidon/Sponge.sol";
+import {Poseidon} from "../lib/poseidon/Pasta.sol";
+import {PoseidonBn254} from "../lib/poseidon/Bn254.sol";
 
 contract KimchiVerifier {
     uint256 internal constant G2_X0 = 0x198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2;
@@ -38,7 +39,7 @@ contract KimchiVerifier {
     VerifierIndexLib.VerifierIndex internal verifier_index;
     Commitment.URS internal urs;
 
-    uint256 internal public_input;
+    uint256 internal proof_hash;
 
     Proof.AggregatedEvaluationProof internal aggregated_proof;
 
@@ -46,6 +47,7 @@ contract KimchiVerifier {
 
     MerkleVerifier merkle_verifier = new MerkleVerifier();
     Poseidon poseidon = new Poseidon();
+    PoseidonBn254 poseidon_bn254 = new PoseidonBn254();
     Pasta.Fp internal potential_merkle_root;
     Pasta.Fp internal merkle_root = Pasta.from(0);
 
@@ -87,8 +89,8 @@ contract KimchiVerifier {
         deser_prover_proof(data_serialized, proof);
     }
 
-    function store_public_input(bytes calldata data_serialized) public {
-        public_input = deser_public_input(data_serialized);
+    function store_proof_hash(bytes calldata data_serialized) public {
+        proof_hash = deser_proof_hash(data_serialized);
     }
 
     function store_potential_merkle_root(bytes calldata data_serialized) public {
@@ -108,12 +110,14 @@ contract KimchiVerifier {
     }
 
     function full_verify() public returns (bool) {
+        uint256 public_input = calc_public_input();
         Proof.AggregatedEvaluationProof memory agg_proof =
             KimchiPartialVerifier.partial_verify(proof, verifier_index, urs, public_input);
         return final_verify(agg_proof);
     }
 
     function partial_verify_and_store() public {
+        uint256 public_input = calc_public_input();
         aggregated_proof = KimchiPartialVerifier.partial_verify(proof, verifier_index, urs, public_input);
     }
 
@@ -252,5 +256,14 @@ contract KimchiVerifier {
         eval_poly_coeffs[1] = a;
 
         return BN254.multiScalarMul(full_urs.g, eval_poly_coeffs);
+    }
+
+    function calc_public_input() private view returns (uint256) {
+        PoseidonBn254.Sponge memory sponge = poseidon_bn254.new_sponge();
+        sponge = poseidon_bn254.absorb(sponge, proof_hash);
+        sponge = poseidon_bn254.absorb(sponge, Pasta.Fp.unwrap(potential_merkle_root));
+        (PoseidonBn254.Sponge memory _sponge, uint256 public_input) = poseidon_bn254.squeeze(sponge);
+
+        return public_input;
     }
 }

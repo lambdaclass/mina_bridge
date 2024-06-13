@@ -6,13 +6,13 @@ import {KimchiVerifier} from "../src/Verifier.sol";
 
 contract UploadProof is Script {
     bytes linearization_literals_serialized;
-    bytes public_input_serialized;
+    bytes proof_hash_serialized;
     bytes prover_proof_serialized;
     bytes merkle_root_serialized;
 
     function run() public {
         linearization_literals_serialized = vm.readFileBinary("linearization_literals.bin");
-        public_input_serialized = vm.readFileBinary("public_input.bin");
+        proof_hash_serialized = vm.readFileBinary("proof_hash.bin");
         prover_proof_serialized = vm.readFileBinary("prover_proof.bin");
         merkle_root_serialized = vm.readFileBinary("merkle_root.bin");
 
@@ -23,7 +23,7 @@ contract UploadProof is Script {
         KimchiVerifier verifier = KimchiVerifier(verifierAddress);
 
         verifier.store_literal_tokens(linearization_literals_serialized);
-        verifier.store_public_input(public_input_serialized);
+        verifier.store_proof_hash(proof_hash_serialized);
         verifier.store_prover_proof(prover_proof_serialized);
         verifier.store_potential_merkle_root(merkle_root_serialized);
 

@@ -14,7 +14,7 @@ contract Profiling is Test {
     Linearization linearization;
     VerifierIndexLib.VerifierIndex verifier_index;
     Proof.ProverProof prover_proof;
-    uint256 public_input;
+    uint256 proof_hash;
 
     // INFO: this doesn't assert anything, it only executes this deserialization
     // for gas profiling.
@@ -39,8 +39,8 @@ contract Profiling is Test {
 
     // INFO: this doesn't assert anything, it only executes this deserialization
     // for gas profiling.
-    function test_deserialize_public_input_profiling_only() public {
-        bytes memory public_input_serialized = vm.readFileBinary("public_input.bin");
-        public_input = deser_public_input(public_input_serialized);
+    function test_deserialize_proof_hash_profiling_only() public {
+        bytes memory proof_hash_serialized = vm.readFileBinary("proof_hash.bin");
+        proof_hash = deser_proof_hash(proof_hash_serialized);
     }
 }

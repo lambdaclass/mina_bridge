@@ -34,6 +34,7 @@ library KimchiPartialVerifier {
         Commitment.URS storage urs,
         uint256 public_input
     ) external returns (Proof.AggregatedEvaluationProof memory) {
+
         // TODO: 1. Check the length of evaluations insde the proof
 
         // 2. Commit to the negated public input polynomial.
