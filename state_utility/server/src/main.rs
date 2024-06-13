@@ -66,15 +66,17 @@ async fn balance(
 
 async fn merkle_proof(
     State(_pool): State<Pool<Postgres>>,
-    Path(mina_public_key): Path<String>,
-    Path(mina_rpc_url_str): Path<String>,
-    Path(eth_private_key): Path<String>,
-    Path(eth_rpc_url_str): Path<String>,
-    Path(verifier_address_str): Path<String>,
+    Path((
+        mina_public_key,
+        mina_rpc_url_str,
+        eth_private_key,
+        eth_rpc_url_str,
+        verifier_address_str,
+    )): Path<(String, String, String, String, String)>,
 ) -> Result<Json<String>, String> {
-    let eth_private_key_bytes = FixedBytes::from_slice(&eth_private_key.as_bytes());
-    let signer = PrivateKeySigner::from_bytes(&eth_private_key_bytes)
-        .map_err(|err| format!("Could not create signer: {err}"))?;
+    let signer: PrivateKeySigner = eth_private_key
+        .parse()
+        .map_err(|err| format!("Could not parse private key: {err}"))?;
     let wallet = EthereumWallet::from(signer);
 
     let eth_rpc_url =
@@ -97,17 +99,13 @@ async fn merkle_proof(
         Bytes::copy_from_slice(&merkle_tree.data.account.merkle_path.to_bytes());
 
     let transaction_builder = contract.verify_account_inclusion(leaf_hash_bytes, merkle_path_bytes);
-    let pending_transaction_builder = transaction_builder
-        .send()
+    let is_account_valid = transaction_builder
+        .call()
         .await
-        .map_err(|err| format!("Could not send verification transaction: {err}"))?;
+        .map_err(|err| format!("Could not call verification method: {err}"))?
+        ._0;
 
-    println!("Waiting for pending transaction...");
+    let response = format!("{is_account_valid}");
 
-    let _ = pending_transaction_builder
-        .watch()
-        .await
-        .map_err(|err| format!("Could not watch the uploaded verification transaction: {err}"));
-
-    Ok(Json("Ok".to_owned()))
+    Ok(Json(response))
 }
