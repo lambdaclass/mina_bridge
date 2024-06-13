@@ -34,10 +34,10 @@ impl MerkleTree {
     ///
     /// Returns a string slice with an error message if the request cannot be made,
     /// or the response cannot be converted to JSON.
-    pub fn query_merkle_path(public_key: &str) -> Result<Self, String> {
+    pub fn query_merkle_path(rpc_url: &str, public_key: &str) -> Result<Self, String> {
         serde_json::from_str(
             &reqwest::blocking::Client::new()
-                .post("http://5.9.57.89:3085/graphql")
+                .post(rpc_url)
                 .header(CONTENT_TYPE, "application/json")
                 .body(format!(
                     "{{\"query\": \"{{

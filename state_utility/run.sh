@@ -5,7 +5,7 @@ git clone https://github.com/lambdaclass/mina.git -b merkle_root_parser --recurs
 cargo r \
     --manifest-path parser/Cargo.toml\
     --release \
-    -- ./mina_3_0_0_devnet/src/lib/merkle_root_parser/merkle_root.txt
+    -- $MINA_RPC_URL ./mina_3_0_0_devnet/src/lib/merkle_root_parser/merkle_root.txt
 
 cd mina_3_0_0_devnet/src/lib/merkle_root_parser
 opam exec -- dune exec ./bin/main.exe > ../../../../merkle_root/merkle_root.txt

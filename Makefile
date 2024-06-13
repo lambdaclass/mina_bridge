@@ -1,4 +1,4 @@
-.PHONY: run check_account
+.PHONY: run check_account sepolia.wrap_and_deploy sepolia.verify
 
 run:
 	@echo "Setting up o1js..."
@@ -28,8 +28,42 @@ run:
 
 check_account:
 	@echo "Fetching Merkle path and leaf hash..."
-	@cd merkle_path && cargo r --release -- ../public_key.txt
+	@cd state_utility/merkle_path && cargo r --release -- $(MINA_RPC_URL) ../../public_key.txt
 	@echo "Done!"
 	@echo "Verifying Merkle proof inclusion..."
 	@cd eth_verifier && make setup && make merkle_locally
+	@echo "Done!"
+
+sepolia.wrap_and_deploy:
+	@echo "Setting up o1js..."
+	@git submodule update --init --recursive
+	@echo "Fetching state proof from Mina node..."
+	@cd polling_service && sh run.sh
+	@echo "Done!"
+	@echo "Creating circuit gates..."
+	@cd verifier_circuit && npm i && make
+	@echo "Done!"
+	@echo "Creating KZG proof..."
+	@cd kzg_prover && cargo r --release
+	@echo "Done!"
+	@echo "Fetching Merkle root..."
+	@cd state_utility && sh run.sh
+	@echo "Done!"
+	@echo "Deploying verifier in Sepolia..."
+	@cd eth_verifier && make sepolia.deploy_deser
+	@echo "Done!"
+	@echo "Once the verifier deployment is confirmed, set CONTRACT_ADDRESS env var and run:"
+	@echo "  make sepolia.verify"
+
+sepolia.verify:
+	@echo "Uploading proof and Merkle root to Sepolia..."
+	@cd eth_verifier && make sepolia.upload_proof_and_merkle_root
+	@echo "Done!"
+	@echo "Once the upload is confirmed in Sepolia, press any key to continue."; read REPLY
+	@echo "Verifying uploaded proof in Sepolia..."
+	@cd eth_verifier && make sepolia.verify
+	@echo "Done!"
+	@echo "Once the proof verification is confirmed in Sepolia, press any key to continue."; read REPLY
+	@echo "Verifying Merkle proof inclusion in Sepolia..."
+	@cd eth_verifier && make sepolia.merkle_verify
 	@echo "Done!"

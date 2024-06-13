@@ -56,6 +56,7 @@ jobs:
                 export HOME="/root/"
                 export PATH="/.foundry/bin:/root/.cargo/bin:$PATH"
                 export GOPATH="/root/go"
+                export MINA_RPC_URL="http://5.9.57.89:3085/graphql"
                 make
 
     eth_verifier:
@@ -82,7 +83,7 @@ jobs:
                 # due to non-deterministic fuzzing (but still use pseudo-random fuzzing seeds)
                 FOUNDRY_FUZZ_SEED: 0x${{ github.event.pull_request.base.sha || github.sha }}
             - name: Compare gas reports
-              uses: Rubilmax/foundry-gas-diff@v3.16
+              uses: Rubilmax/foundry-gas-diff@v3.17
               with:
                 summaryQuantile: 0.9 # only display the 10% most significant gas diffs in the summary (defaults to 20%)
                 sortCriteria: avg,max # sort diff rows by criteria
@@ -102,7 +103,7 @@ jobs:
         uses: ./.github/workflows/rust_ci.yaml
         with:
             skip_run: true
-            directory: merkle_path
+            directory: state_utility/merkle_path
 
     merkle_root_parser:
         name: Test Merkle Root parser
