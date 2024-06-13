@@ -19,7 +19,7 @@ contract KimchiVerifierTest is Test {
     bytes verifier_index_serialized;
     bytes linearization_serialized;
     bytes prover_proof_serialized;
-    bytes public_input_serialized;
+    bytes proof_hash_serialized;
 
     VerifierIndexLib.VerifierIndex test_verifier_index;
     KeccakSponge.Sponge sponge;
@@ -28,7 +28,7 @@ contract KimchiVerifierTest is Test {
         verifier_index_serialized = vm.readFileBinary("verifier_index.bin");
         linearization_serialized = vm.readFileBinary("linearization.bin");
         prover_proof_serialized = vm.readFileBinary("prover_proof.bin");
-        public_input_serialized = vm.readFileBinary("public_input.bin");
+        proof_hash_serialized = vm.readFileBinary("proof_hash.bin");
 
         // we store deserialized structures mostly to run intermediate results
         // tests.
@@ -73,7 +73,7 @@ contract KimchiVerifierTest is Test {
         verifier.store_verifier_index(verifier_index_serialized);
         verifier.store_linearization(linearization_serialized);
         verifier.store_prover_proof(prover_proof_serialized);
-        verifier.store_public_input(public_input_serialized);
+        verifier.store_proof_hash(proof_hash_serialized);
 
         uint256[2] memory evaluation_points = [
             Scalar.from(13611645662807726448009836376915752628632570551277086161653783406622791783728),

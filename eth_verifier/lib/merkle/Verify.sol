@@ -2,7 +2,7 @@
 pragma solidity >=0.4.16 <0.9.0;
 
 import "pasta/Fields.sol";
-import "poseidon/Sponge.sol";
+import "poseidon/Pasta.sol";
 
 contract MerkleVerifier {
     enum LeftOrRight {

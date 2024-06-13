@@ -8,7 +8,7 @@ fn main() -> Result<(), String> {
     process_input_json(
         rpc_url,
         public_key_path,
-        "./leaf_hash.bin",
-        "./merkle_path.bin",
+        "../eth_verifier/merkle_leaf.bin",
+        "../eth_verifier/merkle_path.bin",
     )
 }
