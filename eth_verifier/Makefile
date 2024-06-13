@@ -2,7 +2,7 @@
 
 setup:
 	curl -L https://foundry.paradigm.xyz | bash
-	foundryup
+	foundryup -v nightly-5b7e4cb3c882b28f3c32ba580de27ce7381f415a
 
 test:
 	forge test -vv --via-ir --optimize --gas-report
@@ -20,39 +20,39 @@ merkle_locally:
 
 sepolia.deploy:
 	@forge script --rpc-url ${ETH_RPC_URL} --broadcast \
-    --private-key ${PRIVATE_KEY} \
-    --chain-id 11155111 \
-    --delay 5 \
+	--private-key ${PRIVATE_KEY} \
+	--chain-id 11155111 \
+	--delay 5 \
 	--legacy \
-    script/Deploy.s.sol:Deploy
+	script/Deploy.s.sol:Deploy
 
 sepolia.upload_proof_and_merkle_root:
 	@forge script --rpc-url ${ETH_RPC_URL} --broadcast \
-    --private-key ${PRIVATE_KEY} \
-    --chain-id 11155111 \
+	--private-key ${PRIVATE_KEY} \
+	--chain-id 11155111 \
 	--legacy \
-    script/UploadProof.s.sol:UploadProof
+	script/UploadProof.s.sol:UploadProof
 
 sepolia.deploy_deser:
 	@forge script --rpc-url ${ETH_RPC_URL} --broadcast \
-    --private-key ${PRIVATE_KEY} \
-    --chain-id 11155111 \
-    --delay 5 \
+	--private-key ${PRIVATE_KEY} \
+	--chain-id 11155111 \
+	--delay 5 \
 	--legacy \
-    script/Deploy.s.sol:DeployAndDeser
+	script/Deploy.s.sol:DeployAndDeser
 
 sepolia.verify:
 	@forge script --rpc-url ${ETH_RPC_URL} --broadcast \
-    --private-key ${PRIVATE_KEY} \
-    --chain-id 11155111 \
-    --delay 5 \
+	--private-key ${PRIVATE_KEY} \
+	--chain-id 11155111 \
+	--delay 5 \
 	--legacy \
-    script/Verify.s.sol:PartialAndFinalVerify
+	script/Verify.s.sol:PartialAndFinalVerify
 
 sepolia.merkle_verify:
 	@forge script --rpc-url ${ETH_RPC_URL} --broadcast \
-    --private-key ${PRIVATE_KEY} \
-    --chain-id 11155111 \
-    --delay 5 \
+	--private-key ${PRIVATE_KEY} \
+	--chain-id 11155111 \
+	--delay 5 \
 	--legacy \
-    script/Verify.s.sol:MerkleVerify
+	script/Verify.s.sol:MerkleVerify
