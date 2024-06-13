@@ -477,24 +477,75 @@ Links to the associated code.
 
 ## Pickles - Mina’s inductive zk-SNARK composition system
 
-To efficiently provide incremental verifiable computation, Pickles employs a set of friendly curves known as Pasta.
-Within the Mina source code, these curves are denoted as "tick" and "tock."
+Pickles uses a pair of amicable curves called [Pasta](https://o1-labs.github.io/proof-systems/specs/pasta.html) in order to deliver incremental verifiable computation efficiently.
+
+The two curves pallas and vesta (pa(llas ve)sta) created by the [Zcash team](https://github.com/zcash/pasta?tab=readme-ov-file#pallasvesta-supporting-evidence). Each curve’s scalar field is the other curve’s base field, which is practical for recursion
+
+These curves are referred to as “tick” and “tock” within the Mina source code.
+
 
 * Tick - Vesta (a.k.a. Step), constraint domain size 2¹⁸  [block and transaction proofs]
 * Tock - Pallas (a.k.a. Wrap), constraint domain size 2¹²  [signatures]
 
-The Tock prover undertakes a more limited role, exclusively engaging in recursive verifications without involving other logical processes. As a result, it necessitates fewer constraints and operates within a more compact domain size. Within Pickles' internal terminology, Tick is denoted as _Step_, and Tock is referred to as _Wrap_.
 
-Tock is used to prove the verification of a Tick proof and outputs a Tick proof. Tick is used to prove the verification of a Tock proof and outputs a Tock proof.
+The Tock prover does less (only performs recursive verifications and 
+no other logic), so it requires fewer constraints and has a smaller 
+domain size.  Internally Pickles refers to Tick and Tock as _Step_ and 
+_Wrap_, respectively.
+
+One curve handles the current proof, while the other is used to verify previous proofs.
+
+Tock is used to prove the verification of a Tick proof and outputs a 
+Tick proof.  Tick is used to prove the verification of a Tock proof and 
+outputs a Tock proof.  In other words,
+
 
 * Prove<sub>tock</sub> ( Verify(_Tick_) ) = Tick<sub>proof</sub>
 
 * Prove <sub>tick</sub> (Verify(_Tock_) ) = Tock<sub>proof</sub>
 ​
 
+![Description](/img/palas_vesta.png)
+
+Both Tick and Tock can verify at most 2 proofs of the opposite kind, though, theoretically more is possible.
+
+Currently, in Mina we have the following situation.
+
+- Every Tock always wraps 1 Tick proof.  
+- Tick proofs can verify 2 Tock proofs
+    - Blockchain SNARK takes previous blockchain SNARK proof and a transaction proof
+    - Verifying two Tock transaction proofs
+
+Pickles works over [Pasta](https://o1-labs.github.io/proof-systems/specs/pasta.html), a cycle of curves consisting of Pallas and Vesta, and thus it defines two generic circuits, one for each curve. Each can be thought of as a parallel instantiation of a kimchi proof systems. These circuits are not symmetric and have somewhat different function:
+
+- **Step circuit**: this is the main circuit that contains application logic. Each step circuit verifies a statement and potentially several (at most 2) other wrap proofs.
+- **Wrap circuit**: this circuit merely verifies the step circuit, and does not have its own application logic. The intuition is that every time an application statement is proven it’s done in Step, and then the resulting proof is immediately wrapped using Wrap.
+
 ---
 
-Analysis of the Induction (recursion) method applied in Pickles. Then the original HALO2 will be analyzed.
+Both [Step and Wrap circuits](https://o1-labs.github.io/proof-systems/pickles/overview.html#general-circuit-structure) additionally do a lot of recursive verification of the previous steps. Without getting too technical, Step (without loss of generality) does the following:
+
+1. Execute the application logic statement (e.g. the mina transaction is valid)
+2. Verify that the previous Wrap proof is (first-)half-valid (perform only main checks that are efficient for the curve)
+3. Verify that the previous Step proof is (second-)half-valid (perform the secondary checks that were inefficient to perform when the previous Step was Wrapped)
+4. Verify that the previous Step correctly aggregated the previous accumulator, e.g. acc2=Aggregate(acc1,*π* step,2)
+
+![Step-Wrap Diagram ](/img/step_diagram.png)
+--------------------------------------------------------
+### Accumulator ###
+The accumulator is an abstraction introduced for the purpose of this diagram. In practice, each kimchi proof consists of (1) commitments to polynomials, (2) evaluations of them, (3) and the opening proof. 
+
+What we refer to as **accumulator** here is actually the commitment inside the opening proof. It is called `sg` in the implementation and is semantically a polynomial commitment to `h(X)` (`b_poly` in the code) — the poly-sized polynomial that is built from IPA challenges.
+
+It’s a very important polynomial – it can be evaluated in log time, but the commitment verification takes poly time, so the fact that `sg` is a commitment to `h(X)` is never proven inside the circuit. For more details, see [Proof-Carrying Data from Accumulation Schemes](https://eprint.iacr.org/2020/499.pdf), Appendix A.2, where `sg` is called `U`.
+
+In pickles, what we do is that we “absorb” this commitment `sg` from the previous step while creating a new proof. 
+
+That is, for example, Step 1 will produce this commitment that is denoted as `acc1` on the diagram, as part of its opening proof, and Step 2 will absorb this commitment. And this “absorbtion” is what Wrap 2 will prove (and, partially, Step 3 will also refer to the challenges used to build `acc1`, but this detail is completely avoided in this overview). In the end, `acc2` will be the result of Step 2, so in a way `acc2` “aggregates” `acc1` which somewhat justifies the language used.
+
+
+
+### Analysis of the Induction (recursion) method applied in Pickles ###
 
 The **Verifier** is divided into 2 modules, one part **Slow** and one part **Fast**.
 
@@ -543,7 +594,17 @@ Let's now see how the Verifier Fast is divided.
 
 The proof **Pi** is divided into 2 parts, one corresponding to group operations **G**, and it exposes, as a public input to the circuit, the part of the proof that is necessary to execute **Vf**.
 
----
+
+### Pickles Technical Diagrams ###
+
+  The black boxes are data structures that have names and labels following the implementation.  
+  `MFNStep/MFNWrap` is an abbreviation from `MessagesForNextStep` and `MessagesForNextWrap` that is used for brevity. Most other datatypes are exactly the same as in the codebase.  
+
+  The blue boxes are computations. Sometimes, when the computation is trivial or only vaguely indicated, it is denoted as a text sign directly on an arrow.    
+
+  Arrows are blue by default and denote moving a piece of data from one place to another with no (or very little) change. Light blue arrows are denoting witness query that is implemented through the handler mechanism. The “chicken foot” connector means that this arrow accesses just one field in an array: such an arrow could connect e.g. a input field of type old_a: A in a structure Vec<(A,B)> to an output new_a: A, which just means that we are inside a for loop and this computation is done for all the elemnts in the vector/array.
+
+![Figure](/img/pickles_structure_drawio.png)
 
 # Consensus
 
