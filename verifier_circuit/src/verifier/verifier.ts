@@ -1,5 +1,5 @@
 import { readFileSync } from 'fs';
-import { CircuitBn254, FieldBn254, ProvableBn254, circuitMainBn254, publicBn254 } from 'o1js';
+import { CircuitBn254, FieldBn254, ProvableBn254, PoseidonBn254, circuitMainBn254, publicBn254 } from 'o1js';
 import { PolyComm } from '../poly_commitment/commitment.js';
 import { SRS } from '../SRS.js';
 import { fp_sponge_initial_state, fp_sponge_params, Sponge } from './sponge.js';
@@ -217,13 +217,22 @@ export class Verifier extends CircuitBn254 {
     static readonly PERMUTATION_CONSTRAINTS: number = 3;
 
     @circuitMainBn254
-    static main(@publicBn254 proofHash: FieldBn254) {
+    static main(@publicBn254 proofAndMerkleHashInput: FieldBn254) {
         let proof = ProvableBn254.witness(OpeningProof, () => {
             let openingProofFields: string[] = JSON.parse(readFileSync("./src/opening_proof_fields.json", "utf-8"));
 
             return OpeningProof.fromFields(openingProofFields.map(FieldBn254));
         });
-        proofHash.assertEquals(proof.hash());
+        let merkleRoot = ProvableBn254.witness(FieldBn254, () => {
+            let rootString: string[] = JSON.parse(readFileSync("./src/merkle_root.json", "utf-8"));
+            return FieldBn254(rootString[0]);
+        });
+        let proofHash = proof.hash();
+        let proofAndMerkleHash = ProvableBn254.witness(FieldBn254, () => {
+            return PoseidonBn254.hash([proofHash, merkleRoot]);
+        });
+
+        proofAndMerkleHashInput.assertEquals(proofAndMerkleHash);
 
         // if the proof is successful, this will be 1. Else will be 0.
         let success = ForeignScalar.from(0).assertAlmostReduced();

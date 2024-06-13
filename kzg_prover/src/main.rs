@@ -7,7 +7,7 @@ use ark_ec::{
     bn::Bn, msm::VariableBaseMSM, short_weierstrass_jacobian::GroupAffine, AffineCurve,
     ProjectiveCurve,
 };
-use ark_ff::{BigInteger256, Field, PrimeField};
+use ark_ff::{field_new, BigInteger256, Field, PrimeField};
 use ark_poly::{
     univariate::DensePolynomial, EvaluationDomain, Evaluations, Polynomial, Radix2EvaluationDomain,
     UVPolynomial,
@@ -53,6 +53,7 @@ use poly_commitment::{
     PolyComm, SRS as _,
 };
 use serde::{ser::SerializeStruct, Serialize};
+use serde_json::Value;
 use serializer::{
     serialize::{EVMSerializable, EVMSerializableType},
     type_aliases::{BN254PolishToken, BN254ProofEvaluations},
@@ -83,6 +84,11 @@ fn generate_proof() {
     let index: ProverIndex<G1, KZGProof> =
         serde_json::from_str(&fs::read_to_string("./index.json").unwrap()).unwrap();
     println!("domain size: {}", index.cs.domain.d1.size);
+
+    let proof_hash = ark_bn254::Fr::from_le_bytes_mod_order(
+        &serde_json::from_str::<[u8; 32]>(&fs::read_to_string("./proof_hash.json").unwrap())
+            .unwrap(),
+    );
 
     let (_endo_q, endo_r) = G1::endos();
     println!("cs endo: {}", endo_r); // ProverIndex::create() sets cs endo to endo_r
@@ -203,8 +209,8 @@ fn generate_proof() {
     )
     .unwrap();
 
-    let mut public_input_bytes = EVMSerializableType(*public_input).to_bytes();
-    fs::write("../eth_verifier/public_input.bin", public_input_bytes).unwrap();
+    let proof_hash_bytes = EVMSerializableType(proof_hash).to_bytes();
+    fs::write("../eth_verifier/proof_hash.bin", proof_hash_bytes).unwrap();
 
     let empty_polycomm = PolyComm::new(
         vec![G1::new(BaseField::from(0), BaseField::from(0), true)],

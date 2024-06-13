@@ -105,16 +105,30 @@ Note that, in the second diagram, the Verification key taken from the Mina node 
 On root folder run:
 
 ```sh
-make
+MINA_RPC_URL=<rpc_url> make
 ```
 
-This will:
+Where `<rpc_url>` is the URL of the Mina node GraphQL API used to query the Mina state proof.
+
+This command will:
 
 * Invoke the polling service and query the last Mina chain state and a Pasta+IPA proof, then send both to the `public_input_gen/` crate.
 * This crate will compute needed data (SRS, public inputs) for feeding the state proof into an o1js verifier circuit.
 * The circuit will verify the proof and output the gate system to a KZG prover.
 * The KZG prover will generate another proof (BN254+KZG) of this verification. This makes it suitable to verify in an Ethereum smart contract. The final proof including the embedded state will be sent to the Solidity verifier.
 * The verifier will be deployed in Anvil (a local test blockchain) and a bash script will send a transaction with the state+proof data for running the final verification. If successful, the contract will store the state data and will expose an API for the user to retrieve it, knowing that this data was zk-verified.
+
+### Account state utility
+
+On root folder run:
+
+```sh
+MINA_RPC_URL=<rpc_url> sh state_utility/run.sh <public_key>
+```
+
+Where `<rpc_url>` is the URL of the Mina node GraphQL API used to query the Mina state proof.
+
+This will return the balance of the account associated with the `<public_key>` passed as argument.
 
 #### Roadmap
 
@@ -157,7 +171,7 @@ To run a node, [follow the installation steps](https://github.com/MinaProtocol/m
 On `polling_service` run:
 
 ```sh
-./run.sh
+MINA_RPC_URL=<rpc_url>  ./run.sh
 ```
 
 This script will:
@@ -180,6 +194,8 @@ On `verifier_circuit/` run:
 ```sh
 make
 ```
+
+Where `<rpc_url>` is the URL of the Mina node GraphQL API used to query the Mina state proof.
 
 This command will create:
 
@@ -263,7 +279,7 @@ This repo has commands to easily deploy the Verifier contract and verify a proof
 To deploy the Verifier contract to Sepolia, run:
 
 ```bash
-PRIVATE_KEY=<your_private_key> RPC_URL=<rpc_url> make sepolia.deploy
+PRIVATE_KEY=<your_private_key> ETH_RPC_URL=<rpc_url> make sepolia.deploy
 ```
 
 Where:
@@ -274,7 +290,7 @@ Where:
 To upload the proof generated with `kzg_prover`, run:
 
 ```bash
-PRIVATE_KEY=<your_private_key> RPC_URL=<rpc_url> CONTRACT_ADDRESS=<verifier_address> make sepolia.upload_proof
+PRIVATE_KEY=<your_private_key> ETH_RPC_URL=<rpc_url> CONTRACT_ADDRESS=<verifier_address> make sepolia.upload_proof
 ```
 
 Where `<verifier_address>` is the address of the deployed Verifier contract.
@@ -283,7 +299,7 @@ It reads the proof, its public inputs and the index linearization and uploads th
 To verify the uploaded proof, run:
 
 ```bash
-PRIVATE_KEY=<your_private_key> RPC_URL=<rpc_url> CONTRACT_ADDRESS=<verifier_address> make sepolia.verify
+PRIVATE_KEY=<your_private_key> ETH_RPC_URL=<rpc_url> CONTRACT_ADDRESS=<verifier_address> make sepolia.verify
 ```
 
 This will run the partial and final verification over the uploaded proof and return the verification result as a boolean.

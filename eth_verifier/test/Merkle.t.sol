@@ -4,7 +4,7 @@ pragma solidity >=0.4.16 <0.9.0;
 import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 
-import "poseidon/Sponge.sol";
+import "poseidon/Pasta.sol";
 import "pasta/Fields.sol";
 import "merkle/Verify.sol";
 

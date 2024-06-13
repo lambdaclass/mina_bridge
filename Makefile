@@ -1,21 +1,19 @@
 .PHONY: run check_account sepolia.wrap_and_deploy sepolia.verify
 
-export CONTRACT_ADDRESS
-
 run:
 	@echo "Setting up o1js..."
 	@git submodule update --init --recursive
 	@echo "Fetching state proof from Mina node..."
 	@cd polling_service && sh run.sh
 	@echo "Done!"
+	@echo "Fetching Merkle root..."
+	@cd state_utility && sh run.sh
+	@echo "Done!"
 	@echo "Creating circuit gates..."
 	@cd verifier_circuit && npm i && make
 	@echo "Done!"
 	@echo "Creating KZG proof..."
 	@cd kzg_prover && cargo r --release
-	@echo "Done!"
-	@echo "Fetching Merkle root..."
-	@cd state_utility && sh run.sh
 	@echo "Done!"
 	@echo "Deploying and verifying in Anvil..."
 	@cd eth_verifier && make setup && sh run.sh
@@ -30,7 +28,7 @@ run:
 
 check_account:
 	@echo "Fetching Merkle path and leaf hash..."
-	@cd merkle_path && cargo r --release -- ../public_key.txt
+	@cd state_utility/merkle_path && cargo r --release -- $(MINA_RPC_URL) ../../public_key.txt
 	@echo "Done!"
 	@echo "Verifying Merkle proof inclusion..."
 	@cd eth_verifier && make setup && make merkle_locally
