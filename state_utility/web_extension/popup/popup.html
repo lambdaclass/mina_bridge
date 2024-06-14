@@ -2,19 +2,20 @@
 <html>
     <head>
         <meta charset="utf-8" />
-        <script src="utility.js"></script>
     </head>
 
     <body>
         <div id="popup-content">
             <h1>Mina account state utility</h1>
-            <form name="account-form" onsubmit="accountForm()">
+            <form name="account-form">
                 <input type="text" name="public-key">
                 <input type="submit" value="Check account">
             </form>
             <h3>Verified?: <span id="verified">no</span></h3>
             <h3>Balance: <span id="balance"></span></h3>
         </div>
+
+        <script src="utility.js"></script>
     </body>
 </html>
 
