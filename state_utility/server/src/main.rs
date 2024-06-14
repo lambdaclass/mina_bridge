@@ -70,7 +70,7 @@ async fn account_state(
     //    "balance": 100
     //}
     let response =
-        format!(r#"{{"verified": {ret_merkle_proof_string}, "balance": {ret_balance_string}}}"#);
+        format!("{{\"verified\": {ret_merkle_proof_string}, \"balance\": {ret_balance_string}}}");
     Ok(Json(response))
 }
 
