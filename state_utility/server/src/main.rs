@@ -1,9 +1,21 @@
+use alloy::{
+    network::EthereumWallet, providers::ProviderBuilder, signers::local::PrivateKeySigner, sol,
+};
+use alloy_primitives::{Bytes, FixedBytes};
 use axum::{
     extract::{Path, State},
     routing::get,
     Json, Router,
 };
+use merkle_path::{field, merkle_path::MerkleTree, serialize::EVMSerializable as _};
+use reqwest::Url;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
+
+sol!(
+    #[sol(rpc)]
+    Verifier,
+    "verifier.json"
+);
 
 #[tokio::main]
 async fn main() -> Result<(), String> {
@@ -17,6 +29,7 @@ async fn main() -> Result<(), String> {
     let app = Router::new()
         .route("/", get(root))
         .route("/balance/:public_key", get(balance))
+        .route("/merkle_proof/:mina_public_key/:mina_rpc_url_str/:eth_rpc_url_str/:verifier_address_str", get(merkle_proof))
         .with_state(pool);
 
     // run our app with hyper, listening globally on port 3000
@@ -49,4 +62,43 @@ async fn balance(
         .map_err(|err| format!("Could not query the database: {err}"))?;
 
     Ok(Json(row.1))
+}
+
+async fn merkle_proof(
+    State(_pool): State<Pool<Postgres>>,
+    Path((mina_public_key, mina_rpc_url_str, eth_rpc_url_str, verifier_address_str)): Path<(
+        String,
+        String,
+        String,
+        String,
+    )>,
+) -> Result<Json<String>, String> {
+    let eth_rpc_url =
+        Url::parse(&eth_rpc_url_str).map_err(|err| format!("Could not parse RPC URL: {err}"))?;
+
+    let provider = ProviderBuilder::new()
+        .with_recommended_fillers()
+        .on_http(eth_rpc_url);
+
+    let verifier_address = verifier_address_str
+        .parse()
+        .map_err(|err| format!("Could not parse Verifier address: {err}"))?;
+    let contract = Verifier::new(verifier_address, provider);
+
+    let merkle_tree = MerkleTree::query_merkle_path(&mina_rpc_url_str, &mina_public_key)?;
+    let leaf_hash = field::from_str(&merkle_tree.data.account.leaf_hash)?;
+    let leaf_hash_bytes = FixedBytes::from_slice(&field::to_bytes(&leaf_hash)?);
+    let merkle_path_bytes =
+        Bytes::copy_from_slice(&merkle_tree.data.account.merkle_path.to_bytes());
+
+    let transaction_builder = contract.verify_account_inclusion(leaf_hash_bytes, merkle_path_bytes);
+    let is_account_valid = transaction_builder
+        .call()
+        .await
+        .map_err(|err| format!("Could not call verification method: {err}"))?
+        ._0;
+
+    let response = format!("{is_account_valid}");
+
+    Ok(Json(response))
 }

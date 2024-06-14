@@ -113,7 +113,8 @@ contract KimchiVerifier {
         uint256 public_input = calc_public_input();
         Proof.AggregatedEvaluationProof memory agg_proof =
             KimchiPartialVerifier.partial_verify(proof, verifier_index, urs, public_input);
-        return final_verify(agg_proof);
+        last_verification_result = final_verify(agg_proof);
+        return last_verification_result;
     }
 
     function partial_verify_and_store() public {
