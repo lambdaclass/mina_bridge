@@ -85,7 +85,7 @@ This means that the Mina account with the public key `B62qpWKzx7e1mmwVf8dJAPFQPG
 To check if the state of a Mina account is present in the ledger hash from Mina Devnet stored in Ethereum:
 
 ```sh
-> curl "http://localhost:3000/merkle_proof/B62qpWKzx7e1mmwVf8dJAPFQPGVpZP9pJaobhvg8iagqU2r1bEyndMa/http%3A%2F%2Flocalhost%3A3085%2Fgraphql http%3A%2F%2Flocalhost%3A8545/0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e"
+> curl "http://localhost:3000/merkle_proof/B62qpWKzx7e1mmwVf8dJAPFQPGVpZP9pJaobhvg8iagqU2r1bEyndMa/http%3A%2F%2Flocalhost%3A3085%2Fgraphql/http%3A%2F%2Flocalhost%3A8545/0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e"
 "true"
 ```
 
