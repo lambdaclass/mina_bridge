@@ -1,16 +1,20 @@
 {
-  "manifest_version": 2,
-  "name": "Mina account state utility",
-  "version": "0.0.1",
-
-  "description": "Check your Mina account via the Mina-Ethereum ZK bridge",
-
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["utility.js"]
+    "manifest_version": 2,
+    "name": "Mina account state utility",
+    "version": "0.0.1",
+    "description": "Check your Mina account via the Mina-Ethereum ZK bridge",
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "utility.js"
+            ]
+        }
+    ],
+    "browser_action": {
+        "default_title": "Mina account util",
+        "default_popup": "popup/popup.html"
     }
-  ]
 }
-
-
