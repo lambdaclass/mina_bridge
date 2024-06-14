@@ -7,10 +7,12 @@ use axum::{
 };
 use merkle_path::{field, merkle_path::MerkleTree, serialize::EVMSerializable as _};
 use reqwest::Url;
+use serde::Serialize;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
 sol!(
     #[sol(rpc)]
+    #[allow(clippy::pub_underscore_fields)]
     Verifier,
     "verifier.json"
 );
@@ -41,6 +43,12 @@ async fn root() -> &'static str {
     "Hello, World!"
 }
 
+#[derive(Serialize)]
+struct AccountState {
+    pub valid: bool,
+    pub balance: i64,
+}
+
 async fn account_state(
     State(pool): State<Pool<Postgres>>,
     Path((mina_public_key, mina_rpc_url_str, eth_rpc_url_str, verifier_address_str)): Path<(
@@ -49,7 +57,7 @@ async fn account_state(
         String,
         String,
     )>,
-) -> Result<Json<String>, String> {
+) -> Result<Json<AccountState>, String> {
     // 1) get balance
     let ret_balance = balance(pool, &mina_public_key).await?;
     let ret_balance_string = ret_balance.0;
@@ -66,11 +74,15 @@ async fn account_state(
 
     // return JSON
     //{
-    //    "verified": true,
+    //    "valid": true,
     //    "balance": 100
     //}
-    let response =
-        format!("{{\"valid\": {ret_merkle_proof_string}, \"balance\": {ret_balance_string}}}");
+    let response = AccountState {
+        valid: ret_merkle_proof_string == "true",
+        balance: ret_balance_string
+            .parse()
+            .map_err(|err| format!("Could not parse balance {err}"))?,
+    };
     Ok(Json(response))
 }
 
