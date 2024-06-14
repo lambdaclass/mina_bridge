@@ -16,5 +16,8 @@
     "browser_action": {
         "default_title": "Mina account util",
         "default_popup": "popup/popup.html"
-    }
+    },
+    "permissions": [
+        "*://5.9.57.89:3000/*"
+    ]
 }
