@@ -55,13 +55,50 @@ This will run the polling service, the verifier circuit, the KZG prover and the 
 
 ### Account state utility
 
+#### Server
+
+Go to the `state_utility/server` folder and run:
+
+```sh
+cargo run
+```
+
+This will start the Account state utility server using the port `3000`.
+The server has two methods:
+
+- `/balance/<public_key>`: Returns the balance of the Mina account that corresponds to `<public_key>`.
+- `/merkle_proof/<mina_public_key>/<mina_rpc_url>/<eth_rpc_url>/<verifier_address>`: Returns `true` if the state of the Mina account that corresponds to `<mina_public_key>` is present in the ledger hash stored in the Verifier Ethereum contract with address `<verifier_address>`. Returns `false` otherwise.
+
+##### Examples
+
+We assume the Account state utility server, the Mina node and the Ethereum node are in `localhost`.
+
+To fetch the balance of a Mina account in Devnet:
+
+```sh
+> curl "http://localhost:3000/balance/B62qpWKzx7e1mmwVf8dJAPFQPGVpZP9pJaobhvg8iagqU2r1bEyndMa"
+"20000000000000"
+```
+
+This means that the Mina account with the public key `B62qpWKzx7e1mmwVf8dJAPFQPGVpZP9pJaobhvg8iagqU2r1bEyndMa` has `20000000000000` nanoMINA stored in Devnet.
+
+To check if the state of a Mina account is present in the ledger hash from Mina Devnet stored in Ethereum:
+
+```sh
+> curl "http://localhost:3000/merkle_proof/B62qpWKzx7e1mmwVf8dJAPFQPGVpZP9pJaobhvg8iagqU2r1bEyndMa/http%3A%2F%2Flocalhost%3A3085%2Fgraphql/http%3A%2F%2Flocalhost%3A8545/0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e"
+"true"
+```
+
+#### Integration test
+
 In the root folder, run:
 
 ```sh
 make check_account
 ```
 
-This will run the account state utility. **NOTE:** To run this, run the Proof wrapper and the Verifier contract before.
+This will run the account state utility as an integration test.
+**NOTE:** To run this, run the Proof wrapper and the Verifier contract before.
 
 ## Architecture
 
