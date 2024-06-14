@@ -80,6 +80,8 @@ To fetch the balance of a Mina account in Devnet:
 "20000000000000"
 ```
 
+This means that the Mina account with the public key `B62qpWKzx7e1mmwVf8dJAPFQPGVpZP9pJaobhvg8iagqU2r1bEyndMa` has `20000000000000` nanoMINA stored in Devnet.
+
 To check if the state of a Mina account is present in the ledger hash from Mina Devnet stored in Ethereum:
 
 ```sh
