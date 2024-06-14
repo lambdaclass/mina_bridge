@@ -64,30 +64,39 @@ cargo run
 ```
 
 This will start the Account state utility server using the port `3000`.
-The server has two methods:
+The server has one method `account_state` which receives the following arguments:
 
-- `/balance/<public_key>`: Returns the balance of the Mina account that corresponds to `<public_key>`.
-- `/merkle_proof/<mina_public_key>/<mina_rpc_url>/<eth_rpc_url>/<verifier_address>`: Returns `true` if the state of the Mina account that corresponds to `<mina_public_key>` is present in the ledger hash stored in the Verifier Ethereum contract with address `<verifier_address>`. Returns `false` otherwise.
+- `mina_public_key`: The public key associated to a Mina account.
+- `mina_rpc_url`: URL of the Mina node GraphQL API.
+- `eth_rpc_url`: URL of the Ethereum gateway.
+- `verifier_address`: Address of the Mina bridge verifier Ethereum contract.
+
+This method returns the following JSON:
+
+```json
+{
+  "balance": <mina_account_balance>,
+  "verified": <mina_account_state_validity>
+}
+```
+
+Where:
+
+- `mina_account_balance` is the balance of the Mina account that corresponds to `<mina_public_key>`.
+- `mina_account_state_validity`: `true` if the state of the Mina account that corresponds to `<mina_public_key>` is present in the ledger hash stored in the Verifier Ethereum contract with address `<verifier_address>`. `false` otherwise.
 
 ##### Examples
 
 We assume the Account state utility server, the Mina node and the Ethereum node are in `localhost`.
 
-To fetch the balance of a Mina account in Devnet:
+To fetch the state of a Mina account in Devnet:
 
 ```sh
-> curl "http://localhost:3000/balance/B62qpWKzx7e1mmwVf8dJAPFQPGVpZP9pJaobhvg8iagqU2r1bEyndMa"
-"20000000000000"
+> curl "http://localhost:3000/account_state/B62qpWKzx7e1mmwVf8dJAPFQPGVpZP9pJaobhvg8iagqU2r1bEyndMa/http%3A%2F%2Flocalhost%3A3085%2Fgraphql/http%3A%2F%2Flocalhost%3A8545/0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e"
+"{\"verified\": true, \"balance\": 20000000000000}"
 ```
 
-This means that the Mina account with the public key `B62qpWKzx7e1mmwVf8dJAPFQPGVpZP9pJaobhvg8iagqU2r1bEyndMa` has `20000000000000` nanoMINA stored in Devnet.
-
-To check if the state of a Mina account is present in the ledger hash from Mina Devnet stored in Ethereum:
-
-```sh
-> curl "http://localhost:3000/merkle_proof/B62qpWKzx7e1mmwVf8dJAPFQPGVpZP9pJaobhvg8iagqU2r1bEyndMa/http%3A%2F%2Flocalhost%3A3085%2Fgraphql/http%3A%2F%2Flocalhost%3A8545/0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e"
-"true"
-```
+This means that the Mina account with the public key `B62qpWKzx7e1mmwVf8dJAPFQPGVpZP9pJaobhvg8iagqU2r1bEyndMa` has `20000000000000` nanoMINA stored in Devnet and its state is valid according to the Mina bridge.
 
 #### Integration test
 
