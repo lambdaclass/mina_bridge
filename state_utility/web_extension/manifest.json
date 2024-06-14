@@ -9,7 +9,7 @@
                 "<all_urls>"
             ],
             "js": [
-                "utility.js"
+                "background.js"
             ]
         }
     ],
