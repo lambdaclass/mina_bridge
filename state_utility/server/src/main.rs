@@ -46,7 +46,7 @@ async fn root() -> &'static str {
 #[derive(Serialize)]
 struct AccountState {
     pub valid: bool,
-    pub balance: i64,
+    pub balance: u64,
 }
 
 async fn account_state(
