@@ -1,6 +1,4 @@
-use alloy::{
-    network::EthereumWallet, providers::ProviderBuilder, signers::local::PrivateKeySigner, sol,
-};
+use alloy::{providers::ProviderBuilder, sol};
 use alloy_primitives::{Bytes, FixedBytes};
 use axum::{
     extract::{Path, State},
@@ -54,7 +52,7 @@ async fn account_state(
 ) -> Result<Json<String>, String> {
     // 1) get balance
     let ret_balance = balance(pool, &mina_public_key).await?;
-    let ret_string = ret_balance.0;
+    let ret_balance_string = ret_balance.0;
 
     // 2) get merkle proof
     let ret_merkle_proof = merkle_proof(
@@ -66,13 +64,13 @@ async fn account_state(
     .await?;
     let ret_merkle_proof_string = ret_merkle_proof.0;
 
-    println!("{ret_string} - {ret_merkle_proof_string}");
     // return JSON
     //{
     //    "verified": true,
     //    "balance": 100
     //}
-    let response = r#"{{"verified": true, "balance": 200}}"#.to_string();
+    let response =
+        format!(r#"{{"verified": {ret_merkle_proof_string}, "balance": {ret_balance_string}}}"#);
     Ok(Json(response))
 }
 
