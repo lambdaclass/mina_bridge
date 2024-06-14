@@ -72,7 +72,7 @@ async fn account_state(
     //    "verified": true,
     //    "balance": 100
     //}
-    let response = format!(r#"{{"verified": true, "balance": 200}}"#);
+    let response = r#"{{"verified": true, "balance": 200}}"#.to_string();
     Ok(Json(response))
 }
 
