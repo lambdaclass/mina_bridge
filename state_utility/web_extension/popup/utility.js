@@ -12,7 +12,7 @@ function accountForm() {
         //let balance = response.balance
 
         let valid = false;
-        let balance = 0;
+        let balance = "?";
 
         if (publicKey === "verified") {
             valid = true;
