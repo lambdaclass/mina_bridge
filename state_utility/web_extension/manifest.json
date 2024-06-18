@@ -19,5 +19,11 @@
     },
     "permissions": [
         "*://*/*"
-    ]
+    ],
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "mina-state-util@lambdaclass.com",
+            "strict_min_version": "42.0"
+        }
+    }
 }
