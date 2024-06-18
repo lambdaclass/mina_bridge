@@ -1,0 +1,16 @@
+{
+  "name": "web_extension",
+  "version": "0.0.1",
+  "description": "Check your Mina account via the Mina-Ethereum ZK bridge",
+  "main": "utility.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:firefox": "web-ext run"
+  },
+  "author": "lambdaclass",
+  "license": "ISC",
+  "devDependencies": {
+    "tailwindcss": "^3.4.4",
+    "web-ext": "^8.1.0"
+  }
+}

@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <link href="./output.css" rel="stylesheet">
+</head>
+
+<body class="flex p-2 m-0 border-2 border-indigo-300">
+    <div id="popup-content">
+        <div class="flex flex-col p-3 shadow-md rounded bg-indigo-500 text-white">
+            <h1 class="font-black text-3xl text-center">Mina Account Check</h1>
+        </div>
+        <div class="flex flex-col p-0 mb-5">
+            <h2 class="font-light text-lg text-center">Leveraging the Mina-Ethereum ZK bridge</h2>
+        </div>
+        <div class="flex flex-col py-3 text-center">
+            <div class="">
+                <h1 class="text-5xl mx-5" id="balance">?</h1>
+            </div>
+            <div class="">
+                <span class="text-lg">$MINA</span>
+            </div>
+        </div>
+        <form name="account-form" class="flex flex-col my-3">
+            <input type="text" id="public-key"  placeholder="Account address" class="my-1 py-1 px-2 bg-transparent border-2 shadow shadow-violet-200 rounded-sm text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6">
+            <input id="submit" type="button" value="Check account" class="bg-indigo-500 hover:bg-indigo-600 active:bg-indigo-700 text-white rounded p-2 transition ease-in-out">
+        </form>
+        <div class="hidden py-3" id="verified">
+            <h3>This account is verified in Ethereum! 🎉</h3>
+        </div>
+        <div class="hidden py-3" id="notverified">
+            <h3>This account is <b>not</b> verified in Ethereum :(</h3>
+        </div>
+        <div class="hidden py-3" id="errormsg">
+            <h3>⚠️ Invalid public key or error while fetching from server.</h3>
+        </div>
+    </div>
+
+    <script src="utility.js"></script>
+</body>
+
+</html>
