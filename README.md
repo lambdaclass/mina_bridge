@@ -66,10 +66,10 @@ cargo run
 This will start the Account state utility server using the port `3000`.
 The server has one method `account_state` which receives the following arguments:
 
-- `mina_public_key`: The public key associated to a Mina account.
-- `mina_rpc_url`: URL of the Mina node GraphQL API.
-- `eth_rpc_url`: URL of the Ethereum gateway.
-- `verifier_address`: Address of the Mina bridge verifier Ethereum contract.
+* `mina_public_key`: The public key associated to a Mina account.
+* `mina_rpc_url`: URL of the Mina node GraphQL API.
+* `eth_rpc_url`: URL of the Ethereum gateway.
+* `verifier_address`: Address of the Mina bridge verifier Ethereum contract.
 
 This method returns the following JSON:
 
@@ -82,8 +82,8 @@ This method returns the following JSON:
 
 Where:
 
-- `mina_account_balance` is the balance of the Mina account that corresponds to `<mina_public_key>`.
-- `mina_account_state_validity`: `true` if the state of the Mina account that corresponds to `<mina_public_key>` is present in the ledger hash stored in the Verifier Ethereum contract with address `<verifier_address>`. `false` otherwise.
+* `mina_account_balance` is the balance of the Mina account that corresponds to `<mina_public_key>`.
+* `mina_account_state_validity`: `true` if the state of the Mina account that corresponds to `<mina_public_key>` is present in the ledger hash stored in the Verifier Ethereum contract with address `<verifier_address>`. `false` otherwise.
 
 ##### Examples
 
@@ -93,7 +93,7 @@ To fetch the state of a Mina account in Devnet:
 
 ```sh
 > curl "http://localhost:3000/account_state/B62qpWKzx7e1mmwVf8dJAPFQPGVpZP9pJaobhvg8iagqU2r1bEyndMa/http%3A%2F%2Flocalhost%3A3085%2Fgraphql/http%3A%2F%2Flocalhost%3A8545/0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e"
-"{\"verified\": true, \"balance\": 20000000000000}"
+{"valid":true,"balance":20000000000000}
 ```
 
 This means that the Mina account with the public key `B62qpWKzx7e1mmwVf8dJAPFQPGVpZP9pJaobhvg8iagqU2r1bEyndMa` has `20000000000000` nanoMINA stored in Devnet and its state is valid according to the Mina bridge.
@@ -529,22 +529,19 @@ The two curves pallas and vesta (pa(llas ve)sta) created by the [Zcash team](htt
 
 These curves are referred to as “tick” and “tock” within the Mina source code.
 
-
 * Tick - Vesta (a.k.a. Step), constraint domain size 2¹⁸  [block and transaction proofs]
 * Tock - Pallas (a.k.a. Wrap), constraint domain size 2¹²  [signatures]
 
-
-The Tock prover does less (only performs recursive verifications and 
-no other logic), so it requires fewer constraints and has a smaller 
-domain size.  Internally Pickles refers to Tick and Tock as _Step_ and 
+The Tock prover does less (only performs recursive verifications and
+no other logic), so it requires fewer constraints and has a smaller
+domain size.  Internally Pickles refers to Tick and Tock as _Step_ and
 _Wrap_, respectively.
 
 One curve handles the current proof, while the other is used to verify previous proofs.
 
-Tock is used to prove the verification of a Tick proof and outputs a 
-Tick proof.  Tick is used to prove the verification of a Tock proof and 
+Tock is used to prove the verification of a Tick proof and outputs a
+Tick proof.  Tick is used to prove the verification of a Tock proof and
 outputs a Tock proof.  In other words,
-
 
 * Prove<sub>tock</sub> ( Verify(_Tick_) ) = Tick<sub>proof</sub>
 
@@ -557,15 +554,15 @@ Both Tick and Tock can verify at most 2 proofs of the opposite kind, though, the
 
 Currently, in Mina we have the following situation.
 
-- Every Tock always wraps 1 Tick proof.  
-- Tick proofs can verify 2 Tock proofs
-    - Blockchain SNARK takes previous blockchain SNARK proof and a transaction proof
-    - Verifying two Tock transaction proofs
+* Every Tock always wraps 1 Tick proof.  
+* Tick proofs can verify 2 Tock proofs
+  * Blockchain SNARK takes previous blockchain SNARK proof and a transaction proof
+  * Verifying two Tock transaction proofs
 
 Pickles works over [Pasta](https://o1-labs.github.io/proof-systems/specs/pasta.html), a cycle of curves consisting of Pallas and Vesta, and thus it defines two generic circuits, one for each curve. Each can be thought of as a parallel instantiation of a kimchi proof systems. These circuits are not symmetric and have somewhat different function:
 
-- **Step circuit**: this is the main circuit that contains application logic. Each step circuit verifies a statement and potentially several (at most 2) other wrap proofs.
-- **Wrap circuit**: this circuit merely verifies the step circuit, and does not have its own application logic. The intuition is that every time an application statement is proven it’s done in Step, and then the resulting proof is immediately wrapped using Wrap.
+* **Step circuit**: this is the main circuit that contains application logic. Each step circuit verifies a statement and potentially several (at most 2) other wrap proofs.
+* **Wrap circuit**: this circuit merely verifies the step circuit, and does not have its own application logic. The intuition is that every time an application statement is proven it’s done in Step, and then the resulting proof is immediately wrapped using Wrap.
 
 ---
 
@@ -574,22 +571,22 @@ Both [Step and Wrap circuits](https://o1-labs.github.io/proof-systems/pickles/ov
 1. Execute the application logic statement (e.g. the mina transaction is valid)
 2. Verify that the previous Wrap proof is (first-)half-valid (perform only main checks that are efficient for the curve)
 3. Verify that the previous Step proof is (second-)half-valid (perform the secondary checks that were inefficient to perform when the previous Step was Wrapped)
-4. Verify that the previous Step correctly aggregated the previous accumulator, e.g. acc2=Aggregate(acc1,*π* step,2)
+4. Verify that the previous Step correctly aggregated the previous accumulator, e.g. acc2=Aggregate(acc1,_π_ step,2)
 
 ![Step-Wrap Diagram ](/img/step_diagram.png)
 --------------------------------------------------------
+
 ### Accumulator ###
-The accumulator is an abstraction introduced for the purpose of this diagram. In practice, each kimchi proof consists of (1) commitments to polynomials, (2) evaluations of them, (3) and the opening proof. 
+
+The accumulator is an abstraction introduced for the purpose of this diagram. In practice, each kimchi proof consists of (1) commitments to polynomials, (2) evaluations of them, (3) and the opening proof.
 
 What we refer to as **accumulator** here is actually the commitment inside the opening proof. It is called `sg` in the implementation and is semantically a polynomial commitment to `h(X)` (`b_poly` in the code) — the poly-sized polynomial that is built from IPA challenges.
 
 It’s a very important polynomial – it can be evaluated in log time, but the commitment verification takes poly time, so the fact that `sg` is a commitment to `h(X)` is never proven inside the circuit. For more details, see [Proof-Carrying Data from Accumulation Schemes](https://eprint.iacr.org/2020/499.pdf), Appendix A.2, where `sg` is called `U`.
 
-In pickles, what we do is that we “absorb” this commitment `sg` from the previous step while creating a new proof. 
+In pickles, what we do is that we “absorb” this commitment `sg` from the previous step while creating a new proof.
 
 That is, for example, Step 1 will produce this commitment that is denoted as `acc1` on the diagram, as part of its opening proof, and Step 2 will absorb this commitment. And this “absorbtion” is what Wrap 2 will prove (and, partially, Step 3 will also refer to the challenges used to build `acc1`, but this detail is completely avoided in this overview). In the end, `acc2` will be the result of Step 2, so in a way `acc2` “aggregates” `acc1` which somewhat justifies the language used.
-
-
 
 ### Analysis of the Induction (recursion) method applied in Pickles ###
 
@@ -640,13 +637,12 @@ Let's now see how the Verifier Fast is divided.
 
 The proof **Pi** is divided into 2 parts, one corresponding to group operations **G**, and it exposes, as a public input to the circuit, the part of the proof that is necessary to execute **Vf**.
 
-
 ### Pickles Technical Diagrams ###
 
   The black boxes are data structures that have names and labels following the implementation.  
   `MFNStep/MFNWrap` is an abbreviation from `MessagesForNextStep` and `MessagesForNextWrap` that is used for brevity. Most other datatypes are exactly the same as in the codebase.  
 
-  The blue boxes are computations. Sometimes, when the computation is trivial or only vaguely indicated, it is denoted as a text sign directly on an arrow.    
+  The blue boxes are computations. Sometimes, when the computation is trivial or only vaguely indicated, it is denoted as a text sign directly on an arrow.
 
   Arrows are blue by default and denote moving a piece of data from one place to another with no (or very little) change. Light blue arrows are denoting witness query that is implemented through the handler mechanism. The “chicken foot” connector means that this arrow accesses just one field in an array: such an arrow could connect e.g. a input field of type old_a: A in a structure Vec<(A,B)> to an output new_a: A, which just means that we are inside a for loop and this computation is done for all the elemnts in the vector/array.
 
