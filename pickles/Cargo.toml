@@ -6,9 +6,12 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-kimchi = { git = "https://github.com/o1-labs/proof-systems.git", rev = "fd7c19d" }
-groupmap = { git = "https://github.com/o1-labs/proof-systems.git", rev = "fd7c19d" }
+mina-tree = { git = "https://github.com/openmina/openmina.git", rev = "8820a3c" }
 serde = "1.0.117"
 serde_json = "1.0.117"
 
-
+[patch.crates-io]
+ark-ff = { git = "https://github.com/openmina/algebra", branch = "openmina" }
+ark-ec = { git = "https://github.com/openmina/algebra", branch = "openmina" }
+ark-poly = { git = "https://github.com/openmina/algebra", branch = "openmina" }
+ark-serialize = { git = "https://github.com/openmina/algebra", branch = "openmina" }
