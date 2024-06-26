@@ -60,7 +60,10 @@ pub struct BulletproofChallenge {
 
 #[derive(Deserialize)]
 pub struct Prechallenge {
-    pub inner: [U64; 2],
+    // OCaml doesn't support unsigned integers, these should
+    // be two u64 limbs but are encoded with a sign.
+    // We just need to do a cast to u64.
+    pub inner: [I64; 2],
 }
 
 #[derive(Deserialize)]
@@ -110,9 +113,9 @@ pub struct MessagesForNextWrapProof {
     pub old_bulletproof_challenges: [[BulletproofChallenge; 16]; 2],
 }
 
-pub type Point = [String; 2];
-pub type Scalar = String;
-pub type U64 = String;
+pub type Point = [String; 2]; // hex
+pub type Scalar = String; // hex
+pub type I64 = String; // decimal signed
 
 pub fn parse(proof_json: &serde_json::Value) -> Result<StateProof, String> {
     serde_json::from_value(proof_json.to_owned())
