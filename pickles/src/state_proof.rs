@@ -18,8 +18,6 @@ pub struct Bulletproof {
     pub lr: [[Point; 2]; 15],
     pub z_1: String,
     pub z_2: String,
-    pub commitments: Commitments,
-    pub evaluations: Evaluations,
 }
 
 #[derive(Deserialize)]
@@ -53,7 +51,6 @@ pub struct Statement {
 pub struct MessagesForNextStepProof {
     pub challenge_polynomial_commitments: [Point; 2],
     pub old_bulletproof_challenges: [[BulletproofChallenge; 16]; 2],
-    pub proof_state: ProofState,
 }
 
 #[derive(Deserialize)]
@@ -115,6 +112,7 @@ pub struct MessagesForNextWrapProof {
 
 pub type Point = [String; 2];
 
-pub fn parse(proof_json: &str) -> Result<StateProof, String> {
-    serde_json::from_str(proof_json).map_err(|err| format!("Could not parse proof JSON: {err}"))
+pub fn parse(proof_json: &serde_json::Value) -> Result<StateProof, String> {
+    serde_json::from_value(proof_json.to_owned())
+        .map_err(|err| format!("Could not parse proof: {err}"))
 }
