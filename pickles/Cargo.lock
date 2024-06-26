@@ -536,6 +536,7 @@ dependencies = [
 name = "pickles"
 version = "0.1.0"
 dependencies = [
+ "hex",
  "kimchi",
  "serde",
  "serde_json",
