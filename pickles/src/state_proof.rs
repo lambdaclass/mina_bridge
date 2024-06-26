@@ -1,4 +1,7 @@
+use kimchi::mina_curves::pasta::Pallas;
 use serde::Deserialize;
+
+use crate::type_aliases::WrapPolyComm;
 
 #[derive(Deserialize)]
 pub struct StateProof {
@@ -120,4 +123,12 @@ pub type I64 = String; // decimal signed
 pub fn parse(proof_json: &serde_json::Value) -> Result<StateProof, String> {
     serde_json::from_value(proof_json.to_owned())
         .map_err(|err| format!("Could not parse proof: {err}"))
+}
+
+impl Into<WrapPolyComm> for Point {
+    fn into(self) -> WrapPolyComm {
+        from hex
+        basefield from big endian
+        Pallas
+    }
 }
