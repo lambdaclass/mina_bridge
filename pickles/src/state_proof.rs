@@ -16,8 +16,8 @@ pub struct Bulletproof {
     pub challenge_polynomial_commitment: Point,
     pub delta: Point,
     pub lr: [[Point; 2]; 15],
-    pub z_1: String,
-    pub z_2: String,
+    pub z_1: Scalar,
+    pub z_2: Scalar,
 }
 
 #[derive(Deserialize)]
@@ -39,7 +39,7 @@ pub struct Evaluations {
     pub s: [Point; 6],
     pub w: [Point; 15],
     pub z: Point,
-    pub ft_eval1: String,
+    pub ft_eval1: Scalar,
 }
 
 #[derive(Deserialize)]
@@ -60,14 +60,14 @@ pub struct BulletproofChallenge {
 
 #[derive(Deserialize)]
 pub struct Prechallenge {
-    pub inner: Point,
+    pub inner: [U64; 2],
 }
 
 #[derive(Deserialize)]
 pub struct ProofState {
     pub deferred_values: DeferredValues,
     pub messages_for_next_wrap_proof: MessagesForNextWrapProof,
-    pub sponge_digest_before_evaluations: [String; 4],
+    pub sponge_digest_before_evaluations: [Scalar; 4],
 }
 
 #[derive(Deserialize)]
@@ -111,6 +111,8 @@ pub struct MessagesForNextWrapProof {
 }
 
 pub type Point = [String; 2];
+pub type Scalar = String;
+pub type U64 = String;
 
 pub fn parse(proof_json: &serde_json::Value) -> Result<StateProof, String> {
     serde_json::from_value(proof_json.to_owned())

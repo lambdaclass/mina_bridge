@@ -6,9 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-kimchi = { git = "https://github.com/o1-labs/proof-systems.git", rev = "fd7c19d" }
-groupmap = { git = "https://github.com/o1-labs/proof-systems.git", rev = "fd7c19d" }
+kimchi = { git = "https://github.com/o1-labs/proof-systems.git", rev = "develop" }
 serde = "1.0.117"
 serde_json = "1.0.117"
-
-

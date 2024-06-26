@@ -17,7 +17,7 @@ pub fn parse_and_verify(proof_file_path: &str) -> Result<(), String> {
         .and_then(|d| d.get(0))
         .and_then(|d| d.get("protocolStateProof"))
         .and_then(|d| d.get("json")).ok_or("Could not parse protocol state proof: JSON structure upto protocolStateProof is unexpected")?;
-    let protocol_state_proof = parse(protocol_state_proof_json)?;
+    let _protocol_state_proof = parse(protocol_state_proof_json)?;
 
-    todo!()
+    Ok(())
 }
