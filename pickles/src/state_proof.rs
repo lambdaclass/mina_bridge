@@ -1,4 +1,7 @@
+use kimchi::mina_curves::pasta::Pallas;
 use serde::Deserialize;
+
+use crate::type_aliases::WrapPolyComm;
 
 #[derive(Deserialize)]
 pub struct StateProof {
@@ -16,10 +19,8 @@ pub struct Bulletproof {
     pub challenge_polynomial_commitment: Point,
     pub delta: Point,
     pub lr: [[Point; 2]; 15],
-    pub z_1: String,
-    pub z_2: String,
-    pub commitments: Commitments,
-    pub evaluations: Evaluations,
+    pub z_1: Scalar,
+    pub z_2: Scalar,
 }
 
 #[derive(Deserialize)]
@@ -41,7 +42,7 @@ pub struct Evaluations {
     pub s: [Point; 6],
     pub w: [Point; 15],
     pub z: Point,
-    pub ft_eval1: String,
+    pub ft_eval1: Scalar,
 }
 
 #[derive(Deserialize)]
@@ -53,7 +54,6 @@ pub struct Statement {
 pub struct MessagesForNextStepProof {
     pub challenge_polynomial_commitments: [Point; 2],
     pub old_bulletproof_challenges: [[BulletproofChallenge; 16]; 2],
-    pub proof_state: ProofState,
 }
 
 #[derive(Deserialize)]
@@ -63,14 +63,17 @@ pub struct BulletproofChallenge {
 
 #[derive(Deserialize)]
 pub struct Prechallenge {
-    pub inner: Point,
+    // OCaml doesn't support unsigned integers, these should
+    // be two u64 limbs but are encoded with a sign.
+    // We just need to do a cast to u64.
+    pub inner: [I64; 2],
 }
 
 #[derive(Deserialize)]
 pub struct ProofState {
     pub deferred_values: DeferredValues,
     pub messages_for_next_wrap_proof: MessagesForNextWrapProof,
-    pub sponge_digest_before_evaluations: [String; 4],
+    pub sponge_digest_before_evaluations: [Scalar; 4],
 }
 
 #[derive(Deserialize)]
@@ -113,8 +116,19 @@ pub struct MessagesForNextWrapProof {
     pub old_bulletproof_challenges: [[BulletproofChallenge; 16]; 2],
 }
 
-pub type Point = [String; 2];
+pub type Point = [String; 2]; // hex
+pub type Scalar = String; // hex
+pub type I64 = String; // decimal signed
 
-pub fn parse(proof_json: &str) -> Result<StateProof, String> {
-    serde_json::from_str(proof_json).map_err(|err| format!("Could not parse proof JSON: {err}"))
+pub fn parse(proof_json: &serde_json::Value) -> Result<StateProof, String> {
+    serde_json::from_value(proof_json.to_owned())
+        .map_err(|err| format!("Could not parse proof: {err}"))
+}
+
+impl Into<WrapPolyComm> for Point {
+    fn into(self) -> WrapPolyComm {
+        from hex
+        basefield from big endian
+        Pallas
+    }
 }

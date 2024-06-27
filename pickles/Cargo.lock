@@ -314,7 +314,7 @@ dependencies = [
 [[package]]
 name = "groupmap"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems.git?rev=fd7c19d#fd7c19d4c5dbb6826d1d5ce6bc24796a44087f70"
+source = "git+https://github.com/o1-labs/proof-systems.git?branch=develop#57b7f3430096f5fff7baec6228b9a140470cf170"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -341,12 +341,20 @@ name = "hex"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "ident_case"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
+
+[[package]]
+name = "internal-tracing"
+version = "0.1.0"
+source = "git+https://github.com/o1-labs/proof-systems.git?branch=develop#57b7f3430096f5fff7baec6228b9a140470cf170"
 
 [[package]]
 name = "itertools"
@@ -366,7 +374,7 @@ checksum = "49f1f14873335454500d59611f1cf4a4b0f786f9ac11f4312a78e4cf2566695b"
 [[package]]
 name = "kimchi"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems.git?rev=fd7c19d#fd7c19d4c5dbb6826d1d5ce6bc24796a44087f70"
+source = "git+https://github.com/o1-labs/proof-systems.git?branch=develop#57b7f3430096f5fff7baec6228b9a140470cf170"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -376,6 +384,7 @@ dependencies = [
  "disjoint-set",
  "groupmap",
  "hex",
+ "internal-tracing",
  "itertools",
  "mina-curves",
  "mina-poseidon",
@@ -413,7 +422,7 @@ checksum = "78ca9ab1a0babb1e7d5695e3530886289c18cf2f87ec19a575a0abdce112e3a3"
 [[package]]
 name = "mina-curves"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems.git?rev=fd7c19d#fd7c19d4c5dbb6826d1d5ce6bc24796a44087f70"
+source = "git+https://github.com/o1-labs/proof-systems.git?branch=develop#57b7f3430096f5fff7baec6228b9a140470cf170"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -422,7 +431,7 @@ dependencies = [
 [[package]]
 name = "mina-poseidon"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems.git?rev=fd7c19d#fd7c19d4c5dbb6826d1d5ce6bc24796a44087f70"
+source = "git+https://github.com/o1-labs/proof-systems.git?branch=develop#57b7f3430096f5fff7baec6228b9a140470cf170"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -480,7 +489,7 @@ dependencies = [
 [[package]]
 name = "o1-utils"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems.git?rev=fd7c19d#fd7c19d4c5dbb6826d1d5ce6bc24796a44087f70"
+source = "git+https://github.com/o1-labs/proof-systems.git?branch=develop#57b7f3430096f5fff7baec6228b9a140470cf170"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -527,7 +536,7 @@ dependencies = [
 name = "pickles"
 version = "0.1.0"
 dependencies = [
- "groupmap",
+ "hex",
  "kimchi",
  "serde",
  "serde_json",
@@ -536,7 +545,7 @@ dependencies = [
 [[package]]
 name = "poly-commitment"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems.git?rev=fd7c19d#fd7c19d4c5dbb6826d1d5ce6bc24796a44087f70"
+source = "git+https://github.com/o1-labs/proof-systems.git?branch=develop#57b7f3430096f5fff7baec6228b9a140470cf170"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -552,6 +561,7 @@ dependencies = [
  "rand",
  "rand_core",
  "rayon",
+ "rmp-serde",
  "serde",
  "serde_with",
  "thiserror",
@@ -832,7 +842,7 @@ dependencies = [
 [[package]]
 name = "turshi"
 version = "0.1.0"
-source = "git+https://github.com/o1-labs/proof-systems.git?rev=fd7c19d#fd7c19d4c5dbb6826d1d5ce6bc24796a44087f70"
+source = "git+https://github.com/o1-labs/proof-systems.git?branch=develop#57b7f3430096f5fff7baec6228b9a140470cf170"
 dependencies = [
  "ark-ff",
  "hex",
