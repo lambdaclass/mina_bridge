@@ -4,7 +4,7 @@ mod test {
     #[test]
     fn test_input_json() {
         process_input_json(
-            "http://5.9.57.89:3085/graphql",
+            "http://127.0.0.1:3085/graphql",
             "./tests/public_key.txt",
             "./tests/leaf_hash.bin",
             "./tests/merkle_path.bin",
