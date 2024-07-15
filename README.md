@@ -1,10 +1,6 @@
-<div align="center">
-
 # mina_bridge 🌉
 
 ## Zero-knowledge state bridge from Mina to Ethereum
-
-</div>
 
 ## About
 
@@ -97,8 +93,6 @@ Links to the associated code.
 
 [polynomials that have an evaluation proof](https://github.com/o1-labs/proof-systems/blob/17041948eb2742244464d6749560a304213f4198/kimchi/src/verifier.rs#L346)
 
----
-
 ## Pickles - Mina’s inductive zk-SNARK composition system
 
 Pickles uses a pair of amicable curves called [Pasta](https://o1-labs.github.io/proof-systems/specs/pasta.html) in order to deliver incremental verifiable computation efficiently.
@@ -121,10 +115,9 @@ Tock is used to prove the verification of a Tick proof and outputs a
 Tick proof.  Tick is used to prove the verification of a Tock proof and
 outputs a Tock proof.  In other words,
 
-* Prove<sub>tock</sub> ( Verify(_Tick_) ) = Tick<sub>proof</sub>
+* Prove_tock ( Verify(_Tick_) ) = Tick_proof
 
-* Prove <sub>tick</sub> (Verify(_Tock_) ) = Tock<sub>proof</sub>
-​
+* Prove_tick (Verify(_Tock_) ) = Tock_proof
 
 ![Description](/img/palas_vesta.png)
 
@@ -151,10 +144,11 @@ Both [Step and Wrap circuits](https://o1-labs.github.io/proof-systems/pickles/ov
 3. Verify that the previous Step proof is (second-)half-valid (perform the secondary checks that were inefficient to perform when the previous Step was Wrapped)
 4. Verify that the previous Step correctly aggregated the previous accumulator, e.g. acc2=Aggregate(acc1,_π_ step,2)
 
-![Step-Wrap Diagram ](/img/step_diagram.png)
---------------------------------------------------------
+![Step-Wrap Diagram](/img/step_diagram.png)
 
-### Accumulator ###
+---
+
+### Accumulator
 
 The accumulator is an abstraction introduced for the purpose of this diagram. In practice, each kimchi proof consists of (1) commitments to polynomials, (2) evaluations of them, (3) and the opening proof.
 
@@ -166,7 +160,7 @@ In pickles, what we do is that we “absorb” this commitment `sg` from the p
 
 That is, for example, Step 1 will produce this commitment that is denoted as `acc1` on the diagram, as part of its opening proof, and Step 2 will absorb this commitment. And this “absorbtion” is what Wrap 2 will prove (and, partially, Step 3 will also refer to the challenges used to build `acc1`, but this detail is completely avoided in this overview). In the end, `acc2` will be the result of Step 2, so in a way `acc2` “aggregates” `acc1` which somewhat justifies the language used.
 
-### Analysis of the Induction (recursion) method applied in Pickles ###
+### Analysis of the Induction (recursion) method applied in Pickles
 
 The **Verifier** is divided into 2 modules, one part **Slow** and one part **Fast**.
 
@@ -179,7 +173,7 @@ The **Verifier** is divided into 2 modules, one part **Slow** and one part **Fas
 On top of each **Pi** proof, we run a **Fast** verifier. With the **Pi** proof and the cumulative Statement from the previous step, the **U** algorithm is applied and a new updated Statement is created. This _new updated Statement_ is the input of the Slow part of the Verifier, but we don't run the Slow Verifier until we reach the end of the whole round.
 
 ---
-Execution of **Verifier Slow** (which is very slow) can be <ins>deferred</ins> in sequences, and the V slow current always accumulates to the previous statement. This implicitly 'runs Vs on S1' as well.
+Execution of **Verifier Slow** (which is very slow) can be **deferred** in sequences, and the V slow current always accumulates to the previous statement. This implicitly 'runs Vs on S1' as well.
 
 ---
 
@@ -215,7 +209,7 @@ Let's now see how the Verifier Fast is divided.
 
 The proof **Pi** is divided into 2 parts, one corresponding to group operations **G**, and it exposes, as a public input to the circuit, the part of the proof that is necessary to execute **Vf**.
 
-### Pickles Technical Diagrams ###
+### Pickles Technical Diagrams
 
   The black boxes are data structures that have names and labels following the implementation.  
   `MFNStep/MFNWrap` is an abbreviation from `MessagesForNextStep` and `MessagesForNextWrap` that is used for brevity. Most other datatypes are exactly the same as in the codebase.  
@@ -226,7 +220,7 @@ The proof **Pi** is divided into 2 parts, one corresponding to group operations 
 
 ![Figure](/img/pickles_structure_drawio.png)
 
-# Consensus
+## Consensus
 
 Mina employs [Ouroboros Samasika](https://eprint.iacr.org/2020/352.pdf) as its consensus mechanism, which will be subsequently denoted as Samasika.
 Three essential commitments provided include:
@@ -239,11 +233,11 @@ Joseph Bonneau, Izaak Meckler, Vanishree Rao, and Evan Shapiro collaborated to c
 The complexity of fully verifying the entire blockchain is independent of chain length.  
 Samasika takes its name from the Sanskrit term, meaning small or succinct.
 
-## Chain selection rules
+### Chain selection rules
 
 Samasika uses two consensus rules: one for _short-range forks_ and one for _long-range forks_.
 
-### Short-range fork rule
+#### Short-range fork rule
 
 This rule is triggered whenever the fork is such that the adversary has not yet had the opportunity to mutate the block density distribution.  
 A fork is considered short-range if it took place within the last **m** blocks. The straightforward implementation of this rule involves consistently storing the most recent **m** blocks. Yet, in the context of a succinct blockchain, this is considered not desirable. Mina Samasika follows a methodology that necessitates information about only two blocks, the concept involves a decentralized checkpointing algorithm.
@@ -253,7 +247,7 @@ A fork is considered short-range if it took place within the last **m** blocks. 
 When a malicious actor generates an long-range fork, it gradually distorts the leader selection distribution, resulting in a longer adversarial chain. At the start, the dishonest chain will have a reduced density, but eventually, the adversary will work to elevate it. Therefore, the only factor we can depend on is the variation in density in the initial slots after the fork, which is known as the _critical window_.  
 The reasoning is that the critical window of the honest chain is very likely to have a higher density because this chain has the most stake
 
-#### Decentralized checkpointing
+### Decentralized checkpointing
 
 Samasika employs decentralized checkpointing to discern the nature of a fork, categorizing it as either short-range or long-range.
 
@@ -267,17 +261,17 @@ Remember, a fork is categorized as short-range if either:
 
 As Mina prioritizes succinctness, it implies the need to maintain checkpoints for both the current and the previous epoch.
 
-#### Short-range fork check
+### Short-range fork check
 
 Keep in mind that short-range forks occur when the fork point occurs after the lock_checkpoint of the previous epoch; otherwise, it qualifies as a long-range fork.  
 The position of the previous epoch is a measurement relative to a block's perspective. In cases where candidate blocks belong to distinct epochs, each will possess distinct current and previous epoch values.  
 Alternatively, if the blocks belong to the same epoch, they will both reference the identical previous epoch. Thus we can simply check whether the blocks have the same lock_checkpoint in their previous epoch data.
 
-#### Sliding window density
+### Sliding window density
 
 Let describe Mina's succinct sliding window density algorithm used by the long-range fork rule. In detail how windows are represented in blocks and how to compute _minimum window density_
 
-##### Nomenclature
+#### Nomenclature
 
 * We say a slot is _filled_ if it contains a valid non-orphaned block.
 * An _w-window_ is a sequential list of slots s1,...,sw of length _w_.
@@ -294,13 +288,13 @@ The density of a window is computed as the sum of the densities of its sub-windo
 
 Given a window ``W`` that is a list of sub-window densities, the window density is: ``density(W) = sum(W)``
 
-##### Window structure
+#### Window structure
 
 We use the phrase "window at sub-window _s_" to refer to the window _W_ whose most recent global sub-window is _s_.  
 In the Samasika paper the window structure actually consists of the **11 previous sub-window densities**, the **current sub-window density** and the **minimum window density** .A total of _13_ densities.  
 The most recent sub-window may be a previous sub-window or the current sub-window.  
 
-##### Minimum window density
+#### Minimum window density
 
 The **minimum window density** at a given slot is defined as the minimum window density observed over all previous sub-windows and previous windows, all the way back to genesis.  
 When a new block _B_ with parent _P_ is created, the minimum window density is computed like this.  
@@ -309,13 +303,13 @@ where ``current_window_density`` is the density of _B's_ projected window
 
 The relative sub-window _i_ of a sub-window _sw_ is its index within the window.
 
-##### Ring-shift
+#### Ring-shift
 
 When we shift a window ``[d0, d1, ..., d10]`` in order to add in a new sub-window ``d11``, we could evict the oldest sub-window d0 by shifting down all of the other sub-windows. Unfortunately, shifting a list in a SNARK circuit is very expensive.  
 It is more efficient (and also equivalent) to just replace the sub-window we wish to evict by overwriting it with the new sub-window, like this:
  ``sub_window_densities: d11 | d1 | d2 | d3 | d4 | d5 | d6 | d7 | d8 | d9 | d10``
 
-##### Projected window
+#### Projected window
 
 Generating a new block and determining the optimal chain in accordance with the long-range fork rule involve the computation of a projected window.  
 Given a window _W_ and a future global slot _next_, the projected window of _W_ to slot _next_ is a transformation of _W_ into what it would look like if it were positioned at slot _next_.  
@@ -328,7 +322,7 @@ Now that we know how much to ring-shift, the next question is what density value
 
 Recall this diagram:
 
-![](/img/consensus01.png)
+![consensus01](/img/consensus01.png)
 
 Suppose window W's current sub-window is 11 whose density is d11 and d1 is the oldest sub-window density
 
@@ -336,11 +330,11 @@ Now imagine we want to project W to global slot ``next = 15``. This is ``k = 15 
 
 Ring-shift in 3 zero densities to obtain the projected window.
 
-![](/img/consensus02.png)
+![consensus02](/img/consensus02.png)
 
 We can derive some instructive cases from the general rule
 
-![](/img/consensus03.png)
+![consensus03](/img/consensus03.png)
 
 ##### Genesis window
 
@@ -378,15 +372,15 @@ Supplementary tiebreak logic becomes necessary when assessing chains with identi
 
 Let ``P.tip`` refer to the top block of peer ``P``'s current best chain. Assuming an update to either ``P.tip`` or ``P.chains``, ``P`` must update its tip similar to this:
 
-![](/img/consensus06.png)
+![consensus06](/img/consensus06.png)
 
 The following selectSecureChain algorithm receives the peer's current best chain P.tip and its set of known valid chains P.chains and produces the most secure chain as output.  
 
-![](/img/consensus07.png)
+![consensus07](/img/consensus07.png)
 
 And the ``selectLongerChain`` algorithm:
 
-![](/img/consensus08.png)
+![consensus08](/img/consensus08.png)
 
 ### Maintaining the k-th predecessor epoch ledger
 
