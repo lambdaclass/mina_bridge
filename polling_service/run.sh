@@ -22,7 +22,8 @@ if [ $? -eq 0 ]; then
 		echo >&2 "Error: Mina node is not synced."
     exit 1
 	else
-    cargo run --manifest-path parser/Cargo.toml --release -- $DATA && \
+    echo $DATA | jq -r '.data.bestChain.[0].protocolState.previousStateHash' >protocol_state_hash.pub && \
+    echo $DATA | jq -r '.data.block.protocolStateProof.base64' >protocol_state_proof.proof && \
     echo "State hash and proof fetched from Mina node successfully!"
 	fi
 else
