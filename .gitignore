@@ -1,5 +1,4 @@
-/proof.json
-/proof.mpk
-monitor/priv/native/libverifier.so
 .DS_Store
 mina_3_0_0_devnet
+state_hash.txt
+state_proof.txt
