@@ -31,12 +31,8 @@ jobs:
         run: /root/.cargo/bin/cargo clippy --workspace --all-targets -- -D warnings
 
       - name: Run nextest
-        run: |
-          ssh -L 3085:127.0.0.1:3085 -N -f admin@5.9.57.89
-          /root/.cargo/bin/cargo nextest run --workspace --all-targets --no-fail-fast
+        run: /root/.cargo/bin/cargo nextest run --workspace --all-targets --no-fail-fast
 
       - name: Run binary
         if: ${{ !inputs.skip_run }}
-        run: |
-          ssh -L 3085:127.0.0.1:3085 -N -f admin@5.9.57.89
-          /root/.cargo/bin/cargo run
+        run: /root/.cargo/bin/cargo run
