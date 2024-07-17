@@ -2,4 +2,4 @@
 
 run:
 	@echo "Fetching Mina protocol state and its proof..."
-	@cd polling_service && sh run.sh
+	@cargo run --manifest-path polling_service/parser/Cargo.toml --release -- ${MINA_RPC_URL}

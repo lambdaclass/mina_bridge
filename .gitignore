@@ -1,4 +1,4 @@
 .DS_Store
 mina_3_0_0_devnet
-state_hash.txt
-state_proof.txt
+protocol_state_hash.pub
+protocol_state_proof.proof
