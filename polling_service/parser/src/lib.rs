@@ -3,19 +3,24 @@ use std::{fs, path::PathBuf, str::FromStr as _};
 use reqwest::header::CONTENT_TYPE;
 use serde_json::Value;
 
-pub fn fetch_mina_state(mina_rpc_url: &str) {
-    let state_hash_response = query_state_hash(mina_rpc_url).unwrap();
-    let state_hash = parse_state_hash(&state_hash_response);
-    let state_proof_response = query_state_proof_base64(mina_rpc_url, &state_hash).unwrap();
-    let state_proof = parse_state_proof(&state_proof_response);
+pub fn fetch_mina_state(mina_rpc_url: &str) -> Result<(), String> {
+    let state_hash_response = query_state_hash(mina_rpc_url)
+        .map_err(|err| format!("Error querying state hash: {err}"))?;
+    let state_hash = parse_state_hash(&state_hash_response)?;
+
+    let state_proof_response = query_state_proof_base64(mina_rpc_url, &state_hash)
+        .map_err(|err| format!("Error querying state proof: {err}"))?;
+    let state_proof = parse_state_proof(&state_proof_response)?;
 
     let mut state_hash_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     state_hash_path.push("../../protocol_state_hash.pub");
-    fs::write(state_hash_path, state_hash).unwrap();
+    fs::write(state_hash_path, state_hash)
+        .map_err(|err| format!("Error writing state hash to file: {err}"))?;
 
     let mut state_proof_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     state_proof_path.push("../../protocol_state_proof.proof");
-    fs::write(state_proof_path, state_proof).unwrap();
+    fs::write(state_proof_path, state_proof)
+        .map_err(|err| format!("Error writing state proof to file: {err}"))
 }
 
 fn query_state_hash(mina_rpc_url: &str) -> Result<Value, String> {
@@ -74,22 +79,28 @@ fn query_state_proof_base64(mina_rpc_url: &str, state_hash: &str) -> Result<Valu
         .ok_or("Could not get 'data.bestChain[0]' field in state proof response".to_owned())
 }
 
-fn parse_state_hash(query: &Value) -> String {
-    query
+fn parse_state_hash(query: &Value) -> Result<String, String> {
+    let ret = query
         .get("protocolState")
         .and_then(|v| v.get("previousStateHash"))
         .and_then(Value::as_str)
-        .unwrap()
-        .to_string()
+        .ok_or(format!(
+            "Error getting 'protocolState.previousStateHash' in response"
+        ))?;
+
+    Ok(ret.to_string())
 }
 
-fn parse_state_proof(query: &Value) -> String {
-    query
+fn parse_state_proof(query: &Value) -> Result<String, String> {
+    let ret = query
         .get("protocolStateProof")
         .and_then(|v| v.get("base64"))
         .and_then(Value::as_str)
-        .unwrap()
-        .to_string()
+        .ok_or(format!(
+            "Error getting 'protocolState.previousStateHash' in response"
+        ))?;
+
+    Ok(ret.to_string())
 }
 
 #[cfg(test)]
@@ -98,6 +109,6 @@ mod tests {
 
     #[test]
     fn fetch_mina_state_works() {
-        fetch_mina_state("http://localhost:3085/graphql");
+        fetch_mina_state("http://localhost:3085/graphql").unwrap();
     }
 }
