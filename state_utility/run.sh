@@ -14,4 +14,4 @@ cd ../../../..
 cargo r \
     --manifest-path ./merkle_root/Cargo.toml\
     --release \
-    -- ./merkle_root/merkle_root.txt ../eth_verifier/merkle_root.bin ../verifier_circuit/src/merkle_root.json
+    -- ./merkle_root/merkle_root.txt ../merkle_root/merkle_root.bin ../merkle_root/merkle_root.json
