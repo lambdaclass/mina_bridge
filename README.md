@@ -8,6 +8,26 @@ This project introduces the proof generation, posting and verification of the va
 
 This project is being redesigned to use [Aligned Layer](https://github.com/yetanotherco/aligned_layer) to verify Mina proofs on Ethereum.
 
+## Usage
+
+1. [Setup Aligned Devnet locally](https://github.com/yetanotherco/aligned_layer/blob/main/docs/guides/3_setup_aligned.md#booting-devnet-with-default-configs)
+1. In Mina Bridge root run:
+
+```sh
+MINA_RPC_URL=<mina_rpc_url> ALIGNED_PATH=<aligned_path> make
+```
+
+Where:
+
+- `mina_rpc_url` is the URL of the Mina node GraphQL server you want to fetch the state and its proof.
+- `aligned_path` is the path of the Aligned Layer repo where you did the setup in step 1.
+
+For example, if you are running the Mina node locally and setup the Aligned repo in the `home` dir then run:
+
+```sh
+MINA_RPC_URL=http://localhost:3085/graphql ALIGNED_PATH=~/aligned_layer make
+```
+
 ## Kimchi proving system
 
 Kimchi is a zero-knowledge proof system that’s a variant of PLONK.
@@ -101,8 +121,8 @@ The two curves pallas and vesta (pa(llas ve)sta) created by the [Zcash team](htt
 
 These curves are referred to as “tick” and “tock” within the Mina source code.
 
-* Tick - Vesta (a.k.a. Step), constraint domain size 2¹⁸  [block and transaction proofs]
-* Tock - Pallas (a.k.a. Wrap), constraint domain size 2¹²  [signatures]
+- Tick - Vesta (a.k.a. Step), constraint domain size 2¹⁸  [block and transaction proofs]
+- Tock - Pallas (a.k.a. Wrap), constraint domain size 2¹²  [signatures]
 
 The Tock prover does less (only performs recursive verifications and
 no other logic), so it requires fewer constraints and has a smaller
@@ -115,9 +135,9 @@ Tock is used to prove the verification of a Tick proof and outputs a
 Tick proof.  Tick is used to prove the verification of a Tock proof and
 outputs a Tock proof.  In other words,
 
-* Prove_tock ( Verify(_Tick_) ) = Tick_proof
+- Prove_tock ( Verify(_Tick_) ) = Tick_proof
 
-* Prove_tick (Verify(_Tock_) ) = Tock_proof
+- Prove_tick (Verify(_Tock_) ) = Tock_proof
 
 ![Description](/img/palas_vesta.png)
 
@@ -125,15 +145,15 @@ Both Tick and Tock can verify at most 2 proofs of the opposite kind, though, the
 
 Currently, in Mina we have the following situation.
 
-* Every Tock always wraps 1 Tick proof.  
-* Tick proofs can verify 2 Tock proofs
-  * Blockchain SNARK takes previous blockchain SNARK proof and a transaction proof
-  * Verifying two Tock transaction proofs
+- Every Tock always wraps 1 Tick proof.  
+- Tick proofs can verify 2 Tock proofs
+  - Blockchain SNARK takes previous blockchain SNARK proof and a transaction proof
+  - Verifying two Tock transaction proofs
 
 Pickles works over [Pasta](https://o1-labs.github.io/proof-systems/specs/pasta.html), a cycle of curves consisting of Pallas and Vesta, and thus it defines two generic circuits, one for each curve. Each can be thought of as a parallel instantiation of a kimchi proof systems. These circuits are not symmetric and have somewhat different function:
 
-* **Step circuit**: this is the main circuit that contains application logic. Each step circuit verifies a statement and potentially several (at most 2) other wrap proofs.
-* **Wrap circuit**: this circuit merely verifies the step circuit, and does not have its own application logic. The intuition is that every time an application statement is proven it’s done in Step, and then the resulting proof is immediately wrapped using Wrap.
+- **Step circuit**: this is the main circuit that contains application logic. Each step circuit verifies a statement and potentially several (at most 2) other wrap proofs.
+- **Wrap circuit**: this circuit merely verifies the step circuit, and does not have its own application logic. The intuition is that every time an application statement is proven it’s done in Step, and then the resulting proof is immediately wrapped using Wrap.
 
 ---
 
@@ -225,9 +245,9 @@ The proof **Pi** is divided into 2 parts, one corresponding to group operations 
 Mina employs [Ouroboros Samasika](https://eprint.iacr.org/2020/352.pdf) as its consensus mechanism, which will be subsequently denoted as Samasika.
 Three essential commitments provided include:
 
-* High decentralization - Self-bootstrap, uncapped participation and dynamic availability
-* Succinctness - Constant-time synchronization with full-validation and high interoperability
-* Universal composability - Proven security for interacting with other protocols, no slashing required
+- High decentralization - Self-bootstrap, uncapped participation and dynamic availability
+- Succinctness - Constant-time synchronization with full-validation and high interoperability
+- Universal composability - Proven security for interacting with other protocols, no slashing required
 
 Joseph Bonneau, Izaak Meckler, Vanishree Rao, and Evan Shapiro collaborated to create Samasika, establishing it as the initial succinct blockchain consensus algorithm.  
 The complexity of fully verifying the entire blockchain is independent of chain length.  
@@ -251,13 +271,13 @@ The reasoning is that the critical window of the honest chain is very likely to 
 
 Samasika employs decentralized checkpointing to discern the nature of a fork, categorizing it as either short-range or long-range.
 
-* **Start checkpoint** - State hash of the first block of the epoch.
-* **Lock checkpoint** - State hash of the last known block in the seed update range of an epoch (not including the current block)
+- **Start checkpoint** - State hash of the first block of the epoch.
+- **Lock checkpoint** - State hash of the last known block in the seed update range of an epoch (not including the current block)
 
 Remember, a fork is categorized as short-range if either:
 
-* The fork point of the candidate chains are in the same epoch.
-* The fork point is in the previous epoch with the same ``lock_checkpoint``
+- The fork point of the candidate chains are in the same epoch.
+- The fork point is in the previous epoch with the same ``lock_checkpoint``
 
 As Mina prioritizes succinctness, it implies the need to maintain checkpoints for both the current and the previous epoch.
 
@@ -273,13 +293,13 @@ Let describe Mina's succinct sliding window density algorithm used by the long-r
 
 #### Nomenclature
 
-* We say a slot is _filled_ if it contains a valid non-orphaned block.
-* An _w-window_ is a sequential list of slots s1,...,sw of length _w_.
-* A _sub-window_ is a contiguous interval of a _w-window_.
-* The _density_ of an w-window (or sub-window) is the number non-orphan block within it.
-* We use the terms _window_, _density window_, _sliding window_ and _w-window_ synonymously.
-* v is the Length by which the window shifts in slots (shift parameter).  ``slots_per_sub_window``
-* w is the Window length in slots.  ( the sliding window is a _w_-long window that shifts _v_-slots at a time).
+- We say a slot is _filled_ if it contains a valid non-orphaned block.
+- An _w-window_ is a sequential list of slots s1,...,sw of length _w_.
+- A _sub-window_ is a contiguous interval of a _w-window_.
+- The _density_ of an w-window (or sub-window) is the number non-orphan block within it.
+- We use the terms _window_, _density window_, _sliding window_ and _w-window_ synonymously.
+- v is the Length by which the window shifts in slots (shift parameter).  ``slots_per_sub_window``
+- w is the Window length in slots.  ( the sliding window is a _w_-long window that shifts _v_-slots at a time).
 
 The Samasika research paper presents security proofs that determine the secure values for v, w, and sub-windows per window.  
 A sliding window can also be viewed as a collection of _sub-windows_.  
