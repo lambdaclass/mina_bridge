@@ -2,7 +2,7 @@
 
 run:
 	@echo "Fetching Mina protocol state and its proof..."
-	@cargo run --manifest-path polling_service/parser/Cargo.toml --release -- ${MINA_RPC_URL}
+	@sh polling_service/run.sh
 	@echo "Done!"
 	@echo "Sending Mina protocol state and its proof to Aligned..."
 	@cargo run --manifest-path ${ALIGNED_PATH}/batcher/aligned/Cargo.toml --release -- submit \
