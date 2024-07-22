@@ -121,9 +121,9 @@ mod tests {
     #[test]
     fn serialize_and_deserialize() {
         let mut proof_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        proof_path.push("../../protocol_state.proof");
+        proof_path.push("protocol_state.proof");
         let mut public_input_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        public_input_path.push("../../protocol_state.pub");
+        public_input_path.push("protocol_state.pub");
 
         parse_public_input(
             "http://5.9.57.89:3085/graphql",
