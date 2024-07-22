@@ -4,3 +4,4 @@ protocol_state_hash.pub
 protocol_state_proof.proof
 aligned_verification_data
 account_inclusion.proof
+merkle_root.pub
