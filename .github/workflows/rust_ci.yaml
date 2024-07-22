@@ -30,9 +30,8 @@ jobs:
       - name: Run clippy
         run: /root/.cargo/bin/cargo clippy --workspace --all-targets -- -D warnings
 
-      # We skip this one for now until we solve how to access GraphQL from CI
-      # - name: Run nextest
-      #   run: /root/.cargo/bin/cargo nextest run --workspace --all-targets --no-fail-fast
+      - name: Run nextest
+        run: /root/.cargo/bin/cargo nextest run --workspace --all-targets --no-fail-fast
 
       - name: Run binary
         if: ${{ !inputs.skip_run }}

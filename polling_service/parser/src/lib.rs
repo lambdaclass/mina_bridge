@@ -126,7 +126,7 @@ mod tests {
         public_input_path.push("../../protocol_state.pub");
 
         parse_public_input(
-            "http://localhost:3085/graphql",
+            "http://5.9.57.89:3085/graphql",
             proof_path.to_str().unwrap(),
             public_input_path.to_str().unwrap(),
         )
