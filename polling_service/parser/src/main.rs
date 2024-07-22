@@ -14,7 +14,7 @@ pub fn main() -> Result<(), String> {
     public_input_path_buf.push("protocol_state.pub");
 
     parse_public_input(
-        &rpc_url,
+        rpc_url,
         proof_path_buf.to_str().unwrap(),
         public_input_path_buf.to_str().unwrap(),
     )
