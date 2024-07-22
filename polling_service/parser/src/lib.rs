@@ -1,17 +1,15 @@
-use std::{fs, path::PathBuf, str::FromStr as _};
+use std::{fs, str::FromStr as _};
 
 use kimchi::o1_utils::FieldHelpers;
 use mina_curves::pasta::Fp;
 use reqwest::header::CONTENT_TYPE;
 
-pub fn parse_public_input(rpc_url: &str) -> Result<(), String> {
+pub fn parse_public_input(rpc_url: &str, output_path: &str) -> Result<(), String> {
     let response_value = query_to_mina_node(rpc_url)?;
     let mut public_input = serialize_state_hash_field(&response_value)?;
     public_input.extend(serialize_protocol_state(&response_value)?);
 
-    let mut state_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    state_path.push("../../protocol_state.pub");
-    fs::write(state_path, public_input)
+    fs::write(output_path, public_input)
         .map_err(|err| format!("Error writing state proof to file: {err}"))
 }
 
@@ -80,4 +78,23 @@ fn serialize_protocol_state(response_value: &serde_json::Value) -> Result<Vec<u8
     let protocol_state_bytes = protocol_state_str.as_bytes().to_vec();
 
     Ok(protocol_state_bytes)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+
+    use crate::parse_public_input;
+
+    #[test]
+    fn serialize_and_deserialize() {
+        let mut state_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        state_path.push("../../protocol_state.pub");
+
+        parse_public_input(
+            "http://localhost:3085/graphql",
+            state_path.to_str().unwrap(),
+        )
+        .unwrap();
+    }
 }
