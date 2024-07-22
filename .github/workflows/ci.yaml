@@ -20,3 +20,10 @@ jobs:
         with:
             skip_run: true
             directory: state_utility/parser
+
+    polling_service:
+        name: Test Polling Service
+        uses: ./.github/workflows/rust_ci.yaml
+        with:
+            skip_run: true
+            directory: polling_service/parser
