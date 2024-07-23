@@ -1,114 +1,135 @@
-use std::{fs, path::PathBuf, str::FromStr as _};
+use std::{fs, str::FromStr as _};
 
+use kimchi::o1_utils::FieldHelpers;
+use mina_curves::pasta::Fp;
 use reqwest::header::CONTENT_TYPE;
-use serde_json::Value;
 
-pub fn fetch_mina_state(mina_rpc_url: &str) -> Result<(), String> {
-    let state_hash_response = query_state_hash(mina_rpc_url)
-        .map_err(|err| format!("Error querying state hash: {err}"))?;
-    let state_hash = parse_state_hash(&state_hash_response)?;
+pub fn parse_public_input(
+    rpc_url: &str,
+    proof_path: &str,
+    public_input_path: &str,
+) -> Result<(), String> {
+    let response_value = query_to_mina_node(rpc_url)?;
 
-    let state_proof_response = query_state_proof_base64(mina_rpc_url, &state_hash)
-        .map_err(|err| format!("Error querying state proof: {err}"))?;
-    let state_proof = parse_state_proof(&state_proof_response)?;
+    let proof = serialize_protocol_state_proof(&response_value)?;
 
-    let mut state_hash_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    state_hash_path.push("../../protocol_state_hash.pub");
-    fs::write(state_hash_path, state_hash)
-        .map_err(|err| format!("Error writing state hash to file: {err}"))?;
+    let mut public_input = serialize_state_hash_field(&response_value)?;
+    public_input.extend(serialize_protocol_state(&response_value)?);
 
-    let mut state_proof_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    state_proof_path.push("../../protocol_state_proof.proof");
-    fs::write(state_proof_path, state_proof)
-        .map_err(|err| format!("Error writing state proof to file: {err}"))
+    fs::write(proof_path, proof)
+        .map_err(|err| format!("Error writing state proof to file: {err}"))?;
+    fs::write(public_input_path, public_input)
+        .map_err(|err| format!("Error writing public input to file: {err}"))
 }
 
-fn query_state_hash(mina_rpc_url: &str) -> Result<Value, String> {
-    let response = reqwest::blocking::Client::new()
-        .post(mina_rpc_url)
-        .header(CONTENT_TYPE, "application/json")
-        .body(
-            "{\"query\": \"{
-                bestChain(maxLength: 1) {
-                    protocolState {
-                        previousStateHash
-                    }
+fn query_to_mina_node(rpc_url: &str) -> Result<serde_json::Value, String> {
+    let body = "{\"query\": \"{
+            protocolState(encoding: BASE64)
+            bestChain(maxLength: 1) {
+                stateHashField
+                protocolStateProof {
+                    base64
                 }
-            }\"}",
-        )
-        .send()
-        .map_err(|err| format!("Error making request for state hash: {err}"))?
-        .text()
-        .map_err(|err| format!("Error getting text of state hash: {err}"))?;
-
-    let response_value = serde_json::Value::from_str(&response)
-        .map_err(|err| format!("Error building JSON value of state hash: {err}"))?;
-
-    response_value
-        .get("data")
-        .and_then(|v| v.get("bestChain"))
-        .and_then(|v| v.get(0).cloned())
-        .ok_or("Could not get 'data.bestChain[0]' field in state hash response".to_owned())
-}
-
-fn query_state_proof_base64(mina_rpc_url: &str, state_hash: &str) -> Result<Value, String> {
-    let response = reqwest::blocking::Client::new()
-        .post(mina_rpc_url)
+            }
+        }\"}"
+        .to_owned();
+    let client = reqwest::blocking::Client::new();
+    let response = client
+        .post(rpc_url)
         .header(CONTENT_TYPE, "application/json")
-        .body(format!(
-            "{{\"query\": \"{{
-                block(stateHash: \\\"{}\\\") {{
-                    protocolStateProof {{
-                        base64
-                    }}
-                }}
-            }}\"}}",
-            state_hash
-        ))
+        .body(body)
         .send()
-        .map_err(|err| format!("Error making request for state proof: {err}"))?
+        .map_err(|err| err.to_string())?
         .text()
-        .map_err(|err| format!("Error getting text of state proof: {err}"))?;
+        .map_err(|err| err.to_string())?;
+    let response_value = serde_json::Value::from_str(&response).map_err(|err| err.to_string())?;
 
-    let response_value = serde_json::Value::from_str(&response)
-        .map_err(|err| format!("Error building JSON value of state proof: {err}"))?;
-
-    response_value
-        .get("data")
-        .and_then(|v| v.get("block").cloned())
-        .ok_or("Could not get 'data.bestChain[0]' field in state proof response".to_owned())
+    response_value.get("data").cloned().ok_or(format!(
+        "Error getting 'data' from response: {:?}",
+        response
+    ))
 }
 
-fn parse_state_hash(query: &Value) -> Result<String, String> {
-    let ret = query
+fn serialize_state_hash_field(response_value: &serde_json::Value) -> Result<Vec<u8>, String> {
+    let state_hash_field_str = response_value
+        .get("bestChain")
+        .and_then(|d| d.get(0))
+        .and_then(|d| d.get("stateHashField"))
+        .ok_or(format!(
+            "Error getting 'bestChain[0].stateHashField' from {:?}",
+            response_value
+        ))?
+        .as_str()
+        .ok_or(format!(
+            "Error converting state hash value to string: {:?}",
+            response_value,
+        ))?;
+    let state_hash_field = Fp::from_str(state_hash_field_str).map_err(|_| {
+        format!(
+            "Error converting state hash to field: {:?}",
+            &state_hash_field_str
+        )
+    })?;
+    let state_hash_field_bytes = state_hash_field.to_bytes();
+
+    Ok(state_hash_field_bytes)
+}
+
+fn serialize_protocol_state(response_value: &serde_json::Value) -> Result<Vec<u8>, String> {
+    let protocol_state_str = response_value
         .get("protocolState")
-        .and_then(|v| v.get("previousStateHash"))
-        .and_then(Value::as_str)
         .ok_or(format!(
-            "Error getting 'protocolState.previousStateHash' in response"
+            "Error getting 'protocolState' from {:?}",
+            response_value
+        ))?
+        .as_str()
+        .ok_or(format!(
+            "Error converting protocol state value to string: {:?}",
+            response_value,
         ))?;
+    let protocol_state_bytes = protocol_state_str.as_bytes().to_vec();
 
-    Ok(ret.to_string())
+    Ok(protocol_state_bytes)
 }
 
-fn parse_state_proof(query: &Value) -> Result<String, String> {
-    let ret = query
-        .get("protocolStateProof")
-        .and_then(|v| v.get("base64"))
-        .and_then(Value::as_str)
+fn serialize_protocol_state_proof(response_value: &serde_json::Value) -> Result<Vec<u8>, String> {
+    let protocol_state_proof_str = response_value
+        .get("bestChain")
+        .and_then(|d| d.get(0))
+        .and_then(|d| d.get("protocolStateProof"))
+        .and_then(|d| d.get("base64"))
         .ok_or(format!(
-            "Error getting 'protocolState.previousStateHash' in response"
+            "Error getting 'bestChain[0].protocolStateProof.base64' from {:?}",
+            response_value
+        ))?
+        .as_str()
+        .ok_or(format!(
+            "Error converting protocol state proof value to string: {:?}",
+            response_value,
         ))?;
+    let protocol_state_proof_bytes = protocol_state_proof_str.as_bytes().to_vec();
 
-    Ok(ret.to_string())
+    Ok(protocol_state_proof_bytes)
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::fetch_mina_state;
+    use std::path::PathBuf;
+
+    use crate::parse_public_input;
 
     #[test]
-    fn fetch_mina_state_works() {
-        fetch_mina_state("http://localhost:3085/graphql").unwrap();
+    fn serialize_and_deserialize() {
+        let mut proof_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        proof_path.push("protocol_state.proof");
+        let mut public_input_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        public_input_path.push("protocol_state.pub");
+
+        parse_public_input(
+            "http://5.9.57.89:3085/graphql",
+            proof_path.to_str().unwrap(),
+            public_input_path.to_str().unwrap(),
+        )
+        .unwrap();
     }
 }
