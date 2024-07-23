@@ -11,3 +11,6 @@
 [submodule "contract/lib/aligned_layer"]
 	path = contract/lib/aligned_layer
 	url = https://github.com/lambdaclass/aligned_layer
+[submodule "contract/lib/openzeppelin-contracts"]
+	path = contract/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
