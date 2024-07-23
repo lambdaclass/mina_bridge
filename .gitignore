@@ -1,7 +1,7 @@
 .DS_Store
 mina_3_0_0_devnet
-protocol_state_hash.pub
-protocol_state_proof.proof
+protocol_state.pub
+protocol_state.proof
 aligned_verification_data
 account_inclusion.proof
 merkle_root.pub
