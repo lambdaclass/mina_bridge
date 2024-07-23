@@ -3,11 +3,23 @@ name = "parser"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-num-bigint = "0.4.3"
-rmp-serde = "1.1.2"
-hex = "0.4.3"
+reqwest = { version = "0.12", features = ["blocking"] }
+serde_json = "1.0.108"
+serde = { version = "1.0.192", features = ["derive"] }
+kimchi = { git = "https://github.com/openmina/proof-systems", branch = "ledger-newtypes-rampup4-vrf" }
+poly-commitment = { git = "https://github.com/openmina/proof-systems", branch = "ledger-newtypes-rampup4-vrf" }
+mina-curves = { git = "https://github.com/openmina/proof-systems", branch = "ledger-newtypes-rampup4-vrf" }
+o1-utils = { git = "https://github.com/lambdaclass/proof-systems", branch = "add-verifier-serializations" }
+ark-ff = { version = "0.3.0", features = ["parallel", "asm"] }
+ark-ec = { version = "0.3.0", features = ["parallel"] }
+ark-poly = { version = "0.3.0", features = ["parallel"] }
+ark-serialize = "0.3.0"
+mina-tree = { git = "https://github.com/lambdaclass/openmina/", branch = "mina_bridge" }
+mina-p2p-messages = { git = "https://github.com/lambdaclass/openmina/", branch = "mina_bridge" }
+
+[patch.crates-io]
+ark-ff = { git = "https://github.com/openmina/algebra", branch = "openmina" }
+ark-ec = { git = "https://github.com/openmina/algebra", branch = "openmina" }
+ark-poly = { git = "https://github.com/openmina/algebra", branch = "openmina" }
+ark-serialize = { git = "https://github.com/openmina/algebra", branch = "openmina" }

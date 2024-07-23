@@ -1,5 +1,5 @@
-/proof.json
-/proof.mpk
-monitor/priv/native/libverifier.so
 .DS_Store
 mina_3_0_0_devnet
+protocol_state.pub
+protocol_state.proof
+aligned_verification_data
