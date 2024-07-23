@@ -1,0 +1,6 @@
+aligned-layer/=lib/aligned_layer/contracts/src/core/
+eigenlayer-middleware/=lib/aligned_layer/contracts/lib/eigenlayer-middleware/src/
+eigenlayer-core/=lib/aligned_layer/contracts/lib/eigenlayer-middleware/lib/eigenlayer-contracts/src/
+eigenlayer-core-contracts/=lib/aligned_layer/contracts/lib/eigenlayer-middleware/lib/eigenlayer-contracts/src/contracts/core
+eigenlayer-scripts/=lib/aligned_layer/contracts/lib/eigenlayer-middleware/lib/eigenlayer-contracts/script/
+forge-std/=lib/forge-std/src/
