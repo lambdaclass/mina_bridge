@@ -3,6 +3,8 @@ pragma solidity ^0.8.13;
 
 error NewStateIsNotValid();
 
+import "aligned_layer/contracts/src/core/AlignedLayerServiceManager.sol";
+
 /// @title Mina to Ethereum Bridge's smart contract.
 contract MinaBridge {
     /// @notice The state hash of the last verified state converted into a Fp.

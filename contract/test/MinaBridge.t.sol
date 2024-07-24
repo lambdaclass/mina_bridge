@@ -8,6 +8,6 @@ contract MinaBridgeTest is Test {
     MinaBridge public bridge;
 
     function setUp() public {
-        counter = new MinaBridge();
+        bridge = new MinaBridge();
     }
 }
