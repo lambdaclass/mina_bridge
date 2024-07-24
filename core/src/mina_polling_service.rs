@@ -1,5 +1,7 @@
 use std::{fs, str::FromStr as _};
 
+use aligned_sdk::core::types::{ProvingSystemId, VerificationData};
+use ethers::types::Address;
 use kimchi::o1_utils::FieldHelpers;
 use mina_curves::pasta::Fp;
 use reqwest::header::CONTENT_TYPE;
@@ -16,7 +18,7 @@ pub fn query_and_serialize(
     rpc_url: &str,
     proof_path: &str,
     public_input_path: &str,
-) -> Result<(), String> {
+) -> Result<VerificationData, String> {
     let tip_state_hash_field = serialize_state_hash_field(TIP_STATE_HASH_FIELD)
         .map_err(|err| format!("Error serializing tip's state hash field: {err}"))?;
     let tip_protocol_state = serialize_protocol_state(TIP_PROTOCOL_STATE)
@@ -26,15 +28,32 @@ pub fn query_and_serialize(
 
     let proof = serialize_protocol_state_proof(&last_block_value)?;
 
-    let mut public_input = get_state_hash_field(&last_block_value)?;
-    public_input.extend(get_protocol_state(&last_block_value)?);
-    public_input.extend(tip_state_hash_field);
-    public_input.extend(tip_protocol_state);
+    let mut pub_input = get_state_hash_field(&last_block_value)?;
+    pub_input.extend(get_protocol_state(&last_block_value)?);
+    pub_input.extend(tip_state_hash_field);
+    pub_input.extend(tip_protocol_state);
 
-    fs::write(proof_path, proof)
+    fs::write(proof_path, &proof)
         .map_err(|err| format!("Error writing state proof to file: {err}"))?;
-    fs::write(public_input_path, public_input)
-        .map_err(|err| format!("Error writing public input to file: {err}"))
+    fs::write(public_input_path, &pub_input)
+        .map_err(|err| format!("Error writing public input to file: {err}"))?;
+
+    let pub_input = Some(pub_input);
+
+    let proof_generator_addr = Address::from_str(
+        &std::env::var("PROOF_GENERATOR_ADDR")
+            .expect("couldn't get PROOF_GENERATOR_ADDR environment variable."),
+    )
+    .map_err(|err| err.to_string())?;
+
+    Ok(VerificationData {
+        proving_system: ProvingSystemId::Mina,
+        proof,
+        pub_input,
+        verification_key: None,
+        vm_program_code: None,
+        proof_generator_addr,
+    })
 }
 
 fn query_last_block(rpc_url: &str) -> Result<serde_json::Value, String> {
