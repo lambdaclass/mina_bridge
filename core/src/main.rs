@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use parser::parse_public_input;
+use core::mina_polling_service;
 
 pub fn main() -> Result<(), String> {
     let args: Vec<String> = std::env::args().collect();
@@ -13,7 +13,7 @@ pub fn main() -> Result<(), String> {
     let mut public_input_path_buf = PathBuf::from(output_path);
     public_input_path_buf.push("protocol_state.pub");
 
-    parse_public_input(
+    mina_polling_service::query_and_serialize(
         rpc_url,
         proof_path_buf.to_str().unwrap(),
         public_input_path_buf.to_str().unwrap(),
