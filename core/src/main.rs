@@ -37,5 +37,7 @@ async fn main() -> Result<(), String> {
         .await
         .inspect_err(|err| error!("{}", err))?;
 
+    // smart_contract_utility::update(verification_data);
+
     Ok(())
 }
