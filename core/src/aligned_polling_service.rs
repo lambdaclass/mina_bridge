@@ -82,7 +82,7 @@ pub async fn submit(mina_proof: &VerificationData) -> Result<AlignedVerification
         .await
         .map_err(|err| err.to_string())?;
 
-    info!("Submitting Mina proof into Aligned...");
+    info!("Submitting Mina proof into Aligned and waiting for the batch to be verified...");
     let aligned_verification_data = submit_and_wait(
         &batcher_addr,
         &eth_rpc_url,
@@ -93,7 +93,6 @@ pub async fn submit(mina_proof: &VerificationData) -> Result<AlignedVerification
     )
     .await
     .map_err(|err| err.to_string())?;
-    info!("Success. Waiting for batch to be verified");
 
     if let Some(aligned_verification_data) = aligned_verification_data {
         info!("Batch was succesfully verified!");
