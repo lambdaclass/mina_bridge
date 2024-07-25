@@ -22,6 +22,7 @@ ethers = { tag = "v2.0.15-fix-reconnections", features = [
   "ws",
   "rustls",
 ], git = "https://github.com/yetanotherco/ethers-rs.git" }
+rpassword = "7.3.1"
 
 [patch.crates-io]
 ark-ff = { git = "https://github.com/openmina/algebra", branch = "openmina" }
