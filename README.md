@@ -11,21 +11,10 @@ This project is being redesigned to use [Aligned Layer](https://github.com/yetan
 ## Usage
 
 1. [Setup Aligned Devnet locally](https://github.com/yetanotherco/aligned_layer/blob/main/docs/guides/3_setup_aligned.md#booting-devnet-with-default-configs)
+1. Setup the `core/.env` file of the bridge's core program. A template is available in `core/.env.template`.
 1. In Mina Bridge root run:
-
 ```sh
-MINA_RPC_URL=<mina_rpc_url> ALIGNED_PATH=<aligned_path> make
-```
-
-Where:
-
-- `mina_rpc_url` is the URL of the Mina node GraphQL server you want to fetch the state and its proof.
-- `aligned_path` is the path of the Aligned Layer repo where you did the setup in step 1.
-
-For example, if you are running the Mina node locally and setup the Aligned repo in the `home` dir then run:
-
-```sh
-MINA_RPC_URL=http://localhost:3085/graphql ALIGNED_PATH=~/aligned_layer make
+make
 ```
 
 ## Kimchi proving system

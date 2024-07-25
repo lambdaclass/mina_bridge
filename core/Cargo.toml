@@ -1,5 +1,5 @@
 [package]
-name = "parser"
+name = "core"
 version = "0.1.0"
 edition = "2021"
 
@@ -17,6 +17,16 @@ ark-poly = { version = "0.3.0", features = ["parallel"] }
 ark-serialize = "0.3.0"
 mina-tree = { git = "https://github.com/lambdaclass/openmina/", branch = "mina_bridge" }
 mina-p2p-messages = { git = "https://github.com/lambdaclass/openmina/", branch = "mina_bridge" }
+aligned-sdk = { git = "https://github.com/lambdaclass/aligned_layer.git", branch = "mina" }
+ethers = { tag = "v2.0.15-fix-reconnections", features = [
+  "ws",
+  "rustls",
+], git = "https://github.com/yetanotherco/ethers-rs.git" }
+rpassword = "7.3.1"
+tokio = "1.39.1"
+dotenv = "0.15.0"
+env_logger = "0.11.5"
+log = "0.4.22"
 
 [patch.crates-io]
 ark-ff = { git = "https://github.com/openmina/algebra", branch = "openmina" }
