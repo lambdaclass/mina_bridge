@@ -25,6 +25,8 @@ ethers = { tag = "v2.0.15-fix-reconnections", features = [
 rpassword = "7.3.1"
 tokio = "1.39.1"
 dotenv = "0.15.0"
+env_logger = "0.11.5"
+log = "0.4.22"
 
 [patch.crates-io]
 ark-ff = { git = "https://github.com/openmina/algebra", branch = "openmina" }
