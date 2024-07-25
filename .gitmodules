@@ -5,3 +5,9 @@
 [submodule "eth_verifier/lib/forge-std"]
 	path = eth_verifier/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "contract/lib/forge-std"]
+	path = contract/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
+[submodule "contract/lib/aligned_layer"]
+	path = contract/lib/aligned_layer
+	url = https://github.com/lambdaclass/aligned_layer
