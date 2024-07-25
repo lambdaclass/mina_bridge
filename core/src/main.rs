@@ -1,12 +1,15 @@
-use std::path::PathBuf;
+extern crate dotenv;
 
 use core::{aligned_polling_service, mina_polling_service};
+use dotenv::dotenv;
+use std::path::PathBuf;
 
 #[tokio::main]
 async fn main() -> Result<(), String> {
-    let args: Vec<String> = std::env::args().collect();
-    let rpc_url = args.get(1).ok_or("Error: No RPC URL provided")?;
-    let output_path = args.get(2).ok_or("Error: No output path provided")?;
+    dotenv().ok();
+
+    let rpc_url = std::env::var("MINA_RPC_URL").expect("couldn't read MINA_RPC_URL env. variable.");
+    let output_path = ".";
 
     let mut proof_path_buf = PathBuf::from(output_path);
     proof_path_buf.push("protocol_state.proof");
@@ -15,7 +18,7 @@ async fn main() -> Result<(), String> {
     public_input_path_buf.push("protocol_state.pub");
 
     let mina_proof = mina_polling_service::query_and_serialize(
-        rpc_url,
+        &rpc_url,
         proof_path_buf.to_str().unwrap(),
         public_input_path_buf.to_str().unwrap(),
     )?;

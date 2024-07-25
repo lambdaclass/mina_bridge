@@ -40,10 +40,13 @@ pub fn query_and_serialize(
 
     let pub_input = Some(pub_input);
 
-    let proof_generator_addr = Address::from_str(
-        &std::env::var("PROOF_GENERATOR_ADDR")
-            .expect("couldn't get PROOF_GENERATOR_ADDR environment variable."),
-    )
+    let proof_generator_addr = Address::from_str(&if let Ok(proof_generator_addr) =
+        std::env::var("PROOF_GENERATOR_ADDR")
+    {
+        proof_generator_addr
+    } else {
+        "0x66f9664f97F2b50F62D13eA064982f936dE76657".to_string()
+    })
     .map_err(|err| err.to_string())?;
 
     Ok(VerificationData {

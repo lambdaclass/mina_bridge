@@ -713,6 +713,7 @@ dependencies = [
  "ark-ff",
  "ark-poly",
  "ark-serialize",
+ "dotenv",
  "ethers",
  "kimchi",
  "mina-curves",
@@ -1026,6 +1027,12 @@ name = "disjoint-set"
 version = "0.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d102f1a462fdcdddce88d6d46c06c074a2d2749b262230333726b06c52bb7585"
+
+[[package]]
+name = "dotenv"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77c90badedccf4105eca100756a0b1289e191f6fcbdadd3cee1d2f614f97da8f"
 
 [[package]]
 name = "dunce"
