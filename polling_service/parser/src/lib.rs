@@ -20,22 +20,24 @@ pub fn parse_public_input(
         .map_err(|err| format!("Error serializing tip's state hash field: {err}"))?;
     let tip_protocol_state = serialize_protocol_state(TIP_PROTOCOL_STATE)
         .map_err(|err| format!("Error serializing tip's protocol state: {err}"))?;
-    let mut tip_protocol_state_len = [0; 4];
-    tip_protocol_state_len.copy_from_slice(&tip_protocol_state.len().to_be_bytes());
+    let tip_protocol_state_len = tip_protocol_state.len() as u32;
+    let mut tip_protocol_state_len_bytes = [0; 4];
+    tip_protocol_state_len_bytes.copy_from_slice(&tip_protocol_state_len.to_be_bytes());
 
     let last_block_value = query_last_block(rpc_url)?;
 
     let proof = serialize_protocol_state_proof(&last_block_value)?;
 
     let candidate_protocol_state = get_protocol_state(&last_block_value)?;
-    let mut candidate_protocol_state_len = [0; 4];
-    candidate_protocol_state_len.copy_from_slice(&candidate_protocol_state.len().to_be_bytes());
+    let candidate_protocol_state_len = candidate_protocol_state.len() as u32;
+    let mut candidate_protocol_state_len_bytes = [0; 4];
+    candidate_protocol_state_len_bytes.copy_from_slice(&candidate_protocol_state_len.to_be_bytes());
 
     let mut public_input = get_state_hash_field(&last_block_value)?;
-    public_input.extend(candidate_protocol_state_len);
+    public_input.extend(candidate_protocol_state_len_bytes);
     public_input.extend(candidate_protocol_state);
     public_input.extend(tip_state_hash_field);
-    public_input.extend(tip_protocol_state_len);
+    public_input.extend(tip_protocol_state_len_bytes);
     public_input.extend(tip_protocol_state);
 
     fs::write(proof_path, proof)
