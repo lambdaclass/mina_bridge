@@ -1,19 +1,21 @@
 extern crate dotenv;
 
 use core::{aligned_polling_service, mina_polling_service};
-use dotenv::dotenv;
 use log::{error, info};
 use std::path::PathBuf;
 
 #[tokio::main]
 async fn main() -> Result<(), String> {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
-    dotenv().ok();
+    info!("Mina bridge starts");
 
-    info!("Started Mina bridge");
+    let dotenv_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(".env");
+    if let Err(err) = dotenv::from_path(dotenv_path) {
+        error!("Couldn't load .env file: {}", err);
+    }
 
     let rpc_url = std::env::var("MINA_RPC_URL").expect("couldn't read MINA_RPC_URL env. variable.");
-    let output_path = ".";
+    let output_path = "."; // TODO(xqft): embellish this
 
     let mut proof_path_buf = PathBuf::from(output_path);
     proof_path_buf.push("protocol_state.proof");
