@@ -22,13 +22,14 @@ make
 ## Architecture
 ### Core
 
-`mina_bridge repo: core/`
+ [`mina_bridge repo: core/`](https://github.com/lambdaclass/mina_bridge/blob/c13a6e74e2e7231c3ca44de621425286642ca14e/core)
+
 
 A Rust library+binary project that includes the next modules:
 
 ### Mina Polling Service
 
-`mina_bridge repo: core/mina_polling_service.rs`
+[`mina_bridge repo: core/mina_polling_service.rs`](https://github.com/lambdaclass/mina_bridge/blob/c13a6e74e2e7231c3ca44de621425286642ca14e/core/src/mina_polling_service.rs)
 
 This module queries a Mina node for the latest state data and proof. It serializes:
 
@@ -40,7 +41,7 @@ The first two compose the public inputs and the last one the proof of what we ca
 
 ### Aligned Polling Service
 
-`mina_bridge repo: core/aligned_polling_service.rs`
+[`mina_bridge repo: core/aligned_polling_service.rs`](https://github.com/lambdaclass/mina_bridge/blob/c13a6e74e2e7231c3ca44de621425286642ca14e/core/src/aligned_polling_service.rs)
 
 This module sends the public input and proof arrays (serialized with the Mina Polling Service) to the Aligned batcher for verification, using the Aligned SDK. Currently it waits until the batch that includes the proof is verified, polling Aligned every 10 seconds (this is done by the Aligned SDK).
 
@@ -48,7 +49,7 @@ Finally the service returns the verification data sent by Aligned after proof su
 
 ### Smart Contract Utility
 
-`mina_bridge repo: core/smart_contract_utility.rs`
+[`mina_bridge repo: core/smart_contract_utility.rs`]()
 
 This module calls the bridge’s smart contract `updateLastVerifiedStateHash()` function by sending the verification data retrieved by the Aligned Polling Service. It also exposes an API for getting info from the contract.
 
