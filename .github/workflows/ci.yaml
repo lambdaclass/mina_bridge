@@ -30,12 +30,12 @@ jobs:
 
   integration:
     name: Test integration
+    runs-on: ubuntu-selfhosted
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
     
       - name: Run test
-        runs-on: ubuntu-selfhosted
         with:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: us-west-2
