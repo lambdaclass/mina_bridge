@@ -1,10 +1,12 @@
+#!/bin/bash
+
 mkdir integration_test
 cd integration_test
 git clone https://github.com/lambdaclass/aligned_layer.git --recursive -b mina
 cd aligned_layer
 make submodules deps go_deps
 
-if [ $TARGET == linux ]
+if [[ $TARGET == linux ]]
 then
     make build_mina_linux
 else
