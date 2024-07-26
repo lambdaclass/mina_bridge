@@ -37,9 +37,10 @@ jobs:
 
       - name: Install Go
         uses: actions/setup-go@v5
+        env:
+          GOCACHE: off
         with:
           go-version: '>=1.22'
-          GOCACHE: off
           cache: false
 
       - name: Install Foundry
