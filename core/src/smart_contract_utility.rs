@@ -38,16 +38,13 @@ pub async fn update(verification_data: AlignedVerificationData) -> Result<(), St
         return Err("Chain selected is Holesky but couldn't read ETH_RPC_URL".to_string());
     };
 
-    let bridge_eth_addr = if let Ok(bridge_eth_addr) = std::env::var("BRIDGE_ETH_ADDR") {
-        bridge_eth_addr
-    } else if matches!(chain, Chain::Devnet) {
-        debug!("Using default bridge ethereum address for devnet");
-        "0x7969c5eD335650692Bc04293B07F5BF2e7A673C0".to_string()
-    } else {
-        return Err("Chain selected is Holesky but couldn't read BRIDGE_ETH_ADDR".to_string());
-    };
-    let bridge_eth_addr = Address::from_str(&bridge_eth_addr).map_err(|err| err.to_string())?;
+    let bridge_eth_addr = Address::from_str(match chain {
+        Chain::Devnet => "0x700b6A60ce7EaaEA56F065753d8dcB9653dbAD35",
+        _ => unimplemented!(),
+    })
+    .map_err(|err| err.to_string())?;
 
+    debug!("Creating contract instance");
     let mina_bridge_contract = mina_bridge_contract(&eth_rpc_url, bridge_eth_addr)?;
 
     let AlignedVerificationData {
@@ -71,6 +68,7 @@ pub async fn update(verification_data: AlignedVerificationData) -> Result<(), St
         proof_generator_addr,
     } = verification_data_commitment;
 
+    debug!("Calling updateLastVerifiedState()");
     mina_bridge_contract
         .update_last_verified_state(
             proof_commitment,
@@ -83,6 +81,7 @@ pub async fn update(verification_data: AlignedVerificationData) -> Result<(), St
         )
         .await
         .map_err(|err| err.to_string())?;
+    // call reverts if batch is not valid.
 
     Ok(())
 }
