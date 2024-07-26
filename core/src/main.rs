@@ -1,6 +1,7 @@
 extern crate dotenv;
 
 use core::{aligned_polling_service, mina_polling_service, smart_contract_utility};
+use dotenv::dotenv;
 use log::{error, info};
 use std::path::PathBuf;
 
@@ -9,8 +10,7 @@ async fn main() -> Result<(), String> {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
     info!("Mina bridge starts");
 
-    let dotenv_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(".env");
-    if let Err(err) = dotenv::from_path(dotenv_path) {
+    if let Err(err) = dotenv() {
         error!("Couldn't load .env file: {}", err);
     }
 
