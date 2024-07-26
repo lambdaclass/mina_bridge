@@ -1,6 +1,6 @@
 extern crate dotenv;
 
-use core::{aligned_polling_service, mina_polling_service};
+use core::{aligned_polling_service, mina_polling_service, smart_contract_utility};
 use log::{error, info};
 use std::path::PathBuf;
 
@@ -33,11 +33,15 @@ async fn main() -> Result<(), String> {
     .inspect_err(|err| error!("{}", err))?;
 
     info!("Executing Aligned polling service");
-    let _verification_data = aligned_polling_service::submit(&mina_proof)
+    let verification_data = aligned_polling_service::submit(&mina_proof)
         .await
         .inspect_err(|err| error!("{}", err))?;
 
-    // smart_contract_utility::update(verification_data);
+    info!("Updating the bridge's smart contract");
+    smart_contract_utility::update(verification_data)
+        .await
+        .inspect_err(|err| error!("{}", err))?;
 
+    info!("Success!");
     Ok(())
 }
