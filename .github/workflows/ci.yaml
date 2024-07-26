@@ -39,7 +39,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '>=1.22'
-          cache-dependency-path: "**/*.sum"
+          cache: false
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
