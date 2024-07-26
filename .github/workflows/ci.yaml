@@ -55,6 +55,6 @@ jobs:
           AWS_BUCKET_NAME: mina-bridge
           TARGET: linux
         run: |
-          echo "/root/.cargo/bin" >>"${GITHUB_PATH}"
+          export PATH="/root/.cargo/bin:${PATH}"
           make setup_test
   
