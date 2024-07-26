@@ -53,9 +53,7 @@ jobs:
           AWS_REGION: us-west-2
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_BUCKET_NAME: mina-bridge
+          PATH: /root/.cargo/bin:$PATH
           TARGET: linux
-        run: |
-          shopt -s expand_aliases
-          alias cargo="/root/.cargo/bin/cargo"
-          make setup_test
+        run: make setup_test
   
