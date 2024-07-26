@@ -53,6 +53,7 @@ jobs:
           AWS_REGION: us-west-2
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_BUCKET_NAME: mina-bridge
+          TARGET: linux
         run: |
           export PATH=$PATH:/root/.cargo/bin/cargo
           make setup_test
