@@ -56,5 +56,6 @@ jobs:
           TARGET: linux
         run: |
           export PATH="/root/.cargo/bin:${PATH}"
+          echo "ETH_CHAIN=devnet\nMINA_RPC_URL=http://5.9.57.89:3085/graphql\n" > .env
           make setup_test
   
