@@ -27,3 +27,12 @@ jobs:
         with:
             skip_run: true
             directory: state_utility/parser
+
+    integration:
+        name: Test integration
+        with:
+            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            AWS_REGION: us-west-2
+            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_BUCKET_NAME: mina-bridge
+        run: make setup_test
