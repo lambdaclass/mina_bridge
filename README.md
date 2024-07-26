@@ -17,6 +17,10 @@ This project is being redesigned to use [Aligned Layer](https://github.com/yetan
 make
 ```
 
+# Specification
+
+## Architecture
+
 ## Kimchi proving system
 
 Kimchi is a zero-knowledge proof system that’s a variant of PLONK.
