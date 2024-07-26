@@ -20,6 +20,70 @@ make
 # Specification
 
 ## Architecture
+### Core
+
+`mina_bridge repo: core/`
+
+A Rust library+binary project that includes the next modules:
+
+### Mina Polling Service
+
+`mina_bridge repo: core/mina_polling_service.rs`
+
+This module queries a Mina node for the latest state data and proof. It serializes:
+
+- the state (an OCaml structure encoded in base64, standard vocabulary) as bytes, representing the underlying UTF-8.
+- the state hash (field element) as bytes (arkworks serialization).
+- the state proof (an OCaml structure encoded in base64, URL vocabulary) as bytes, representing the underlying UTF-8.
+
+The first two compose the public inputs and the last one the proof of what we call a [**Mina proof**]. So we end up with two byte arrays (public inputs and proof) in a friendly format for an Aligned operator.  
+
+### Aligned Polling Service
+
+`mina_bridge repo: core/aligned_polling_service.rs`
+
+This module sends the public input and proof arrays (serialized with the Mina Polling Service) to the Aligned batcher for verification, using the Aligned SDK. Currently it waits until the batch that includes the proof is verified, polling Aligned every 10 seconds (this is done by the Aligned SDK).
+
+Finally the service returns the verification data sent by Aligned after proof submission. This is used for updating the bridge’s smart contract that stores the last verified state hash.
+
+### Smart Contract Utility
+
+`mina_bridge repo: core/smart_contract_utility.rs`
+
+This module calls the bridge’s smart contract `updateLastVerifiedStateHash()` function by sending the verification data retrieved by the Aligned Polling Service. It also exposes an API for getting info from the contract.
+
+### Smart Contract
+
+`mina_bridge repo: contract/`
+
+The contract serves as a cache for storing verified Mina state information. It contains a `updateLastVerifiedStateHash()` function which takes verification data as a parameter, and calls the Aligned Service Manager contract to check that a state proof was indeed verified to then store that state’s info.
+
+A consumer can retrieve info of the last verified state from the contract.
+
+### Aligned’s Mina state verifier
+
+`aligned_layer repo: operator/mina/`
+
+Aligned integrated a Mina verifier in its operator code for verifying Mina state proofs.
+
+### Mina proof
+
+We understand a “Mina proof” to be composed of:
+
+- public inputs: `[candidate_state_hash, candidate_state, last_verified_state_hash, last_verified_state]`
+- proof: Kimchi proof of the candidate state (specifically a Wrap proof in the context of the Pickles recursive system). We like to call it “Pickles proof” for simplicity.
+
+#### Consensus checking
+
+The first step of the Mina verifier is to execute consensus checks, specific to the Ouroboros Samasika consensus mechanism that the Mina Protocol uses.
+
+#### State hash check
+
+We check that the candidate state hash is indeed the hash of the candidate state, and the same is done for the last verified state. We include the hash in the public inputs because then the smart contract can call Aligned’s contract to check that a state with a specific hash was verified, and then store that hash.
+
+#### Pickles verification
+
+We are leveraging OpenMina’s “block verifier” to verify the Pickles proof of the candidate state. The verifier takes as public input the hash of the state, and its proof. This is the final step of the Mina state verifier. Audit OpenMina’s verifier code is needed.
 
 ## Kimchi proving system
 
