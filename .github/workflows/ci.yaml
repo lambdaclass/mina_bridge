@@ -34,11 +34,6 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
-      
-      - name: Install Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '>=1.22.0'
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
