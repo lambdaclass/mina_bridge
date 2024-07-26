@@ -1,6 +1,6 @@
 mkdir integration_test
 cd integration_test
-git clone git@github.com:lambdaclass/aligned_layer.git --recursive -b mina
+git clone https://github.com/lambdaclass/aligned_layer.git --recursive -b mina
 cd aligned_layer
 make submodules deps go_deps
 
