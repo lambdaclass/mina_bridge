@@ -9,7 +9,14 @@ abigen!(MinaBridgeEthereumContract, "abi/MinaBridge.json");
 
 type MinaBridgeEthereum = MinaBridgeEthereumContract<Provider<Http>>;
 
-pub async fn update(verification_data: AlignedVerificationData) -> Result<(), String> {
+// TODO(xqft): define in constants.rs
+const ANVIL_PRIVATE_KEY: &str = "2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6"; // Anvil address 9
+const ANVIL_CHAIN_ID: u64 = 31337;
+
+pub async fn update(
+    verification_data: AlignedVerificationData,
+    pub_input: Vec<u8>,
+) -> Result<U256, String> {
     let chain =
         match std::env::var("ETH_CHAIN")
             .expect("couldn't get ETH_CHAIN environment variable.")
@@ -63,27 +70,35 @@ pub async fn update(verification_data: AlignedVerificationData) -> Result<(), St
 
     let VerificationDataCommitment {
         proof_commitment,
-        pub_input_commitment,
         proving_system_aux_data_commitment,
         proof_generator_addr,
+        ..
     } = verification_data_commitment;
 
     debug!("Calling updateLastVerifiedState()");
     mina_bridge_contract
         .update_last_verified_state(
             proof_commitment,
-            pub_input_commitment,
             proving_system_aux_data_commitment,
             proof_generator_addr,
             batch_merkle_root,
             merkle_proof,
             index_in_batch.into(),
+            pub_input.into(),
         )
+        .send()
+        .await
+        .map_err(|err| err.to_string())?
         .await
         .map_err(|err| err.to_string())?;
     // call reverts if batch is not valid.
 
-    Ok(())
+    let new_state_hash = mina_bridge_contract
+        .get_last_verified_state_hash()
+        .await
+        .map_err(|err| err.to_string())?;
+
+    Ok(new_state_hash)
 }
 
 fn mina_bridge_contract(
@@ -92,6 +107,24 @@ fn mina_bridge_contract(
 ) -> Result<MinaBridgeEthereum, String> {
     let eth_rpc_provider =
         Provider::<Http>::try_from(eth_rpc_url).map_err(|err| err.to_string())?;
-    let client = Arc::new(eth_rpc_provider);
+    let wallet = LocalWallet::from_str(ANVIL_PRIVATE_KEY).expect("failed to create wallet");
+    let signer = SignerMiddleware::new(eth_rpc_provider, wallet.with_chain_id(ANVIL_CHAIN_ID));
+    let client = Arc::new(signer);
+
+    // get the solc project instance using the paths above
+    let project = Project::builder()
+        .paths(paths)
+        .ephemeral()
+        .no_artifacts()
+        .build()
+        .unwrap();
+    // compile the project and get the artifacts
+    let output = project.compile().unwrap();
+    let contract = output
+        .find_first("SimpleStorage")
+        .expect("could not find contract")
+        .clone();
+    let (abi, bytecode, _) = contract.into_parts();
+    let factory = ContractFactory::new(abi, bytecode, client);
     Ok(MinaBridgeEthereum::new(contract_address, client))
 }

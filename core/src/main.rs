@@ -2,6 +2,7 @@ extern crate dotenv;
 
 use core::{aligned_polling_service, mina_polling_service, smart_contract_utility};
 use dotenv::dotenv;
+use ethers::abi::AbiEncode;
 use log::{error, info};
 use std::path::PathBuf;
 
@@ -38,10 +39,16 @@ async fn main() -> Result<(), String> {
         .inspect_err(|err| error!("{}", err))?;
 
     info!("Updating the bridge's smart contract");
-    smart_contract_utility::update(verification_data)
+    let pub_input = mina_proof
+        .pub_input
+        .ok_or("Missing public inputs from Mina proof")?;
+    let new_state_hash = smart_contract_utility::update(verification_data, pub_input)
         .await
         .inspect_err(|err| error!("{}", err))?;
 
-    info!("Success!");
+    info!(
+        "Success! state hash {} was stored in the Mina bridge's smart contract",
+        new_state_hash.encode_hex()
+    );
     Ok(())
 }
