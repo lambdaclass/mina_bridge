@@ -1,39 +1,44 @@
 name: CI
 on:
-    push:
-        branches:
-            - main
-    pull_request:
-        branches: ["*"]
+  push:
+    branches:
+      - main
+  pull_request:
+    branches: ["*"]
 
 jobs:
-    core:
-        name: Test Core
-        uses: ./.github/workflows/rust_ci.yaml
-        with:
-            skip_run: true
-            directory: core
+  core:
+    name: Test Core
+    uses: ./.github/workflows/rust_ci.yaml
+    with:
+      skip_run: true
+      directory: core
 
-    merkle_path:
-        name: Test Merkle Path parser
-        uses: ./.github/workflows/rust_ci.yaml
-        with:
-            skip_run: true
-            directory: state_utility/merkle_path
+  merkle_path:
+    name: Test Merkle Path parser
+    uses: ./.github/workflows/rust_ci.yaml
+    with:
+      skip_run: true
+      directory: state_utility/merkle_path
 
-    merkle_root_parser:
-        name: Test Merkle Root parser
-        uses: ./.github/workflows/rust_ci.yaml
-        with:
-            skip_run: true
-            directory: state_utility/parser
+  merkle_root_parser:
+    name: Test Merkle Root parser
+    uses: ./.github/workflows/rust_ci.yaml
+    with:
+      skip_run: true
+      directory: state_utility/parser
 
-    integration:
-        steps:
-            - name: Test integration
-              with:
-                  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  AWS_REGION: us-west-2
-                  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  AWS_BUCKET_NAME: mina-bridge
-              run: make setup_test
+  integration:
+    name: Test integration
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+    
+      - name: Run test
+        runs-on: ubuntu-selfhosted
+        with:
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-west-2
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_BUCKET_NAME: mina-bridge
+        run: make setup_test
