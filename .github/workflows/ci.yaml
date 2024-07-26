@@ -35,9 +35,6 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v4
 
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-
       - name: Install Go
         uses: actions/setup-go@v5
         env:
@@ -57,5 +54,8 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_BUCKET_NAME: mina-bridge
           TARGET: linux
-        run: make setup_test
+        run: |
+          shopt -s expand_aliases
+          alias cargo="/root/.cargo/bin/cargo"
+          make setup_test
   
