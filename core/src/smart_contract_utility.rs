@@ -2,12 +2,14 @@ use std::str::FromStr;
 use std::sync::Arc;
 
 use aligned_sdk::core::types::{AlignedVerificationData, Chain, VerificationDataCommitment};
-use ethers::prelude::*;
-use log::debug;
+use ethers::{abi::AbiEncode, prelude::*};
+use k256::ecdsa::SigningKey;
+use log::{debug, info};
 
 abigen!(MinaBridgeEthereumContract, "abi/MinaBridge.json");
 
-type MinaBridgeEthereum = MinaBridgeEthereumContract<Provider<Http>>;
+type MinaBridgeEthereum =
+    MinaBridgeEthereumContract<SignerMiddleware<Provider<Http>, Wallet<SigningKey>>>;
 
 // TODO(xqft): define in constants.rs
 const ANVIL_PRIVATE_KEY: &str = "2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6"; // Anvil address 9
@@ -76,23 +78,41 @@ pub async fn update(
     } = verification_data_commitment;
 
     debug!("Calling updateLastVerifiedState()");
-    mina_bridge_contract
-        .update_last_verified_state(
-            proof_commitment,
-            proving_system_aux_data_commitment,
-            proof_generator_addr,
-            batch_merkle_root,
-            merkle_proof,
-            index_in_batch.into(),
-            pub_input.into(),
-        )
-        .send()
+    let update_call = mina_bridge_contract.update_last_verified_state(
+        proof_commitment,
+        proving_system_aux_data_commitment,
+        proof_generator_addr,
+        batch_merkle_root,
+        merkle_proof,
+        index_in_batch.into(),
+        pub_input.into(),
+    );
+
+    info!(
+        "Estimated gas cost: {}",
+        update_call
+            .estimate_gas()
+            .await
+            .map_err(|err| err.to_string())?
+    );
+
+    let pending_tx = update_call.send().await.map_err(|err| err.to_string())?;
+    info!(
+        "Transaction {} was submitted and is now pending",
+        pending_tx.tx_hash().encode_hex()
+    );
+
+    let receipt = pending_tx
         .await
         .map_err(|err| err.to_string())?
-        .await
-        .map_err(|err| err.to_string())?;
-    // call reverts if batch is not valid.
+        .ok_or("Missing transaction receipt")?;
 
+    info!(
+        "Transaction mined! final gas cost: {}",
+        receipt.gas_used.ok_or("Missing gas used")?
+    );
+
+    // call reverts if batch is not valid.
     let new_state_hash = mina_bridge_contract
         .get_last_verified_state_hash()
         .await
@@ -110,21 +130,5 @@ fn mina_bridge_contract(
     let wallet = LocalWallet::from_str(ANVIL_PRIVATE_KEY).expect("failed to create wallet");
     let signer = SignerMiddleware::new(eth_rpc_provider, wallet.with_chain_id(ANVIL_CHAIN_ID));
     let client = Arc::new(signer);
-
-    // get the solc project instance using the paths above
-    let project = Project::builder()
-        .paths(paths)
-        .ephemeral()
-        .no_artifacts()
-        .build()
-        .unwrap();
-    // compile the project and get the artifacts
-    let output = project.compile().unwrap();
-    let contract = output
-        .find_first("SimpleStorage")
-        .expect("could not find contract")
-        .clone();
-    let (abi, bytecode, _) = contract.into_parts();
-    let factory = ContractFactory::new(abi, bytecode, client);
     Ok(MinaBridgeEthereum::new(contract_address, client))
 }

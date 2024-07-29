@@ -47,7 +47,7 @@ async fn main() -> Result<(), String> {
         .inspect_err(|err| error!("{}", err))?;
 
     info!(
-        "Success! state hash {} was stored in the Mina bridge's smart contract",
+        "Success! verified state hash {} was stored in the bridge's smart contract",
         new_state_hash.encode_hex()
     );
     Ok(())
