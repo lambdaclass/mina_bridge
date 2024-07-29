@@ -30,7 +30,7 @@ pub fn query_and_serialize(rpc_url: &str) -> Result<VerificationData, String> {
 
     let candidate_state_hash = get_state_hash_field(&last_block_value)?;
     info!(
-        "Queried Mina candidate state 0x{} and its proof",
+        "Queried Mina candidate state 0x{} and its proof from Mainnet node",
         hex::encode(&candidate_state_hash)
     );
 
