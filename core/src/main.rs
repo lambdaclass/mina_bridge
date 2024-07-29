@@ -1,7 +1,7 @@
-extern crate dotenv;
-
-use core::{aligned_polling_service, mina_polling_service, smart_contract_utility};
-use dotenv::dotenv;
+use core::{
+    aligned_polling_service, env::EnvironmentVariables, mina_polling_service,
+    smart_contract_utility,
+};
 use ethers::abi::AbiEncode;
 use log::{debug, error, info};
 use std::process;
@@ -10,15 +10,14 @@ use std::process;
 async fn main() {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
-    debug!("Loading .env");
-    dotenv().unwrap_or_else(|err| {
-        error!("Couldn't load .env file: {}", err);
-        process::exit(1);
-    });
-
-    // TODO(xqft): read all env variables here
-    let rpc_url = std::env::var("MINA_RPC_URL").unwrap_or_else(|err| {
-        error!("couldn't read MINA_RPC_URL env. variable: {}", err);
+    let EnvironmentVariables {
+        rpc_url,
+        chain,
+        batcher_addr,
+        batcher_eth_addr,
+        eth_rpc_url,
+    } = EnvironmentVariables::new().unwrap_or_else(|err| {
+        error!("{}", err);
         process::exit(1);
     });
 
@@ -29,12 +28,18 @@ async fn main() {
     });
 
     debug!("Executing Aligned polling service");
-    let verification_data = aligned_polling_service::submit(&mina_proof)
-        .await
-        .unwrap_or_else(|err| {
-            error!("{}", err);
-            process::exit(1);
-        });
+    let verification_data = aligned_polling_service::submit(
+        &mina_proof,
+        &chain,
+        &batcher_addr,
+        &batcher_eth_addr,
+        &eth_rpc_url,
+    )
+    .await
+    .unwrap_or_else(|err| {
+        error!("{}", err);
+        process::exit(1);
+    });
 
     debug!("Updating the bridge's smart contract");
     let pub_input = mina_proof.pub_input.unwrap_or_else(|| {
@@ -42,12 +47,13 @@ async fn main() {
         process::exit(1);
     });
 
-    let verified_state_hash = smart_contract_utility::update(verification_data, pub_input)
-        .await
-        .unwrap_or_else(|err| {
-            error!("{}", err);
-            process::exit(1);
-        });
+    let verified_state_hash =
+        smart_contract_utility::update(verification_data, pub_input, &chain, &eth_rpc_url)
+            .await
+            .unwrap_or_else(|err| {
+                error!("{}", err);
+                process::exit(1);
+            });
 
     info!(
         "Success! verified Mina state hash {} was stored in the bridge's smart contract",

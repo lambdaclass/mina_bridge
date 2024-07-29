@@ -4,9 +4,9 @@ use std::sync::Arc;
 use aligned_sdk::core::types::{AlignedVerificationData, Chain, VerificationDataCommitment};
 use ethers::{abi::AbiEncode, prelude::*};
 use k256::ecdsa::SigningKey;
-use log::{debug, info};
+use log::{debug, error, info};
 
-use crate::constants::{ANVIL_CHAIN_ID, ANVIL_PRIVATE_KEY};
+use crate::constants::{ANVIL_CHAIN_ID, ANVIL_PRIVATE_KEY, BRIDGE_DEVNET_ETH_ADDR};
 
 abigen!(MinaBridgeEthereumContract, "abi/MinaBridge.json");
 
@@ -16,43 +16,20 @@ type MinaBridgeEthereum =
 pub async fn update(
     verification_data: AlignedVerificationData,
     pub_input: Vec<u8>,
+    chain: &Chain,
+    eth_rpc_url: &str,
 ) -> Result<U256, String> {
-    let chain =
-        match std::env::var("ETH_CHAIN")
-            .expect("couldn't get ETH_CHAIN environment variable.")
-            .as_str()
-        {
-            "devnet" => {
-                debug!("Selected Anvil devnet chain.");
-                Chain::Devnet
-            }
-            "holesky" => {
-                debug!("Selected Holesky chain.");
-                Chain::Holesky
-            }
-            _ => return Err(
-                "Unrecognized chain, possible values for ETH_CHAIN are \"devnet\" and \"holesky\"."
-                    .to_owned(),
-            ),
-        };
-
-    let eth_rpc_url = if let Ok(eth_rpc_url) = std::env::var("ETH_RPC_URL") {
-        eth_rpc_url
-    } else if matches!(chain, Chain::Devnet) {
-        debug!("Using default Ethereum RPC URL for devnet");
-        "http://localhost:8545".to_string()
-    } else {
-        return Err("Chain selected is Holesky but couldn't read ETH_RPC_URL".to_string());
-    };
-
     let bridge_eth_addr = Address::from_str(match chain {
-        Chain::Devnet => "0x700b6A60ce7EaaEA56F065753d8dcB9653dbAD35",
-        _ => unimplemented!(),
+        Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
+        _ => {
+            error!("Unimplemented Ethereum contract on selected chain");
+            unimplemented!()
+        }
     })
     .map_err(|err| err.to_string())?;
 
     debug!("Creating contract instance");
-    let mina_bridge_contract = mina_bridge_contract(&eth_rpc_url, bridge_eth_addr)?;
+    let mina_bridge_contract = mina_bridge_contract(eth_rpc_url, bridge_eth_addr)?;
 
     let AlignedVerificationData {
         verification_data_commitment,
@@ -75,7 +52,8 @@ pub async fn update(
         ..
     } = verification_data_commitment;
 
-    debug!("Calling updateLastVerifiedState()");
+    debug!("Updating contract");
+
     let update_call = mina_bridge_contract.update_last_verified_state(
         proof_commitment,
         proving_system_aux_data_commitment,
@@ -85,7 +63,7 @@ pub async fn update(
         index_in_batch.into(),
         pub_input.into(),
     );
-    // call reverts if batch is not valid.
+    // update call reverts if batch is not valid or proof isn't included in it.
 
     info!(
         "Estimated gas cost: {}",
@@ -111,6 +89,7 @@ pub async fn update(
         receipt.gas_used.ok_or("Missing gas used")?
     );
 
+    debug!("Getting contract stored hash");
     let new_state_hash = mina_bridge_contract
         .get_last_verified_state_hash()
         .await

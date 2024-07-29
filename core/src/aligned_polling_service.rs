@@ -5,58 +5,18 @@ use aligned_sdk::{
     sdk::{get_next_nonce, submit_and_wait},
 };
 use ethers::signers::{LocalWallet, Signer, Wallet};
-use log::{debug, info};
+use log::info;
 
 use crate::constants::ANVIL_PRIVATE_KEY;
 
 /// Submits a Mina proof to Aligned's batcher and waits until the batch is verified.
-pub async fn submit(mina_proof: &VerificationData) -> Result<AlignedVerificationData, String> {
-    let chain =
-        match std::env::var("ETH_CHAIN")
-            .expect("couldn't get ETH_CHAIN environment variable.")
-            .as_str()
-        {
-            "devnet" => {
-                debug!("Selected Anvil devnet chain.");
-                Chain::Devnet
-            }
-            "holesky" => {
-                debug!("Selected Holesky chain.");
-                Chain::Holesky
-            }
-            _ => return Err(
-                "Unrecognized chain, possible values for ETH_CHAIN are \"devnet\" and \"holesky\"."
-                    .to_owned(),
-            ),
-        };
-
-    let batcher_addr = if let Ok(batcher_addr) = std::env::var("BATCHER_ADDR") {
-        batcher_addr
-    } else if matches!(chain, Chain::Devnet) {
-        debug!("Using default batcher address for devnet");
-        "ws://localhost:8080".to_string()
-    } else {
-        return Err("Chain selected is Holesky but couldn't read BATCHER_ADDR".to_string());
-    };
-
-    let batcher_eth_addr = if let Ok(batcher_eth_addr) = std::env::var("BATCHER_ETH_ADDR") {
-        batcher_eth_addr
-    } else if matches!(chain, Chain::Devnet) {
-        debug!("Using default batcher ethereum address for devnet");
-        "0x7969c5eD335650692Bc04293B07F5BF2e7A673C0".to_string()
-    } else {
-        return Err("Chain selected is Holesky but couldn't read BATCHER_ETH_ADDR".to_string());
-    };
-
-    let eth_rpc_url = if let Ok(eth_rpc_url) = std::env::var("ETH_RPC_URL") {
-        eth_rpc_url
-    } else if matches!(chain, Chain::Devnet) {
-        debug!("Using default Ethereum RPC URL for devnet");
-        "http://localhost:8545".to_string()
-    } else {
-        return Err("Chain selected is Holesky but couldn't read ETH_RPC_URL".to_string());
-    };
-
+pub async fn submit(
+    mina_proof: &VerificationData,
+    chain: &Chain,
+    batcher_addr: &str,
+    batcher_eth_addr: &str,
+    eth_rpc_url: &str,
+) -> Result<AlignedVerificationData, String> {
     let wallet = if matches!(chain, Chain::Holesky) {
         if let Ok(keystore_path) = std::env::var("KEYSTORE_PATH") {
             info!("Using keystore for Holesky wallet");
@@ -78,15 +38,15 @@ pub async fn submit(mina_proof: &VerificationData) -> Result<AlignedVerification
         info!("Using Anvil wallet");
         LocalWallet::from_str(ANVIL_PRIVATE_KEY).expect("failed to create wallet")
     };
-    let nonce = get_next_nonce(&eth_rpc_url, wallet.address(), &batcher_eth_addr)
+    let nonce = get_next_nonce(eth_rpc_url, wallet.address(), batcher_eth_addr)
         .await
         .map_err(|err| err.to_string())?;
 
     info!("Submitting Mina proof into Aligned and waiting for the batch to be verified...");
     let aligned_verification_data = submit_and_wait(
-        &batcher_addr,
-        &eth_rpc_url,
-        chain,
+        batcher_addr,
+        eth_rpc_url,
+        chain.to_owned(),
         mina_proof,
         wallet,
         nonce,

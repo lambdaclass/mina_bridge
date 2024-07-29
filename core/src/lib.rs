@@ -10,3 +10,4 @@ pub mod aligned_polling_service;
 pub mod smart_contract_utility;
 
 mod constants;
+pub mod env;
