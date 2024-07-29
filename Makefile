@@ -15,4 +15,4 @@ deploy_contract_anvil:
 	--rpc-url http://localhost:8545 \
 	--private-key 0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6 \
 	contract/script/MinaBridge.s.sol:MinaBridgeDeployer
-# Anvil private key 9
+# deploy_contract_anvil uses Anvil wallet 9, same as Aligned for deploying its contracts.
