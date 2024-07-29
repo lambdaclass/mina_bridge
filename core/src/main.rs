@@ -1,6 +1,6 @@
 use core::{
     aligned_polling_service, mina_polling_service, smart_contract_utility,
-    utils::env::EnvironmentVariables,
+    utils::{env::EnvironmentVariables, wallet::get_wallet},
 };
 use ethers::abi::AbiEncode;
 use log::{debug, error, info};
@@ -10,16 +10,26 @@ use std::process;
 async fn main() {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
+    debug!("Reading env. variables");
     let EnvironmentVariables {
         rpc_url,
         chain,
         batcher_addr,
         batcher_eth_addr,
         eth_rpc_url,
+        keystore_path,
+        private_key,
     } = EnvironmentVariables::new().unwrap_or_else(|err| {
         error!("{}", err);
         process::exit(1);
     });
+
+    debug!("Getting user wallet");
+    let wallet = get_wallet(&chain, keystore_path.as_deref(), private_key.as_deref())
+        .unwrap_or_else(|err| {
+            error!("{}", err);
+            process::exit(1);
+        });
 
     debug!("Executing Mina polling service");
     let mina_proof = mina_polling_service::query_and_serialize(&rpc_url).unwrap_or_else(|err| {
@@ -34,6 +44,7 @@ async fn main() {
         &batcher_addr,
         &batcher_eth_addr,
         &eth_rpc_url,
+        wallet.clone(),
     )
     .await
     .unwrap_or_else(|err| {
@@ -48,7 +59,7 @@ async fn main() {
     });
 
     let verified_state_hash =
-        smart_contract_utility::update(verification_data, pub_input, &chain, &eth_rpc_url)
+        smart_contract_utility::update(verification_data, pub_input, &chain, &eth_rpc_url, wallet)
             .await
             .unwrap_or_else(|err| {
                 error!("{}", err);

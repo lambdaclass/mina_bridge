@@ -9,6 +9,8 @@ pub struct EnvironmentVariables {
     pub batcher_addr: String,
     pub batcher_eth_addr: String,
     pub eth_rpc_url: String,
+    pub keystore_path: Option<String>,
+    pub private_key: Option<String>,
 }
 
 impl EnvironmentVariables {
@@ -35,7 +37,7 @@ impl EnvironmentVariables {
             ),
         };
 
-        // Default value is only valid for Anvil devnet execution.
+        // Default value is only valid for Anvil devnet setup.
         let load_var_or = |key: &str, default: &str| -> Result<String, String> {
             match std::env::var(key) {
                 Ok(value) => Ok(value),
@@ -57,12 +59,24 @@ impl EnvironmentVariables {
         )?;
         let eth_rpc_url = load_var_or("ETH_RPC_URL", "http://localhost:8545")?;
 
+        let keystore_path = std::env::var("KEYSTORE_PATH").ok();
+        let private_key = std::env::var("PRIVATE_KEY").ok();
+
+        if keystore_path.is_some() && private_key.is_some() {
+            return Err(
+                "Both keystore and private key env. variables are defined. Choose only one."
+                    .to_string(),
+            );
+        }
+
         Ok(EnvironmentVariables {
             rpc_url,
             chain,
             batcher_addr,
             batcher_eth_addr,
             eth_rpc_url,
+            keystore_path,
+            private_key,
         })
     }
 }

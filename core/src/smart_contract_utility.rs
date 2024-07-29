@@ -6,7 +6,7 @@ use ethers::{abi::AbiEncode, prelude::*};
 use k256::ecdsa::SigningKey;
 use log::{debug, error, info};
 
-use crate::utils::constants::{ANVIL_CHAIN_ID, ANVIL_PRIVATE_KEY, BRIDGE_DEVNET_ETH_ADDR};
+use crate::utils::constants::{ANVIL_CHAIN_ID, BRIDGE_DEVNET_ETH_ADDR};
 
 abigen!(MinaBridgeEthereumContract, "abi/MinaBridge.json");
 
@@ -18,6 +18,7 @@ pub async fn update(
     pub_input: Vec<u8>,
     chain: &Chain,
     eth_rpc_url: &str,
+    wallet: Wallet<SigningKey>,
 ) -> Result<U256, String> {
     let bridge_eth_addr = Address::from_str(match chain {
         Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
@@ -29,7 +30,7 @@ pub async fn update(
     .map_err(|err| err.to_string())?;
 
     debug!("Creating contract instance");
-    let mina_bridge_contract = mina_bridge_contract(eth_rpc_url, bridge_eth_addr)?;
+    let mina_bridge_contract = mina_bridge_contract(eth_rpc_url, bridge_eth_addr, chain, wallet)?;
 
     let AlignedVerificationData {
         verification_data_commitment,
@@ -101,11 +102,16 @@ pub async fn update(
 fn mina_bridge_contract(
     eth_rpc_url: &str,
     contract_address: Address,
+    chain: &Chain,
+    wallet: Wallet<SigningKey>,
 ) -> Result<MinaBridgeEthereum, String> {
     let eth_rpc_provider =
         Provider::<Http>::try_from(eth_rpc_url).map_err(|err| err.to_string())?;
-    let wallet = LocalWallet::from_str(ANVIL_PRIVATE_KEY).expect("failed to create wallet");
-    let signer = SignerMiddleware::new(eth_rpc_provider, wallet.with_chain_id(ANVIL_CHAIN_ID));
+    let chain_id = match chain {
+        Chain::Devnet => ANVIL_CHAIN_ID,
+        _ => unimplemented!(),
+    };
+    let signer = SignerMiddleware::new(eth_rpc_provider, wallet.with_chain_id(chain_id));
     let client = Arc::new(signer);
     Ok(MinaBridgeEthereum::new(contract_address, client))
 }
