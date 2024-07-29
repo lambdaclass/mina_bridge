@@ -13,9 +13,15 @@ This project is being redesigned to use [Aligned Layer](https://github.com/yetan
 1. [Setup Aligned Devnet locally](https://github.com/yetanotherco/aligned_layer/blob/main/docs/guides/3_setup_aligned.md#booting-devnet-with-default-configs)
 1. Setup the `core/.env` file of the bridge's core program. A template is available in `core/.env.template`.
 1. In the root folder, deploy the bridge's contract with:
+<<<<<<< HEAD
 ```sh
 make deploy_contract_anvil
 ```
+=======
+    ```sh
+    make deploy_contract_anvil
+    ```
+>>>>>>> aligned
 1. Run the core program:
 ```sh
 make
