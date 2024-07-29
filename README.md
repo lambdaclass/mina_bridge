@@ -31,13 +31,41 @@ A Rust library+binary project that includes the next modules:
 
 [`mina_bridge repo: core/mina_polling_service.rs`](https://github.com/lambdaclass/mina_bridge/blob/c13a6e74e2e7231c3ca44de621425286642ca14e/core/src/mina_polling_service.rs)
 
-This module queries a Mina node for the latest state data and proof. It serializes:
+This module queries a Mina node for the latest state data and proof. 
 
-- the state (an OCaml structure encoded in base64, standard vocabulary) as bytes, representing the underlying UTF-8.
-- the state hash (field element) as bytes (arkworks serialization).
-- the state proof (an OCaml structure encoded in base64, URL vocabulary) as bytes, representing the underlying UTF-8.
+ - Serializes the constant values.
+ These are temporary, we will fetch the tip from the Mina contract instead of using these hardcoded values.  
 
-The first two compose the public inputs and the last one the proof of what we call a [**Mina proof**]. So we end up with two byte arrays (public inputs and proof) in a friendly format for an Aligned operator.  
+ - Queries the provided RPC_URL to get the latest block.
+ - Serializes the protocol state and the proof of the latest block.
+    - serialize_protocol_state_proof extracts and serializes the proof of the latest block from the provided JSON response.
+    - get_protocol_state extracts and serializes the protocol state of the latest block from the provided JSON response  
+
+    In detail, it serializes:  
+    - the state (an OCaml structure encoded in base64, standard vocabulary) as bytes, representing the underlying UTF-8.
+    - the state hash (field element) as bytes (arkworks serialization).
+    - the state proof (an OCaml structure encoded in base64, URL vocabulary) as bytes, representing the underlying UTF-8.
+
+    The first two compose the public inputs and the last one the proof of what we call a [**Mina proof**]. So we end up with two byte arrays (public inputs and proof) in a friendly format for an Aligned operator.  
+
+
+
+
+ - Writes this data to local files.
+ - Returns a VerificationData object with the necessary data.
+ ```rust
+    Ok(VerificationData {
+    proving_system: ProvingSystemId::Mina,
+    proof,
+    pub_input,
+    verification_key: None,
+    vm_program_code: None,
+    proof_generator_addr,
+}
+```
+
+
+
 
 ### Aligned Polling Service
 
