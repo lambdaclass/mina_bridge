@@ -28,10 +28,7 @@ contract MinaBridgeDeployer is Script {
             revert UndefinedChain();
         }
 
-        MinaBridge mina_bridge = new MinaBridge(alignedServiceAddress);
-
-        // This is used by the bridge utility.
-        vm.setEnv("BRIDGE_ETH_ADDR", vm.toString(address(mina_bridge)));
+        new MinaBridge(alignedServiceAddress);
 
         vm.stopBroadcast();
     }
