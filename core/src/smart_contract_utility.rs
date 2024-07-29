@@ -6,14 +6,12 @@ use ethers::{abi::AbiEncode, prelude::*};
 use k256::ecdsa::SigningKey;
 use log::{debug, info};
 
+use crate::constants::{ANVIL_CHAIN_ID, ANVIL_PRIVATE_KEY};
+
 abigen!(MinaBridgeEthereumContract, "abi/MinaBridge.json");
 
 type MinaBridgeEthereum =
     MinaBridgeEthereumContract<SignerMiddleware<Provider<Http>, Wallet<SigningKey>>>;
-
-// TODO(xqft): define in constants.rs
-const ANVIL_PRIVATE_KEY: &str = "2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6"; // Anvil address 9
-const ANVIL_CHAIN_ID: u64 = 31337;
 
 pub async fn update(
     verification_data: AlignedVerificationData,

@@ -7,8 +7,7 @@ use aligned_sdk::{
 use ethers::signers::{LocalWallet, Signer, Wallet};
 use log::{debug, info};
 
-// TODO(xqft): define in constants.rs
-const ANVIL_PRIVATE_KEY: &str = "2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6"; // Anvil address 9
+use crate::constants::ANVIL_PRIVATE_KEY;
 
 /// Submits a Mina proof to Aligned's batcher and waits until the batch is verified.
 pub async fn submit(mina_proof: &VerificationData) -> Result<AlignedVerificationData, String> {
