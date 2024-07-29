@@ -87,6 +87,7 @@ pub async fn update(
         index_in_batch.into(),
         pub_input.into(),
     );
+    // call reverts if batch is not valid.
 
     info!(
         "Estimated gas cost: {}",
@@ -112,7 +113,6 @@ pub async fn update(
         receipt.gas_used.ok_or("Missing gas used")?
     );
 
-    // call reverts if batch is not valid.
     let new_state_hash = mina_bridge_contract
         .get_last_verified_state_hash()
         .await
