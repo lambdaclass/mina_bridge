@@ -39,7 +39,7 @@ jobs:
         uses: actions/setup-go@v5
         env:
           GOCACHE: /root/.gocache
-          GOMODCACHE: $GOROOT/pkg/mod
+          GOMODCACHE: /root/runners/runner-5/_work/_tool/go/1.22.5/x64/pkg/mod
         with:
           go-version: '>=1.22'
           cache: false
