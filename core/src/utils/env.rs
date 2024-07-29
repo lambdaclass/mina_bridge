@@ -9,6 +9,7 @@ pub struct EnvironmentVariables {
     pub batcher_addr: String,
     pub batcher_eth_addr: String,
     pub eth_rpc_url: String,
+    pub proof_generator_addr: String,
     pub keystore_path: Option<String>,
     pub private_key: Option<String>,
 }
@@ -58,6 +59,10 @@ impl EnvironmentVariables {
             "0x7969c5eD335650692Bc04293B07F5BF2e7A673C0",
         )?;
         let eth_rpc_url = load_var_or("ETH_RPC_URL", "http://localhost:8545")?;
+        let proof_generator_addr = load_var_or(
+            "PROOF_GENERATOR_ADDR",
+            "0x66f9664f97F2b50F62D13eA064982f936dE76657",
+        )?;
 
         let keystore_path = std::env::var("KEYSTORE_PATH").ok();
         let private_key = std::env::var("PRIVATE_KEY").ok();
@@ -75,6 +80,7 @@ impl EnvironmentVariables {
             batcher_addr,
             batcher_eth_addr,
             eth_rpc_url,
+            proof_generator_addr,
             keystore_path,
             private_key,
         })

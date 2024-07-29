@@ -11,7 +11,10 @@ use crate::utils::constants::{
     MINA_STATE_HASH_SIZE, MINA_TIP_PROTOCOL_STATE, MINA_TIP_STATE_HASH_FIELD,
 };
 
-pub fn query_and_serialize(rpc_url: &str) -> Result<VerificationData, String> {
+pub fn query_and_serialize(
+    rpc_url: &str,
+    proof_generator_addr: &str,
+) -> Result<VerificationData, String> {
     let tip_state_hash_field = serialize_state_hash_field(MINA_TIP_STATE_HASH_FIELD)
         .map_err(|err| format!("Error serializing tip's state hash field: {err}"))?;
     let tip_protocol_state = serialize_protocol_state(MINA_TIP_PROTOCOL_STATE)
@@ -45,15 +48,8 @@ pub fn query_and_serialize(rpc_url: &str) -> Result<VerificationData, String> {
 
     let pub_input = Some(pub_input);
 
-    let proof_generator_addr = Address::from_str(&if let Ok(proof_generator_addr) =
-        std::env::var("PROOF_GENERATOR_ADDR")
-    {
-        proof_generator_addr
-    } else {
-        "0x66f9664f97F2b50F62D13eA064982f936dE76657".to_string()
-    })
-    .map_err(|err| err.to_string())?;
-
+    let proof_generator_addr =
+        Address::from_str(proof_generator_addr).map_err(|err| err.to_string())?;
     Ok(VerificationData {
         proving_system: ProvingSystemId::Mina,
         proof,
