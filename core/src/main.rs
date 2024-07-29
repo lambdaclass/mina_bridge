@@ -42,7 +42,7 @@ async fn main() {
         process::exit(1);
     });
 
-    let new_state_hash = smart_contract_utility::update(verification_data, pub_input)
+    let verified_state_hash = smart_contract_utility::update(verification_data, pub_input)
         .await
         .unwrap_or_else(|err| {
             error!("{}", err);
@@ -51,6 +51,6 @@ async fn main() {
 
     info!(
         "Success! verified Mina state hash {} was stored in the bridge's smart contract",
-        new_state_hash.encode_hex()
+        verified_state_hash.encode_hex()
     );
 }
