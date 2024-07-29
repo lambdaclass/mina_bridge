@@ -1,18 +1,15 @@
-use std::{fs, str::FromStr as _};
+use std::str::FromStr as _;
 
 use aligned_sdk::core::types::{ProvingSystemId, VerificationData};
 use ethers::types::Address;
 use kimchi::o1_utils::FieldHelpers;
+use log::{debug, info};
 use mina_curves::pasta::Fp;
 use reqwest::header::CONTENT_TYPE;
 
 use crate::constants::{MINA_STATE_HASH_SIZE, MINA_TIP_PROTOCOL_STATE, MINA_TIP_STATE_HASH_FIELD};
 
-pub fn query_and_serialize(
-    rpc_url: &str,
-    proof_path: &str,
-    pub_input_path: &str,
-) -> Result<VerificationData, String> {
+pub fn query_and_serialize(rpc_url: &str) -> Result<VerificationData, String> {
     let tip_state_hash_field = serialize_state_hash_field(MINA_TIP_STATE_HASH_FIELD)
         .map_err(|err| format!("Error serializing tip's state hash field: {err}"))?;
     let tip_protocol_state = serialize_protocol_state(MINA_TIP_PROTOCOL_STATE)
@@ -21,6 +18,7 @@ pub fn query_and_serialize(
     let mut tip_protocol_state_len_bytes = [0; 4];
     tip_protocol_state_len_bytes.copy_from_slice(&tip_protocol_state_len.to_be_bytes());
 
+    debug!("Querying Mina node for last state and proof");
     let last_block_value = query_last_block(rpc_url)?;
 
     let proof = serialize_protocol_state_proof(&last_block_value)?;
@@ -30,17 +28,18 @@ pub fn query_and_serialize(
     let mut candidate_protocol_state_len_bytes = [0; 4];
     candidate_protocol_state_len_bytes.copy_from_slice(&candidate_protocol_state_len.to_be_bytes());
 
-    let mut pub_input = get_state_hash_field(&last_block_value)?;
+    let candidate_state_hash = get_state_hash_field(&last_block_value)?;
+    info!(
+        "Queried Mina candidate state 0x{} and its proof",
+        hex::encode(&candidate_state_hash)
+    );
+
+    let mut pub_input = candidate_state_hash;
     pub_input.extend(candidate_protocol_state_len_bytes);
     pub_input.extend(candidate_protocol_state);
     pub_input.extend(tip_state_hash_field);
     pub_input.extend(tip_protocol_state_len_bytes);
     pub_input.extend(tip_protocol_state);
-
-    fs::write(proof_path, &proof)
-        .map_err(|err| format!("Error writing state proof to file: {err}"))?;
-    fs::write(pub_input_path, &pub_input)
-        .map_err(|err| format!("Error writing public input to file: {err}"))?;
 
     let pub_input = Some(pub_input);
 
@@ -167,22 +166,10 @@ fn serialize_protocol_state_proof(response_value: &serde_json::Value) -> Result<
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
-
     use super::query_and_serialize;
 
     #[test]
     fn serialize_and_deserialize() {
-        let mut proof_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        proof_path.push("protocol_state.proof");
-        let mut pub_input_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        pub_input_path.push("protocol_state.pub");
-
-        query_and_serialize(
-            "http://5.9.57.89:3085/graphql",
-            proof_path.to_str().unwrap(),
-            pub_input_path.to_str().unwrap(),
-        )
-        .unwrap();
+        query_and_serialize("http://5.9.57.89:3085/graphql").unwrap();
     }
 }

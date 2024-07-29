@@ -772,6 +772,7 @@ dependencies = [
  "env_logger",
  "ethers",
  "ethers-contract-derive 2.0.14 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hex",
  "kimchi",
  "log",
  "mina-curves",
