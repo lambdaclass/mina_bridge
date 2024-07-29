@@ -7,7 +7,7 @@ use aligned_sdk::{
 use ethers::signers::{LocalWallet, Signer, Wallet};
 use log::info;
 
-use crate::constants::ANVIL_PRIVATE_KEY;
+use crate::utils::constants::ANVIL_PRIVATE_KEY;
 
 /// Submits a Mina proof to Aligned's batcher and waits until the batch is verified.
 pub async fn submit(

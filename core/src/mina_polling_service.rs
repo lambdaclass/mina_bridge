@@ -7,7 +7,9 @@ use log::{debug, info};
 use mina_curves::pasta::Fp;
 use reqwest::header::CONTENT_TYPE;
 
-use crate::constants::{MINA_STATE_HASH_SIZE, MINA_TIP_PROTOCOL_STATE, MINA_TIP_STATE_HASH_FIELD};
+use crate::utils::constants::{
+    MINA_STATE_HASH_SIZE, MINA_TIP_PROTOCOL_STATE, MINA_TIP_STATE_HASH_FIELD,
+};
 
 pub fn query_and_serialize(rpc_url: &str) -> Result<VerificationData, String> {
     let tip_state_hash_field = serialize_state_hash_field(MINA_TIP_STATE_HASH_FIELD)

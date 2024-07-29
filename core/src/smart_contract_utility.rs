@@ -6,7 +6,7 @@ use ethers::{abi::AbiEncode, prelude::*};
 use k256::ecdsa::SigningKey;
 use log::{debug, error, info};
 
-use crate::constants::{ANVIL_CHAIN_ID, ANVIL_PRIVATE_KEY, BRIDGE_DEVNET_ETH_ADDR};
+use crate::utils::constants::{ANVIL_CHAIN_ID, ANVIL_PRIVATE_KEY, BRIDGE_DEVNET_ETH_ADDR};
 
 abigen!(MinaBridgeEthereumContract, "abi/MinaBridge.json");
 

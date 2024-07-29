@@ -1,6 +1,6 @@
 use core::{
-    aligned_polling_service, env::EnvironmentVariables, mina_polling_service,
-    smart_contract_utility,
+    aligned_polling_service, mina_polling_service, smart_contract_utility,
+    utils::env::EnvironmentVariables,
 };
 use ethers::abi::AbiEncode;
 use log::{debug, error, info};
