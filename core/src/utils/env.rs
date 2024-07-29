@@ -3,6 +3,10 @@ extern crate dotenv;
 use dotenv::dotenv;
 use log::debug;
 
+use super::constants::{
+    ANVIL_BATCHER_ADDR, ANVIL_BATCHER_ETH_ADDR, ANVIL_ETH_RPC_URL, ANVIL_PROOF_GENERATOR_ADDR,
+};
+
 pub struct EnvironmentVariables {
     pub rpc_url: String,
     pub chain: Chain,
@@ -53,16 +57,10 @@ impl EnvironmentVariables {
             }
         };
 
-        let batcher_addr = load_var_or("BATCHER_ADDR", "ws://localhost:8080")?;
-        let batcher_eth_addr = load_var_or(
-            "BATCHER_ETH_ADDR",
-            "0x7969c5eD335650692Bc04293B07F5BF2e7A673C0",
-        )?;
-        let eth_rpc_url = load_var_or("ETH_RPC_URL", "http://localhost:8545")?;
-        let proof_generator_addr = load_var_or(
-            "PROOF_GENERATOR_ADDR",
-            "0x66f9664f97F2b50F62D13eA064982f936dE76657",
-        )?;
+        let batcher_addr = load_var_or("BATCHER_ADDR", ANVIL_BATCHER_ADDR)?;
+        let batcher_eth_addr = load_var_or("BATCHER_ETH_ADDR", ANVIL_BATCHER_ETH_ADDR)?;
+        let eth_rpc_url = load_var_or("ETH_RPC_URL", ANVIL_ETH_RPC_URL)?;
+        let proof_generator_addr = load_var_or("PROOF_GENERATOR_ADDR", ANVIL_PROOF_GENERATOR_ADDR)?;
 
         let keystore_path = std::env::var("KEYSTORE_PATH").ok();
         let private_key = std::env::var("PRIVATE_KEY").ok();

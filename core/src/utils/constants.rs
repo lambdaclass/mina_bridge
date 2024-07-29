@@ -2,6 +2,10 @@
 pub const ANVIL_PRIVATE_KEY: &str =
     "2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6"; // Anvil wallet 9
 pub const ANVIL_CHAIN_ID: u64 = 31337;
+pub const ANVIL_BATCHER_ADDR: &str = "ws://localhost:8080";
+pub const ANVIL_BATCHER_ETH_ADDR: &str = "0x7969c5eD335650692Bc04293B07F5BF2e7A673C0";
+pub const ANVIL_ETH_RPC_URL: &str = "http://localhost:8545";
+pub const ANVIL_PROOF_GENERATOR_ADDR: &str = "0x66f9664f97F2b50F62D13eA064982f936dE76657";
 
 // Mina related constants
 // TODO(gabrielbosio): These are temporary, we will fetch the tip from the Mina contract instead of using these hardcoded values.
