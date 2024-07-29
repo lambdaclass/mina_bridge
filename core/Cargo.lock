@@ -771,6 +771,7 @@ dependencies = [
  "dotenv",
  "env_logger",
  "ethers",
+ "ethers-contract-derive 2.0.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "kimchi",
  "log",
  "mina-curves",
@@ -1306,7 +1307,7 @@ source = "git+https://github.com/yetanotherco/ethers-rs.git?tag=v2.0.15-fix-reco
 dependencies = [
  "ethers-addressbook",
  "ethers-contract",
- "ethers-core",
+ "ethers-core 2.0.14 (git+https://github.com/yetanotherco/ethers-rs.git?tag=v2.0.15-fix-reconnections)",
  "ethers-etherscan",
  "ethers-middleware",
  "ethers-providers",
@@ -1319,7 +1320,7 @@ name = "ethers-addressbook"
 version = "2.0.14"
 source = "git+https://github.com/yetanotherco/ethers-rs.git?tag=v2.0.15-fix-reconnections#69bba841ff352cf27b014d4fbb7985a180d88e25"
 dependencies = [
- "ethers-core",
+ "ethers-core 2.0.14 (git+https://github.com/yetanotherco/ethers-rs.git?tag=v2.0.15-fix-reconnections)",
  "once_cell",
  "serde",
  "serde_json",
@@ -1331,9 +1332,9 @@ version = "2.0.14"
 source = "git+https://github.com/yetanotherco/ethers-rs.git?tag=v2.0.15-fix-reconnections#69bba841ff352cf27b014d4fbb7985a180d88e25"
 dependencies = [
  "const-hex",
- "ethers-contract-abigen",
- "ethers-contract-derive",
- "ethers-core",
+ "ethers-contract-abigen 2.0.14 (git+https://github.com/yetanotherco/ethers-rs.git?tag=v2.0.15-fix-reconnections)",
+ "ethers-contract-derive 2.0.14 (git+https://github.com/yetanotherco/ethers-rs.git?tag=v2.0.15-fix-reconnections)",
+ "ethers-core 2.0.14 (git+https://github.com/yetanotherco/ethers-rs.git?tag=v2.0.15-fix-reconnections)",
  "ethers-providers",
  "futures-util",
  "once_cell",
@@ -1346,12 +1347,34 @@ dependencies = [
 [[package]]
 name = "ethers-contract-abigen"
 version = "2.0.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "04ba01fbc2331a38c429eb95d4a570166781f14290ef9fdb144278a90b5a739b"
+dependencies = [
+ "Inflector",
+ "const-hex",
+ "dunce",
+ "ethers-core 2.0.14 (registry+https://github.com/rust-lang/crates.io-index)",
+ "eyre",
+ "prettyplease",
+ "proc-macro2",
+ "quote",
+ "regex",
+ "serde",
+ "serde_json",
+ "syn 2.0.72",
+ "toml 0.8.15",
+ "walkdir",
+]
+
+[[package]]
+name = "ethers-contract-abigen"
+version = "2.0.14"
 source = "git+https://github.com/yetanotherco/ethers-rs.git?tag=v2.0.15-fix-reconnections#69bba841ff352cf27b014d4fbb7985a180d88e25"
 dependencies = [
  "Inflector",
  "const-hex",
  "dunce",
- "ethers-core",
+ "ethers-core 2.0.14 (git+https://github.com/yetanotherco/ethers-rs.git?tag=v2.0.15-fix-reconnections)",
  "ethers-etherscan",
  "eyre",
  "prettyplease",
@@ -1369,16 +1392,62 @@ dependencies = [
 [[package]]
 name = "ethers-contract-derive"
 version = "2.0.14"
-source = "git+https://github.com/yetanotherco/ethers-rs.git?tag=v2.0.15-fix-reconnections#69bba841ff352cf27b014d4fbb7985a180d88e25"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "87689dcabc0051cde10caaade298f9e9093d65f6125c14575db3fd8c669a168f"
 dependencies = [
  "Inflector",
  "const-hex",
- "ethers-contract-abigen",
- "ethers-core",
+ "ethers-contract-abigen 2.0.14 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ethers-core 2.0.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "proc-macro2",
  "quote",
  "serde_json",
  "syn 2.0.72",
+]
+
+[[package]]
+name = "ethers-contract-derive"
+version = "2.0.14"
+source = "git+https://github.com/yetanotherco/ethers-rs.git?tag=v2.0.15-fix-reconnections#69bba841ff352cf27b014d4fbb7985a180d88e25"
+dependencies = [
+ "Inflector",
+ "const-hex",
+ "ethers-contract-abigen 2.0.14 (git+https://github.com/yetanotherco/ethers-rs.git?tag=v2.0.15-fix-reconnections)",
+ "ethers-core 2.0.14 (git+https://github.com/yetanotherco/ethers-rs.git?tag=v2.0.15-fix-reconnections)",
+ "proc-macro2",
+ "quote",
+ "serde_json",
+ "syn 2.0.72",
+]
+
+[[package]]
+name = "ethers-core"
+version = "2.0.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "82d80cc6ad30b14a48ab786523af33b37f28a8623fc06afd55324816ef18fb1f"
+dependencies = [
+ "arrayvec",
+ "bytes",
+ "cargo_metadata",
+ "chrono",
+ "const-hex",
+ "elliptic-curve",
+ "ethabi",
+ "generic-array",
+ "k256",
+ "num_enum",
+ "once_cell",
+ "open-fastrlp",
+ "rand",
+ "rlp",
+ "serde",
+ "serde_json",
+ "strum 0.26.3",
+ "syn 2.0.72",
+ "tempfile",
+ "thiserror",
+ "tiny-keccak",
+ "unicode-xid",
 ]
 
 [[package]]
@@ -1416,7 +1485,7 @@ version = "2.0.14"
 source = "git+https://github.com/yetanotherco/ethers-rs.git?tag=v2.0.15-fix-reconnections#69bba841ff352cf27b014d4fbb7985a180d88e25"
 dependencies = [
  "chrono",
- "ethers-core",
+ "ethers-core 2.0.14 (git+https://github.com/yetanotherco/ethers-rs.git?tag=v2.0.15-fix-reconnections)",
  "reqwest 0.11.27",
  "semver 1.0.23",
  "serde",
@@ -1433,7 +1502,7 @@ dependencies = [
  "async-trait",
  "auto_impl",
  "ethers-contract",
- "ethers-core",
+ "ethers-core 2.0.14 (git+https://github.com/yetanotherco/ethers-rs.git?tag=v2.0.15-fix-reconnections)",
  "ethers-etherscan",
  "ethers-providers",
  "ethers-signers",
@@ -1462,7 +1531,7 @@ dependencies = [
  "bytes",
  "const-hex",
  "enr",
- "ethers-core",
+ "ethers-core 2.0.14 (git+https://github.com/yetanotherco/ethers-rs.git?tag=v2.0.15-fix-reconnections)",
  "futures-channel",
  "futures-core",
  "futures-timer",
@@ -1499,7 +1568,7 @@ dependencies = [
  "const-hex",
  "elliptic-curve",
  "eth-keystore",
- "ethers-core",
+ "ethers-core 2.0.14 (git+https://github.com/yetanotherco/ethers-rs.git?tag=v2.0.15-fix-reconnections)",
  "rand",
  "sha2 0.10.8",
  "thiserror",
@@ -1515,7 +1584,7 @@ dependencies = [
  "const-hex",
  "dirs",
  "dunce",
- "ethers-core",
+ "ethers-core 2.0.14 (git+https://github.com/yetanotherco/ethers-rs.git?tag=v2.0.15-fix-reconnections)",
  "glob",
  "home",
  "md-5",
