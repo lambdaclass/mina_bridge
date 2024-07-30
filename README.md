@@ -127,7 +127,7 @@ If the candidate wins the comparisons, then verification continues. If not, veri
 The full code details can be consulted in the GitHub repository link at the [top of the section](#aligned's-mina-proof-of-state-verifier). We use OpenMina’s code for hashing the consensus state.
 
 > [!WARNING]
-> At the moment we’re unsure about other considerations or checks for the consensus checking step. We’re awaiting more details from the o1labs team.
+> At the moment we’re unsure about other considerations or checks for the consensus checking step. This step is under investigation.
 
 ### State hash check
 
