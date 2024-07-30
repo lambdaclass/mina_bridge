@@ -3,4 +3,5 @@ mina_3_0_0_devnet
 protocol_state.pub
 protocol_state.proof
 aligned_verification_data
+integration_test
 .env

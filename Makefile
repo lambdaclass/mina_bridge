@@ -1,7 +1,10 @@
-.PHONY: run gen_contract_abi deploy_contract
+.PHONY: run gen_contract_abi deploy_contract setup_test
 
 run:
 	@cargo run --manifest-path core/Cargo.toml --release
+
+setup_test:
+	@bash integration_test.sh
 
 gen_contract_abi:
 	forge build --root contract/

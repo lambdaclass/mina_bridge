@@ -1,29 +1,61 @@
 name: CI
 on:
-    push:
-        branches:
-            - main
-    pull_request:
-        branches: ["*"]
+  push:
+    branches:
+      - main
+  pull_request:
+    branches: ["*"]
 
 jobs:
-    core:
-        name: Test Core
-        uses: ./.github/workflows/rust_ci.yaml
-        with:
-            skip_run: true
-            directory: core
+  core:
+    name: Test Core
+    uses: ./.github/workflows/rust_ci.yaml
+    with:
+      skip_run: true
+      directory: core
 
-    merkle_path:
-        name: Test Merkle Path parser
-        uses: ./.github/workflows/rust_ci.yaml
-        with:
-            skip_run: true
-            directory: state_utility/merkle_path
+  merkle_path:
+    name: Test Merkle Path parser
+    uses: ./.github/workflows/rust_ci.yaml
+    with:
+      skip_run: true
+      directory: state_utility/merkle_path
 
-    merkle_root_parser:
-        name: Test Merkle Root parser
-        uses: ./.github/workflows/rust_ci.yaml
+  merkle_root_parser:
+    name: Test Merkle Root parser
+    uses: ./.github/workflows/rust_ci.yaml
+    with:
+      skip_run: true
+      directory: state_utility/parser
+
+  integration:
+    name: Test integration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Install Go
+        uses: actions/setup-go@v5
         with:
-            skip_run: true
-            directory: state_utility/parser
+          go-version: '1.22'
+          cache: false
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+    
+      - name: Run test
+        env:
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-west-2
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_BUCKET_NAME: mina-bridge
+          TARGET: linux
+        shell: bash
+        run: |
+          echo "ETH_CHAIN=devnet\nMINA_RPC_URL=http://5.9.57.89:3085/graphql\n" > /home/runner/work/mina_bridge/mina_bridge/.env
+          make setup_test
+  
