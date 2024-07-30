@@ -13,6 +13,8 @@ abigen!(MinaBridgeEthereumContract, "abi/MinaBridge.json");
 type MinaBridgeEthereum =
     MinaBridgeEthereumContract<SignerMiddleware<Provider<Http>, Wallet<SigningKey>>>;
 
+type MinaBridgeEthereumCallOnly = MinaBridgeEthereumContract<Provider<Http>>;
+
 pub async fn update(
     verification_data: AlignedVerificationData,
     pub_input: Vec<u8>,
@@ -99,6 +101,26 @@ pub async fn update(
     Ok(new_state_hash)
 }
 
+pub async fn get_tip_hash(chain: &Chain, eth_rpc_url: &str) -> Result<U256, String> {
+    let bridge_eth_addr = Address::from_str(match chain {
+        Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
+        _ => {
+            error!("Unimplemented Ethereum contract on selected chain");
+            unimplemented!()
+        }
+    })
+    .map_err(|err| err.to_string())?;
+
+    debug!("Creating contract instance");
+    let mina_bridge_contract = mina_bridge_contract_call_only(eth_rpc_url, bridge_eth_addr)?;
+
+    debug!("Getting contract stored hash");
+    mina_bridge_contract
+        .get_last_verified_state_hash()
+        .await
+        .map_err(|err| err.to_string())
+}
+
 fn mina_bridge_contract(
     eth_rpc_url: &str,
     contract_address: Address,
@@ -114,4 +136,14 @@ fn mina_bridge_contract(
     let signer = SignerMiddleware::new(eth_rpc_provider, wallet.with_chain_id(chain_id));
     let client = Arc::new(signer);
     Ok(MinaBridgeEthereum::new(contract_address, client))
+}
+
+fn mina_bridge_contract_call_only(
+    eth_rpc_url: &str,
+    contract_address: Address,
+) -> Result<MinaBridgeEthereumCallOnly, String> {
+    let eth_rpc_provider =
+        Provider::<Http>::try_from(eth_rpc_url).map_err(|err| err.to_string())?;
+    let client = Arc::new(eth_rpc_provider);
+    Ok(MinaBridgeEthereumCallOnly::new(contract_address, client))
 }

@@ -88,6 +88,35 @@ fn query_last_block(rpc_url: &str) -> Result<serde_json::Value, String> {
     ))
 }
 
+fn query_block(rpc_url: &str, state_hash: &str) -> Result<serde_json::Value, String> {
+    todo!()
+    let body = "{\"query\": \"{
+            protocolState(encoding: BASE64)
+            bestChain(maxLength: 1) {
+                stateHashField
+                protocolStateProof {
+                    base64
+                }
+            }
+        }\"}"
+        .to_owned();
+    let client = reqwest::blocking::Client::new();
+    let response = client
+        .post(rpc_url)
+        .header(CONTENT_TYPE, "application/json")
+        .body(body)
+        .send()
+        .map_err(|err| err.to_string())?
+        .text()
+        .map_err(|err| err.to_string())?;
+    let response_value = serde_json::Value::from_str(&response).map_err(|err| err.to_string())?;
+
+    response_value.get("data").cloned().ok_or(format!(
+        "Error getting 'data' from response: {:?}",
+        response
+    ))
+}
+
 fn get_state_hash_field(response_value: &serde_json::Value) -> Result<Vec<u8>, String> {
     let state_hash_field_str = response_value
         .get("bestChain")
