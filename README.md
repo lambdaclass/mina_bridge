@@ -73,8 +73,6 @@ This module sends a transaction to the Bridge’s smart contract that calls the 
 - check that the `tip_state_hash` is indeed the tip state hash stored in the contract
 - retrieve the `candidate_state_hash` and store it if the candidate was verified
 
-on-chain.
-
 ### Smart Contract
 
 `mina_bridge repo: contract/`
@@ -95,9 +93,9 @@ Aligned Layer integrated a verifier in its operator code for verifying Mina Proo
 
 ### Consensus checking
 
-The first step of the verifier is to execute consensus checks, specific to the Ouroboros Samasika consensus mechanism that the Mina Protocol uses. The checks are comparisons of state data between the candidate state and the tip state. 
+The first step of the verifier is to execute consensus checks, specific to the [Ouroboros Samasika consensus mechanism](https://github.com/MinaProtocol/mina/blob/develop/docs/specs/consensus/README.md) that the Mina Protocol uses. The checks are comparisons of state data between the candidate state and the tip state.
 
-Currently the only check implemented is the one corresponding to short-range forks. The check just compares that the candidate state’s height is greater than the tip’s. If equal, tiebreak logic is implemented. Tiebreak consists in lexicographically comparing the VRF hashes of both states, and if these are equal then comparing the consensus state hashes.
+Currently the only check implemented is the one corresponding to short-range forks. The check just compares that the candidate state’s height is greater than the tip’s. If equal, tiebreak logic is implemented. Tiebreak consists in lexicographical comparison of the VRF hashes of both states, and if these are equal then we compare the consensus state hashes.
 
 So the total logic can be summed up by:
 
@@ -122,9 +120,11 @@ else if candidate_block_height == tip_block_height {
 return tip;
 ```
 
-The full code details can be consulted in the GitHub repository link at the top of the section. We use OpenMina’s code for hashing the consensus state.
+If the candidate wins the comparisons, then verification continues. If not, verification fails.
 
-> [!CAUTION]
+The full code details can be consulted in the GitHub repository link at the [top of the section](#aligned's-mina-proof-of-state-verifier). We use OpenMina’s code for hashing the consensus state.
+
+> [!WARNING]
 > At the moment we’re unsure about other considerations or checks for the consensus checking step. We’re awaiting more details from the o1labs team.
 
 ### State hash check
@@ -133,7 +133,10 @@ We check that both the candidate and tip state hashes are correct by hashing the
 
 ### Pickles verification
 
-This is the last step of the Mina Proof of State verifier. We are leveraging OpenMina’s “block verifier” to verify the Pickles proof of the candidate state. The verifier takes as public input the hash of the state. OpenMina’s block verifier is yet to be audited.
+This is the last step of the Mina Proof of State verifier. We are leveraging OpenMina’s “block verifier” to verify the Pickles proof of the candidate state. The verifier takes as public input the hash of the state.
+
+> !> [!WARNING]
+> OpenMina’s block verifier is yet to be audited.
 
 # Kimchi proving system
 
