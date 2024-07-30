@@ -54,7 +54,8 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_BUCKET_NAME: mina-bridge
           TARGET: linux
+        shell: bash
         run: |
-          echo "ETH_CHAIN=devnet\nMINA_RPC_URL=http://5.9.57.89:3085/graphql\n" > $GITHUB_WORKSPACE/.env
+          echo "ETH_CHAIN=devnet\nMINA_RPC_URL=http://5.9.57.89:3085/graphql\n" > /home/runner/work/mina_bridge/mina_bridge/.env
           make setup_test
   
