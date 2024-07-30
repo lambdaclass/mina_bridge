@@ -135,7 +135,7 @@ We check that both the candidate and tip state hashes are correct by hashing the
 
 This is the last step of the Mina Proof of State verifier. We are leveraging OpenMina’s “block verifier” to verify the Pickles proof of the candidate state. The verifier takes as public input the hash of the state.
 
-> !> [!WARNING]
+> [!WARNING]
 > OpenMina’s block verifier is yet to be audited.
 
 # Kimchi proving system
