@@ -56,6 +56,5 @@ jobs:
           TARGET: linux
         run: |
           echo "ETH_CHAIN=devnet\nMINA_RPC_URL=http://5.9.57.89:3085/graphql\n" > $GITHUB_WORKSPACE/.env
-          ls $GITHUB_WORKSPACE
           make setup_test
   
