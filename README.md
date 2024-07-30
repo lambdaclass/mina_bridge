@@ -31,13 +31,13 @@ This project is being redesigned to use [Aligned Layer](https://github.com/yetan
 
 ## Core
 
-[`mina_bridge repo: core/`](https://github.com/lambdaclass/mina_bridge/blob/c13a6e74e2e7231c3ca44de621425286642ca14e/core)
+[`mina_bridge repo: core/`](https://github.com/lambdaclass/mina_bridge/tree/aligned/core)
 
 A Rust library+binary project that includes the next modules:
 
 ### Mina Polling Service
 
-[`mina_bridge repo: core/mina_polling_service.rs`](https://github.com/lambdaclass/mina_bridge/blob/c13a6e74e2e7231c3ca44de621425286642ca14e/core/src/mina_polling_service.rs)
+[`mina_bridge repo: core/src/mina_polling_service.rs`](https://github.com/lambdaclass/mina_bridge/tree/aligned/core/src/mina_polling_service.rs)
 
 This module queries a Mina node (defined by the user via the `MINA_RPC_URL` env. variable) GraphQL DB for the latest state data (called the candidate state) and proof.
 
@@ -61,7 +61,7 @@ This is the proof that the Mina verifier in Aligned (also called a Mina operator
 
 ### Aligned Polling Service
 
-[`mina_bridge repo: core/aligned_polling_service.rs`](https://github.com/lambdaclass/mina_bridge/blob/c13a6e74e2e7231c3ca44de621425286642ca14e/core/src/aligned_polling_service.rs)
+[`mina_bridge repo: core/aligned_polling_service.rs`](https://github.com/lambdaclass/mina_bridge/tree/aligned/core/src/aligned_polling_service.rs)
 
 This module sends the Mina Proof of State (retrieved by the Mina Polling Service) to the Aligned batcher for verification, using the Aligned SDK. The batcher executes pre-verification checks that validate the integrity of the proof and discards it if one of these checks is unsuccessful. After pre-verification, the batcher includes the Mina Proof of State in the current proof batch for then sending it to Aligned’s operators.
 
@@ -72,7 +72,7 @@ Finally the service returns the verification data sent by Aligned after proof su
 
 ### Smart Contract Utility
 
-[`mina_bridge repo: core/smart_contract_utility.rs`]()
+[`mina_bridge repo: core/smart_contract_utility.rs`](https://github.com/lambdaclass/mina_bridge/tree/aligned/core/src/smart_contract_utility.rs)
 
 This module sends a transaction to the Bridge’s smart contract that calls the “update tip” (see the [Smart Contract section](#smart-contract)) function by sending the **incomplete** verification data retrieved by the Aligned Polling Service, aside from the Mina Proof of State public inputs. By “incomplete” we mean that we’re sending all the verification data, except for the public input commitment, which is a keccak256 hash of the public inputs. So by sending the public inputs to the contract we can cheaply calculate on-chain the public input commitment for completing the verification data. We do this instead of directly sending the commitment so the contract can:
 
@@ -81,7 +81,7 @@ This module sends a transaction to the Bridge’s smart contract that calls the 
 
 ### Smart Contract
 
-`mina_bridge repo: contract/`
+[`mina_bridge repo: contract/`](https://github.com/lambdaclass/mina_bridge/tree/aligned/contract)
 
 The contract stores the Bridge’s tip state hash and exposes functions to read (`getTipStateHash()`) or update it (`updateTipStateHash()`). Generally it’s the Smart Contract Utility that will send a transaction to update the tip state hash.
 
@@ -93,7 +93,7 @@ Currently the cost of the “update tip” transaction is in between 100k and 15
 
 ## Aligned’s Mina Proof of State verifier
 
-`aligned_layer repo: operator/mina/`
+[`aligned_layer repo: operator/mina/`](https://github.com/lambdaclass/aligned_layer/tree/mina/operator/mina)
 
 Aligned Layer integrated a verifier in its operator code for verifying Mina Proofs of State.
 
