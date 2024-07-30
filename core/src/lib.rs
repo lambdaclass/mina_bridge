@@ -8,3 +8,6 @@ pub mod aligned_polling_service;
 
 /// Utility for updating the bridge's smart contract with a new, verified state.
 pub mod smart_contract_utility;
+
+/// Internal utils.
+pub mod utils;

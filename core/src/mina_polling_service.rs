@@ -1,31 +1,29 @@
-use std::{fs, str::FromStr as _};
+use std::str::FromStr as _;
 
 use aligned_sdk::core::types::{ProvingSystemId, VerificationData};
 use ethers::types::Address;
 use kimchi::o1_utils::FieldHelpers;
+use log::{debug, info};
 use mina_curves::pasta::Fp;
 use reqwest::header::CONTENT_TYPE;
 
-const STATE_HASH_SIZE: usize = 32;
-
-// TODO(gabrielbosio): These are temporary, we will fetch the tip from the Mina contract instead of using these hardcoded values.
-const TIP_PROTOCOL_STATE: &str = "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";
-const TIP_STATE_HASH_FIELD: &str =
-    "26201757517054449641912404249424749469164718222967816857204695395894215860942";
+use crate::utils::constants::{
+    MINA_STATE_HASH_SIZE, MINA_TIP_PROTOCOL_STATE, MINA_TIP_STATE_HASH_FIELD,
+};
 
 pub fn query_and_serialize(
     rpc_url: &str,
-    proof_path: &str,
-    pub_input_path: &str,
+    proof_generator_addr: &str,
 ) -> Result<VerificationData, String> {
-    let tip_state_hash_field = serialize_state_hash_field(TIP_STATE_HASH_FIELD)
+    let tip_state_hash_field = serialize_state_hash_field(MINA_TIP_STATE_HASH_FIELD)
         .map_err(|err| format!("Error serializing tip's state hash field: {err}"))?;
-    let tip_protocol_state = serialize_protocol_state(TIP_PROTOCOL_STATE)
+    let tip_protocol_state = serialize_protocol_state(MINA_TIP_PROTOCOL_STATE)
         .map_err(|err| format!("Error serializing tip's protocol state: {err}"))?;
     let tip_protocol_state_len = tip_protocol_state.len() as u32;
     let mut tip_protocol_state_len_bytes = [0; 4];
     tip_protocol_state_len_bytes.copy_from_slice(&tip_protocol_state_len.to_be_bytes());
 
+    debug!("Querying Mina node for last state and proof");
     let last_block_value = query_last_block(rpc_url)?;
 
     let proof = serialize_protocol_state_proof(&last_block_value)?;
@@ -35,29 +33,23 @@ pub fn query_and_serialize(
     let mut candidate_protocol_state_len_bytes = [0; 4];
     candidate_protocol_state_len_bytes.copy_from_slice(&candidate_protocol_state_len.to_be_bytes());
 
-    let mut pub_input = get_state_hash_field(&last_block_value)?;
+    let candidate_state_hash = get_state_hash_field(&last_block_value)?;
+    info!(
+        "Queried Mina candidate state 0x{} and its proof from Mainnet node",
+        hex::encode(&candidate_state_hash)
+    );
+
+    let mut pub_input = candidate_state_hash;
     pub_input.extend(candidate_protocol_state_len_bytes);
     pub_input.extend(candidate_protocol_state);
     pub_input.extend(tip_state_hash_field);
     pub_input.extend(tip_protocol_state_len_bytes);
     pub_input.extend(tip_protocol_state);
 
-    fs::write(proof_path, &proof)
-        .map_err(|err| format!("Error writing state proof to file: {err}"))?;
-    fs::write(pub_input_path, &pub_input)
-        .map_err(|err| format!("Error writing public input to file: {err}"))?;
-
     let pub_input = Some(pub_input);
 
-    let proof_generator_addr = Address::from_str(&if let Ok(proof_generator_addr) =
-        std::env::var("PROOF_GENERATOR_ADDR")
-    {
-        proof_generator_addr
-    } else {
-        "0x66f9664f97F2b50F62D13eA064982f936dE76657".to_string()
-    })
-    .map_err(|err| err.to_string())?;
-
+    let proof_generator_addr =
+        Address::from_str(proof_generator_addr).map_err(|err| err.to_string())?;
     Ok(VerificationData {
         proving_system: ProvingSystemId::Mina,
         proof,
@@ -123,7 +115,7 @@ fn serialize_state_hash_field(state_hash_field_str: &str) -> Result<Vec<u8>, Str
     })?;
     let state_hash_field_bytes = state_hash_field.to_bytes();
 
-    debug_assert_eq!(state_hash_field_bytes.len(), STATE_HASH_SIZE);
+    debug_assert_eq!(state_hash_field_bytes.len(), MINA_STATE_HASH_SIZE);
 
     Ok(state_hash_field_bytes)
 }
@@ -172,22 +164,12 @@ fn serialize_protocol_state_proof(response_value: &serde_json::Value) -> Result<
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
+    use crate::utils::constants::ANVIL_PROOF_GENERATOR_ADDR;
 
     use super::query_and_serialize;
 
     #[test]
     fn serialize_and_deserialize() {
-        let mut proof_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        proof_path.push("protocol_state.proof");
-        let mut pub_input_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        pub_input_path.push("protocol_state.pub");
-
-        query_and_serialize(
-            "http://5.9.57.89:3085/graphql",
-            proof_path.to_str().unwrap(),
-            pub_input_path.to_str().unwrap(),
-        )
-        .unwrap();
+        query_and_serialize("http://5.9.57.89:3085/graphql", ANVIL_PROOF_GENERATOR_ADDR).unwrap();
     }
 }

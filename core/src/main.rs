@@ -1,54 +1,75 @@
-extern crate dotenv;
-
-use core::{aligned_polling_service, mina_polling_service, smart_contract_utility};
-use dotenv::dotenv;
+use core::{
+    aligned_polling_service, mina_polling_service, smart_contract_utility,
+    utils::{env::EnvironmentVariables, wallet::get_wallet},
+};
 use ethers::abi::AbiEncode;
-use log::{error, info};
-use std::path::PathBuf;
+use log::{debug, error, info};
+use std::process;
 
 #[tokio::main]
-async fn main() -> Result<(), String> {
+async fn main() {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
-    info!("Mina bridge starts");
 
-    if let Err(err) = dotenv() {
-        error!("Couldn't load .env file: {}", err);
-    }
+    debug!("Reading env. variables");
+    let EnvironmentVariables {
+        rpc_url,
+        chain,
+        batcher_addr,
+        batcher_eth_addr,
+        eth_rpc_url,
+        proof_generator_addr,
+        keystore_path,
+        private_key,
+    } = EnvironmentVariables::new().unwrap_or_else(|err| {
+        error!("{}", err);
+        process::exit(1);
+    });
 
-    let rpc_url = std::env::var("MINA_RPC_URL").expect("couldn't read MINA_RPC_URL env. variable.");
-    let output_path = "."; // TODO(xqft): embellish this
+    debug!("Getting user wallet");
+    let wallet = get_wallet(&chain, keystore_path.as_deref(), private_key.as_deref())
+        .unwrap_or_else(|err| {
+            error!("{}", err);
+            process::exit(1);
+        });
 
-    let mut proof_path_buf = PathBuf::from(output_path);
-    proof_path_buf.push("protocol_state.proof");
+    debug!("Executing Mina polling service");
+    let mina_proof = mina_polling_service::query_and_serialize(&rpc_url, &proof_generator_addr)
+        .unwrap_or_else(|err| {
+            error!("{}", err);
+            process::exit(1);
+        });
 
-    let mut public_input_path_buf = PathBuf::from(output_path);
-    public_input_path_buf.push("protocol_state.pub");
-
-    // TODO(xqft): add logging to mina_polling_service
-    info!("Executing Mina polling service");
-    let mina_proof = mina_polling_service::query_and_serialize(
-        &rpc_url,
-        proof_path_buf.to_str().unwrap(),
-        public_input_path_buf.to_str().unwrap(),
+    debug!("Executing Aligned polling service");
+    let verification_data = aligned_polling_service::submit(
+        &mina_proof,
+        &chain,
+        &batcher_addr,
+        &batcher_eth_addr,
+        &eth_rpc_url,
+        wallet.clone(),
     )
-    .inspect_err(|err| error!("{}", err))?;
+    .await
+    .unwrap_or_else(|err| {
+        error!("{}", err);
+        process::exit(1);
+    });
 
-    info!("Executing Aligned polling service");
-    let verification_data = aligned_polling_service::submit(&mina_proof)
-        .await
-        .inspect_err(|err| error!("{}", err))?;
+    debug!("Updating the bridge's smart contract");
+    let pub_input = mina_proof.pub_input.unwrap_or_else(|| {
+        error!("Missing public inputs from Mina proof");
+        process::exit(1);
+    });
 
-    info!("Updating the bridge's smart contract");
-    let pub_input = mina_proof
-        .pub_input
-        .ok_or("Missing public inputs from Mina proof")?;
-    let new_state_hash = smart_contract_utility::update(verification_data, pub_input)
-        .await
-        .inspect_err(|err| error!("{}", err))?;
+    let verified_state_hash =
+        smart_contract_utility::update(verification_data, pub_input, &chain, &eth_rpc_url, wallet)
+            .await
+            .unwrap_or_else(|err| {
+                error!("{}", err);
+                process::exit(1);
+            });
 
     info!(
-        "Success! verified state hash {} was stored in the bridge's smart contract",
-        new_state_hash.encode_hex()
+        "Success! verified Mina state hash {} was stored in the bridge's smart contract",
+        verified_state_hash.encode_hex()
     );
-    Ok(())
 }
