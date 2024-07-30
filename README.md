@@ -8,7 +8,7 @@
 
 ## About
 
-This project introduces the posting and verification of [Mina Protocol](https://minaprotocol.com/) states into a EVM chain, which will serve as a foundation for token bridging.
+This project introduces the verification of [Mina Protocol](https://minaprotocol.com/) states into a EVM chain, which will serve as a foundation for token bridging.
 
 This project is being redesigned to use [Aligned Layer](https://github.com/yetanotherco/aligned_layer) to verify Mina Proofs of State on Ethereum.
 
