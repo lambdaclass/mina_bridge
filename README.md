@@ -1,6 +1,10 @@
+<div align="center">
+
 # mina_bridge 🌉
 
 ## Zero-knowledge state bridge from Mina to Ethereum
+
+</div>
 
 ## About
 
