@@ -8,7 +8,7 @@ error NewStateIsNotValid();
 /// @title Mina to Ethereum Bridge's smart contract.
 contract MinaBridge {
     /// @notice The state hash of the last verified state converted into a Fp.
-    uint256 public lastVerifiedStateHash;
+    uint256 lastVerifiedStateHash;
 
     /// @notice Reference to the AlignedLayerServiceManager contract.
     AlignedLayerServiceManager aligned;
@@ -17,43 +17,20 @@ contract MinaBridge {
         aligned = AlignedLayerServiceManager(alignedServiceAddr);
     }
 
-    function getLastVerifiedStateHash() public view returns (uint256) {
+    function getLastVerifiedStateHash() external view returns (uint256) {
         return lastVerifiedStateHash;
     }
 
     function updateLastVerifiedState(
         bytes32 proofCommitment,
-        bytes32 pubInputCommitment,
         bytes32 provingSystemAuxDataCommitment,
         bytes20 proofGeneratorAddr,
         bytes32 batchMerkleRoot,
         bytes memory merkleProof,
-        uint256 verificationDataBatchIndex
+        uint256 verificationDataBatchIndex,
+        bytes memory pubInput
     ) external {
-        /*
-         * parameters:
-         * - newStateVerificationData (excludes pubInputCommitment)
-         * - newState
-         * - newStateHash
-         * - lastVerifiedState
-         *
-         * pseudocode:
-         *    pubInputs = [newState, newStateHash, lastVerifiedState, lastVerifiedStateHash]
-         *    pubInputsCommitment = keccak256(pubInputs)
-         *
-         *    bool isNewStateVerified = AlignedLayerServiceManager.verifyBatchInclusion(
-         *        newStateVerificationData, pubInputCommitment
-         *    );
-         *
-         *    if (isNewStateVerified) {
-         *        lastVerifiedStateHash = newStateHash;
-         *    } else {
-         *        revert NewStateIsNotValid();
-         *    }
-         */
-
-        // TOOD(xqft): add pub input hashing.
-        uint256 newStateHash = 0x0;
+        bytes32 pubInputCommitment = keccak256(pubInput);
 
         bool isNewStateVerified = aligned.verifyBatchInclusion(
             proofCommitment,
@@ -66,7 +43,10 @@ contract MinaBridge {
         );
 
         if (isNewStateVerified) {
-            lastVerifiedStateHash = newStateHash;
+            // first 32 bytes of pub input is the candidate (now verified) state hash.
+            assembly {
+                sstore(lastVerifiedStateHash.slot, mload(add(pubInput, 0x20)))
+            }
         } else {
             revert NewStateIsNotValid();
         }
