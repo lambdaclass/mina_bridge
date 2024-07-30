@@ -18,6 +18,21 @@ pub struct EnvironmentVariables {
     pub private_key: Option<String>,
 }
 
+fn load_var_or(key: &str, default: &str, chain: &Chain) -> Result<String, String> {
+    // Default value is only valid for Anvil devnet setup.
+    match std::env::var(key) {
+        Ok(value) => Ok(value),
+        Err(_) if matches!(chain, Chain::Devnet) => {
+            debug!("Using default {} for devnet: {}", key, default);
+            Ok(default.to_string())
+        }
+        Err(err) => Err(format!(
+            "Chain selected is not Devnet but couldn't read {}: {}",
+            key, err
+        )),
+    }
+}
+
 impl EnvironmentVariables {
     pub fn new() -> Result<EnvironmentVariables, String> {
         dotenv().map_err(|err| format!("Couldn't load .env file: {}", err))?;
@@ -42,25 +57,11 @@ impl EnvironmentVariables {
             ),
         };
 
-        // Default value is only valid for Anvil devnet setup.
-        let load_var_or = |key: &str, default: &str| -> Result<String, String> {
-            match std::env::var(key) {
-                Ok(value) => Ok(value),
-                Err(_) if matches!(chain, Chain::Devnet) => {
-                    debug!("Using default {} for devnet: {}", key, default);
-                    Ok(default.to_string())
-                }
-                Err(err) => Err(format!(
-                    "Chain selected is not Devnet but couldn't read {}: {}",
-                    key, err
-                )),
-            }
-        };
-
-        let batcher_addr = load_var_or("BATCHER_ADDR", ANVIL_BATCHER_ADDR)?;
-        let batcher_eth_addr = load_var_or("BATCHER_ETH_ADDR", ANVIL_BATCHER_ETH_ADDR)?;
-        let eth_rpc_url = load_var_or("ETH_RPC_URL", ANVIL_ETH_RPC_URL)?;
-        let proof_generator_addr = load_var_or("PROOF_GENERATOR_ADDR", ANVIL_PROOF_GENERATOR_ADDR)?;
+        let batcher_addr = load_var_or("BATCHER_ADDR", ANVIL_BATCHER_ADDR, &chain)?;
+        let batcher_eth_addr = load_var_or("BATCHER_ETH_ADDR", ANVIL_BATCHER_ETH_ADDR, &chain)?;
+        let eth_rpc_url = load_var_or("ETH_RPC_URL", ANVIL_ETH_RPC_URL, &chain)?;
+        let proof_generator_addr =
+            load_var_or("PROOF_GENERATOR_ADDR", ANVIL_PROOF_GENERATOR_ADDR, &chain)?;
 
         let keystore_path = std::env::var("KEYSTORE_PATH").ok();
         let private_key = std::env::var("PRIVATE_KEY").ok();
