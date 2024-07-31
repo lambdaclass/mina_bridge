@@ -1,7 +1,7 @@
-use std::str::FromStr;
+use std::{fmt::Write, str::FromStr};
 
 use kimchi::mina_curves::pasta::Fp;
-use mina_p2p_messages::v2::LedgerHash;
+use mina_p2p_messages::v2::{hash_with_kimchi, LedgerHash};
 use mina_tree::MerklePath;
 use reqwest::header::CONTENT_TYPE;
 use serde::{Deserialize, Serialize};
@@ -89,6 +89,28 @@ pub fn query_leaf_and_merkle_path(
     Ok((leaf_hash, merkle_path))
 }
 
+/// Based on OpenMina's implementation
+pub fn verify_merkle_proof(leaf_hash: Fp, merkle_path: Vec<MerklePath>, merkle_root: Fp) -> bool {
+    let mut param = String::with_capacity(16);
+
+    let calculated_root = merkle_path
+        .iter()
+        .enumerate()
+        .fold(leaf_hash, |accum, (depth, path)| {
+            let hashes = match path {
+                MerklePath::Left(right) => [accum, *right],
+                MerklePath::Right(left) => [*left, accum],
+            };
+
+            param.clear();
+            write!(&mut param, "MinaMklTree{:03}", depth).unwrap();
+
+            hash_with_kimchi(param.as_str(), &hashes)
+        });
+
+    calculated_root == merkle_root
+}
+
 /// Queries the ledger's merkle root
 fn query_merkle_root(rpc_url: &str) -> Result<Fp, String> {
     let query: Query = serde_json::from_str(
@@ -126,7 +148,7 @@ fn query_merkle_root(rpc_url: &str) -> Result<Fp, String> {
 mod test {
     use crate::merkle_path::MerkleLeaf;
 
-    use super::{query_leaf_and_merkle_path, query_merkle_root, Query};
+    use super::{query_leaf_and_merkle_path, query_merkle_root, verify_merkle_proof, Query};
 
     #[test]
     fn test_merkle_leaf() {
@@ -173,5 +195,18 @@ mod test {
     #[test]
     fn test_query_merkle_root() {
         query_merkle_root("http://5.9.57.89:3085/graphql").unwrap();
+    }
+
+    #[test]
+    fn test_verify_merkle_proof() {
+        let (leaf_hash, merkle_path) = query_leaf_and_merkle_path(
+            "http://5.9.57.89:3085/graphql",
+            "B62qoVxygiYzqRCj4taZDbRJGY6xLvuzoiLdY5CpGm7L9Tz5cj2Qr6i",
+        )
+        .unwrap();
+
+        let merkle_root = query_merkle_root("http://5.9.57.89:3085/graphql").unwrap();
+
+        assert!(verify_merkle_proof(leaf_hash, merkle_path, merkle_root));
     }
 }
