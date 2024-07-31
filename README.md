@@ -1,27 +1,151 @@
+<div align="center">
+
 # mina_bridge 🌉
 
 ## Zero-knowledge state bridge from Mina to Ethereum
 
+</div>
+
 ## About
 
-This project introduces the proof generation, posting and verification of the validity of [Mina](https://minaprotocol.com/) states into a EVM chain, which will serve as a foundation for token bridging.
+This project introduces the verification of [Mina Protocol](https://minaprotocol.com/) states into a EVM chain, which will serve as a foundation for token bridging.
 
-This project is being redesigned to use [Aligned Layer](https://github.com/yetanotherco/aligned_layer) to verify Mina proofs on Ethereum.
+This project is being redesigned to use [Aligned Layer](https://github.com/yetanotherco/aligned_layer) to verify Mina Proofs of State on Ethereum.
 
 ## Usage
 
 1. [Setup Aligned Devnet locally](https://github.com/yetanotherco/aligned_layer/blob/main/docs/guides/3_setup_aligned.md#booting-devnet-with-default-configs)
 1. Setup the `core/.env` file of the bridge's core program. A template is available in `core/.env.template`.
 1. In the root folder, deploy the bridge's contract with:
+
     ```sh
     make deploy_contract_anvil
     ```
 1. Run the core program:
-```sh
-make
+
+    ```sh
+    make
+    ```
+
+# Specification
+
+## Core
+
+[`mina_bridge repo: core/`](https://github.com/lambdaclass/mina_bridge/tree/aligned/core)
+
+A Rust library+binary project that includes the next modules:
+
+### Mina Polling Service
+
+[`mina_bridge repo: core/src/mina_polling_service.rs`](https://github.com/lambdaclass/mina_bridge/tree/aligned/core/src/mina_polling_service.rs)
+
+This module queries a Mina node (defined by the user via the `MINA_RPC_URL` env. variable) GraphQL DB for the latest state data (called the candidate state) and proof.
+
+It also queries the Bridge’s smart contract for the last verified Mina state hash, called the **Bridge’s tip state** or just tip state (if there’s no tip state in the smart contract then it defaults to the hardcoded genesis hash instead) and queries the state corresponding to that hash to the Mina node.
+
+Then it serializes:
+- both states (which are an OCaml structure encoded in base64, standard vocabulary) as bytes, representing the underlying UTF-8. (`serialize_protocol_state()`)
+- both state hashes (field element) as bytes (arkworks serialization). (`serialize_state_hash_field()`)
+- the candidate state proof (an OCaml structure encoded in base64, URL vocabulary) as bytes, representing the underlying UTF-8. (`serialize_protocol_state_proof()`)
+
+This data composes what we call a **Mina Proof of State**.
+
+#### Mina Proof of State
+
+We understand a Mina Proof of State to be composed of:
+
+- **public inputs** (vector of bytes): `[candidate_state_hash, candidate_state_length, candidate_state, tip_state_hash, tip_state_length, tip_state]`. We include the lengths of the states in bytes because these can vary, unlike the hashes which are a fixed 32 bytes.
+- **proof**: Kimchi proof of the candidate state (specifically a Wrap proof in the context of the Pickles recursive system). We like to call it “Pickles proof” for simplicity.
+
+This is the proof that the Mina verifier in Aligned (also called a Mina operator) expects.
+
+### Aligned Polling Service
+
+[`mina_bridge repo: core/src/aligned_polling_service.rs`](https://github.com/lambdaclass/mina_bridge/tree/aligned/core/src/aligned_polling_service.rs)
+
+This module sends the Mina Proof of State (retrieved by the Mina Polling Service) to the Aligned batcher for verification, using the Aligned SDK. The batcher executes pre-verification checks that validate the integrity of the proof and discards it if one of these checks is unsuccessful. After pre-verification, the batcher includes the Mina Proof of State in the current proof batch for then sending it to Aligned’s operators.
+
+The Aligned Polling Service waits until the batch that includes the Mina Proof of State is verified, polling Aligned every 10 seconds (this is done by the Aligned SDK).
+
+Finally the service returns the verification data sent by Aligned after proof submission. This is used for updating the Bridge’s tip state, by sending a transaction to the Bridge’s smart contract.
+
+
+### Smart Contract Utility
+
+[`mina_bridge repo: core/src/smart_contract_utility.rs`](https://github.com/lambdaclass/mina_bridge/tree/aligned/core/src/smart_contract_utility.rs)
+
+This module sends a transaction to the Bridge’s smart contract that calls the “update tip” (see the [Smart Contract section](#smart-contract)) function by sending the **incomplete** verification data retrieved by the Aligned Polling Service, aside from the Mina Proof of State public inputs. By “incomplete” we mean that we’re sending all the verification data, except for the public input commitment, which is a keccak256 hash of the public inputs. So by sending the public inputs to the contract we can cheaply calculate on-chain the public input commitment for completing the verification data. We do this instead of directly sending the commitment so the contract can:
+
+- check that the `tip_state_hash` is indeed the tip state hash stored in the contract
+- retrieve the `candidate_state_hash` and store it if the candidate was verified
+
+### Smart Contract
+
+[`mina_bridge repo: contract/`](https://github.com/lambdaclass/mina_bridge/tree/aligned/contract)
+
+The contract stores the Bridge’s tip state hash and exposes functions to read (`getTipStateHash()`) or update it (`updateTipStateHash()`). Generally it’s the Smart Contract Utility that will send a transaction to update the tip state hash.
+
+The Bridge’s contract update function calls the Aligned Service Manager smart contract to check that the Mina Proof of State was verified in Aligned. The parameters that the Aligned Service Manager needs for checking is the complete verification data.
+
+If the Aligned Service Manager call returns true, this means that a Mina Proof of State of some candidate state (whose hash is known by the contract), checked against the Bridge’s tip state (consensus checking), was verified. Then this candidate state is now the tip state, and so its hash is stored in the contract.
+
+#### Gas cost
+Currently the cost of the “update tip” transaction is in between 100k and 150k gas, a big part of it being the calldata cost of sending both states data in the public inputs of the Mina Proof of State. The cost could be decreased to <100k by modifying the definition of a Mina Proof of State; sending the state data as proof data instead of public inputs. At the current phase of the project this is not a priority so this change wasn’t done yet.
+
+## Aligned’s Mina Proof of State verifier
+
+[`aligned_layer repo: operator/mina/`](https://github.com/lambdaclass/aligned_layer/tree/mina/operator/mina)
+
+Aligned Layer integrated a verifier in its operator code for verifying Mina Proofs of State.
+
+### Consensus checking
+
+The first step of the verifier is to execute consensus checks, specific to the [Ouroboros Samasika consensus mechanism](https://github.com/MinaProtocol/mina/blob/develop/docs/specs/consensus/README.md) that the Mina Protocol uses. The checks are comparisons of state data between the candidate state and the tip state.
+
+Currently the only check implemented is the one corresponding to short-range forks. The check just compares that the candidate state’s height is greater than the tip’s. If equal, tiebreak logic is implemented. Tiebreak consists in lexicographical comparison of the VRF hashes of both states, and if these are equal then we compare the consensus state hashes.
+
+So the total logic can be summed up by:
+
+```rust
+if candidate_block_height > tip_block_height {
+    return candidate;
+}
+
+// tiebreak logic
+else if candidate_block_height == tip_block_height {
+    // compare last VRF digests lexicographically
+    if hash_last_vrf(candidate) > hash_last_vrf(tip) {
+        return candidate;
+    } else if hash_last_vrf(candidate) == hash_last_vrf(tip) {
+        // compare consensus state hashes lexicographically
+        if hash_state(candidate) > hash_state(tip) {
+            return candidate;
+        }
+    }
+}
+
+return tip;
 ```
 
-## Kimchi proving system
+If the candidate wins the comparisons, then verification continues. If not, verification fails.
+
+The full code details can be consulted in the GitHub repository link at the [top of the section](#aligned's-mina-proof-of-state-verifier). We use OpenMina’s code for hashing the consensus state.
+
+> [!WARNING]
+> At the moment we’re unsure about other considerations or checks for the consensus checking step. This step is under investigation.
+
+### State hash check
+
+We check that both the candidate and tip state hashes are correct by hashing the corresponding state data using OpenMina’s hasher. This way we can be certain that the hashes are valid if the Mina Proof of State was verified in Aligned, which is useful for the Bridge’s smart contract to check that the tip state is indeed the state corresponding to the tip, and for storing the candidate hash if its proof is valid.
+
+### Pickles verification
+
+This is the last step of the Mina Proof of State verifier. We are leveraging OpenMina’s “block verifier” to verify the Pickles proof of the candidate state. The verifier takes as public input the hash of the state.
+
+> [!WARNING]
+> OpenMina’s block verifier is yet to be audited.
+
+# Kimchi proving system
 
 Kimchi is a zero-knowledge proof system that’s a variant of PLONK.
 
