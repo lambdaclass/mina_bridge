@@ -1,20 +1,22 @@
 use std::str::FromStr;
 
 use kimchi::mina_curves::pasta::Fp;
+use mina_p2p_messages::v2::LedgerHash;
 use mina_tree::MerklePath;
 use reqwest::header::CONTENT_TYPE;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct MerklePathJSON {
+pub struct Query {
     pub data: Data,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Data {
-    pub account: Account,
+    pub account: Option<Account>,
+    pub daemon_status: Option<DaemonStatus>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -31,19 +33,18 @@ pub struct MerkleLeaf {
     pub right: Option<String>,
 }
 
-/// Queries the merkle path from the GraphQL endpoint.
-///
-/// # Arguments
-///
-/// * `rpc_url` - A string slice that holds the Mina RPC URL.
-/// * `public_key` - A string slice that holds the public key.
-///
-/// # Errors
-///
-/// Returns a string slice with an error message if the request cannot be made,
-/// the response cannot be converted to JSON or it can't be deserialized.
-pub fn query_merkle_path(rpc_url: &str, public_key: &str) -> Result<Vec<MerklePath>, String> {
-    let merkle_path_json: MerklePathJSON = serde_json::from_str(
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct DaemonStatus {
+    pub ledger_merkle_root: String,
+}
+
+/// Queries the merkle path and leaf hash from the GraphQL endpoint.
+pub fn query_leaf_and_merkle_path(
+    rpc_url: &str,
+    public_key: &str,
+) -> Result<(Fp, Vec<MerklePath>), String> {
+    let query: Query = serde_json::from_str(
         &reqwest::blocking::Client::new()
             .post(rpc_url)
             .header(CONTENT_TYPE, "application/json")
@@ -65,9 +66,14 @@ pub fn query_merkle_path(rpc_url: &str, public_key: &str) -> Result<Vec<MerklePa
     )
     .map_err(|err| format!("Error converting to json {err}"))?;
 
-    merkle_path_json
+    let account = query
         .data
         .account
+        .ok_or("Error getting account data".to_string())?;
+
+    let leaf_hash = Fp::from_str(&account.leaf_hash)
+        .map_err(|_| "Error deserializing leaf hash".to_string())?;
+    let merkle_path = account
         .merkle_path
         .into_iter()
         .map(|node| -> Result<MerklePath, ()> {
@@ -78,14 +84,49 @@ pub fn query_merkle_path(rpc_url: &str, public_key: &str) -> Result<Vec<MerklePa
             }
         })
         .collect::<Result<Vec<MerklePath>, ()>>()
-        .map_err(|_| "Failed to deserialize merkle path nodes".to_string())
+        .map_err(|_| "Error deserializing merkle path nodes".to_string())?;
+
+    Ok((leaf_hash, merkle_path))
+}
+
+/// Queries the ledger's merkle root
+fn query_merkle_root(rpc_url: &str) -> Result<Fp, String> {
+    let query: Query = serde_json::from_str(
+        &reqwest::blocking::Client::new()
+            .post(rpc_url)
+            .header(CONTENT_TYPE, "application/json")
+            .body(format!(
+                "{{\"query\": \"{{
+                    daemonStatus {{
+                        ledgerMerkleRoot
+                    }}
+                }}\"}}",
+            ))
+            .send()
+            .map_err(|err| format!("Error making request {err}"))?
+            .text()
+            .map_err(|err| format!("Error getting text {err}"))?,
+    )
+    .map_err(|err| format!("Error converting to json {err}"))?;
+
+    Ok(LedgerHash::from_str(
+        &query
+            .data
+            .daemon_status
+            .ok_or("Error getting daemon status".to_string())?
+            .ledger_merkle_root,
+    )
+    .map_err(|_| "Error deserializing leaf hash".to_string())?
+    .0
+    .clone()
+    .into())
 }
 
 #[cfg(test)]
 mod test {
     use crate::merkle_path::MerkleLeaf;
 
-    use super::{query_merkle_path, MerklePathJSON};
+    use super::{query_leaf_and_merkle_path, query_merkle_root, Query};
 
     #[test]
     fn test_merkle_leaf() {
@@ -117,15 +158,20 @@ mod test {
                 }
               }
             }"#;
-        serde_json::from_str::<MerklePathJSON>(serialized).unwrap();
+        serde_json::from_str::<Query>(serialized).unwrap();
     }
 
     #[test]
-    fn test_query_merkle_path() {
-        query_merkle_path(
+    fn test_query_leaf_and_merkle_path() {
+        query_leaf_and_merkle_path(
             "http://5.9.57.89:3085/graphql",
             "B62qoVxygiYzqRCj4taZDbRJGY6xLvuzoiLdY5CpGm7L9Tz5cj2Qr6i",
         )
         .unwrap();
+    }
+
+    #[test]
+    fn test_query_merkle_root() {
+        query_merkle_root("http://5.9.57.89:3085/graphql").unwrap();
     }
 }
