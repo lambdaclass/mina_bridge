@@ -3,5 +3,4 @@ mina_3_0_0_devnet
 protocol_state.pub
 protocol_state.proof
 aligned_verification_data
-account_inclusion.proof
-merkle_root.pub
+.env

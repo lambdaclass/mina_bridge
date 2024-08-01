@@ -1,16 +1,18 @@
-.PHONY: run
+.PHONY: run gen_contract_abi deploy_contract
 
 run:
 	@cargo run --manifest-path core/Cargo.toml --release
 
-verify_account:
-	@echo "Generating proof of account inclusion..."
-	@cargo run --manifest-path account_inclusion/script/Cargo.toml --release
-	@echo "Done!"
-	@echo "Sending Account inclusion proof to Aligned..."
-	@cargo run --manifest-path ${ALIGNED_PATH}/batcher/aligned/Cargo.toml --release -- submit \
-		--proving_system SP1 \
-		--proof account_inclusion.proof \
-		--vm_program account_inclusion/program/elf/riscv32im-succinct-zkvm-elf \
-		--proof_generator_addr 0x66f9664f97F2b50F62D13eA064982f936dE76657
-	@echo "Done!"
+gen_contract_abi:
+	forge build --root contract/
+	cp contract/out/MinaBridge.sol/MinaBridge.json core/abi/MinaBridge.json
+
+deploy_contract_anvil:
+	forge script \
+	--non-interactive \
+	--root contract/ \
+	--broadcast \
+	--rpc-url http://localhost:8545 \
+	--private-key 0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6 \
+	contract/script/MinaBridge.s.sol:MinaBridgeDeployer
+# deploy_contract_anvil uses Anvil wallet 9, same as Aligned for deploying its contracts.
