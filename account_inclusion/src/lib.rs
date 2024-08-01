@@ -2,6 +2,7 @@ use std::{fmt::Write, str::FromStr};
 
 use base64::{prelude::BASE64_STANDARD, Engine};
 use kimchi::mina_curves::pasta::Fp;
+use log::debug;
 use mina_p2p_messages::{
     binprot::BinProtRead,
     v2::{hash_with_kimchi, MinaStateProtocolStateValueStableV2, StateHash},
@@ -51,6 +52,11 @@ pub fn query_leaf_and_merkle_path(
     rpc_url: &str,
     public_key: &str,
 ) -> Result<(Fp, Vec<MerklePath>), String> {
+    // TODO(xqft): we can't trust the Mina node to provide us
+    // the correct leaf hash, we should add a check or directly
+    // hash the account information to get the leaf.
+
+    debug!("Querying merkle leaf and path of public key {}", public_key);
     let query: Query = serde_json::from_str(
         &reqwest::blocking::Client::new()
             .post(rpc_url)
@@ -101,6 +107,7 @@ pub fn query_leaf_and_merkle_path(
 /// Queries the ledger's merkle root from a state object, via its state hash.
 pub fn query_merkle_root(rpc_url: &str, state_hash: Fp) -> Result<Fp, String> {
     let state_hash = StateHash::from_fp(state_hash).to_string();
+    debug!("Querying merkle root of encoded state hash {}", state_hash);
 
     let query: Query = serde_json::from_str(
         &reqwest::blocking::Client::new()
