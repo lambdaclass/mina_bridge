@@ -1,0 +1,27 @@
+[package]
+name = "account-inclusion"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+kimchi = { git = "https://github.com/openmina/proof-systems", branch = "ledger-newtypes-rampup4-vrf" }
+mina-tree = { git = "https://github.com/lambdaclass/openmina/", branch = "mina_bridge" }
+mina-p2p-messages = { git = "https://github.com/lambdaclass/openmina/", branch = "mina_bridge" }
+snark = { git = "https://github.com/lambdaclass/openmina/", branch = "mina_bridge" }
+hex = "0.4.3"
+reqwest = { version = "0.12.5", features = ["blocking"] }
+serde_json = "1.0.121"
+serde = "1.0.204"
+num-bigint = { version = "0.4.3" }
+base64 = "0.22.1"
+core = { path = "../core/" }
+tokio = "1.39.1"
+dotenv = "0.15.0"
+env_logger = "0.11.5"
+log = "0.4.22"
+
+[patch.crates-io]
+ark-ff = { git = "https://github.com/openmina/algebra", branch = "openmina" }
+ark-ec = { git = "https://github.com/openmina/algebra", branch = "openmina" }
+ark-poly = { git = "https://github.com/openmina/algebra", branch = "openmina" }
+ark-serialize = { git = "https://github.com/openmina/algebra", branch = "openmina" }

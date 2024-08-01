@@ -2,7 +2,7 @@ use core::{
     aligned_polling_service, mina_polling_service, smart_contract_utility,
     utils::{env::EnvironmentVariables, wallet::get_wallet},
 };
-use ethers::abi::AbiEncode;
+use kimchi::turshi::helper::CairoFieldHelpers;
 use log::{debug, error, info};
 use std::process;
 
@@ -69,7 +69,7 @@ async fn main() {
             });
 
     info!(
-        "Success! verified Mina state hash {} was stored in the bridge's smart contract",
-        verified_state_hash.encode_hex()
+        "Success! verified Mina state hash 0x{} was stored in the bridge's smart contract",
+        verified_state_hash.to_hex_be()
     );
 }

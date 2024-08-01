@@ -8,7 +8,7 @@ error NewStateIsNotValid();
 /// @title Mina to Ethereum Bridge's smart contract.
 contract MinaBridge {
     /// @notice The state hash of the last verified state converted into a Fp.
-    uint256 lastVerifiedStateHash;
+    bytes32 tipStateHash;
 
     /// @notice Reference to the AlignedLayerServiceManager contract.
     AlignedLayerServiceManager aligned;
@@ -17,11 +17,11 @@ contract MinaBridge {
         aligned = AlignedLayerServiceManager(alignedServiceAddr);
     }
 
-    function getLastVerifiedStateHash() external view returns (uint256) {
-        return lastVerifiedStateHash;
+    function getTipStateHash() external view returns (bytes32) {
+        return tipStateHash;
     }
 
-    function updateLastVerifiedState(
+    function updateTipState(
         bytes32 proofCommitment,
         bytes32 provingSystemAuxDataCommitment,
         bytes20 proofGeneratorAddr,
@@ -45,7 +45,7 @@ contract MinaBridge {
         if (isNewStateVerified) {
             // first 32 bytes of pub input is the candidate (now verified) state hash.
             assembly {
-                sstore(lastVerifiedStateHash.slot, mload(add(pubInput, 0x20)))
+                sstore(tipStateHash.slot, mload(add(pubInput, 0x20)))
             }
         } else {
             revert NewStateIsNotValid();
