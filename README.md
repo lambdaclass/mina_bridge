@@ -32,7 +32,7 @@ After verifying a Mina state, you can locally verify the inclusion of some Mina 
 1. Run
    
    ```sh
-   make verify_account_inclusion public_key=<key>
+   make verify_account_inclusion PUBLIC_KEY=<key>
    ```
 # Specification
 

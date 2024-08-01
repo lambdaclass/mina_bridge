@@ -18,4 +18,4 @@ deploy_contract_anvil:
 # deploy_contract_anvil uses Anvil wallet 9, same as Aligned for deploying its contracts.
 
 verify_account_inclusion:
-	@cargo run --manifest-path account_inclusion/Cargo.toml --release -- $(public_key)
+	@cargo run --manifest-path account_inclusion/Cargo.toml --release -- ${PUBLIC_KEY}
