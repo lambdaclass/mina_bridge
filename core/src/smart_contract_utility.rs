@@ -59,7 +59,7 @@ pub async fn update(
 
     debug!("Updating contract");
 
-    let update_call = mina_bridge_contract.update_last_verified_state(
+    let update_call = mina_bridge_contract.update_tip_state(
         proof_commitment,
         proving_system_aux_data_commitment,
         proof_generator_addr,
@@ -96,7 +96,7 @@ pub async fn update(
 
     debug!("Getting contract stored hash");
     let new_state_hash = mina_bridge_contract
-        .get_last_verified_state_hash()
+        .get_tip_state_hash()
         .await
         .map_err(|err| err.to_string())?;
 
@@ -118,7 +118,7 @@ pub async fn get_tip_state_hash(chain: &Chain, eth_rpc_url: &str) -> Result<Fp, 
 
     debug!("Getting contract stored hash");
     let state_hash = mina_bridge_contract
-        .get_last_verified_state_hash()
+        .get_tip_state_hash()
         .await
         .map_err(|err| err.to_string())?;
 
