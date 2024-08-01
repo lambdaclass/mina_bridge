@@ -105,7 +105,7 @@ fn get_state_hash_field(response_value: &serde_json::Value) -> Result<Vec<u8>, S
             response_value,
         ))?;
 
-    debug!("State hash field: {}", state_hash_field_str);
+    debug!("Queried Mina state hash field: {}", state_hash_field_str);
 
     serialize_state_hash_field(state_hash_field_str)
 }

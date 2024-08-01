@@ -23,7 +23,7 @@ pub async fn update(
     chain: &Chain,
     eth_rpc_url: &str,
     wallet: Wallet<SigningKey>,
-) -> Result<U256, String> {
+) -> Result<Fp, String> {
     let bridge_eth_addr = Address::from_str(match chain {
         Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
         _ => {
@@ -100,7 +100,7 @@ pub async fn update(
         .await
         .map_err(|err| err.to_string())?;
 
-    Ok(new_state_hash)
+    Fp::from_bytes(&new_state_hash).map_err(|err| err.to_string())
 }
 
 pub async fn get_tip_state_hash(chain: &Chain, eth_rpc_url: &str) -> Result<Fp, String> {
@@ -117,15 +117,12 @@ pub async fn get_tip_state_hash(chain: &Chain, eth_rpc_url: &str) -> Result<Fp, 
     let mina_bridge_contract = mina_bridge_contract_call_only(eth_rpc_url, bridge_eth_addr)?;
 
     debug!("Getting contract stored hash");
-    let state_hash: U256 = mina_bridge_contract
+    let state_hash = mina_bridge_contract
         .get_last_verified_state_hash()
         .await
         .map_err(|err| err.to_string())?;
 
-    let state_hash = state_hash.to_string();
-    dbg!(&state_hash);
-
-    Fp::from_str(&state_hash.to_string()).map_err(|_| "Failed to convert hash to Fp".to_string())
+    Fp::from_bytes(&state_hash).map_err(|_| "Failed to convert hash to Fp".to_string())
 }
 
 fn mina_bridge_contract(

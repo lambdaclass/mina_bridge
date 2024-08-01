@@ -1,6 +1,6 @@
 use account_inclusion::{query_leaf_and_merkle_path, query_merkle_root, verify_merkle_proof};
 use core::{smart_contract_utility::get_tip_state_hash, utils::env::EnvironmentVariables};
-use kimchi::o1_utils::FieldHelpers;
+use kimchi::turshi::helper::CairoFieldHelpers;
 use log::{debug, error, info};
 use std::process;
 
@@ -32,7 +32,10 @@ async fn main() {
             error!("{}", err);
             process::exit(1);
         });
-    info!("Retrieved bridge tip state hash: 0x{}", state_hash.to_hex());
+    info!(
+        "Retrieved bridge tip state hash: 0x{}",
+        state_hash.to_hex_be()
+    );
 
     let (leaf_hash, merkle_path) =
         query_leaf_and_merkle_path(&rpc_url, public_key).unwrap_or_else(|err| {
@@ -49,7 +52,7 @@ async fn main() {
     let is_account_included = verify_merkle_proof(leaf_hash, merkle_path, merkle_root);
     if is_account_included {
         info!(
-            "Sucess! account {} is included in the latest bridged Mina state.",
+            "Account {} is included in the latest bridged Mina state.",
             public_key
         );
     } else {
