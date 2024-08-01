@@ -164,12 +164,12 @@ fn serialize_protocol_state_proof(response_value: &serde_json::Value) -> Result<
 
 #[cfg(test)]
 mod tests {
-    use crate::utils::constants::ANVIL_PROOF_GENERATOR_ADDR;
+    use crate::utils::constants::PROOF_GENERATOR_ADDR;
 
     use super::query_and_serialize;
 
     #[test]
     fn serialize_and_deserialize() {
-        query_and_serialize("http://5.9.57.89:3085/graphql", ANVIL_PROOF_GENERATOR_ADDR).unwrap();
+        query_and_serialize("http://5.9.57.89:3085/graphql", PROOF_GENERATOR_ADDR).unwrap();
     }
 }

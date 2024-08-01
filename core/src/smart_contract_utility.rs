@@ -6,7 +6,7 @@ use ethers::{abi::AbiEncode, prelude::*};
 use k256::ecdsa::SigningKey;
 use log::{debug, error, info};
 
-use crate::utils::constants::{ANVIL_CHAIN_ID, BRIDGE_DEVNET_ETH_ADDR};
+use crate::utils::constants::{ANVIL_CHAIN_ID, BRIDGE_DEVNET_ETH_ADDR, BRIDGE_HOLESKY_ETH_ADDR};
 
 abigen!(MinaBridgeEthereumContract, "abi/MinaBridge.json");
 
@@ -22,6 +22,7 @@ pub async fn update(
 ) -> Result<U256, String> {
     let bridge_eth_addr = Address::from_str(match chain {
         Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
+        Chain::Holesky => BRIDGE_HOLESKY_ETH_ADDR,
         _ => {
             error!("Unimplemented Ethereum contract on selected chain");
             unimplemented!()
