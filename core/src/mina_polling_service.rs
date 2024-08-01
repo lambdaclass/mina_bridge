@@ -2,7 +2,7 @@ use std::str::FromStr as _;
 
 use aligned_sdk::core::types::{ProvingSystemId, VerificationData};
 use ethers::types::Address;
-use kimchi::o1_utils::FieldHelpers;
+use kimchi::{o1_utils::FieldHelpers, turshi::helper::CairoFieldHelpers};
 use log::{debug, info};
 use mina_curves::pasta::Fp;
 use reqwest::header::CONTENT_TYPE;
@@ -36,7 +36,9 @@ pub fn query_and_serialize(
     let candidate_state_hash = get_state_hash_field(&last_block_value)?;
     info!(
         "Queried Mina candidate state 0x{} and its proof from Mainnet node",
-        hex::encode(&candidate_state_hash)
+        Fp::from_bytes(&candidate_state_hash)
+            .map_err(|err| err.to_string())?
+            .to_hex_be()
     );
 
     let mut pub_input = candidate_state_hash;
@@ -131,6 +133,8 @@ fn get_state_hash_field(response_value: &serde_json::Value) -> Result<Vec<u8>, S
             "Error converting state hash value to string: {:?}",
             response_value,
         ))?;
+
+    debug!("Queried Mina state hash field: {}", state_hash_field_str);
 
     serialize_state_hash_field(state_hash_field_str)
 }

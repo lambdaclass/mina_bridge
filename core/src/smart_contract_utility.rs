@@ -4,7 +4,9 @@ use std::sync::Arc;
 use aligned_sdk::core::types::{AlignedVerificationData, Chain, VerificationDataCommitment};
 use ethers::{abi::AbiEncode, prelude::*};
 use k256::ecdsa::SigningKey;
+use kimchi::o1_utils::FieldHelpers;
 use log::{debug, error, info};
+use mina_curves::pasta::Fp;
 
 use crate::utils::constants::{ANVIL_CHAIN_ID, BRIDGE_DEVNET_ETH_ADDR};
 
@@ -21,7 +23,7 @@ pub async fn update(
     chain: &Chain,
     eth_rpc_url: &str,
     wallet: Wallet<SigningKey>,
-) -> Result<U256, String> {
+) -> Result<Fp, String> {
     let bridge_eth_addr = Address::from_str(match chain {
         Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
         _ => {
@@ -57,7 +59,7 @@ pub async fn update(
 
     debug!("Updating contract");
 
-    let update_call = mina_bridge_contract.update_last_verified_state(
+    let update_call = mina_bridge_contract.update_tip_state(
         proof_commitment,
         proving_system_aux_data_commitment,
         proof_generator_addr,
@@ -94,11 +96,33 @@ pub async fn update(
 
     debug!("Getting contract stored hash");
     let new_state_hash = mina_bridge_contract
-        .get_last_verified_state_hash()
+        .get_tip_state_hash()
         .await
         .map_err(|err| err.to_string())?;
 
-    Ok(new_state_hash)
+    Fp::from_bytes(&new_state_hash).map_err(|err| err.to_string())
+}
+
+pub async fn get_tip_state_hash(chain: &Chain, eth_rpc_url: &str) -> Result<Fp, String> {
+    let bridge_eth_addr = Address::from_str(match chain {
+        Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
+        _ => {
+            error!("Unimplemented Ethereum contract on selected chain");
+            unimplemented!()
+        }
+    })
+    .map_err(|err| err.to_string())?;
+
+    debug!("Creating contract instance");
+    let mina_bridge_contract = mina_bridge_contract_call_only(eth_rpc_url, bridge_eth_addr)?;
+
+    debug!("Getting contract stored hash");
+    let state_hash = mina_bridge_contract
+        .get_tip_state_hash()
+        .await
+        .map_err(|err| err.to_string())?;
+
+    Fp::from_bytes(&state_hash).map_err(|_| "Failed to convert hash to Fp".to_string())
 }
 
 pub async fn get_tip_hash(chain: &Chain, eth_rpc_url: &str) -> Result<U256, String> {
