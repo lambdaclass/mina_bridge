@@ -111,44 +111,44 @@ pub fn verify_merkle_proof(leaf_hash: Fp, merkle_path: Vec<MerklePath>, merkle_r
     calculated_root == merkle_root
 }
 
-/// Queries the ledger's merkle root
-fn query_merkle_root(rpc_url: &str) -> Result<Fp, String> {
-    let query: Query = serde_json::from_str(
-        &reqwest::blocking::Client::new()
-            .post(rpc_url)
-            .header(CONTENT_TYPE, "application/json")
-            .body(format!(
-                "{{\"query\": \"{{
-                    daemonStatus {{
-                        ledgerMerkleRoot
-                    }}
-                }}\"}}",
-            ))
-            .send()
-            .map_err(|err| format!("Error making request {err}"))?
-            .text()
-            .map_err(|err| format!("Error getting text {err}"))?,
-    )
-    .map_err(|err| format!("Error converting to json {err}"))?;
-
-    Ok(LedgerHash::from_str(
-        &query
-            .data
-            .daemon_status
-            .ok_or("Error getting daemon status".to_string())?
-            .ledger_merkle_root,
-    )
-    .map_err(|_| "Error deserializing leaf hash".to_string())?
-    .0
-    .clone()
-    .into())
-}
-
 #[cfg(test)]
 mod test {
     use crate::merkle_path::MerkleLeaf;
 
-    use super::{query_leaf_and_merkle_path, query_merkle_root, verify_merkle_proof, Query};
+    use super::*;
+
+    /// Queries the ledger's merkle root. Used for testing.
+    fn query_ledgers_merkle_root(rpc_url: &str) -> Result<Fp, String> {
+        let query: Query = serde_json::from_str(
+            &reqwest::blocking::Client::new()
+                .post(rpc_url)
+                .header(CONTENT_TYPE, "application/json")
+                .body(format!(
+                    "{{\"query\": \"{{
+                    daemonStatus {{
+                        ledgerMerkleRoot
+                    }}
+                }}\"}}",
+                ))
+                .send()
+                .map_err(|err| format!("Error making request {err}"))?
+                .text()
+                .map_err(|err| format!("Error getting text {err}"))?,
+        )
+        .map_err(|err| format!("Error converting to json {err}"))?;
+
+        Ok(LedgerHash::from_str(
+            &query
+                .data
+                .daemon_status
+                .ok_or("Error getting daemon status".to_string())?
+                .ledger_merkle_root,
+        )
+        .map_err(|_| "Error deserializing leaf hash".to_string())?
+        .0
+        .clone()
+        .into())
+    }
 
     #[test]
     fn test_merkle_leaf() {
@@ -194,7 +194,7 @@ mod test {
 
     #[test]
     fn test_query_merkle_root() {
-        query_merkle_root("http://5.9.57.89:3085/graphql").unwrap();
+        query_ledgers_merkle_root("http://5.9.57.89:3085/graphql").unwrap();
     }
 
     #[test]
@@ -205,7 +205,7 @@ mod test {
         )
         .unwrap();
 
-        let merkle_root = query_merkle_root("http://5.9.57.89:3085/graphql").unwrap();
+        let merkle_root = query_ledgers_merkle_root("http://5.9.57.89:3085/graphql").unwrap();
 
         assert!(verify_merkle_proof(leaf_hash, merkle_path, merkle_root));
     }
