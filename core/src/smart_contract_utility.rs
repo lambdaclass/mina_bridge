@@ -125,26 +125,6 @@ pub async fn get_tip_state_hash(chain: &Chain, eth_rpc_url: &str) -> Result<Fp, 
     Fp::from_bytes(&state_hash).map_err(|_| "Failed to convert hash to Fp".to_string())
 }
 
-pub async fn get_tip_hash(chain: &Chain, eth_rpc_url: &str) -> Result<U256, String> {
-    let bridge_eth_addr = Address::from_str(match chain {
-        Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
-        _ => {
-            error!("Unimplemented Ethereum contract on selected chain");
-            unimplemented!()
-        }
-    })
-    .map_err(|err| err.to_string())?;
-
-    debug!("Creating contract instance");
-    let mina_bridge_contract = mina_bridge_contract_call_only(eth_rpc_url, bridge_eth_addr)?;
-
-    debug!("Getting contract stored hash");
-    mina_bridge_contract
-        .get_last_verified_state_hash()
-        .await
-        .map_err(|err| err.to_string())
-}
-
 fn mina_bridge_contract(
     eth_rpc_url: &str,
     contract_address: Address,
