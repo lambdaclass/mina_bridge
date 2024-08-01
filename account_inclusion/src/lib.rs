@@ -16,6 +16,7 @@ pub struct Query {
 #[serde(rename_all = "camelCase")]
 pub struct Data {
     pub account: Option<Account>,
+    #[cfg(test)]
     pub daemon_status: Option<DaemonStatus>,
 }
 
@@ -33,6 +34,7 @@ pub struct MerkleLeaf {
     pub right: Option<String>,
 }
 
+#[cfg(test)]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct DaemonStatus {
@@ -49,15 +51,17 @@ pub fn query_leaf_and_merkle_path(
             .post(rpc_url)
             .header(CONTENT_TYPE, "application/json")
             .body(format!(
-                "{{\"query\": \"{{
-                    account(publicKey: \\\"{public_key}\\\") {{
-                      leafHash
-                      merklePath {{
-                          left
-                          right
-                      }}
-                    }}
-                }}\"}}"
+                r#"{{
+                    "query": "{{
+                        account(publicKey: \"{public_key}\") {{
+                            leafHash
+                            merklePath {{
+                                left
+                                right
+                            }}
+                        }}
+                    }}"
+                }}"#,
             ))
             .send()
             .map_err(|err| format!("Error making request {err}"))?
@@ -90,6 +94,7 @@ pub fn query_leaf_and_merkle_path(
 }
 
 /// Based on OpenMina's implementation
+/// https://github.com/openmina/openmina/blob/d790af59a8bd815893f7773f659351b79ed87648/ledger/src/account/account.rs#L1444
 pub fn verify_merkle_proof(leaf_hash: Fp, merkle_path: Vec<MerklePath>, merkle_root: Fp) -> bool {
     let mut param = String::with_capacity(16);
 
@@ -121,13 +126,15 @@ mod test {
             &reqwest::blocking::Client::new()
                 .post(rpc_url)
                 .header(CONTENT_TYPE, "application/json")
-                .body(format!(
-                    "{{\"query\": \"{{
-                    daemonStatus {{
-                        ledgerMerkleRoot
-                    }}
-                }}\"}}",
-                ))
+                .body(
+                    r#"{
+                    "query": "{
+                        daemonStatus {
+                            ledgerMerkleRoot
+                        }
+                    }"
+                }"#,
+                )
                 .send()
                 .map_err(|err| format!("Error making request {err}"))?
                 .text()
