@@ -45,7 +45,6 @@ pub fn query_and_serialize(
     let mut tip_protocol_state_len_bytes = [0; 4];
     tip_protocol_state_len_bytes.copy_from_slice(&tip_protocol_state_len.to_be_bytes());
 
-    debug!("Querying Mina node for last state and proof");
     let (candidate_hash, candidate_proof) = query_candidate(rpc_url, candidate_query::Variables)?;
     let candidate_encoded_hash = encode_state_hash(&candidate_hash)?; // used for state query
 
@@ -68,7 +67,7 @@ pub fn query_and_serialize(
     );
 
     let mut pub_input = candidate_hash;
-    pub_input.extend(candidate_state.len().to_be_bytes());
+    pub_input.extend((candidate_state.len() as u32).to_be_bytes());
     pub_input.extend(candidate_state);
     pub_input.extend(tip_state_hash_field);
     pub_input.extend(tip_protocol_state_len_bytes);
@@ -92,6 +91,7 @@ pub fn query_state(
     rpc_url: &str,
     variables: state_query::Variables,
 ) -> Result<ProtocolState, String> {
+    debug!("Querying state {}", variables.state_hash);
     let client = Client::new();
     let response = post_graphql_blocking::<StateQuery, _>(&client, rpc_url, variables)
         .map_err(|err| err.to_string())?
@@ -104,6 +104,7 @@ pub fn query_candidate(
     rpc_url: &str,
     variables: candidate_query::Variables,
 ) -> Result<(PrecomputedBlockProof, StateHashAsDecimal), String> {
+    debug!("Querying for candidate state");
     let client = Client::new();
     let response = post_graphql_blocking::<CandidateQuery, _>(&client, rpc_url, variables)
         .map_err(|err| err.to_string())?
