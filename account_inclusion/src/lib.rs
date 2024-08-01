@@ -1,7 +1,11 @@
 use std::{fmt::Write, str::FromStr};
 
+use base64::{prelude::BASE64_STANDARD, Engine};
 use kimchi::mina_curves::pasta::Fp;
-use mina_p2p_messages::v2::{hash_with_kimchi, LedgerHash};
+use mina_p2p_messages::{
+    binprot::BinProtRead,
+    v2::{hash_with_kimchi, MinaStateProtocolStateValueStableV2, StateHash},
+};
 use mina_tree::MerklePath;
 use reqwest::header::CONTENT_TYPE;
 use serde::{Deserialize, Serialize};
@@ -18,6 +22,7 @@ pub struct Data {
     pub account: Option<Account>,
     #[cfg(test)]
     pub daemon_status: Option<DaemonStatus>,
+    pub protocol_state: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -93,6 +98,56 @@ pub fn query_leaf_and_merkle_path(
     Ok((leaf_hash, merkle_path))
 }
 
+/// Queries the ledger's merkle root from a state object, via its state hash.
+pub fn query_merkle_root(rpc_url: &str, state_hash: Fp) -> Result<Fp, String> {
+    let state_hash = StateHash::from_fp(state_hash).to_string();
+
+    let query: Query = serde_json::from_str(
+        &reqwest::blocking::Client::new()
+            .post(rpc_url)
+            .header(CONTENT_TYPE, "application/json")
+            .body(format!(
+                r#"{{
+                    "query": "{{
+                        protocolState(encoding: BASE64, stateHash: \"{state_hash}\") {{
+                            leafHash
+                            merklePath {{
+                                left
+                                right
+                            }}
+                        }}
+                    }}"
+                }}"#,
+            ))
+            .send()
+            .map_err(|err| format!("Error making request {err}"))?
+            .text()
+            .map_err(|err| format!("Error getting text {err}"))?,
+    )
+    .map_err(|err| format!("Error converting to json {err}"))?;
+
+    let protocol_state_base64 = query
+        .data
+        .protocol_state
+        .ok_or("Error getting protocol state".to_string())?;
+    let protocol_state_binprot = BASE64_STANDARD
+        .decode(protocol_state_base64)
+        .map_err(|err| err.to_string())?;
+    let protocol_state =
+        MinaStateProtocolStateValueStableV2::binprot_read(&mut protocol_state_binprot.as_slice())
+            .map_err(|err| err.to_string())?;
+
+    Ok(protocol_state
+        .body
+        .blockchain_state
+        .staged_ledger_hash
+        .non_snark
+        .ledger_hash
+        .0
+        .clone()
+        .into())
+}
+
 /// Based on OpenMina's implementation
 /// https://github.com/openmina/openmina/blob/d790af59a8bd815893f7773f659351b79ed87648/ledger/src/account/account.rs#L1444
 pub fn verify_merkle_proof(leaf_hash: Fp, merkle_path: Vec<MerklePath>, merkle_root: Fp) -> bool {
@@ -118,6 +173,8 @@ pub fn verify_merkle_proof(leaf_hash: Fp, merkle_path: Vec<MerklePath>, merkle_r
 
 #[cfg(test)]
 mod test {
+    use mina_p2p_messages::v2::LedgerHash;
+
     use super::*;
 
     /// Queries the ledger's merkle root. Used for testing.
@@ -198,8 +255,26 @@ mod test {
     }
 
     #[test]
-    fn test_query_merkle_root() {
+    fn test_query_ledgers_merkle_root() {
         query_ledgers_merkle_root("http://5.9.57.89:3085/graphql").unwrap();
+    }
+
+    #[test]
+    fn test_query_merkle_root() {
+        let state_hash =
+            StateHash::from_str("3NKE3oYnEwSFcuEXWCz1abNLeTgY8BGEvPs1KWPHyj81jmgdojsT")
+                .unwrap()
+                .to_fp()
+                .unwrap();
+        let staged_ledger_hash =
+            query_merkle_root("http://5.9.57.89:3085/graphql", state_hash).unwrap();
+        let ledger_merkle_root =
+            LedgerHash::from_str("jxBZvRKv9aCVEDn7Dd48aWDruHhVkcW1vmburY4gbxCDVEZzecL")
+                .unwrap()
+                .to_fp()
+                .unwrap();
+
+        assert_eq!(staged_ledger_hash, ledger_merkle_root);
     }
 
     #[test]
