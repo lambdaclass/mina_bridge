@@ -39,6 +39,12 @@ pub async fn query_and_serialize(
     eth_rpc_url: &str,
 ) -> Result<VerificationData, String> {
     let tip_hash = get_tip_state_hash(chain, eth_rpc_url).await?.to_decimal();
+    let (candidate_hash, candidate_proof) = query_candidate(rpc_url, candidate_query::Variables)?;
+
+    if tip_hash == candidate_hash {
+        return Err("Candidate state is already verified".to_string());
+    }
+
     let tip_state = query_state(
         rpc_url,
         state_query::Variables {
@@ -46,7 +52,6 @@ pub async fn query_and_serialize(
         },
     )?;
 
-    let (candidate_proof, candidate_hash) = query_candidate(rpc_url, candidate_query::Variables)?;
     let candidate_state = query_state(
         rpc_url,
         state_query::Variables {
@@ -104,7 +109,7 @@ pub fn query_state(
 pub fn query_candidate(
     rpc_url: &str,
     variables: candidate_query::Variables,
-) -> Result<(PrecomputedBlockProof, StateHashAsDecimal), String> {
+) -> Result<(StateHashAsDecimal, PrecomputedBlockProof), String> {
     debug!("Querying for candidate state");
     let client = Client::new();
     let response = post_graphql_blocking::<CandidateQuery, _>(&client, rpc_url, variables)
