@@ -1,17 +1,16 @@
 use std::str::FromStr as _;
 
-use aligned_sdk::core::types::{ProvingSystemId, VerificationData};
+use aligned_sdk::core::types::{Chain, ProvingSystemId, VerificationData};
 use ethers::types::Address;
 use graphql_client::{reqwest::post_graphql_blocking, GraphQLQuery};
 use kimchi::{o1_utils::FieldHelpers, turshi::helper::CairoFieldHelpers};
 use log::{debug, info};
 use mina_curves::pasta::Fp;
 use mina_p2p_messages::v2::StateHash;
+use mina_tree::FpExt;
 use reqwest::blocking::Client;
 
-use crate::utils::constants::{
-    MINA_STATE_HASH_SIZE, MINA_TIP_PROTOCOL_STATE, MINA_TIP_STATE_HASH_FIELD,
-};
+use crate::{smart_contract_utility::get_tip_state_hash, utils::constants::MINA_STATE_HASH_SIZE};
 
 type StateHashAsDecimal = String;
 type PrecomputedBlockProof = String;
@@ -33,45 +32,47 @@ struct StateQuery;
 /// A query for the latest protocol state hash field and proof.
 struct CandidateQuery;
 
-pub fn query_and_serialize(
+pub async fn query_and_serialize(
     rpc_url: &str,
     proof_generator_addr: &str,
+    chain: &Chain,
+    eth_rpc_url: &str,
 ) -> Result<VerificationData, String> {
-    let tip_state_hash_field = serialize_state_hash_field(MINA_TIP_STATE_HASH_FIELD)
-        .map_err(|err| format!("Error serializing tip's state hash field: {err}"))?;
-    let tip_protocol_state = serialize_protocol_state(MINA_TIP_PROTOCOL_STATE)
-        .map_err(|err| format!("Error serializing tip's protocol state: {err}"))?;
-    let tip_protocol_state_len = tip_protocol_state.len() as u32;
-    let mut tip_protocol_state_len_bytes = [0; 4];
-    tip_protocol_state_len_bytes.copy_from_slice(&tip_protocol_state_len.to_be_bytes());
+    let tip_hash = get_tip_state_hash(chain, eth_rpc_url).await?.to_decimal();
+    let tip_state = query_state(
+        rpc_url,
+        state_query::Variables {
+            state_hash: encode_state_hash(&tip_hash)?,
+        },
+    )?;
 
-    let (candidate_hash, candidate_proof) = query_candidate(rpc_url, candidate_query::Variables)?;
-    let candidate_encoded_hash = encode_state_hash(&candidate_hash)?; // used for state query
-
-    let candidate_hash = serialize_state_hash(&candidate_hash)?;
-    let candidate_proof = serialize_state_proof(&candidate_proof);
-
+    let (candidate_proof, candidate_hash) = query_candidate(rpc_url, candidate_query::Variables)?;
     let candidate_state = query_state(
         rpc_url,
         state_query::Variables {
-            state_hash: candidate_encoded_hash,
+            state_hash: encode_state_hash(&candidate_hash)?,
         },
     )?;
-    let candidate_state = serialize_state(candidate_state);
-
     info!(
         "Queried Mina candidate state 0x{} and its proof from Mainnet node",
-        Fp::from_bytes(&candidate_hash)
-            .map_err(|err| err.to_string())?
-            .to_hex_be()
+        Fp::from_str(&candidate_hash)
+            .map_err(|_| "Failed to decode canddiate state hash".to_string())
+            .map(|hash| hash.to_hex_be())?
     );
+
+    let tip_hash = serialize_state_hash(&tip_hash)?;
+    let tip_state = serialize_state(tip_state);
+
+    let candidate_hash = serialize_state_hash(&candidate_hash)?;
+    let candidate_state = serialize_state(candidate_state);
+    let candidate_proof = serialize_state_proof(&candidate_proof);
 
     let mut pub_input = candidate_hash;
     pub_input.extend((candidate_state.len() as u32).to_be_bytes());
     pub_input.extend(candidate_state);
-    pub_input.extend(tip_state_hash_field);
-    pub_input.extend(tip_protocol_state_len_bytes);
-    pub_input.extend(tip_protocol_state);
+    pub_input.extend(tip_hash);
+    pub_input.extend((tip_state.len() as u32).to_be_bytes());
+    pub_input.extend(tip_state);
 
     let pub_input = Some(pub_input);
 
@@ -178,6 +179,6 @@ mod tests {
 
     #[test]
     fn serialize_and_deserialize() {
-        query_and_serialize("http://5.9.57.89:3085/graphql", ANVIL_PROOF_GENERATOR_ADDR).unwrap();
+        //query_and_serialize("http://5.9.57.89:3085/graphql", ANVIL_PROOF_GENERATOR_ADDR).unwrap();
     }
 }
