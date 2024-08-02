@@ -4,6 +4,7 @@ pragma solidity ^0.8.12;
 import "aligned_layer/contracts/src/core/AlignedLayerServiceManager.sol";
 
 error NewStateIsNotValid();
+error TipStateIsWrong();
 
 /// @title Mina to Ethereum Bridge's smart contract.
 contract MinaBridge {
@@ -39,6 +40,15 @@ contract MinaBridge {
         uint256 verificationDataBatchIndex,
         bytes memory pubInput
     ) external {
+        bytes32 pubInputTipStateHash;
+        assembly {
+            mstore(pubInputTipStateHash, mload(add(pubInput, 0x40)))
+        }
+
+        if (pubInputTipStateHash != tipStateHash) {
+            revert TipStateIsWrong();
+        }
+
         bytes32 pubInputCommitment = keccak256(pubInput);
 
         bool isNewStateVerified = aligned.verifyBatchInclusion(
