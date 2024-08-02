@@ -16,4 +16,4 @@ pub const MINA_STATE_HASH_SIZE: usize = 32;
 
 // Bridge related constants
 pub const BRIDGE_DEVNET_ETH_ADDR: &str = "0x700b6A60ce7EaaEA56F065753d8dcB9653dbAD35";
-pub const BRIDGE_HOLESKY_ETH_ADDR: &str = "0x1FcBedfEE820933CdfB47b9F713d3e9ff3e06bA5";
+pub const BRIDGE_HOLESKY_ETH_ADDR: &str = "0x607dDC6Cd52fCe46df9a84b3F2Bf171D6E7967DC";

@@ -22,7 +22,7 @@ contract MinaBridgeDeployer is Script {
             );
         } else if (keccak256(bytes(chain)) == keccak256("holesky")) {
             alignedServiceAddress = address(
-                uint160(0x58F280BeBE9B34c9939C3C39e0890C81f163B623)
+                uint160(0xe41Faf6446A94961096a1aeeec1268CA4A6D4a77)
             );
         } else {
             revert UndefinedChain();
