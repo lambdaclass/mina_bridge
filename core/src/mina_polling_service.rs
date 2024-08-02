@@ -136,8 +136,10 @@ fn serialize_state_hash(hash: &StateHashAsDecimal) -> Result<Vec<u8>, String> {
     let bytes = Fp::from_str(hash)
         .map_err(|_| "Failed to decode hash as a field element".to_string())?
         .to_bytes();
-    if bytes.len() != 32 {
-        return Err("Failed to encode hash as bytes: length is not exactly 32.".to_string());
+    if bytes.len() != MINA_STATE_HASH_SIZE {
+        return Err(format!(
+            "Failed to encode hash as bytes: length is not exactly {MINA_STATE_HASH_SIZE}."
+        ));
     }
     Ok(bytes)
 }
@@ -156,34 +158,30 @@ fn encode_state_hash(hash: &StateHashAsDecimal) -> Result<String, String> {
         .map(|fp| StateHash::from_fp(fp).to_string())
 }
 
-fn serialize_state_hash_field(state_hash_field_str: &str) -> Result<Vec<u8>, String> {
-    let state_hash_field = Fp::from_str(state_hash_field_str).map_err(|_| {
-        format!(
-            "Error converting state hash to field: {:?}",
-            &state_hash_field_str
-        )
-    })?;
-    let state_hash_field_bytes = state_hash_field.to_bytes();
-
-    debug_assert_eq!(state_hash_field_bytes.len(), MINA_STATE_HASH_SIZE);
-
-    Ok(state_hash_field_bytes)
-}
-
-fn serialize_protocol_state(protocol_state_str: &str) -> Result<Vec<u8>, String> {
-    let protocol_state_bytes = protocol_state_str.as_bytes().to_vec();
-
-    Ok(protocol_state_bytes)
-}
-
 #[cfg(test)]
 mod tests {
-    use crate::utils::constants::ANVIL_PROOF_GENERATOR_ADDR;
+    use core::panic;
+
+    use aligned_sdk::core::types::Chain;
+
+    use crate::utils::constants::{ANVIL_ETH_RPC_URL, ANVIL_PROOF_GENERATOR_ADDR};
 
     use super::query_and_serialize;
 
-    #[test]
-    fn serialize_and_deserialize() {
-        //query_and_serialize("http://5.9.57.89:3085/graphql", ANVIL_PROOF_GENERATOR_ADDR).unwrap();
+    #[tokio::test]
+    async fn serialize_and_deserialize() {
+        let result = query_and_serialize(
+            "http://5.9.57.89:3085/graphql",
+            ANVIL_PROOF_GENERATOR_ADDR,
+            &Chain::Devnet,
+            ANVIL_ETH_RPC_URL,
+        )
+        .await;
+
+        if let Err(err) = result {
+            if err != "Candidate state is already verified" {
+                panic!();
+            }
+        }
     }
 }
