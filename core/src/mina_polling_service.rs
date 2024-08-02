@@ -73,9 +73,9 @@ pub async fn query_and_serialize(
     let candidate_proof = serialize_state_proof(&candidate_proof);
 
     let mut pub_input = candidate_hash;
+    pub_input.extend(tip_hash);
     pub_input.extend((candidate_state.len() as u32).to_be_bytes());
     pub_input.extend(candidate_state);
-    pub_input.extend(tip_hash);
     pub_input.extend((tip_state.len() as u32).to_be_bytes());
     pub_input.extend(tip_state);
 
