@@ -11,23 +11,23 @@ contract MinaBridge {
     /// @notice The state hash of the last verified state as a Fp.
     bytes32 tipStateHash = 0;
 
-    /// @notice The state hash of the genesis state as a Fp.
-    uint256 constant genesisStateHash =
-        23979920091195673795386525806121605315652663595695491169052082412294004666370;
+    /// @notice The state hash of the transition frontier's root.
+    bytes32 rootStateHash;
 
     /// @notice Reference to the AlignedLayerServiceManager contract.
     AlignedLayerServiceManager aligned;
 
-    constructor(address alignedServiceAddr) {
-        aligned = AlignedLayerServiceManager(alignedServiceAddr);
+    constructor(address _alignedServiceAddr, bytes32 _rootStateHash) {
+        aligned = AlignedLayerServiceManager(_alignedServiceAddr);
+        rootStateHash = _rootStateHash;
     }
 
-    /// @notice Returns the last verified state hash, or the genesis state hash if none.
+    /// @notice Returns the last verified state hash, or the root state hash if none.
     function getTipStateHash() external view returns (bytes32) {
         if (tipStateHash != 0) {
             return tipStateHash;
         } else {
-            return bytes32(genesisStateHash);
+            return rootStateHash;
         }
     }
 

@@ -1,8 +1,13 @@
-use std::str::FromStr;
 use std::sync::Arc;
+use std::{path::PathBuf, str::FromStr};
 
+use abi::{Token, Tokenize};
 use aligned_sdk::core::types::{AlignedVerificationData, Chain, VerificationDataCommitment};
-use ethers::{abi::AbiEncode, prelude::*};
+use ethers::{
+    abi::AbiEncode,
+    prelude::*,
+    solc::{Artifact, Project, ProjectPathsConfig},
+};
 use k256::ecdsa::SigningKey;
 use kimchi::o1_utils::FieldHelpers;
 use log::{debug, error, info};
@@ -16,6 +21,20 @@ type MinaBridgeEthereum =
     MinaBridgeEthereumContract<SignerMiddleware<Provider<Http>, Wallet<SigningKey>>>;
 
 type MinaBridgeEthereumCallOnly = MinaBridgeEthereumContract<Provider<Http>>;
+
+pub struct MinaBridgeConstructorArgs {
+    aligned_service_addr: Address,
+    root_state_hash: Vec<u8>,
+}
+
+impl Tokenize for MinaBridgeConstructorArgs {
+    fn into_tokens(self) -> Vec<abi::Token> {
+        vec![
+            Token::Address(self.aligned_service_addr),
+            Token::FixedBytes(self.root_state_hash),
+        ]
+    }
+}
 
 pub async fn update(
     verification_data: AlignedVerificationData,
@@ -123,6 +142,55 @@ pub async fn get_tip_state_hash(chain: &Chain, eth_rpc_url: &str) -> Result<Fp, 
         .map_err(|err| err.to_string())?;
 
     Fp::from_bytes(&state_hash).map_err(|_| "Failed to convert hash to Fp".to_string())
+}
+
+pub async fn deploy_mina_bridge_contract(
+    chain: &Chain,
+    eth_rpc_url: &str,
+    wallet: Wallet<SigningKey>,
+    constructor_args: MinaBridgeConstructorArgs,
+) -> Result<MinaBridgeEthereum, String> {
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .ok_or("Could not get project root path")?
+        .join("contract");
+    let paths = ProjectPathsConfig::builder()
+        .root(&root)
+        .sources(&root)
+        .build()
+        .unwrap();
+    let project = Project::builder()
+        .paths(paths)
+        .ephemeral()
+        .no_artifacts()
+        .build()
+        .unwrap();
+    let output = project.compile().unwrap();
+    let contract = output
+        .find_first("MinaBridge")
+        .ok_or("Could not get MinaBridge contract")?
+        .clone();
+    let (abi, bytecode, _) = contract.into_parts();
+
+    let eth_rpc_provider =
+        Provider::<Http>::try_from(eth_rpc_url).map_err(|err| err.to_string())?;
+    let chain_id = match chain {
+        Chain::Devnet => ANVIL_CHAIN_ID,
+        _ => unimplemented!(),
+    };
+    let signer = SignerMiddleware::new(eth_rpc_provider, wallet.with_chain_id(chain_id));
+    let client = Arc::new(signer);
+
+    let factory = ContractFactory::new(abi.unwrap(), bytecode.unwrap(), client.clone());
+
+    let contract = factory
+        .deploy(constructor_args)
+        .map_err(|err| err.to_string())?
+        .send()
+        .await
+        .map_err(|err| err.to_string())?;
+
+    Ok(MinaBridgeEthereum::new(contract.address(), client))
 }
 
 fn mina_bridge_contract(

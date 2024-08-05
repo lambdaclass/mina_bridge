@@ -1435,6 +1435,7 @@ source = "git+https://github.com/yetanotherco/ethers-rs.git?tag=v2.0.15-fix-reco
 dependencies = [
  "chrono",
  "ethers-core",
+ "ethers-solc",
  "reqwest",
  "semver 1.0.23",
  "serde",
