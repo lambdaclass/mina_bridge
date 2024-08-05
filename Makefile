@@ -25,3 +25,6 @@ deploy_contract:
 	--rpc-url ${ETH_RPC_URL} \
 	--private-key ${ETH_PRIVATE_KEY} \
 	contract/script/MinaBridge.s.sol:MinaBridgeDeployer
+
+verify_account_inclusion:
+	@cargo run --manifest-path account_inclusion/Cargo.toml --release -- ${PUBLIC_KEY}

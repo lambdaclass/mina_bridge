@@ -13,7 +13,7 @@ This project introduces the verification of [Mina Protocol](https://minaprotocol
 This project is being redesigned to use [Aligned Layer](https://github.com/yetanotherco/aligned_layer) to verify Mina Proofs of State on Ethereum.
 
 ## Usage
-
+### Bridge
 1. [Setup Aligned Devnet locally](https://github.com/yetanotherco/aligned_layer/blob/main/docs/guides/3_setup_aligned.md#booting-devnet-with-default-configs)
 1. Setup the `core/.env` file of the bridge's core program. A template is available in `core/.env.template`.
 1. In the root folder, deploy the bridge's contract with:
@@ -26,7 +26,14 @@ This project is being redesigned to use [Aligned Layer](https://github.com/yetan
     ```sh
     make
     ```
+### Account inclusion local verifier
+After verifying a Mina state, you can locally verify the inclusion of some Mina account given its public key in the bridged state.
 
+1. Run
+   
+   ```sh
+   make verify_account_inclusion PUBLIC_KEY=<key>
+   ```
 # Specification
 
 ## Core
