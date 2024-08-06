@@ -1,8 +1,0 @@
-query CandidateQuery {
-    bestChain(maxLength: 1) {
-        stateHashField
-        protocolStateProof {
-            base64
-        }
-    }
-}

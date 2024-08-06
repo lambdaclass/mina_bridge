@@ -27,10 +27,10 @@ struct StateQuery;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/graphql/mina_schema.json",
-    query_path = "src/graphql/candidate_query.graphql"
+    query_path = "src/graphql/best_chain_query.graphql"
 )]
-/// A query for the latest protocol state hash field and proof.
-struct CandidateQuery;
+/// A query for the state hashes and proofs of the transition frontier.
+struct BestChainQuery;
 
 pub async fn query_and_serialize(
     rpc_url: &str,
@@ -39,7 +39,7 @@ pub async fn query_and_serialize(
     eth_rpc_url: &str,
 ) -> Result<VerificationData, String> {
     let tip_hash = get_tip_state_hash(chain, eth_rpc_url).await?.to_decimal();
-    let (candidate_hash, candidate_proof) = query_candidate(rpc_url, candidate_query::Variables)?;
+    let (candidate_hash, candidate_proof) = query_candidate(rpc_url)?;
 
     if tip_hash == candidate_hash {
         return Err("Candidate state is already verified".to_string());
@@ -108,28 +108,42 @@ pub fn query_state(
 
 pub fn query_candidate(
     rpc_url: &str,
-    variables: candidate_query::Variables,
 ) -> Result<(StateHashAsDecimal, PrecomputedBlockProof), String> {
     debug!("Querying for candidate state");
     let client = Client::new();
-    let response = post_graphql_blocking::<CandidateQuery, _>(&client, rpc_url, variables)
+    let variables = best_chain_query::Variables { max_length: 1 };
+    let response = post_graphql_blocking::<BestChainQuery, _>(&client, rpc_url, variables)
         .map_err(|err| err.to_string())?
         .data
         .ok_or("Missing candidate query response data".to_string())?;
-    let best_chains = response
+    let best_chain = response
         .best_chain
         .ok_or("Missing best chain field".to_string())?;
-    let best_chain = best_chains
-        .first()
-        .ok_or("Missing best chain".to_string())?;
-    let state_hash_field = best_chain.state_hash_field.clone();
-    let protocol_state_proof = best_chain
+    let tip = best_chain.first().ok_or("Missing best chain".to_string())?;
+    let state_hash_field = tip.state_hash_field.clone();
+    let protocol_state_proof = tip
         .protocol_state_proof
         .base64
         .clone()
         .ok_or("No protocol state proof".to_string())?;
 
     Ok((state_hash_field, protocol_state_proof))
+}
+
+pub fn query_root(rpc_url: &str, height: usize) -> Result<String, String> {
+    let client = Client::new();
+    let variables = best_chain_query::Variables {
+        max_length: height as i64,
+    };
+    let response = post_graphql_blocking::<BestChainQuery, _>(&client, rpc_url, variables)
+        .map_err(|err| err.to_string())?
+        .data
+        .ok_or("Missing root hash query response data".to_string())?;
+    let best_chain = response
+        .best_chain
+        .ok_or("Missing best chain field".to_string())?;
+    let root = best_chain.first().ok_or("Missing best chain".to_string())?;
+    Ok(root.state_hash.to_string())
 }
 
 fn serialize_state_hash(hash: &StateHashAsDecimal) -> Result<Vec<u8>, String> {
