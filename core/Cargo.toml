@@ -32,7 +32,10 @@ dotenv = "0.15.0"
 env_logger = "0.11.5"
 log = "0.4.22"
 base64 = "0.22.1"
-graphql_client = { version = "0.14.0", features = ["reqwest-blocking"] }
+graphql_client = { version = "0.14.0", features = [
+  "reqwest",
+  "reqwest-blocking",
+] }
 
 [patch.crates-io]
 ark-ff = { git = "https://github.com/openmina/algebra", branch = "openmina" }

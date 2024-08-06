@@ -8,3 +8,16 @@ core = { path = "../core/" }
 tokio = "1.39.1"
 env_logger = "0.11.5"
 log = "0.4.22"
+ethers = { tag = "v2.0.15-fix-reconnections", features = [
+  "ws",
+  "rustls",
+  "solc",
+], git = "https://github.com/yetanotherco/ethers-rs.git" }
+mina-curves = { git = "https://github.com/openmina/proof-systems", branch = "ledger-newtypes-rampup4-vrf" }
+o1-utils = { git = "https://github.com/lambdaclass/proof-systems", branch = "add-verifier-serializations" }
+
+[patch.crates-io]
+ark-ff = { git = "https://github.com/openmina/algebra", branch = "openmina" }
+ark-ec = { git = "https://github.com/openmina/algebra", branch = "openmina" }
+ark-poly = { git = "https://github.com/openmina/algebra", branch = "openmina" }
+ark-serialize = { git = "https://github.com/openmina/algebra", branch = "openmina" }

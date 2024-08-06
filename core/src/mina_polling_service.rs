@@ -2,13 +2,15 @@ use std::str::FromStr as _;
 
 use aligned_sdk::core::types::{Chain, ProvingSystemId, VerificationData};
 use ethers::types::Address;
-use graphql_client::{reqwest::post_graphql_blocking, GraphQLQuery};
+use graphql_client::{
+    reqwest::{post_graphql, post_graphql_blocking},
+    GraphQLQuery,
+};
 use kimchi::{o1_utils::FieldHelpers, turshi::helper::CairoFieldHelpers};
 use log::{debug, info};
 use mina_curves::pasta::Fp;
 use mina_p2p_messages::v2::StateHash;
 use mina_tree::FpExt;
-use reqwest::blocking::Client;
 
 use crate::{smart_contract_utility::get_tip_state_hash, utils::constants::MINA_STATE_HASH_SIZE};
 
@@ -98,7 +100,7 @@ pub fn query_state(
     variables: state_query::Variables,
 ) -> Result<ProtocolState, String> {
     debug!("Querying state {}", variables.state_hash);
-    let client = Client::new();
+    let client = reqwest::blocking::Client::new();
     let response = post_graphql_blocking::<StateQuery, _>(&client, rpc_url, variables)
         .map_err(|err| err.to_string())?
         .data
@@ -110,7 +112,7 @@ pub fn query_candidate(
     rpc_url: &str,
 ) -> Result<(StateHashAsDecimal, PrecomputedBlockProof), String> {
     debug!("Querying for candidate state");
-    let client = Client::new();
+    let client = reqwest::blocking::Client::new();
     let variables = best_chain_query::Variables { max_length: 1 };
     let response = post_graphql_blocking::<BestChainQuery, _>(&client, rpc_url, variables)
         .map_err(|err| err.to_string())?
@@ -130,20 +132,21 @@ pub fn query_candidate(
     Ok((state_hash_field, protocol_state_proof))
 }
 
-pub fn query_root(rpc_url: &str, height: usize) -> Result<String, String> {
-    let client = Client::new();
+pub async fn query_root(rpc_url: &str, length: usize) -> Result<StateHashAsDecimal, String> {
+    let client = reqwest::Client::new();
     let variables = best_chain_query::Variables {
-        max_length: height as i64,
+        max_length: length as i64,
     };
-    let response = post_graphql_blocking::<BestChainQuery, _>(&client, rpc_url, variables)
+    let response = post_graphql::<BestChainQuery, _>(&client, rpc_url, variables)
+        .await
         .map_err(|err| err.to_string())?
         .data
         .ok_or("Missing root hash query response data".to_string())?;
     let best_chain = response
         .best_chain
         .ok_or("Missing best chain field".to_string())?;
-    let root = best_chain.first().ok_or("Missing best chain".to_string())?;
-    Ok(root.state_hash.to_string())
+    let root = best_chain.first().ok_or("No root state")?;
+    Ok(root.state_hash_field.clone())
 }
 
 fn serialize_state_hash(hash: &StateHashAsDecimal) -> Result<Vec<u8>, String> {

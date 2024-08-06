@@ -27,6 +27,18 @@ pub struct MinaBridgeConstructorArgs {
     root_state_hash: Vec<u8>,
 }
 
+impl MinaBridgeConstructorArgs {
+    pub fn new(
+        aligned_service_addr: Address,
+        root_state_hash: Vec<u8>,
+    ) -> MinaBridgeConstructorArgs {
+        MinaBridgeConstructorArgs {
+            aligned_service_addr,
+            root_state_hash,
+        }
+    }
+}
+
 impl Tokenize for MinaBridgeConstructorArgs {
     fn into_tokens(self) -> Vec<abi::Token> {
         vec![
@@ -189,6 +201,11 @@ pub async fn deploy_mina_bridge_contract(
         .send()
         .await
         .map_err(|err| err.to_string())?;
+
+    info!(
+        "Mina Bridge contract successfuly deployed with address {}!",
+        contract.address()
+    );
 
     Ok(MinaBridgeEthereum::new(contract.address(), client))
 }
