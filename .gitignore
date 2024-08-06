@@ -4,3 +4,4 @@ protocol_state.pub
 protocol_state.proof
 aligned_verification_data
 .env
+nonce_*.bin

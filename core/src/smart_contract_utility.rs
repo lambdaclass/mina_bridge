@@ -8,7 +8,9 @@ use kimchi::o1_utils::FieldHelpers;
 use log::{debug, error, info};
 use mina_curves::pasta::Fp;
 
-use crate::utils::constants::{ANVIL_CHAIN_ID, BRIDGE_DEVNET_ETH_ADDR, BRIDGE_HOLESKY_ETH_ADDR};
+use crate::utils::constants::{
+    ANVIL_CHAIN_ID, BRIDGE_DEVNET_ETH_ADDR, BRIDGE_HOLESKY_ETH_ADDR, HOLESKY_CHAIN_ID,
+};
 
 abigen!(MinaBridgeEthereumContract, "abi/MinaBridge.json");
 
@@ -136,10 +138,12 @@ fn mina_bridge_contract(
         Provider::<Http>::try_from(eth_rpc_url).map_err(|err| err.to_string())?;
     let chain_id = match chain {
         Chain::Devnet => ANVIL_CHAIN_ID,
+        Chain::Holesky => HOLESKY_CHAIN_ID,
         _ => unimplemented!(),
     };
     let signer = SignerMiddleware::new(eth_rpc_provider, wallet.with_chain_id(chain_id));
     let client = Arc::new(signer);
+    debug!("contract address: {contract_address}");
     Ok(MinaBridgeEthereum::new(contract_address, client))
 }
 
