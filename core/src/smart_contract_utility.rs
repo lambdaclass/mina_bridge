@@ -22,6 +22,7 @@ type MinaBridgeEthereum =
 type MinaBridgeEthereumCallOnly = MinaBridgeEthereumContract<Provider<Http>>;
 
 sol!(
+    #[allow(clippy::too_many_arguments)]
     #[sol(rpc)]
     MinaBridge,
     "abi/MinaBridge.json"
