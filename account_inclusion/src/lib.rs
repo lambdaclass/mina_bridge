@@ -116,13 +116,7 @@ pub fn query_merkle_root(rpc_url: &str, state_hash: Fp) -> Result<Fp, String> {
             .body(format!(
                 r#"{{
                     "query": "{{
-                        protocolState(encoding: BASE64, stateHash: \"{state_hash}\") {{
-                            leafHash
-                            merklePath {{
-                                left
-                                right
-                            }}
-                        }}
+                        protocolState(encoding: BASE64, stateHash: \"{state_hash}\")
                     }}"
                 }}"#,
             ))
