@@ -20,17 +20,3 @@ jobs:
         with:
             skip_run: true
             directory: account_inclusion
-
-    merkle_path:
-        name: Test Merkle Path parser
-        uses: ./.github/workflows/rust_ci.yaml
-        with:
-            skip_run: true
-            directory: state_utility/merkle_path
-
-    merkle_root_parser:
-        name: Test Merkle Root parser
-        uses: ./.github/workflows/rust_ci.yaml
-        with:
-            skip_run: true
-            directory: state_utility/parser

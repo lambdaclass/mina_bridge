@@ -1,0 +1,3 @@
+query StateQuery($stateHash: String!) {
+    protocolState(encoding: BASE64, stateHash: $stateHash)
+}

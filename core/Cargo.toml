@@ -9,7 +9,7 @@ serde_json = "1.0"
 num-bigint = "0.4.3"
 rmp-serde = "1.1.2"
 hex = "0.4.3"
-reqwest = { version = "0.12", features = ["blocking"] }
+reqwest = { version = "^0.11", features = ["blocking"] }
 kimchi = { git = "https://github.com/openmina/proof-systems", branch = "ledger-newtypes-rampup4-vrf" }
 poly-commitment = { git = "https://github.com/openmina/proof-systems", branch = "ledger-newtypes-rampup4-vrf" }
 mina-curves = { git = "https://github.com/openmina/proof-systems", branch = "ledger-newtypes-rampup4-vrf" }
@@ -30,6 +30,8 @@ tokio = "1.39.1"
 dotenv = "0.15.0"
 env_logger = "0.11.5"
 log = "0.4.22"
+base64 = "0.22.1"
+graphql_client = { version = "0.14.0", features = ["reqwest-blocking"] }
 
 [patch.crates-io]
 ark-ff = { git = "https://github.com/openmina/algebra", branch = "openmina" }
