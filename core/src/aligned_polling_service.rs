@@ -53,7 +53,7 @@ async fn get_nonce(
 
     let nonce_file = &PathBuf::from(format!("nonce_{:?}.bin", address));
 
-    let local_nonce = std::fs::read(&nonce_file).unwrap_or(vec![0u8; 32]);
+    let local_nonce = std::fs::read(nonce_file).unwrap_or(vec![0u8; 32]);
     let local_nonce = U256::from_big_endian(local_nonce.as_slice());
 
     let nonce = if local_nonce > nonce {
@@ -66,7 +66,7 @@ async fn get_nonce(
 
     (nonce + U256::from(1)).to_big_endian(&mut nonce_bytes);
 
-    std::fs::write(&nonce_file, &nonce_bytes)
+    std::fs::write(nonce_file, nonce_bytes)
         .map_err(|err| format!("Error writing to file in path {:?}: {err}", nonce_file))?;
 
     Ok(nonce)
