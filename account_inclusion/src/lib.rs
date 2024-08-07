@@ -263,14 +263,14 @@ mod test {
     #[test]
     fn test_query_merkle_root() {
         let state_hash =
-            StateHash::from_str("3NLgcgE21QesuH8fmuHbDhL1WUm1Au1ymUTQHw3f1wrHa96JYwyF")
+            StateHash::from_str("3NLKUa5vnYGYiGaotLAdPdeJjzbUit3477zmoP9jwzajqJRxnvvA")
                 .unwrap()
                 .to_fp()
                 .unwrap();
         let staged_ledger_hash =
             query_merkle_root("http://5.9.57.89:3085/graphql", state_hash).unwrap();
         let ledger_merkle_root =
-            LedgerHash::from_str("jxBZvRKv9aCVEDn7Dd48aWDruHhVkcW1vmburY4gbxCDVEZzecL")
+            LedgerHash::from_str("jxY1YW31oRSRMbH61ctJt6JN7E3FVY8ncUwxHwLNzSjwZhYVqJg")
                 .unwrap()
                 .to_fp()
                 .unwrap();
