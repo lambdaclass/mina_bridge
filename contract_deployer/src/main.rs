@@ -19,22 +19,12 @@ async fn main() {
     debug!("Reading env. variables");
     let EnvironmentVariables {
         rpc_url,
-        chain,
         eth_rpc_url,
-        keystore_path,
-        private_key,
         ..
     } = EnvironmentVariables::new().unwrap_or_else(|err| {
         error!("{}", err);
         process::exit(1);
     });
-
-    debug!("Getting user wallet");
-    let wallet = get_wallet(&chain, keystore_path.as_deref(), private_key.as_deref())
-        .unwrap_or_else(|err| {
-            error!("{}", err);
-            process::exit(1);
-        });
 
     let root_hash = query_root(&rpc_url, BRIDGE_TRANSITION_FRONTIER_LEN)
         .await
@@ -45,22 +35,15 @@ async fn main() {
             process::exit(1);
         });
 
-    let address = Address::from_str(BRIDGE_DEVNET_ETH_ADDR)
-        .map_err(|err| err.to_string())
+    let contract_constructor_args =
+        MinaBridgeConstructorArgs::new(BRIDGE_DEVNET_ETH_ADDR, root_hash).unwrap_or_else(|err| {
+            error!("{}", err);
+            process::exit(1);
+        });
+    deploy_mina_bridge_contract(&eth_rpc_url, contract_constructor_args)
+        .await
         .unwrap_or_else(|err| {
             error!("{}", err);
             process::exit(1);
         });
-
-    deploy_mina_bridge_contract(
-        &chain,
-        &eth_rpc_url,
-        wallet,
-        MinaBridgeConstructorArgs::new(address, root_hash),
-    )
-    .await
-    .unwrap_or_else(|err| {
-        error!("{}", err);
-        process::exit(1);
-    });
 }

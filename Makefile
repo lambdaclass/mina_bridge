@@ -8,14 +8,7 @@ gen_contract_abi:
 	cp contract/out/MinaBridge.sol/MinaBridge.json core/abi/MinaBridge.json
 
 deploy_contract_anvil:
-	forge script \
-	--non-interactive \
-	--root contract/ \
-	--broadcast \
-	--rpc-url http://localhost:8545 \
-	--private-key 0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6 \
-	contract/script/MinaBridge.s.sol:MinaBridgeDeployer
-# deploy_contract_anvil uses Anvil wallet 9, same as Aligned for deploying its contracts.
+	@cargo run --manifest-path contract_deployer/Cargo.toml --release
 
 verify_account_inclusion:
 	@cargo run --manifest-path account_inclusion/Cargo.toml --release -- ${PUBLIC_KEY}
