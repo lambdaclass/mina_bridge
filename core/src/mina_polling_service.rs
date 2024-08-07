@@ -186,7 +186,7 @@ mod tests {
     use super::query_and_serialize;
 
     #[tokio::test]
-    async fn serialize_and_deserialize() {
+    async fn test_query_and_deserialize() {
         let result = query_and_serialize(
             "http://5.9.57.89:3085/graphql",
             ANVIL_PROOF_GENERATOR_ADDR,
@@ -197,7 +197,7 @@ mod tests {
 
         if let Err(err) = result {
             if err != "Candidate state is already verified" {
-                panic!();
+                panic!("{}", err);
             }
         }
     }
