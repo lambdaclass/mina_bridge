@@ -24,6 +24,7 @@ aligned-sdk = { git = "https://github.com/lambdaclass/aligned_layer.git", branch
 ethers = { tag = "v2.0.15-fix-reconnections", features = [
   "ws",
   "rustls",
+  "solc",
 ], git = "https://github.com/yetanotherco/ethers-rs.git" }
 rpassword = "7.3.1"
 tokio = "1.39.1"
@@ -31,7 +32,11 @@ dotenv = "0.15.0"
 env_logger = "0.11.5"
 log = "0.4.22"
 base64 = "0.22.1"
-graphql_client = { version = "0.14.0", features = ["reqwest-blocking"] }
+graphql_client = { version = "0.14.0", features = [
+  "reqwest",
+  "reqwest-blocking",
+] }
+alloy = { version = "0.2.1", features = ["full"] }
 
 [patch.crates-io]
 ark-ff = { git = "https://github.com/openmina/algebra", branch = "openmina" }
