@@ -263,7 +263,7 @@ mod test {
     #[test]
     fn test_query_merkle_root() {
         let state_hash =
-            StateHash::from_str("3NKE3oYnEwSFcuEXWCz1abNLeTgY8BGEvPs1KWPHyj81jmgdojsT")
+            StateHash::from_str("3NLgcgE21QesuH8fmuHbDhL1WUm1Au1ymUTQHw3f1wrHa96JYwyF")
                 .unwrap()
                 .to_fp()
                 .unwrap();
