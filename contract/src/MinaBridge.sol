@@ -9,7 +9,7 @@ error TipStateIsWrong();
 /// @title Mina to Ethereum Bridge's smart contract.
 contract MinaBridge {
     /// @notice The state hash of the last verified state as a Fp.
-    bytes32 tipStateHash = 0;
+    bytes32 tipStateHash;
 
     /// @notice The state hash of the transition frontier's root.
     bytes32 rootStateHash;

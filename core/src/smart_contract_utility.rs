@@ -1,23 +1,16 @@
+use std::str::FromStr;
 use std::sync::Arc;
-use std::{path::PathBuf, str::FromStr};
 
-use abi::{Token, Tokenize};
 use aligned_sdk::core::types::{AlignedVerificationData, Chain, VerificationDataCommitment};
 use alloy::network::EthereumWallet;
-use alloy::primitives::wrap_fixed_bytes;
 use alloy::providers::ProviderBuilder;
 use alloy::signers::local::PrivateKeySigner;
 use alloy::sol;
-use ethers::{
-    abi::AbiEncode,
-    prelude::*,
-    solc::{Artifact, Project, ProjectPathsConfig},
-};
+use ethers::{abi::AbiEncode, prelude::*};
 use k256::ecdsa::SigningKey;
 use kimchi::o1_utils::FieldHelpers;
 use log::{debug, error, info};
 use mina_curves::pasta::Fp;
-use MinaBridge::MinaBridgeInstance;
 
 use crate::utils::constants::{ANVIL_CHAIN_ID, ANVIL_PRIVATE_KEY, BRIDGE_DEVNET_ETH_ADDR};
 
@@ -191,7 +184,7 @@ pub async fn deploy_mina_bridge_contract(
     let address = contract.address();
 
     info!(
-        "Mina Bridge contract successfuly deployed with address {}!",
+        "Mina Bridge contract successfuly deployed with address {}",
         address
     );
 
