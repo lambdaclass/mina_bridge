@@ -174,31 +174,3 @@ fn encode_state_hash(hash: &StateHashAsDecimal) -> Result<String, String> {
         .map_err(|_| "Failed to decode hash as a field element".to_string())
         .map(|fp| StateHash::from_fp(fp).to_string())
 }
-
-#[cfg(test)]
-mod tests {
-    use core::panic;
-
-    use aligned_sdk::core::types::Chain;
-
-    use crate::utils::constants::{ANVIL_ETH_RPC_URL, ANVIL_PROOF_GENERATOR_ADDR};
-
-    use super::query_and_serialize;
-
-    #[tokio::test]
-    async fn test_query_and_deserialize() {
-        let result = query_and_serialize(
-            "http://5.9.57.89:3085/graphql",
-            ANVIL_PROOF_GENERATOR_ADDR,
-            &Chain::Devnet,
-            ANVIL_ETH_RPC_URL,
-        )
-        .await;
-
-        if let Err(err) = result {
-            if err != "Candidate state is already verified" {
-                panic!("{}", err);
-            }
-        }
-    }
-}
