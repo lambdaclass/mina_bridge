@@ -1,10 +1,13 @@
 [workspace]
-members = [
-    "lib",
-    "program",
-    "script",
-]
+members = ["lib", "program", "script"]
 resolver = "2"
 
 [workspace.dependencies]
 alloy-sol-types = "0.7.7"
+
+[patch.crates-io]
+ark-ff = { git = "https://github.com/openmina/algebra", branch = "openmina" }
+ark-ec = { git = "https://github.com/openmina/algebra", branch = "openmina" }
+ark-poly = { git = "https://github.com/openmina/algebra", branch = "openmina" }
+ark-serialize = { git = "https://github.com/openmina/algebra", branch = "openmina" }
+

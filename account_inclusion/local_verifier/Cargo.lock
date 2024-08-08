@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "account-inclusion"
+name = "account-inclusion-verifier"
 version = "0.1.0"
 dependencies = [
  "base64 0.22.1",
