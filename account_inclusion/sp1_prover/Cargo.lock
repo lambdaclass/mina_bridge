@@ -2274,18 +2274,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "28dea519a9695b9977216879a3ebfddf92f1c08c05d984f8996aecd6ecdc811d"
 
 [[package]]
-name = "fibonacci-lib"
-version = "0.1.0"
-dependencies = [
- "alloy-sol-types",
-]
-
-[[package]]
 name = "fibonacci-program"
 version = "0.1.0"
 dependencies = [
+ "account-inclusion-verifier",
  "alloy-sol-types",
- "fibonacci-lib",
  "sp1-zkvm",
 ]
 
@@ -2296,12 +2289,13 @@ dependencies = [
  "account-inclusion-verifier",
  "alloy-sol-types",
  "clap",
- "fibonacci-lib",
+ "core",
  "hex",
  "serde",
  "serde_json",
  "sp1-helper",
  "sp1-sdk",
+ "tokio",
  "tracing",
 ]
 

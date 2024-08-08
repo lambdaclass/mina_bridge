@@ -1,13 +1,13 @@
 [workspace]
-members = ["lib", "program", "script"]
+members = ["program", "script"]
 resolver = "2"
 
 [workspace.dependencies]
 alloy-sol-types = "0.7.7"
+account-inclusion-verifier = { version = "0.1.0", path = "../local_verifier/" }
 
 [patch.crates-io]
 ark-ff = { git = "https://github.com/openmina/algebra", branch = "openmina" }
 ark-ec = { git = "https://github.com/openmina/algebra", branch = "openmina" }
 ark-poly = { git = "https://github.com/openmina/algebra", branch = "openmina" }
 ark-serialize = { git = "https://github.com/openmina/algebra", branch = "openmina" }
-

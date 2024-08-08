@@ -8,23 +8,18 @@
 #![no_main]
 sp1_zkvm::entrypoint!(main);
 
-use alloy_sol_types::SolType;
-use fibonacci_lib::{fibonacci, PublicValuesStruct};
+use account_inclusion_verifier::verify_merkle_proof;
 
 pub fn main() {
-    // Read an input to the program.
+    // let leaf_hash = Fp::from_bytes(sp1_zkvm::io::read());
+    // let merkle_path = todo! custom serialization of bytes
+    // let merkle_root = Fp::from_bytes(sp1_zkvm::io::read());
     //
-    // Behind the scenes, this compiles down to a custom system call which handles reading inputs
-    // from the prover.
-    let n = sp1_zkvm::io::read::<u32>();
-
-    // Compute the n'th fibonacci number using a function from the workspace lib crate.
-    let (a, b) = fibonacci(n);
-
-    // Encode the public values of the program.
-    let bytes = PublicValuesStruct::abi_encode(&PublicValuesStruct { n, a, b });
-
-    // Commit to the public values of the program. The final proof will have a commitment to all the
-    // bytes that were committed to.
-    sp1_zkvm::io::commit_slice(&bytes);
+    // sp1_zkvm::io::commit(&leaf_hash);
+    // sp1_zkvm::io::commit(&merkle_path);
+    // sp1_zkvm::io::commit(&merkle_root);
+    //
+    // let result = verify_merkle_proof(leaf_hash, merkle_path, merkle_root);
+    //
+    // sp1_zkvm::io::commit(&result);
 }
