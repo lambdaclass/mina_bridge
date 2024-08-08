@@ -16,8 +16,4 @@ pgo-data.profdata
 **/proof-with-io.json
 
 # Env
-<<<<<<< HEAD
 .env
-=======
-.env
->>>>>>> aligned
