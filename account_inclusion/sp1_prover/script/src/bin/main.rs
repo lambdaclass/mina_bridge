@@ -1,7 +1,6 @@
 use core::{smart_contract_utility::get_tip_state_hash, utils::env::EnvironmentVariables};
 
 use account_inclusion_verifier::{query_leaf_and_merkle_path, query_merkle_root};
-use fibonacci_lib::PublicValuesStruct;
 use o1_utils::FieldHelpers;
 use sp1_sdk::{ProverClient, SP1Stdin};
 
@@ -37,6 +36,7 @@ async fn main() {
 
     stdin.write_vec(leaf_hash.to_bytes());
     stdin.write_vec(merkle_root.to_bytes());
+    stdin.write(&merkle_path.len());
     for merkle_node in merkle_path.into_iter() {
         stdin.write_vec(merkle_node.to_bytes());
     }

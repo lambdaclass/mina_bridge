@@ -2279,6 +2279,7 @@ version = "0.1.0"
 dependencies = [
  "account-inclusion-verifier",
  "alloy-sol-types",
+ "kimchi",
  "sp1-zkvm",
 ]
 
@@ -2291,6 +2292,7 @@ dependencies = [
  "clap",
  "core",
  "hex",
+ "o1-utils 0.1.0 (git+https://github.com/lambdaclass/proof-systems?branch=add-verifier-serializations)",
  "serde",
  "serde_json",
  "sp1-helper",
