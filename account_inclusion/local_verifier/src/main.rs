@@ -1,4 +1,6 @@
-use account_inclusion::{query_leaf_and_merkle_path, query_merkle_root, verify_merkle_proof};
+use account_inclusion_verifier::{
+    query_leaf_and_merkle_path, query_merkle_root, verify_merkle_proof,
+};
 use core::{smart_contract_utility::get_tip_state_hash, utils::env::EnvironmentVariables};
 use kimchi::turshi::helper::CairoFieldHelpers;
 use log::{debug, error, info};

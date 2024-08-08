@@ -1,15 +1,49 @@
 use std::{fmt::Write, str::FromStr};
 
 use base64::{prelude::BASE64_STANDARD, Engine};
-use kimchi::mina_curves::pasta::Fp;
+use kimchi::{mina_curves::pasta::Fp, o1_utils::FieldHelpers};
 use log::debug;
 use mina_p2p_messages::{
     binprot::BinProtRead,
     v2::{hash_with_kimchi, MinaStateProtocolStateValueStableV2, StateHash},
 };
-use mina_tree::MerklePath;
 use reqwest::header::CONTENT_TYPE;
 use serde::{Deserialize, Serialize};
+
+#[derive(PartialEq, Eq)]
+pub enum MerkleNode {
+    Left(Fp),
+    Right(Fp),
+}
+
+impl MerkleNode {
+    pub fn hash(&self) -> &Fp {
+        match self {
+            MerkleNode::Left(h) => h,
+            MerkleNode::Right(h) => h,
+        }
+    }
+
+    pub fn to_bytes(&self) -> Vec<u8> {
+        match self {
+            MerkleNode::Left(h) => [h.to_bytes(), vec![0]],
+            MerkleNode::Right(h) => [h.to_bytes(), vec![1]],
+        }
+        .concat()
+    }
+
+    pub fn from_bytes(mut bytes: Vec<u8>) -> Result<Self, String> {
+        let left_right_flag = bytes
+            .pop()
+            .ok_or("Missing bytes from serialized merkle node".to_string())?;
+        let hash = Fp::from_bytes(&bytes).map_err(|err| err.to_string())?;
+        match left_right_flag {
+            0 => Ok(MerkleNode::Left(hash)),
+            1 => Ok(MerkleNode::Right(hash)),
+            _ => Err("Invalid left-right flag of serialized merkle node".to_string()),
+        }
+    }
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -51,7 +85,7 @@ pub struct DaemonStatus {
 pub fn query_leaf_and_merkle_path(
     rpc_url: &str,
     public_key: &str,
-) -> Result<(Fp, Vec<MerklePath>), String> {
+) -> Result<(Fp, Vec<MerkleNode>), String> {
     // TODO(xqft): we can't trust the Mina node to provide us
     // the correct leaf hash, we should add a check or directly
     // hash the account information to get the leaf.
@@ -91,14 +125,14 @@ pub fn query_leaf_and_merkle_path(
     let merkle_path = account
         .merkle_path
         .into_iter()
-        .map(|node| -> Result<MerklePath, ()> {
+        .map(|node| -> Result<MerkleNode, ()> {
             match (node.left, node.right) {
-                (Some(fp_str), None) => Ok(MerklePath::Left(Fp::from_str(&fp_str)?)),
-                (None, Some(fp_str)) => Ok(MerklePath::Right(Fp::from_str(&fp_str)?)),
+                (Some(fp_str), None) => Ok(MerkleNode::Left(Fp::from_str(&fp_str)?)),
+                (None, Some(fp_str)) => Ok(MerkleNode::Right(Fp::from_str(&fp_str)?)),
                 _ => unreachable!(),
             }
         })
-        .collect::<Result<Vec<MerklePath>, ()>>()
+        .collect::<Result<Vec<MerkleNode>, ()>>()
         .map_err(|_| "Error deserializing merkle path nodes".to_string())?;
 
     Ok((leaf_hash, merkle_path))
@@ -151,7 +185,7 @@ pub fn query_merkle_root(rpc_url: &str, state_hash: Fp) -> Result<Fp, String> {
 
 /// Based on OpenMina's implementation
 /// https://github.com/openmina/openmina/blob/d790af59a8bd815893f7773f659351b79ed87648/ledger/src/account/account.rs#L1444
-pub fn verify_merkle_proof(leaf_hash: Fp, merkle_path: Vec<MerklePath>, merkle_root: Fp) -> bool {
+pub fn verify_merkle_proof(leaf_hash: Fp, merkle_path: Vec<MerkleNode>, merkle_root: Fp) -> bool {
     let mut param = String::with_capacity(16);
 
     let calculated_root = merkle_path
@@ -159,8 +193,8 @@ pub fn verify_merkle_proof(leaf_hash: Fp, merkle_path: Vec<MerklePath>, merkle_r
         .enumerate()
         .fold(leaf_hash, |accum, (depth, path)| {
             let hashes = match path {
-                MerklePath::Left(right) => [accum, *right],
-                MerklePath::Right(left) => [*left, accum],
+                MerkleNode::Left(right) => [accum, *right],
+                MerkleNode::Right(left) => [*left, accum],
             };
 
             param.clear();
