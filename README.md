@@ -61,7 +61,7 @@ This data composes what we call a **Mina Proof of State**.
 
 We understand a Mina Proof of State to be composed of:
 
-- **public inputs** (vector of bytes): `[candidate_state_hash, candidate_state_length, candidate_state, tip_state_hash, tip_state_length, tip_state]`. We include the lengths of the states in bytes because these can vary, unlike the hashes which are a fixed 32 bytes.
+- **public inputs** (vector of bytes): `[candidate_state_hash, tip_state_hash, candidate_state_length, candidate_state, tip_state_length, tip_state]`. We include the lengths of the states in bytes because these can vary, unlike the hashes which are a fixed 32 bytes.
 - **proof**: Kimchi proof of the candidate state (specifically a Wrap proof in the context of the Pickles recursive system). We like to call it “Pickles proof” for simplicity.
 
 This is the proof that the Mina verifier in Aligned (also called a Mina operator) expects.
