@@ -48,7 +48,7 @@ A Rust library+binary project that includes the next modules:
 
 This module queries a Mina node (defined by the user via the `MINA_RPC_URL` env. variable) GraphQL DB for the latest state data (called the candidate state) and proof.
 
-It also queries the Bridge’s smart contract for the last verified Mina state hash, called the **Bridge’s tip state** or just tip state (if there’s no tip state in the smart contract then it defaults to the hardcoded genesis hash instead) and queries the state corresponding to that hash to the Mina node.
+It also queries the Bridge’s smart contract for the last verified Mina state hash, called the **Bridge’s tip state** or just tip state and queries the state corresponding to that hash to the Mina node.
 
 Then it serializes:
 - both states (which are an OCaml structure encoded in base64, standard vocabulary) as bytes, representing the underlying UTF-8. (`serialize_protocol_state()`)
@@ -95,6 +95,11 @@ The contract stores the Bridge’s tip state hash and exposes functions to read 
 The Bridge’s contract update function calls the Aligned Service Manager smart contract to check that the Mina Proof of State was verified in Aligned. The parameters that the Aligned Service Manager needs for checking is the complete verification data.
 
 If the Aligned Service Manager call returns true, this means that a Mina Proof of State of some candidate state (whose hash is known by the contract), checked against the Bridge’s tip state (consensus checking), was verified. Then this candidate state is now the tip state, and so its hash is stored in the contract.
+
+The contract is deployed by a `contract_deployer` crate with an initial state that is the eleventh state from the transition frontier’s tip.
+
+The `contract_deployer` asks the Mina node for the eleventh state and deploys the contract using that state as the initial one, assuming it is valid
+
 
 #### Gas cost
 Currently the cost of the “update tip” transaction is in between 100k and 150k gas, a big part of it being the calldata cost of sending both states data in the public inputs of the Mina Proof of State. The cost could be decreased to <100k by modifying the definition of a Mina Proof of State; sending the state data as proof data instead of public inputs. At the current phase of the project this is not a priority so this change wasn’t done yet.
