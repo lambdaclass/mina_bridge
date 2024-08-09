@@ -16,3 +16,6 @@ pub const MINA_STATE_HASH_SIZE: usize = 32;
 
 // Bridge related constants
 pub const BRIDGE_DEVNET_ETH_ADDR: &str = "0x700b6A60ce7EaaEA56F065753d8dcB9653dbAD35";
+
+// Aligned related constants
+pub const ALIGNED_SM_DEVNET_ETH_ADDR: &str = "0x1613beB3B2C4f22Ee086B2b38C1476A3cE7f78E8";

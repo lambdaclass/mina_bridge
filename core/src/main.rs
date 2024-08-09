@@ -20,6 +20,7 @@ async fn main() {
         proof_generator_addr,
         keystore_path,
         private_key,
+        save_proof,
     } = EnvironmentVariables::new().unwrap_or_else(|err| {
         error!("{}", err);
         process::exit(1);
@@ -33,11 +34,35 @@ async fn main() {
         });
 
     debug!("Executing Mina polling service");
-    let mina_proof = mina_polling_service::query_and_serialize(&rpc_url, &proof_generator_addr)
+    let mina_proof = mina_polling_service::query_and_serialize(
+        &rpc_url,
+        &proof_generator_addr,
+        &chain,
+        &eth_rpc_url,
+    )
+    .await
+    .unwrap_or_else(|err| {
+        error!("{}", err);
+        process::exit(1);
+    });
+
+    if save_proof {
+        std::fs::write(
+            "./protocol_state.pub",
+            mina_proof.pub_input.as_ref().unwrap_or_else(|| {
+                error!("Tried to save public inputs to file but they're missing");
+                process::exit(1);
+            }),
+        )
         .unwrap_or_else(|err| {
             error!("{}", err);
             process::exit(1);
         });
+        std::fs::write("./protocol_state.proof", &mina_proof.proof).unwrap_or_else(|err| {
+            error!("{}", err);
+            process::exit(1);
+        });
+    }
 
     debug!("Executing Aligned polling service");
     let verification_data = aligned_polling_service::submit(
