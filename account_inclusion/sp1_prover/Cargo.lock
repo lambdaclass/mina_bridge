@@ -13,6 +13,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "account-inclusion"
+version = "0.1.0"
+dependencies = [
+ "kimchi",
+]
+
+[[package]]
 name = "account-inclusion-verifier"
 version = "0.1.0"
 dependencies = [
@@ -2277,7 +2284,7 @@ checksum = "28dea519a9695b9977216879a3ebfddf92f1c08c05d984f8996aecd6ecdc811d"
 name = "fibonacci-program"
 version = "0.1.0"
 dependencies = [
- "account-inclusion-verifier",
+ "account-inclusion",
  "alloy-sol-types",
  "kimchi",
  "sp1-zkvm",

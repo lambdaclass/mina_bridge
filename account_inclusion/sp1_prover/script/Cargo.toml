@@ -17,7 +17,7 @@ name = "vkey"
 path = "src/bin/vkey.rs"
 
 [dependencies]
-sp1-sdk = "1.1.0"
+sp1-sdk = "1.0.1"
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 clap = { version = "4.0", features = ["derive", "env"] }
@@ -30,4 +30,4 @@ tokio = "1.39.1"
 o1-utils = { git = "https://github.com/lambdaclass/proof-systems", branch = "add-verifier-serializations" }
 
 [build-dependencies]
-sp1-helper = "1.1.0"
+sp1-helper = "1.0.1"

@@ -23,6 +23,7 @@ async fn main() {
     let public_key = args.get(1).unwrap();
 
     let state_hash = get_tip_state_hash(&chain, &eth_rpc_url).await.unwrap();
+    println!("state hash: {}", state_hash);
 
     let (leaf_hash, merkle_path) = query_leaf_and_merkle_path(&rpc_url, public_key).unwrap();
 

@@ -5,6 +5,6 @@ edition = "2021"
 
 [dependencies]
 alloy-sol-types = { workspace = true }
-sp1-zkvm = "1.1.0"
-account-inclusion-verifier = { workspace = true }
+sp1-zkvm = "1.0.1"
 kimchi = { git = "https://github.com/openmina/proof-systems", branch = "ledger-newtypes-rampup4-vrf" }
+account-inclusion = { path = "../lib" }

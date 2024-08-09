@@ -1,7 +1,7 @@
 #![no_main]
 sp1_zkvm::entrypoint!(main);
 
-use account_inclusion_verifier::{verify_merkle_proof, MerkleNode};
+use account_inclusion::{verify_merkle_proof, MerkleNode};
 use kimchi::{mina_curves::pasta::Fp, o1_utils::FieldHelpers};
 
 pub fn main() {
