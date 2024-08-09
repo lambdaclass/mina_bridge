@@ -260,6 +260,10 @@ mod test {
         query_ledgers_merkle_root("http://5.9.57.89:3085/graphql").unwrap();
     }
 
+    // skipping because we can't hardcode a state hash as it's only temporarily present
+    // in the transition frontier of a node. This queries are going to be replaced with the
+    // ones on the mina polling service anyway.
+    #[ignore]
     #[test]
     fn test_query_merkle_root() {
         let state_hash =
