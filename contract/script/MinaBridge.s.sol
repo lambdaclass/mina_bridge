@@ -28,7 +28,9 @@ contract MinaBridgeDeployer is Script {
             revert UndefinedChain();
         }
 
-        new MinaBridge(alignedServiceAddress);
+        // FIXME(xqft): this script may be deprecated, for now we'll
+        // pass 0x0 as the second constructor argument.
+        new MinaBridge(alignedServiceAddress, 0x0);
 
         vm.stopBroadcast();
     }

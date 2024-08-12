@@ -2,6 +2,10 @@ use std::str::FromStr;
 use std::sync::Arc;
 
 use aligned_sdk::core::types::{AlignedVerificationData, Chain, VerificationDataCommitment};
+use alloy::network::EthereumWallet;
+use alloy::providers::ProviderBuilder;
+use alloy::signers::local::PrivateKeySigner;
+use alloy::sol;
 use ethers::{abi::AbiEncode, prelude::*};
 use k256::ecdsa::SigningKey;
 use kimchi::o1_utils::FieldHelpers;
@@ -9,7 +13,8 @@ use log::{debug, error, info};
 use mina_curves::pasta::Fp;
 
 use crate::utils::constants::{
-    ANVIL_CHAIN_ID, BRIDGE_DEVNET_ETH_ADDR, BRIDGE_HOLESKY_ETH_ADDR, HOLESKY_CHAIN_ID,
+    ANVIL_CHAIN_ID, ANVIL_PRIVATE_KEY, BRIDGE_DEVNET_ETH_ADDR, BRIDGE_HOLESKY_ETH_ADDR,
+    HOLESKY_CHAIN_ID,
 };
 
 abigen!(MinaBridgeEthereumContract, "abi/MinaBridge.json");
@@ -18,6 +23,35 @@ type MinaBridgeEthereum =
     MinaBridgeEthereumContract<SignerMiddleware<Provider<Http>, Wallet<SigningKey>>>;
 
 type MinaBridgeEthereumCallOnly = MinaBridgeEthereumContract<Provider<Http>>;
+
+sol!(
+    #[allow(clippy::too_many_arguments)]
+    #[sol(rpc)]
+    MinaBridge,
+    "abi/MinaBridge.json"
+);
+
+pub struct MinaBridgeConstructorArgs {
+    aligned_service_addr: alloy::primitives::Address,
+    root_state_hash: alloy::primitives::FixedBytes<32>,
+}
+
+impl MinaBridgeConstructorArgs {
+    pub fn new(aligned_service_addr: &str, root_state_hash: Vec<u8>) -> Result<Self, String> {
+        let aligned_service_addr =
+            alloy::primitives::Address::parse_checksummed(aligned_service_addr, None)
+                .map_err(|err| err.to_string())?;
+        let root_state_hash = alloy::primitives::FixedBytes(
+            root_state_hash
+                .try_into()
+                .map_err(|_| "Could not convert root state hash into fixed array".to_string())?,
+        );
+        Ok(MinaBridgeConstructorArgs {
+            aligned_service_addr,
+            root_state_hash,
+        })
+    }
+}
 
 pub async fn update(
     verification_data: AlignedVerificationData,
@@ -126,6 +160,40 @@ pub async fn get_tip_state_hash(chain: &Chain, eth_rpc_url: &str) -> Result<Fp, 
         .map_err(|err| err.to_string())?;
 
     Fp::from_bytes(&state_hash).map_err(|_| "Failed to convert hash to Fp".to_string())
+}
+
+pub async fn deploy_mina_bridge_contract(
+    eth_rpc_url: &str,
+    constructor_args: MinaBridgeConstructorArgs,
+) -> Result<alloy::primitives::Address, String> {
+    // TODO(xqft): replace ethers with alloy
+
+    // TODO(xqft): take wallet as parameter
+    let signer: PrivateKeySigner = ANVIL_PRIVATE_KEY
+        .parse()
+        .map_err(|_| "Failed to get Anvil signer".to_string())?;
+    let wallet = EthereumWallet::from(signer);
+
+    let provider = ProviderBuilder::new()
+        .with_recommended_fillers()
+        .wallet(wallet)
+        .on_http(reqwest::Url::parse(eth_rpc_url).map_err(|err| err.to_string())?);
+
+    let MinaBridgeConstructorArgs {
+        aligned_service_addr,
+        root_state_hash,
+    } = constructor_args;
+    let contract = MinaBridge::deploy(&provider, aligned_service_addr, root_state_hash)
+        .await
+        .map_err(|err| err.to_string())?;
+    let address = contract.address();
+
+    info!(
+        "Mina Bridge contract successfuly deployed with address {}",
+        address
+    );
+
+    Ok(*address)
 }
 
 fn mina_bridge_contract(

@@ -1,0 +1,8 @@
+query BestChainQuery($maxLength: Int!) {
+    bestChain(maxLength: $maxLength) {
+        stateHashField
+        protocolStateProof {
+            base64
+        }
+    }
+}
