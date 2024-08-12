@@ -146,6 +146,22 @@ The full code details can be consulted in the GitHub repository link at the [top
 > [!WARNING]
 > At the moment we’re unsure about other considerations or checks for the consensus checking step. This step is under investigation.
 
+We are ignoring the finalization of the state that we verified.
+
+#### Transition frontier
+
+WIP  
+- The **transition frontier** is a chain of the latest `k` blocks of the network. The GraphQL DB of a Mina node only stores these blocks and forgets the previous ones.
+- Currently, `k = 291`
+- In Mina it’s pretty common to have short-lived forks (forks of a few blocks) that get resolved by random selection (weighted by the nodes stake). This means that it’s common to see two nodes produce a block at the same time and the network to resolve the fork after a period of time.
+- Because of this, **the last block of a Mina node may not be an accepted block on the blockchain**.
+- So, a block that has `n` blocks ahead of it has more chances to be a final block (part of the canonical chain) the greater is `n`.
+- A block is **finalized** when there’s `k - 1` blocks ahead of it. Meaning that it’s the first block of the transition frontier, also called the **root block**.
+- The latest block of the transition frontier is called the **tip**.
+
+
+
+
 ### State hash check
 
 We check that both the candidate and tip state hashes are correct by hashing the corresponding state data using OpenMina’s hasher. This way we can be certain that the hashes are valid if the Mina Proof of State was verified in Aligned, which is useful for the Bridge’s smart contract to check that the tip state is indeed the state corresponding to the tip, and for storing the candidate hash if its proof is valid.
