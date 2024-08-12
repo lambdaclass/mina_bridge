@@ -28,6 +28,7 @@ pub fn main() {
         .collect();
 
     let result = verify_merkle_proof(leaf_hash, merkle_path, merkle_root);
+    println!("Result: {result}");
 
     sp1_zkvm::io::commit(&result);
 }

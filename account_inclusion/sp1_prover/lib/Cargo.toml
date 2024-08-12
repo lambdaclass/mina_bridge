@@ -1,0 +1,7 @@
+[package]
+version = "0.1.0"
+name = "account-inclusion"
+edition = "2021"
+
+[dependencies]
+kimchi = { git = "https://github.com/openmina/proof-systems", branch = "ledger-newtypes-rampup4-vrf" }
