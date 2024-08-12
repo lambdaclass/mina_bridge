@@ -150,14 +150,14 @@ We are ignoring the finalization of the state that we verified.
 
 #### Transition frontier
 
-WIP  
-- The **transition frontier** is a chain of the latest `k` blocks of the network. The GraphQL DB of a Mina node only stores these blocks and forgets the previous ones.
-- Currently, `k = 291`
-- In Mina it’s pretty common to have short-lived forks (forks of a few blocks) that get resolved by random selection (weighted by the nodes stake). This means that it’s common to see two nodes produce a block at the same time and the network to resolve the fork after a period of time.
-- Because of this, **the last block of a Mina node may not be an accepted block on the blockchain**.
-- So, a block that has `n` blocks ahead of it has more chances to be a final block (part of the canonical chain) the greater is `n`.
-- A block is **finalized** when there’s `k - 1` blocks ahead of it. Meaning that it’s the first block of the transition frontier, also called the **root block**.
-- The latest block of the transition frontier is called the **tip**.
+The **transition frontier** is a chain of the latest `k` blocks of the network. The GraphQL DB of a Mina node only stores these blocks and forgets the previous ones. Currently, `k = 291`  
+It's common for two nodes to generate a block simultaneously, resulting in a temporary fork in the network. The network will eventually resolve this fork after a period of time.  
+
+We can define that a block is **partially finalized** if it has `n` blocks ahead of it, with `n` being the number defined for 'partial finalization'.
+
+A block is **finalized** when there’s `k - 1` blocks ahead of it. Meaning that it’s the first block of the transition frontier, also called the **root block**.
+
+Definition: The latest block of the transition frontier is called the **tip**.
 
 
 
