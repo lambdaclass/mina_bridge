@@ -1,10 +1,14 @@
 use core::{
     mina_polling_service::query_root,
     smart_contract_utility::{deploy_mina_bridge_contract, MinaBridgeConstructorArgs},
-    utils::{constants::ALIGNED_SM_DEVNET_ETH_ADDR, env::EnvironmentVariables},
+    utils::{
+        constants::{ALIGNED_SM_DEVNET_ETH_ADDR, ALIGNED_SM_HOLESKY_ETH_ADDR, ANVIL_PRIVATE_KEY},
+        env::EnvironmentVariables,
+    },
 };
 use std::{process, str::FromStr};
 
+use aligned_sdk::core::types::Chain;
 use kimchi::turshi::helper::CairoFieldHelpers;
 use log::{debug, error, info};
 use mina_curves::pasta::Fp;
@@ -20,6 +24,8 @@ async fn main() {
     let EnvironmentVariables {
         rpc_url,
         eth_rpc_url,
+        chain,
+        private_key,
         ..
     } = EnvironmentVariables::new().unwrap_or_else(|err| {
         error!("{}", err);
@@ -40,14 +46,20 @@ async fn main() {
             process::exit(1);
         });
 
-    let contract_constructor_args =
-        MinaBridgeConstructorArgs::new(ALIGNED_SM_DEVNET_ETH_ADDR, root_hash).unwrap_or_else(
-            |err| {
-                error!("{}", err);
-                process::exit(1);
-            },
-        );
-    deploy_mina_bridge_contract(&eth_rpc_url, contract_constructor_args)
+    let aligned_sm_addr = match chain {
+        Chain::Devnet => ALIGNED_SM_DEVNET_ETH_ADDR,
+        Chain::Holesky => ALIGNED_SM_HOLESKY_ETH_ADDR,
+        _ => todo!(),
+    };
+
+    let contract_constructor_args = MinaBridgeConstructorArgs::new(aligned_sm_addr, root_hash)
+        .unwrap_or_else(|err| {
+            error!("{}", err);
+            process::exit(1);
+        });
+
+    let private_key = private_key.unwrap_or(ANVIL_PRIVATE_KEY.to_owned());
+    deploy_mina_bridge_contract(&eth_rpc_url, contract_constructor_args, &private_key)
         .await
         .unwrap_or_else(|err| {
             error!("{}", err);

@@ -13,8 +13,7 @@ use log::{debug, error, info};
 use mina_curves::pasta::Fp;
 
 use crate::utils::constants::{
-    ANVIL_CHAIN_ID, ANVIL_PRIVATE_KEY, BRIDGE_DEVNET_ETH_ADDR, BRIDGE_HOLESKY_ETH_ADDR,
-    HOLESKY_CHAIN_ID,
+    ANVIL_CHAIN_ID, BRIDGE_DEVNET_ETH_ADDR, BRIDGE_HOLESKY_ETH_ADDR, HOLESKY_CHAIN_ID,
 };
 
 abigen!(MinaBridgeEthereumContract, "abi/MinaBridge.json");
@@ -143,6 +142,7 @@ pub async fn update(
 pub async fn get_tip_state_hash(chain: &Chain, eth_rpc_url: &str) -> Result<Fp, String> {
     let bridge_eth_addr = Address::from_str(match chain {
         Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
+        Chain::Holesky => BRIDGE_HOLESKY_ETH_ADDR,
         _ => {
             error!("Unimplemented Ethereum contract on selected chain");
             unimplemented!()
@@ -165,11 +165,12 @@ pub async fn get_tip_state_hash(chain: &Chain, eth_rpc_url: &str) -> Result<Fp, 
 pub async fn deploy_mina_bridge_contract(
     eth_rpc_url: &str,
     constructor_args: MinaBridgeConstructorArgs,
+    private_key: &str,
 ) -> Result<alloy::primitives::Address, String> {
     // TODO(xqft): replace ethers with alloy
 
     // TODO(xqft): take wallet as parameter
-    let signer: PrivateKeySigner = ANVIL_PRIVATE_KEY
+    let signer: PrivateKeySigner = private_key
         .parse()
         .map_err(|_| "Failed to get Anvil signer".to_string())?;
     let wallet = EthereumWallet::from(signer);
