@@ -13,4 +13,4 @@ query MerkleQuery($stateHash: String!, $publicKey: String!) {
             }
         }
     }
-}
+    }

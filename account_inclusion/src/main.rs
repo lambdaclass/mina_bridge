@@ -1,7 +1,11 @@
-use account_inclusion::{query_leaf_and_merkle_path, query_merkle_root, verify_merkle_proof};
-use core::{smart_contract_utility::get_tip_state_hash, utils::env::EnvironmentVariables};
+use account_inclusion::verify_merkle_proof;
+use core::{
+    mina_polling_service::query_merkle, smart_contract_utility::get_tip_state_hash,
+    utils::env::EnvironmentVariables,
+};
 use kimchi::turshi::helper::CairoFieldHelpers;
 use log::{debug, error, info};
+use mina_p2p_messages::v2::StateHash;
 use std::process;
 
 #[tokio::main]
@@ -37,19 +41,18 @@ async fn main() {
         state_hash.to_hex_be()
     );
 
-    let (leaf_hash, merkle_path) =
-        query_leaf_and_merkle_path(&rpc_url, public_key).unwrap_or_else(|err| {
-            error!("{}", err);
-            process::exit(1);
-        });
-    debug!("Leaf hash: {}", leaf_hash);
-
-    let merkle_root = query_merkle_root(&rpc_url, state_hash).unwrap_or_else(|err| {
+    let (merkle_root, merkle_leaf, merkle_path) = query_merkle(
+        &rpc_url,
+        &StateHash::from_fp(state_hash).to_string(),
+        public_key,
+    )
+    .await
+    .unwrap_or_else(|err| {
         error!("{}", err);
         process::exit(1);
     });
 
-    let is_account_included = verify_merkle_proof(leaf_hash, merkle_path, merkle_root);
+    let is_account_included = verify_merkle_proof(merkle_leaf, merkle_path, merkle_root);
     if is_account_included {
         info!(
             "Account {} is included in the latest bridged Mina state.",
