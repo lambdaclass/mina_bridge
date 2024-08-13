@@ -96,9 +96,9 @@ The Bridge’s contract update function calls the Aligned Service Manager smart 
 
 If the Aligned Service Manager call returns true, this means that a Mina Proof of State of some candidate state (whose hash is known by the contract), checked against the Bridge’s tip state (consensus checking), was verified. Then this candidate state is now the tip state, and so its hash is stored in the contract.
 
-The contract is deployed by a `contract_deployer` crate with an initial state that is the eleventh state from the transition frontier’s tip.
+The contract is deployed by a `contract_deployer` crate with an initial state that is the eleventh state from the Mina node [transition frontier’s](#transition-frontier) tip.
 
-The `contract_deployer` asks the Mina node for the eleventh state and deploys the contract using that state as the initial one, assuming it is valid
+The `contract_deployer` asks the Mina node for the eleventh state and deploys the contract using that state as the initial one, assuming it is valid.
 
 
 #### Gas cost
@@ -144,9 +144,8 @@ If the candidate wins the comparisons, then verification continues. If not, veri
 The full code details can be consulted in the GitHub repository link at the [top of the section](#aligned's-mina-proof-of-state-verifier). We use OpenMina’s code for hashing the consensus state.
 
 > [!WARNING]
-> At the moment we’re unsure about other considerations or checks for the consensus checking step. This step is under investigation.
+> At the moment we’re unsure about other considerations or checks for the consensus checking step. We are also ignoring the finalization of the state that we verified. This step is under investigation.
 
-We are ignoring the finalization of the state that we verified.
 
 #### Transition frontier
 
@@ -155,9 +154,7 @@ It's common for two nodes to generate a block simultaneously, resulting in a tem
 
 We can define that a block is **partially finalized** if it has `n` blocks ahead of it, with `n` being the number defined for 'partial finalization'.
 
-A block is **finalized** when there’s `k - 1` blocks ahead of it. Meaning that it’s the first block of the transition frontier, also called the **root block**.
-
-Definition: The latest block of the transition frontier is called the **tip**.
+A block is **finalized** when there’s `k - 1` blocks ahead of it. Meaning that it’s the first block of the transition frontier, also called the **root block**. The latest block of the transition frontier is called the **tip**.
 
 
 
