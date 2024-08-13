@@ -17,6 +17,8 @@ use crate::{smart_contract_utility::get_tip_state_hash, utils::constants::MINA_S
 type StateHashAsDecimal = String;
 type PrecomputedBlockProof = String;
 type ProtocolState = String;
+type FieldElem = String;
+type LedgerHash = String;
 
 #[derive(GraphQLQuery)]
 #[graphql(
@@ -33,6 +35,15 @@ struct StateQuery;
 )]
 /// A query for the state hashes and proofs of the transition frontier.
 struct BestChainQuery;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/graphql/mina_schema.json",
+    query_path = "src/graphql/merkle_query.graphql"
+)]
+/// A query for retrieving the merkle root, leaf and path of an account
+/// included in some state.
+struct MerkleQuery;
 
 pub async fn query_and_serialize(
     rpc_url: &str,
