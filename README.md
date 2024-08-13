@@ -141,7 +141,7 @@ return tip;
 
 If the candidate wins the comparisons, then verification continues. If not, verification fails.
 
-The full code details can be consulted in the GitHub repository link at the [top of the section](#aligned's-mina-proof-of-state-verifier). We use OpenMina’s code for hashing the consensus state.
+The full code details can be consulted in the GitHub repository link at the [top of the section](#aligneds-mina-proof-of-state-verifier). We use OpenMina’s code for hashing the consensus state.
 
 > [!WARNING]
 > At the moment we’re unsure about other considerations or checks for the consensus checking step. We are also ignoring the finalization of the state that we verified. This step is under investigation.
@@ -155,9 +155,6 @@ It's common for two nodes to generate a block simultaneously, resulting in a tem
 We can define that a block is **partially finalized** if it has `n` blocks ahead of it, with `n` being the number defined for 'partial finalization'.
 
 A block is **finalized** when there’s `k - 1` blocks ahead of it. Meaning that it’s the first block of the transition frontier, also called the **root block**. The latest block of the transition frontier is called the **tip**.
-
-
-
 
 ### State hash check
 
@@ -187,9 +184,9 @@ Another enhancement in Kimchi involves the incorporation of lookups for performa
 
 In the beginning, Kimchi relies on an interactive protocol, which undergoes a conversion into a non-interactive form through the Fiat-Shamir transform.
 
-### Proof Construction & Verification
+## Proof Construction & Verification
 
-#### Secuence diagram linked to ``proof-systems/kimchi/src/verifier.rs``
+### Secuence diagram linked to ``proof-systems/kimchi/src/verifier.rs``
 
 ![Commitments to secret polynomials](/img/commitments_to_secret_poly.png)
 
