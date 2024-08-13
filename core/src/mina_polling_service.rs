@@ -45,7 +45,7 @@ struct BestChainQuery;
 /// included in some state.
 struct MerkleQuery;
 
-pub async fn query_and_serialize(
+pub async fn get_mina_proof_of_state(
     rpc_url: &str,
     proof_generator_addr: &str,
     chain: &Chain,
