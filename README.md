@@ -13,7 +13,9 @@ This project introduces the verification of [Mina Protocol](https://minaprotocol
 This project is being redesigned to use [Aligned Layer](https://github.com/yetanotherco/aligned_layer) to verify Mina Proofs of State on Ethereum.
 
 ## Usage
+
 ### Bridge
+
 1. [Setup Aligned Devnet locally](https://github.com/yetanotherco/aligned_layer/blob/main/docs/guides/3_setup_aligned.md#booting-devnet-with-default-configs)
 1. Setup the `core/.env` file of the bridge's core program. A template is available in `core/.env.template`.
 1. In the root folder, deploy the bridge's contract with:
@@ -21,19 +23,23 @@ This project is being redesigned to use [Aligned Layer](https://github.com/yetan
     ```sh
     make deploy_contract_anvil
     ```
+
 1. Run the core program:
 
     ```sh
     make
     ```
+
 ### Account inclusion local verifier
+
 After verifying a Mina state, you can locally verify the inclusion of some Mina account given its public key in the bridged state.
 
 1. Run
-   
+
    ```sh
    make verify_account_inclusion PUBLIC_KEY=<key>
    ```
+
 # Specification
 
 ## Core
@@ -51,6 +57,7 @@ This module queries a Mina node (defined by the user via the `MINA_RPC_URL` env.
 It also queries the Bridge’s smart contract for the last verified Mina state hash, called the **Bridge’s tip state** or just tip state and queries the state corresponding to that hash to the Mina node.
 
 Then it serializes:
+
 - both states (which are an OCaml structure encoded in base64, standard vocabulary) as bytes, representing the underlying UTF-8. (`serialize_protocol_state()`)
 - both state hashes (field element) as bytes (arkworks serialization). (`serialize_state_hash_field()`)
 - the candidate state proof (an OCaml structure encoded in base64, URL vocabulary) as bytes, representing the underlying UTF-8. (`serialize_protocol_state_proof()`)
@@ -76,7 +83,6 @@ The Aligned Polling Service waits until the batch that includes the Mina Proof o
 
 Finally the service returns the verification data sent by Aligned after proof submission. This is used for updating the Bridge’s tip state, by sending a transaction to the Bridge’s smart contract.
 
-
 ### Smart Contract Utility
 
 [`mina_bridge repo: core/src/smart_contract_utility.rs`](https://github.com/lambdaclass/mina_bridge/tree/aligned/core/src/smart_contract_utility.rs)
@@ -100,8 +106,8 @@ The contract is deployed by a `contract_deployer` crate with an initial state th
 
 The `contract_deployer` asks the Mina node for the eleventh state and deploys the contract using that state as the initial one, assuming it is valid.
 
-
 #### Gas cost
+
 Currently the cost of the “update tip” transaction is in between 100k and 150k gas, a big part of it being the calldata cost of sending both states data in the public inputs of the Mina Proof of State. The cost could be decreased to <100k by modifying the definition of a Mina Proof of State; sending the state data as proof data instead of public inputs. At the current phase of the project this is not a priority so this change wasn’t done yet.
 
 ## Aligned’s Mina Proof of State verifier
@@ -145,7 +151,6 @@ The full code details can be consulted in the GitHub repository link at the [top
 
 > [!WARNING]
 > At the moment we’re unsure about other considerations or checks for the consensus checking step. We are also ignoring the finalization of the state that we verified. This step is under investigation.
-
 
 #### Transition frontier
 
