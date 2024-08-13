@@ -13,7 +13,9 @@ This project introduces the verification of [Mina Protocol](https://minaprotocol
 This project is being redesigned to use [Aligned Layer](https://github.com/yetanotherco/aligned_layer) to verify Mina Proofs of State on Ethereum.
 
 ## Usage
+
 ### Bridge
+
 1. [Setup Aligned Devnet locally](https://github.com/yetanotherco/aligned_layer/blob/main/docs/guides/3_setup_aligned.md#booting-devnet-with-default-configs)
 1. Setup the `core/.env` file of the bridge's core program. A template is available in `core/.env.template`.
 1. In the root folder, deploy the bridge's contract with:
@@ -21,19 +23,23 @@ This project is being redesigned to use [Aligned Layer](https://github.com/yetan
     ```sh
     make deploy_contract_anvil
     ```
+
 1. Run the core program:
 
     ```sh
     make
     ```
+
 ### Account inclusion local verifier
+
 After verifying a Mina state, you can locally verify the inclusion of some Mina account given its public key in the bridged state.
 
 1. Run
-   
+
    ```sh
    make verify_account_inclusion PUBLIC_KEY=<key>
    ```
+
 # Specification
 
 ## Core
@@ -48,9 +54,10 @@ A Rust library+binary project that includes the next modules:
 
 This module queries a Mina node (defined by the user via the `MINA_RPC_URL` env. variable) GraphQL DB for the latest state data (called the candidate state) and proof.
 
-It also queries the Bridge’s smart contract for the last verified Mina state hash, called the **Bridge’s tip state** or just tip state (if there’s no tip state in the smart contract then it defaults to the hardcoded genesis hash instead) and queries the state corresponding to that hash to the Mina node.
+It also queries the Bridge’s smart contract for the last verified Mina state hash, called the **Bridge’s tip state** or just tip state and queries the state corresponding to that hash to the Mina node.
 
 Then it serializes:
+
 - both states (which are an OCaml structure encoded in base64, standard vocabulary) as bytes, representing the underlying UTF-8. (`serialize_protocol_state()`)
 - both state hashes (field element) as bytes (arkworks serialization). (`serialize_state_hash_field()`)
 - the candidate state proof (an OCaml structure encoded in base64, URL vocabulary) as bytes, representing the underlying UTF-8. (`serialize_protocol_state_proof()`)
@@ -61,7 +68,7 @@ This data composes what we call a **Mina Proof of State**.
 
 We understand a Mina Proof of State to be composed of:
 
-- **public inputs** (vector of bytes): `[candidate_state_hash, candidate_state_length, candidate_state, tip_state_hash, tip_state_length, tip_state]`. We include the lengths of the states in bytes because these can vary, unlike the hashes which are a fixed 32 bytes.
+- **public inputs** (vector of bytes): `[candidate_state_hash, tip_state_hash, candidate_state_length, candidate_state, tip_state_length, tip_state]`. We include the lengths of the states in bytes because these can vary, unlike the hashes which are a fixed 32 bytes.
 - **proof**: Kimchi proof of the candidate state (specifically a Wrap proof in the context of the Pickles recursive system). We like to call it “Pickles proof” for simplicity.
 
 This is the proof that the Mina verifier in Aligned (also called a Mina operator) expects.
@@ -75,7 +82,6 @@ This module sends the Mina Proof of State (retrieved by the Mina Polling Service
 The Aligned Polling Service waits until the batch that includes the Mina Proof of State is verified, polling Aligned every 10 seconds (this is done by the Aligned SDK).
 
 Finally the service returns the verification data sent by Aligned after proof submission. This is used for updating the Bridge’s tip state, by sending a transaction to the Bridge’s smart contract.
-
 
 ### Smart Contract Utility
 
@@ -96,7 +102,12 @@ The Bridge’s contract update function calls the Aligned Service Manager smart 
 
 If the Aligned Service Manager call returns true, this means that a Mina Proof of State of some candidate state (whose hash is known by the contract), checked against the Bridge’s tip state (consensus checking), was verified. Then this candidate state is now the tip state, and so its hash is stored in the contract.
 
+The contract is deployed by a `contract_deployer` crate with an initial state that is the eleventh state from the Mina node [transition frontier’s](#transition-frontier) tip.
+
+The `contract_deployer` asks the Mina node for the eleventh state and deploys the contract using that state as the initial one, assuming it is valid.
+
 #### Gas cost
+
 Currently the cost of the “update tip” transaction is in between 100k and 150k gas, a big part of it being the calldata cost of sending both states data in the public inputs of the Mina Proof of State. The cost could be decreased to <100k by modifying the definition of a Mina Proof of State; sending the state data as proof data instead of public inputs. At the current phase of the project this is not a priority so this change wasn’t done yet.
 
 ## Aligned’s Mina Proof of State verifier
@@ -136,10 +147,19 @@ return tip;
 
 If the candidate wins the comparisons, then verification continues. If not, verification fails.
 
-The full code details can be consulted in the GitHub repository link at the [top of the section](#aligned's-mina-proof-of-state-verifier). We use OpenMina’s code for hashing the consensus state.
+The full code details can be consulted in the GitHub repository link at the [top of the section](#aligneds-mina-proof-of-state-verifier). We use OpenMina’s code for hashing the consensus state.
 
 > [!WARNING]
-> At the moment we’re unsure about other considerations or checks for the consensus checking step. This step is under investigation.
+> At the moment we’re unsure about other considerations or checks for the consensus checking step. We are also ignoring the finalization of the state that we verified. This step is under investigation.
+
+#### Transition frontier
+
+The **transition frontier** is a chain of the latest `k` blocks of the network. The GraphQL DB of a Mina node only stores these blocks and forgets the previous ones. Currently, `k = 291`  
+It's common for two nodes to generate a block simultaneously, resulting in a temporary fork in the network. The network will eventually resolve this fork after a period of time.  
+
+We can define that a block is **partially finalized** if it has `n` blocks ahead of it, with `n` being the number defined for 'partial finalization'.
+
+A block is **finalized** when there’s `k - 1` blocks ahead of it. Meaning that it’s the first block of the transition frontier, also called the **root block**. The latest block of the transition frontier is called the **tip**.
 
 ### State hash check
 
@@ -169,9 +189,9 @@ Another enhancement in Kimchi involves the incorporation of lookups for performa
 
 In the beginning, Kimchi relies on an interactive protocol, which undergoes a conversion into a non-interactive form through the Fiat-Shamir transform.
 
-### Proof Construction & Verification
+## Proof Construction & Verification
 
-#### Secuence diagram linked to ``proof-systems/kimchi/src/verifier.rs``
+### Secuence diagram linked to ``proof-systems/kimchi/src/verifier.rs``
 
 ![Commitments to secret polynomials](/img/commitments_to_secret_poly.png)
 
