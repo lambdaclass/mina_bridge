@@ -4,31 +4,24 @@ pragma solidity ^0.8.12;
 import "aligned_layer/contracts/src/core/AlignedLayerServiceManager.sol";
 
 error NewStateIsNotValid();
-error TipStateIsWrong();
+error TipStateIsWrong(bytes32 pubInputTipStateHash, bytes32 tipStatehash);
 
 /// @title Mina to Ethereum Bridge's smart contract.
 contract MinaBridge {
     /// @notice The state hash of the last verified state as a Fp.
     bytes32 tipStateHash;
 
-    /// @notice The state hash of the transition frontier's root.
-    bytes32 rootStateHash;
-
     /// @notice Reference to the AlignedLayerServiceManager contract.
     AlignedLayerServiceManager aligned;
 
-    constructor(address _alignedServiceAddr, bytes32 _rootStateHash) {
+    constructor(address _alignedServiceAddr, bytes32 _tipStateHash) {
         aligned = AlignedLayerServiceManager(_alignedServiceAddr);
-        rootStateHash = _rootStateHash;
+        tipStateHash = _tipStateHash;
     }
 
     /// @notice Returns the last verified state hash, or the root state hash if none.
     function getTipStateHash() external view returns (bytes32) {
-        if (tipStateHash != 0) {
-            return tipStateHash;
-        } else {
-            return rootStateHash;
-        }
+        return tipStateHash;
     }
 
     function updateTipState(
@@ -42,11 +35,11 @@ contract MinaBridge {
     ) external {
         bytes32 pubInputTipStateHash;
         assembly {
-            mstore(pubInputTipStateHash, mload(add(pubInput, 0x40)))
+            pubInputTipStateHash := mload(add(pubInput, 0x40))
         }
 
         if (pubInputTipStateHash != tipStateHash) {
-            revert TipStateIsWrong();
+            revert TipStateIsWrong(pubInputTipStateHash, tipStateHash);
         }
 
         bytes32 pubInputCommitment = keccak256(pubInput);
