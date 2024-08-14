@@ -23,6 +23,7 @@ dependencies = [
  "hex",
  "kimchi",
  "log",
+ "mina-curves",
  "mina-p2p-messages",
  "mina-tree",
  "num-bigint",

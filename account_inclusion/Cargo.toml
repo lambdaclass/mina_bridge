@@ -19,6 +19,7 @@ core = { path = "../core/" }
 dotenv = "0.15.0"
 env_logger = "0.11.5"
 log = "0.4.22"
+mina-curves = { git = "https://github.com/openmina/proof-systems", branch = "ledger-newtypes-rampup4-vrf" }
 
 [patch.crates-io]
 ark-ff = { git = "https://github.com/openmina/algebra", branch = "openmina" }
