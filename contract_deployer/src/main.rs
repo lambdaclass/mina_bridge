@@ -2,8 +2,9 @@ use core::{
     mina_polling_service::query_root,
     smart_contract_utility::{deploy_mina_bridge_contract, MinaBridgeConstructorArgs},
     utils::{
-        constants::{ALIGNED_SM_DEVNET_ETH_ADDR, ALIGNED_SM_HOLESKY_ETH_ADDR, ANVIL_PRIVATE_KEY},
+        constants::{ALIGNED_SM_DEVNET_ETH_ADDR, ALIGNED_SM_HOLESKY_ETH_ADDR},
         env::EnvironmentVariables,
+        wallet_alloy::get_wallet,
     },
 };
 use std::{process, str::FromStr};
@@ -26,6 +27,7 @@ async fn main() {
         eth_rpc_url,
         chain,
         private_key,
+        keystore_path,
         ..
     } = EnvironmentVariables::new().unwrap_or_else(|err| {
         error!("{}", err);
@@ -58,8 +60,12 @@ async fn main() {
             process::exit(1);
         });
 
-    let private_key = private_key.unwrap_or(ANVIL_PRIVATE_KEY.to_owned());
-    deploy_mina_bridge_contract(&eth_rpc_url, contract_constructor_args, &private_key)
+    let wallet = get_wallet(&chain, keystore_path.as_deref(), private_key.as_deref())
+        .unwrap_or_else(|err| {
+            error!("{}", err);
+            process::exit(1);
+        });
+    deploy_mina_bridge_contract(&eth_rpc_url, contract_constructor_args, &wallet)
         .await
         .unwrap_or_else(|err| {
             error!("{}", err);

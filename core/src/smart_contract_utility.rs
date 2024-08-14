@@ -4,7 +4,6 @@ use std::sync::Arc;
 use aligned_sdk::core::types::{AlignedVerificationData, Chain, VerificationDataCommitment};
 use alloy::network::EthereumWallet;
 use alloy::providers::ProviderBuilder;
-use alloy::signers::local::PrivateKeySigner;
 use alloy::sol;
 use ethers::{abi::AbiEncode, prelude::*};
 use k256::ecdsa::SigningKey;
@@ -165,16 +164,8 @@ pub async fn get_tip_state_hash(chain: &Chain, eth_rpc_url: &str) -> Result<Fp, 
 pub async fn deploy_mina_bridge_contract(
     eth_rpc_url: &str,
     constructor_args: MinaBridgeConstructorArgs,
-    private_key: &str,
+    wallet: &EthereumWallet,
 ) -> Result<alloy::primitives::Address, String> {
-    // TODO(xqft): replace ethers with alloy
-
-    // TODO(xqft): take wallet as parameter
-    let signer: PrivateKeySigner = private_key
-        .parse()
-        .map_err(|_| "Failed to get Anvil signer".to_string())?;
-    let wallet = EthereumWallet::from(signer);
-
     let provider = ProviderBuilder::new()
         .with_recommended_fillers()
         .wallet(wallet)
