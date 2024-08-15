@@ -10,7 +10,7 @@ use kimchi::{o1_utils::FieldHelpers, turshi::helper::CairoFieldHelpers};
 use log::{debug, info};
 use mina_curves::pasta::Fp;
 use mina_p2p_messages::v2::{LedgerHash as MerkleRoot, StateHash};
-use mina_tree::{FpExt, MerklePath};
+use mina_tree::{Account, FpExt, MerklePath};
 
 use crate::{smart_contract_utility::get_tip_state_hash, utils::constants::MINA_STATE_HASH_SIZE};
 
@@ -19,6 +19,16 @@ type PrecomputedBlockProof = String;
 type ProtocolState = String;
 type FieldElem = String;
 type LedgerHash = String;
+type ChainHash = String;
+type PublicKey = String;
+type TokenId = String;
+type VerificationKey = String;
+
+type AccountNonce = u32;
+type GlobalSlotSpan = u32;
+type Globalslot = u32;
+type Balance = u64;
+type Amount = u64;
 
 #[derive(GraphQLQuery)]
 #[graphql(
@@ -44,6 +54,14 @@ struct BestChainQuery;
 /// A query for retrieving the merkle root, leaf and path of an account
 /// included in some state.
 struct MerkleQuery;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/graphql/mina_schema.json",
+    query_path = "src/graphql/account_query.graphql"
+)]
+/// A query for retrieving account data.
+struct AccountQuery;
 
 pub async fn get_mina_proof_of_state(
     rpc_url: &str,
@@ -212,6 +230,27 @@ pub async fn query_merkle(
         .map_err(|_| "Error deserializing merkle path nodes".to_string())?;
 
     Ok((merkle_root, merkle_leaf, merkle_path))
+}
+
+pub async fn query_account(rpc_url: &str, public_key: &str) -> Result<Account, String> {
+    debug!("Querying account {public_key}");
+    let client = reqwest::Client::new();
+
+    let variables = account_query::Variables {
+        public_key: public_key.to_owned(),
+    };
+
+    let response = post_graphql::<AccountQuery, _>(&client, rpc_url, variables)
+        .await
+        .map_err(|err| err.to_string())?
+        .data
+        .ok_or("Missing account query response data".to_string())?;
+
+    let account = response
+        .account
+        .ok_or("Missing account query account".to_string())?;
+
+    todo!()
 }
 
 fn serialize_state_hash(hash: &StateHashAsDecimal) -> Result<Vec<u8>, String> {

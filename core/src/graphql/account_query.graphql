@@ -1,0 +1,44 @@
+query AccountQuery($publicKey: String!) {
+    account(publicKey: $publicKey) {
+        tokenId
+        tokenSymbol
+        balance {
+          total
+        }
+        nonce
+        receiptChainHash
+        delegate
+        votingFor
+        timing {
+          initialMinimumBalance
+          cliffTime
+          cliffAmount
+          vestingIncrement
+          vestingPeriod
+        }
+        permissions {
+          access
+          editActionState
+          editState
+          incrementNonce
+          receive
+          send
+          setTiming
+          setPermissions
+          setDelegate
+          setTokenSymbol
+          setVerificationKey {
+            txnVersion
+            auth
+          }
+          setVotingFor
+          setZkappUri
+        }
+        zkappState
+        zkappUri
+        provedState
+        verificationKey {
+          verificationKey
+        }
+    }
+}
