@@ -10,16 +10,12 @@ use graphql_client::{
 use kimchi::{o1_utils::FieldHelpers, turshi::helper::CairoFieldHelpers};
 use log::{debug, info};
 use mina_curves::pasta::Fp;
-use mina_p2p_messages::{
-    binprot::BinProtRead,
-    v2::{LedgerHash as MerkleRoot, StateHash},
+use mina_p2p_messages::v2::{
+    LedgerHash as MerkleRoot, MinaBaseAccountBinableArgStableV2, StateHash, TokenIdKeyHash,
 };
 use mina_signer::CompressedPubKey;
 use mina_tree::{
-    scan_state::{
-        self,
-        currency::{self, TxnVersion},
-    },
+    scan_state::currency::{self, TxnVersion},
     Account, AuthRequired, FpExt, MerklePath, Permissions, ReceiptChainHash, Timing, TokenSymbol,
     VotingFor,
 };
@@ -35,12 +31,11 @@ type ChainHash = String;
 type PublicKey = String;
 type TokenId = String;
 type VerificationKey = String;
-
-type AccountNonce = u32;
-type GlobalSlotSpan = u32;
-type Globalslot = u32;
-type Balance = u64;
-type Amount = u64;
+type AccountNonce = String;
+type GlobalSlotSpan = String;
+type Globalslot = String;
+type Balance = String;
+type Amount = String;
 
 #[derive(GraphQLQuery)]
 #[graphql(
@@ -263,11 +258,27 @@ pub async fn query_account(rpc_url: &str, public_key: &str) -> Result<Account, S
         .ok_or("Missing account query account".to_string())?;
 
     let public_key = CompressedPubKey::from_address(public_key).map_err(|err| err.to_string())?;
-    let token_id = mina_tree::TokenId::binprot_read(&mut account.token_id.as_bytes())
-        .map_err(|err| err.to_string())?;
+
+    let token_id: mina_tree::TokenId =
+        serde_json::from_value::<TokenIdKeyHash>(serde_json::json!(account.token_id))
+            .map_err(|err| err.to_string())?
+            .into_inner()
+            .into();
     let token_symbol = TokenSymbol(account.token_symbol.ok_or("Missing account token symbol")?);
-    let balance = currency::Balance::from_u64(account.balance.total);
-    let nonce = currency::Nonce::from_u32(account.nonce.ok_or("Missing account nonce")?);
+    let balance = currency::Balance::from_u64(
+        account
+            .balance
+            .total
+            .parse()
+            .map_err(|_| "Could not parse account balance".to_string())?,
+    );
+    let nonce = currency::Nonce::from_u32(
+        account
+            .nonce
+            .ok_or("Missing account nonce".to_string())?
+            .parse()
+            .map_err(|_| "Could not parse account balance".to_string())?,
+    );
     let receipt_chain_hash = ReceiptChainHash::parse_str(
         &account
             .receipt_chain_hash
@@ -291,33 +302,44 @@ pub async fn query_account(rpc_url: &str, public_key: &str) -> Result<Account, S
             account
                 .timing
                 .initial_minimum_balance
-                .ok_or("Missing account initial minimum balance".to_string())?,
+                .ok_or("Missing account initial minimum balance".to_string())?
+                .parse()
+                .map_err(|_| "Could not parse account initial minimum balance".to_string())?,
         ),
         cliff_time: currency::Slot::from_u32(
             account
                 .timing
                 .cliff_time
-                .ok_or("Missing account cliff time".to_string())?,
+                .ok_or("Missing account cliff time".to_string())?
+                .parse()
+                .map_err(|_| "Could not parse account cliff time".to_string())?,
         ),
         cliff_amount: currency::Amount::from_u64(
             account
                 .timing
                 .cliff_amount
-                .ok_or("Missing account cliff amount".to_string())?,
+                .ok_or("Missing account cliff amount".to_string())?
+                .parse()
+                .map_err(|_| "Could not parse account cliff amount".to_string())?,
         ),
         vesting_period: currency::SlotSpan::from_u32(
             account
                 .timing
                 .vesting_period
-                .ok_or("Missing account vesting period".to_string())?,
+                .ok_or("Missing account vesting period".to_string())?
+                .parse()
+                .map_err(|_| "Could not parse account vesting period".to_string())?,
         ),
         vesting_increment: currency::Amount::from_u64(
             account
                 .timing
                 .vesting_increment
-                .ok_or("Missing account vesting increment".to_string())?,
+                .ok_or("Missing account vesting increment".to_string())?
+                .parse()
+                .map_err(|_| "Could not parse account vesting increment".to_string())?,
         ),
     };
+    println!("2");
 
     // TODO(xqft): implement a proper From trait
     let parse_auth_req = |variant: AccountAuthRequired| -> AuthRequired {
