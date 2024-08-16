@@ -94,7 +94,7 @@ dependencies = [
 [[package]]
 name = "aligned-sdk"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/aligned_layer.git?branch=mina#e0e42d2543823482336b2f35d9e3392adb1eed5a"
+source = "git+https://github.com/lambdaclass/aligned_layer.git?branch=mina#08a220c3723a0117923281401a632fd3fb74657e"
 dependencies = [
  "ethers",
  "futures-util",
@@ -509,6 +509,8 @@ dependencies = [
  "alloy-primitives",
  "alloy-signer",
  "async-trait",
+ "elliptic-curve",
+ "eth-keystore",
  "k256",
  "rand",
  "thiserror",

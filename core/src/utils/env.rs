@@ -4,7 +4,7 @@ use dotenv::dotenv;
 use log::debug;
 
 use super::constants::{
-    ANVIL_BATCHER_ADDR, ANVIL_BATCHER_ETH_ADDR, ANVIL_ETH_RPC_URL, ANVIL_PROOF_GENERATOR_ADDR,
+    ANVIL_BATCHER_ADDR, ANVIL_BATCHER_ETH_ADDR, ANVIL_ETH_RPC_URL, PROOF_GENERATOR_ADDR,
 };
 
 pub struct EnvironmentVariables {
@@ -62,7 +62,7 @@ impl EnvironmentVariables {
         let batcher_eth_addr = load_var_or("BATCHER_ETH_ADDR", ANVIL_BATCHER_ETH_ADDR, &chain)?;
         let eth_rpc_url = load_var_or("ETH_RPC_URL", ANVIL_ETH_RPC_URL, &chain)?;
         let proof_generator_addr =
-            load_var_or("PROOF_GENERATOR_ADDR", ANVIL_PROOF_GENERATOR_ADDR, &chain)?;
+            load_var_or("PROOF_GENERATOR_ADDR", PROOF_GENERATOR_ADDR, &chain)?;
 
         let keystore_path = std::env::var("KEYSTORE_PATH").ok();
         let private_key = std::env::var("PRIVATE_KEY").ok();
