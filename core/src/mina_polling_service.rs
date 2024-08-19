@@ -1,6 +1,5 @@
 use std::str::FromStr as _;
 
-use account_query::AccountAuthRequired;
 use aligned_sdk::core::types::{Chain, ProvingSystemId, VerificationData};
 use ethers::types::Address;
 use graphql_client::{
@@ -10,15 +9,8 @@ use graphql_client::{
 use kimchi::{o1_utils::FieldHelpers, turshi::helper::CairoFieldHelpers};
 use log::{debug, info};
 use mina_curves::pasta::Fp;
-use mina_p2p_messages::v2::{
-    LedgerHash as MerkleRoot, MinaBaseAccountBinableArgStableV2, StateHash, TokenIdKeyHash,
-};
-use mina_signer::CompressedPubKey;
-use mina_tree::{
-    scan_state::currency::{self, TxnVersion},
-    Account, AuthRequired, FpExt, MerklePath, Permissions, ReceiptChainHash, Timing, TokenSymbol,
-    VotingFor,
-};
+use mina_p2p_messages::v2::{LedgerHash as MerkleRoot, StateHash};
+use mina_tree::{FpExt, MerklePath};
 
 use crate::{smart_contract_utility::get_tip_state_hash, utils::constants::MINA_STATE_HASH_SIZE};
 
@@ -27,15 +19,6 @@ type PrecomputedBlockProof = String;
 type ProtocolState = String;
 type FieldElem = String;
 type LedgerHash = String;
-type ChainHash = String;
-type PublicKey = String;
-type TokenId = String;
-type VerificationKey = String;
-type AccountNonce = String;
-type GlobalSlotSpan = String;
-type Globalslot = String;
-type Balance = String;
-type Amount = String;
 
 #[derive(GraphQLQuery)]
 #[graphql(
@@ -61,14 +44,6 @@ struct BestChainQuery;
 /// A query for retrieving the merkle root, leaf and path of an account
 /// included in some state.
 struct MerkleQuery;
-
-#[derive(GraphQLQuery)]
-#[graphql(
-    schema_path = "src/graphql/mina_schema.json",
-    query_path = "src/graphql/account_query.graphql"
-)]
-/// A query for retrieving account data.
-struct AccountQuery;
 
 pub async fn get_mina_proof_of_state(
     rpc_url: &str,
@@ -239,163 +214,6 @@ pub async fn query_merkle(
     Ok((merkle_root, merkle_leaf, merkle_path))
 }
 
-pub async fn query_account(rpc_url: &str, public_key: &str) -> Result<Account, String> {
-    debug!("Querying account {public_key}");
-    let client = reqwest::Client::new();
-
-    let variables = account_query::Variables {
-        public_key: public_key.to_owned(),
-    };
-
-    let response = post_graphql::<AccountQuery, _>(&client, rpc_url, variables)
-        .await
-        .map_err(|err| err.to_string())?
-        .data
-        .ok_or("Missing account query response data".to_string())?;
-
-    let account = response
-        .account
-        .ok_or("Missing account query account".to_string())?;
-
-    let public_key = CompressedPubKey::from_address(public_key).map_err(|err| err.to_string())?;
-
-    let token_id: mina_tree::TokenId =
-        serde_json::from_value::<TokenIdKeyHash>(serde_json::json!(account.token_id))
-            .map_err(|err| err.to_string())?
-            .into_inner()
-            .into();
-    let token_symbol = TokenSymbol(account.token_symbol.ok_or("Missing account token symbol")?);
-    let balance = currency::Balance::from_u64(
-        account
-            .balance
-            .total
-            .parse()
-            .map_err(|_| "Could not parse account balance".to_string())?,
-    );
-    let nonce = currency::Nonce::from_u32(
-        account
-            .nonce
-            .ok_or("Missing account nonce".to_string())?
-            .parse()
-            .map_err(|_| "Could not parse account balance".to_string())?,
-    );
-    let receipt_chain_hash = ReceiptChainHash::parse_str(
-        &account
-            .receipt_chain_hash
-            .ok_or("Missing account receipt chain hash".to_string())?,
-    )
-    .map_err(|err| err.to_string())?;
-    let delegate = if let Some(delegate) = account.delegate {
-        // TODO(xqft): is there a better way to handle the Result of from_address without if-let?
-        Some(CompressedPubKey::from_address(&delegate).map_err(|err| err.to_string())?)
-    } else {
-        None
-    };
-    let voting_for = VotingFor::parse_str(
-        &account
-            .voting_for
-            .ok_or("Missing account voting for".to_string())?,
-    )
-    .map_err(|err| err.to_string())?;
-    let timing = Timing::Timed {
-        initial_minimum_balance: currency::Balance::from_u64(
-            account
-                .timing
-                .initial_minimum_balance
-                .ok_or("Missing account initial minimum balance".to_string())?
-                .parse()
-                .map_err(|_| "Could not parse account initial minimum balance".to_string())?,
-        ),
-        cliff_time: currency::Slot::from_u32(
-            account
-                .timing
-                .cliff_time
-                .ok_or("Missing account cliff time".to_string())?
-                .parse()
-                .map_err(|_| "Could not parse account cliff time".to_string())?,
-        ),
-        cliff_amount: currency::Amount::from_u64(
-            account
-                .timing
-                .cliff_amount
-                .ok_or("Missing account cliff amount".to_string())?
-                .parse()
-                .map_err(|_| "Could not parse account cliff amount".to_string())?,
-        ),
-        vesting_period: currency::SlotSpan::from_u32(
-            account
-                .timing
-                .vesting_period
-                .ok_or("Missing account vesting period".to_string())?
-                .parse()
-                .map_err(|_| "Could not parse account vesting period".to_string())?,
-        ),
-        vesting_increment: currency::Amount::from_u64(
-            account
-                .timing
-                .vesting_increment
-                .ok_or("Missing account vesting increment".to_string())?
-                .parse()
-                .map_err(|_| "Could not parse account vesting increment".to_string())?,
-        ),
-    };
-    println!("2");
-
-    // TODO(xqft): implement a proper From trait
-    let parse_auth_req = |variant: AccountAuthRequired| -> AuthRequired {
-        match variant {
-            AccountAuthRequired::None => AuthRequired::None,
-            AccountAuthRequired::Either => AuthRequired::Either,
-            AccountAuthRequired::Proof => AuthRequired::Proof,
-            AccountAuthRequired::Signature => AuthRequired::Signature,
-            AccountAuthRequired::Impossible => AuthRequired::Impossible,
-            AccountAuthRequired::Other(_) => unreachable!(),
-        }
-    };
-
-    let permissions = account
-        .permissions
-        .ok_or("Missing account permissions".to_string())?;
-    let permissions = Permissions {
-        edit_state: parse_auth_req(permissions.edit_state),
-        access: parse_auth_req(permissions.access),
-        send: parse_auth_req(permissions.send),
-        receive: parse_auth_req(permissions.receive),
-        set_delegate: parse_auth_req(permissions.set_delegate),
-        set_permissions: parse_auth_req(permissions.set_permissions),
-        set_verification_key: mina_tree::SetVerificationKey {
-            auth: parse_auth_req(permissions.set_verification_key.auth),
-            txn_version: TxnVersion::from_u32(
-                permissions
-                    .set_verification_key
-                    .txn_version
-                    .parse()
-                    .map_err(|_| "Failed to parse TxnVersion".to_string())?,
-            ),
-        },
-        set_zkapp_uri: parse_auth_req(permissions.set_zkapp_uri),
-        edit_action_state: parse_auth_req(permissions.edit_action_state),
-        set_token_symbol: parse_auth_req(permissions.set_token_symbol),
-        increment_nonce: parse_auth_req(permissions.increment_nonce),
-        set_voting_for: parse_auth_req(permissions.set_voting_for),
-        set_timing: parse_auth_req(permissions.set_timing),
-    };
-
-    Ok(Account {
-        public_key,
-        token_id,
-        token_symbol,
-        balance,
-        nonce,
-        receipt_chain_hash,
-        delegate,
-        voting_for,
-        timing,
-        permissions,
-        zkapp: None, // TODO(xqft): handle zkapp
-    })
-}
-
 fn serialize_state_hash(hash: &StateHashAsDecimal) -> Result<Vec<u8>, String> {
     let bytes = Fp::from_str(hash)
         .map_err(|_| "Failed to decode hash as a field element".to_string())?
@@ -420,25 +238,4 @@ fn encode_state_hash(hash: &StateHashAsDecimal) -> Result<String, String> {
     Fp::from_str(hash)
         .map_err(|_| "Failed to decode hash as a field element".to_string())
         .map(|fp| StateHash::from_fp(fp).to_string())
-}
-
-#[cfg(test)]
-mod test {
-    use super::query_account;
-
-    #[test]
-    fn test_query_account() {
-        tokio::runtime::Builder::new_multi_thread()
-            .enable_all()
-            .build()
-            .unwrap()
-            .block_on(async {
-                query_account(
-                    "http://5.9.57.89:3085/graphql",
-                    "B62qnFCUtCu4bHJZGroNZvmq8ya1E9kAJkQGYnETh9E3CMHV98UvrPZ",
-                )
-                .await
-                .unwrap();
-            });
-    }
 }
