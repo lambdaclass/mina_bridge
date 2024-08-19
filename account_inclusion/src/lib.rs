@@ -1,7 +1,7 @@
 use mina_curves::pasta::Fp;
 use mina_p2p_messages::v2::hash_with_kimchi;
 use mina_tree::MerklePath;
-use std::{fmt::Write, str::FromStr};
+use std::fmt::Write;
 
 /// Based on OpenMina's implementation
 /// https://github.com/openmina/openmina/blob/d790af59a8bd815893f7773f659351b79ed87648/ledger/src/account/account.rs#L1444
