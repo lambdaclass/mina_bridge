@@ -4,7 +4,6 @@ use std::sync::Arc;
 use aligned_sdk::core::types::{AlignedVerificationData, Chain, VerificationDataCommitment};
 use alloy::network::EthereumWallet;
 use alloy::providers::ProviderBuilder;
-use alloy::signers::local::PrivateKeySigner;
 use alloy::sol;
 use ethers::{abi::AbiEncode, prelude::*};
 use k256::ecdsa::SigningKey;
@@ -12,7 +11,9 @@ use kimchi::o1_utils::FieldHelpers;
 use log::{debug, error, info};
 use mina_curves::pasta::Fp;
 
-use crate::utils::constants::{ANVIL_CHAIN_ID, ANVIL_PRIVATE_KEY, BRIDGE_DEVNET_ETH_ADDR};
+use crate::utils::constants::{
+    ANVIL_CHAIN_ID, BRIDGE_DEVNET_ETH_ADDR, BRIDGE_HOLESKY_ETH_ADDR, HOLESKY_CHAIN_ID,
+};
 
 abigen!(MinaBridgeEthereumContract, "abi/MinaBridge.json");
 
@@ -59,6 +60,7 @@ pub async fn update(
 ) -> Result<Fp, String> {
     let bridge_eth_addr = Address::from_str(match chain {
         Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
+        Chain::Holesky => BRIDGE_HOLESKY_ETH_ADDR,
         _ => {
             error!("Unimplemented Ethereum contract on selected chain");
             unimplemented!()
@@ -139,6 +141,7 @@ pub async fn update(
 pub async fn get_tip_state_hash(chain: &Chain, eth_rpc_url: &str) -> Result<Fp, String> {
     let bridge_eth_addr = Address::from_str(match chain {
         Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
+        Chain::Holesky => BRIDGE_HOLESKY_ETH_ADDR,
         _ => {
             error!("Unimplemented Ethereum contract on selected chain");
             unimplemented!()
@@ -161,15 +164,8 @@ pub async fn get_tip_state_hash(chain: &Chain, eth_rpc_url: &str) -> Result<Fp, 
 pub async fn deploy_mina_bridge_contract(
     eth_rpc_url: &str,
     constructor_args: MinaBridgeConstructorArgs,
+    wallet: &EthereumWallet,
 ) -> Result<alloy::primitives::Address, String> {
-    // TODO(xqft): replace ethers with alloy
-
-    // TODO(xqft): take wallet as parameter
-    let signer: PrivateKeySigner = ANVIL_PRIVATE_KEY
-        .parse()
-        .map_err(|_| "Failed to get Anvil signer".to_string())?;
-    let wallet = EthereumWallet::from(signer);
-
     let provider = ProviderBuilder::new()
         .with_recommended_fillers()
         .wallet(wallet)
@@ -202,10 +198,12 @@ fn mina_bridge_contract(
         Provider::<Http>::try_from(eth_rpc_url).map_err(|err| err.to_string())?;
     let chain_id = match chain {
         Chain::Devnet => ANVIL_CHAIN_ID,
+        Chain::Holesky => HOLESKY_CHAIN_ID,
         _ => unimplemented!(),
     };
     let signer = SignerMiddleware::new(eth_rpc_provider, wallet.with_chain_id(chain_id));
     let client = Arc::new(signer);
+    debug!("contract address: {contract_address}");
     Ok(MinaBridgeEthereum::new(contract_address, client))
 }
 

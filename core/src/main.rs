@@ -4,10 +4,11 @@ use core::{
 };
 use kimchi::turshi::helper::CairoFieldHelpers;
 use log::{debug, error, info};
-use std::process;
+use std::{process, time::SystemTime};
 
 #[tokio::main]
 async fn main() {
+    let now = SystemTime::now();
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
     debug!("Reading env. variables");
@@ -97,4 +98,8 @@ async fn main() {
         "Success! verified Mina state hash 0x{} was stored in the bridge's smart contract",
         verified_state_hash.to_hex_be()
     );
+
+    if let Ok(elapsed) = now.elapsed() {
+        info!("Time spent: {} ms", elapsed.as_millis());
+    }
 }

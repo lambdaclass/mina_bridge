@@ -5,7 +5,9 @@ pub const ANVIL_CHAIN_ID: u64 = 31337;
 pub const ANVIL_BATCHER_ADDR: &str = "ws://localhost:8080";
 pub const ANVIL_BATCHER_ETH_ADDR: &str = "0x7969c5eD335650692Bc04293B07F5BF2e7A673C0";
 pub const ANVIL_ETH_RPC_URL: &str = "http://localhost:8545";
-pub const ANVIL_PROOF_GENERATOR_ADDR: &str = "0x66f9664f97F2b50F62D13eA064982f936dE76657";
+
+// Holesky related constants
+pub const HOLESKY_CHAIN_ID: u64 = 17000;
 
 // Mina related constants
 // TODO(gabrielbosio): These are temporary, we will fetch the tip from the Mina contract instead of using these hardcoded values.
@@ -16,6 +18,9 @@ pub const MINA_STATE_HASH_SIZE: usize = 32;
 
 // Bridge related constants
 pub const BRIDGE_DEVNET_ETH_ADDR: &str = "0x700b6A60ce7EaaEA56F065753d8dcB9653dbAD35";
+pub const BRIDGE_HOLESKY_ETH_ADDR: &str = "0x9dD655fE21fA10FeD52C0DAD48Ac937517f1451A";
 
 // Aligned related constants
+pub const PROOF_GENERATOR_ADDR: &str = "0x66f9664f97F2b50F62D13eA064982f936dE76657";
 pub const ALIGNED_SM_DEVNET_ETH_ADDR: &str = "0x1613beB3B2C4f22Ee086B2b38C1476A3cE7f78E8";
+pub const ALIGNED_SM_HOLESKY_ETH_ADDR: &str = "0x0584313310bD52B77CF0b81b350Ca447B97Df5DF";
