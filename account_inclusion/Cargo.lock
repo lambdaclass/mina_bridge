@@ -24,6 +24,7 @@ dependencies = [
  "kimchi",
  "log",
  "mina-p2p-messages",
+ "mina-signer",
  "mina-tree",
  "num-bigint",
  "reqwest 0.12.5",
@@ -94,7 +95,7 @@ dependencies = [
 [[package]]
 name = "aligned-sdk"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/aligned_layer.git?branch=mina#08a220c3723a0117923281401a632fd3fb74657e"
+source = "git+https://github.com/lambdaclass/aligned_layer.git?branch=mina#e0e42d2543823482336b2f35d9e3392adb1eed5a"
 dependencies = [
  "ethers",
  "futures-util",

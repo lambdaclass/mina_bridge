@@ -1,11 +1,21 @@
-use account_inclusion::{query_leaf_and_merkle_path, query_merkle_root, verify_merkle_proof};
+use account_inclusion::{
+    account, query_leaf_and_merkle_path, query_merkle_root, verify_merkle_proof,
+};
 use core::{smart_contract_utility::get_tip_state_hash, utils::env::EnvironmentVariables};
 use kimchi::turshi::helper::CairoFieldHelpers;
 use log::{debug, error, info};
+use mina_tree::Account;
 use std::process;
 
 #[tokio::main]
 async fn main() {
+    for _ in 0..10 {
+        let rand_account = Account::rand();
+        dbg!(&rand_account.zkapp.is_some());
+        let rand_account_bytes = account::to_bytes(&rand_account);
+        dbg!(rand_account_bytes.len());
+    }
+
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
     debug!("Reading env. variables");

@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 kimchi = { git = "https://github.com/openmina/proof-systems", branch = "ledger-newtypes-rampup4-vrf" }
+mina-signer = { git = "https://github.com/openmina/proof-systems", branch = "ledger-newtypes-rampup4-vrf" }
 mina-tree = { git = "https://github.com/lambdaclass/openmina/", branch = "mina_bridge" }
 mina-p2p-messages = { git = "https://github.com/lambdaclass/openmina/", branch = "mina_bridge" }
 snark = { git = "https://github.com/lambdaclass/openmina/", branch = "mina_bridge" }

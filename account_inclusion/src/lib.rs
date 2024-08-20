@@ -1,3 +1,5 @@
+pub mod account;
+
 use std::{fmt::Write, str::FromStr};
 
 use base64::{prelude::BASE64_STANDARD, Engine};
