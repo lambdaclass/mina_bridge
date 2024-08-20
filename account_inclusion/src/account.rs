@@ -39,7 +39,7 @@ fn option_public_key_to_bytes(public_key: &Option<CompressedPubKey>) -> Vec<u8> 
     match &public_key {
         Some(public_key) => {
             ret.push(1);
-            ret.extend(public_key_to_bytes(&public_key));
+            ret.extend(public_key_to_bytes(public_key));
         }
         None => ret.push(0),
     }
@@ -82,17 +82,19 @@ fn timing_to_bytes(timing: &Timing) -> Vec<u8> {
 }
 
 fn permissions_to_bytes(permissions: &Permissions<AuthRequired>) -> Vec<u8> {
-    let mut ret = vec![];
+    let mut ret = vec![
+        auth_required_to_u8(&permissions.edit_state),
+        auth_required_to_u8(&permissions.access),
+        auth_required_to_u8(&permissions.send),
+        auth_required_to_u8(&permissions.receive),
+        auth_required_to_u8(&permissions.set_delegate),
+        auth_required_to_u8(&permissions.set_permissions),
+    ];
 
-    ret.push(auth_required_to_u8(&permissions.edit_state));
-    ret.push(auth_required_to_u8(&permissions.access));
-    ret.push(auth_required_to_u8(&permissions.send));
-    ret.push(auth_required_to_u8(&permissions.receive));
-    ret.push(auth_required_to_u8(&permissions.set_delegate));
-    ret.push(auth_required_to_u8(&permissions.set_permissions));
     ret.extend(set_verification_key_to_bytes(
         &permissions.set_verification_key,
     ));
+
     ret.push(auth_required_to_u8(&permissions.set_zkapp_uri));
     ret.push(auth_required_to_u8(&permissions.edit_action_state));
     ret.push(auth_required_to_u8(&permissions.set_token_symbol));
@@ -190,21 +192,21 @@ fn proof_verified_to_u8(proof_verified: &ProofVerified) -> u8 {
     }
 }
 
-fn plonk_verification_key_evals_to_bytes(evals: &Box<PlonkVerificationKeyEvals<Fp>>) -> Vec<u8> {
+fn plonk_verification_key_evals_to_bytes(evals: &PlonkVerificationKeyEvals<Fp>) -> Vec<u8> {
     let mut ret = vec![];
 
     ret.extend(
         evals
             .sigma
             .iter()
-            .flat_map(|g| inner_curve_to_bytes(&g))
+            .flat_map(inner_curve_to_bytes)
             .collect::<Vec<_>>(),
     );
     ret.extend(
         evals
             .coefficients
             .iter()
-            .flat_map(|g| inner_curve_to_bytes(&g))
+            .flat_map(inner_curve_to_bytes)
             .collect::<Vec<_>>(),
     );
     ret.extend(inner_curve_to_bytes(&evals.generic));
