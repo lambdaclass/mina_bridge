@@ -5,7 +5,7 @@ use core::{
 };
 use log::{error, info};
 use mina_p2p_messages::v2::StateHash;
-use std::{process, time::SystemTime};
+use std::{fmt::format, process, time::SystemTime};
 
 #[derive(Parser)]
 #[command(version, about)]
@@ -53,7 +53,7 @@ async fn main() {
 
     match cli.command {
         Command::SubmitState => {
-            let mina_proof = mina_polling_service::get_mina_proof_of_state(
+            let proof = mina_polling_service::get_mina_proof_of_state(
                 &rpc_url,
                 &proof_generator_addr,
                 &chain,
@@ -68,7 +68,7 @@ async fn main() {
             if cli.save_proof {
                 std::fs::write(
                     "./protocol_state.pub",
-                    mina_proof.pub_input.as_ref().unwrap_or_else(|| {
+                    proof.pub_input.as_ref().unwrap_or_else(|| {
                         error!("Tried to save public inputs to file but they're missing");
                         process::exit(1);
                     }),
@@ -77,14 +77,14 @@ async fn main() {
                     error!("{}", err);
                     process::exit(1);
                 });
-                std::fs::write("./protocol_state.proof", &mina_proof.proof).unwrap_or_else(|err| {
+                std::fs::write("./protocol_state.proof", &proof.proof).unwrap_or_else(|err| {
                     error!("{}", err);
                     process::exit(1);
                 });
             }
 
             let verification_data = aligned_polling_service::submit(
-                &mina_proof,
+                &proof,
                 &chain,
                 &batcher_addr,
                 &batcher_eth_addr,
@@ -97,7 +97,7 @@ async fn main() {
                 process::exit(1);
             });
 
-            let pub_input = mina_proof.pub_input.unwrap_or_else(|| {
+            let pub_input = proof.pub_input.unwrap_or_else(|| {
                 error!("Missing public inputs from Mina proof");
                 process::exit(1);
             });
@@ -121,7 +121,51 @@ async fn main() {
             );
         }
         Command::SubmitAccount { public_key } => {
-            todo!()
+            let proof = mina_polling_service::get_mina_proof_of_account(
+                &public_key,
+                &rpc_url,
+                &proof_generator_addr,
+                &chain,
+                &eth_rpc_url,
+            )
+            .await
+            .unwrap_or_else(|err| {
+                error!("{}", err);
+                process::exit(1);
+            });
+
+            if cli.save_proof {
+                std::fs::write(
+                    format!("./account_{public_key}.pub"),
+                    proof.pub_input.as_ref().unwrap_or_else(|| {
+                        error!("Tried to save public inputs to file but they're missing");
+                        process::exit(1);
+                    }),
+                )
+                .unwrap_or_else(|err| {
+                    error!("{}", err);
+                    process::exit(1);
+                });
+                std::fs::write(format!("./account_{public_key}.proof"), &proof.proof)
+                    .unwrap_or_else(|err| {
+                        error!("{}", err);
+                        process::exit(1);
+                    });
+            }
+
+            let _verification_data = aligned_polling_service::submit(
+                &proof,
+                &chain,
+                &batcher_addr,
+                &batcher_eth_addr,
+                &eth_rpc_url,
+                wallet.clone(),
+            )
+            .await
+            .unwrap_or_else(|err| {
+                error!("{}", err);
+                process::exit(1);
+            });
         }
     }
 

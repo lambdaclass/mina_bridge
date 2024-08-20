@@ -12,7 +12,7 @@ use mina_curves::pasta::Fp;
 use mina_p2p_messages::v2::{LedgerHash as MerkleRoot, StateHash};
 use mina_tree::{FpExt, MerklePath};
 
-use crate::{smart_contract_utility::get_tip_state_hash, utils::constants::MINA_STATE_HASH_SIZE};
+use crate::{smart_contract_utility::get_tip_state_hash, utils::constants::MINA_HASH_SIZE};
 
 type StateHashAsDecimal = String;
 type PrecomputedBlockProof = String;
@@ -99,6 +99,47 @@ pub async fn get_mina_proof_of_state(
     Ok(VerificationData {
         proving_system: ProvingSystemId::Mina,
         proof: candidate_proof,
+        pub_input,
+        verification_key: None,
+        vm_program_code: None,
+        proof_generator_addr,
+    })
+}
+
+pub async fn get_mina_proof_of_account(
+    public_key: &str,
+    rpc_url: &str,
+    proof_generator_addr: &str,
+    chain: &Chain,
+    eth_rpc_url: &str,
+) -> Result<VerificationData, String> {
+    let state_hash = get_tip_state_hash(chain, eth_rpc_url).await?;
+    let (merkle_root, account_hash, merkle_path) = query_merkle(
+        rpc_url,
+        &StateHash::from_fp(state_hash).to_string(),
+        public_key,
+    )
+    .await?;
+
+    let proof = merkle_path
+        .into_iter()
+        .flat_map(|node| {
+            match node {
+                MerklePath::Left(hash) => [vec![0], hash.to_bytes()],
+                MerklePath::Right(hash) => [vec![1], hash.to_bytes()],
+            }
+            .concat()
+        })
+        .collect();
+
+    let pub_input = Some([merkle_root.to_bytes(), account_hash.to_bytes()].concat());
+
+    let proof_generator_addr =
+        Address::from_str(proof_generator_addr).map_err(|err| err.to_string())?;
+
+    Ok(VerificationData {
+        proving_system: ProvingSystemId::MinaAccount,
+        proof,
         pub_input,
         verification_key: None,
         vm_program_code: None,
@@ -218,9 +259,9 @@ fn serialize_state_hash(hash: &StateHashAsDecimal) -> Result<Vec<u8>, String> {
     let bytes = Fp::from_str(hash)
         .map_err(|_| "Failed to decode hash as a field element".to_string())?
         .to_bytes();
-    if bytes.len() != MINA_STATE_HASH_SIZE {
+    if bytes.len() != MINA_HASH_SIZE {
         return Err(format!(
-            "Failed to encode hash as bytes: length is not exactly {MINA_STATE_HASH_SIZE}."
+            "Failed to encode hash as bytes: length is not exactly {MINA_HASH_SIZE}."
         ));
     }
     Ok(bytes)
