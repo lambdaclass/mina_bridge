@@ -16,7 +16,6 @@ pub struct EnvironmentVariables {
     pub proof_generator_addr: String,
     pub keystore_path: Option<String>,
     pub private_key: Option<String>,
-    pub save_proof: bool,
 }
 
 fn load_var_or(key: &str, default: &str, chain: &Chain) -> Result<String, String> {
@@ -74,9 +73,6 @@ impl EnvironmentVariables {
             );
         }
 
-        let save_proof =
-            matches!(std::env::var("SAVE_PROOF"), Ok(value) if value.to_lowercase() == "true");
-
         Ok(EnvironmentVariables {
             rpc_url,
             chain,
@@ -86,7 +82,6 @@ impl EnvironmentVariables {
             proof_generator_addr,
             keystore_path,
             private_key,
-            save_proof,
         })
     }
 }

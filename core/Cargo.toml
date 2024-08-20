@@ -38,6 +38,7 @@ graphql_client = { version = "0.14.0", features = [
   "reqwest-blocking",
 ] }
 alloy = { version = "0.2.1", features = ["full", "signer-keystore"] }
+clap = { version = "4.5.16", features = ["derive"] }
 
 [patch.crates-io]
 ark-ff = { git = "https://github.com/openmina/algebra", branch = "openmina" }
