@@ -140,6 +140,17 @@ fn option_zk_app_account_to_bytes(zk_app_account: &Option<Box<ZkAppAccount>>) ->
             ret.extend(option_verification_key_to_bytes(
                 &zk_app_account.verification_key,
             ));
+            ret.extend(zk_app_account.zkapp_version.to_be_bytes());
+            ret.extend(
+                zk_app_account
+                    .action_state
+                    .iter()
+                    .flat_map(|fp| fp.to_bytes())
+                    .collect::<Vec<_>>(),
+            );
+            ret.extend(zk_app_account.last_action_slot.as_u32().to_be_bytes());
+            ret.push(if zk_app_account.proved_state { 1 } else { 0 });
+            ret.extend(string_to_bytes(&zk_app_account.zkapp_uri));
         }
         None => ret.push(0),
     }

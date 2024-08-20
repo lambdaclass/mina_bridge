@@ -9,9 +9,8 @@ use std::process;
 
 #[tokio::main]
 async fn main() {
-    for _ in 0..10 {
+    for _ in 0..100 {
         let rand_account = Account::rand();
-        dbg!(&rand_account.zkapp.is_some());
         let rand_account_bytes = account::to_bytes(&rand_account);
         dbg!(rand_account_bytes.len());
     }
