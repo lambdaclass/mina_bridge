@@ -1,6 +1,7 @@
 use std::str::FromStr as _;
 
 use aligned_sdk::core::types::{Chain, ProvingSystemId, VerificationData};
+use base64::prelude::*;
 use ethers::types::Address;
 use graphql_client::{
     reqwest::{post_graphql, post_graphql_blocking},
@@ -9,7 +10,10 @@ use graphql_client::{
 use kimchi::{o1_utils::FieldHelpers, turshi::helper::CairoFieldHelpers};
 use log::{debug, info};
 use mina_curves::pasta::Fp;
-use mina_p2p_messages::v2::{LedgerHash as MerkleRoot, StateHash};
+use mina_p2p_messages::{
+    binprot::BinProtRead,
+    v2::{LedgerHash as MerkleRoot, MinaStateProtocolStateValueStableV2, StateHash},
+};
 use mina_tree::{FpExt, MerklePath};
 
 use crate::{smart_contract_utility::get_tip_state_hash, utils::constants::MINA_HASH_SIZE};
@@ -81,11 +85,14 @@ pub async fn get_mina_proof_of_state(
     let tip_hash = serialize_state_hash(&tip_hash)?;
     let tip_state = serialize_state(tip_state);
 
+    let candidate_merkle_root = serialize_ledger_hash(&candidate_state)?;
+
     let candidate_hash = serialize_state_hash(&candidate_hash)?;
     let candidate_state = serialize_state(candidate_state);
     let candidate_proof = serialize_state_proof(&candidate_proof);
 
-    let mut pub_input = candidate_hash;
+    let mut pub_input = candidate_merkle_root;
+    pub_input.extend(candidate_hash);
     pub_input.extend(tip_hash);
     pub_input.extend((candidate_state.len() as u32).to_be_bytes());
     pub_input.extend(candidate_state);
@@ -279,4 +286,25 @@ fn encode_state_hash(hash: &StateHashAsDecimal) -> Result<String, String> {
     Fp::from_str(hash)
         .map_err(|_| "Failed to decode hash as a field element".to_string())
         .map(|fp| StateHash::from_fp(fp).to_string())
+}
+
+fn serialize_ledger_hash(state: &ProtocolState) -> Result<Vec<u8>, String> {
+    BASE64_STANDARD
+        .decode(state)
+        .map_err(|err| err.to_string())
+        .and_then(|binprot| {
+            MinaStateProtocolStateValueStableV2::binprot_read(&mut binprot.as_slice())
+                .map_err(|err| err.to_string())
+        })
+        .and_then(|state| {
+            state
+                .body
+                .blockchain_state
+                .staged_ledger_hash
+                .non_snark
+                .ledger_hash
+                .to_fp()
+                .map_err(|err| err.to_string())
+        })
+        .map(|ledger_hash| ledger_hash.to_bytes())
 }
