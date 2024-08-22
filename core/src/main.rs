@@ -98,11 +98,11 @@ async fn main() {
             });
 
             let pub_input = proof.pub_input.unwrap_or_else(|| {
-                error!("Missing public inputs from Mina proof");
+                error!("Missing public inputs from Mina state proof");
                 process::exit(1);
             });
 
-            let verified_state_hash = smart_contract_utility::update(
+            let verified_state_hash = smart_contract_utility::update_tip(
                 verification_data,
                 pub_input,
                 &chain,
@@ -153,7 +153,7 @@ async fn main() {
                     });
             }
 
-            let _verification_data = aligned_polling_service::submit(
+            let verification_data = aligned_polling_service::submit(
                 &proof,
                 &chain,
                 &batcher_addr,
@@ -166,6 +166,26 @@ async fn main() {
                 error!("{}", err);
                 process::exit(1);
             });
+
+            let pub_input = proof.pub_input.unwrap_or_else(|| {
+                error!("Missing public inputs from Mina account proof");
+                process::exit(1);
+            });
+
+            smart_contract_utility::update_account(
+                verification_data,
+                pub_input,
+                &chain,
+                &eth_rpc_url,
+                wallet,
+            )
+            .await
+            .unwrap_or_else(|err| {
+                error!("{}", err);
+                process::exit(1);
+            });
+
+            info!("Success! verified Mina account state was stored in the bridge's smart contract");
         }
     }
 
