@@ -1,7 +1,10 @@
 .PHONY: run gen_contract_abi deploy_contract
 
-run:
-	@cargo run --manifest-path core/Cargo.toml --release
+submit-state:
+	@cargo run --manifest-path core/Cargo.toml --release -- submit-state
+
+submit-account:
+	@cargo run --manifest-path core/Cargo.toml --release -- submit-account ${PUBLIC_KEY}
 
 gen_contract_abi:
 	forge build --root contract/
@@ -9,6 +12,3 @@ gen_contract_abi:
 
 deploy_contract: gen_contract_abi
 	@cargo run --manifest-path contract_deployer/Cargo.toml --release
-
-verify_account_inclusion:
-	@cargo run --manifest-path account_inclusion/Cargo.toml --release -- ${PUBLIC_KEY}
