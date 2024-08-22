@@ -5,7 +5,7 @@ use core::{
 };
 use log::{error, info};
 use mina_p2p_messages::v2::StateHash;
-use std::{fmt::format, process, time::SystemTime};
+use std::{process, time::SystemTime};
 
 #[derive(Parser)]
 #[command(version, about)]
