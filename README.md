@@ -52,26 +52,10 @@ A Rust library+binary project that includes the next modules:
 
 [`mina_bridge repo: core/src/mina_polling_service.rs`](https://github.com/lambdaclass/mina_bridge/tree/aligned/core/src/mina_polling_service.rs)
 
-This module queries a Mina node (defined by the user via the `MINA_RPC_URL` env. variable) GraphQL DB for the latest state data (called the candidate state) and proof.
+This module can query a Mina node (defined by the user via the `MINA_RPC_URL` env. variable) GraphQL DB for:
 
-It also queries the Bridge’s smart contract for the last verified Mina state hash, called the **Bridge’s tip state** or just tip state and queries the state corresponding to that hash to the Mina node.
-
-Then it serializes:
-
-- both states (which are an OCaml structure encoded in base64, standard vocabulary) as bytes, representing the underlying UTF-8. (`serialize_protocol_state()`)
-- both state hashes (field element) as bytes (arkworks serialization). (`serialize_state_hash_field()`)
-- the candidate state proof (an OCaml structure encoded in base64, URL vocabulary) as bytes, representing the underlying UTF-8. (`serialize_protocol_state_proof()`)
-
-This data composes what we call a **Mina Proof of State**.
-
-#### Mina Proof of State
-
-We understand a Mina Proof of State to be composed of:
-
-- **public inputs** (vector of bytes): `[candidate_state_hash, tip_state_hash, candidate_state_length, candidate_state, tip_state_length, tip_state]`. We include the lengths of the states in bytes because these can vary, unlike the hashes which are a fixed 32 bytes.
-- **proof**: Kimchi proof of the candidate state (specifically a Wrap proof in the context of the Pickles recursive system). We like to call it “Pickles proof” for simplicity.
-
-This is the proof that the Mina verifier in Aligned (also called a Mina operator) expects.
+- the latest state data (called the candidate state) and its proof
+- the merkle proof of inclusion of some Mina account for the latest verified state on the bridge.
 
 ### Aligned Polling Service
 
@@ -87,30 +71,35 @@ Finally the service returns the verification data sent by Aligned after proof su
 
 [`mina_bridge repo: core/src/smart_contract_utility.rs`](https://github.com/lambdaclass/mina_bridge/tree/aligned/core/src/smart_contract_utility.rs)
 
-This module sends a transaction to the Bridge’s smart contract that calls the “update tip” (see the [Smart Contract section](#smart-contract)) function by sending the **incomplete** verification data retrieved by the Aligned Polling Service, aside from the Mina Proof of State public inputs. By “incomplete” we mean that we’re sending all the verification data, except for the public input commitment, which is a keccak256 hash of the public inputs. So by sending the public inputs to the contract we can cheaply calculate on-chain the public input commitment for completing the verification data. We do this instead of directly sending the commitment so the contract can:
+This module sends a transaction to the Bridge’s smart contract that calls the “update tip” (see the [Smart Contract section](https://www.notion.so/Specification-f6941ead36fe49dca227ee3ceee972b8?pvs=21)) function by sending the **incomplete** verification data retrieved by the Aligned Polling Service, aside from the Mina Proof of State public inputs. By “incomplete” we mean that we’re sending all the verification data, except for the public input commitment, which is a keccak256 hash of the public inputs. So by sending the public inputs to the contract we can cheaply calculate on-chain the public input commitment for completing the verification data. We do this instead of directly sending the commitment so the contract can:
 
 - check that the `tip_state_hash` is indeed the tip state hash stored in the contract
 - retrieve the `candidate_state_hash` and store it if the candidate was verified
 
-### Smart Contract
+## Mina Proof of State
 
-[`mina_bridge repo: contract/`](https://github.com/lambdaclass/mina_bridge/tree/aligned/contract)
+The core role of the bridge is to verify the state of a Mina block, and store it’s hash and useful data (like its ledger hash, see account verification) in an Ethereum smart contract.
 
-The contract stores the Bridge’s tip state hash and exposes functions to read (`getTipStateHash()`) or update it (`updateTipStateHash()`). Generally it’s the Smart Contract Utility that will send a transaction to update the tip state hash.
+### Definition
 
-The Bridge’s contract update function calls the Aligned Service Manager smart contract to check that the Mina Proof of State was verified in Aligned. The parameters that the Aligned Service Manager needs for checking is the complete verification data.
+We understand a Mina Proof of State to be composed of:
 
-If the Aligned Service Manager call returns true, this means that a Mina Proof of State of some candidate state (whose hash is known by the contract), checked against the Bridge’s tip state (consensus checking), was verified. Then this candidate state is now the tip state, and so its hash is stored in the contract.
+- **public inputs** (vector of bytes): `[candidate_ledger_hash, candidate_state_hash, tip_state_hash, candidate_state_length, candidate_state, tip_state_length, tip_state]`. We include the lengths of the states in bytes because these can vary, unlike the hashes which are a fixed 32 bytes.
+- **proof**: Kimchi proof of the candidate state (specifically a Wrap proof in the context of the Pickles recursive system). We like to call it “Pickles proof” for simplicity.
 
-The contract is deployed by a `contract_deployer` crate with an initial state that is the eleventh state from the Mina node [transition frontier’s](#transition-frontier) tip.
+This is the proof that the Mina state verifier in Aligned expects. 
 
-The `contract_deployer` asks the Mina node for the eleventh state and deploys the contract using that state as the initial one, assuming it is valid.
+### Serialization
 
-#### Gas cost
+The Mina Polling Service serializes a Mina Proof of State:
 
-Currently the cost of the “update tip” transaction is in between 100k and 150k gas, a big part of it being the calldata cost of sending both states data in the public inputs of the Mina Proof of State. The cost could be decreased to <100k by modifying the definition of a Mina Proof of State; sending the state data as proof data instead of public inputs. At the current phase of the project this is not a priority so this change wasn’t done yet.
+- both states (which are an OCaml structure encoded in base64, standard vocabulary) as bytes, representing the underlying UTF-8. (`serialize_protocol_state()`)
+- both state hashes (field element) as bytes (arkworks serialization). The same is done for the ledger hash. (`serialize_state_hash_field()`)
+- the candidate state proof (an OCaml structure encoded in base64, URL vocabulary) as bytes, representing the underlying UTF-8. (`serialize_protocol_state_proof()`)
 
-## Aligned’s Mina Proof of State verifier
+This data composes what we call a **Mina Proof of State**.
+
+### Aligned’s Mina Proof of State verifier
 
 [`aligned_layer repo: operator/mina/`](https://github.com/lambdaclass/aligned_layer/tree/mina/operator/mina)
 
@@ -143,19 +132,21 @@ else if candidate_block_height == tip_block_height {
 }
 
 return tip;
+
 ```
 
 If the candidate wins the comparisons, then verification continues. If not, verification fails.
 
-The full code details can be consulted in the GitHub repository link at the [top of the section](#aligneds-mina-proof-of-state-verifier). We use OpenMina’s code for hashing the consensus state.
+The full code details can be consulted in the GitHub repository link at the [top of the section](https://www.notion.so/Specification-f6941ead36fe49dca227ee3ceee972b8?pvs=21). We use OpenMina’s code for hashing the consensus state.
 
 > [!WARNING]
 > At the moment we’re unsure about other considerations or checks for the consensus checking step. We are also ignoring the finalization of the state that we verified. This step is under investigation.
 
-#### Transition frontier
+### Transition frontier
 
-The **transition frontier** is a chain of the latest `k` blocks of the network. The GraphQL DB of a Mina node only stores these blocks and forgets the previous ones. Currently, `k = 291`  
-It's common for two nodes to generate a block simultaneously, resulting in a temporary fork in the network. The network will eventually resolve this fork after a period of time.  
+The **transition frontier** is a chain of the latest `k` blocks of the network. The GraphQL DB of a Mina node only stores these blocks and forgets the previous ones. Currently, `k = 291`
+
+It's common for two nodes to generate a block simultaneously, resulting in a temporary fork in the network. The network will eventually resolve this fork after a period of time.
 
 We can define that a block is **partially finalized** if it has `n` blocks ahead of it, with `n` being the number defined for 'partial finalization'.
 
@@ -171,6 +162,67 @@ This is the last step of the Mina Proof of State verifier. We are leveraging Ope
 
 > [!WARNING]
 > OpenMina’s block verifier is yet to be audited.
+
+## Mina Proof of Account
+
+After a Mina Proof of State was verified, it’s possible to verify a Proof of Account of some Mina account in the verified state.
+
+Verifying that some account and its state is valid in a bridged Mina state is one of the basic components of a Mina to Ethereum bridge, as it not only allows to validate account data but also the execution of a [zkApp](https://docs.minaprotocol.com/zkapps/writing-a-zkapp) tracked by this account (see [zkApp Account](https://docs.minaprotocol.com/glossary#zkapp-account)), which leverages zk-SNARKs to verify (optionally private) off-chain computation on the Mina blockchain. 
+
+Account verification (paired with state verification) essentially allows to verify off-chain computation on Ethereum, after it has been validated by Mina.
+
+### Definition
+
+We understand a Mina Proof of Account to be composed of:
+
+- **public inputs** (vector of bytes): `[merkle_root, account_hash, account_id_hash]`
+- **proof**: `[merkle_proof]`
+
+Where `merkle_root` and `account_hash` are field elements, and `merkle_proof` an array of field elements with an extra leading byte that specifies if a merkle node is left or right.
+
+`account_id_hash` is the keccak256 hash of an `AccountId` type, which identifies a Mina account. It’s composed of the account’s public key (which is a ec point but saved in a compressed form: via its x coordinate an a boolean) and its token id (a field element, the poseidon hash of an integer that identifies a token on the Mina blockchain).
+
+This is the proof that the Mina account verifier in Aligned expects.  
+
+### Serialization
+
+The Mina Polling Service serializes a Mina Proof of Account:
+
+- both poseidon hashes (`merkle_root` and `account_hash` which are field elements) (field element) as bytes (arkworks serialization).
+- the keccak hash (`account_id_hash`) is already an array of 32 bytes.
+
+In the future we’ll send the account data as part of the proof so we can add information about the account in the public inputs (like the public key) and check it on the Aligned verifier.
+
+### Aligned’s Proof of Account verification
+
+[`aligned_layer repo: operator/mina_account/`](https://github.com/lambdaclass/aligned_layer/tree/mina/operator/mina_account)
+
+The verification consists in calculating the merkle root by hashing the branch (whose nodes are contained in the `merkle_path`) corresponding to the account’s leaf.
+
+> [!WARNING]
+> Currently we aren’t checking the validity of the `account_id_hash`. This will be fixed once we have the needed GraphQL query to retrieve the complete data of an account.
+
+## Smart contract
+
+[`mina_bridge repo: contract/`](https://github.com/lambdaclass/mina_bridge/tree/aligned/contract)
+
+The contract stores the Bridge’s tip state hash and exposes functions to read (`getTipStateHash()`) or update it (`updateTipState()`). It also saves a mapping `accountId -> accountHash and ledgerHash` of verified account state hashes and the ledger hash (merkle root) they were verified against, so a user can query which account state was verified to which Mina block (`getLedgerAccountPair()`), if some account is updated to the latest verified state (`isAccountUpdated()`) or update them themselves (`updateAccount()`).
+
+The Smart Contract Utility implements an API for submitting data of verified state and account proofs, to update the contract.
+
+The Bridge’s contract update functions call the Aligned Service Manager smart contract to check that the Mina Proof of State or Account was verified in Aligned. The parameters that the Aligned Service Manager needs for checking is the complete verification data:
+
+- For a Proof of State: if the Aligned Service Manager call returns true, this means that a Mina Proof of State of some candidate state (whose hash is known by the contract), checked against the Bridge’s tip state (consensus checking), was verified. Then this candidate state is now the tip state, and so its hash is stored in the contract.
+- For a Proof of Account: if the Aligned Service Manager call returns true, this means that a Mina Proof of Account of some account state (whose hash is known by the contract) corresponding to a valid account id hash was verified against some ledger hash (which is the Merkle root of the account state tree of a given Mina block). Then this account state and ledger hash paired is saved in the contract.
+
+The contract is deployed by a `contract_deployer` crate with an initial state that is the eleventh state from the Mina node [transition frontier’s](https://www.notion.so/Specification-f6941ead36fe49dca227ee3ceee972b8?pvs=21) tip.
+
+The `contract_deployer` asks the Mina node for the eleventh state and deploys the contract using that state as the initial one, assuming it is valid.
+
+### Gas cost
+
+- Currently the cost of the “update tip” transaction is in between 100k and 150k gas, a big part of it being the calldata cost of sending both states data in the public inputs of the Mina Proof of State. The cost could be decreased to <100k by modifying the definition of a Mina Proof of State; sending the state data as proof data instead of public inputs. At the current phase of the project this is not a priority so this change wasn’t done yet.
+- The cost of the “update account” transaction is ~90k the first time and ~60k when updating a previously verified account.
 
 # Kimchi proving system
 
