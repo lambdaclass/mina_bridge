@@ -1539,6 +1539,7 @@ dependencies = [
  "rpassword",
  "serde",
  "serde_json",
+ "sha3",
  "tokio",
 ]
 
