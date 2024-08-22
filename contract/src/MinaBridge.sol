@@ -36,12 +36,16 @@ contract MinaBridge {
         return tipLedgerHash;
     }
 
+    /// @notice Returns the ledger hash and account state hash pair for
+    //  a given account id.
     function getLedgerAccountPair(
         bytes32 accountIdHash
     ) external view returns (Account.LedgerAccountPair memory) {
         return accounts[accountIdHash];
     }
 
+    /// @notice Checks if some account state is verified for the latest
+    //  verified Mina state.
     function isAccountUpdated(
         bytes32 accountIdHash
     ) external view returns (bool) {
