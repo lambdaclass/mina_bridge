@@ -1045,6 +1045,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "230c5f1ca6a325a32553f8640d31ac9b49f2411e901e427570154868b46da4f7"
 
 [[package]]
+name = "bincode"
+version = "1.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1f45e9417d87227c7a56d22e471c6206462cba514c7590c09aff4cf6d1ddcad"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "binprot"
 version = "0.1.8"
 source = "git+https://github.com/openmina/binprot-rs?rev=2b5a909#2b5a9099a1c5640559d04e39899da301aebc8023"
@@ -1519,6 +1528,7 @@ dependencies = [
  "ark-poly",
  "ark-serialize 0.3.0",
  "base64 0.22.1",
+ "bincode",
  "clap",
  "dotenv",
  "env_logger",

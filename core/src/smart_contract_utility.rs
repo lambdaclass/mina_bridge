@@ -10,6 +10,7 @@ use k256::ecdsa::SigningKey;
 use kimchi::o1_utils::FieldHelpers;
 use log::{debug, error, info};
 use mina_curves::pasta::Fp;
+use mina_p2p_messages::v2::StateHash;
 
 use crate::utils::constants::{
     ANVIL_CHAIN_ID, BRIDGE_DEVNET_ETH_ADDR, BRIDGE_HOLESKY_ETH_ADDR, HOLESKY_CHAIN_ID,
@@ -219,7 +220,7 @@ pub async fn update_account(
     Ok(())
 }
 
-pub async fn get_tip_state_hash(chain: &Chain, eth_rpc_url: &str) -> Result<Fp, String> {
+pub async fn get_bridge_tip_hash(chain: &Chain, eth_rpc_url: &str) -> Result<StateHash, String> {
     let bridge_eth_addr = Address::from_str(match chain {
         Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
         Chain::Holesky => BRIDGE_HOLESKY_ETH_ADDR,
@@ -239,7 +240,9 @@ pub async fn get_tip_state_hash(chain: &Chain, eth_rpc_url: &str) -> Result<Fp, 
         .await
         .map_err(|err| err.to_string())?;
 
-    Fp::from_bytes(&state_hash).map_err(|_| "Failed to convert hash to Fp".to_string())
+    Fp::from_bytes(&state_hash)
+        .map_err(|_| "Failed to convert hash to Fp".to_string())
+        .map(StateHash::from_fp)
 }
 
 pub async fn deploy_mina_bridge_contract(
