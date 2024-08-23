@@ -277,7 +277,7 @@ pub async fn query_merkle(
     //
     // let account_id_hash = Keccak256(account_id)
     let mut hasher = sha3::Keccak256::new();
-    hasher.update(&account_hash.to_bytes());
+    hasher.update(account_hash.to_bytes());
     let account_id_hash = hasher.finalize_reset().into();
 
     Ok((ledger_hash, account_hash, merkle_proof, account_id_hash))
