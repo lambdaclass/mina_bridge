@@ -14,8 +14,6 @@ This project is being redesigned to use [Aligned Layer](https://github.com/yetan
 
 ## Usage
 
-### Bridge
-
 1. [Setup Aligned Devnet locally](https://github.com/yetanotherco/aligned_layer/blob/main/docs/guides/3_setup_aligned.md#booting-devnet-with-default-configs)
 1. Setup the `core/.env` file of the bridge's core program. A template is available in `core/.env.template`.
 1. In the root folder, deploy the bridge's contract with:
@@ -24,21 +22,65 @@ This project is being redesigned to use [Aligned Layer](https://github.com/yetan
     make deploy_contract_anvil
     ```
 
-1. Run the core program:
+1. Submit a state to verify:
 
     ```sh
-    make
+    make submit-state
     ```
+1. Submit an account to verify:
 
-### Account inclusion local verifier
-
-After verifying a Mina state, you can locally verify the inclusion of some Mina account given its public key in the bridged state.
-
-1. Run
-
-   ```sh
-   make verify_account_inclusion PUBLIC_KEY=<key>
-   ```
+    ```sh
+    make submit-account PUBLIC_KEY=<string>
+    ```
+    
+## Table of Contents
+- [About](#about)
+- [Usage](#usage)
+- [Specification](#specification)
+  * [Core](#core)
+    + [Mina Polling Service](#mina-polling-service)
+    + [Aligned Polling Service](#aligned-polling-service)
+    + [Smart Contract Utility](#smart-contract-utility)
+  * [Mina Proof of State](#mina-proof-of-state)
+    + [Definition](#definition)
+    + [Serialization](#serialization)
+    + [Aligned’s Mina Proof of State verifier](#aligneds-mina-proof-of-state-verifier)
+    + [Consensus checking](#consensus-checking)
+    + [Transition frontier](#transition-frontier)
+    + [State hash check](#state-hash-check)
+    + [Pickles verification](#pickles-verification)
+  * [Mina Proof of Account](#mina-proof-of-account)
+    + [Definition](#definition-1)
+    + [Serialization](#serialization-1)
+    + [Aligned’s Proof of Account verification](#aligneds-proof-of-account-verifier)
+  * [Smart contract](#smart-contract)
+    + [Gas cost](#gas-cost)
+- [Kimchi proving system](#kimchi-proving-system)
+  * [Proof Construction & Verification](#proof-construction---verification)
+    + [Secuence diagram linked to ``proof-systems/kimchi/src/verifier.rs``](#secuence-diagram-linked-to---proof-systems-kimchi-src-verifierrs--)
+  * [Pickles - Mina’s inductive zk-SNARK composition system](#pickles---mina-s-inductive-zk-snark-composition-system)
+    + [Accumulator](#accumulator)
+    + [Analysis of the Induction (recursion) method applied in Pickles](#analysis-of-the-induction--recursion--method-applied-in-pickles)
+    + [Pickles Technical Diagrams](#pickles-technical-diagrams)
+  * [Consensus](#consensus)
+    + [Chain selection rules](#chain-selection-rules)
+      - [Short-range fork rule](#short-range-fork-rule)
+      - [Long-range fork rule](#long-range-fork-rule)
+    + [Decentralized checkpointing](#decentralized-checkpointing)
+    + [Short-range fork check](#short-range-fork-check)
+    + [Sliding window density](#sliding-window-density)
+      - [Nomenclature](#nomenclature)
+      - [Window structure](#window-structure)
+      - [Minimum window density](#minimum-window-density)
+      - [Ring-shift](#ring-shift)
+      - [Projected window](#projected-window)
+        * [Genesis window](#genesis-window)
+        * [Relative minimum window density](#relative-minimum-window-density)
+  * [Protocol](#protocol)
+    + [Initialize consensus](#initialize-consensus)
+    + [Select chain](#select-chain)
+    + [Maintaining the k-th predecessor epoch ledger](#maintaining-the-k-th-predecessor-epoch-ledger)
+    + [Getting the tip](#getting-the-tip)
 
 # Specification
 
@@ -193,7 +235,7 @@ The Mina Polling Service serializes a Mina Proof of Account:
 
 In the future we’ll send the account data as part of the proof so we can add information about the account in the public inputs (like the public key) and check it on the Aligned verifier.
 
-### Aligned’s Proof of Account verification
+### Aligned’s Proof of Account verifier
 
 [`aligned_layer repo: operator/mina_account/`](https://github.com/lambdaclass/aligned_layer/tree/mina/operator/mina_account)
 
