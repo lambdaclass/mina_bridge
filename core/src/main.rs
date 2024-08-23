@@ -35,7 +35,7 @@ async fn main() {
         });
 
     debug!("Executing Mina polling service");
-    let mina_proof = mina_polling_service::query_and_serialize(
+    let mina_proof = mina_polling_service::get_mina_proof_of_state(
         &rpc_url,
         &proof_generator_addr,
         &chain,
