@@ -20,7 +20,8 @@ pub async fn submit(
     eth_rpc_url: &str,
     wallet: Wallet<SigningKey>,
 ) -> Result<AlignedVerificationData, String> {
-    let nonce = get_nonce(eth_rpc_url, wallet.address(), batcher_eth_addr).await?;
+    let wallet_address = wallet.address();
+    let nonce = get_nonce(eth_rpc_url, wallet_address, batcher_eth_addr).await?;
 
     let proof_type = match mina_proof.proving_system {
         ProvingSystemId::Mina => "Mina Proof of State",
@@ -29,6 +30,25 @@ pub async fn submit(
     };
 
     info!("Submitting {proof_type} into Aligned and waiting for the batch to be verified...");
+    submit_with_nonce(batcher_addr, eth_rpc_url, chain, mina_proof, wallet, nonce)
+        .await
+        .or_else(|err| {
+            let nonce_file = &get_nonce_file(wallet_address);
+            std::fs::remove_file(nonce_file)
+                .map_err(|err| format!("Error trying to remove nonce file: {err}"))?;
+
+            Err(err)
+        })
+}
+
+async fn submit_with_nonce(
+    batcher_addr: &str,
+    eth_rpc_url: &str,
+    chain: &Chain,
+    mina_proof: &VerificationData,
+    wallet: Wallet<SigningKey>,
+    nonce: U256,
+) -> Result<AlignedVerificationData, String> {
     let aligned_verification_data = submit_and_wait(
         batcher_addr,
         eth_rpc_url,
@@ -57,7 +77,7 @@ async fn get_nonce(
         .await
         .map_err(|err| err.to_string())?;
 
-    let nonce_file = &PathBuf::from(format!("nonce_{:?}.bin", address));
+    let nonce_file = &get_nonce_file(address);
 
     let local_nonce = std::fs::read(nonce_file).unwrap_or(vec![0u8; 32]);
     let local_nonce = U256::from_big_endian(local_nonce.as_slice());
@@ -76,4 +96,8 @@ async fn get_nonce(
         .map_err(|err| format!("Error writing to file in path {:?}: {err}", nonce_file))?;
 
     Ok(nonce)
+}
+
+fn get_nonce_file(address: Address) -> PathBuf {
+    PathBuf::from(format!("nonce_{:?}.bin", address))
 }
