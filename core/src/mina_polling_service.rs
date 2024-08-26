@@ -16,12 +16,11 @@ use mina_p2p_messages::{
     v2::{LedgerHash, MinaBaseProofStableV2, MinaStateProtocolStateValueStableV2, StateHash},
 };
 use mina_tree::MerklePath;
-use serde::{Deserialize, Serialize};
-use serde_with::serde_as;
 use sha3::Digest;
 
 use crate::{
-    serialization::EVMSerialize, smart_contract_utility::get_bridge_tip_hash,
+    proof::state_proof::{MinaStateProof, MinaStatePubInputs},
+    smart_contract_utility::get_bridge_tip_hash,
     utils::constants::BRIDGE_TRANSITION_FRONTIER_LEN,
 };
 
@@ -53,24 +52,6 @@ struct BestChainQuery;
 /// A query for retrieving the merkle root, leaf and path of an account
 /// included in some state.
 struct MerkleQuery;
-
-#[serde_as]
-#[derive(Serialize, Deserialize)]
-struct MinaStatePubInputs {
-    #[serde_as(as = "EVMSerialize")]
-    bridge_tip_state_hash: StateHash,
-    #[serde_as(as = "[EVMSerialize; BRIDGE_TRANSITION_FRONTIER_LEN]")]
-    candidate_chain_state_hashes: [StateHash; BRIDGE_TRANSITION_FRONTIER_LEN],
-    #[serde_as(as = "[EVMSerialize; BRIDGE_TRANSITION_FRONTIER_LEN]")]
-    candidate_chain_ledger_hashes: [LedgerHash; BRIDGE_TRANSITION_FRONTIER_LEN],
-}
-
-#[derive(Serialize, Deserialize)]
-struct MinaStateProof {
-    candidate_tip_proof: MinaBaseProofStableV2,
-    candidate_tip_state: MinaStateProtocolStateValueStableV2,
-    bridge_tip_state: MinaStateProtocolStateValueStableV2,
-}
 
 pub async fn get_mina_proof_of_state(
     rpc_url: &str,
@@ -121,9 +102,7 @@ pub async fn get_mina_proof_of_state(
         bridge_tip_state,
     };
 
-    let serializer = bincode::DefaultOptions::new()
-        .with_fixint_encoding()
-        .with_big_endian();
+    let serializer = bincode::DefaultOptions::new();
     let proof = serializer
         .serialize(&proof)
         .map_err(|err| format!("Failed to serialize state proof: {err}"))?;

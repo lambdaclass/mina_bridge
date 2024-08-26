@@ -12,5 +12,5 @@ pub mod smart_contract_utility;
 /// Internal utils.
 pub mod utils;
 
-/// Serialization
-pub mod serialization;
+/// Mina Proof of State/Account definitions and (de)serialization.
+pub mod proof;
