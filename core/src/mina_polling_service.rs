@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
 use aligned_sdk::core::types::{Chain, ProvingSystemId, VerificationData};
+use base64::prelude::*;
 use bincode::Options;
 use ethers::types::Address;
 use graphql_client::{
@@ -10,7 +11,10 @@ use graphql_client::{
 use kimchi::mina_curves::pasta::Fp;
 use kimchi::o1_utils::FieldHelpers;
 use log::{debug, info};
-use mina_p2p_messages::v2::{LedgerHash, StateHash};
+use mina_p2p_messages::{
+    binprot::BinProtRead,
+    v2::{LedgerHash, MinaBaseProofStableV2, MinaStateProtocolStateValueStableV2, StateHash},
+};
 use mina_tree::MerklePath;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
@@ -23,7 +27,6 @@ use crate::{
 
 type StateHashAsDecimal = String;
 type PrecomputedBlockProof = String;
-type ProtocolState = String;
 type FieldElem = String;
 
 #[derive(GraphQLQuery)]
@@ -64,9 +67,9 @@ struct MinaStatePubInputs {
 
 #[derive(Serialize, Deserialize)]
 struct MinaStateProof {
-    candidate_tip_proof: PrecomputedBlockProof,
-    candidate_tip_state: ProtocolState,
-    bridge_tip_state: ProtocolState,
+    candidate_tip_proof: MinaBaseProofStableV2,
+    candidate_tip_state: MinaStateProtocolStateValueStableV2,
+    bridge_tip_state: MinaStateProtocolStateValueStableV2,
 }
 
 pub async fn get_mina_proof_of_state(
@@ -190,14 +193,24 @@ pub async fn get_mina_proof_of_account(
 pub fn query_state(
     rpc_url: &str,
     variables: state_query::Variables,
-) -> Result<ProtocolState, String> {
+) -> Result<MinaStateProtocolStateValueStableV2, String> {
     debug!("Querying state {}", variables.state_hash);
     let client = reqwest::blocking::Client::new();
-    let response = post_graphql_blocking::<StateQuery, _>(&client, rpc_url, variables)
+    let proof = post_graphql_blocking::<StateQuery, _>(&client, rpc_url, variables)
         .map_err(|err| err.to_string())?
         .data
-        .ok_or("Missing state query response data".to_string())?;
-    Ok(response.protocol_state)
+        .ok_or("Missing state query response data".to_string())
+        .map(|response| response.protocol_state)
+        .and_then(|base64| {
+            BASE64_STANDARD
+                .decode(base64)
+                .map_err(|err| format!("Couldn't decode state from base64: {err}"))
+        })
+        .and_then(|binprot| {
+            MinaStateProtocolStateValueStableV2::binprot_read(&mut binprot.as_slice())
+                .map_err(|err| format!("Couldn't read state binprot: {err}"))
+        })?;
+    Ok(proof)
 }
 
 pub fn query_candidate_chain(
@@ -205,7 +218,7 @@ pub fn query_candidate_chain(
 ) -> Result<
     (
         [StateHash; BRIDGE_TRANSITION_FRONTIER_LEN],
-        PrecomputedBlockProof,
+        MinaBaseProofStableV2,
     ),
     String,
 > {
@@ -240,7 +253,16 @@ pub fn query_candidate_chain(
         .protocol_state_proof
         .base64
         .clone()
-        .ok_or("No protocol state proof".to_string())?;
+        .ok_or("No protocol state proof".to_string())
+        .and_then(|base64| {
+            BASE64_URL_SAFE
+                .decode(base64)
+                .map_err(|err| format!("Couldn't decode state proof from base64: {err}"))
+        })
+        .and_then(|binprot| {
+            MinaBaseProofStableV2::binprot_read(&mut binprot.as_slice())
+                .map_err(|err| format!("Couldn't read state proof binprot: {err}"))
+        })?;
 
     Ok((chain_hashes, protocol_state_proof))
 }

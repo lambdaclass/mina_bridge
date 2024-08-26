@@ -4,7 +4,7 @@ use mina_p2p_messages::{
 };
 use serde::{Deserialize, Serialize};
 
-/// Simple serialization for types that need to be deserialized in Solidity.
+/// Simple serialization for types that need to be deserialized in Ethereum.
 pub struct EVMSerialize;
 
 impl serde_with::SerializeAs<StateHash> for EVMSerialize {
