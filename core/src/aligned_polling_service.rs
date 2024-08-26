@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use aligned_sdk::{
-    core::types::{AlignedVerificationData, Chain, VerificationData},
+    core::types::{AlignedVerificationData, Chain, ProvingSystemId, VerificationData},
     sdk::{get_next_nonce, submit_and_wait},
 };
 use ethers::{
@@ -11,7 +11,7 @@ use ethers::{
 };
 use log::info;
 
-/// Submits a Mina proof to Aligned's batcher and waits until the batch is verified.
+/// Submits a Mina (state or account) proof to Aligned's batcher and waits until the batch is verified.
 pub async fn submit(
     mina_proof: &VerificationData,
     chain: &Chain,
@@ -23,6 +23,13 @@ pub async fn submit(
     let wallet_address = wallet.address();
     let nonce = get_nonce(eth_rpc_url, wallet_address, batcher_eth_addr).await?;
 
+    let proof_type = match mina_proof.proving_system {
+        ProvingSystemId::Mina => "Mina Proof of State",
+        ProvingSystemId::MinaAccount => "Mina Proof of Account",
+        _ => return Err("Tried to submit a non Mina proof".to_string()),
+    };
+
+    info!("Submitting {proof_type} into Aligned and waiting for the batch to be verified...");
     submit_with_nonce(batcher_addr, eth_rpc_url, chain, mina_proof, wallet, nonce)
         .await
         .or_else(|err| {
@@ -42,7 +49,6 @@ async fn submit_with_nonce(
     wallet: Wallet<SigningKey>,
     nonce: U256,
 ) -> Result<AlignedVerificationData, String> {
-    info!("Submitting Mina proof into Aligned and waiting for the batch to be verified...");
     let aligned_verification_data = submit_and_wait(
         batcher_addr,
         eth_rpc_url,
