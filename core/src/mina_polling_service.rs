@@ -1,4 +1,4 @@
-use std::str::FromStr as _;
+use std::str::FromStr;
 
 use aligned_sdk::core::types::{Chain, ProvingSystemId, VerificationData};
 use bincode::Options;
@@ -7,23 +7,24 @@ use graphql_client::{
     reqwest::{post_graphql, post_graphql_blocking},
     GraphQLQuery,
 };
+use kimchi::mina_curves::pasta::Fp;
 use kimchi::o1_utils::FieldHelpers;
 use log::{debug, info};
-use mina_curves::pasta::Fp;
-use mina_p2p_messages::v2::{LedgerHash as MerkleRoot, StateHash};
+use mina_p2p_messages::v2::{LedgerHash, StateHash};
 use mina_tree::MerklePath;
 use serde::{Deserialize, Serialize};
+use serde_with::serde_as;
 use sha3::Digest;
 
 use crate::{
-    smart_contract_utility::get_bridge_tip_hash, utils::constants::BRIDGE_TRANSITION_FRONTIER_LEN,
+    serialization::EVMSerialize, smart_contract_utility::get_bridge_tip_hash,
+    utils::constants::BRIDGE_TRANSITION_FRONTIER_LEN,
 };
 
 type StateHashAsDecimal = String;
 type PrecomputedBlockProof = String;
 type ProtocolState = String;
 type FieldElem = String;
-type LedgerHash = String;
 
 #[derive(GraphQLQuery)]
 #[graphql(
@@ -50,11 +51,15 @@ struct BestChainQuery;
 /// included in some state.
 struct MerkleQuery;
 
+#[serde_as]
 #[derive(Serialize, Deserialize)]
 struct MinaStatePubInputs {
+    #[serde_as(as = "EVMSerialize")]
     bridge_tip_state_hash: StateHash,
-    candidate_chain_state_hashes: Vec<StateHash>,
-    candidate_chain_ledger_hashes: Vec<LedgerHash>,
+    #[serde_as(as = "[EVMSerialize; BRIDGE_TRANSITION_FRONTIER_LEN]")]
+    candidate_chain_state_hashes: [StateHash; BRIDGE_TRANSITION_FRONTIER_LEN],
+    #[serde_as(as = "[EVMSerialize; BRIDGE_TRANSITION_FRONTIER_LEN]")]
+    candidate_chain_ledger_hashes: [LedgerHash; BRIDGE_TRANSITION_FRONTIER_LEN],
 }
 
 #[derive(Serialize, Deserialize)]
@@ -72,7 +77,12 @@ pub async fn get_mina_proof_of_state(
 ) -> Result<VerificationData, String> {
     let bridge_tip_state_hash = get_bridge_tip_hash(chain, eth_rpc_url).await?;
     let (candidate_chain_state_hashes, candidate_tip_proof) = query_candidate_chain(rpc_url)?;
-    let candidate_chain_ledger_hashes = Vec::new(); // TODO(xqft): create a query for this.
+
+    // TODO(xqft): this is a placeholder. Neded to create a query for this.
+    let candidate_chain_ledger_hashes = std::array::from_fn(|_| {
+        LedgerHash::from_str("jxTZ31yvGP6ZJoHbo7HAW4VFVZNLZB4uwdkcs2aHpZwudmoTsYi").unwrap()
+    });
+
     let candidate_tip_state_hash = candidate_chain_state_hashes
         .first()
         .ok_or("Missing candidate tip state hash".to_string())?;
@@ -157,7 +167,7 @@ pub async fn get_mina_proof_of_account(
 
     let pub_input = Some(
         [
-            ledger_hash.to_bytes(),
+            ledger_hash.to_fp().unwrap().to_bytes(), // TODO(xqft): this is temporary
             account_hash.to_bytes(),
             account_id_hash.to_vec(),
         ]
@@ -192,7 +202,13 @@ pub fn query_state(
 
 pub fn query_candidate_chain(
     rpc_url: &str,
-) -> Result<(Vec<StateHash>, PrecomputedBlockProof), String> {
+) -> Result<
+    (
+        [StateHash; BRIDGE_TRANSITION_FRONTIER_LEN],
+        PrecomputedBlockProof,
+    ),
+    String,
+> {
     debug!("Querying for candidate state");
     let client = reqwest::blocking::Client::new();
     let variables = best_chain_query::Variables {
@@ -217,7 +233,9 @@ pub fn query_candidate_chain(
     let chain_hashes = best_chain
         .iter()
         .map(|state| state.state_hash.clone())
-        .collect();
+        .collect::<Vec<StateHash>>()
+        .try_into()
+        .map_err(|_| "Failed to convert chain hashes vector into array".to_string())?;
     let protocol_state_proof = tip
         .protocol_state_proof
         .base64
@@ -248,7 +266,7 @@ pub async fn query_merkle(
     rpc_url: &str,
     state_hash: &str,
     public_key: &str,
-) -> Result<(Fp, Fp, Vec<MerklePath>, [u8; 32]), String> {
+) -> Result<(LedgerHash, Fp, Vec<MerklePath>, [u8; 32]), String> {
     debug!("Querying merkle root, leaf and path of account {public_key} of state {state_hash}");
     let client = reqwest::Client::new();
 
@@ -267,16 +285,11 @@ pub async fn query_merkle(
         .account
         .ok_or("Missing merkle query account".to_string())?;
 
-    let ledger_hash = MerkleRoot::from_str(
-        &response
-            .block
-            .protocol_state
-            .blockchain_state
-            .staged_ledger_hash,
-    )
-    .map_err(|_| "Error deserializing leaf hash".to_string())?
-    .to_fp()
-    .map_err(|_| "Error decoding leaf hash into fp".to_string())?;
+    let ledger_hash = response
+        .block
+        .protocol_state
+        .blockchain_state
+        .staged_ledger_hash;
 
     let account_hash = Fp::from_str(&account.leaf_hash.ok_or("Missing merkle query leaf hash")?)
         .map_err(|_| "Error deserializing leaf hash".to_string())?;

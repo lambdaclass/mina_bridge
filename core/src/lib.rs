@@ -11,3 +11,6 @@ pub mod smart_contract_utility;
 
 /// Internal utils.
 pub mod utils;
+
+/// Serialization
+pub mod serialization;
