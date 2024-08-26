@@ -79,7 +79,7 @@ dependencies = [
 [[package]]
 name = "aligned-sdk"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/aligned_layer.git?branch=mina#ce5f8421a2994013599ef992308bd175b3c47d4d"
+source = "git+https://github.com/lambdaclass/aligned_layer.git?branch=fix_mina_account_ld#2c1cd4040d5911c33920fd4a0ed9cf46493e65eb"
 dependencies = [
  "ethers",
  "futures-util",
