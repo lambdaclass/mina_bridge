@@ -1,4 +1,4 @@
-.PHONY: run gen_contract_abi deploy_contract
+.PHONY: submit-state submit-account gen_contract_abi deploy_contract
 
 submit-state:
 	@cargo run --manifest-path core/Cargo.toml --release -- submit-state
