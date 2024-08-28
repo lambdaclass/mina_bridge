@@ -1525,6 +1525,7 @@ dependencies = [
  "dotenv",
  "env_logger",
  "ethers",
+ "futures",
  "graphql_client",
  "hex",
  "kimchi",

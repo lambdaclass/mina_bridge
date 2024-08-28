@@ -2,8 +2,8 @@ use std::str::FromStr;
 
 use aligned_sdk::core::types::{Chain, ProvingSystemId, VerificationData};
 use base64::prelude::*;
-use bincode::Options;
 use ethers::types::Address;
+use futures::future::join_all;
 use graphql_client::{
     reqwest::{post_graphql, post_graphql_blocking},
     GraphQLQuery,
@@ -60,12 +60,12 @@ pub async fn get_mina_proof_of_state(
     eth_rpc_url: &str,
 ) -> Result<VerificationData, String> {
     let bridge_tip_state_hash = get_bridge_tip_hash(chain, eth_rpc_url).await?;
-    let (candidate_chain_state_hashes, candidate_tip_proof) = query_candidate_chain(rpc_url)?;
-
-    // TODO(xqft): this is a placeholder. Neded to create a query for this.
-    let candidate_chain_ledger_hashes = std::array::from_fn(|_| {
-        LedgerHash::from_str("jxTZ31yvGP6ZJoHbo7HAW4VFVZNLZB4uwdkcs2aHpZwudmoTsYi").unwrap()
-    });
+    let (
+        candidate_chain_states,
+        candidate_chain_state_hashes,
+        candidate_chain_ledger_hashes,
+        candidate_tip_proof,
+    ) = query_candidate_chain(rpc_url).await?;
 
     let candidate_tip_state_hash = candidate_chain_state_hashes
         .first()
@@ -75,19 +75,7 @@ pub async fn get_mina_proof_of_state(
         return Err("Candidate chain is already verified".to_string());
     }
 
-    let bridge_tip_state = query_state(
-        rpc_url,
-        state_query::Variables {
-            state_hash: bridge_tip_state_hash.to_string(),
-        },
-    )?;
-
-    let candidate_tip_state = query_state(
-        rpc_url,
-        state_query::Variables {
-            state_hash: candidate_tip_state_hash.to_string(),
-        },
-    )?;
+    let bridge_tip_state = query_state(rpc_url, &bridge_tip_state_hash).await?;
 
     info!("Queried Mina candidate chain with tip {candidate_tip_state_hash} and its proof");
 
@@ -98,17 +86,14 @@ pub async fn get_mina_proof_of_state(
     };
     let proof = MinaStateProof {
         candidate_tip_proof,
-        candidate_tip_state,
+        candidate_chain_states,
         bridge_tip_state,
     };
 
-    let serializer = bincode::DefaultOptions::new();
-    let proof = serializer
-        .serialize(&proof)
+    let proof = bincode::serialize(&proof)
         .map_err(|err| format!("Failed to serialize state proof: {err}"))?;
     let pub_input = Some(
-        serializer
-            .serialize(&pub_input)
+        bincode::serialize(&pub_input)
             .map_err(|err| format!("Failed to serialize public inputs: {err}"))?,
     );
 
@@ -169,13 +154,17 @@ pub async fn get_mina_proof_of_account(
     })
 }
 
-pub fn query_state(
+pub async fn query_state(
     rpc_url: &str,
-    variables: state_query::Variables,
+    state_hash: &StateHash,
 ) -> Result<MinaStateProtocolStateValueStableV2, String> {
+    let variables = state_query::Variables {
+        state_hash: state_hash.to_string(),
+    };
     debug!("Querying state {}", variables.state_hash);
-    let client = reqwest::blocking::Client::new();
-    let proof = post_graphql_blocking::<StateQuery, _>(&client, rpc_url, variables)
+    let client = reqwest::Client::new();
+    let proof = post_graphql::<StateQuery, _>(&client, rpc_url, variables)
+        .await
         .map_err(|err| err.to_string())?
         .data
         .ok_or("Missing state query response data".to_string())
@@ -192,11 +181,13 @@ pub fn query_state(
     Ok(proof)
 }
 
-pub fn query_candidate_chain(
+pub async fn query_candidate_chain(
     rpc_url: &str,
 ) -> Result<
     (
+        [MinaStateProtocolStateValueStableV2; BRIDGE_TRANSITION_FRONTIER_LEN],
         [StateHash; BRIDGE_TRANSITION_FRONTIER_LEN],
+        [LedgerHash; BRIDGE_TRANSITION_FRONTIER_LEN],
         MinaBaseProofStableV2,
     ),
     String,
@@ -221,18 +212,45 @@ pub fn query_candidate_chain(
             best_chain.len()
         ));
     }
-    let tip = best_chain.first().ok_or("Missing best chain".to_string())?;
-    let chain_hashes = best_chain
+    let chain_state_hashes: [StateHash; BRIDGE_TRANSITION_FRONTIER_LEN] = best_chain
         .iter()
         .map(|state| state.state_hash.clone())
         .collect::<Vec<StateHash>>()
         .try_into()
-        .map_err(|_| "Failed to convert chain hashes vector into array".to_string())?;
-    let protocol_state_proof = tip
+        .map_err(|_| "Failed to convert chain state hashes vector into array".to_string())?;
+    let chain_ledger_hashes: [LedgerHash; BRIDGE_TRANSITION_FRONTIER_LEN] = best_chain
+        .iter()
+        .map(|state| {
+            state
+                .protocol_state
+                .blockchain_state
+                .staged_ledger_hash
+                .clone()
+        })
+        .collect::<Vec<LedgerHash>>()
+        .try_into()
+        .map_err(|_| "Failed to convert chain ledger hashes vector into array".to_string())?;
+
+    let chain_states = join_all(
+        chain_state_hashes
+            .iter()
+            .map(|state_hash| query_state(rpc_url, state_hash)),
+    )
+    .await
+    .into_iter()
+    .collect::<Result<Vec<_>, _>>()
+    .and_then(|states| {
+        states
+            .try_into()
+            .map_err(|_| "Couldn't convert vector of states to array".to_string())
+    })?;
+
+    let tip = best_chain.first().ok_or("Missing best chain".to_string())?;
+    let tip_state_proof = tip
         .protocol_state_proof
         .base64
         .clone()
-        .ok_or("No protocol state proof".to_string())
+        .ok_or("No tip state proof".to_string())
         .and_then(|base64| {
             BASE64_URL_SAFE
                 .decode(base64)
@@ -243,7 +261,12 @@ pub fn query_candidate_chain(
                 .map_err(|err| format!("Couldn't read state proof binprot: {err}"))
         })?;
 
-    Ok((chain_hashes, protocol_state_proof))
+    Ok((
+        chain_states,
+        chain_state_hashes,
+        chain_ledger_hashes,
+        tip_state_proof,
+    ))
 }
 
 pub async fn query_root(rpc_url: &str, length: usize) -> Result<StateHashAsDecimal, String> {
