@@ -2,4 +2,4 @@
 pub mod state_proof;
 
 /// Proof (de)serialization.
-mod serialization;
+pub mod serialization;
