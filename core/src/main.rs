@@ -1,9 +1,9 @@
 use clap::{Parser, Subcommand};
-use core::{
+use log::{error, info};
+use mina_bridge_core::{
     aligned_polling_service, mina_polling_service, smart_contract_utility,
     utils::{env::EnvironmentVariables, wallet::get_wallet},
 };
-use log::{error, info};
 use mina_p2p_messages::v2::StateHash;
 use std::{process, time::SystemTime};
 

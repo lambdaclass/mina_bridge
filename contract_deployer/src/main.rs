@@ -1,4 +1,4 @@
-use core::{
+use mina_bridge_core::{
     mina_polling_service::query_root,
     smart_contract_utility::{deploy_mina_bridge_contract, MinaBridgeConstructorArgs},
     utils::{
