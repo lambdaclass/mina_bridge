@@ -68,7 +68,7 @@ pub async fn get_mina_proof_of_state(
     ) = query_candidate_chain(rpc_url).await?;
 
     let candidate_tip_state_hash = candidate_chain_state_hashes
-        .first()
+        .last()
         .ok_or("Missing candidate tip state hash".to_string())?;
 
     if bridge_tip_state_hash == *candidate_tip_state_hash {
@@ -245,7 +245,7 @@ pub async fn query_candidate_chain(
             .map_err(|_| "Couldn't convert vector of states to array".to_string())
     })?;
 
-    let tip = best_chain.first().ok_or("Missing best chain".to_string())?;
+    let tip = best_chain.last().ok_or("Missing best chain".to_string())?;
     let tip_state_proof = tip
         .protocol_state_proof
         .base64
