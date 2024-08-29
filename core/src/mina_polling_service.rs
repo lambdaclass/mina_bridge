@@ -269,7 +269,7 @@ pub async fn query_candidate_chain(
     ))
 }
 
-pub async fn query_root(rpc_url: &str, length: usize) -> Result<StateHashAsDecimal, String> {
+pub async fn query_root(rpc_url: &str, length: usize) -> Result<StateHash, String> {
     let client = reqwest::Client::new();
     let variables = best_chain_query::Variables {
         max_length: length as i64,
@@ -283,7 +283,7 @@ pub async fn query_root(rpc_url: &str, length: usize) -> Result<StateHashAsDecim
         .best_chain
         .ok_or("Missing best chain field".to_string())?;
     let root = best_chain.first().ok_or("No root state")?;
-    Ok(root.state_hash_field.clone())
+    Ok(root.state_hash.clone())
 }
 
 pub async fn query_merkle(

@@ -10,10 +10,16 @@ error AccountIsNotValid(bytes32 accountIdHash);
 
 /// @title Mina to Ethereum Bridge's smart contract.
 contract MinaBridge {
-    /// @notice The state hash of the last verified state as a Fp.
-    bytes32 tipStateHash;
-    /// @notice The ledger hash of the last verified state as a Fp.
-    bytes32 tipLedgerHash;
+    /// @notice The length of the verified state chain (also called the bridge's transition
+    /// frontier) to store.
+    uint public constant BRIDGE_TRANSITION_FRONTIER_LEN = 16;
+
+    /// @notice The state hash of the last verified chain of Mina states (also called
+    /// the bridge's transition frontier).
+    bytes32[BRIDGE_TRANSITION_FRONTIER_LEN] chainStateHashes;
+    /// @notice The ledger hash of the last verified chain of Mina states (also called
+    /// the bridge's transition frontier).
+    bytes32[BRIDGE_TRANSITION_FRONTIER_LEN] chainLedgerHashes;
 
     /// @notice mapping of a keccak256(TokenId) => verified account hash and its ledger hash.
     mapping(bytes32 => Account.LedgerAccountPair) accounts;
@@ -23,17 +29,12 @@ contract MinaBridge {
 
     constructor(address _alignedServiceAddr, bytes32 _tipStateHash) {
         aligned = AlignedLayerServiceManager(_alignedServiceAddr);
-        tipStateHash = _tipStateHash;
+        chainStateHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1] = _tipStateHash;
     }
 
     /// @notice Returns the last verified state hash.
     function getTipStateHash() external view returns (bytes32) {
-        return tipStateHash;
-    }
-
-    /// @notice Returns the last verified ledger hash.
-    function getTipLedgerHash() external view returns (bytes32) {
-        return tipLedgerHash;
+        return chainStateHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1];
     }
 
     /// @notice Returns the ledger hash and account state hash pair for
@@ -49,7 +50,9 @@ contract MinaBridge {
     function isAccountUpdated(
         bytes32 accountIdHash
     ) external view returns (bool) {
-        return accounts[accountIdHash].ledgerHash == tipLedgerHash;
+        return
+            accounts[accountIdHash].ledgerHash ==
+            chainLedgerHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1];
     }
 
     function updateTipState(
@@ -61,13 +64,19 @@ contract MinaBridge {
         uint256 verificationDataBatchIndex,
         bytes memory pubInput
     ) external {
-        bytes32 pubInputTipStateHash;
+        bytes32 pubInputBridgeTipStateHash;
         assembly {
-            pubInputTipStateHash := mload(add(pubInput, 0x60))
+            pubInputBridgeTipStateHash := mload(add(pubInput, 0x20))
         }
 
-        if (pubInputTipStateHash != tipStateHash) {
-            revert TipStateIsWrong(pubInputTipStateHash, tipStateHash);
+        if (
+            pubInputBridgeTipStateHash !=
+            chainLedgerHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1]
+        ) {
+            revert TipStateIsWrong(
+                pubInputBridgeTipStateHash,
+                chainLedgerHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1]
+            );
         }
 
         bytes32 pubInputCommitment = keccak256(pubInput);
@@ -83,11 +92,24 @@ contract MinaBridge {
         );
 
         if (isNewStateVerified) {
-            // first 32 bytes of pub input is the candidate (now verified) ledger hash.
-            // second 32 bytes of pub input is the candidate (now verified) state hash.
+            // store the verified state and ledger hashes
             assembly {
-                sstore(tipLedgerHash.slot, mload(add(pubInput, 0x20)))
-                sstore(tipStateHash.slot, mload(add(pubInput, 0x40)))
+                for {
+                    let i := 0
+                } lt(i, BRIDGE_TRANSITION_FRONTIER_LEN) {
+                    i := add(i, 1)
+                } {
+                    let state_ptr := add(pubInput, 0x40)
+                    let ledger_ptr := add(
+                        pubInput,
+                        add(0x40, mul(0x20, BRIDGE_TRANSITION_FRONTIER_LEN))
+                    )
+
+                    sstore(add(chainStateHashes.slot, i), mload(state_ptr))
+                    state_ptr := add(state_ptr, 0x20)
+                    sstore(add(chainLedgerHashes.slot, i), mload(ledger_ptr))
+                    ledger_ptr := add(ledger_ptr, 0x20)
+                }
             }
         } else {
             revert NewStateIsNotValid();
