@@ -1,3 +1,4 @@
+pub mod account;
 pub mod constants;
 pub mod env;
 pub mod wallet;
