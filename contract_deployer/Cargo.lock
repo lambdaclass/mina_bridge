@@ -73,7 +73,25 @@ dependencies = [
 [[package]]
 name = "aligned-sdk"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/aligned_layer.git?branch=mina#08a220c3723a0117923281401a632fd3fb74657e"
+source = "git+https://github.com/lambdaclass/aligned_layer.git?branch=account_inclusion_verifier#66fc5d3df92634d2212af9f29f014f9e009c09be"
+dependencies = [
+ "ethers",
+ "futures-util",
+ "hex",
+ "lambdaworks-crypto",
+ "log",
+ "serde",
+ "serde_json",
+ "sha3",
+ "tokio",
+ "tokio-tungstenite 0.23.1",
+ "url",
+]
+
+[[package]]
+name = "aligned-sdk"
+version = "0.1.0"
+source = "git+https://github.com/lambdaclass/aligned_layer.git?branch=mina#ce5f8421a2994013599ef992308bd175b3c47d4d"
 dependencies = [
  "ethers",
  "futures-util",
@@ -1331,6 +1349,46 @@ dependencies = [
 ]
 
 [[package]]
+name = "clap"
+version = "4.5.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ed6719fffa43d0d87e5fd8caeab59be1554fb028cd30edc88fc4369b17971019"
+dependencies = [
+ "clap_builder",
+ "clap_derive",
+]
+
+[[package]]
+name = "clap_builder"
+version = "4.5.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "216aec2b177652e3846684cbfe25c9964d18ec45234f0f5da5157b207ed1aab6"
+dependencies = [
+ "anstream",
+ "anstyle",
+ "clap_lex",
+ "strsim 0.11.1",
+]
+
+[[package]]
+name = "clap_derive"
+version = "4.5.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "501d359d5f3dcaf6ecdeee48833ae73ec6e42723a1e52419c79abf9507eec0a0"
+dependencies = [
+ "heck 0.5.0",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.74",
+]
+
+[[package]]
+name = "clap_lex"
+version = "0.7.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1462739cb27611015575c0c11df5df7601141071f07518d56fcc1be504cbec97"
+
+[[package]]
 name = "cobs"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1451,7 +1509,7 @@ checksum = "f7144d30dcf0fafbce74250a3963025d8d52177934239851c917d29f1df280c2"
 name = "contract_deployer"
 version = "0.1.0"
 dependencies = [
- "aligned-sdk",
+ "aligned-sdk 0.1.0 (git+https://github.com/lambdaclass/aligned_layer.git?branch=account_inclusion_verifier)",
  "core",
  "env_logger",
  "ethers",
@@ -1472,13 +1530,14 @@ checksum = "6245d59a3e82a7fc217c5828a6692dbc6dfb63a0c8c90495621f7b9d79704a0e"
 name = "core"
 version = "0.1.0"
 dependencies = [
- "aligned-sdk",
+ "aligned-sdk 0.1.0 (git+https://github.com/lambdaclass/aligned_layer.git?branch=mina)",
  "alloy",
  "ark-ec",
  "ark-ff 0.3.0",
  "ark-poly",
  "ark-serialize 0.3.0",
  "base64 0.22.1",
+ "clap",
  "dotenv",
  "env_logger",
  "ethers",
@@ -1488,6 +1547,7 @@ dependencies = [
  "log",
  "mina-curves",
  "mina-p2p-messages",
+ "mina-signer",
  "mina-tree",
  "num-bigint",
  "o1-utils 0.1.0 (git+https://github.com/lambdaclass/proof-systems?branch=add-verifier-serializations)",
@@ -1497,6 +1557,7 @@ dependencies = [
  "rpassword",
  "serde",
  "serde_json",
+ "sha3",
  "tokio",
 ]
 

@@ -1,0 +1,16 @@
+query MerkleQuery($stateHash: String!, $publicKey: String!) {
+    account(publicKey: $publicKey) {
+        leafHash
+        merklePath {
+            left
+            right
+        }
+    }
+    block(stateHash: $stateHash) {
+        protocolState {
+            blockchainState {
+                stagedLedgerHash
+            }
+        }
+    }
+    }

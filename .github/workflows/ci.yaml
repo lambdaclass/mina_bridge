@@ -13,10 +13,3 @@ jobs:
         with:
             skip_run: true
             directory: core
-    
-    account_inclusion:
-        name: Test Account Inclusion
-        uses: ./.github/workflows/rust_ci.yaml
-        with:
-            skip_run: true
-            directory: account_inclusion
