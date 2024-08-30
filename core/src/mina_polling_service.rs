@@ -59,7 +59,7 @@ pub async fn get_mina_proof_of_state(
     chain: &Chain,
     eth_rpc_url: &str,
 ) -> Result<VerificationData, String> {
-    let bridge_tip_state_hash = get_bridge_tip_hash(chain, eth_rpc_url).await?;
+    let bridge_tip_state_hash = get_bridge_tip_hash(chain, eth_rpc_url).await?.0;
     let (
         candidate_chain_states,
         candidate_chain_state_hashes,
@@ -117,7 +117,7 @@ pub async fn get_mina_proof_of_account(
     chain: &Chain,
     eth_rpc_url: &str,
 ) -> Result<VerificationData, String> {
-    let state_hash = get_bridge_tip_hash(chain, eth_rpc_url).await?;
+    let state_hash = get_bridge_tip_hash(chain, eth_rpc_url).await?.0;
     let (ledger_hash, account_hash, merkle_proof, account_id_hash) =
         query_merkle(rpc_url, &state_hash.to_string(), public_key).await?;
 

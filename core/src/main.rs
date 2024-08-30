@@ -116,7 +116,7 @@ async fn main() {
             });
 
             info!(
-                "Success! verified Mina state hash {} was stored in the bridge's smart contract",
+                "Success! verified Mina chain with tip {} was stored in the bridge's smart contract",
                 StateHash::from_fp(verified_state_hash)
             );
         }

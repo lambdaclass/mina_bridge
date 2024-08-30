@@ -2,8 +2,7 @@ use aligned_sdk::core::types::Chain;
 use log::{debug, error, info};
 use mina_bridge_core::{
     mina_polling_service::query_root,
-    proof::serialization::EVMSerialize,
-    smart_contract_utility::{deploy_mina_bridge_contract, MinaBridgeConstructorArgs},
+    smart_contract_utility::{deploy_mina_bridge_contract, MinaBridgeConstructorArgs, RootHash},
     utils::{
         constants::{
             ALIGNED_SM_DEVNET_ETH_ADDR, ALIGNED_SM_HOLESKY_ETH_ADDR, BRIDGE_TRANSITION_FRONTIER_LEN,
@@ -12,14 +11,7 @@ use mina_bridge_core::{
         wallet_alloy::get_wallet,
     },
 };
-use mina_p2p_messages::v2::StateHash;
-use serde::Serialize;
-use serde_with::serde_as;
 use std::process;
-
-#[serde_as]
-#[derive(Serialize)]
-struct RootHash(#[serde_as(as = "EVMSerialize")] pub StateHash);
 
 #[tokio::main]
 async fn main() {

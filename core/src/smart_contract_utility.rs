@@ -11,9 +11,14 @@ use kimchi::o1_utils::FieldHelpers;
 use log::{debug, error, info};
 use mina_curves::pasta::Fp;
 use mina_p2p_messages::v2::StateHash;
+use serde::{Deserialize, Serialize};
+use serde_with::serde_as;
 
-use crate::utils::constants::{
-    ANVIL_CHAIN_ID, BRIDGE_DEVNET_ETH_ADDR, BRIDGE_HOLESKY_ETH_ADDR, HOLESKY_CHAIN_ID,
+use crate::{
+    proof::serialization::EVMSerialize,
+    utils::constants::{
+        ANVIL_CHAIN_ID, BRIDGE_DEVNET_ETH_ADDR, BRIDGE_HOLESKY_ETH_ADDR, HOLESKY_CHAIN_ID,
+    },
 };
 
 abigen!(MinaBridgeEthereumContract, "abi/MinaBridge.json");
@@ -29,6 +34,10 @@ sol!(
     MinaBridge,
     "abi/MinaBridge.json"
 );
+
+#[serde_as]
+#[derive(Serialize, Deserialize)]
+pub struct RootHash(#[serde_as(as = "EVMSerialize")] pub StateHash);
 
 pub struct MinaBridgeConstructorArgs {
     aligned_service_addr: alloy::primitives::Address,
@@ -220,7 +229,7 @@ pub async fn update_account(
     Ok(())
 }
 
-pub async fn get_bridge_tip_hash(chain: &Chain, eth_rpc_url: &str) -> Result<StateHash, String> {
+pub async fn get_bridge_tip_hash(chain: &Chain, eth_rpc_url: &str) -> Result<RootHash, String> {
     let bridge_eth_addr = Address::from_str(match chain {
         Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
         Chain::Holesky => BRIDGE_HOLESKY_ETH_ADDR,
@@ -234,15 +243,16 @@ pub async fn get_bridge_tip_hash(chain: &Chain, eth_rpc_url: &str) -> Result<Sta
     debug!("Creating contract instance");
     let mina_bridge_contract = mina_bridge_contract_call_only(eth_rpc_url, bridge_eth_addr)?;
 
-    debug!("Getting contract stored hash");
-    let state_hash = mina_bridge_contract
+    let state_hash_bytes = mina_bridge_contract
         .get_tip_state_hash()
         .await
         .map_err(|err| err.to_string())?;
 
-    Fp::from_bytes(&state_hash)
-        .map_err(|_| "Failed to convert hash to Fp".to_string())
-        .map(StateHash::from_fp)
+    let state_hash: RootHash = bincode::deserialize(&state_hash_bytes)
+        .map_err(|err| format!("Failed to deserialize bridge tip state hash: {err}"))?;
+    info!("Retrieved bridge tip state hash: {}", state_hash.0,);
+
+    Ok(state_hash)
 }
 
 pub async fn deploy_mina_bridge_contract(

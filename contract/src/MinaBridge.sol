@@ -71,11 +71,11 @@ contract MinaBridge {
 
         if (
             pubInputBridgeTipStateHash !=
-            chainLedgerHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1]
+            chainStateHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1]
         ) {
             revert TipStateIsWrong(
                 pubInputBridgeTipStateHash,
-                chainLedgerHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1]
+                chainStateHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1]
             );
         }
 
