@@ -55,6 +55,11 @@ contract MinaBridge {
             chainLedgerHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1];
     }
 
+    /// @notice Returns the last verified ledger hash.
+    function getTipLedgerHash() external view returns (bytes32) {
+        return chainLedgerHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1];
+    }
+
     function updateTipState(
         bytes32 proofCommitment,
         bytes32 provingSystemAuxDataCommitment,
