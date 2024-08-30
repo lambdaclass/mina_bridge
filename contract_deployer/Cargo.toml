@@ -16,7 +16,7 @@ ethers = { tag = "v2.0.15-fix-reconnections", features = [
 mina-curves = { git = "https://github.com/openmina/proof-systems", branch = "ledger-newtypes-rampup4-vrf" }
 o1-utils = { git = "https://github.com/lambdaclass/proof-systems", branch = "add-verifier-serializations" }
 kimchi = { git = "https://github.com/openmina/proof-systems", branch = "ledger-newtypes-rampup4-vrf" }
-aligned-sdk = { git = "https://github.com/lambdaclass/aligned_layer.git", branch = "account_inclusion_verifier" }
+aligned-sdk = { git = "https://github.com/lambdaclass/aligned_layer.git", branch = "mina" }
 
 [patch.crates-io]
 ark-ff = { git = "https://github.com/openmina/algebra", branch = "openmina" }
