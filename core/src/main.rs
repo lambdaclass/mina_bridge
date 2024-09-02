@@ -142,7 +142,7 @@ async fn main() {
                 process::exit(1);
             });
 
-            smart_contract_utility::update_account(
+            let is_account_verified = smart_contract_utility::is_account_verified(
                 verification_data,
                 pub_input,
                 &chain,
@@ -155,7 +155,14 @@ async fn main() {
                 process::exit(1);
             });
 
-            info!("Success! verified Mina account state was stored in the bridge's smart contract");
+            info!(
+                "Mina account {public_key} was {} on Aligned!",
+                if is_account_verified {
+                    "verified"
+                } else {
+                    "not verified"
+                }
+            );
         }
     }
 
