@@ -108,21 +108,31 @@ contract MinaBridge {
         if (isNewStateVerified) {
             // store the verified state and ledger hashes
             assembly {
+                let slot_states := chainStateHashes.slot
+                let slot_ledgers := chainLedgerHashes.slot
+
+                // first 32 bytes is length of byte array.
+                // second 32 bytes is the bridge tip state hash
+                // the next BRIDGE_TRANSITION_FRONTIER_LEN sets of 32 bytes are state hashes.
+                let addr_states := add(pubInput, 64)
+                // the next BRIDGE_TRANSITION_FRONTIER_LEN sets of 32 bytes are ledger hashes.
+                let addr_ledgers := add(
+                    addr_states,
+                    mul(32, BRIDGE_TRANSITION_FRONTIER_LEN)
+                )
+
                 for {
                     let i := 0
                 } lt(i, BRIDGE_TRANSITION_FRONTIER_LEN) {
                     i := add(i, 1)
                 } {
-                    let state_ptr := add(pubInput, 0x40)
-                    let ledger_ptr := add(
-                        pubInput,
-                        add(0x40, mul(0x20, BRIDGE_TRANSITION_FRONTIER_LEN))
-                    )
+                    sstore(slot_states, mload(addr_states))
+                    addr_states := add(addr_states, 32)
+                    slot_states := add(slot_states, 1)
 
-                    sstore(add(chainStateHashes.slot, i), mload(state_ptr))
-                    state_ptr := add(state_ptr, 0x20)
-                    sstore(add(chainLedgerHashes.slot, i), mload(ledger_ptr))
-                    ledger_ptr := add(ledger_ptr, 0x20)
+                    sstore(slot_ledgers, mload(addr_ledgers))
+                    addr_ledgers := add(addr_ledgers, 32)
+                    slot_ledgers := add(slot_ledgers, 1)
                 }
             }
         } else {
