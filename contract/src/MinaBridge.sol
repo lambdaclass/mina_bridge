@@ -37,6 +37,15 @@ contract MinaBridge {
         return chainStateHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1];
     }
 
+    /// @notice Returns the latest verified chain state hashes.
+    function getChainStateHashes()
+        external
+        view
+        returns (bytes32[BRIDGE_TRANSITION_FRONTIER_LEN] memory)
+    {
+        return chainStateHashes;
+    }
+
     /// @notice Returns the ledger hash and account state hash pair for
     //  a given account id.
     function getLedgerAccountPair(
@@ -60,7 +69,7 @@ contract MinaBridge {
         return chainLedgerHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1];
     }
 
-    function updateTipState(
+    function updateChain(
         bytes32 proofCommitment,
         bytes32 provingSystemAuxDataCommitment,
         bytes20 proofGeneratorAddr,

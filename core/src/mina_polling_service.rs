@@ -55,10 +55,9 @@ struct MerkleQuery;
 
 pub async fn get_mina_proof_of_state(
     rpc_url: &str,
-    proof_generator_addr: &str,
     chain: &Chain,
     eth_rpc_url: &str,
-) -> Result<VerificationData, String> {
+) -> Result<(MinaStateProof, MinaStatePubInputs), String> {
     let bridge_tip_state_hash = get_bridge_tip_hash(chain, eth_rpc_url).await?.0;
     let (
         candidate_chain_states,
@@ -79,35 +78,18 @@ pub async fn get_mina_proof_of_state(
 
     info!("Queried Mina candidate chain with tip {candidate_tip_state_hash} and its proof");
 
-    let pub_input = MinaStatePubInputs {
-        bridge_tip_state_hash,
-        candidate_chain_state_hashes,
-        candidate_chain_ledger_hashes,
-    };
-    let proof = MinaStateProof {
-        candidate_tip_proof,
-        candidate_chain_states,
-        bridge_tip_state,
-    };
-
-    let proof = bincode::serialize(&proof)
-        .map_err(|err| format!("Failed to serialize state proof: {err}"))?;
-    let pub_input = Some(
-        bincode::serialize(&pub_input)
-            .map_err(|err| format!("Failed to serialize public inputs: {err}"))?,
-    );
-
-    let proof_generator_addr =
-        Address::from_str(proof_generator_addr).map_err(|err| err.to_string())?;
-
-    Ok(VerificationData {
-        proving_system: ProvingSystemId::Mina,
-        proof,
-        pub_input,
-        verification_key: None,
-        vm_program_code: None,
-        proof_generator_addr,
-    })
+    Ok((
+        MinaStateProof {
+            candidate_tip_proof,
+            candidate_chain_states,
+            bridge_tip_state,
+        },
+        MinaStatePubInputs {
+            bridge_tip_state_hash,
+            candidate_chain_state_hashes,
+            candidate_chain_ledger_hashes,
+        },
+    ))
 }
 
 pub async fn get_mina_proof_of_account(
