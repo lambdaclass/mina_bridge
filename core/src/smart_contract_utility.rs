@@ -145,7 +145,7 @@ pub async fn update_chain(
 
     // TODO(xqft): do the same for ledger hashes
     debug!("Getting chain state hashes");
-    let new_chain_state_hashes = get_bridge_chain_state_hashes(&chain, &eth_rpc_url)
+    let new_chain_state_hashes = get_bridge_chain_state_hashes(chain, eth_rpc_url)
         .await
         .map_err(|err| err.to_string())?;
 
@@ -303,7 +303,7 @@ pub async fn get_bridge_chain_state_hashes(
         .and_then(|hashes| {
             hashes
                 .try_into()
-                .map_err(|_| format!("Failed to convert chain state hashes vec into array"))
+                .map_err(|_| "Failed to convert chain state hashes vec into array".to_string())
         })
 }
 

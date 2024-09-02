@@ -13,7 +13,8 @@ use log::{error, info};
 
 use crate::proof::state_proof::{MinaStateProof, MinaStatePubInputs};
 
-/// Submits a Mina (state or account) proof to Aligned's batcher and waits until the batch is verified.
+/// Submits a Mina state proof to Aligned's batcher and waits until the batch is verified.
+#[allow(clippy::too_many_arguments)]
 pub async fn submit_state_proof(
     proof: &MinaStateProof,
     pub_input: &MinaStatePubInputs,
