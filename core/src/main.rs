@@ -147,7 +147,6 @@ async fn main() {
                 pub_input,
                 &chain,
                 &eth_rpc_url,
-                wallet,
             )
             .await
             .unwrap_or_else(|err| {

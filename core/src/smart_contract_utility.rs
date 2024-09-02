@@ -167,7 +167,6 @@ pub async fn is_account_verified(
     pub_input: Vec<u8>,
     chain: &Chain,
     eth_rpc_url: &str,
-    wallet: Wallet<SigningKey>,
 ) -> Result<bool, String> {
     let bridge_eth_addr = Address::from_str(match chain {
         Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
