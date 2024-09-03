@@ -1,29 +1,32 @@
-use std::str::FromStr as _;
+use std::str::FromStr;
 
 use aligned_sdk::core::types::{Chain, ProvingSystemId, VerificationData};
 use base64::prelude::*;
 use ethers::types::Address;
+use futures::future::join_all;
 use graphql_client::{
     reqwest::{post_graphql, post_graphql_blocking},
     GraphQLQuery,
 };
-use kimchi::{o1_utils::FieldHelpers, turshi::helper::CairoFieldHelpers};
+use kimchi::mina_curves::pasta::Fp;
+use kimchi::o1_utils::FieldHelpers;
 use log::{debug, info};
-use mina_curves::pasta::Fp;
 use mina_p2p_messages::{
     binprot::BinProtRead,
-    v2::{LedgerHash as MerkleRoot, MinaStateProtocolStateValueStableV2, StateHash},
+    v2::{LedgerHash, MinaBaseProofStableV2, MinaStateProtocolStateValueStableV2, StateHash},
 };
-use mina_tree::{FpExt, MerklePath};
+use mina_tree::MerklePath;
 use sha3::Digest;
 
-use crate::{smart_contract_utility::get_tip_state_hash, utils::constants::MINA_HASH_SIZE};
+use crate::{
+    proof::state_proof::{MinaStateProof, MinaStatePubInputs},
+    smart_contract_utility::get_bridge_tip_hash,
+    utils::constants::BRIDGE_TRANSITION_FRONTIER_LEN,
+};
 
 type StateHashAsDecimal = String;
 type PrecomputedBlockProof = String;
-type ProtocolState = String;
 type FieldElem = String;
-type LedgerHash = String;
 
 #[derive(GraphQLQuery)]
 #[graphql(
@@ -52,66 +55,41 @@ struct MerkleQuery;
 
 pub async fn get_mina_proof_of_state(
     rpc_url: &str,
-    proof_generator_addr: &str,
     chain: &Chain,
     eth_rpc_url: &str,
-) -> Result<VerificationData, String> {
-    let tip_hash = get_tip_state_hash(chain, eth_rpc_url).await?.to_decimal();
-    let (candidate_hash, candidate_proof) = query_candidate(rpc_url)?;
+) -> Result<(MinaStateProof, MinaStatePubInputs), String> {
+    let bridge_tip_state_hash = get_bridge_tip_hash(chain, eth_rpc_url).await?.0;
+    let (
+        candidate_chain_states,
+        candidate_chain_state_hashes,
+        candidate_chain_ledger_hashes,
+        candidate_tip_proof,
+    ) = query_candidate_chain(rpc_url).await?;
 
-    if tip_hash == candidate_hash {
-        return Err("Candidate state is already verified".to_string());
+    let candidate_tip_state_hash = candidate_chain_state_hashes
+        .last()
+        .ok_or("Missing candidate tip state hash".to_string())?;
+
+    if bridge_tip_state_hash == *candidate_tip_state_hash {
+        return Err("Candidate chain is already verified".to_string());
     }
 
-    let tip_state = query_state(
-        rpc_url,
-        state_query::Variables {
-            state_hash: encode_state_hash(&tip_hash)?,
+    let bridge_tip_state = query_state(rpc_url, &bridge_tip_state_hash).await?;
+
+    info!("Queried Mina candidate chain with tip {candidate_tip_state_hash} and its proof");
+
+    Ok((
+        MinaStateProof {
+            candidate_tip_proof,
+            candidate_chain_states,
+            bridge_tip_state,
         },
-    )?;
-
-    let candidate_state = query_state(
-        rpc_url,
-        state_query::Variables {
-            state_hash: encode_state_hash(&candidate_hash)?,
+        MinaStatePubInputs {
+            bridge_tip_state_hash,
+            candidate_chain_state_hashes,
+            candidate_chain_ledger_hashes,
         },
-    )?;
-    info!(
-        "Queried Mina candidate state 0x{} and its proof from Mainnet node",
-        Fp::from_str(&candidate_hash)
-            .map_err(|_| "Failed to decode canddiate state hash".to_string())
-            .map(|hash| hash.to_hex_be())?
-    );
-
-    let tip_hash = serialize_state_hash(&tip_hash)?;
-    let tip_state = serialize_state(tip_state);
-
-    let candidate_merkle_root = serialize_ledger_hash(&candidate_state)?;
-
-    let candidate_hash = serialize_state_hash(&candidate_hash)?;
-    let candidate_state = serialize_state(candidate_state);
-    let candidate_proof = serialize_state_proof(&candidate_proof);
-
-    let mut pub_input = candidate_merkle_root;
-    pub_input.extend(candidate_hash);
-    pub_input.extend(tip_hash);
-    pub_input.extend((candidate_state.len() as u32).to_be_bytes());
-    pub_input.extend(candidate_state);
-    pub_input.extend((tip_state.len() as u32).to_be_bytes());
-    pub_input.extend(tip_state);
-
-    let pub_input = Some(pub_input);
-
-    let proof_generator_addr =
-        Address::from_str(proof_generator_addr).map_err(|err| err.to_string())?;
-    Ok(VerificationData {
-        proving_system: ProvingSystemId::Mina,
-        proof: candidate_proof,
-        pub_input,
-        verification_key: None,
-        vm_program_code: None,
-        proof_generator_addr,
-    })
+    ))
 }
 
 pub async fn get_mina_proof_of_account(
@@ -121,13 +99,9 @@ pub async fn get_mina_proof_of_account(
     chain: &Chain,
     eth_rpc_url: &str,
 ) -> Result<VerificationData, String> {
-    let state_hash = get_tip_state_hash(chain, eth_rpc_url).await?;
-    let (ledger_hash, account_hash, merkle_proof, account_id_hash) = query_merkle(
-        rpc_url,
-        &StateHash::from_fp(state_hash).to_string(),
-        public_key,
-    )
-    .await?;
+    let state_hash = get_bridge_tip_hash(chain, eth_rpc_url).await?.0;
+    let (ledger_hash, account_hash, merkle_proof, account_id_hash) =
+        query_merkle(rpc_url, &state_hash.to_string(), public_key).await?;
 
     let proof = merkle_proof
         .into_iter()
@@ -142,7 +116,7 @@ pub async fn get_mina_proof_of_account(
 
     let pub_input = Some(
         [
-            ledger_hash.to_bytes(),
+            ledger_hash.to_fp().unwrap().to_bytes(), // TODO(xqft): this is temporary
             account_hash.to_bytes(),
             account_id_hash.to_vec(),
         ]
@@ -162,25 +136,51 @@ pub async fn get_mina_proof_of_account(
     })
 }
 
-pub fn query_state(
+pub async fn query_state(
     rpc_url: &str,
-    variables: state_query::Variables,
-) -> Result<ProtocolState, String> {
+    state_hash: &StateHash,
+) -> Result<MinaStateProtocolStateValueStableV2, String> {
+    let variables = state_query::Variables {
+        state_hash: state_hash.to_string(),
+    };
     debug!("Querying state {}", variables.state_hash);
-    let client = reqwest::blocking::Client::new();
-    let response = post_graphql_blocking::<StateQuery, _>(&client, rpc_url, variables)
+    let client = reqwest::Client::new();
+    let proof = post_graphql::<StateQuery, _>(&client, rpc_url, variables)
+        .await
         .map_err(|err| err.to_string())?
         .data
-        .ok_or("Missing state query response data".to_string())?;
-    Ok(response.protocol_state)
+        .ok_or("Missing state query response data".to_string())
+        .map(|response| response.protocol_state)
+        .and_then(|base64| {
+            BASE64_STANDARD
+                .decode(base64)
+                .map_err(|err| format!("Couldn't decode state from base64: {err}"))
+        })
+        .and_then(|binprot| {
+            MinaStateProtocolStateValueStableV2::binprot_read(&mut binprot.as_slice())
+                .map_err(|err| format!("Couldn't read state binprot: {err}"))
+        })?;
+    Ok(proof)
 }
 
-pub fn query_candidate(
+pub async fn query_candidate_chain(
     rpc_url: &str,
-) -> Result<(StateHashAsDecimal, PrecomputedBlockProof), String> {
+) -> Result<
+    (
+        [MinaStateProtocolStateValueStableV2; BRIDGE_TRANSITION_FRONTIER_LEN],
+        [StateHash; BRIDGE_TRANSITION_FRONTIER_LEN],
+        [LedgerHash; BRIDGE_TRANSITION_FRONTIER_LEN],
+        MinaBaseProofStableV2,
+    ),
+    String,
+> {
     debug!("Querying for candidate state");
     let client = reqwest::blocking::Client::new();
-    let variables = best_chain_query::Variables { max_length: 1 };
+    let variables = best_chain_query::Variables {
+        max_length: BRIDGE_TRANSITION_FRONTIER_LEN
+            .try_into()
+            .map_err(|_| "Transition frontier length conversion failure".to_string())?,
+    };
     let response = post_graphql_blocking::<BestChainQuery, _>(&client, rpc_url, variables)
         .map_err(|err| err.to_string())?
         .data
@@ -188,18 +188,70 @@ pub fn query_candidate(
     let best_chain = response
         .best_chain
         .ok_or("Missing best chain field".to_string())?;
-    let tip = best_chain.first().ok_or("Missing best chain".to_string())?;
-    let state_hash_field = tip.state_hash_field.clone();
-    let protocol_state_proof = tip
+    if best_chain.len() != BRIDGE_TRANSITION_FRONTIER_LEN {
+        return Err(format!(
+            "Not enough blocks ({}) were returned from query",
+            best_chain.len()
+        ));
+    }
+    let chain_state_hashes: [StateHash; BRIDGE_TRANSITION_FRONTIER_LEN] = best_chain
+        .iter()
+        .map(|state| state.state_hash.clone())
+        .collect::<Vec<StateHash>>()
+        .try_into()
+        .map_err(|_| "Failed to convert chain state hashes vector into array".to_string())?;
+    let chain_ledger_hashes: [LedgerHash; BRIDGE_TRANSITION_FRONTIER_LEN] = best_chain
+        .iter()
+        .map(|state| {
+            state
+                .protocol_state
+                .blockchain_state
+                .staged_ledger_hash
+                .clone()
+        })
+        .collect::<Vec<LedgerHash>>()
+        .try_into()
+        .map_err(|_| "Failed to convert chain ledger hashes vector into array".to_string())?;
+
+    let chain_states = join_all(
+        chain_state_hashes
+            .iter()
+            .map(|state_hash| query_state(rpc_url, state_hash)),
+    )
+    .await
+    .into_iter()
+    .collect::<Result<Vec<_>, _>>()
+    .and_then(|states| {
+        states
+            .try_into()
+            .map_err(|_| "Couldn't convert vector of states to array".to_string())
+    })?;
+
+    let tip = best_chain.last().ok_or("Missing best chain".to_string())?;
+    let tip_state_proof = tip
         .protocol_state_proof
         .base64
         .clone()
-        .ok_or("No protocol state proof".to_string())?;
+        .ok_or("No tip state proof".to_string())
+        .and_then(|base64| {
+            BASE64_URL_SAFE
+                .decode(base64)
+                .map_err(|err| format!("Couldn't decode state proof from base64: {err}"))
+        })
+        .and_then(|binprot| {
+            MinaBaseProofStableV2::binprot_read(&mut binprot.as_slice())
+                .map_err(|err| format!("Couldn't read state proof binprot: {err}"))
+        })?;
 
-    Ok((state_hash_field, protocol_state_proof))
+    Ok((
+        chain_states,
+        chain_state_hashes,
+        chain_ledger_hashes,
+        tip_state_proof,
+    ))
 }
 
-pub async fn query_root(rpc_url: &str, length: usize) -> Result<StateHashAsDecimal, String> {
+pub async fn query_root(rpc_url: &str, length: usize) -> Result<StateHash, String> {
     let client = reqwest::Client::new();
     let variables = best_chain_query::Variables {
         max_length: length as i64,
@@ -213,14 +265,14 @@ pub async fn query_root(rpc_url: &str, length: usize) -> Result<StateHashAsDecim
         .best_chain
         .ok_or("Missing best chain field".to_string())?;
     let root = best_chain.first().ok_or("No root state")?;
-    Ok(root.state_hash_field.clone())
+    Ok(root.state_hash.clone())
 }
 
 pub async fn query_merkle(
     rpc_url: &str,
     state_hash: &str,
     public_key: &str,
-) -> Result<(Fp, Fp, Vec<MerklePath>, [u8; 32]), String> {
+) -> Result<(LedgerHash, Fp, Vec<MerklePath>, [u8; 32]), String> {
     debug!("Querying merkle root, leaf and path of account {public_key} of state {state_hash}");
     let client = reqwest::Client::new();
 
@@ -239,16 +291,11 @@ pub async fn query_merkle(
         .account
         .ok_or("Missing merkle query account".to_string())?;
 
-    let ledger_hash = MerkleRoot::from_str(
-        &response
-            .block
-            .protocol_state
-            .blockchain_state
-            .staged_ledger_hash,
-    )
-    .map_err(|_| "Error deserializing leaf hash".to_string())?
-    .to_fp()
-    .map_err(|_| "Error decoding leaf hash into fp".to_string())?;
+    let ledger_hash = response
+        .block
+        .protocol_state
+        .blockchain_state
+        .staged_ledger_hash;
 
     let account_hash = Fp::from_str(&account.leaf_hash.ok_or("Missing merkle query leaf hash")?)
         .map_err(|_| "Error deserializing leaf hash".to_string())?;
@@ -281,51 +328,4 @@ pub async fn query_merkle(
     let account_id_hash = hasher.finalize_reset().into();
 
     Ok((ledger_hash, account_hash, merkle_proof, account_id_hash))
-}
-
-fn serialize_state_hash(hash: &StateHashAsDecimal) -> Result<Vec<u8>, String> {
-    let bytes = Fp::from_str(hash)
-        .map_err(|_| "Failed to decode hash as a field element".to_string())?
-        .to_bytes();
-    if bytes.len() != MINA_HASH_SIZE {
-        return Err(format!(
-            "Failed to encode hash as bytes: length is not exactly {MINA_HASH_SIZE}."
-        ));
-    }
-    Ok(bytes)
-}
-
-fn serialize_state_proof(proof: &PrecomputedBlockProof) -> Vec<u8> {
-    proof.as_bytes().to_vec()
-}
-
-fn serialize_state(state: ProtocolState) -> Vec<u8> {
-    state.as_bytes().to_vec()
-}
-
-fn encode_state_hash(hash: &StateHashAsDecimal) -> Result<String, String> {
-    Fp::from_str(hash)
-        .map_err(|_| "Failed to decode hash as a field element".to_string())
-        .map(|fp| StateHash::from_fp(fp).to_string())
-}
-
-fn serialize_ledger_hash(state: &ProtocolState) -> Result<Vec<u8>, String> {
-    BASE64_STANDARD
-        .decode(state)
-        .map_err(|err| err.to_string())
-        .and_then(|binprot| {
-            MinaStateProtocolStateValueStableV2::binprot_read(&mut binprot.as_slice())
-                .map_err(|err| err.to_string())
-        })
-        .and_then(|state| {
-            state
-                .body
-                .blockchain_state
-                .staged_ledger_hash
-                .non_snark
-                .ledger_hash
-                .to_fp()
-                .map_err(|err| err.to_string())
-        })
-        .map(|ledger_hash| ledger_hash.to_bytes())
 }
