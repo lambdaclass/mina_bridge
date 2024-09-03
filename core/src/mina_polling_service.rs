@@ -9,17 +9,17 @@ use graphql_client::{
     GraphQLQuery,
 };
 use kimchi::mina_curves::pasta::Fp;
-use kimchi::o1_utils::FieldHelpers;
 use log::{debug, info};
 use mina_p2p_messages::{
     binprot::BinProtRead,
     v2::{LedgerHash, MinaBaseProofStableV2, MinaStateProtocolStateValueStableV2, StateHash},
 };
-use mina_tree::MerklePath;
-use sha3::Digest;
 
 use crate::{
-    proof::state_proof::{MinaStateProof, MinaStatePubInputs},
+    proof::{
+        account_proof::{AccountHash, MerkleNode, MinaAccountProof, MinaAccountPubInputs},
+        state_proof::{MinaStateProof, MinaStatePubInputs},
+    },
     smart_contract_utility::get_bridge_tip_hash,
     utils::constants::BRIDGE_TRANSITION_FRONTIER_LEN,
 };
@@ -95,45 +95,26 @@ pub async fn get_mina_proof_of_state(
 pub async fn get_mina_proof_of_account(
     public_key: &str,
     rpc_url: &str,
-    proof_generator_addr: &str,
     chain: &Chain,
     eth_rpc_url: &str,
-) -> Result<VerificationData, String> {
+) -> Result<(MinaAccountProof, MinaAccountPubInputs), String> {
     let state_hash = get_bridge_tip_hash(chain, eth_rpc_url).await?.0;
-    let (ledger_hash, account_hash, merkle_proof, account_id_hash) =
+    let (ledger_hash, leaf_hash, merkle_path) =
         query_merkle(rpc_url, &state_hash.to_string(), public_key).await?;
 
-    let proof = merkle_proof
-        .into_iter()
-        .flat_map(|node| {
-            match node {
-                MerklePath::Left(hash) => [vec![0], hash.to_bytes()],
-                MerklePath::Right(hash) => [vec![1], hash.to_bytes()],
-            }
-            .concat()
-        })
-        .collect();
+    // placeholder
+    let account_hash = AccountHash::new();
 
-    let pub_input = Some(
-        [
-            ledger_hash.to_fp().unwrap().to_bytes(), // TODO(xqft): this is temporary
-            account_hash.to_bytes(),
-            account_id_hash.to_vec(),
-        ]
-        .concat(),
-    );
-
-    let proof_generator_addr =
-        Address::from_str(proof_generator_addr).map_err(|err| err.to_string())?;
-
-    Ok(VerificationData {
-        proving_system: ProvingSystemId::MinaAccount,
-        proof,
-        pub_input,
-        verification_key: None,
-        vm_program_code: None,
-        proof_generator_addr,
-    })
+    Ok((
+        MinaAccountProof {
+            merkle_path,
+            leaf_hash,
+        },
+        MinaAccountPubInputs {
+            ledger_hash,
+            account_hash,
+        },
+    ))
 }
 
 pub async fn query_state(
@@ -272,7 +253,7 @@ pub async fn query_merkle(
     rpc_url: &str,
     state_hash: &str,
     public_key: &str,
-) -> Result<(LedgerHash, Fp, Vec<MerklePath>, [u8; 32]), String> {
+) -> Result<(LedgerHash, Fp, Vec<MerkleNode>), String> {
     debug!("Querying merkle root, leaf and path of account {public_key} of state {state_hash}");
     let client = reqwest::Client::new();
 
@@ -297,35 +278,22 @@ pub async fn query_merkle(
         .blockchain_state
         .staged_ledger_hash;
 
-    let account_hash = Fp::from_str(&account.leaf_hash.ok_or("Missing merkle query leaf hash")?)
+    let leaf_hash = Fp::from_str(&account.leaf_hash.ok_or("Missing merkle query leaf hash")?)
         .map_err(|_| "Error deserializing leaf hash".to_string())?;
 
-    let merkle_proof = account
+    let merkle_path = account
         .merkle_path
         .ok_or("Missing merkle query path")?
         .into_iter()
-        .map(|node| -> Result<MerklePath, ()> {
+        .map(|node| -> Result<MerkleNode, ()> {
             match (node.left, node.right) {
-                (Some(fp_str), None) => Ok(MerklePath::Left(Fp::from_str(&fp_str)?)),
-                (None, Some(fp_str)) => Ok(MerklePath::Right(Fp::from_str(&fp_str)?)),
+                (Some(fp_str), None) => Ok(MerkleNode::Left(Fp::from_str(&fp_str)?)),
+                (None, Some(fp_str)) => Ok(MerkleNode::Right(Fp::from_str(&fp_str)?)),
                 _ => unreachable!(),
             }
         })
-        .collect::<Result<Vec<MerklePath>, ()>>()
+        .collect::<Result<Vec<_>, ()>>()
         .map_err(|_| "Error deserializing merkle path nodes".to_string())?;
 
-    // TODO(xqft): This definition for account_hash is a placeholder until we have the GraphQL
-    // query for the complete data of an account. The real definition would be:
-    //
-    // let account_id_bytes =
-    //     [account.compressed_public_key.x, account.compressed_public_key.is_odd, account.token_id]
-    //     .map(to_bytes)
-    //     .concat();
-    //
-    // let account_id_hash = Keccak256(account_id)
-    let mut hasher = sha3::Keccak256::new();
-    hasher.update(account_hash.to_bytes());
-    let account_id_hash = hasher.finalize_reset().into();
-
-    Ok((ledger_hash, account_hash, merkle_proof, account_id_hash))
+    Ok((ledger_hash, leaf_hash, merkle_path))
 }

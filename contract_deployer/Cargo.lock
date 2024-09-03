@@ -3608,7 +3608,7 @@ dependencies = [
  "rpassword",
  "serde",
  "serde_json",
- "serde_with 1.14.0",
+ "serde_with 3.9.0",
  "sha3",
  "tokio",
 ]
