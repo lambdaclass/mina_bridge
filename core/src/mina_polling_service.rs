@@ -1,8 +1,7 @@
 use std::str::FromStr;
 
-use aligned_sdk::core::types::{Chain, ProvingSystemId, VerificationData};
+use aligned_sdk::core::types::Chain;
 use base64::prelude::*;
-use ethers::types::Address;
 use futures::future::join_all;
 use graphql_client::{
     reqwest::{post_graphql, post_graphql_blocking},
