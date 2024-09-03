@@ -7,12 +7,17 @@ use alloy::providers::ProviderBuilder;
 use alloy::sol;
 use ethers::{abi::AbiEncode, prelude::*};
 use k256::ecdsa::SigningKey;
-use kimchi::o1_utils::FieldHelpers;
 use log::{debug, error, info};
-use mina_curves::pasta::Fp;
+use mina_p2p_messages::v2::StateHash;
+use serde::{Deserialize, Serialize};
+use serde_with::serde_as;
 
-use crate::utils::constants::{
-    ANVIL_CHAIN_ID, BRIDGE_DEVNET_ETH_ADDR, BRIDGE_HOLESKY_ETH_ADDR, HOLESKY_CHAIN_ID,
+use crate::{
+    proof::{serialization::EVMSerialize, state_proof::MinaStatePubInputs},
+    utils::constants::{
+        ANVIL_CHAIN_ID, BRIDGE_DEVNET_ETH_ADDR, BRIDGE_HOLESKY_ETH_ADDR,
+        BRIDGE_TRANSITION_FRONTIER_LEN, HOLESKY_CHAIN_ID,
+    },
 };
 
 abigen!(MinaBridgeEthereumContract, "abi/MinaBridge.json");
@@ -28,6 +33,10 @@ sol!(
     MinaBridge,
     "abi/MinaBridge.json"
 );
+
+#[serde_as]
+#[derive(Serialize, Deserialize)]
+pub struct EVMStateHash(#[serde_as(as = "EVMSerialize")] pub StateHash);
 
 pub struct MinaBridgeConstructorArgs {
     aligned_service_addr: alloy::primitives::Address,
@@ -51,13 +60,13 @@ impl MinaBridgeConstructorArgs {
     }
 }
 
-pub async fn update_tip(
+pub async fn update_chain(
     verification_data: AlignedVerificationData,
-    pub_input: Vec<u8>,
+    pub_input: &MinaStatePubInputs,
     chain: &Chain,
     eth_rpc_url: &str,
     wallet: Wallet<SigningKey>,
-) -> Result<Fp, String> {
+) -> Result<(), String> {
     let bridge_eth_addr = Address::from_str(match chain {
         Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
         Chain::Holesky => BRIDGE_HOLESKY_ETH_ADDR,
@@ -67,6 +76,9 @@ pub async fn update_tip(
         }
     })
     .map_err(|err| err.to_string())?;
+
+    let serialized_pub_input = bincode::serialize(pub_input)
+        .map_err(|err| format!("Failed to serialize public inputs: {err}"))?;
 
     debug!("Creating contract instance");
     let mina_bridge_contract = mina_bridge_contract(eth_rpc_url, bridge_eth_addr, chain, wallet)?;
@@ -94,14 +106,14 @@ pub async fn update_tip(
 
     debug!("Updating contract");
 
-    let update_call = mina_bridge_contract.update_tip_state(
+    let update_call = mina_bridge_contract.update_chain(
         proof_commitment,
         proving_system_aux_data_commitment,
         proof_generator_addr,
         batch_merkle_root,
         merkle_proof,
         index_in_batch.into(),
-        pub_input.into(),
+        serialized_pub_input.into(),
     );
     // update call reverts if batch is not valid or proof isn't included in it.
 
@@ -129,13 +141,25 @@ pub async fn update_tip(
         receipt.gas_used.ok_or("Missing gas used")?
     );
 
-    debug!("Getting contract stored hash");
-    let new_state_hash = mina_bridge_contract
-        .get_tip_state_hash()
+    info!("Checking that the state hashes were stored correctly..");
+
+    // TODO(xqft): do the same for ledger hashes
+    debug!("Getting chain state hashes");
+    let new_chain_state_hashes = get_bridge_chain_state_hashes(chain, eth_rpc_url)
         .await
         .map_err(|err| err.to_string())?;
 
-    Fp::from_bytes(&new_state_hash).map_err(|err| err.to_string())
+    if new_chain_state_hashes != pub_input.candidate_chain_state_hashes {
+        return Err("Stored chain state hashes don't match the candidate's".to_string());
+    }
+
+    let tip_state_hash = new_chain_state_hashes
+        .last()
+        .ok_or("Failed to get tip state hash".to_string())?
+        .clone();
+    info!("Successfuly updated smart contract to verified chain of tip {tip_state_hash}");
+
+    Ok(())
 }
 
 pub async fn update_account(
@@ -219,7 +243,7 @@ pub async fn update_account(
     Ok(())
 }
 
-pub async fn get_tip_state_hash(chain: &Chain, eth_rpc_url: &str) -> Result<Fp, String> {
+pub async fn get_bridge_tip_hash(chain: &Chain, eth_rpc_url: &str) -> Result<EVMStateHash, String> {
     let bridge_eth_addr = Address::from_str(match chain {
         Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
         Chain::Holesky => BRIDGE_HOLESKY_ETH_ADDR,
@@ -233,13 +257,54 @@ pub async fn get_tip_state_hash(chain: &Chain, eth_rpc_url: &str) -> Result<Fp, 
     debug!("Creating contract instance");
     let mina_bridge_contract = mina_bridge_contract_call_only(eth_rpc_url, bridge_eth_addr)?;
 
-    debug!("Getting contract stored hash");
-    let state_hash = mina_bridge_contract
+    let state_hash_bytes = mina_bridge_contract
         .get_tip_state_hash()
         .await
         .map_err(|err| err.to_string())?;
 
-    Fp::from_bytes(&state_hash).map_err(|_| "Failed to convert hash to Fp".to_string())
+    let state_hash: EVMStateHash = bincode::deserialize(&state_hash_bytes)
+        .map_err(|err| format!("Failed to deserialize bridge tip state hash: {err}"))?;
+    info!("Retrieved bridge tip state hash: {}", state_hash.0,);
+
+    Ok(state_hash)
+}
+
+pub async fn get_bridge_chain_state_hashes(
+    chain: &Chain,
+    eth_rpc_url: &str,
+) -> Result<[StateHash; BRIDGE_TRANSITION_FRONTIER_LEN], String> {
+    let bridge_eth_addr = Address::from_str(match chain {
+        Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
+        Chain::Holesky => BRIDGE_HOLESKY_ETH_ADDR,
+        _ => {
+            error!("Unimplemented Ethereum contract on selected chain");
+            unimplemented!()
+        }
+    })
+    .map_err(|err| err.to_string())?;
+
+    debug!("Creating contract instance");
+    let mina_bridge_contract = mina_bridge_contract_call_only(eth_rpc_url, bridge_eth_addr)?;
+
+    mina_bridge_contract
+        .get_chain_state_hashes()
+        .await
+        .map_err(|err| format!("Could not call contract for state hashes: {err}"))
+        .and_then(|hashes| {
+            hashes
+                .into_iter()
+                .map(|hash| {
+                    bincode::deserialize::<EVMStateHash>(&hash)
+                        .map_err(|err| format!("Failed to deserialize chain state hashes: {err}"))
+                        .map(|hash| hash.0)
+                })
+                .collect::<Result<Vec<_>, _>>()
+        })
+        .and_then(|hashes| {
+            hashes
+                .try_into()
+                .map_err(|_| "Failed to convert chain state hashes vec into array".to_string())
+        })
 }
 
 pub async fn deploy_mina_bridge_contract(

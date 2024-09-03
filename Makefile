@@ -1,9 +1,9 @@
 .PHONY: submit-state submit-account gen_contract_abi deploy_contract
 
-submit-state:
+submit_state:
 	@cargo run --manifest-path core/Cargo.toml --release -- submit-state
 
-submit-account:
+submit_account:
 	@cargo run --manifest-path core/Cargo.toml --release -- submit-account ${PUBLIC_KEY}
 
 gen_contract_abi:
