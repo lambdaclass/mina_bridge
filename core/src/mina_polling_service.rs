@@ -111,7 +111,7 @@ pub async fn get_mina_proof_of_account(
             account,
         },
         MinaAccountPubInputs {
-            ledger_hash: LedgerHash::from_fp(ledger_hash), // TODO(xqft): this should be a fp
+            ledger_hash,
             account_hash,
         },
     ))

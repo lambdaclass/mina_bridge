@@ -1,5 +1,5 @@
 use mina_curves::pasta::Fp;
-use mina_p2p_messages::v2::{LedgerHash, MinaBaseAccountBinableArgStableV2 as MinaAccount};
+use mina_p2p_messages::v2::MinaBaseAccountBinableArgStableV2 as MinaAccount;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use sha3::Digest;
@@ -29,7 +29,7 @@ impl AccountHash {
 #[derive(Serialize, Deserialize)]
 pub struct MinaAccountPubInputs {
     #[serde_as(as = "EVMSerialize")]
-    pub ledger_hash: LedgerHash,
+    pub ledger_hash: Fp,
     #[serde_as(as = "EVMSerialize")]
     pub account_hash: AccountHash,
 }

@@ -1,3 +1,5 @@
+use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
+use mina_curves::pasta::Fp;
 use mina_p2p_messages::{
     bigint,
     v2::{DataHashLibStateHashStableV1, LedgerHash, MinaBaseLedgerHash0StableV1, StateHash},
@@ -75,5 +77,30 @@ impl<'de> serde_with::DeserializeAs<'de, AccountHash> for EVMSerialize {
     {
         let bytes = <[u8; 32]>::deserialize(deserializer)?;
         Ok(AccountHash(bytes))
+    }
+}
+
+impl serde_with::SerializeAs<Fp> for EVMSerialize {
+    fn serialize_as<S>(val: &Fp, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut bytes = Vec::with_capacity(32);
+        val.serialize(&mut bytes)
+            .map_err(serde::ser::Error::custom)?;
+        let bytes: [u8; 32] = bytes.try_into().map_err(|_| {
+            serde::ser::Error::custom("failed to convert byte vector into 32 byte array")
+        })?;
+        bytes.serialize(serializer)
+    }
+}
+
+impl<'de> serde_with::DeserializeAs<'de, Fp> for EVMSerialize {
+    fn deserialize_as<D>(deserializer: D) -> Result<Fp, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let bytes = <[u8; 32]>::deserialize(deserializer)?;
+        Fp::deserialize(&mut &bytes[..]).map_err(serde::de::Error::custom)
     }
 }
