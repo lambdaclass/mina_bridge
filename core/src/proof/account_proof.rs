@@ -1,5 +1,5 @@
 use mina_curves::pasta::Fp;
-use mina_p2p_messages::v2::LedgerHash;
+use mina_p2p_messages::v2::{LedgerHash, MinaBaseAccountBinableArgStableV2 as MinaAccount};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use sha3::Digest;
@@ -40,6 +40,5 @@ pub struct MinaAccountProof {
     /// Merkle path between the leaf hash (account hash) and the merkle root (ledger hash)
     pub merkle_path: Vec<MerkleNode>,
     /// The leaf of the merkle tree.
-    #[serde_as(as = "o1_utils::serialization::SerdeAs")]
-    pub leaf_hash: Fp,
+    pub account: MinaAccount,
 }

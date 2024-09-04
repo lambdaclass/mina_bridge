@@ -12,11 +12,10 @@ use log::{debug, info};
 use mina_p2p_messages::{
     binprot::BinProtRead,
     v2::{
-        LedgerHash, MinaBaseProofStableV2, MinaStateProtocolStateValueStableV2, StateHash,
-        TokenIdKeyHash,
+        LedgerHash, MinaBaseAccountBinableArgStableV2 as MinaAccount, MinaBaseProofStableV2,
+        MinaStateProtocolStateValueStableV2, StateHash,
     },
 };
-use mina_tree::Account;
 
 use crate::{
     proof::{
@@ -102,7 +101,6 @@ pub async fn get_mina_proof_of_account(
 ) -> Result<(MinaAccountProof, MinaAccountPubInputs), String> {
     let (account, ledger_hash, merkle_path) =
         query_account(rpc_url, state_hash, public_key).await?;
-    let leaf_hash = account.hash();
 
     // placeholder
     let account_hash = AccountHash::new();
@@ -110,7 +108,7 @@ pub async fn get_mina_proof_of_account(
     Ok((
         MinaAccountProof {
             merkle_path,
-            leaf_hash,
+            account,
         },
         MinaAccountPubInputs {
             ledger_hash: LedgerHash::from_fp(ledger_hash), // TODO(xqft): this should be a fp
@@ -255,7 +253,7 @@ pub async fn query_account(
     query_account: &str,
     state_hash: &str,
     public_key: &str,
-) -> Result<(Account, Fp, Vec<MerkleNode>), String> {
+) -> Result<(MinaAccount, Fp, Vec<MerkleNode>), String> {
     debug!(
         "Querying account {public_key} and its merkle path and merkle root for state {state_hash}"
     );
@@ -281,14 +279,14 @@ pub async fn query_account(
         .decode(&membership.account)
         .map_err(|err| format!("Failed to decode account from base64: {err}"))
         .and_then(|binprot| {
-            Account::binprot_read(&mut binprot.as_slice())
+            MinaAccount::binprot_read(&mut binprot.as_slice())
                 .map_err(|err| format!("Failed to deserialize account binprot: {err}"))
         })?;
 
     debug!(
-        "Queried account {:?} with token id {}",
+        "Queried account {} with token id {}",
         account.public_key,
-        Into::<TokenIdKeyHash>::into(account.token_id.clone())
+        account.token_id //Into::<TokenIdKeyHash>::into(account.token_id.clone())
     );
 
     let ledger_hash = response
