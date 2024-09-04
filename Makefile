@@ -4,7 +4,7 @@ submit_state:
 	@cargo run --manifest-path core/Cargo.toml --release -- submit-state
 
 submit_account:
-	@cargo run --manifest-path core/Cargo.toml --release -- submit-account ${PUBLIC_KEY}
+	@cargo run --manifest-path core/Cargo.toml --release -- submit-account ${PUBLIC_KEY} ${STATE_HASH}
 
 gen_contract_abi:
 	forge build --root contract/

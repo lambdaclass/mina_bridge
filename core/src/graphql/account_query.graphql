@@ -1,0 +1,16 @@
+query AccountQuery($stateHash: String!, $publicKey: String!) {
+    encodedSnarkedLedgerAccountMembership(accountInfos: {publicKey: $publicKey}, stateHash: $stateHash) {
+        account
+        merklePath {
+          left
+          right
+        }
+      }
+    block(stateHash: $stateHash) {
+        protocolState {
+            blockchainState {
+                stagedLedgerHash
+            }
+        }
+    }
+}

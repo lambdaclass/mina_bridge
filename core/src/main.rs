@@ -28,6 +28,8 @@ enum Command {
         save_proof: bool,
         /// Public key string of the account to verify
         public_key: String,
+        /// Hash of the state to verify the account for
+        state_hash: String,
     },
 }
 
@@ -99,18 +101,15 @@ async fn main() {
         Command::SubmitAccount {
             save_proof,
             public_key,
+            state_hash,
         } => {
-            let (proof, pub_input) = mina_polling_service::get_mina_proof_of_account(
-                &public_key,
-                &rpc_url,
-                &chain,
-                &eth_rpc_url,
-            )
-            .await
-            .unwrap_or_else(|err| {
-                error!("{}", err);
-                process::exit(1);
-            });
+            let (proof, pub_input) =
+                mina_polling_service::get_mina_proof_of_account(&public_key, &state_hash, &rpc_url)
+                    .await
+                    .unwrap_or_else(|err| {
+                        error!("{}", err);
+                        process::exit(1);
+                    });
 
             // Use for calling the smart contract to check if the account was verified on Aligned.
             let serialized_pub_input = bincode::serialize(&pub_input).unwrap_or_else(|err| {

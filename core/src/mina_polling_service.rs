@@ -11,8 +11,12 @@ use kimchi::mina_curves::pasta::Fp;
 use log::{debug, info};
 use mina_p2p_messages::{
     binprot::BinProtRead,
-    v2::{LedgerHash, MinaBaseProofStableV2, MinaStateProtocolStateValueStableV2, StateHash},
+    v2::{
+        LedgerHash, MinaBaseProofStableV2, MinaStateProtocolStateValueStableV2, StateHash,
+        TokenIdKeyHash,
+    },
 };
+use mina_tree::Account;
 
 use crate::{
     proof::{
@@ -46,11 +50,11 @@ struct BestChainQuery;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/graphql/mina_schema.json",
-    query_path = "src/graphql/merkle_query.graphql"
+    query_path = "src/graphql/account_query.graphql"
 )]
-/// A query for retrieving the merkle root, leaf and path of an account
-/// included in some state.
-struct MerkleQuery;
+/// A query for retrieving an a Mina account state at some block, along with its ledger hash and
+/// merkle path.
+struct AccountQuery;
 
 pub async fn get_mina_proof_of_state(
     rpc_url: &str,
@@ -93,13 +97,12 @@ pub async fn get_mina_proof_of_state(
 
 pub async fn get_mina_proof_of_account(
     public_key: &str,
+    state_hash: &str,
     rpc_url: &str,
-    chain: &Chain,
-    eth_rpc_url: &str,
 ) -> Result<(MinaAccountProof, MinaAccountPubInputs), String> {
-    let state_hash = get_bridge_tip_hash(chain, eth_rpc_url).await?.0;
-    let (ledger_hash, leaf_hash, merkle_path) =
-        query_merkle(rpc_url, &state_hash.to_string(), public_key).await?;
+    let (account, ledger_hash, merkle_path) =
+        query_account(rpc_url, state_hash, public_key).await?;
+    let leaf_hash = account.hash();
 
     // placeholder
     let account_hash = AccountHash::new();
@@ -110,7 +113,7 @@ pub async fn get_mina_proof_of_account(
             leaf_hash,
         },
         MinaAccountPubInputs {
-            ledger_hash,
+            ledger_hash: LedgerHash::from_fp(ledger_hash), // TODO(xqft): this should be a fp
             account_hash,
         },
     ))
@@ -248,51 +251,66 @@ pub async fn query_root(rpc_url: &str, length: usize) -> Result<StateHash, Strin
     Ok(root.state_hash.clone())
 }
 
-pub async fn query_merkle(
-    rpc_url: &str,
+pub async fn query_account(
+    query_account: &str,
     state_hash: &str,
     public_key: &str,
-) -> Result<(LedgerHash, Fp, Vec<MerkleNode>), String> {
-    debug!("Querying merkle root, leaf and path of account {public_key} of state {state_hash}");
+) -> Result<(Account, Fp, Vec<MerkleNode>), String> {
+    debug!(
+        "Querying account {public_key} and its merkle path and merkle root for state {state_hash}"
+    );
     let client = reqwest::Client::new();
 
-    let variables = merkle_query::Variables {
+    let variables = account_query::Variables {
         state_hash: state_hash.to_owned(),
         public_key: public_key.to_owned(),
     };
 
-    let response = post_graphql::<MerkleQuery, _>(&client, rpc_url, variables)
+    let response = post_graphql::<AccountQuery, _>(&client, query_account, variables)
         .await
         .map_err(|err| err.to_string())?
         .data
         .ok_or("Missing merkle query response data".to_string())?;
 
-    let account = response
-        .account
-        .ok_or("Missing merkle query account".to_string())?;
+    let membership = response
+        .encoded_snarked_ledger_account_membership
+        .first()
+        .ok_or("Failed to retrieve membership query field".to_string())?;
+
+    let account = BASE64_STANDARD
+        .decode(&membership.account)
+        .map_err(|err| format!("Failed to decode account from base64: {err}"))
+        .and_then(|binprot| {
+            Account::binprot_read(&mut binprot.as_slice())
+                .map_err(|err| format!("Failed to deserialize account binprot: {err}"))
+        })?;
+
+    debug!(
+        "Queried account {:?} with token id {}",
+        account.public_key,
+        Into::<TokenIdKeyHash>::into(account.token_id.clone())
+    );
 
     let ledger_hash = response
         .block
         .protocol_state
         .blockchain_state
-        .staged_ledger_hash;
+        .staged_ledger_hash
+        .to_fp()
+        .unwrap();
 
-    let leaf_hash = Fp::from_str(&account.leaf_hash.ok_or("Missing merkle query leaf hash")?)
-        .map_err(|_| "Error deserializing leaf hash".to_string())?;
-
-    let merkle_path = account
+    let merkle_path = membership
         .merkle_path
-        .ok_or("Missing merkle query path")?
-        .into_iter()
+        .iter()
         .map(|node| -> Result<MerkleNode, ()> {
-            match (node.left, node.right) {
-                (Some(fp_str), None) => Ok(MerkleNode::Left(Fp::from_str(&fp_str)?)),
-                (None, Some(fp_str)) => Ok(MerkleNode::Right(Fp::from_str(&fp_str)?)),
+            match (node.left.as_ref(), node.right.as_ref()) {
+                (Some(fp_str), None) => Ok(MerkleNode::Left(Fp::from_str(fp_str)?)),
+                (None, Some(fp_str)) => Ok(MerkleNode::Right(Fp::from_str(fp_str)?)),
                 _ => unreachable!(),
             }
         })
         .collect::<Result<Vec<_>, ()>>()
         .map_err(|_| "Error deserializing merkle path nodes".to_string())?;
 
-    Ok((ledger_hash, leaf_hash, merkle_path))
+    Ok((account, ledger_hash, merkle_path))
 }
