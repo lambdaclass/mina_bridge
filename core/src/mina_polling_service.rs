@@ -250,7 +250,7 @@ pub async fn query_root(rpc_url: &str, length: usize) -> Result<StateHash, Strin
 }
 
 pub async fn query_account(
-    query_account: &str,
+    rpc_url: &str,
     state_hash: &str,
     public_key: &str,
 ) -> Result<(MinaAccount, Fp, Vec<MerkleNode>), String> {
@@ -264,7 +264,7 @@ pub async fn query_account(
         public_key: public_key.to_owned(),
     };
 
-    let response = post_graphql::<AccountQuery, _>(&client, query_account, variables)
+    let response = post_graphql::<AccountQuery, _>(&client, rpc_url, variables)
         .await
         .map_err(|err| err.to_string())?
         .data
