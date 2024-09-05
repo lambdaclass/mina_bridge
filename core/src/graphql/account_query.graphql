@@ -9,7 +9,7 @@ query AccountQuery($stateHash: String!, $publicKey: String!) {
     block(stateHash: $stateHash) {
         protocolState {
             blockchainState {
-                stagedLedgerHash
+                snarkedLedgerHash
             }
         }
     }

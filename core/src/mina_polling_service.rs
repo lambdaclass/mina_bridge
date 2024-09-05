@@ -187,7 +187,7 @@ pub async fn query_candidate_chain(
             state
                 .protocol_state
                 .blockchain_state
-                .staged_ledger_hash
+                .snarked_ledger_hash
                 .clone()
         })
         .collect::<Vec<LedgerHash>>()
@@ -293,7 +293,7 @@ pub async fn query_account(
         .block
         .protocol_state
         .blockchain_state
-        .staged_ledger_hash
+        .snarked_ledger_hash
         .to_fp()
         .unwrap();
 
