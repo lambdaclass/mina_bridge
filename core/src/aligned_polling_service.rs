@@ -57,13 +57,9 @@ pub async fn submit_state_proof(
     let wallet_address = wallet.address();
     let nonce = get_nonce(eth_rpc_url, wallet_address, batcher_eth_addr).await?;
 
-    let proof_type = match verification_data.proving_system {
-        ProvingSystemId::Mina => "Mina Proof of State",
-        ProvingSystemId::MinaAccount => "Mina Proof of Account",
-        _ => return Err("Tried to submit a non Mina proof".to_string()),
-    };
-
-    info!("Submitting {proof_type} into Aligned and waiting for the batch to be verified...");
+    info!(
+        "Submitting Mina Proof of State into Aligned and waiting for the batch to be verified..."
+    );
     submit_with_nonce(
         batcher_addr,
         eth_rpc_url,
