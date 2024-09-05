@@ -21,9 +21,6 @@ contract MinaBridge {
     /// the bridge's transition frontier).
     bytes32[BRIDGE_TRANSITION_FRONTIER_LEN] chainLedgerHashes;
 
-    /// @notice mapping of a keccak256(TokenId) => verified account hash and its ledger hash.
-    mapping(bytes32 => Account.LedgerAccountPair) accounts;
-
     /// @notice Reference to the AlignedLayerServiceManager contract.
     AlignedLayerServiceManager aligned;
 
@@ -37,6 +34,11 @@ contract MinaBridge {
         return chainStateHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1];
     }
 
+    /// @notice Returns the last verified ledger hash.
+    function getTipLedgerHash() external view returns (bytes32) {
+        return chainLedgerHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1];
+    }
+
     /// @notice Returns the latest verified chain state hashes.
     function getChainStateHashes()
         external
@@ -46,27 +48,13 @@ contract MinaBridge {
         return chainStateHashes;
     }
 
-    /// @notice Returns the ledger hash and account state hash pair for
-    //  a given account id.
-    function getLedgerAccountPair(
-        bytes32 accountIdHash
-    ) external view returns (Account.LedgerAccountPair memory) {
-        return accounts[accountIdHash];
-    }
-
-    /// @notice Checks if some account state is verified for the latest
-    //  verified Mina state.
-    function isAccountUpdated(
-        bytes32 accountIdHash
-    ) external view returns (bool) {
-        return
-            accounts[accountIdHash].ledgerHash ==
-            chainLedgerHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1];
-    }
-
-    /// @notice Returns the last verified ledger hash.
-    function getTipLedgerHash() external view returns (bytes32) {
-        return chainLedgerHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1];
+    /// @notice Returns the latest verified chain ledger hashes.
+    function getChainLedgerHashes()
+        external
+        view
+        returns (bytes32[BRIDGE_TRANSITION_FRONTIER_LEN] memory)
+    {
+        return chainLedgerHashes;
     }
 
     function updateChain(
@@ -140,7 +128,7 @@ contract MinaBridge {
         }
     }
 
-    function updateAccount(
+    function isAccountVerified(
         bytes32 proofCommitment,
         bytes32 provingSystemAuxDataCommitment,
         bytes20 proofGeneratorAddr,
@@ -148,7 +136,7 @@ contract MinaBridge {
         bytes memory merkleProof,
         uint256 verificationDataBatchIndex,
         bytes memory pubInput
-    ) external {
+    ) external view returns (bool) {
         bytes32 ledgerHash;
         bytes32 accountHash;
         bytes32 accountIdHash;
@@ -160,23 +148,15 @@ contract MinaBridge {
 
         bytes32 pubInputCommitment = keccak256(pubInput);
 
-        bool isAccountVerified = aligned.verifyBatchInclusion(
-            proofCommitment,
-            pubInputCommitment,
-            provingSystemAuxDataCommitment,
-            proofGeneratorAddr,
-            batchMerkleRoot,
-            merkleProof,
-            verificationDataBatchIndex
-        );
-
-        if (isAccountVerified) {
-            accounts[accountIdHash] = Account.LedgerAccountPair(
-                ledgerHash,
-                accountHash
+        return
+            aligned.verifyBatchInclusion(
+                proofCommitment,
+                pubInputCommitment,
+                provingSystemAuxDataCommitment,
+                proofGeneratorAddr,
+                batchMerkleRoot,
+                merkleProof,
+                verificationDataBatchIndex
             );
-        } else {
-            revert AccountIsNotValid(accountIdHash);
-        }
     }
 }
