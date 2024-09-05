@@ -255,7 +255,7 @@ pub async fn query_account(
     public_key: &str,
 ) -> Result<(MinaAccount, Fp, Vec<MerkleNode>), String> {
     debug!(
-        "Querying account {public_key} and its merkle path and merkle root for state {state_hash}"
+        "Querying account {public_key}, its merkle proof and ledger hash for state {state_hash}"
     );
     let client = reqwest::Client::new();
 
