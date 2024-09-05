@@ -18,7 +18,7 @@ pub struct AccountHash(pub [u8; 32]);
 
 impl AccountHash {
     // TODO(xqft): hash a Mina account
-    pub fn new() -> Self {
+    pub fn new(_account: &MinaAccount) -> Self {
         let mut hasher = sha3::Keccak256::new();
         //hasher.update(account);
         Self(hasher.finalize_reset().into())

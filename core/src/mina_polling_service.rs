@@ -103,7 +103,7 @@ pub async fn get_mina_proof_of_account(
         query_account(rpc_url, state_hash, public_key).await?;
 
     // placeholder
-    let account_hash = AccountHash::new();
+    let account_hash = AccountHash::new(&account);
 
     Ok((
         MinaAccountProof {

@@ -6,6 +6,8 @@ pub mod account_proof;
 /// Mina Proof of State definition.
 pub mod state_proof;
 
+// TODO(xqft): we should fix this lint instead
+#[allow(clippy::large_enum_variant)]
 pub enum MinaProof {
     State((MinaStateProof, MinaStatePubInputs)),
     Account((MinaAccountProof, MinaAccountPubInputs)),
