@@ -11,13 +11,12 @@ use ethers::{
 };
 use log::{error, info};
 
-use crate::proof::state_proof::{MinaStateProof, MinaStatePubInputs};
+use crate::proof::MinaProof;
 
-/// Submits a Mina state proof to Aligned's batcher and waits until the batch is verified.
+/// Submits a Mina Proof to Aligned's batcher and waits until the batch is verified.
 #[allow(clippy::too_many_arguments)]
-pub async fn submit_state_proof(
-    proof: &MinaStateProof,
-    pub_input: &MinaStatePubInputs,
+pub async fn submit(
+    proof: MinaProof,
     chain: &Chain,
     proof_generator_addr: &str,
     batcher_addr: &str,
@@ -26,17 +25,41 @@ pub async fn submit_state_proof(
     wallet: Wallet<SigningKey>,
     save_proof: bool,
 ) -> Result<AlignedVerificationData, String> {
-    let proof = bincode::serialize(proof)
-        .map_err(|err| format!("Failed to serialize state proof: {err}"))?;
-    let pub_input = bincode::serialize(pub_input)
-        .map_err(|err| format!("Failed to serialize public inputs: {err}"))?;
+    let (proof, pub_input, proving_system, proof_name, file_name) = match proof {
+        MinaProof::State((proof, pub_input)) => {
+            let proof = bincode::serialize(&proof)
+                .map_err(|err| format!("Failed to serialize state proof: {err}"))?;
+            let pub_input = bincode::serialize(&pub_input)
+                .map_err(|err| format!("Failed to serialize public inputs: {err}"))?;
+            (
+                proof,
+                pub_input,
+                ProvingSystemId::Mina,
+                "Mina Proof of State",
+                "mina_state",
+            )
+        }
+        MinaProof::Account((proof, pub_input)) => {
+            let proof = bincode::serialize(&proof)
+                .map_err(|err| format!("Failed to serialize state proof: {err}"))?;
+            let pub_input = bincode::serialize(&pub_input)
+                .map_err(|err| format!("Failed to serialize public inputs: {err}"))?;
+            (
+                proof,
+                pub_input,
+                ProvingSystemId::MinaAccount,
+                "Mina Proof of Account",
+                "mina_account",
+            )
+        }
+    };
 
     if save_proof {
-        std::fs::write("./protocol_state.pub", &pub_input).unwrap_or_else(|err| {
+        std::fs::write(format!("./{file_name}.pub"), &pub_input).unwrap_or_else(|err| {
             error!("{}", err);
             process::exit(1);
         });
-        std::fs::write("./protocol_state.proof", &proof).unwrap_or_else(|err| {
+        std::fs::write(format!("./{file_name}.proof"), &proof).unwrap_or_else(|err| {
             error!("{}", err);
             process::exit(1);
         });
@@ -46,7 +69,7 @@ pub async fn submit_state_proof(
         Address::from_str(proof_generator_addr).map_err(|err| err.to_string())?;
 
     let verification_data = VerificationData {
-        proving_system: ProvingSystemId::Mina,
+        proving_system,
         proof,
         pub_input: Some(pub_input),
         verification_key: None,
@@ -57,9 +80,7 @@ pub async fn submit_state_proof(
     let wallet_address = wallet.address();
     let nonce = get_nonce(eth_rpc_url, wallet_address, batcher_eth_addr).await?;
 
-    info!(
-        "Submitting Mina Proof of State into Aligned and waiting for the batch to be verified..."
-    );
+    info!("Submitting {proof_name} into Aligned and waiting for the batch to be verified...");
     submit_with_nonce(
         batcher_addr,
         eth_rpc_url,
@@ -76,36 +97,6 @@ pub async fn submit_state_proof(
 
         Err(err)
     })
-}
-
-/// Submits a Mina (state or account) proof to Aligned's batcher and waits until the batch is verified.
-pub async fn submit(
-    mina_proof: &VerificationData,
-    chain: &Chain,
-    batcher_addr: &str,
-    batcher_eth_addr: &str,
-    eth_rpc_url: &str,
-    wallet: Wallet<SigningKey>,
-) -> Result<AlignedVerificationData, String> {
-    let wallet_address = wallet.address();
-    let nonce = get_nonce(eth_rpc_url, wallet_address, batcher_eth_addr).await?;
-
-    let proof_type = match mina_proof.proving_system {
-        ProvingSystemId::Mina => "Mina Proof of State",
-        ProvingSystemId::MinaAccount => "Mina Proof of Account",
-        _ => return Err("Tried to submit a non Mina proof".to_string()),
-    };
-
-    info!("Submitting {proof_type} into Aligned and waiting for the batch to be verified...");
-    submit_with_nonce(batcher_addr, eth_rpc_url, chain, mina_proof, wallet, nonce)
-        .await
-        .or_else(|err| {
-            let nonce_file = &get_nonce_file(wallet_address);
-            std::fs::remove_file(nonce_file)
-                .map_err(|err| format!("Error trying to remove nonce file: {err}"))?;
-
-            Err(err)
-        })
 }
 
 async fn submit_with_nonce(
