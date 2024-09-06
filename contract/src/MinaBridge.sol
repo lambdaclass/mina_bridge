@@ -2,7 +2,7 @@
 pragma solidity ^0.8.12;
 
 import "aligned_layer/contracts/src/core/AlignedLayerServiceManager.sol";
-import "./Account.sol";
+import "./lib/MinaAccountValidation.sol";
 
 error NewStateIsNotValid();
 error TipStateIsWrong(bytes32 pubInputTipStateHash, bytes32 tipStatehash);
