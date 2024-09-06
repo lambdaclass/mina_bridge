@@ -7,7 +7,7 @@ use serde_with::serde_as;
 use crate::{proof::serialization::EVMSerialize, utils::constants::BRIDGE_TRANSITION_FRONTIER_LEN};
 
 #[serde_as]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct MinaStatePubInputs {
     /// The hash of the bridge's transition frontier tip state. Used for making sure that we're
     /// checking if a candidate tip is better than the latest bridged tip.

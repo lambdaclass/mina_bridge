@@ -7,7 +7,7 @@ query BestChainQuery($maxLength: Int!) {
         }
         protocolState {
             blockchainState {
-              stagedLedgerHash
+              snarkedLedgerHash
             }
         }
     }
