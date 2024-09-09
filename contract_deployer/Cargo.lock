@@ -97,26 +97,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "aligned-sdk"
-version = "0.1.0"
-source = "git+https://github.com/lambdaclass/aligned_layer.git?branch=mina#216b65acc28c396ed4ef41fb6b79dadee5329406"
-dependencies = [
- "ciborium",
- "ethers",
- "futures-util",
- "hex",
- "lambdaworks-crypto",
- "log",
- "serde",
- "serde_json",
- "serde_repr",
- "sha3",
- "tokio",
- "tokio-tungstenite 0.23.1",
- "url",
-]
-
-[[package]]
 name = "allocator-api2"
 version = "0.2.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1557,7 +1537,7 @@ checksum = "7c74b8349d32d297c9134b8c88677813a227df8f779daa29bfc29c183fe3dca6"
 name = "contract_deployer"
 version = "0.1.0"
 dependencies = [
- "aligned-sdk 0.1.0 (git+https://github.com/lambdaclass/aligned_layer.git?branch=mina)",
+ "aligned-sdk",
  "bincode",
  "env_logger",
  "ethers",
@@ -3638,7 +3618,7 @@ dependencies = [
 name = "mina_bridge_core"
 version = "0.1.0"
 dependencies = [
- "aligned-sdk 0.1.0 (git+https://github.com/lambdaclass/aligned_layer.git?branch=fix_aligned_sync)",
+ "aligned-sdk",
  "alloy",
  "ark-ec",
  "ark-ff 0.3.0",
@@ -3650,6 +3630,7 @@ dependencies = [
  "dotenv",
  "env_logger",
  "ethers",
+ "ethers-signers",
  "futures",
  "graphql_client",
  "hex",

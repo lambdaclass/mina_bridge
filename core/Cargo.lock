@@ -3611,6 +3611,7 @@ dependencies = [
  "dotenv",
  "env_logger",
  "ethers",
+ "ethers-signers",
  "futures",
  "graphql_client",
  "hex",

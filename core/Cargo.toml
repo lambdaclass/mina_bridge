@@ -28,6 +28,7 @@ ethers = { tag = "v2.0.15-fix-reconnections", features = [
   "rustls",
   "solc",
 ], git = "https://github.com/yetanotherco/ethers-rs.git" }
+ethers-signers = { tag = "v2.0.15-fix-reconnections", git = "https://github.com/yetanotherco/ethers-rs.git" }
 rpassword = "7.3.1"
 tokio = "1.39.1"
 dotenv = "0.15.0"
