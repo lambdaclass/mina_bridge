@@ -73,7 +73,7 @@ dependencies = [
 [[package]]
 name = "aligned-sdk"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/aligned_layer.git?branch=fix_aligned_sync#fd860a256b6f3d35b6424f8b86fb386eef55f223"
+source = "git+https://github.com/lambdaclass/aligned_layer.git?branch=mina#6b062a76637f37442cc94c3fadfec8cfb352748c"
 dependencies = [
  "ciborium",
  "ethers",
