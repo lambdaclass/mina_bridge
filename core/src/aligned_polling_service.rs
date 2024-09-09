@@ -2,7 +2,7 @@ use std::{path::PathBuf, process, str::FromStr};
 
 use aligned_sdk::{
     core::types::{AlignedVerificationData, Chain, ProvingSystemId, VerificationData},
-    sdk::{get_next_nonce, submit_and_wait},
+    sdk::{get_next_nonce, submit_and_wait_verification},
 };
 use ethers::{
     core::k256::ecdsa::SigningKey,
@@ -18,7 +18,7 @@ use crate::proof::MinaProof;
 pub async fn submit(
     proof: MinaProof,
     chain: &Chain,
-    proof_generator_addr: &str,
+    proof_generator_addr_str: &str,
     batcher_addr: &str,
     batcher_eth_addr: &str,
     eth_rpc_url: &str,
@@ -66,7 +66,7 @@ pub async fn submit(
     }
 
     let proof_generator_addr =
-        Address::from_str(proof_generator_addr).map_err(|err| err.to_string())?;
+        Address::from_str(proof_generator_addr_str).map_err(|err| err.to_string())?;
 
     let verification_data = VerificationData {
         proving_system,
@@ -88,6 +88,7 @@ pub async fn submit(
         &verification_data,
         wallet,
         nonce,
+        proof_generator_addr_str,
     )
     .await
     .or_else(|err| {
@@ -106,24 +107,20 @@ async fn submit_with_nonce(
     mina_proof: &VerificationData,
     wallet: Wallet<SigningKey>,
     nonce: U256,
+    proof_generator_addr: &str,
 ) -> Result<AlignedVerificationData, String> {
-    let aligned_verification_data = submit_and_wait(
+    submit_and_wait_verification(
         batcher_addr,
         eth_rpc_url,
         chain.to_owned(),
         mina_proof,
+        U256::MAX,
         wallet,
         nonce,
+        proof_generator_addr,
     )
     .await
-    .map_err(|err| err.to_string())?;
-
-    if let Some(aligned_verification_data) = aligned_verification_data {
-        info!("Batch was succesfully verified!");
-        Ok(aligned_verification_data)
-    } else {
-        Err("Verification data was not returned when submitting the proof, possibly because the connection was closed sooner than expected.".to_string())
-    }
+    .map_err(|err| format!("Verification data was not returned when submitting the proof: {err}"))
 }
 
 async fn get_nonce(
