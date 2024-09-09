@@ -5,9 +5,10 @@ use ethers::{
     prelude::k256::ecdsa::SigningKey,
     signers::{LocalWallet, Wallet},
 };
+use ethers_signers::Signer;
 use log::info;
 
-use crate::utils::constants::ANVIL_PRIVATE_KEY;
+use crate::utils::constants::{ANVIL_CHAIN_ID, ANVIL_PRIVATE_KEY, HOLESKY_CHAIN_ID};
 
 pub fn get_wallet(
     chain: &Chain,
@@ -29,9 +30,11 @@ pub fn get_wallet(
             Wallet::decrypt_keystore(keystore_path, password).map_err(|err| err.to_string())
         } else if let Some(private_key) = private_key {
             info!("Using private key for Holesky wallet");
-            private_key
+            let wallet = private_key
                 .parse::<LocalWallet>()
-                .map_err(|err| err.to_string())
+                .map_err(|err| err.to_string())?;
+
+            Ok(wallet.with_chain_id(HOLESKY_CHAIN_ID))
         } else {
             return Err(
                 "Holesky chain was selected but couldn't find KEYSTORE_PATH or PRIVATE_KEY."
@@ -40,7 +43,9 @@ pub fn get_wallet(
         }
     } else {
         info!("Using Anvil wallet 9");
-        LocalWallet::from_str(ANVIL_PRIVATE_KEY)
-            .map_err(|err| format!("Failed to create Anvil wallet: {}", err))
+        let wallet = LocalWallet::from_str(ANVIL_PRIVATE_KEY)
+            .map_err(|err| format!("Failed to create Anvil wallet: {}", err))?;
+
+        Ok(wallet.with_chain_id(ANVIL_CHAIN_ID))
     }
 }
