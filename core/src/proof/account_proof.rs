@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use sha3::Digest;
 
-use crate::proof::serialization::EVMSerialize;
+use crate::sol::serialization::SolSerialize;
 
 #[serde_as]
 #[derive(Serialize, Deserialize)]
@@ -13,24 +13,12 @@ pub enum MerkleNode {
     Right(#[serde_as(as = "o1_utils::serialization::SerdeAs")] Fp),
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct AccountHash(pub [u8; 32]);
-
-impl AccountHash {
-    // TODO(xqft): hash a Mina account
-    pub fn new(_account: &MinaAccount) -> Self {
-        let mut hasher = sha3::Keccak256::new();
-        //hasher.update(account);
-        Self(hasher.finalize_reset().into())
-    }
-}
-
 #[serde_as]
 #[derive(Serialize, Deserialize)]
 pub struct MinaAccountPubInputs {
-    #[serde_as(as = "EVMSerialize")]
+    #[serde_as(as = "SolSerialize")]
     pub ledger_hash: Fp,
-    #[serde_as(as = "EVMSerialize")]
+    #[serde_as(as = "SolSerialize")]
     pub account_hash: AccountHash,
 }
 

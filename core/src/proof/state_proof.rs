@@ -4,7 +4,7 @@ use mina_p2p_messages::v2::{
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
-use crate::{proof::serialization::EVMSerialize, utils::constants::BRIDGE_TRANSITION_FRONTIER_LEN};
+use crate::{sol::serialization::SolSerialize, utils::constants::BRIDGE_TRANSITION_FRONTIER_LEN};
 
 #[serde_as]
 #[derive(Serialize, Deserialize, Clone)]

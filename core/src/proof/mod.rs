@@ -12,6 +12,3 @@ pub enum MinaProof {
     State((MinaStateProof, MinaStatePubInputs)),
     Account((MinaAccountProof, MinaAccountPubInputs)),
 }
-
-/// Proof (de)serialization.
-pub mod serialization;
