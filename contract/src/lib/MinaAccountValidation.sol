@@ -16,7 +16,6 @@ contract MinaAccountValidation {
         ZkappAccount zkapp;
     }
 
-    /// @notice A compressed elliptic curve.
     struct CompressedECPoint {
         bytes32 x;
         bool isOdd;
