@@ -107,7 +107,10 @@ pub async fn get_mina_proof_of_account(
     let encoded_account = MinaAccountValidation::Account::try_from(&account)?.abi_encode();
 
     Ok((
-        MinaAccountProof { merkle_path },
+        MinaAccountProof {
+            merkle_path,
+            account,
+        },
         MinaAccountPubInputs {
             ledger_hash,
             encoded_account,
