@@ -3,7 +3,7 @@ use log::{debug, error, info};
 use mina_bridge_core::{
     mina_polling_service::query_root,
     smart_contract_utility::{
-        deploy_mina_bridge_contract, EVMStateHash, MinaBridgeConstructorArgs,
+        deploy_mina_bridge_contract, MinaBridgeConstructorArgs, SolStateHash,
     },
     utils::{
         constants::{
@@ -41,7 +41,7 @@ async fn main() {
     info!(
         "Queried root state hash {root_hash} for chain of length {BRIDGE_TRANSITION_FRONTIER_LEN}"
     );
-    let root_hash = bincode::serialize(&EVMStateHash(root_hash)).unwrap_or_else(|err| {
+    let root_hash = bincode::serialize(&SolStateHash(root_hash)).unwrap_or_else(|err| {
         error!("Failed to serialize root state hash: {err}");
         process::exit(1);
     });

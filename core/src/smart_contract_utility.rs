@@ -13,7 +13,8 @@ use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
 use crate::{
-    proof::{serialization::EVMSerialize, state_proof::MinaStatePubInputs},
+    proof::state_proof::MinaStatePubInputs,
+    sol::serialization::SolSerialize,
     utils::constants::{
         ANVIL_CHAIN_ID, BRIDGE_DEVNET_ETH_ADDR, BRIDGE_HOLESKY_ETH_ADDR,
         BRIDGE_TRANSITION_FRONTIER_LEN, HOLESKY_CHAIN_ID,
@@ -36,7 +37,7 @@ sol!(
 
 #[serde_as]
 #[derive(Serialize, Deserialize)]
-pub struct EVMStateHash(#[serde_as(as = "EVMSerialize")] pub StateHash);
+pub struct SolStateHash(#[serde_as(as = "SolSerialize")] pub StateHash);
 
 pub struct MinaBridgeConstructorArgs {
     aligned_service_addr: alloy::primitives::Address,
@@ -218,7 +219,7 @@ pub async fn is_account_verified(
         .map_err(|err| err.to_string())
 }
 
-pub async fn get_bridge_tip_hash(chain: &Chain, eth_rpc_url: &str) -> Result<EVMStateHash, String> {
+pub async fn get_bridge_tip_hash(chain: &Chain, eth_rpc_url: &str) -> Result<SolStateHash, String> {
     let bridge_eth_addr = Address::from_str(match chain {
         Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
         Chain::Holesky => BRIDGE_HOLESKY_ETH_ADDR,
@@ -237,7 +238,7 @@ pub async fn get_bridge_tip_hash(chain: &Chain, eth_rpc_url: &str) -> Result<EVM
         .await
         .map_err(|err| err.to_string())?;
 
-    let state_hash: EVMStateHash = bincode::deserialize(&state_hash_bytes)
+    let state_hash: SolStateHash = bincode::deserialize(&state_hash_bytes)
         .map_err(|err| format!("Failed to deserialize bridge tip state hash: {err}"))?;
     info!("Retrieved bridge tip state hash: {}", state_hash.0,);
 
@@ -269,7 +270,7 @@ pub async fn get_bridge_chain_state_hashes(
             hashes
                 .into_iter()
                 .map(|hash| {
-                    bincode::deserialize::<EVMStateHash>(&hash)
+                    bincode::deserialize::<SolStateHash>(&hash)
                         .map_err(|err| format!("Failed to deserialize chain state hashes: {err}"))
                         .map(|hash| hash.0)
                 })

@@ -1,7 +1,8 @@
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use mina_curves::pasta::Fp;
-use mina_p2p_messages::v2::{
-    DataHashLibStateHashStableV1, LedgerHash, MinaBaseLedgerHash0StableV1, StateHash,
+use mina_p2p_messages::{
+    bigint,
+    v2::{DataHashLibStateHashStableV1, LedgerHash, MinaBaseLedgerHash0StableV1, StateHash},
 };
 use serde::{Deserialize, Serialize};
 

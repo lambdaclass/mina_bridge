@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
 use aligned_sdk::core::types::Chain;
+use alloy_sol_types::SolValue;
 use base64::prelude::*;
 use futures::future::join_all;
 use graphql_client::{
@@ -19,10 +20,11 @@ use mina_p2p_messages::{
 
 use crate::{
     proof::{
-        account_proof::{AccountHash, MerkleNode, MinaAccountProof, MinaAccountPubInputs},
+        account_proof::{MerkleNode, MinaAccountProof, MinaAccountPubInputs},
         state_proof::{MinaStateProof, MinaStatePubInputs},
     },
     smart_contract_utility::get_bridge_tip_hash,
+    sol::account::MinaAccountValidation,
     utils::constants::BRIDGE_TRANSITION_FRONTIER_LEN,
 };
 
@@ -102,17 +104,13 @@ pub async fn get_mina_proof_of_account(
     let (account, ledger_hash, merkle_path) =
         query_account(rpc_url, state_hash, public_key).await?;
 
-    // placeholder
-    let account_hash = AccountHash::new(&account);
+    let encoded_account = MinaAccountValidation::Account::try_from(&account)?.abi_encode();
 
     Ok((
-        MinaAccountProof {
-            merkle_path,
-            account,
-        },
+        MinaAccountProof { merkle_path },
         MinaAccountPubInputs {
             ledger_hash,
-            account_hash,
+            encoded_account,
         },
     ))
 }

@@ -11,14 +11,14 @@ use crate::{sol::serialization::SolSerialize, utils::constants::BRIDGE_TRANSITIO
 pub struct MinaStatePubInputs {
     /// The hash of the bridge's transition frontier tip state. Used for making sure that we're
     /// checking if a candidate tip is better than the latest bridged tip.
-    #[serde_as(as = "EVMSerialize")]
+    #[serde_as(as = "SolSerialize")]
     pub bridge_tip_state_hash: StateHash,
     /// The state hashes of the candidate chain.
-    #[serde_as(as = "[EVMSerialize; BRIDGE_TRANSITION_FRONTIER_LEN]")]
+    #[serde_as(as = "[SolSerialize; BRIDGE_TRANSITION_FRONTIER_LEN]")]
     pub candidate_chain_state_hashes: [StateHash; BRIDGE_TRANSITION_FRONTIER_LEN],
     /// The ledger hashes of the candidate chain. The ledger hashes are the root of a Merkle tree
     /// where the leafs are Mina account hashes. Used for account verification.
-    #[serde_as(as = "[EVMSerialize; BRIDGE_TRANSITION_FRONTIER_LEN]")]
+    #[serde_as(as = "[SolSerialize; BRIDGE_TRANSITION_FRONTIER_LEN]")]
     pub candidate_chain_ledger_hashes: [LedgerHash; BRIDGE_TRANSITION_FRONTIER_LEN],
 }
 
