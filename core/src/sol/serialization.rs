@@ -1,17 +1,12 @@
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use mina_curves::pasta::Fp;
-use mina_p2p_messages::{
-    bigint::{self, BigInt},
-    v2::{
-        DataHashLibStateHashStableV1, LedgerHash, MinaBaseAccountBinableArgStableV2 as MinaAccount,
-        MinaBaseLedgerHash0StableV1, MinaBaseVerificationKeyWireStableV1,
-        MinaBaseZkappAccountStableV2, StateHash,
-    },
+use mina_p2p_messages::v2::{
+    DataHashLibStateHashStableV1, LedgerHash, MinaBaseLedgerHash0StableV1, StateHash,
 };
-use num_traits::cast::ToPrimitive;
 use serde::{Deserialize, Serialize};
 
-/// Simple serialization for types that need to be deserialized in Ethereum.
+/// Serialization to bytes for simple types that need to be deserialized in Ethereum.
+/// More complex structures, like an [`MinaAccountValidation::Account`], may use Solidity's ABI Encoding.
 pub struct SolSerialize;
 
 impl serde_with::SerializeAs<StateHash> for SolSerialize {
