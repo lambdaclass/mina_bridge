@@ -2,7 +2,6 @@
 pragma solidity ^0.8.12;
 
 import "aligned_layer/contracts/src/core/AlignedLayerServiceManager.sol";
-import "./lib/MinaAccountValidation.sol";
 
 error NewStateIsNotValid();
 error TipStateIsWrong(bytes32 pubInputTipStateHash, bytes32 tipStatehash);
@@ -126,37 +125,5 @@ contract MinaBridge {
         } else {
             revert NewStateIsNotValid();
         }
-    }
-
-    function isAccountVerified(
-        bytes32 proofCommitment,
-        bytes32 provingSystemAuxDataCommitment,
-        bytes20 proofGeneratorAddr,
-        bytes32 batchMerkleRoot,
-        bytes memory merkleProof,
-        uint256 verificationDataBatchIndex,
-        bytes memory pubInput
-    ) external view returns (bool) {
-        bytes32 ledgerHash;
-        bytes32 accountHash;
-        bytes32 accountIdHash;
-        assembly {
-            ledgerHash := mload(add(pubInput, 0x20))
-            accountHash := mload(add(pubInput, 0x40))
-            accountIdHash := mload(add(pubInput, 0x60))
-        }
-
-        bytes32 pubInputCommitment = keccak256(pubInput);
-
-        return
-            aligned.verifyBatchInclusion(
-                proofCommitment,
-                pubInputCommitment,
-                provingSystemAuxDataCommitment,
-                proofGeneratorAddr,
-                batchMerkleRoot,
-                merkleProof,
-                verificationDataBatchIndex
-            );
     }
 }

@@ -3,7 +3,8 @@ use log::{debug, error, info};
 use mina_bridge_core::{
     mina_polling_service::query_root,
     smart_contract_utility::{
-        deploy_mina_bridge_contract, MinaBridgeConstructorArgs, SolStateHash,
+        deploy_mina_account_validation_contract, deploy_mina_bridge_contract,
+        MinaAccountValidationConstructorArgs, MinaBridgeConstructorArgs, SolStateHash,
     },
     utils::{
         constants::{
@@ -52,9 +53,14 @@ async fn main() {
         _ => todo!(),
     };
 
-    let contract_constructor_args = MinaBridgeConstructorArgs::new(aligned_sm_addr, root_hash)
+    let bridge_constructor_args = MinaBridgeConstructorArgs::new(aligned_sm_addr, root_hash)
         .unwrap_or_else(|err| {
-            error!("Failed to make constructor args for contract call: {err}");
+            error!("Failed to make constructor args for bridge contract call: {err}");
+            process::exit(1);
+        });
+    let account_constructor_args = MinaAccountValidationConstructorArgs::new(aligned_sm_addr)
+        .unwrap_or_else(|err| {
+            error!("Failed to make constructor args for account contract call: {err}");
             process::exit(1);
         });
 
@@ -63,7 +69,15 @@ async fn main() {
             error!("Failed to get wallet: {err}");
             process::exit(1);
         });
-    deploy_mina_bridge_contract(&eth_rpc_url, contract_constructor_args, &wallet)
+
+    deploy_mina_bridge_contract(&eth_rpc_url, bridge_constructor_args, &wallet)
+        .await
+        .unwrap_or_else(|err| {
+            error!("Failed to deploy contract: {err}");
+            process::exit(1);
+        });
+
+    deploy_mina_account_validation_contract(&eth_rpc_url, account_constructor_args, &wallet)
         .await
         .unwrap_or_else(|err| {
             error!("Failed to deploy contract: {err}");

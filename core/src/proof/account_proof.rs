@@ -13,7 +13,7 @@ pub enum MerkleNode {
 }
 
 #[serde_as]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct MinaAccountPubInputs {
     #[serde_as(as = "SolSerialize")]
     pub ledger_hash: Fp,
