@@ -298,18 +298,22 @@ pub async fn validate_account(
 
     debug!("Validating account");
 
-    contract
-        .validate_account(
-            proof_commitment,
-            proving_system_aux_data_commitment,
-            proof_generator_addr,
-            batch_merkle_root,
-            merkle_proof,
-            index_in_batch.into(),
-            serialized_pub_input.into(),
-        )
-        .await
-        .map_err(|err| err.to_string())
+    let call = contract.validate_account(
+        proof_commitment,
+        proving_system_aux_data_commitment,
+        proof_generator_addr,
+        batch_merkle_root,
+        merkle_proof,
+        index_in_batch.into(),
+        serialized_pub_input.into(),
+    );
+
+    info!(
+        "Estimated account verification gas cost: {}",
+        call.estimate_gas().await.map_err(|err| err.to_string())?
+    );
+
+    call.await.map_err(|err| err.to_string())
 }
 
 pub async fn deploy_mina_bridge_contract(

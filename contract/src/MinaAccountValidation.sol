@@ -22,7 +22,7 @@ contract MinaAccountValidation {
         uint256 verificationDataBatchIndex,
         bytes calldata pubInput
     ) external view returns (Account memory) {
-        bytes calldata encodedAccount = pubInput[32:];
+        bytes calldata encodedAccount = pubInput[32 + 8:];
 
         bytes32 pubInputCommitment = keccak256(pubInput);
 
