@@ -88,7 +88,6 @@ pub async fn submit(
         &verification_data,
         wallet,
         nonce,
-        proof_generator_addr_str,
     )
     .await
     .or_else(|err| {
@@ -107,17 +106,14 @@ async fn submit_with_nonce(
     mina_proof: &VerificationData,
     wallet: Wallet<SigningKey>,
     nonce: U256,
-    proof_generator_addr: &str,
 ) -> Result<AlignedVerificationData, String> {
     submit_and_wait_verification(
         batcher_addr,
         eth_rpc_url,
         chain.to_owned(),
         mina_proof,
-        U256::MAX,
         wallet,
         nonce,
-        proof_generator_addr,
     )
     .await
     .map_err(|err| format!("Verification data was not returned when submitting the proof: {err}"))
