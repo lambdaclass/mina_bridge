@@ -18,7 +18,7 @@ use crate::proof::MinaProof;
 pub async fn submit(
     proof: MinaProof,
     chain: &Chain,
-    proof_generator_addr_str: &str,
+    proof_generator_addr: &str,
     batcher_addr: &str,
     batcher_eth_addr: &str,
     eth_rpc_url: &str,
@@ -66,7 +66,7 @@ pub async fn submit(
     }
 
     let proof_generator_addr =
-        Address::from_str(proof_generator_addr_str).map_err(|err| err.to_string())?;
+        Address::from_str(proof_generator_addr).map_err(|err| err.to_string())?;
 
     let verification_data = VerificationData {
         proving_system,
@@ -88,7 +88,7 @@ pub async fn submit(
         &verification_data,
         wallet,
         nonce,
-        proof_generator_addr_str
+        batcher_eth_addr,
     )
     .await
     .or_else(|err| {
@@ -107,17 +107,16 @@ async fn submit_with_nonce(
     mina_proof: &VerificationData,
     wallet: Wallet<SigningKey>,
     nonce: U256,
-    proof_generator_addr: &str
+    payment_service_addr: &str,
 ) -> Result<AlignedVerificationData, String> {
     submit_and_wait_verification(
         batcher_addr,
         eth_rpc_url,
         chain.to_owned(),
         mina_proof,
-        U256::MAX,
         wallet,
         nonce,
-        proof_generator_addr
+        payment_service_addr,
     )
     .await
     .map_err(|err| format!("Verification data was not returned when submitting the proof: {err}"))
