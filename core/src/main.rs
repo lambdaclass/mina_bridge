@@ -91,6 +91,7 @@ async fn main() {
                 &chain,
                 &eth_rpc_url,
                 wallet,
+                &batcher_eth_addr,
             )
             .await
             .unwrap_or_else(|err| {

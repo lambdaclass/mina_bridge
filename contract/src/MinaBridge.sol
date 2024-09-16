@@ -55,7 +55,8 @@ contract MinaBridge {
         bytes32 batchMerkleRoot,
         bytes memory merkleProof,
         uint256 verificationDataBatchIndex,
-        bytes memory pubInput
+        bytes memory pubInput,
+        address batcherPaymentServiceAddress
     ) external {
         bytes32 pubInputBridgeTipStateHash;
         assembly {
@@ -76,7 +77,7 @@ contract MinaBridge {
             batchMerkleRoot,
             merkleProof,
             verificationDataBatchIndex,
-            address(0)
+            batcherPaymentServiceAddress
         );
 
         if (isNewStateVerified) {

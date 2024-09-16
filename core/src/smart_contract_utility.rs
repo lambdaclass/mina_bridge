@@ -94,6 +94,7 @@ pub async fn update_chain(
     chain: &Chain,
     eth_rpc_url: &str,
     wallet: Wallet<SigningKey>,
+    batcher_eth_addr: &str,
 ) -> Result<(), String> {
     let bridge_eth_addr = Address::from_str(match chain {
         Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
@@ -131,6 +132,9 @@ pub async fn update_chain(
         ..
     } = verification_data_commitment;
 
+    let batcher_eth_addr = Address::from_str(batcher_eth_addr)
+        .map_err(|err| format!("Failed to parse batcher payment service address: {err}"))?;
+
     debug!("Updating contract");
 
     let update_call = mina_bridge_contract.update_chain(
@@ -141,6 +145,7 @@ pub async fn update_chain(
         merkle_proof,
         index_in_batch.into(),
         serialized_pub_input.into(),
+        batcher_eth_addr,
     );
     // update call reverts if batch is not valid or proof isn't included in it.
 
@@ -258,6 +263,7 @@ pub async fn validate_account(
     pub_input: &MinaAccountPubInputs,
     chain: &Chain,
     eth_rpc_url: &str,
+    batcher_eth_addr: &str,
 ) -> Result<Account, String> {
     let bridge_eth_addr = Address::from_str(match chain {
         Chain::Devnet => BRIDGE_ACCOUNT_DEVNET_ETH_ADDR,
@@ -296,6 +302,9 @@ pub async fn validate_account(
         ..
     } = verification_data_commitment;
 
+    let batcher_eth_addr = Address::from_str(batcher_eth_addr)
+        .map_err(|err| format!("Failed to parse batcher payment service address: {err}"))?;
+
     debug!("Validating account");
 
     let call = contract.validate_account(
@@ -306,6 +315,7 @@ pub async fn validate_account(
         merkle_proof,
         index_in_batch.into(),
         serialized_pub_input.into(),
+        batcher_eth_addr,
     );
 
     info!(

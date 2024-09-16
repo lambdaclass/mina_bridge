@@ -20,7 +20,8 @@ contract MinaAccountValidation {
         bytes32 batchMerkleRoot,
         bytes memory merkleProof,
         uint256 verificationDataBatchIndex,
-        bytes calldata pubInput
+        bytes calldata pubInput,
+        address batcherPaymentServiceAddress
     ) external view returns (Account memory) {
         bytes calldata encodedAccount = pubInput[32 + 8:];
 
@@ -34,7 +35,7 @@ contract MinaAccountValidation {
             batchMerkleRoot,
             merkleProof,
             verificationDataBatchIndex,
-            address(0)
+            batcherPaymentServiceAddress
         );
 
         if (isAccountVerified) {
