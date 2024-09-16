@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "deployAliases": {
+    "devnet": {
+      "networkId": "testnet",
+      "url": "https://api.minascan.io/node/devnet/v1/graphql",
+      "keyPath": "keys/devnet.json",
+      "feepayerKeyPath": "/Users/xqft/.cache/zkapp-cli/keys/xqft-fee-payer.json",
+      "feepayerAlias": "xqft-fee-payer",
+      "fee": "0.1",
+      "smartContract": "SudokuZkApp"
+    }
+  }
+}
