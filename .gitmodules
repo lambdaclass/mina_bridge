@@ -14,3 +14,6 @@
 [submodule "app/eth_contract/lib/forge-std"]
 	path = app/eth_contract/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "app/eth_contract/lib/mina_bridge"]
+	path = app/eth_contract/lib/mina_bridge
+	url = https://github.com/lambdaclass/mina_bridge
