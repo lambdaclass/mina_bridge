@@ -9,7 +9,7 @@ contract MinaAccountValidation {
     /// @notice Reference to the AlignedLayerServiceManager contract.
     AlignedLayerServiceManager aligned;
 
-    constructor(address _alignedServiceAddr) {
+    constructor(address payable _alignedServiceAddr) {
         aligned = AlignedLayerServiceManager(_alignedServiceAddr);
     }
 
@@ -33,7 +33,8 @@ contract MinaAccountValidation {
             proofGeneratorAddr,
             batchMerkleRoot,
             merkleProof,
-            verificationDataBatchIndex
+            verificationDataBatchIndex,
+            address(0)
         );
 
         if (isAccountVerified) {
