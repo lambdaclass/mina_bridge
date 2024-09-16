@@ -15,15 +15,11 @@ contract MinaBridgeDeployer is Script {
         vm.startBroadcast();
 
         string memory chain = vm.envString("ETH_CHAIN");
-        address alignedServiceAddress;
+        address payable alignedServiceAddress;
         if (keccak256(bytes(chain)) == keccak256("devnet")) {
-            alignedServiceAddress = address(
-                uint160(0x1613beB3B2C4f22Ee086B2b38C1476A3cE7f78E8)
-            );
+            alignedServiceAddress = payable(0x1613beB3B2C4f22Ee086B2b38C1476A3cE7f78E8);
         } else if (keccak256(bytes(chain)) == keccak256("holesky")) {
-            alignedServiceAddress = address(
-                uint160(0x58F280BeBE9B34c9939C3C39e0890C81f163B623)
-            );
+            alignedServiceAddress = payable(0x58F280BeBE9B34c9939C3C39e0890C81f163B623);
         } else {
             revert UndefinedChain();
         }

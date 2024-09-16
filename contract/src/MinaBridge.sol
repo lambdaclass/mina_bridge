@@ -2,7 +2,6 @@
 pragma solidity ^0.8.12;
 
 import "aligned_layer/contracts/src/core/AlignedLayerServiceManager.sol";
-import "./Account.sol";
 
 error NewStateIsNotValid();
 error TipStateIsWrong(bytes32 pubInputTipStateHash, bytes32 tipStatehash);
@@ -12,7 +11,7 @@ error AccountIsNotValid(bytes32 accountIdHash);
 contract MinaBridge {
     /// @notice The length of the verified state chain (also called the bridge's transition
     /// frontier) to store.
-    uint public constant BRIDGE_TRANSITION_FRONTIER_LEN = 16;
+    uint256 public constant BRIDGE_TRANSITION_FRONTIER_LEN = 16;
 
     /// @notice The state hash of the last verified chain of Mina states (also called
     /// the bridge's transition frontier).
@@ -24,7 +23,7 @@ contract MinaBridge {
     /// @notice Reference to the AlignedLayerServiceManager contract.
     AlignedLayerServiceManager aligned;
 
-    constructor(address _alignedServiceAddr, bytes32 _tipStateHash) {
+    constructor(address payable _alignedServiceAddr, bytes32 _tipStateHash) {
         aligned = AlignedLayerServiceManager(_alignedServiceAddr);
         chainStateHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1] = _tipStateHash;
     }
@@ -40,20 +39,12 @@ contract MinaBridge {
     }
 
     /// @notice Returns the latest verified chain state hashes.
-    function getChainStateHashes()
-        external
-        view
-        returns (bytes32[BRIDGE_TRANSITION_FRONTIER_LEN] memory)
-    {
+    function getChainStateHashes() external view returns (bytes32[BRIDGE_TRANSITION_FRONTIER_LEN] memory) {
         return chainStateHashes;
     }
 
     /// @notice Returns the latest verified chain ledger hashes.
-    function getChainLedgerHashes()
-        external
-        view
-        returns (bytes32[BRIDGE_TRANSITION_FRONTIER_LEN] memory)
-    {
+    function getChainLedgerHashes() external view returns (bytes32[BRIDGE_TRANSITION_FRONTIER_LEN] memory) {
         return chainLedgerHashes;
     }
 
@@ -71,14 +62,8 @@ contract MinaBridge {
             pubInputBridgeTipStateHash := mload(add(pubInput, 0x20))
         }
 
-        if (
-            pubInputBridgeTipStateHash !=
-            chainStateHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1]
-        ) {
-            revert TipStateIsWrong(
-                pubInputBridgeTipStateHash,
-                chainStateHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1]
-            );
+        if (pubInputBridgeTipStateHash != chainStateHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1]) {
+            revert TipStateIsWrong(pubInputBridgeTipStateHash, chainStateHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1]);
         }
 
         bytes32 pubInputCommitment = keccak256(pubInput);
@@ -90,7 +75,8 @@ contract MinaBridge {
             proofGeneratorAddr,
             batchMerkleRoot,
             merkleProof,
-            verificationDataBatchIndex
+            verificationDataBatchIndex,
+            address(0)
         );
 
         if (isNewStateVerified) {
@@ -104,16 +90,9 @@ contract MinaBridge {
                 // the next BRIDGE_TRANSITION_FRONTIER_LEN sets of 32 bytes are state hashes.
                 let addr_states := add(pubInput, 64)
                 // the next BRIDGE_TRANSITION_FRONTIER_LEN sets of 32 bytes are ledger hashes.
-                let addr_ledgers := add(
-                    addr_states,
-                    mul(32, BRIDGE_TRANSITION_FRONTIER_LEN)
-                )
+                let addr_ledgers := add(addr_states, mul(32, BRIDGE_TRANSITION_FRONTIER_LEN))
 
-                for {
-                    let i := 0
-                } lt(i, BRIDGE_TRANSITION_FRONTIER_LEN) {
-                    i := add(i, 1)
-                } {
+                for { let i := 0 } lt(i, BRIDGE_TRANSITION_FRONTIER_LEN) { i := add(i, 1) } {
                     sstore(slot_states, mload(addr_states))
                     addr_states := add(addr_states, 32)
                     slot_states := add(slot_states, 1)
@@ -126,37 +105,5 @@ contract MinaBridge {
         } else {
             revert NewStateIsNotValid();
         }
-    }
-
-    function isAccountVerified(
-        bytes32 proofCommitment,
-        bytes32 provingSystemAuxDataCommitment,
-        bytes20 proofGeneratorAddr,
-        bytes32 batchMerkleRoot,
-        bytes memory merkleProof,
-        uint256 verificationDataBatchIndex,
-        bytes memory pubInput
-    ) external view returns (bool) {
-        bytes32 ledgerHash;
-        bytes32 accountHash;
-        bytes32 accountIdHash;
-        assembly {
-            ledgerHash := mload(add(pubInput, 0x20))
-            accountHash := mload(add(pubInput, 0x40))
-            accountIdHash := mload(add(pubInput, 0x60))
-        }
-
-        bytes32 pubInputCommitment = keccak256(pubInput);
-
-        return
-            aligned.verifyBatchInclusion(
-                proofCommitment,
-                pubInputCommitment,
-                provingSystemAuxDataCommitment,
-                proofGeneratorAddr,
-                batchMerkleRoot,
-                merkleProof,
-                verificationDataBatchIndex
-            );
     }
 }

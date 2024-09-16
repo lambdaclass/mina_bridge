@@ -14,3 +14,6 @@ pub mod utils;
 
 /// Mina Proof of State/Account definitions and (de)serialization.
 pub mod proof;
+
+/// Solidity-friendly data structures and serialization.
+pub mod sol;

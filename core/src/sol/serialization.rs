@@ -6,12 +6,11 @@ use mina_p2p_messages::{
 };
 use serde::{Deserialize, Serialize};
 
-use super::account_proof::AccountHash;
+/// Serialization to bytes for simple types that need to be deserialized in Ethereum.
+/// More complex structures, like an [`MinaAccountValidation::Account`], may use Solidity's ABI Encoding.
+pub struct SolSerialize;
 
-/// Simple serialization for types that need to be deserialized in Ethereum.
-pub struct EVMSerialize;
-
-impl serde_with::SerializeAs<StateHash> for EVMSerialize {
+impl serde_with::SerializeAs<StateHash> for SolSerialize {
     fn serialize_as<S>(val: &StateHash, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -25,7 +24,7 @@ impl serde_with::SerializeAs<StateHash> for EVMSerialize {
     }
 }
 
-impl<'de> serde_with::DeserializeAs<'de, StateHash> for EVMSerialize {
+impl<'de> serde_with::DeserializeAs<'de, StateHash> for SolSerialize {
     fn deserialize_as<D>(deserializer: D) -> Result<StateHash, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -36,7 +35,7 @@ impl<'de> serde_with::DeserializeAs<'de, StateHash> for EVMSerialize {
     }
 }
 
-impl serde_with::SerializeAs<LedgerHash> for EVMSerialize {
+impl serde_with::SerializeAs<LedgerHash> for SolSerialize {
     fn serialize_as<S>(val: &LedgerHash, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -50,7 +49,7 @@ impl serde_with::SerializeAs<LedgerHash> for EVMSerialize {
     }
 }
 
-impl<'de> serde_with::DeserializeAs<'de, LedgerHash> for EVMSerialize {
+impl<'de> serde_with::DeserializeAs<'de, LedgerHash> for SolSerialize {
     fn deserialize_as<D>(deserializer: D) -> Result<LedgerHash, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -61,26 +60,7 @@ impl<'de> serde_with::DeserializeAs<'de, LedgerHash> for EVMSerialize {
     }
 }
 
-impl serde_with::SerializeAs<AccountHash> for EVMSerialize {
-    fn serialize_as<S>(val: &AccountHash, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        val.0.serialize(serializer)
-    }
-}
-
-impl<'de> serde_with::DeserializeAs<'de, AccountHash> for EVMSerialize {
-    fn deserialize_as<D>(deserializer: D) -> Result<AccountHash, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        let bytes = <[u8; 32]>::deserialize(deserializer)?;
-        Ok(AccountHash(bytes))
-    }
-}
-
-impl serde_with::SerializeAs<Fp> for EVMSerialize {
+impl serde_with::SerializeAs<Fp> for SolSerialize {
     fn serialize_as<S>(val: &Fp, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -95,7 +75,7 @@ impl serde_with::SerializeAs<Fp> for EVMSerialize {
     }
 }
 
-impl<'de> serde_with::DeserializeAs<'de, Fp> for EVMSerialize {
+impl<'de> serde_with::DeserializeAs<'de, Fp> for SolSerialize {
     fn deserialize_as<D>(deserializer: D) -> Result<Fp, D::Error>
     where
         D: serde::Deserializer<'de>,
