@@ -111,14 +111,8 @@ async fn main() {
                         process::exit(1);
                     });
 
-            // Use for calling the smart contract to check if the account was verified on Aligned.
-            let serialized_pub_input = bincode::serialize(&pub_input).unwrap_or_else(|err| {
-                error!("{}", err);
-                process::exit(1);
-            });
-
             let verification_data = aligned_polling_service::submit(
-                MinaProof::Account((proof, pub_input)),
+                MinaProof::Account((proof, pub_input.clone())),
                 &chain,
                 &proof_generator_addr,
                 &batcher_addr,
@@ -133,26 +127,18 @@ async fn main() {
                 process::exit(1);
             });
 
-            let is_account_verified = smart_contract_utility::is_account_verified(
+            if let Err(err) = smart_contract_utility::validate_account(
                 verification_data,
-                serialized_pub_input,
+                &pub_input,
                 &chain,
                 &eth_rpc_url,
             )
             .await
-            .unwrap_or_else(|err| {
-                error!("{}", err);
-                process::exit(1);
-            });
-
-            info!(
-                "Mina account {public_key} was {} on Aligned!",
-                if is_account_verified {
-                    "verified"
-                } else {
-                    "not verified"
-                }
-            );
+            {
+                error!("Mina account {public_key} was not validated: {err}",);
+            } else {
+                info!("Mina account {public_key} was validated!");
+            };
         }
     }
 
