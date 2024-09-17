@@ -18,7 +18,7 @@ contract Sudoku {
 
     constructor(address _stateSettlementAddr, address _accountValidationAddr) {
         stateSettlement = MinaBridge(_stateSettlementAddr);
-        accountValidation = AlignedLayerServiceManager(_accountValidationAddr);
+        accountValidation = MinaAccountValidation(_accountValidationAddr);
     }
 
     /// @notice Validates a Sudoku solution by bridging from Mina, and stores
