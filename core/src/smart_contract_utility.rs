@@ -263,7 +263,7 @@ pub async fn validate_account(
     pub_input: &MinaAccountPubInputs,
     chain: &Chain,
     eth_rpc_url: &str,
-    batcher_eth_addr: &str,
+    batcher_payment_service_addr: &str,
 ) -> Result<Account, String> {
     let bridge_eth_addr = Address::from_str(match chain {
         Chain::Devnet => BRIDGE_ACCOUNT_DEVNET_ETH_ADDR,
@@ -302,21 +302,23 @@ pub async fn validate_account(
         ..
     } = verification_data_commitment;
 
-    let batcher_eth_addr = Address::from_str(batcher_eth_addr)
+    let batcher_payment_service_addr = Address::from_str(batcher_payment_service_addr)
         .map_err(|err| format!("Failed to parse batcher payment service address: {err}"))?;
 
     debug!("Validating account");
 
-    let call = contract.validate_account(
+    let args = AlignedArgs {
         proof_commitment,
         proving_system_aux_data_commitment,
         proof_generator_addr,
         batch_merkle_root,
         merkle_proof,
-        index_in_batch.into(),
-        serialized_pub_input.into(),
-        batcher_eth_addr,
-    );
+        verification_data_batch_index: index_in_batch.into(),
+        pub_input: serialized_pub_input.into(),
+        batcher_payment_service_addr,
+    };
+
+    let call = contract.validate_account(args);
 
     info!(
         "Estimated account verification gas cost: {}",

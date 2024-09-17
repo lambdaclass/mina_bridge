@@ -133,6 +133,7 @@ async fn main() {
                 &pub_input,
                 &chain,
                 &eth_rpc_url,
+                &batcher_eth_addr,
             )
             .await
             {

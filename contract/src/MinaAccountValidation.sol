@@ -6,6 +6,17 @@ import "aligned_layer/contracts/src/core/AlignedLayerServiceManager.sol";
 error AccountIsNotVerified();
 
 contract MinaAccountValidation {
+    struct AlignedArgs {
+        bytes32 proofCommitment;
+        bytes32 provingSystemAuxDataCommitment;
+        bytes20 proofGeneratorAddr;
+        bytes32 batchMerkleRoot;
+        bytes merkleProof;
+        uint256 verificationDataBatchIndex;
+        bytes pubInput;
+        address batcherPaymentServiceAddr;
+    }
+
     /// @notice Reference to the AlignedLayerServiceManager contract.
     AlignedLayerServiceManager aligned;
 
@@ -13,29 +24,20 @@ contract MinaAccountValidation {
         aligned = AlignedLayerServiceManager(_alignedServiceAddr);
     }
 
-    function validateAccount(
-        bytes32 proofCommitment,
-        bytes32 provingSystemAuxDataCommitment,
-        bytes20 proofGeneratorAddr,
-        bytes32 batchMerkleRoot,
-        bytes memory merkleProof,
-        uint256 verificationDataBatchIndex,
-        bytes calldata pubInput,
-        address batcherPaymentServiceAddress
-    ) external view returns (Account memory) {
-        bytes calldata encodedAccount = pubInput[32 + 8:];
+    function validateAccount(AlignedArgs calldata args) external view returns (Account memory) {
+        bytes calldata encodedAccount = args.pubInput[32 + 8:];
 
-        bytes32 pubInputCommitment = keccak256(pubInput);
+        bytes32 pubInputCommitment = keccak256(args.pubInput);
 
         bool isAccountVerified = aligned.verifyBatchInclusion(
-            proofCommitment,
+            args.proofCommitment,
             pubInputCommitment,
-            provingSystemAuxDataCommitment,
-            proofGeneratorAddr,
-            batchMerkleRoot,
-            merkleProof,
-            verificationDataBatchIndex,
-            batcherPaymentServiceAddress
+            args.provingSystemAuxDataCommitment,
+            args.proofGeneratorAddr,
+            args.batchMerkleRoot,
+            args.merkleProof,
+            args.verificationDataBatchIndex,
+            args.batcherPaymentServiceAddr
         );
 
         if (isAccountVerified) {
