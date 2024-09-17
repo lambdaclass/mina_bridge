@@ -11,11 +11,15 @@ contract Sudoku {
 
     /// @notice Mina bridge contract that validates and stores Mina states.
     MinaBridge stateSettlement;
-
     /// @notice Mina bridge contract that validates accounts
     MinaAccountValidation accountValidation;
 
     uint64 latestSolutionValidationAt = 0;
+
+    constructor(address _stateSettlementAddr, address _accountValidationAddr) {
+        stateSettlement = MinaBridge(_stateSettlementAddr);
+        accountValidation = AlignedLayerServiceManager(_accountValidationAddr);
+    }
 
     /// @notice Validates a Sudoku solution by bridging from Mina, and stores
     /// the last Unix time it was solved at.
