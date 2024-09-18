@@ -9,10 +9,11 @@
  * Build the project: `$ npm run build`
  * Run with node:     `$ node build/src/run.js`.
  */
+import { setTimeout } from "timers/promises";
 import fs from 'fs/promises';
 import { Sudoku, SudokuZkApp } from './sudoku.js';
 import { cloneSudoku, generateSudoku, solveSudoku } from './sudoku-lib.js';
-import { AccountUpdate, Mina, PrivateKey, NetworkId } from 'o1js';
+import { AccountUpdate, Mina, PrivateKey, PublicKey, NetworkId, fetchAccount } from 'o1js';
 
 const deployAlias = "devnet";
 
@@ -35,13 +36,9 @@ let config = configJson.deployAliases[deployAlias];
 let feepayerKeysBase58: { privateKey: string; publicKey: string } = JSON.parse(
   await fs.readFile(config.feepayerKeyPath, 'utf8')
 );
-let zkAppKeysBase58: { privateKey: string; publicKey: string } = JSON.parse(
-  await fs.readFile(config.keyPath, 'utf8')
-);
 let feepayerKey = PrivateKey.fromBase58(feepayerKeysBase58.privateKey);
-let zkAppKey = PrivateKey.fromBase58(zkAppKeysBase58.privateKey);
 let feepayerAddress = feepayerKey.toPublicKey();
-let zkAppAddress = zkAppKey.toPublicKey();
+let zkAppAddress = PublicKey.fromBase58("B62qmpq1JBejZYDQrZwASPRM5oLXW346WoXgbApVf5HJZXMWFPWFPuA");
 
 // define network (devnet)
 const Network = Mina.Network({
@@ -59,6 +56,9 @@ const sudoku = generateSudoku(0.5);
 
 console.log('compiling Sudoku...');
 await SudokuZkApp.compile();
+
+await fetchAccount({ publicKey: zkAppAddress });
+console.log('Is the sudoku solved?', zkApp.isSolved.get().toBoolean());
 
 console.log('updating sudoku to solve');
 try {
@@ -82,11 +82,16 @@ try {
       `\n${getTxnUrl(config.url, sentTx.hash)}`
     );
   }
+
 } catch (err) {
   console.log(err);
 }
 
 console.log('Is the sudoku solved? (should be false)', zkApp.isSolved.get().toBoolean());
+
+console.log("Waiting 4 min...");
+await setTimeout(1000 * 60 * 4);
+console.log("Done");
 
 let solution = solveSudoku(sudoku);
 if (solution === undefined) throw Error('cannot happen');
@@ -99,7 +104,7 @@ let tx = await Mina.transaction({ sender: feepayerAddress, fee }, async () => {
 await tx.prove();
 await tx.sign([feepayerKey]).send();
 
-console.log('Is the sudoku solved?', zkApp.isSolved.get().toBoolean());
+console.log('Is the sudoku solved? (should be true)', zkApp.isSolved.get().toBoolean());
 
 function getTxnUrl(graphQlUrl: string, txnHash: string | undefined) {
   const hostName = new URL(graphQlUrl).hostname;
