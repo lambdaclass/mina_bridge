@@ -24,6 +24,7 @@ pub async fn submit(
     eth_rpc_url: &str,
     wallet: Wallet<SigningKey>,
     save_proof: bool,
+    task_sender_addr: &str,
 ) -> Result<AlignedVerificationData, String> {
     let (proof, pub_input, proving_system, proof_name, file_name) = match proof {
         MinaProof::State((proof, pub_input)) => {
@@ -88,7 +89,7 @@ pub async fn submit(
         &verification_data,
         wallet,
         nonce,
-        batcher_eth_addr,
+        task_sender_addr,
     )
     .await
     .or_else(|err| {
@@ -107,7 +108,7 @@ async fn submit_with_nonce(
     mina_proof: &VerificationData,
     wallet: Wallet<SigningKey>,
     nonce: U256,
-    payment_service_addr: &str,
+    task_sender_addr: &str,
 ) -> Result<AlignedVerificationData, String> {
     submit_and_wait_verification(
         batcher_addr,
@@ -116,7 +117,7 @@ async fn submit_with_nonce(
         mina_proof,
         wallet,
         nonce,
-        payment_service_addr,
+        task_sender_addr,
     )
     .await
     .map_err(|err| format!("Verification data was not returned when submitting the proof: {err}"))

@@ -5,6 +5,7 @@ pub const ANVIL_CHAIN_ID: u64 = 31337;
 pub const ANVIL_BATCHER_ADDR: &str = "ws://localhost:8080";
 pub const ANVIL_BATCHER_ETH_ADDR: &str = "0x7969c5eD335650692Bc04293B07F5BF2e7A673C0";
 pub const ANVIL_ETH_RPC_URL: &str = "http://localhost:8545";
+pub const ANVIL_TASK_SENDER_ADDR: &str = "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720"; // Anvil wallet 9
 
 // Holesky related constants
 pub const HOLESKY_CHAIN_ID: u64 = 17000;

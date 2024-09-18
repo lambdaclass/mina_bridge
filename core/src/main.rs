@@ -48,6 +48,7 @@ async fn main() {
         proof_generator_addr,
         keystore_path,
         private_key,
+        task_sender_addr,
     } = EnvironmentVariables::new().unwrap_or_else(|err| {
         error!("{}", err);
         process::exit(1);
@@ -78,6 +79,7 @@ async fn main() {
                 &eth_rpc_url,
                 wallet.clone(),
                 save_proof,
+                &task_sender_addr,
             )
             .await
             .unwrap_or_else(|err| {
@@ -121,6 +123,7 @@ async fn main() {
                 &eth_rpc_url,
                 wallet.clone(),
                 save_proof,
+                &task_sender_addr,
             )
             .await
             .unwrap_or_else(|err| {

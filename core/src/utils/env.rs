@@ -4,7 +4,8 @@ use dotenv::dotenv;
 use log::debug;
 
 use super::constants::{
-    ANVIL_BATCHER_ADDR, ANVIL_BATCHER_ETH_ADDR, ANVIL_ETH_RPC_URL, PROOF_GENERATOR_ADDR,
+    ANVIL_BATCHER_ADDR, ANVIL_BATCHER_ETH_ADDR, ANVIL_ETH_RPC_URL, ANVIL_TASK_SENDER_ADDR,
+    PROOF_GENERATOR_ADDR,
 };
 
 pub struct EnvironmentVariables {
@@ -16,6 +17,7 @@ pub struct EnvironmentVariables {
     pub proof_generator_addr: String,
     pub keystore_path: Option<String>,
     pub private_key: Option<String>,
+    pub task_sender_addr: String,
 }
 
 fn load_var_or(key: &str, default: &str, chain: &Chain) -> Result<String, String> {
@@ -73,6 +75,8 @@ impl EnvironmentVariables {
             );
         }
 
+        let task_sender_addr = load_var_or("TASK_SENDER_ADDR", ANVIL_TASK_SENDER_ADDR, &chain)?;
+
         Ok(EnvironmentVariables {
             rpc_url,
             chain,
@@ -82,6 +86,7 @@ impl EnvironmentVariables {
             proof_generator_addr,
             keystore_path,
             private_key,
+            task_sender_addr,
         })
     }
 }
