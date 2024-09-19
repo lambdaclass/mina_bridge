@@ -5,6 +5,11 @@ import "mina_bridge/contract/src/MinaBridge.sol";
 import "mina_bridge/contract/src/MinaAccountValidation.sol";
 
 contract Sudoku {
+    error InvalidZkappAccount();
+    error InvalidLedger(bytes32 ledgerHash);
+    error IncorrectZkappAccount(uint256 verificationKeyHash);
+    error UnsolvedSudoku();
+
     /// @notice The Sudoku zkApp verification key hash.
     uint256 public constant ZKAPP_VERIFICATION_KEY_HASH =
         19387792026269240922986233885372582803610254872042773421723960761233199555267;
@@ -14,6 +19,8 @@ contract Sudoku {
     /// @notice Mina bridge contract that validates accounts
     MinaAccountValidation accountValidation;
 
+    /// @notice Latest timestamp (Unix time) at which the contract determined that a
+    //  Sudoku was solved in the Mina ZkApp.
     uint64 latestSolutionValidationAt = 0;
 
     constructor(address _stateSettlementAddr, address _accountValidationAddr) {
@@ -23,12 +30,52 @@ contract Sudoku {
 
     /// @notice Validates a Sudoku solution by bridging from Mina, and stores
     /// the last Unix time it was solved at.
-    function validateSolution() external {
-        // 1. take the zkApp account of Sudoku.
-        // 2. take a relatively finalized state's ledger hash from
-        //    the stateSettlement contract.
-        // 3. verify the account for ledger hash (this involves calling the bridge core)
-        // 4. if the account is valid, extract the zkApp state it
-        // 5. if the isSolved bool is true, latestSolutionValidationAt = block.timestamp
+    function validateSolution(
+        bytes32 proofCommitment,
+        bytes32 provingSystemAuxDataCommitment,
+        bytes20 proofGeneratorAddr,
+        bytes32 batchMerkleRoot,
+        bytes memory merkleProof,
+        uint256 verificationDataBatchIndex,
+        bytes calldata pubInput
+    ) external {
+        bytes32 ledgerHash = bytes32(pubInput[8:8 + 32]);
+        if (!stateSettlement.isLedgerVerified()) {
+            revert InvalidLedger(ledgerHash);
+        }
+
+        bytes32 pubInputCommitment = keccak256(pubInput);
+
+        if (
+            !accountValidation.validateAccount(
+                proofCommitment,
+                provingSystemAuxDataCommitment,
+                proofGeneratorAddr,
+                batchMerkleRoot,
+                merkleProof,
+                verificationDataBatchIndex,
+                pubInput
+            )
+        ) {
+            revert InvalidZkappAccount();
+        }
+
+        bytes calldata encodedAccount = pubInput[32 + 8:];
+        MinaAccountValidation.Account memory account = abi.decode(
+            encodedAccount,
+            (MinaAccountValidation.Account)
+        );
+
+        // TODO(xqft): check verification key, it may be a poseidon hash so we should
+        // need to change it to a keccak hash.
+        // if (account.verificationKeyKash != ZKAPP_VERIFICATION_KEY_HASH) {
+        //    revert IncorrectZkappAccount(account.verificationKeyHash);
+        // }
+
+        if (account.zkapp.appState[1] == 0) {
+            latestSolutionValidationAt = block.timestamp;
+        } else {
+            revert UnsolvedSudoku();
+        }
     }
 }

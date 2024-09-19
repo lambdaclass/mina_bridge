@@ -3,8 +3,6 @@ pragma solidity ^0.8.12;
 
 import "aligned_layer/contracts/src/core/AlignedLayerServiceManager.sol";
 
-error AccountIsNotVerified();
-
 contract MinaAccountValidation {
     /// @notice Reference to the AlignedLayerServiceManager contract.
     AlignedLayerServiceManager aligned;
@@ -21,27 +19,20 @@ contract MinaAccountValidation {
         bytes memory merkleProof,
         uint256 verificationDataBatchIndex,
         bytes calldata pubInput
-    ) external view returns (Account memory) {
-        bytes calldata encodedAccount = pubInput[32 + 8:];
-
+    ) external view returns (bool) {
         bytes32 pubInputCommitment = keccak256(pubInput);
 
-        bool isAccountVerified = aligned.verifyBatchInclusion(
-            proofCommitment,
-            pubInputCommitment,
-            provingSystemAuxDataCommitment,
-            proofGeneratorAddr,
-            batchMerkleRoot,
-            merkleProof,
-            verificationDataBatchIndex,
-            address(0)
-        );
-
-        if (isAccountVerified) {
-            return abi.decode(encodedAccount, (Account));
-        } else {
-            revert AccountIsNotVerified();
-        }
+        return
+            aligned.verifyBatchInclusion(
+                proofCommitment,
+                pubInputCommitment,
+                provingSystemAuxDataCommitment,
+                proofGeneratorAddr,
+                batchMerkleRoot,
+                merkleProof,
+                verificationDataBatchIndex,
+                address(0)
+            );
     }
 
     struct Account {

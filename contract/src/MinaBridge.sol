@@ -39,13 +39,31 @@ contract MinaBridge {
     }
 
     /// @notice Returns the latest verified chain state hashes.
-    function getChainStateHashes() external view returns (bytes32[BRIDGE_TRANSITION_FRONTIER_LEN] memory) {
+    function getChainStateHashes()
+        external
+        view
+        returns (bytes32[BRIDGE_TRANSITION_FRONTIER_LEN] memory)
+    {
         return chainStateHashes;
     }
 
     /// @notice Returns the latest verified chain ledger hashes.
-    function getChainLedgerHashes() external view returns (bytes32[BRIDGE_TRANSITION_FRONTIER_LEN] memory) {
+    function getChainLedgerHashes()
+        external
+        view
+        returns (bytes32[BRIDGE_TRANSITION_FRONTIER_LEN] memory)
+    {
         return chainLedgerHashes;
+    }
+
+    /// @notice Returns true if this snarked ledger hash was bridged.
+    function isLedgerVerified(bytes32 ledgerHash) external view returns (bool) {
+        for (uint256 i = BRIDGE_TRANSITION_FRONTIER_LEN - 1; i >= 0; i++) {
+            if (chainLedgerHashes[i] == ledgerHash) {
+                return true;
+            }
+        }
+        return false;
     }
 
     function updateChain(
