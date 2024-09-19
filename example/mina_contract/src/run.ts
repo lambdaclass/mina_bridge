@@ -12,10 +12,11 @@
 import { setTimeout } from "timers/promises";
 import fs from 'fs/promises';
 import { Sudoku, SudokuZkApp } from './sudoku.js';
-import { cloneSudoku, generateSudoku, solveSudoku } from './sudoku-lib.js';
-import { AccountUpdate, Mina, PrivateKey, PublicKey, NetworkId, fetchAccount } from 'o1js';
+import { generateSudoku, solveSudoku } from './sudoku-lib.js';
+import { Mina, PrivateKey, PublicKey, NetworkId, fetchAccount } from 'o1js';
 
 const deployAlias = "devnet";
+const ZKAPP_ADDRESS = "B62qmpq1JBejZYDQrZwASPRM5oLXW346WoXgbApVf5HJZXMWFPWFPuA";
 
 // parse config and private key from file
 type Config = {
@@ -38,7 +39,7 @@ let feepayerKeysBase58: { privateKey: string; publicKey: string } = JSON.parse(
 );
 let feepayerKey = PrivateKey.fromBase58(feepayerKeysBase58.privateKey);
 let feepayerAddress = feepayerKey.toPublicKey();
-let zkAppAddress = PublicKey.fromBase58("B62qmpq1JBejZYDQrZwASPRM5oLXW346WoXgbApVf5HJZXMWFPWFPuA");
+let zkAppAddress = PublicKey.fromBase58(ZKAPP_ADDRESS);
 
 // define network (devnet)
 const Network = Mina.Network({
