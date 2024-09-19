@@ -109,11 +109,15 @@ async fn submit_with_nonce(
     nonce: U256,
     payment_service_addr: &str,
 ) -> Result<AlignedVerificationData, String> {
+    // Temporary max fee. We should consider calculating this or setting it as an env var.
+    let fixed_max_fee = U256::from_dec_str("1300000000000000").map_err(|err| err.to_string())?;
+
     submit_and_wait_verification(
         batcher_addr,
         eth_rpc_url,
         chain.to_owned(),
         mina_proof,
+        fixed_max_fee,
         wallet,
         nonce,
         payment_service_addr,

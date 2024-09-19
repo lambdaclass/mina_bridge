@@ -73,7 +73,7 @@ dependencies = [
 [[package]]
 name = "aligned-sdk"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/aligned_layer.git?branch=mina#7a2b55567656308606fba20db3cef69dcd433926"
+source = "git+https://github.com/lambdaclass/aligned_layer.git?branch=update_to_0_7#73fb1ad290f8855fb7b9b86360c65396f5f5ec31"
 dependencies = [
  "ciborium",
  "ethers",
@@ -123,9 +123,9 @@ dependencies = [
 
 [[package]]
 name = "alloy-chains"
-version = "0.1.31"
+version = "0.1.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b68b94c159bcc2ca5f758b8663d7b00fc7c5e40569984595ddf2221b0f7f7f6e"
+checksum = "abf770dad29577cd3580f3dd09005799224a912b8cdfdd6dc04d030d42b3df4e"
 dependencies = [
  "num_enum",
  "strum 0.26.3",
@@ -6079,9 +6079,9 @@ dependencies = [
 
 [[package]]
 name = "unicode-xid"
-version = "0.2.5"
+version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "229730647fbc343e3a80e463c1db7f78f3855d3f3739bee0dda773c9a037c90a"
+checksum = "ebc1c04c71510c7f702b52b7c350734c9ff1295c464a03335b00bb84fc54f853"
 
 [[package]]
 name = "unreachable"
