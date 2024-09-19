@@ -23,7 +23,16 @@ pub async fn is_state_verified(
     Ok(chain_state_hashes.contains(&hash))
 }
 
-pub async fn verify_state(
+pub async fn get_bridged_chain_tip_state_hash(
+    chain: &Chain,
+    eth_rpc_url: &str,
+) -> Result<String, String> {
+    get_bridge_chain_state_hashes(chain, eth_rpc_url)
+        .await
+        .map(|hashes| hashes.last().unwrap().to_string())
+}
+
+pub async fn update_bridge_chain(
     rpc_url: &str,
     chain: &Chain,
     batcher_addr: &str,
@@ -34,6 +43,11 @@ pub async fn verify_state(
     save_proof: bool,
 ) -> Result<(), String> {
     let (proof, pub_input) = get_mina_proof_of_state(&rpc_url, &chain, &eth_rpc_url).await?;
+
+    let candidate_root_state_hash = pub_input.candidate_chain_state_hashes.first().unwrap();
+    if is_state_verified(&candidate_root_state_hash.to_string(), chain, eth_rpc_url).await? {
+        return Err("Latest chain is already verified".to_string());
+    }
 
     let verification_data = submit(
         MinaProof::State((proof, pub_input.clone())),
