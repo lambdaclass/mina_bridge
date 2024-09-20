@@ -258,7 +258,7 @@ pub async fn validate_account(
     pub_input: &MinaAccountPubInputs,
     chain: &Chain,
     eth_rpc_url: &str,
-) -> Result<Account, String> {
+) -> Result<(), String> {
     let bridge_eth_addr = Address::from_str(match chain {
         Chain::Devnet => BRIDGE_ACCOUNT_DEVNET_ETH_ADDR,
         _ => {
@@ -313,7 +313,9 @@ pub async fn validate_account(
         call.estimate_gas().await.map_err(|err| err.to_string())?
     );
 
-    call.await.map_err(|err| err.to_string())
+    call.await.map_err(|err| err.to_string())?;
+
+    Ok(())
 }
 
 pub async fn deploy_mina_bridge_contract(

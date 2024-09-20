@@ -35,6 +35,35 @@ contract MinaAccountValidation {
             );
     }
 
+    function validateAccountAndReturn(
+        bytes32 proofCommitment,
+        bytes32 provingSystemAuxDataCommitment,
+        bytes20 proofGeneratorAddr,
+        bytes32 batchMerkleRoot,
+        bytes memory merkleProof,
+        uint256 verificationDataBatchIndex,
+        bytes calldata pubInput
+    ) external view returns (Account memory) {
+        bytes32 pubInputCommitment = keccak256(pubInput);
+
+        bool isAccountVerified = aligned.verifyBatchInclusion(
+            proofCommitment,
+            pubInputCommitment,
+            provingSystemAuxDataCommitment,
+            proofGeneratorAddr,
+            batchMerkleRoot,
+            merkleProof,
+            verificationDataBatchIndex,
+            address(0)
+        );
+
+        if (isAccountVerified) {
+            return abi.decode(pubInput[32 + 8:], (Account));
+        } else {
+            revert();
+        }
+    }
+
     struct Account {
         CompressedECPoint publicKey;
         bytes32 tokenIdKeyHash;

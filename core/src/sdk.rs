@@ -1,9 +1,9 @@
 use std::str::FromStr;
 
-use aligned_sdk::core::types::Chain;
+use aligned_sdk::core::types::{AlignedVerificationData, Chain, VerificationDataCommitment};
 use ethers::core::k256::ecdsa::SigningKey;
 use ethers_signers::Wallet;
-use mina_p2p_messages::v2::{MinaBaseAccountBinableArgStableV2 as MinaAccount, StateHash};
+use mina_p2p_messages::v2::StateHash;
 
 use crate::{
     aligned::submit,
@@ -11,6 +11,16 @@ use crate::{
     mina::{get_mina_proof_of_account, get_mina_proof_of_state},
     proof::MinaProof,
 };
+
+pub struct AccountVerificationData {
+    pub proof_commitment: [u8; 32],
+    pub proving_system_aux_data_commitment: [u8; 32],
+    pub proof_generator_addr: [u8; 20],
+    pub batch_merkle_root: [u8; 32],
+    pub merkle_proof: Vec<u8>,
+    pub verification_data_batch_index: usize,
+    pub pub_input: Vec<u8>,
+}
 
 pub async fn is_state_verified(
     hash: &str,
@@ -77,10 +87,8 @@ pub async fn validate_account(
     proof_generator_addr: &str,
     wallet: Wallet<SigningKey>,
     save_proof: bool,
-) -> Result<MinaAccount, String> {
+) -> Result<AccountVerificationData, String> {
     let (proof, pub_input) = get_mina_proof_of_account(public_key, state_hash, rpc_url).await?;
-
-    let account = proof.account.clone();
 
     let verification_data = submit(
         MinaProof::Account((proof, pub_input.clone())),
@@ -94,7 +102,36 @@ pub async fn validate_account(
     )
     .await?;
 
-    eth::validate_account(verification_data, &pub_input, chain, eth_rpc_url).await?;
+    eth::validate_account(verification_data.clone(), &pub_input, chain, eth_rpc_url).await?;
 
-    Ok(account)
+    let AlignedVerificationData {
+        verification_data_commitment,
+        batch_merkle_root,
+        batch_inclusion_proof,
+        index_in_batch,
+    } = verification_data;
+    let merkle_proof = batch_inclusion_proof
+        .merkle_path
+        .clone()
+        .into_iter()
+        .flatten()
+        .collect();
+
+    let VerificationDataCommitment {
+        proof_commitment,
+        proving_system_aux_data_commitment,
+        proof_generator_addr,
+        ..
+    } = verification_data_commitment;
+
+    Ok(AccountVerificationData {
+        proof_commitment,
+        proving_system_aux_data_commitment,
+        proof_generator_addr,
+        batch_merkle_root,
+        merkle_proof,
+        verification_data_batch_index: index_in_batch,
+        pub_input: bincode::serialize(&pub_input)
+            .map_err(|err| format!("Failed to encode public inputs: {err}"))?,
+    })
 }
