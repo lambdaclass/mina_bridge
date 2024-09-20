@@ -4,10 +4,16 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+clap = { version = "4.5.17", features = ["derive"] }
 env_logger = "0.11.5"
 log = "0.4.22"
 mina_bridge_core = { path = "../../core/" }
 tokio = "1.40.0"
+alloy = { version = "0.3.1", features = ["full", "signer-keystore"] }
+alloy-sol-types = "0.8.2"
+alloy-contract = "0.3.1"
+reqwest = "^0.11"
+aligned-sdk = { git = "https://github.com/lambdaclass/aligned_layer.git", branch = "mina" }
 
 [patch.crates-io]
 ark-ff = { git = "https://github.com/openmina/algebra", branch = "openmina" }
