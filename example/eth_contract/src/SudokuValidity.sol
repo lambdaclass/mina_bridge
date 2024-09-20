@@ -4,7 +4,7 @@ pragma solidity ^0.8.12;
 import "mina_bridge/contract/src/MinaBridge.sol";
 import "mina_bridge/contract/src/MinaAccountValidation.sol";
 
-contract Sudoku {
+contract SudokuValidity {
     error InvalidZkappAccount();
     error InvalidLedger(bytes32 ledgerHash);
     error IncorrectZkappAccount(uint256 verificationKeyHash);
@@ -21,7 +21,7 @@ contract Sudoku {
 
     /// @notice Latest timestamp (Unix time) at which the contract determined that a
     //  Sudoku was solved in the Mina ZkApp.
-    uint64 latestSolutionValidationAt = 0;
+    uint256 latestSolutionValidationAt = 0;
 
     constructor(address _stateSettlementAddr, address _accountValidationAddr) {
         stateSettlement = MinaBridge(_stateSettlementAddr);
@@ -40,7 +40,7 @@ contract Sudoku {
         bytes calldata pubInput
     ) external {
         bytes32 ledgerHash = bytes32(pubInput[8:8 + 32]);
-        if (!stateSettlement.isLedgerVerified()) {
+        if (!stateSettlement.isLedgerVerified(ledgerHash)) {
             revert InvalidLedger(ledgerHash);
         }
 
