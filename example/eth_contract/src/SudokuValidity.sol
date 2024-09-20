@@ -28,6 +28,10 @@ contract SudokuValidity {
         accountValidation = MinaAccountValidation(_accountValidationAddr);
     }
 
+    function getLatestSolutionTimestamp() external view returns (uint256) {
+        return latestSolutionValidationAt;
+    }
+
     /// @notice Validates a Sudoku solution by bridging from Mina, and stores
     /// the last Unix time it was solved at.
     function validateSolution(

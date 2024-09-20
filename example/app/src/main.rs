@@ -19,7 +19,7 @@ use mina_bridge_core::{
         wallet, wallet_alloy,
     },
 };
-use std::{process, str::FromStr};
+use std::{process, str::FromStr, time::SystemTime};
 
 const MINA_ZKAPP_ADDRESS: &str = "B62qmpq1JBejZYDQrZwASPRM5oLXW346WoXgbApVf5HJZXMWFPWFPuA";
 const SUDOKU_VALIDITY_ADDRESS: &str = "0xb19b36b1456E65E3A6D514D3F715f204BD59f431";
@@ -47,6 +47,7 @@ enum Command {
 #[tokio::main]
 async fn main() {
     let cli = Cli::parse();
+    let now = SystemTime::now();
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
     let EnvironmentVariables {
@@ -205,12 +206,32 @@ async fn main() {
             let tx = call.send().await;
 
             match tx {
-                Ok(tx) => info!(
-                    "SudokuValidity contract was updated! Transaction hash: {}",
-                    tx.tx_hash()
-                ),
+                Ok(tx) => {
+                    let receipt = tx.get_receipt().await.unwrap_or_else(|err| {
+                        error!("{}", err);
+                        process::exit(1);
+                    });
+                    let new_timestamp: U256 = contract
+                        .getLatestSolutionTimestamp()
+                        .call()
+                        .await
+                        .unwrap_or_else(|err| {
+                            error!("{}", err);
+                            process::exit(1);
+                        })
+                        ._0;
+
+                    info!(
+                        "SudokuValidity contract was updated! transaction hash: {}, gas cost: {}, new timestamp: {}",
+                        receipt.transaction_hash, receipt.gas_used, new_timestamp
+                    );
+                }
                 Err(err) => error!("SudokuValidity transaction failed!: {err}"),
             }
         }
+    }
+
+    if let Ok(elapsed) = now.elapsed() {
+        info!("Time spent: {} s", elapsed.as_secs());
     }
 }
