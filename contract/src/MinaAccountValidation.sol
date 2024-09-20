@@ -3,9 +3,13 @@ pragma solidity ^0.8.12;
 
 import "aligned_layer/contracts/src/core/AlignedLayerServiceManager.sol";
 
+error ProvingSystemIdIsNotValid(); // c1872967
 error AccountIsNotVerified();
 
 contract MinaAccountValidation {
+    /// @notice The commitment to Mina Account proving system ID.
+    bytes32 constant PROVING_SYSTEM_ID_COMM = 0xd33e25809fcaa2b6900567812852539da8559dc8b76a7ce3fc5ddd77e8d19a69;
+
     struct AlignedArgs {
         bytes32 proofCommitment;
         bytes32 provingSystemAuxDataCommitment;
@@ -25,6 +29,10 @@ contract MinaAccountValidation {
     }
 
     function validateAccount(AlignedArgs calldata args) external view returns (Account memory) {
+        if (args.provingSystemAuxDataCommitment != PROVING_SYSTEM_ID_COMM) {
+            revert ProvingSystemIdIsNotValid();
+        }
+
         bytes calldata encodedAccount = args.pubInput[32 + 8:];
 
         bytes32 pubInputCommitment = keccak256(args.pubInput);
