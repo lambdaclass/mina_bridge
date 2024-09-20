@@ -94,6 +94,7 @@ pub async fn update_chain(
     chain: &Chain,
     eth_rpc_url: &str,
     wallet: Wallet<SigningKey>,
+    batcher_payment_service: &str,
 ) -> Result<(), String> {
     let bridge_eth_addr = Address::from_str(match chain {
         Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
@@ -107,6 +108,9 @@ pub async fn update_chain(
 
     let serialized_pub_input = bincode::serialize(pub_input)
         .map_err(|err| format!("Failed to serialize public inputs: {err}"))?;
+
+    let batcher_payment_service = Address::from_str(batcher_payment_service)
+        .map_err(|err| format!("Failed to parse batcher payment service address: {err}"))?;
 
     debug!("Creating contract instance");
     let mina_bridge_contract = mina_bridge_contract(eth_rpc_url, bridge_eth_addr, chain, wallet)?;
@@ -141,6 +145,7 @@ pub async fn update_chain(
         merkle_proof,
         index_in_batch.into(),
         serialized_pub_input.into(),
+        batcher_payment_service,
     );
     // update call reverts if batch is not valid or proof isn't included in it.
 
@@ -258,6 +263,7 @@ pub async fn validate_account(
     pub_input: &MinaAccountPubInputs,
     chain: &Chain,
     eth_rpc_url: &str,
+    batcher_payment_service: &str,
 ) -> Result<Account, String> {
     let bridge_eth_addr = Address::from_str(match chain {
         Chain::Devnet => BRIDGE_ACCOUNT_DEVNET_ETH_ADDR,
@@ -274,6 +280,9 @@ pub async fn validate_account(
 
     let serialized_pub_input = bincode::serialize(pub_input)
         .map_err(|err| format!("Failed to serialize public inputs: {err}"))?;
+
+    let batcher_payment_service = Address::from_str(batcher_payment_service)
+        .map_err(|err| format!("Failed to parse batcher payment service address: {err}"))?;
 
     let AlignedVerificationData {
         verification_data_commitment,
@@ -298,15 +307,18 @@ pub async fn validate_account(
 
     debug!("Validating account");
 
-    let call = contract.validate_account(
+    let aligned_args = AlignedArgs {
         proof_commitment,
         proving_system_aux_data_commitment,
         proof_generator_addr,
         batch_merkle_root,
         merkle_proof,
-        index_in_batch.into(),
-        serialized_pub_input.into(),
-    );
+        verification_data_batch_index: index_in_batch.into(),
+        pub_input: serialized_pub_input.into(),
+        batcher_payment_service,
+    };
+
+    let call = contract.validate_account(aligned_args);
 
     info!(
         "Estimated account verification gas cost: {}",
