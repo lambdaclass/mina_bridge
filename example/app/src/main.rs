@@ -1,9 +1,16 @@
 use aligned_sdk::core::types::Chain;
-use alloy::{primitives::Address, providers::ProviderBuilder, sol_types::sol};
+use alloy::{
+    primitives::{Address, U256},
+    providers::ProviderBuilder,
+    sol_types::sol,
+};
 use clap::{Parser, Subcommand};
-use log::{error, info};
+use log::{debug, error, info};
 use mina_bridge_core::{
-    sdk::{get_bridged_chain_tip_state_hash, update_bridge_chain, validate_account},
+    sdk::{
+        get_bridged_chain_tip_state_hash, update_bridge_chain, validate_account,
+        AccountVerificationData,
+    },
     utils::{
         constants::{
             BRIDGE_ACCOUNT_DEVNET_ETH_ADDR, BRIDGE_DEVNET_ETH_ADDR, BRIDGE_HOLESKY_ETH_ADDR,
@@ -15,6 +22,7 @@ use mina_bridge_core::{
 use std::{process, str::FromStr};
 
 const MINA_ZKAPP_ADDRESS: &str = "B62qmpq1JBejZYDQrZwASPRM5oLXW346WoXgbApVf5HJZXMWFPWFPuA";
+const SUDOKU_VALIDITY_ADDRESS: &str = "0xb19b36b1456E65E3A6D514D3F715f204BD59f431";
 
 sol!(
     #[allow(clippy::too_many_arguments)]
@@ -67,17 +75,17 @@ async fn main() {
                 process::exit(1);
             });
 
+    let provider = ProviderBuilder::new()
+        .with_recommended_fillers()
+        .wallet(wallet_alloy)
+        .on_http(
+            reqwest::Url::parse(&eth_rpc_url)
+                .map_err(|err| err.to_string())
+                .unwrap(),
+        );
+
     match cli.command {
         Command::DeployContract => {
-            let provider = ProviderBuilder::new()
-                .with_recommended_fillers()
-                .wallet(wallet_alloy)
-                .on_http(
-                    reqwest::Url::parse(&eth_rpc_url)
-                        .map_err(|err| err.to_string())
-                        .unwrap(),
-                );
-
             // TODO(xqft): we might as well use the Chain type from Alloy, it isn't right to add
             // aligned-sdk as a dependency only for this type.
             let state_settlement_addr = match chain {
@@ -151,7 +159,15 @@ async fn main() {
                     process::exit(1);
                 });
 
-            validate_account(
+            let AccountVerificationData {
+                proof_commitment,
+                proving_system_aux_data_commitment,
+                proof_generator_addr,
+                batch_merkle_root,
+                merkle_proof,
+                verification_data_batch_index,
+                pub_input,
+            } = validate_account(
                 MINA_ZKAPP_ADDRESS,
                 &tip_state_hash,
                 &rpc_url,
@@ -161,13 +177,40 @@ async fn main() {
                 &eth_rpc_url,
                 &proof_generator_addr,
                 wallet,
-                false,
+                true,
             )
             .await
             .unwrap_or_else(|err| {
                 error!("{}", err);
                 process::exit(1);
             });
+
+            debug!("Creating contract instance");
+            let contract = SudokuValidity::new(
+                Address::from_str(SUDOKU_VALIDITY_ADDRESS).unwrap(),
+                provider,
+            );
+
+            let call = contract.validateSolution(
+                proof_commitment.into(),
+                proving_system_aux_data_commitment.into(),
+                proof_generator_addr.into(),
+                batch_merkle_root.into(),
+                merkle_proof.into(),
+                U256::from(verification_data_batch_index),
+                pub_input.into(),
+            );
+
+            info!("Sending transaction to SudokuValidity contract...");
+            let tx = call.send().await;
+
+            match tx {
+                Ok(tx) => info!(
+                    "SudokuValidity contract was updated! Transaction hash: {}",
+                    tx.tx_hash()
+                ),
+                Err(err) => error!("SudokuValidity transaction failed!: {err}"),
+            }
         }
     }
 }

@@ -39,12 +39,10 @@ contract SudokuValidity {
         uint256 verificationDataBatchIndex,
         bytes calldata pubInput
     ) external {
-        bytes32 ledgerHash = bytes32(pubInput[8:8 + 32]);
+        bytes32 ledgerHash = bytes32(pubInput[:32]);
         if (!stateSettlement.isLedgerVerified(ledgerHash)) {
             revert InvalidLedger(ledgerHash);
         }
-
-        bytes32 pubInputCommitment = keccak256(pubInput);
 
         if (
             !accountValidation.validateAccount(
