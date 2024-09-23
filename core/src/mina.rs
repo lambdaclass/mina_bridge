@@ -225,6 +225,9 @@ pub async fn query_candidate_chain(
                 .map_err(|err| format!("Couldn't read state proof binprot: {err}"))
         })?;
 
+    debug!("Queried state hashes: {chain_state_hashes:?}");
+    debug!("Queried ledger hashes: {chain_ledger_hashes:?}");
+
     Ok((
         chain_states,
         chain_state_hashes,
