@@ -1,15 +1,3 @@
-/**
- * This file specifies how to run the `SudokuZkApp` smart contract locally using the `Mina.LocalBlockchain()` method.
- * The `Mina.LocalBlockchain()` method specifies a ledger of accounts and contains logic for updating the ledger.
- *
- * Please note that this deployment is local and does not deploy to a live network.
- * If you wish to deploy to a live network, please use the zkapp-cli to deploy.
- *
- * To run locally:
- * Build the project: `$ npm run build`
- * Run with node:     `$ node build/src/run.js`.
- */
-import { setTimeout } from "timers/promises";
 import fs from 'fs/promises';
 import { Sudoku, SudokuZkApp } from './sudoku.js';
 import { generateSudoku, solveSudoku } from './sudoku-lib.js';
@@ -17,6 +5,7 @@ import { Mina, PrivateKey, PublicKey, NetworkId, fetchAccount } from 'o1js';
 
 const deployAlias = "devnet";
 const ZKAPP_ADDRESS = "B62qmpq1JBejZYDQrZwASPRM5oLXW346WoXgbApVf5HJZXMWFPWFPuA";
+const TX_MAX_TRIES = 5;
 
 // parse config and private key from file
 type Config = {
@@ -55,57 +44,27 @@ Mina.setActiveInstance(Network);
 const zkApp = new SudokuZkApp(zkAppAddress);
 const sudoku = generateSudoku(0.5);
 
-console.log('compiling Sudoku...');
+console.log('Compiling Sudoku');
 await SudokuZkApp.compile();
 
-await fetchAccount({ publicKey: zkAppAddress });
-console.log('Is the sudoku solved?', zkApp.isSolved.get().toBoolean());
-
-console.log('updating sudoku to solve');
-try {
-  // call update() and send transaction
-  console.log('build transaction and create proof...');
-  let tx = await Mina.transaction(
-    { sender: feepayerAddress, fee },
-    async () => {
-      await zkApp.update(Sudoku.from(sudoku));
-    }
-  );
-  await tx.prove();
-
-  console.log('send transaction...');
-  const sentTx = await tx.sign([feepayerKey]).send();
-  if (sentTx.status === 'pending') {
-    console.log(
-      '\nSuccess! Update transaction sent.\n' +
-      '\nYour smart contract state will be updated' +
-      '\nas soon as the transaction is included in a block:' +
-      `\n${getTxnUrl(config.url, sentTx.hash)}`
-    );
+console.log("Sending update transaction and waiting until it's included in a block");
+await sendTx(
+  { sender: feepayerAddress, fee },
+  async () => {
+    await zkApp.update(Sudoku.from(sudoku));
   }
-
-} catch (err) {
-  console.log(err);
-}
-
-console.log('Is the sudoku solved? (should be false)', zkApp.isSolved.get().toBoolean());
-
-console.log("Waiting 4 min...");
-await setTimeout(1000 * 60 * 4);
-console.log("Done");
+);
 
 let solution = solveSudoku(sudoku);
 if (solution === undefined) throw Error('cannot happen');
 
 // submit the solution
-console.log('Submitting solution...');
-let tx = await Mina.transaction({ sender: feepayerAddress, fee }, async () => {
+console.log("Sending submit transaction and waiting until it's included in a block");
+await sendTx({ sender: feepayerAddress, fee }, async () => {
   await zkApp.submitSolution(Sudoku.from(sudoku), Sudoku.from(solution!));
 });
-await tx.prove();
-await tx.sign([feepayerKey]).send();
 
-console.log('Is the sudoku solved? (should be true)', zkApp.isSolved.get().toBoolean());
+console.log('Is the sudoku solved?', zkApp.isSolved.get().toBoolean());
 
 function getTxnUrl(graphQlUrl: string, txnHash: string | undefined) {
   const hostName = new URL(graphQlUrl).hostname;
@@ -119,4 +78,35 @@ function getTxnUrl(graphQlUrl: string, txnHash: string | undefined) {
     return `https://minascan.io/${networkName}/tx/${txnHash}?type=zk-tx`;
   }
   return `Transaction hash: ${txnHash}`;
+}
+
+async function sendTx(sender: Mina.FeePayerSpec, f: () => Promise<void>) {
+  for (let i = 1; i <= TX_MAX_TRIES; i++) {
+    try {
+      console.log("Defining transaction");
+      const tx = await Mina.transaction(f);
+
+      console.log("Proving transaction");
+      await tx.prove();
+
+      console.log('Signing and sending transaction');
+      let pendingTx;
+      pendingTx = await tx.sign([feepayerKey]).send();
+      console.log("Transaction hash:", pendingTx.hash);
+
+      if (pendingTx.status === 'pending') {
+        console.log('\nSuccess! Transaction sent:', getTxnUrl(config.url, pendingTx.hash));
+
+        console.log("Waiting for transaction to be included in a block");
+        await pendingTx.wait();
+      }
+    } catch (err) {
+      console.log(`Failed attempt ${i}/${TX_MAX_TRIES}, will try again`);
+      console.log(err);
+      continue;
+    }
+  }
+
+  console.log("Failed all attempts, terminating.");
+  process.exit(1);
 }
