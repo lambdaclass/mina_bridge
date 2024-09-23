@@ -20,5 +20,7 @@ deploy_example_contract: gen_contract_abis
 	@cargo run --manifest-path example/app/Cargo.toml --release -- deploy-contract
 
 execute_example:
-	cd example/mina_contract & npm run build & node build/src/run.js
+	cd example/mina_zkapp; \
+	npm run build; \
+	node build/src/run.js
 	cargo run --manifest-path example/app/Cargo.toml --release -- validate-solution
