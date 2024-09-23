@@ -64,11 +64,6 @@ async fn main() {
         process::exit(1);
     });
 
-    let wallet = wallet::get_wallet(&chain, keystore_path.as_deref(), private_key.as_deref())
-        .unwrap_or_else(|err| {
-            error!("{}", err);
-            process::exit(1);
-        });
     let wallet_alloy =
         wallet_alloy::get_wallet(&chain, keystore_path.as_deref(), private_key.as_deref())
             .unwrap_or_else(|err| {
@@ -129,6 +124,14 @@ async fn main() {
 
             // if !is_state_verified {
             //     info!("State that includes the zkApp tx isn't verified. Bridging latest chain...");
+
+            let wallet =
+                wallet::get_wallet(&chain, keystore_path.as_deref(), private_key.as_deref())
+                    .unwrap_or_else(|err| {
+                        error!("{}", err);
+                        process::exit(1);
+                    });
+
             let state_verification_result = update_bridge_chain(
                 &rpc_url,
                 &chain,
@@ -178,7 +181,7 @@ async fn main() {
                 &eth_rpc_url,
                 &proof_generator_addr,
                 wallet,
-                true,
+                false,
             )
             .await
             .unwrap_or_else(|err| {
