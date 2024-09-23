@@ -74,7 +74,7 @@ contract SudokuValidity {
         //    revert IncorrectZkappAccount(account.verificationKeyHash);
         // }
 
-        if (account.zkapp.appState[1] == 0) {
+        if (account.zkapp.appState[1] != 0) {
             latestSolutionValidationAt = block.timestamp;
         } else {
             revert UnsolvedSudoku();
