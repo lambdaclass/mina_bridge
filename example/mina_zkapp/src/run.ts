@@ -48,57 +48,45 @@ console.log('Compiling Sudoku');
 await SudokuZkApp.compile();
 
 console.log("Sending update transaction and waiting until it's included in a block");
-await sendTx(
+await trySendTx(
   { sender: feepayerAddress, fee },
   async () => {
     await zkApp.update(Sudoku.from(sudoku));
   }
 );
 
+console.log('Is the sudoku solved?', zkApp.isSolved.get().toBoolean());
+
 let solution = solveSudoku(sudoku);
 if (solution === undefined) throw Error('cannot happen');
 
 // submit the solution
 console.log("Sending submit transaction and waiting until it's included in a block");
-await sendTx({ sender: feepayerAddress, fee }, async () => {
+await trySendTx({ sender: feepayerAddress, fee }, async () => {
   await zkApp.submitSolution(Sudoku.from(sudoku), Sudoku.from(solution!));
 });
 
 console.log('Is the sudoku solved?', zkApp.isSolved.get().toBoolean());
 
-function getTxnUrl(graphQlUrl: string, txnHash: string | undefined) {
-  const hostName = new URL(graphQlUrl).hostname;
-  const txnBroadcastServiceName = hostName
-    .split('.')
-    .filter((item) => item === 'minascan')?.[0];
-  const networkName = graphQlUrl
-    .split('/')
-    .filter((item) => item === 'mainnet' || item === 'devnet')?.[0];
-  if (txnBroadcastServiceName && networkName) {
-    return `https://minascan.io/${networkName}/tx/${txnHash}?type=zk-tx`;
-  }
-  return `Transaction hash: ${txnHash}`;
-}
-
-async function sendTx(sender: Mina.FeePayerSpec, f: () => Promise<void>) {
+async function trySendTx(sender: Mina.FeePayerSpec, f: () => Promise<void>) {
   for (let i = 1; i <= TX_MAX_TRIES; i++) {
     try {
       console.log("Defining transaction");
-      const tx = await Mina.transaction(f);
+      const tx = await Mina.transaction(sender, f);
 
       console.log("Proving transaction");
       await tx.prove();
 
       console.log('Signing and sending transaction');
-      let pendingTx;
-      pendingTx = await tx.sign([feepayerKey]).send();
-      console.log("Transaction hash:", pendingTx.hash);
+      let pendingTx = await tx.sign([feepayerKey]).send();
 
       if (pendingTx.status === 'pending') {
-        console.log('\nSuccess! Transaction sent:', getTxnUrl(config.url, pendingTx.hash));
-
-        console.log("Waiting for transaction to be included in a block");
+        console.log(
+          `Success! transaction ${pendingTx.hash} sent\n` +
+          "Waiting for transaction to be included in a block"
+        );
         await pendingTx.wait();
+        return;
       }
     } catch (err) {
       console.log(`Failed attempt ${i}/${TX_MAX_TRIES}, will try again`);
