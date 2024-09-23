@@ -42,6 +42,9 @@ Mina.setActiveInstance(Network);
 
 // define zkapp and create sudoku to upload
 const zkApp = new SudokuZkApp(zkAppAddress);
+await fetchAccount({ publicKey: zkAppAddress });
+console.log('Is the sudoku solved?', zkApp.isSolved.get().toBoolean());
+
 const sudoku = generateSudoku(0.5);
 
 console.log('Compiling Sudoku');
@@ -54,8 +57,6 @@ await trySendTx(
     await zkApp.update(Sudoku.from(sudoku));
   }
 );
-
-console.log('Is the sudoku solved?', zkApp.isSolved.get().toBoolean());
 
 let solution = solveSudoku(sudoku);
 if (solution === undefined) throw Error('cannot happen');
