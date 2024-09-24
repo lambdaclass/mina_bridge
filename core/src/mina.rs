@@ -74,10 +74,6 @@ pub async fn get_mina_proof_of_state(
         .last()
         .ok_or("Missing candidate tip state hash".to_string())?;
 
-    if bridge_tip_state_hash == *candidate_tip_state_hash {
-        return Err("Candidate chain is already verified".to_string());
-    }
-
     let bridge_tip_state = query_state(rpc_url, &bridge_tip_state_hash).await?;
 
     info!("Queried Mina candidate chain with tip {candidate_tip_state_hash} and its proof");

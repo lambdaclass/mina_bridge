@@ -16,8 +16,9 @@ use crate::{
     proof::{account_proof::MinaAccountPubInputs, state_proof::MinaStatePubInputs},
     sol::serialization::SolSerialize,
     utils::constants::{
-        ANVIL_CHAIN_ID, BRIDGE_ACCOUNT_DEVNET_ETH_ADDR, BRIDGE_DEVNET_ETH_ADDR,
-        BRIDGE_HOLESKY_ETH_ADDR, BRIDGE_TRANSITION_FRONTIER_LEN, HOLESKY_CHAIN_ID,
+        ANVIL_CHAIN_ID, BRIDGE_ACCOUNT_DEVNET_ETH_ADDR, BRIDGE_ACCOUNT_HOLESKY_ETH_ADDR,
+        BRIDGE_DEVNET_ETH_ADDR, BRIDGE_HOLESKY_ETH_ADDR, BRIDGE_TRANSITION_FRONTIER_LEN,
+        HOLESKY_CHAIN_ID,
     },
 };
 
@@ -261,6 +262,7 @@ pub async fn validate_account(
 ) -> Result<(), String> {
     let bridge_eth_addr = Address::from_str(match chain {
         Chain::Devnet => BRIDGE_ACCOUNT_DEVNET_ETH_ADDR,
+        Chain::Holesky => BRIDGE_ACCOUNT_HOLESKY_ETH_ADDR,
         _ => {
             error!("Unimplemented Ethereum contract on selected chain");
             unimplemented!()

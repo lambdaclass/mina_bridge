@@ -13,7 +13,8 @@ use mina_bridge_core::{
     },
     utils::{
         constants::{
-            BRIDGE_ACCOUNT_DEVNET_ETH_ADDR, BRIDGE_DEVNET_ETH_ADDR, BRIDGE_HOLESKY_ETH_ADDR,
+            BRIDGE_ACCOUNT_DEVNET_ETH_ADDR, BRIDGE_ACCOUNT_HOLESKY_ETH_ADDR,
+            BRIDGE_DEVNET_ETH_ADDR, BRIDGE_HOLESKY_ETH_ADDR,
         },
         env::EnvironmentVariables,
         wallet, wallet_alloy,
@@ -22,7 +23,8 @@ use mina_bridge_core::{
 use std::{process, str::FromStr, time::SystemTime};
 
 const MINA_ZKAPP_ADDRESS: &str = "B62qmpq1JBejZYDQrZwASPRM5oLXW346WoXgbApVf5HJZXMWFPWFPuA";
-const SUDOKU_VALIDITY_ADDRESS: &str = "0xb19b36b1456E65E3A6D514D3F715f204BD59f431";
+const SUDOKU_VALIDITY_DEVNET_ADDRESS: &str = "0xb19b36b1456E65E3A6D514D3F715f204BD59f431";
+const SUDOKU_VALIDITY_HOLESKY_ADDRESS: &str = "0xb3057D8593F18e0fB2Db2fcb4167a017B9A36B8E";
 
 sol!(
     #[allow(clippy::too_many_arguments)]
@@ -92,6 +94,7 @@ async fn main() {
 
             let account_validation_addr = match chain {
                 Chain::Devnet => BRIDGE_ACCOUNT_DEVNET_ETH_ADDR,
+                Chain::Holesky => BRIDGE_ACCOUNT_HOLESKY_ETH_ADDR,
                 _ => todo!(),
             };
 
@@ -190,10 +193,13 @@ async fn main() {
             });
 
             debug!("Creating contract instance");
-            let contract = SudokuValidity::new(
-                Address::from_str(SUDOKU_VALIDITY_ADDRESS).unwrap(),
-                provider,
-            );
+            let sudoku_address = match chain {
+                Chain::Devnet => SUDOKU_VALIDITY_DEVNET_ADDRESS,
+                Chain::Holesky => SUDOKU_VALIDITY_HOLESKY_ADDRESS,
+                _ => todo!(),
+            };
+            let contract =
+                SudokuValidity::new(Address::from_str(sudoku_address).unwrap(), provider);
 
             let call = contract.validateSolution(
                 proof_commitment.into(),
