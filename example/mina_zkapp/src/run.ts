@@ -3,26 +3,18 @@ import { Sudoku, SudokuZkApp } from './sudoku.js';
 import { generateSudoku, solveSudoku } from './sudoku-lib.js';
 import { Mina, PrivateKey, PublicKey, NetworkId, fetchAccount } from 'o1js';
 
-const deployAlias = "devnet";
 const ZKAPP_ADDRESS = "B62qmpq1JBejZYDQrZwASPRM5oLXW346WoXgbApVf5HJZXMWFPWFPuA";
 const TX_MAX_TRIES = 5;
 
 // parse config and private key from file
 type Config = {
-  deployAliases: Record<
-    string,
-    {
-      networkId?: string;
-      url: string;
-      keyPath: string;
-      fee: string;
-      feepayerKeyPath: string;
-      feepayerAlias: string;
-    }
-  >;
+  networkId?: string;
+  url: string;
+  fee: string;
+  feepayerKeyPath: string;
+  feepayerAlias: string;
 };
-let configJson: Config = JSON.parse(await fs.readFile('config.json', 'utf8'));
-let config = configJson.deployAliases[deployAlias];
+let config: Config = JSON.parse(await fs.readFile('config.json', 'utf8'));
 let feepayerKeysBase58: { privateKey: string; publicKey: string } = JSON.parse(
   await fs.readFile(config.feepayerKeyPath, 'utf8')
 );
