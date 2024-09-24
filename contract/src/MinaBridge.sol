@@ -3,8 +3,8 @@ pragma solidity ^0.8.12;
 
 import "aligned_layer/contracts/src/core/AlignedLayerServiceManager.sol";
 
-error NewStateIsNotValid();
-error TipStateIsWrong(bytes32 pubInputTipStateHash, bytes32 tipStatehash);
+error NewStateIsNotValid(); // 114602f0
+error TipStateIsWrong(bytes32 pubInputTipStateHash, bytes32 tipStatehash); // bbd80128
 error AccountIsNotValid(bytes32 accountIdHash);
 
 /// @title Mina to Ethereum Bridge's smart contract.
@@ -76,7 +76,8 @@ contract MinaBridge {
         bytes32 batchMerkleRoot,
         bytes memory merkleProof,
         uint256 verificationDataBatchIndex,
-        bytes memory pubInput
+        bytes memory pubInput,
+        address batcherPaymentService
     ) external {
         bytes32 pubInputBridgeTipStateHash;
         assembly {
@@ -103,7 +104,7 @@ contract MinaBridge {
             batchMerkleRoot,
             merkleProof,
             verificationDataBatchIndex,
-            address(0)
+            batcherPaymentService
         );
 
         if (isNewStateVerified) {

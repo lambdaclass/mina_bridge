@@ -41,24 +41,27 @@ contract SudokuValidity {
         bytes32 batchMerkleRoot,
         bytes memory merkleProof,
         uint256 verificationDataBatchIndex,
-        bytes calldata pubInput
+        bytes calldata pubInput,
+        address batcherPaymentService
     ) external {
         bytes32 ledgerHash = bytes32(pubInput[:32]);
         if (!stateSettlement.isLedgerVerified(ledgerHash)) {
             revert InvalidLedger(ledgerHash);
         }
 
-        if (
-            !accountValidation.validateAccount(
+        MinaAccountValidation.AlignedArgs memory args = MinaAccountValidation
+            .AlignedArgs(
                 proofCommitment,
                 provingSystemAuxDataCommitment,
                 proofGeneratorAddr,
                 batchMerkleRoot,
                 merkleProof,
                 verificationDataBatchIndex,
-                pubInput
-            )
-        ) {
+                pubInput,
+                batcherPaymentService
+            );
+
+        if (!accountValidation.validateAccount(args)) {
             revert InvalidZkappAccount();
         }
 

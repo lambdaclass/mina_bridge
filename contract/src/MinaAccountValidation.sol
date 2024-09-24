@@ -4,6 +4,17 @@ pragma solidity ^0.8.12;
 import "aligned_layer/contracts/src/core/AlignedLayerServiceManager.sol";
 
 contract MinaAccountValidation {
+    struct AlignedArgs {
+        bytes32 proofCommitment;
+        bytes32 provingSystemAuxDataCommitment;
+        bytes20 proofGeneratorAddr;
+        bytes32 batchMerkleRoot;
+        bytes merkleProof;
+        uint256 verificationDataBatchIndex;
+        bytes pubInput;
+        address batcherPaymentService;
+    }
+
     /// @notice Reference to the AlignedLayerServiceManager contract.
     AlignedLayerServiceManager aligned;
 
@@ -12,53 +23,41 @@ contract MinaAccountValidation {
     }
 
     function validateAccount(
-        bytes32 proofCommitment,
-        bytes32 provingSystemAuxDataCommitment,
-        bytes20 proofGeneratorAddr,
-        bytes32 batchMerkleRoot,
-        bytes memory merkleProof,
-        uint256 verificationDataBatchIndex,
-        bytes calldata pubInput
+        AlignedArgs calldata args
     ) external view returns (bool) {
-        bytes32 pubInputCommitment = keccak256(pubInput);
+        bytes32 pubInputCommitment = keccak256(args.pubInput);
 
         return
             aligned.verifyBatchInclusion(
-                proofCommitment,
+                args.proofCommitment,
                 pubInputCommitment,
-                provingSystemAuxDataCommitment,
-                proofGeneratorAddr,
-                batchMerkleRoot,
-                merkleProof,
-                verificationDataBatchIndex,
-                address(0)
+                args.provingSystemAuxDataCommitment,
+                args.proofGeneratorAddr,
+                args.batchMerkleRoot,
+                args.merkleProof,
+                args.verificationDataBatchIndex,
+                args.batcherPaymentService
             );
     }
 
     function validateAccountAndReturn(
-        bytes32 proofCommitment,
-        bytes32 provingSystemAuxDataCommitment,
-        bytes20 proofGeneratorAddr,
-        bytes32 batchMerkleRoot,
-        bytes memory merkleProof,
-        uint256 verificationDataBatchIndex,
-        bytes calldata pubInput
+        AlignedArgs calldata args
     ) external view returns (Account memory) {
-        bytes32 pubInputCommitment = keccak256(pubInput);
+        bytes32 pubInputCommitment = keccak256(args.pubInput);
 
         bool isAccountVerified = aligned.verifyBatchInclusion(
-            proofCommitment,
+            args.proofCommitment,
             pubInputCommitment,
-            provingSystemAuxDataCommitment,
-            proofGeneratorAddr,
-            batchMerkleRoot,
-            merkleProof,
-            verificationDataBatchIndex,
-            address(0)
+            args.provingSystemAuxDataCommitment,
+            args.proofGeneratorAddr,
+            args.batchMerkleRoot,
+            args.merkleProof,
+            args.verificationDataBatchIndex,
+            args.batcherPaymentService
         );
 
         if (isAccountVerified) {
-            return abi.decode(pubInput[32 + 8:], (Account));
+            return abi.decode(args.pubInput[32 + 8:], (Account));
         } else {
             revert();
         }

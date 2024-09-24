@@ -51,6 +51,7 @@ pub async fn update_bridge_chain(
     eth_rpc_url: &str,
     proof_generator_addr: &str,
     wallet: Wallet<SigningKey>,
+    batcher_payment_service: &str,
     save_proof: bool,
 ) -> Result<(), String> {
     let (proof, pub_input) = get_mina_proof_of_state(&rpc_url, &chain, &eth_rpc_url).await?;
@@ -73,7 +74,15 @@ pub async fn update_bridge_chain(
     )
     .await?;
 
-    update_chain(verification_data, &pub_input, chain, eth_rpc_url, wallet).await?;
+    update_chain(
+        verification_data,
+        &pub_input,
+        chain,
+        eth_rpc_url,
+        wallet,
+        batcher_payment_service,
+    )
+    .await?;
 
     Ok(())
 }
@@ -87,6 +96,7 @@ pub async fn validate_account(
     batcher_eth_addr: &str,
     eth_rpc_url: &str,
     proof_generator_addr: &str,
+    batcher_payment_service: &str,
     wallet: Wallet<SigningKey>,
     save_proof: bool,
 ) -> Result<AccountVerificationData, String> {
@@ -104,7 +114,14 @@ pub async fn validate_account(
     )
     .await?;
 
-    eth::validate_account(verification_data.clone(), &pub_input, chain, eth_rpc_url).await?;
+    eth::validate_account(
+        verification_data.clone(),
+        &pub_input,
+        chain,
+        eth_rpc_url,
+        batcher_payment_service,
+    )
+    .await?;
 
     let AlignedVerificationData {
         verification_data_commitment,

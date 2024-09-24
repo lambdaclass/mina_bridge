@@ -24,7 +24,7 @@ use std::{process, str::FromStr, time::SystemTime};
 
 const MINA_ZKAPP_ADDRESS: &str = "B62qmpq1JBejZYDQrZwASPRM5oLXW346WoXgbApVf5HJZXMWFPWFPuA";
 const SUDOKU_VALIDITY_DEVNET_ADDRESS: &str = "0xb19b36b1456E65E3A6D514D3F715f204BD59f431";
-const SUDOKU_VALIDITY_HOLESKY_ADDRESS: &str = "0xb3057D8593F18e0fB2Db2fcb4167a017B9A36B8E";
+const SUDOKU_VALIDITY_HOLESKY_ADDRESS: &str = "0x492B66e01921c0b4588Cf54D5564F2B21B98Bf1E";
 
 sol!(
     #[allow(clippy::too_many_arguments)]
@@ -143,6 +143,7 @@ async fn main() {
                 &eth_rpc_url,
                 &proof_generator_addr,
                 wallet.clone(),
+                &batcher_eth_addr,
                 false,
             )
             .await;
@@ -183,6 +184,7 @@ async fn main() {
                 &batcher_eth_addr,
                 &eth_rpc_url,
                 &proof_generator_addr,
+                &batcher_eth_addr,
                 wallet,
                 false,
             )
@@ -209,6 +211,7 @@ async fn main() {
                 merkle_proof.into(),
                 U256::from(verification_data_batch_index),
                 pub_input.into(),
+                Address::from_str(&batcher_eth_addr).unwrap(),
             );
 
             info!("Sending transaction to SudokuValidity contract...");

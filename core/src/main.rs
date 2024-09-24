@@ -83,12 +83,19 @@ async fn main() {
                 process::exit(1);
             });
 
-            eth::update_chain(verification_data, &pub_input, &chain, &eth_rpc_url, wallet)
-                .await
-                .unwrap_or_else(|err| {
-                    error!("{}", err);
-                    process::exit(1);
-                });
+            eth::update_chain(
+                verification_data,
+                &pub_input,
+                &chain,
+                &eth_rpc_url,
+                wallet,
+                &batcher_eth_addr,
+            )
+            .await
+            .unwrap_or_else(|err| {
+                error!("{}", err);
+                process::exit(1);
+            });
         }
         Command::SubmitAccount {
             save_proof,
@@ -119,8 +126,14 @@ async fn main() {
                 process::exit(1);
             });
 
-            if let Err(err) =
-                eth::validate_account(verification_data, &pub_input, &chain, &eth_rpc_url).await
+            if let Err(err) = eth::validate_account(
+                verification_data,
+                &pub_input,
+                &chain,
+                &eth_rpc_url,
+                &batcher_eth_addr,
+            )
+            .await
             {
                 error!("Mina account {public_key} was not validated: {err}",);
             } else {
