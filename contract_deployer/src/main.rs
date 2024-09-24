@@ -1,4 +1,3 @@
-use aligned_sdk::core::types::Chain;
 use log::{debug, error, info};
 use mina_bridge_core::{
     mina_polling_service::query_root,
@@ -7,11 +6,8 @@ use mina_bridge_core::{
         MinaAccountValidationConstructorArgs, MinaBridgeConstructorArgs, SolStateHash,
     },
     utils::{
-        constants::{
-            ALIGNED_SM_DEVNET_ETH_ADDR, ALIGNED_SM_HOLESKY_ETH_ADDR, BRIDGE_TRANSITION_FRONTIER_LEN,
-        },
-        env::EnvironmentVariables,
-        wallet_alloy::get_wallet,
+        constants::BRIDGE_TRANSITION_FRONTIER_LEN, contract::get_aligned_sm_contract_addr,
+        env::EnvironmentVariables, wallet_alloy::get_wallet,
     },
 };
 use std::process;
@@ -47,18 +43,17 @@ async fn main() {
         process::exit(1);
     });
 
-    let aligned_sm_addr = match chain {
-        Chain::Devnet => ALIGNED_SM_DEVNET_ETH_ADDR,
-        Chain::Holesky => ALIGNED_SM_HOLESKY_ETH_ADDR,
-        _ => todo!(),
-    };
+    let aligned_sm_addr = get_aligned_sm_contract_addr(&chain).unwrap_or_else(|err| {
+        error!("{err}");
+        process::exit(1);
+    });
 
-    let bridge_constructor_args = MinaBridgeConstructorArgs::new(aligned_sm_addr, root_hash)
+    let bridge_constructor_args = MinaBridgeConstructorArgs::new(&aligned_sm_addr, root_hash)
         .unwrap_or_else(|err| {
             error!("Failed to make constructor args for bridge contract call: {err}");
             process::exit(1);
         });
-    let account_constructor_args = MinaAccountValidationConstructorArgs::new(aligned_sm_addr)
+    let account_constructor_args = MinaAccountValidationConstructorArgs::new(&aligned_sm_addr)
         .unwrap_or_else(|err| {
             error!("Failed to make constructor args for account contract call: {err}");
             process::exit(1);

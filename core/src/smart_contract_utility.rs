@@ -7,7 +7,7 @@ use alloy::providers::ProviderBuilder;
 use alloy::sol;
 use ethers::{abi::AbiEncode, prelude::*};
 use k256::ecdsa::SigningKey;
-use log::{debug, error, info};
+use log::{debug, info};
 use mina_p2p_messages::v2::StateHash;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
@@ -15,10 +15,9 @@ use serde_with::serde_as;
 use crate::{
     proof::{account_proof::MinaAccountPubInputs, state_proof::MinaStatePubInputs},
     sol::serialization::SolSerialize,
-    utils::constants::{
-        ANVIL_CHAIN_ID, BRIDGE_ACCOUNT_DEVNET_ETH_ADDR, BRIDGE_ACCOUNT_HOLESKY_ETH_ADDR,
-        BRIDGE_DEVNET_ETH_ADDR, BRIDGE_HOLESKY_ETH_ADDR, BRIDGE_TRANSITION_FRONTIER_LEN,
-        HOLESKY_CHAIN_ID,
+    utils::{
+        constants::{ANVIL_CHAIN_ID, BRIDGE_TRANSITION_FRONTIER_LEN, HOLESKY_CHAIN_ID},
+        contract::{get_account_validation_contract_addr, get_bridge_contract_addr},
     },
 };
 
@@ -97,15 +96,8 @@ pub async fn update_chain(
     wallet: Wallet<SigningKey>,
     batcher_payment_service: &str,
 ) -> Result<(), String> {
-    let bridge_eth_addr = Address::from_str(match chain {
-        Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
-        Chain::Holesky => BRIDGE_HOLESKY_ETH_ADDR,
-        _ => {
-            error!("Unimplemented Ethereum contract on selected chain");
-            unimplemented!()
-        }
-    })
-    .map_err(|err| err.to_string())?;
+    let bridge_eth_addr =
+        Address::from_str(&get_bridge_contract_addr(chain)?).map_err(|err| err.to_string())?;
 
     let serialized_pub_input = bincode::serialize(pub_input)
         .map_err(|err| format!("Failed to serialize public inputs: {err}"))?;
@@ -196,15 +188,8 @@ pub async fn update_chain(
 }
 
 pub async fn get_bridge_tip_hash(chain: &Chain, eth_rpc_url: &str) -> Result<SolStateHash, String> {
-    let bridge_eth_addr = Address::from_str(match chain {
-        Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
-        Chain::Holesky => BRIDGE_HOLESKY_ETH_ADDR,
-        _ => {
-            error!("Unimplemented Ethereum contract on selected chain");
-            unimplemented!()
-        }
-    })
-    .map_err(|err| err.to_string())?;
+    let bridge_eth_addr =
+        Address::from_str(&get_bridge_contract_addr(chain)?).map_err(|err| err.to_string())?;
 
     debug!("Creating contract instance");
     let mina_bridge_contract = mina_bridge_contract_call_only(eth_rpc_url, bridge_eth_addr)?;
@@ -225,15 +210,8 @@ pub async fn get_bridge_chain_state_hashes(
     chain: &Chain,
     eth_rpc_url: &str,
 ) -> Result<[StateHash; BRIDGE_TRANSITION_FRONTIER_LEN], String> {
-    let bridge_eth_addr = Address::from_str(match chain {
-        Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
-        Chain::Holesky => BRIDGE_HOLESKY_ETH_ADDR,
-        _ => {
-            error!("Unimplemented Ethereum contract on selected chain");
-            unimplemented!()
-        }
-    })
-    .map_err(|err| err.to_string())?;
+    let bridge_eth_addr =
+        Address::from_str(&get_bridge_contract_addr(chain)?).map_err(|err| err.to_string())?;
 
     debug!("Creating contract instance");
     let mina_bridge_contract = mina_bridge_contract_call_only(eth_rpc_url, bridge_eth_addr)?;
@@ -266,15 +244,8 @@ pub async fn validate_account(
     eth_rpc_url: &str,
     batcher_payment_service: &str,
 ) -> Result<Account, String> {
-    let bridge_eth_addr = Address::from_str(match chain {
-        Chain::Devnet => BRIDGE_ACCOUNT_DEVNET_ETH_ADDR,
-        Chain::Holesky => BRIDGE_ACCOUNT_HOLESKY_ETH_ADDR,
-        _ => {
-            error!("Unimplemented Ethereum contract on selected chain");
-            unimplemented!()
-        }
-    })
-    .map_err(|err| err.to_string())?;
+    let bridge_eth_addr = Address::from_str(&get_account_validation_contract_addr(chain)?)
+        .map_err(|err| err.to_string())?;
 
     debug!("Creating contract instance");
 
