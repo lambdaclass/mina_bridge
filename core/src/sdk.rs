@@ -43,6 +43,7 @@ pub async fn get_bridged_chain_tip_state_hash(
         .map(|hashes| hashes.last().unwrap().to_string())
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn update_bridge_chain(
     rpc_url: &str,
     chain: &Chain,
@@ -54,7 +55,7 @@ pub async fn update_bridge_chain(
     batcher_payment_service: &str,
     save_proof: bool,
 ) -> Result<(), String> {
-    let (proof, pub_input) = get_mina_proof_of_state(&rpc_url, &chain, &eth_rpc_url).await?;
+    let (proof, pub_input) = get_mina_proof_of_state(rpc_url, chain, eth_rpc_url).await?;
 
     let candidate_root_state_hash = pub_input.candidate_chain_state_hashes.first().unwrap();
     if is_state_verified(&candidate_root_state_hash.to_string(), chain, eth_rpc_url).await? {
@@ -87,6 +88,7 @@ pub async fn update_bridge_chain(
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn validate_account(
     public_key: &str,
     state_hash: &str,
