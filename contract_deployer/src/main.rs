@@ -1,11 +1,11 @@
 use aligned_sdk::core::types::Chain;
 use log::{debug, error, info};
 use mina_bridge_core::{
-    mina_polling_service::query_root,
-    smart_contract_utility::{
+    eth::{
         deploy_mina_account_validation_contract, deploy_mina_bridge_contract,
         MinaAccountValidationConstructorArgs, MinaBridgeConstructorArgs, SolStateHash,
     },
+    mina::query_root,
     utils::{
         constants::{
             ALIGNED_SM_DEVNET_ETH_ADDR, ALIGNED_SM_HOLESKY_ETH_ADDR, BRIDGE_TRANSITION_FRONTIER_LEN,

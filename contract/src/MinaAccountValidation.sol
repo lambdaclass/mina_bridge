@@ -3,7 +3,7 @@ pragma solidity ^0.8.12;
 
 import "aligned_layer/contracts/src/core/AlignedLayerServiceManager.sol";
 
-error ProvingSystemIdIsNotValid(); // c1872967
+error MinaAccountProvingSystemIdIsNotValid(); // c1872967
 error AccountIsNotVerified();
 
 contract MinaAccountValidation {
@@ -28,12 +28,29 @@ contract MinaAccountValidation {
         aligned = AlignedLayerServiceManager(_alignedServiceAddr);
     }
 
-    function validateAccount(AlignedArgs calldata args) external view returns (Account memory) {
+    function validateAccount(AlignedArgs calldata args) external view returns (bool) {
         if (args.provingSystemAuxDataCommitment != PROVING_SYSTEM_ID_COMM) {
-            revert ProvingSystemIdIsNotValid();
+            revert MinaAccountProvingSystemIdIsNotValid();
         }
 
-        bytes calldata encodedAccount = args.pubInput[32 + 8:];
+        bytes32 pubInputCommitment = keccak256(args.pubInput);
+
+        return aligned.verifyBatchInclusion(
+            args.proofCommitment,
+            pubInputCommitment,
+            args.provingSystemAuxDataCommitment,
+            args.proofGeneratorAddr,
+            args.batchMerkleRoot,
+            args.merkleProof,
+            args.verificationDataBatchIndex,
+            args.batcherPaymentService
+        );
+    }
+
+    function validateAccountAndReturn(AlignedArgs calldata args) external view returns (Account memory) {
+        if (args.provingSystemAuxDataCommitment != PROVING_SYSTEM_ID_COMM) {
+            revert MinaAccountProvingSystemIdIsNotValid();
+        }
 
         bytes32 pubInputCommitment = keccak256(args.pubInput);
 
@@ -49,9 +66,9 @@ contract MinaAccountValidation {
         );
 
         if (isAccountVerified) {
-            return abi.decode(encodedAccount, (Account));
+            return abi.decode(args.pubInput[32 + 8:], (Account));
         } else {
-            revert AccountIsNotVerified();
+            revert();
         }
     }
 

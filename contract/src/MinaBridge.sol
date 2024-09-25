@@ -3,7 +3,7 @@ pragma solidity ^0.8.12;
 
 import "aligned_layer/contracts/src/core/AlignedLayerServiceManager.sol";
 
-error ProvingSystemIdIsNotValid(bytes32); // f92aa66a
+error MinaProvingSystemIdIsNotValid(bytes32); // f92aa66a
 error NewStateIsNotValid(); // 114602f0
 error TipStateIsWrong(bytes32 pubInputTipStateHash, bytes32 tipStatehash); // bbd80128
 error AccountIsNotValid(bytes32 accountIdHash);
@@ -52,6 +52,16 @@ contract MinaBridge {
         return chainLedgerHashes;
     }
 
+    /// @notice Returns true if this snarked ledger hash was bridged.
+    function isLedgerVerified(bytes32 ledgerHash) external view returns (bool) {
+        for (uint256 i = 0; i < BRIDGE_TRANSITION_FRONTIER_LEN; i++) {
+            if (chainLedgerHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1 - i] == ledgerHash) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     function updateChain(
         bytes32 proofCommitment,
         bytes32 provingSystemAuxDataCommitment,
@@ -63,7 +73,7 @@ contract MinaBridge {
         address batcherPaymentService
     ) external {
         if (provingSystemAuxDataCommitment != PROVING_SYSTEM_ID_COMM) {
-            revert ProvingSystemIdIsNotValid(provingSystemAuxDataCommitment);
+            revert MinaProvingSystemIdIsNotValid(provingSystemAuxDataCommitment);
         }
 
         bytes32 pubInputBridgeTipStateHash;
