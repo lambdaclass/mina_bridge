@@ -49,7 +49,7 @@ For running the example you need:
     ```sh
     make deploy_example_contract
     ```
-1. Deploy the zkApp Mina contract following the [Mina Protocol documentation](https://docs.minaprotocol.com/zkapps/writing-a-zkapp/introduction-to-zkapps/how-to-write-a-zkapp) and modify the `mina_zkapp/config.json` file accordingly, or use the already deployed one (skipping this step).
+1. Deploy the zkApp Mina contract following the [Mina Protocol documentation](https://docs.minaprotocol.com/zkapps/writing-a-zkapp/introduction-to-zkapps/how-to-write-a-zkapp) and modify the `mina_zkapp/config.json` file accordingly (`zkappAddress` field), or use the already deployed one (skipping this step).
 
 1. Run the example by executing
     ```sh
@@ -58,6 +58,8 @@ For running the example you need:
    this will upload a new Sudoku, submit a solution and run the example Rust app that will bridge
    the new state of the zkApp and update the SudokuValidty smart contract.
 
+
+Below is a diagram explaining the execution flow
 ![Example diagram](/img/example_diagram.png)
 
 
