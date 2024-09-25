@@ -1,10 +1,10 @@
 use log::{debug, error, info};
 use mina_bridge_core::{
-    mina_polling_service::query_root,
-    smart_contract_utility::{
+    eth::{
         deploy_mina_account_validation_contract, deploy_mina_bridge_contract,
         MinaAccountValidationConstructorArgs, MinaBridgeConstructorArgs, SolStateHash,
     },
+    mina::query_root,
     utils::{
         constants::BRIDGE_TRANSITION_FRONTIER_LEN, contract::get_aligned_sm_contract_addr,
         env::EnvironmentVariables, wallet_alloy::get_wallet,

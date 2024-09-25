@@ -243,7 +243,7 @@ pub async fn validate_account(
     chain: &Chain,
     eth_rpc_url: &str,
     batcher_payment_service: &str,
-) -> Result<Account, String> {
+) -> Result<(), String> {
     let bridge_eth_addr = Address::from_str(&get_account_validation_contract_addr(chain)?)
         .map_err(|err| err.to_string())?;
 
@@ -298,7 +298,9 @@ pub async fn validate_account(
         call.estimate_gas().await.map_err(|err| err.to_string())?
     );
 
-    call.await.map_err(|err| err.to_string())
+    call.await.map_err(|err| err.to_string())?;
+
+    Ok(())
 }
 
 pub async fn deploy_mina_bridge_contract(

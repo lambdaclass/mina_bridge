@@ -1,0 +1,28 @@
+name: zkApp tests
+on:
+  push:
+  pull_request:
+  workflow_dispatch: {}
+jobs:
+  test:
+    timeout-minutes: 30
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        node: [18, 20]
+        os: [ubuntu-latest]
+    steps:
+      - name: Set up NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Git checkout
+        uses: actions/checkout@v4
+      - name: NPM ci, build, & test
+        run: |
+          npm ci
+          npm run build --if-present
+          npm test
+        env:
+          CI: true
