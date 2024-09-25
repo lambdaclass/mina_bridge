@@ -1,4 +1,5 @@
 {
+  "zkappAddress": "B62qmpq1JBejZYDQrZwASPRM5oLXW346WoXgbApVf5HJZXMWFPWFPuA",
   "networkId": "testnet",
   "url": "https://api.minascan.io/node/devnet/v1/graphql",
   "feepayerKeyPath": "<path>",

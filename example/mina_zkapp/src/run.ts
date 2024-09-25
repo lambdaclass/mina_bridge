@@ -3,11 +3,11 @@ import { Sudoku, SudokuZkApp } from './sudoku.js';
 import { generateSudoku, solveSudoku } from './sudoku-lib.js';
 import { Mina, PrivateKey, PublicKey, NetworkId, fetchAccount } from 'o1js';
 
-const ZKAPP_ADDRESS = "B62qmpq1JBejZYDQrZwASPRM5oLXW346WoXgbApVf5HJZXMWFPWFPuA";
 const TX_MAX_TRIES = 5;
 
 // parse config and private key from file
 type Config = {
+  zkappAddress: string;
   networkId?: string;
   url: string;
   fee: string;
@@ -20,7 +20,7 @@ let feepayerKeysBase58: { privateKey: string; publicKey: string } = JSON.parse(
 );
 let feepayerKey = PrivateKey.fromBase58(feepayerKeysBase58.privateKey);
 let feepayerAddress = feepayerKey.toPublicKey();
-let zkAppAddress = PublicKey.fromBase58(ZKAPP_ADDRESS);
+let zkAppAddress = PublicKey.fromBase58(config.zkappAddress);
 
 // define network (devnet)
 const Network = Mina.Network({
