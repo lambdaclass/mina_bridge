@@ -4,7 +4,6 @@ pragma solidity ^0.8.12;
 import "aligned_layer/contracts/src/core/AlignedLayerServiceManager.sol";
 
 error MinaAccountProvingSystemIdIsNotValid(); // c1872967
-error AccountIsNotVerified();
 
 contract MinaAccountValidation {
     /// @notice The commitment to Mina Account proving system ID.
