@@ -2,7 +2,7 @@ use log::{debug, error, info};
 use mina_bridge_core::{
     eth::{
         deploy_mina_account_validation_contract, deploy_mina_bridge_contract,
-        MinaAccountValidationConstructorArgs, MinaBridgeConstructorArgs, SolStateHash,
+        MinaAccountValidationConstructorArgs, MinaStateSettlementConstructorArgs, SolStateHash,
     },
     mina::query_root,
     utils::{
@@ -48,11 +48,13 @@ async fn main() {
         process::exit(1);
     });
 
-    let bridge_constructor_args = MinaBridgeConstructorArgs::new(&aligned_sm_addr, root_hash)
-        .unwrap_or_else(|err| {
-            error!("Failed to make constructor args for bridge contract call: {err}");
-            process::exit(1);
-        });
+    let bridge_constructor_args =
+        MinaStateSettlementConstructorArgs::new(&aligned_sm_addr, root_hash).unwrap_or_else(
+            |err| {
+                error!("Failed to make constructor args for bridge contract call: {err}");
+                process::exit(1);
+            },
+        );
     let account_constructor_args = MinaAccountValidationConstructorArgs::new(&aligned_sm_addr)
         .unwrap_or_else(|err| {
             error!("Failed to make constructor args for account contract call: {err}");
