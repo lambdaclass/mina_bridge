@@ -12,10 +12,7 @@ use mina_bridge_core::{
         AccountVerificationData,
     },
     utils::{
-        constants::{
-            BRIDGE_ACCOUNT_DEVNET_ETH_ADDR, BRIDGE_ACCOUNT_HOLESKY_ETH_ADDR,
-            BRIDGE_DEVNET_ETH_ADDR, BRIDGE_HOLESKY_ETH_ADDR,
-        },
+        contract::{get_account_validation_contract_addr, get_bridge_contract_addr},
         env::EnvironmentVariables,
         wallet, wallet_alloy,
     },
@@ -86,22 +83,14 @@ async fn main() {
         Command::DeployContract => {
             // TODO(xqft): we might as well use the Chain type from Alloy, it isn't right to add
             // aligned-sdk as a dependency only for this type.
-            let state_settlement_addr = match chain {
-                Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
-                Chain::Holesky => BRIDGE_HOLESKY_ETH_ADDR,
-                _ => todo!(),
-            };
+            let state_settlement_addr = get_bridge_contract_addr(&chain).unwrap();
 
-            let account_validation_addr = match chain {
-                Chain::Devnet => BRIDGE_ACCOUNT_DEVNET_ETH_ADDR,
-                Chain::Holesky => BRIDGE_ACCOUNT_HOLESKY_ETH_ADDR,
-                _ => todo!(),
-            };
+            let account_validation_addr = get_account_validation_contract_addr(&chain).unwrap();
 
             let contract = SudokuValidity::deploy(
                 &provider,
-                Address::from_str(state_settlement_addr).unwrap(),
-                Address::from_str(account_validation_addr).unwrap(),
+                Address::from_str(&state_settlement_addr).unwrap(),
+                Address::from_str(&account_validation_addr).unwrap(),
             )
             .await
             .map_err(|err| err.to_string())
