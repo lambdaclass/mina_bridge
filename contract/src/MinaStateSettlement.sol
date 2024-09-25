@@ -7,8 +7,8 @@ error NewStateIsNotValid(); // 114602f0
 error TipStateIsWrong(bytes32 pubInputTipStateHash, bytes32 tipStatehash); // bbd80128
 error AccountIsNotValid(bytes32 accountIdHash);
 
-/// @title Mina to Ethereum Bridge's smart contract.
-contract MinaBridge {
+/// @title Mina to Ethereum Bridge's smart contract for verifying and storing a valid state chain.
+contract MinaStateSettlement {
     /// @notice The length of the verified state chain (also called the bridge's transition
     /// frontier) to store.
     uint256 public constant BRIDGE_TRANSITION_FRONTIER_LEN = 16;
