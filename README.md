@@ -15,11 +15,11 @@ This project is being redesigned to use [Aligned Layer](https://github.com/yetan
 ## Usage
 
 1. [Setup Aligned Devnet locally](https://github.com/yetanotherco/aligned_layer/blob/main/docs/guides/3_setup_aligned.md#booting-devnet-with-default-configs)
-1. Setup the `core/.env` file of the bridge's core program. A template is available in `core/.env.template`.
+1. Setup the `.env` file of the bridge. A template is available in `core/.env.template`.
 1. In the root folder, deploy the bridge's contract with:
 
     ```sh
-    make deploy_contract_anvil
+    make deploy_contract
     ```
 
 1. Submit a state to verify:
@@ -32,7 +32,35 @@ This project is being redesigned to use [Aligned Layer](https://github.com/yetan
     ```sh
     make submit-account PUBLIC_KEY=<string>
     ```
-    
+
+## Example use case
+
+The `example/` folder contains a project that implements a Sudoku zkApp (extracted from a Mina example) and bridges its state
+to an Ethereum contract.
+
+For running the example you need:
+
+1. [Setup Aligned Devnet locally](https://github.com/yetanotherco/aligned_layer/blob/main/docs/guides/3_setup_aligned.md#booting-devnet-with-default-configs)
+1. Deploy the bridge smart contracts by executing
+    ```sh
+    make deploy_contract
+    ```
+1. Deploy the SudokuValidity smart contract by executing
+    ```sh
+    make deploy_example_contract
+    ```
+1. Deploy the zkApp Mina contract following the [Mina Protocol documentation](https://docs.minaprotocol.com/zkapps/writing-a-zkapp/introduction-to-zkapps/how-to-write-a-zkapp) and modify the `mina_zkapp/config.json` file accordingly, or use the already deployed one (skipping this step).
+
+1. Run the example by executing
+    ```sh
+    make execute_example
+    ```
+   this will upload a new Sudoku, submit a solution and run the example Rust app that will bridge
+   the new state of the zkApp and update the SudokuValidty smart contract.
+
+![Example diagram](/img/example_diagram.png)
+
+
 ## Table of Contents
 - [About](#about)
 - [Usage](#usage)
