@@ -1,9 +1,8 @@
 use clap::{Parser, Subcommand};
 use log::{error, info};
 use mina_bridge_core::{
-    aligned_polling_service, mina_polling_service,
+    aligned, eth, mina,
     proof::MinaProof,
-    smart_contract_utility,
     utils::{env::EnvironmentVariables, wallet::get_wallet},
 };
 use std::{process, time::SystemTime};
@@ -61,15 +60,14 @@ async fn main() {
 
     match cli.command {
         Command::SubmitState { save_proof } => {
-            let (proof, pub_input) =
-                mina_polling_service::get_mina_proof_of_state(&rpc_url, &chain, &eth_rpc_url)
-                    .await
-                    .unwrap_or_else(|err| {
-                        error!("{}", err);
-                        process::exit(1);
-                    });
+            let (proof, pub_input) = mina::get_mina_proof_of_state(&rpc_url, &chain, &eth_rpc_url)
+                .await
+                .unwrap_or_else(|err| {
+                    error!("{}", err);
+                    process::exit(1);
+                });
 
-            let verification_data = aligned_polling_service::submit(
+            let verification_data = aligned::submit(
                 MinaProof::State((proof, pub_input.clone())),
                 &chain,
                 &proof_generator_addr,
@@ -85,7 +83,7 @@ async fn main() {
                 process::exit(1);
             });
 
-            smart_contract_utility::update_chain(
+            eth::update_chain(
                 verification_data,
                 &pub_input,
                 &chain,
@@ -105,14 +103,14 @@ async fn main() {
             state_hash,
         } => {
             let (proof, pub_input) =
-                mina_polling_service::get_mina_proof_of_account(&public_key, &state_hash, &rpc_url)
+                mina::get_mina_proof_of_account(&public_key, &state_hash, &rpc_url)
                     .await
                     .unwrap_or_else(|err| {
                         error!("{}", err);
                         process::exit(1);
                     });
 
-            let verification_data = aligned_polling_service::submit(
+            let verification_data = aligned::submit(
                 MinaProof::Account((proof, pub_input.clone())),
                 &chain,
                 &proof_generator_addr,
@@ -128,7 +126,7 @@ async fn main() {
                 process::exit(1);
             });
 
-            if let Err(err) = smart_contract_utility::validate_account(
+            if let Err(err) = eth::validate_account(
                 verification_data,
                 &pub_input,
                 &chain,

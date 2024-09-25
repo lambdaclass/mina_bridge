@@ -19,11 +19,11 @@ use mina_p2p_messages::{
 };
 
 use crate::{
+    eth::get_bridge_tip_hash,
     proof::{
         account_proof::{MerkleNode, MinaAccountProof, MinaAccountPubInputs},
         state_proof::{MinaStateProof, MinaStatePubInputs},
     },
-    smart_contract_utility::get_bridge_tip_hash,
     sol::account::MinaAccountValidation,
     utils::constants::BRIDGE_TRANSITION_FRONTIER_LEN,
 };
@@ -34,24 +34,24 @@ type FieldElem = String;
 
 #[derive(GraphQLQuery)]
 #[graphql(
-    schema_path = "src/graphql/mina_schema.json",
-    query_path = "src/graphql/state_query.graphql"
+    schema_path = "graphql/mina_schema.json",
+    query_path = "graphql/state_query.graphql"
 )]
 /// A query for a protocol state given some state hash (non-field).
 struct StateQuery;
 
 #[derive(GraphQLQuery)]
 #[graphql(
-    schema_path = "src/graphql/mina_schema.json",
-    query_path = "src/graphql/best_chain_query.graphql"
+    schema_path = "graphql/mina_schema.json",
+    query_path = "graphql/best_chain_query.graphql"
 )]
 /// A query for the state hashes and proofs of the transition frontier.
 struct BestChainQuery;
 
 #[derive(GraphQLQuery)]
 #[graphql(
-    schema_path = "src/graphql/mina_schema.json",
-    query_path = "src/graphql/account_query.graphql"
+    schema_path = "graphql/mina_schema.json",
+    query_path = "graphql/account_query.graphql"
 )]
 /// A query for retrieving an a Mina account state at some block, along with its ledger hash and
 /// merkle path.
@@ -73,10 +73,6 @@ pub async fn get_mina_proof_of_state(
     let candidate_tip_state_hash = candidate_chain_state_hashes
         .last()
         .ok_or("Missing candidate tip state hash".to_string())?;
-
-    if bridge_tip_state_hash == *candidate_tip_state_hash {
-        return Err("Candidate chain is already verified".to_string());
-    }
 
     let bridge_tip_state = query_state(rpc_url, &bridge_tip_state_hash).await?;
 
@@ -224,6 +220,9 @@ pub async fn query_candidate_chain(
             MinaBaseProofStableV2::binprot_read(&mut binprot.as_slice())
                 .map_err(|err| format!("Couldn't read state proof binprot: {err}"))
         })?;
+
+    debug!("Queried state hashes: {chain_state_hashes:?}");
+    debug!("Queried ledger hashes: {chain_ledger_hashes:?}");
 
     Ok((
         chain_states,
