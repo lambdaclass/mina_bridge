@@ -22,23 +22,26 @@ use crate::{
     },
 };
 
-abigen!(MinaBridgeEthereumContract, "abi/MinaBridge.json");
+abigen!(
+    MinaStateSettlementEthereumContract,
+    "abi/MinaStateSettlement.json"
+);
 abigen!(
     MinaAccountValidationEthereumContract,
     "abi/MinaAccountValidation.json"
 );
 
-type MinaBridgeEthereum =
-    MinaBridgeEthereumContract<SignerMiddleware<Provider<Http>, Wallet<SigningKey>>>;
+type MinaStateSettlementEthereum =
+    MinaStateSettlementEthereumContract<SignerMiddleware<Provider<Http>, Wallet<SigningKey>>>;
 
-type MinaBridgeEthereumCallOnly = MinaBridgeEthereumContract<Provider<Http>>;
+type MinaStateSettlementEthereumCallOnly = MinaStateSettlementEthereumContract<Provider<Http>>;
 type MinaAccountValidationEthereumCallOnly = MinaAccountValidationEthereumContract<Provider<Http>>;
 
 sol!(
     #[allow(clippy::too_many_arguments)]
     #[sol(rpc)]
-    MinaBridge,
-    "abi/MinaBridge.json"
+    MinaStateSettlement,
+    "abi/MinaStateSettlement.json"
 );
 
 sol!(
@@ -52,7 +55,7 @@ sol!(
 #[derive(Serialize, Deserialize)]
 pub struct SolStateHash(#[serde_as(as = "SolSerialize")] pub StateHash);
 
-pub struct MinaBridgeConstructorArgs {
+pub struct MinaStateSettlementConstructorArgs {
     aligned_service_addr: alloy::primitives::Address,
     root_state_hash: alloy::primitives::FixedBytes<32>,
 }
@@ -61,7 +64,7 @@ pub struct MinaAccountValidationConstructorArgs {
     aligned_service_addr: alloy::primitives::Address,
 }
 
-impl MinaBridgeConstructorArgs {
+impl MinaStateSettlementConstructorArgs {
     pub fn new(aligned_service_addr: &str, root_state_hash: Vec<u8>) -> Result<Self, String> {
         let aligned_service_addr =
             alloy::primitives::Address::parse_checksummed(aligned_service_addr, None)
@@ -334,7 +337,7 @@ pub async fn validate_account(
 
 pub async fn deploy_mina_bridge_contract(
     eth_rpc_url: &str,
-    constructor_args: MinaBridgeConstructorArgs,
+    constructor_args: MinaStateSettlementConstructorArgs,
     wallet: &EthereumWallet,
 ) -> Result<alloy::primitives::Address, String> {
     let provider = ProviderBuilder::new()
@@ -342,11 +345,11 @@ pub async fn deploy_mina_bridge_contract(
         .wallet(wallet)
         .on_http(reqwest::Url::parse(eth_rpc_url).map_err(|err| err.to_string())?);
 
-    let MinaBridgeConstructorArgs {
+    let MinaStateSettlementConstructorArgs {
         aligned_service_addr,
         root_state_hash,
     } = constructor_args;
-    let contract = MinaBridge::deploy(&provider, aligned_service_addr, root_state_hash)
+    let contract = MinaStateSettlement::deploy(&provider, aligned_service_addr, root_state_hash)
         .await
         .map_err(|err| err.to_string())?;
     let address = contract.address();
@@ -390,7 +393,7 @@ fn mina_bridge_contract(
     contract_address: Address,
     chain: &Chain,
     wallet: Wallet<SigningKey>,
-) -> Result<MinaBridgeEthereum, String> {
+) -> Result<MinaStateSettlementEthereum, String> {
     let eth_rpc_provider =
         Provider::<Http>::try_from(eth_rpc_url).map_err(|err| err.to_string())?;
     let chain_id = match chain {
@@ -401,17 +404,20 @@ fn mina_bridge_contract(
     let signer = SignerMiddleware::new(eth_rpc_provider, wallet.with_chain_id(chain_id));
     let client = Arc::new(signer);
     debug!("contract address: {contract_address}");
-    Ok(MinaBridgeEthereum::new(contract_address, client))
+    Ok(MinaStateSettlementEthereum::new(contract_address, client))
 }
 
 fn mina_bridge_contract_call_only(
     eth_rpc_url: &str,
     contract_address: Address,
-) -> Result<MinaBridgeEthereumCallOnly, String> {
+) -> Result<MinaStateSettlementEthereumCallOnly, String> {
     let eth_rpc_provider =
         Provider::<Http>::try_from(eth_rpc_url).map_err(|err| err.to_string())?;
     let client = Arc::new(eth_rpc_provider);
-    Ok(MinaBridgeEthereumCallOnly::new(contract_address, client))
+    Ok(MinaStateSettlementEthereumCallOnly::new(
+        contract_address,
+        client,
+    ))
 }
 
 fn mina_account_validation_contract_call_only(

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.12;
 
-import "mina_bridge/contract/src/MinaBridge.sol";
+import "mina_bridge/contract/src/MinaStateSettlement.sol";
 import "mina_bridge/contract/src/MinaAccountValidation.sol";
 
 contract SudokuValidity {
@@ -15,7 +15,7 @@ contract SudokuValidity {
         19387792026269240922986233885372582803610254872042773421723960761233199555267;
 
     /// @notice Mina bridge contract that validates and stores Mina states.
-    MinaBridge stateSettlement;
+    MinaStateSettlement stateSettlement;
     /// @notice Mina bridge contract that validates accounts
     MinaAccountValidation accountValidation;
 
@@ -24,7 +24,7 @@ contract SudokuValidity {
     uint256 latestSolutionValidationAt = 0;
 
     constructor(address _stateSettlementAddr, address _accountValidationAddr) {
-        stateSettlement = MinaBridge(_stateSettlementAddr);
+        stateSettlement = MinaStateSettlement(_stateSettlementAddr);
         accountValidation = MinaAccountValidation(_accountValidationAddr);
     }
 
