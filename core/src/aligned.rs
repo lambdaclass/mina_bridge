@@ -72,7 +72,8 @@ pub async fn submit(
         proving_system,
         proof,
         pub_input: Some(pub_input),
-        verification_key: None,
+        // Use this instead of `None` to force Aligned to include the commitment to the proving system ID (valid for Aligned 0.7.0)
+        verification_key: Some(vec![]),
         vm_program_code: None,
         proof_generator_addr,
     };

@@ -49,27 +49,23 @@ contract SudokuValidity {
             revert InvalidLedger(ledgerHash);
         }
 
-        MinaAccountValidation.AlignedArgs memory args = MinaAccountValidation
-            .AlignedArgs(
-                proofCommitment,
-                provingSystemAuxDataCommitment,
-                proofGeneratorAddr,
-                batchMerkleRoot,
-                merkleProof,
-                verificationDataBatchIndex,
-                pubInput,
-                batcherPaymentService
-            );
+        MinaAccountValidation.AlignedArgs memory args = MinaAccountValidation.AlignedArgs(
+            proofCommitment,
+            provingSystemAuxDataCommitment,
+            proofGeneratorAddr,
+            batchMerkleRoot,
+            merkleProof,
+            verificationDataBatchIndex,
+            pubInput,
+            batcherPaymentService
+        );
 
         if (!accountValidation.validateAccount(args)) {
             revert InvalidZkappAccount();
         }
 
         bytes calldata encodedAccount = pubInput[32 + 8:];
-        MinaAccountValidation.Account memory account = abi.decode(
-            encodedAccount,
-            (MinaAccountValidation.Account)
-        );
+        MinaAccountValidation.Account memory account = abi.decode(encodedAccount, (MinaAccountValidation.Account));
 
         // TODO(xqft): check verification key, it may be a poseidon hash so we should
         // need to change it to a keccak hash.
