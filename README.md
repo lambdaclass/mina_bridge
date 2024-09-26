@@ -38,30 +38,35 @@ This project is being redesigned to use [Aligned Layer](https://github.com/yetan
 The `example/` folder contains a project that implements a Sudoku zkApp (extracted from a Mina example) and bridges its state
 to an Ethereum contract.
 
-For running the example you need:
+For running the example you need to:
 
 1. [Setup Aligned Devnet locally](https://github.com/yetanotherco/aligned_layer/blob/main/docs/guides/3_setup_aligned.md#booting-devnet-with-default-configs)
 1. Deploy the bridge smart contracts by executing
     ```sh
     make deploy_contract
     ```
+
 1. Deploy the SudokuValidity smart contract by executing
     ```sh
     make deploy_example_contract
     ```
-1. Deploy the zkApp Mina contract following the [Mina Protocol documentation](https://docs.minaprotocol.com/zkapps/writing-a-zkapp/introduction-to-zkapps/how-to-write-a-zkapp) and modify the `mina_zkapp/config.json` file accordingly (`zkappAddress` field), or use the already deployed one (skipping this step).
+
+1. Install `zkapp-cli`:
+    ```sh
+    npm install -g zkapp-cli
+    ```
+
+1. Inside the `example/mina_zkapp` directory, configure the zkApp and deploy the contract following [this guide](https://docs.minaprotocol.com/zkapps/writing-a-zkapp/introduction-to-zkapps/how-to-write-a-zkapp#option-a-start-with-an-example-recommended) on the Mina Protocol documentation
 
 1. Run the example by executing
     ```sh
     make execute_example
     ```
-   this will upload a new Sudoku, submit a solution and run the example Rust app that will bridge
-   the new state of the zkApp and update the SudokuValidty smart contract.
+   this will upload a new Sudoku, submit a solution to it and run the example Rust app that will bridge the new state of the zkApp and update the SudokuValidty smart contract on Ethereum.
 
+   The zkApp will wait until both Mina transactions are included in a block, so that step may take a while. Below is a diagram explaining the execution flow:
 
-Below is a diagram explaining the execution flow
 ![Example diagram](/img/example_diagram.png)
-
 
 ## Table of Contents
 - [About](#about)
