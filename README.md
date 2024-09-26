@@ -57,7 +57,9 @@ For running the example you need to:
 
 1. Inside the `example/mina_zkapp` directory, configure the zkApp and deploy the contract following [this guide](https://docs.minaprotocol.com/zkapps/writing-a-zkapp/introduction-to-zkapps/how-to-write-a-zkapp#option-a-start-with-an-example-recommended) on the Mina Protocol documentation
 
-1. Run the example by executing
+1. After deployment, set the `zkappAddress` field on `example/mina_zkapp/config.json`
+
+1. Run the example by executing from the root folder:
     ```sh
     make execute_example
     ```
