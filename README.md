@@ -22,12 +22,22 @@ The bridge leverages [Aligned Layer](https://github.com/yetanotherco/aligned_lay
 - If you want the Bridge to use Mina Devnet then use a node that runs a Devnet instance corresponding to the commit `599a76d` [of the Mina repo](https://github.com/MinaProtocol/mina/tree/599a76dd47be99183d2102d9eb93eda679dd46ec) or a newer one (e.g.: [this Docker image](https://console.cloud.google.com/gcr/images/o1labs-192920/GLOBAL/mina-daemon:3.0.1-compatible-599a76d-bullseye-devnet/details)). See [how to connect to Mina Devnet](https://docs.minaprotocol.com/node-operators/block-producer-node/connecting-to-devnet#docker) if you want to run an instance yourself.
 - If you want the Bridge to use Mina Mainnet use a node that runs a Mainnet instance corresponding to the commit `65c84ad` [of the Mina repo](https://github.com/MinaProtocol/mina/tree/65c84adacd55272160d9f77c31063d94a942afb6) or a newer one (e.g.: [this Docker image](https://console.cloud.google.com/gcr/images/o1labs-192920/GLOBAL/mina-daemon:65c84ada-bullseye-mainnet/details?tab=info)). See [how to connect to Mina Mainnet](https://docs.minaprotocol.com/node-operators/block-producer-node/connecting-to-the-network#docker) if you want to run an instance yourself.
 
+You can bridge Mina accounts to Ethereum Devnet or Ethereum Testnet. The following subsections describe how to config the Bridge for each network.
+
 #### Ethereum Devnet
 
 1. [Setup Aligned Devnet locally](https://github.com/yetanotherco/aligned_layer/blob/main/docs/guides/3_setup_aligned.md#booting-devnet-with-default-configs)
 1. Setup the `.env` file of the Bridge. A template is available in `.env.template`.
     1. Set `ETH_CHAIN` to `devnet`.
     1. Set `MINA_RPC_URL` to the URL of the Mina node GraphQL API (See [Mina node section](#mina-node)).
+
+#### Ethereum Testnet
+
+Because the Bridge uses for now a forked version of Aligned, you may need to setup a local instance of Aligned to verify Mina proofs.
+
+##### Aligned Testnet setup
+
+(TODO)
 
 ### Bridge a Mina account
 
@@ -43,7 +53,7 @@ The bridge leverages [Aligned Layer](https://github.com/yetanotherco/aligned_lay
     make submit_state
     ```
 
-1. Submit an account to verify:
+1. Submit an account to verify (**NOTE:** Because of the Aligned minimum batch size, you may need to submit two proofs to make Aligned Devnet verify them):
 
     ```sh
     make submit_account PUBLIC_KEY=<string> STATE_HASH=<string>
