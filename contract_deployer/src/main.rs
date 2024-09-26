@@ -67,7 +67,16 @@ async fn main() {
             process::exit(1);
         });
 
-    deploy_mina_bridge_contract(&eth_rpc_url, bridge_constructor_args, &wallet)
+    // Contract for Devnet state proofs
+    deploy_mina_bridge_contract(&eth_rpc_url, &bridge_constructor_args, &wallet, true)
+        .await
+        .unwrap_or_else(|err| {
+            error!("Failed to deploy contract: {err}");
+            process::exit(1);
+        });
+
+    // Contract for Mainnet state proofs
+    deploy_mina_bridge_contract(&eth_rpc_url, &bridge_constructor_args, &wallet, false)
         .await
         .unwrap_or_else(|err| {
             error!("Failed to deploy contract: {err}");

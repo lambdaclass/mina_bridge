@@ -53,9 +53,11 @@ pub async fn update_bridge_chain(
     proof_generator_addr: &str,
     wallet: Wallet<SigningKey>,
     batcher_payment_service: &str,
+    is_state_proof_from_devnet: bool,
     save_proof: bool,
 ) -> Result<(), String> {
-    let (proof, pub_input) = get_mina_proof_of_state(rpc_url, chain, eth_rpc_url).await?;
+    let (proof, pub_input) =
+        get_mina_proof_of_state(rpc_url, chain, eth_rpc_url, is_state_proof_from_devnet).await?;
 
     let candidate_root_state_hash = pub_input.candidate_chain_state_hashes.first().unwrap();
     if is_state_verified(&candidate_root_state_hash.to_string(), chain, eth_rpc_url).await? {

@@ -24,12 +24,15 @@ contract MinaStateSettlement {
     /// the bridge's transition frontier).
     bytes32[BRIDGE_TRANSITION_FRONTIER_LEN] chainLedgerHashes;
 
+    bool isStateProofFromDevnet;
+
     /// @notice Reference to the AlignedLayerServiceManager contract.
     AlignedLayerServiceManager aligned;
 
-    constructor(address payable _alignedServiceAddr, bytes32 _tipStateHash) {
+    constructor(address payable _alignedServiceAddr, bytes32 _tipStateHash, bool _isStateProofFromDevnet) {
         aligned = AlignedLayerServiceManager(_alignedServiceAddr);
         chainStateHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1] = _tipStateHash;
+        isStateProofFromDevnet = _isStateProofFromDevnet;
     }
 
     /// @notice Returns the last verified state hash.

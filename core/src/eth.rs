@@ -308,8 +308,9 @@ pub async fn validate_account(
 
 pub async fn deploy_mina_bridge_contract(
     eth_rpc_url: &str,
-    constructor_args: MinaStateSettlementConstructorArgs,
+    constructor_args: &MinaStateSettlementConstructorArgs,
     wallet: &EthereumWallet,
+    is_state_proof_from_devnet: bool,
 ) -> Result<alloy::primitives::Address, String> {
     let provider = ProviderBuilder::new()
         .with_recommended_fillers()
@@ -320,13 +321,23 @@ pub async fn deploy_mina_bridge_contract(
         aligned_service_addr,
         root_state_hash,
     } = constructor_args;
-    let contract = MinaStateSettlement::deploy(&provider, aligned_service_addr, root_state_hash)
-        .await
-        .map_err(|err| err.to_string())?;
+    let contract = MinaStateSettlement::deploy(
+        &provider,
+        aligned_service_addr.clone(),
+        root_state_hash.clone(),
+        is_state_proof_from_devnet,
+    )
+    .await
+    .map_err(|err| err.to_string())?;
     let address = contract.address();
 
     info!(
-        "Mina Bridge contract successfuly deployed with address {}",
+        "Mina {} Bridge contract successfuly deployed with address {}",
+        if is_state_proof_from_devnet {
+            "Devnet"
+        } else {
+            "Mainnet"
+        },
         address
     );
 

@@ -61,6 +61,7 @@ pub async fn get_mina_proof_of_state(
     rpc_url: &str,
     chain: &Chain,
     eth_rpc_url: &str,
+    is_state_proof_from_devnet: bool
 ) -> Result<(MinaStateProof, MinaStatePubInputs), String> {
     let bridge_tip_state_hash = get_bridge_tip_hash(chain, eth_rpc_url).await?.0;
     let (
@@ -88,6 +89,7 @@ pub async fn get_mina_proof_of_state(
             bridge_tip_state_hash,
             candidate_chain_state_hashes,
             candidate_chain_ledger_hashes,
+            is_state_proof_from_devnet
         },
     ))
 }

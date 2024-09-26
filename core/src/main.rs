@@ -17,6 +17,8 @@ struct Cli {
 #[derive(Subcommand)]
 enum Command {
     SubmitState {
+        #[arg(short, long)]
+        is_state_proof_from_devnet: bool,
         /// Write the proof into .proof and .pub files
         #[arg(short, long)]
         save_proof: bool,
@@ -59,8 +61,8 @@ async fn main() {
         });
 
     match cli.command {
-        Command::SubmitState { save_proof } => {
-            let (proof, pub_input) = mina::get_mina_proof_of_state(&rpc_url, &chain, &eth_rpc_url)
+        Command::SubmitState { is_state_proof_from_devnet, save_proof } => {
+            let (proof, pub_input) = mina::get_mina_proof_of_state(&rpc_url, &chain, &eth_rpc_url, is_state_proof_from_devnet)
                 .await
                 .unwrap_or_else(|err| {
                     error!("{}", err);

@@ -134,6 +134,7 @@ async fn main() {
                 wallet.clone(),
                 &batcher_eth_addr,
                 false,
+                false,
             )
             .await;
 

@@ -20,6 +20,7 @@ pub struct MinaStatePubInputs {
     /// where the leafs are Mina account hashes. Used for account verification.
     #[serde_as(as = "[SolSerialize; BRIDGE_TRANSITION_FRONTIER_LEN]")]
     pub candidate_chain_ledger_hashes: [LedgerHash; BRIDGE_TRANSITION_FRONTIER_LEN],
+    pub is_state_proof_from_devnet: bool
 }
 
 #[derive(Serialize, Deserialize)]
