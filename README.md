@@ -146,6 +146,12 @@ The verification data sent by Aligned is returned after proof submission. This i
 
 Implements functions for interacting with the bridge’s smart contracts on Ethereum (getters for storage variables, update the verified state chain, validate an account). Also includes code for deploying both contracts.
 
+### sdk
+
+[mina_bridge repo: core/src/sdk.rs](https://github.com/lambdaclass/mina_bridge/tree/aligned/core/src/sdk.rs)
+
+Abstracts the previous modules to provide an easy way to verify states or accounts, and to retrieve storage data from the State Settlement contract.
+
 ## Mina Proof of State
 
 ### Definition
