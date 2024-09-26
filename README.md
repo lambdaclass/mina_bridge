@@ -166,16 +166,16 @@ We understand a Mina Proof of State to be composed of:
 
 ```rust
 [
-    /// The hash of the bridge's transition frontier tip state. Used for making sure that we're
-    /// checking if a candidate tip is better than the latest bridged tip.
-    bridge_tip_state_hash,
+/// The hash of the bridge's transition frontier tip state. Used for making sure that we're
+/// checking if a candidate tip is better than the latest bridged tip.
+bridge_tip_state_hash,
 
-    /// The state hashes of the candidate chain.
-    candidate_chain_state_hashes[16],
-	
-    /// The ledger hashes of the candidate chain. The ledger hashes are the root of a Merkle tree
-    /// where the leafs are Mina account hashes. Used for account verification.
-    candidate_chain_ledger_hashes[16],
+/// The state hashes of the candidate chain.
+candidate_chain_state_hashes[16],
+
+/// The ledger hashes of the candidate chain. The ledger hashes are the root of a Merkle tree
+/// where the leafs are Mina account hashes. Used for account verification.
+candidate_chain_ledger_hashes[16],
 ]
 ```
 
@@ -183,18 +183,18 @@ We understand a Mina Proof of State to be composed of:
 
 ```rust
 [
-    /// The state proof of the tip state (latest state of the chain, or "transition frontier"). If
-    /// this state is valid, then all previous states are valid thanks to Pickles recursion.
-    candidate_tip_proof,
+/// The state proof of the tip state (latest state of the chain, or "transition frontier"). If
+/// this state is valid, then all previous states are valid thanks to Pickles recursion.
+candidate_tip_proof,
 
-    /// The state data of the candidate chain. Used for consensus checks and checking that the
-    /// public input state hashes correspond to states that effectively form a chain.
-    candidate_chain_states,
+/// The state data of the candidate chain. Used for consensus checks and checking that the
+/// public input state hashes correspond to states that effectively form a chain.
+candidate_chain_states,
 
-    /// The latest state of the previously bridged chain, the latter also called the bridge's
-    /// transition frontier. Used for consensus checks needed to be done as part of state
-    /// verification to ensure that the candidate tip is better than the bridged tip.
-    bridge_tip_state,
+/// The latest state of the previously bridged chain, the latter also called the bridge's
+/// transition frontier. Used for consensus checks needed to be done as part of state
+/// verification to ensure that the candidate tip is better than the bridged tip.
+bridge_tip_state,
 ]
 ```
 
