@@ -258,10 +258,10 @@ We understand a Mina Proof of Account to be composed of:
 
 ```rust
 [
-  /// Hash of the snarked ledger that this account state is included on
-	ledger_hash,
-	/// ABI encoded Mina account (Solidity structure)
-	encoded_account
+/// Hash of the snarked ledger that this account state is included on
+ledger_hash,
+/// ABI encoded Mina account (Solidity structure)
+encoded_account
 ]
 ```
 
@@ -269,10 +269,10 @@ We understand a Mina Proof of Account to be composed of:
 
 ```rust
 [
-  /// Merkle path between the leaf hash (account hash) and the merkle root (ledger hash)
-  merkle_path,
-  /// The Mina account (OpenMina structure)
-  account
+/// Merkle path between the leaf hash (account hash) and the merkle root (ledger hash)
+merkle_path,
+/// The Mina account (OpenMina structure)
+account
 ]
 ```
 
