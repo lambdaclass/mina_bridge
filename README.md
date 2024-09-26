@@ -299,7 +299,7 @@ The contract is deployed by a `contract_deployer` crate with an initial state th
 
 [mina_bridge repo: contract/src/MinaAccountValidation.sol](https://github.com/lambdaclass/mina_bridge/tree/aligned/contract/src/MinaAccountValidation.sol)
 
-This contract implements a method for validating an account, taking as parameter the 
+This contract implements a method for validating an account, taking as parameter the verification data and public inputs of the proof sent to Aligned. It also implements a structure for representing account data. A user can decode the account from the public inputs into this structure.
 
 Any user can submit a Mina Proof of Account to Aligned and then provide the contract with the verification data for checking on-chain that the account was validated. The contract calls the Aligned Service Manager to check that the proof was indeed verified.
 
