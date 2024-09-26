@@ -14,24 +14,43 @@ This project is being redesigned to use [Aligned Layer](https://github.com/yetan
 
 ## Usage
 
+### Setup
+
+### Mina node
+
+- If you want the Bridge to use Mina Devnet then use a node that runs a Devnet instance corresponding to the commit `599a76d` [of the Mina repo](https://github.com/MinaProtocol/mina/tree/599a76dd47be99183d2102d9eb93eda679dd46ec) or a newer one (e.g.: [this Docker image](https://console.cloud.google.com/gcr/images/o1labs-192920/GLOBAL/mina-daemon:3.0.1-compatible-599a76d-bullseye-devnet/details)). See [how to connect to Mina Devnet](https://docs.minaprotocol.com/node-operators/block-producer-node/connecting-to-devnet#docker) if you want to run an instance yourself.
+- If you want the Bridge to use Mina Mainnet use a node that runs a Mainnet instance corresponding to the commit `65c84ad` [of the Mina repo](https://github.com/MinaProtocol/mina/tree/65c84adacd55272160d9f77c31063d94a942afb6) or a newer one (e.g.: [this Docker image](https://console.cloud.google.com/gcr/images/o1labs-192920/GLOBAL/mina-daemon:65c84ada-bullseye-mainnet/details?tab=info)). See [how to connect to Mina Mainnet](https://docs.minaprotocol.com/node-operators/block-producer-node/connecting-to-the-network#docker) if you want to run an instance yourself.
+
+#### Ethereum Devnet
+
 1. [Setup Aligned Devnet locally](https://github.com/yetanotherco/aligned_layer/blob/main/docs/guides/3_setup_aligned.md#booting-devnet-with-default-configs)
 1. Setup the `core/.env` file of the bridge's core program. A template is available in `core/.env.template`.
-1. In the root folder, deploy the bridge's contract with:
+    1. Set `ETH_CHAIN` to `devnet`.
+    1. Set `MINA_RPC_URL` to the URL of the Mina node GraphQL API (See [Mina node section](#mina-node)).
+
+### Bridge a Mina account
+
+1. In the Bridge root folder, deploy the Bridge's contracts with:
 
     ```sh
-    make deploy_contract_anvil
+    make deploy_contract
     ```
 
-1. Submit a state to verify:
+1. Submit a Mina state proof to verify (**NOTE:** Because of the Aligned minimum batch size, you may need to submit two proofs to make Aligned Devnet verify them):
 
     ```sh
-    make submit-state
+    make submit_state
     ```
+
 1. Submit an account to verify:
 
     ```sh
-    make submit-account PUBLIC_KEY=<string>
+    make submit_account PUBLIC_KEY=<string> STATE_HASH=<string>
     ```
+
+    Where:
+    - `PUBLIC_KEY` is the public key of the Mina account you want to verify
+    - `STATE_HASH` is the hash of a Mina state that was verified in Ethereum
     
 ## Table of Contents
 - [About](#about)
