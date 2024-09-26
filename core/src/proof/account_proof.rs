@@ -15,6 +15,7 @@ pub enum MerkleNode {
 #[serde_as]
 #[derive(Serialize, Deserialize, Clone)]
 pub struct MinaAccountPubInputs {
+    /// Hash of the snarked ledger that this account state is included on
     #[serde_as(as = "SolSerialize")]
     pub ledger_hash: Fp,
     /// ABI encoded Mina account (Solidity structure)
