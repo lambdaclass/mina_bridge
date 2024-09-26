@@ -35,8 +35,7 @@ This project is being redesigned to use [Aligned Layer](https://github.com/yetan
 
 ## Example use case
 
-The `example/` folder contains a project that implements a Sudoku zkApp (extracted from a Mina example) and bridges its state
-to an Ethereum contract.
+The `example/` folder contains a project that uses the Sudoku zkApp example from Mina and bridges its state to a SudokuValidity Ethereum smart contract.
 
 For running the example you need to:
 
@@ -64,7 +63,7 @@ For running the example you need to:
     ```
    this will upload a new Sudoku, submit a solution to it and run the example Rust app that will bridge the new state of the zkApp and update the SudokuValidty smart contract on Ethereum.
 
-   The zkApp will wait until both Mina transactions are included in a block, so that step may take a while. Below is a diagram explaining the execution flow:
+   The zkApp will wait until both Mina transactions are included in a block, so this may take a while. Below is a diagram explaining the execution flow:
 
 ![Example diagram](/img/example_diagram.png)
 
