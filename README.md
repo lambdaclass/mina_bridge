@@ -219,7 +219,8 @@ The first step of the verifier is to check that the public inputs correspond to 
 - that the bridge tip state hash is the actual hash of the latest bridged tip state
 - that the chain state hashes are the hashes of the states in the proof
 - that the chain ledger hashes are the hashes of the ledgers (stored in the states) in the proof
-- that the states form a chain (by hashing together the **state hash** of a state `n` and the **state body hash** of state `n+1`, we retrieve the **state hash** of the state `n+1` , so the states form a chain if we can hash from the root all the way until arriving to the tip state hash.
+- that the states form a chain (by hashing together the **state hash** of a state `n` and the **state body hash** of state `n+1`, we retrieve the **state hash** of the state `n+1`, so the states form a chain if we can hash from the root all the way until arriving to the tip state hash.
+
 
 ### Consensus checking
 
