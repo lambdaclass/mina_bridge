@@ -418,7 +418,9 @@ The two curves pallas and vesta (pa(llas ve)sta) created by the [Zcash team](htt
 These curves are referred to as “tick” and “tock” within the Mina source code.
 
 - Tick - Vesta (a.k.a. Step), constraint domain size 2¹⁸  [block and transaction proofs]
-- Tock - Pallas (a.k.a. Wrap), constraint domain size 2¹²  [signatures]
+- Tock - Pallas (a.k.a. Wrap), constraint domain size 2¹⁷  [signatures]
+
+See [the Pickles section of the Mina book](https://o1-labs.github.io/proof-systems/specs/pickles.html) for more details.
 
 The Tock prover does less (only performs recursive verifications and
 no other logic), so it requires fewer constraints and has a smaller
