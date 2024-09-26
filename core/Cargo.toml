@@ -22,7 +22,7 @@ ark-poly = { version = "0.3.0", features = ["parallel"] }
 ark-serialize = "0.3.0"
 mina-tree = { git = "https://github.com/lambdaclass/openmina/", branch = "mina_bridge" }
 mina-p2p-messages = { git = "https://github.com/lambdaclass/openmina/", branch = "mina_bridge" }
-aligned-sdk = { git = "https://github.com/lambdaclass/aligned_layer.git", branch = "update_to_0_7_for_real" }
+aligned-sdk = { git = "https://github.com/lambdaclass/aligned_layer.git", branch = "update_to_0_7_2" }
 ethers = { tag = "v2.0.15-fix-reconnections", features = [
   "ws",
   "rustls",
