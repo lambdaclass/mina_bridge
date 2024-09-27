@@ -21,7 +21,6 @@ use std::{process, str::FromStr, time::SystemTime};
 
 const MINA_ZKAPP_ADDRESS: &str = "B62qmpq1JBejZYDQrZwASPRM5oLXW346WoXgbApVf5HJZXMWFPWFPuA";
 const SUDOKU_VALIDITY_DEVNET_ADDRESS: &str = "0xb19b36b1456E65E3A6D514D3F715f204BD59f431";
-const SUDOKU_VALIDITY_HOLESKY_ADDRESS: &str = "0xeAB6068E1e06941A9d47734FB49C3B9dD69E054d";
 
 sol!(
     #[allow(clippy::too_many_arguments)]
@@ -186,7 +185,12 @@ async fn main() {
             debug!("Creating contract instance");
             let sudoku_address = match chain {
                 Chain::Devnet => SUDOKU_VALIDITY_DEVNET_ADDRESS,
-                Chain::Holesky => SUDOKU_VALIDITY_HOLESKY_ADDRESS,
+                Chain::Holesky => {
+                    &std::env::var("SUDOKU_VALIDITY_HOLESKY_ADDRESS").unwrap_or_else(|err| {
+                        error!("Could not read SUDOKU_VALIDITY_HOLESKY_ADDRESS env var: {err}");
+                        process::exit(1);
+                    })
+                }
                 _ => todo!(),
             };
             let contract =
