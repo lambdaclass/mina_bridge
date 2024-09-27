@@ -25,20 +25,21 @@ pub struct AccountVerificationData {
 
 pub async fn is_state_verified(
     hash: &str,
-    chain: &Chain,
+    state_settlement_addr: &str,
     eth_rpc_url: &str,
 ) -> Result<bool, String> {
-    let chain_state_hashes = get_bridge_chain_state_hashes(chain, eth_rpc_url).await?;
+    let chain_state_hashes =
+        get_bridge_chain_state_hashes(state_settlement_addr, eth_rpc_url).await?;
     let hash = StateHash::from_str(hash)
         .map_err(|err| format!("Failed to convert hash string to state hash: {err}"))?;
     Ok(chain_state_hashes.contains(&hash))
 }
 
 pub async fn get_bridged_chain_tip_state_hash(
-    chain: &Chain,
+    state_settlement_addr: &str,
     eth_rpc_url: &str,
 ) -> Result<String, String> {
-    get_bridge_chain_state_hashes(chain, eth_rpc_url)
+    get_bridge_chain_state_hashes(state_settlement_addr, eth_rpc_url)
         .await
         .map(|hashes| hashes.last().unwrap().to_string())
 }
@@ -47,6 +48,7 @@ pub async fn get_bridged_chain_tip_state_hash(
 pub async fn update_bridge_chain(
     rpc_url: &str,
     chain: &Chain,
+    state_settlement_addr: &str,
     batcher_addr: &str,
     batcher_eth_addr: &str,
     eth_rpc_url: &str,
@@ -56,11 +58,22 @@ pub async fn update_bridge_chain(
     is_state_proof_from_devnet: bool,
     save_proof: bool,
 ) -> Result<(), String> {
-    let (proof, pub_input) =
-        get_mina_proof_of_state(rpc_url, chain, eth_rpc_url, is_state_proof_from_devnet).await?;
+    let (proof, pub_input) = get_mina_proof_of_state(
+        rpc_url,
+        eth_rpc_url,
+        state_settlement_addr,
+        is_state_proof_from_devnet,
+    )
+    .await?;
 
     let candidate_root_state_hash = pub_input.candidate_chain_state_hashes.first().unwrap();
-    if is_state_verified(&candidate_root_state_hash.to_string(), chain, eth_rpc_url).await? {
+    if is_state_verified(
+        &candidate_root_state_hash.to_string(),
+        state_settlement_addr,
+        eth_rpc_url,
+    )
+    .await?
+    {
         debug!("Candidate root {candidate_root_state_hash} is verified, so the bridge chain is updated");
         return Err("Latest chain is already verified".to_string());
     }
@@ -83,6 +96,7 @@ pub async fn update_bridge_chain(
         chain,
         eth_rpc_url,
         wallet,
+        state_settlement_addr,
         batcher_payment_service,
     )
     .await?;
@@ -96,6 +110,7 @@ pub async fn validate_account(
     state_hash: &str,
     rpc_url: &str,
     chain: &Chain,
+    account_validation_addr: &str,
     batcher_addr: &str,
     batcher_eth_addr: &str,
     eth_rpc_url: &str,
@@ -121,8 +136,8 @@ pub async fn validate_account(
     eth::validate_account(
         verification_data.clone(),
         &pub_input,
-        chain,
         eth_rpc_url,
+        account_validation_addr,
         batcher_payment_service,
     )
     .await?;
