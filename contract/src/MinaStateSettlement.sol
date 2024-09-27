@@ -118,9 +118,10 @@ contract MinaStateSettlement {
                 let slot_ledgers := chainLedgerHashes.slot
 
                 // first 32 bytes is length of byte array.
-                // second 32 bytes is the bridge tip state hash
+                // the next byte is the Devnet flag
+                // the next 32 bytes set is the bridge tip state hash
                 // the next BRIDGE_TRANSITION_FRONTIER_LEN sets of 32 bytes are state hashes.
-                let addr_states := add(pubInput, 64)
+                let addr_states := add(pubInput, 65)
                 // the next BRIDGE_TRANSITION_FRONTIER_LEN sets of 32 bytes are ledger hashes.
                 let addr_ledgers := add(addr_states, mul(32, BRIDGE_TRANSITION_FRONTIER_LEN))
 
