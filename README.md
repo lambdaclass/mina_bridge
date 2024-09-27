@@ -57,9 +57,7 @@ For running the example you need to:
     npm install -g zkapp-cli
     ```
 
-1. Inside the `example/mina_zkapp` directory, configure the zkApp and deploy the contract following [this guide](https://docs.minaprotocol.com/zkapps/writing-a-zkapp/introduction-to-zkapps/how-to-deploy-a-zkapp) on the Mina Protocol documentation
-
-1. After deployment, set the `zkappAddress` field on `example/mina_zkapp/config.json`
+1. Set the environment variables in a `.env` file accordingly. A template can be found in `.env.template`.
 
 1. Run the example by executing from the root folder:
     ```sh
