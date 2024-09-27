@@ -9,6 +9,7 @@ use crate::{sol::serialization::SolSerialize, utils::constants::BRIDGE_TRANSITIO
 #[serde_as]
 #[derive(Serialize, Deserialize, Clone)]
 pub struct MinaStatePubInputs {
+    pub is_state_proof_from_devnet: bool,
     /// The hash of the bridge's transition frontier tip state. Used for making sure that we're
     /// checking if a candidate tip is better than the latest bridged tip.
     #[serde_as(as = "SolSerialize")]
@@ -20,7 +21,6 @@ pub struct MinaStatePubInputs {
     /// where the leafs are Mina account hashes. Used for account verification.
     #[serde_as(as = "[SolSerialize; BRIDGE_TRANSITION_FRONTIER_LEN]")]
     pub candidate_chain_ledger_hashes: [LedgerHash; BRIDGE_TRANSITION_FRONTIER_LEN],
-    pub is_state_proof_from_devnet: bool
 }
 
 #[derive(Serialize, Deserialize)]
