@@ -3,7 +3,12 @@ pragma solidity ^0.8.12;
 
 import "aligned_layer/contracts/src/core/AlignedLayerServiceManager.sol";
 
+error MinaAccountProvingSystemIdIsNotValid(); // c1872967
+
 contract MinaAccountValidation {
+    /// @notice The commitment to Mina Account proving system ID.
+    bytes32 constant PROVING_SYSTEM_ID_COMM = 0xd33e25809fcaa2b6900567812852539da8559dc8b76a7ce3fc5ddd77e8d19a69;
+
     struct AlignedArgs {
         bytes32 proofCommitment;
         bytes32 provingSystemAuxDataCommitment;
@@ -22,27 +27,30 @@ contract MinaAccountValidation {
         aligned = AlignedLayerServiceManager(_alignedServiceAddr);
     }
 
-    function validateAccount(
-        AlignedArgs calldata args
-    ) external view returns (bool) {
+    function validateAccount(AlignedArgs calldata args) external view returns (bool) {
+        if (args.provingSystemAuxDataCommitment != PROVING_SYSTEM_ID_COMM) {
+            revert MinaAccountProvingSystemIdIsNotValid();
+        }
+
         bytes32 pubInputCommitment = keccak256(args.pubInput);
 
-        return
-            aligned.verifyBatchInclusion(
-                args.proofCommitment,
-                pubInputCommitment,
-                args.provingSystemAuxDataCommitment,
-                args.proofGeneratorAddr,
-                args.batchMerkleRoot,
-                args.merkleProof,
-                args.verificationDataBatchIndex,
-                args.batcherPaymentService
-            );
+        return aligned.verifyBatchInclusion(
+            args.proofCommitment,
+            pubInputCommitment,
+            args.provingSystemAuxDataCommitment,
+            args.proofGeneratorAddr,
+            args.batchMerkleRoot,
+            args.merkleProof,
+            args.verificationDataBatchIndex,
+            args.batcherPaymentService
+        );
     }
 
-    function validateAccountAndReturn(
-        AlignedArgs calldata args
-    ) external view returns (Account memory) {
+    function validateAccountAndReturn(AlignedArgs calldata args) external view returns (Account memory) {
+        if (args.provingSystemAuxDataCommitment != PROVING_SYSTEM_ID_COMM) {
+            revert MinaAccountProvingSystemIdIsNotValid();
+        }
+
         bytes32 pubInputCommitment = keccak256(args.pubInput);
 
         bool isAccountVerified = aligned.verifyBatchInclusion(

@@ -1,26 +1,39 @@
 import fs from 'fs/promises';
 import { Sudoku, SudokuZkApp } from './sudoku.js';
 import { generateSudoku, solveSudoku } from './sudoku-lib.js';
-import { Mina, PrivateKey, PublicKey, NetworkId, fetchAccount } from 'o1js';
+import { Mina, PrivateKey, NetworkId, fetchAccount } from 'o1js';
 
-const ZKAPP_ADDRESS = "B62qmpq1JBejZYDQrZwASPRM5oLXW346WoXgbApVf5HJZXMWFPWFPuA";
 const TX_MAX_TRIES = 5;
+const DEPLOY_ALIAS = "devnet";
 
-// parse config and private key from file
 type Config = {
-  networkId?: string;
-  url: string;
-  fee: string;
-  feepayerKeyPath: string;
-  feepayerAlias: string;
+  deployAliases: Record<
+    string,
+    {
+      networkId?: string;
+      url: string;
+      keyPath: string;
+      fee: string;
+      feepayerKeyPath: string;
+      feepayerAlias: string;
+    }
+  >;
 };
-let config: Config = JSON.parse(await fs.readFile('config.json', 'utf8'));
+
+let configJson: Config = JSON.parse(await fs.readFile('config.json', 'utf8'));
+let config = configJson.deployAliases[DEPLOY_ALIAS];
+
 let feepayerKeysBase58: { privateKey: string; publicKey: string } = JSON.parse(
   await fs.readFile(config.feepayerKeyPath, 'utf8')
 );
+let zkAppKeysBase58: { privateKey: string; publicKey: string } = JSON.parse(
+  await fs.readFile(config.keyPath, 'utf8')
+);
 let feepayerKey = PrivateKey.fromBase58(feepayerKeysBase58.privateKey);
+let zkAppKey = PrivateKey.fromBase58(zkAppKeysBase58.privateKey);
+
 let feepayerAddress = feepayerKey.toPublicKey();
-let zkAppAddress = PublicKey.fromBase58(ZKAPP_ADDRESS);
+let zkAppAddress = zkAppKey.toPublicKey();
 
 // define network (devnet)
 const Network = Mina.Network({

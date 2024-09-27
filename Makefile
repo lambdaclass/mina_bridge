@@ -9,7 +9,7 @@ submit_account:
 gen_contract_abis:
 	forge build --root contract/
 	forge build --root example/eth_contract
-	cp contract/out/MinaBridge.sol/MinaBridge.json core/abi/MinaBridge.json
+	cp contract/out/MinaStateSettlement.sol/MinaStateSettlement.json core/abi/MinaStateSettlement.json
 	cp contract/out/MinaAccountValidation.sol/MinaAccountValidation.json core/abi/MinaAccountValidation.json
 	cp example/eth_contract/out/SudokuValidity.sol/SudokuValidity.json example/app/abi/SudokuValidity.json
 

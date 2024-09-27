@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.12;
 
-import "mina_bridge/contract/src/MinaBridge.sol";
+import "mina_bridge/contract/src/MinaStateSettlement.sol";
 import "mina_bridge/contract/src/MinaAccountValidation.sol";
 
 contract SudokuValidity {
@@ -15,7 +15,7 @@ contract SudokuValidity {
         0xdc9c283f73ce17466a01b90d36141b848805a3db129b6b80d581adca52c9b6f3;
 
     /// @notice Mina bridge contract that validates and stores Mina states.
-    MinaBridge stateSettlement;
+    MinaStateSettlement stateSettlement;
     /// @notice Mina bridge contract that validates accounts
     MinaAccountValidation accountValidation;
 
@@ -24,7 +24,7 @@ contract SudokuValidity {
     uint256 latestSolutionValidationAt = 0;
 
     constructor(address _stateSettlementAddr, address _accountValidationAddr) {
-        stateSettlement = MinaBridge(_stateSettlementAddr);
+        stateSettlement = MinaStateSettlement(_stateSettlementAddr);
         accountValidation = MinaAccountValidation(_accountValidationAddr);
     }
 
@@ -49,27 +49,23 @@ contract SudokuValidity {
             revert InvalidLedger(ledgerHash);
         }
 
-        MinaAccountValidation.AlignedArgs memory args = MinaAccountValidation
-            .AlignedArgs(
-                proofCommitment,
-                provingSystemAuxDataCommitment,
-                proofGeneratorAddr,
-                batchMerkleRoot,
-                merkleProof,
-                verificationDataBatchIndex,
-                pubInput,
-                batcherPaymentService
-            );
+        MinaAccountValidation.AlignedArgs memory args = MinaAccountValidation.AlignedArgs(
+            proofCommitment,
+            provingSystemAuxDataCommitment,
+            proofGeneratorAddr,
+            batchMerkleRoot,
+            merkleProof,
+            verificationDataBatchIndex,
+            pubInput,
+            batcherPaymentService
+        );
 
         if (!accountValidation.validateAccount(args)) {
             revert InvalidZkappAccount();
         }
 
         bytes calldata encodedAccount = pubInput[32 + 8:];
-        MinaAccountValidation.Account memory account = abi.decode(
-            encodedAccount,
-            (MinaAccountValidation.Account)
-        );
+        MinaAccountValidation.Account memory account = abi.decode(encodedAccount, (MinaAccountValidation.Account));
 
         // check that this account represents the circuit we expect
         bytes32 verificationKeyHash = keccak256(

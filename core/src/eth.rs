@@ -7,7 +7,7 @@ use alloy::providers::ProviderBuilder;
 use alloy::sol;
 use ethers::{abi::AbiEncode, prelude::*};
 use k256::ecdsa::SigningKey;
-use log::{debug, error, info};
+use log::{debug, info};
 use mina_p2p_messages::v2::StateHash;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
@@ -15,30 +15,32 @@ use serde_with::serde_as;
 use crate::{
     proof::{account_proof::MinaAccountPubInputs, state_proof::MinaStatePubInputs},
     sol::serialization::SolSerialize,
-    utils::constants::{
-        ANVIL_CHAIN_ID, BRIDGE_ACCOUNT_DEVNET_ETH_ADDR, BRIDGE_ACCOUNT_HOLESKY_ETH_ADDR,
-        BRIDGE_DEVNET_ETH_ADDR, BRIDGE_HOLESKY_ETH_ADDR, BRIDGE_TRANSITION_FRONTIER_LEN,
-        HOLESKY_CHAIN_ID,
+    utils::{
+        constants::{ANVIL_CHAIN_ID, BRIDGE_TRANSITION_FRONTIER_LEN, HOLESKY_CHAIN_ID},
+        contract::{get_account_validation_contract_addr, get_bridge_contract_addr},
     },
 };
 
-abigen!(MinaBridgeEthereumContract, "abi/MinaBridge.json");
+abigen!(
+    MinaStateSettlementEthereumContract,
+    "abi/MinaStateSettlement.json"
+);
 abigen!(
     MinaAccountValidationEthereumContract,
     "abi/MinaAccountValidation.json"
 );
 
-type MinaBridgeEthereum =
-    MinaBridgeEthereumContract<SignerMiddleware<Provider<Http>, Wallet<SigningKey>>>;
+type MinaStateSettlementEthereum =
+    MinaStateSettlementEthereumContract<SignerMiddleware<Provider<Http>, Wallet<SigningKey>>>;
 
-type MinaBridgeEthereumCallOnly = MinaBridgeEthereumContract<Provider<Http>>;
+type MinaStateSettlementEthereumCallOnly = MinaStateSettlementEthereumContract<Provider<Http>>;
 type MinaAccountValidationEthereumCallOnly = MinaAccountValidationEthereumContract<Provider<Http>>;
 
 sol!(
     #[allow(clippy::too_many_arguments)]
     #[sol(rpc)]
-    MinaBridge,
-    "abi/MinaBridge.json"
+    MinaStateSettlement,
+    "abi/MinaStateSettlement.json"
 );
 
 sol!(
@@ -52,7 +54,7 @@ sol!(
 #[derive(Serialize, Deserialize)]
 pub struct SolStateHash(#[serde_as(as = "SolSerialize")] pub StateHash);
 
-pub struct MinaBridgeConstructorArgs {
+pub struct MinaStateSettlementConstructorArgs {
     aligned_service_addr: alloy::primitives::Address,
     root_state_hash: alloy::primitives::FixedBytes<32>,
 }
@@ -61,7 +63,7 @@ pub struct MinaAccountValidationConstructorArgs {
     aligned_service_addr: alloy::primitives::Address,
 }
 
-impl MinaBridgeConstructorArgs {
+impl MinaStateSettlementConstructorArgs {
     pub fn new(aligned_service_addr: &str, root_state_hash: Vec<u8>) -> Result<Self, String> {
         let aligned_service_addr =
             alloy::primitives::Address::parse_checksummed(aligned_service_addr, None)
@@ -97,15 +99,8 @@ pub async fn update_chain(
     wallet: Wallet<SigningKey>,
     batcher_payment_service: &str,
 ) -> Result<(), String> {
-    let bridge_eth_addr = Address::from_str(match chain {
-        Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
-        Chain::Holesky => BRIDGE_HOLESKY_ETH_ADDR,
-        _ => {
-            error!("Unimplemented Ethereum contract on selected chain");
-            unimplemented!()
-        }
-    })
-    .map_err(|err| err.to_string())?;
+    let bridge_eth_addr =
+        Address::from_str(&get_bridge_contract_addr(chain)?).map_err(|err| err.to_string())?;
 
     let serialized_pub_input = bincode::serialize(pub_input)
         .map_err(|err| format!("Failed to serialize public inputs: {err}"))?;
@@ -196,15 +191,8 @@ pub async fn update_chain(
 }
 
 pub async fn get_bridge_tip_hash(chain: &Chain, eth_rpc_url: &str) -> Result<SolStateHash, String> {
-    let bridge_eth_addr = Address::from_str(match chain {
-        Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
-        Chain::Holesky => BRIDGE_HOLESKY_ETH_ADDR,
-        _ => {
-            error!("Unimplemented Ethereum contract on selected chain");
-            unimplemented!()
-        }
-    })
-    .map_err(|err| err.to_string())?;
+    let bridge_eth_addr =
+        Address::from_str(&get_bridge_contract_addr(chain)?).map_err(|err| err.to_string())?;
 
     debug!("Creating contract instance");
     let mina_bridge_contract = mina_bridge_contract_call_only(eth_rpc_url, bridge_eth_addr)?;
@@ -225,15 +213,8 @@ pub async fn get_bridge_chain_state_hashes(
     chain: &Chain,
     eth_rpc_url: &str,
 ) -> Result<[StateHash; BRIDGE_TRANSITION_FRONTIER_LEN], String> {
-    let bridge_eth_addr = Address::from_str(match chain {
-        Chain::Devnet => BRIDGE_DEVNET_ETH_ADDR,
-        Chain::Holesky => BRIDGE_HOLESKY_ETH_ADDR,
-        _ => {
-            error!("Unimplemented Ethereum contract on selected chain");
-            unimplemented!()
-        }
-    })
-    .map_err(|err| err.to_string())?;
+    let bridge_eth_addr =
+        Address::from_str(&get_bridge_contract_addr(chain)?).map_err(|err| err.to_string())?;
 
     debug!("Creating contract instance");
     let mina_bridge_contract = mina_bridge_contract_call_only(eth_rpc_url, bridge_eth_addr)?;
@@ -266,15 +247,8 @@ pub async fn validate_account(
     eth_rpc_url: &str,
     batcher_payment_service: &str,
 ) -> Result<(), String> {
-    let bridge_eth_addr = Address::from_str(match chain {
-        Chain::Devnet => BRIDGE_ACCOUNT_DEVNET_ETH_ADDR,
-        Chain::Holesky => BRIDGE_ACCOUNT_HOLESKY_ETH_ADDR,
-        _ => {
-            error!("Unimplemented Ethereum contract on selected chain");
-            unimplemented!()
-        }
-    })
-    .map_err(|err| err.to_string())?;
+    let bridge_eth_addr = Address::from_str(&get_account_validation_contract_addr(chain)?)
+        .map_err(|err| err.to_string())?;
 
     debug!("Creating contract instance");
 
@@ -334,7 +308,7 @@ pub async fn validate_account(
 
 pub async fn deploy_mina_bridge_contract(
     eth_rpc_url: &str,
-    constructor_args: MinaBridgeConstructorArgs,
+    constructor_args: MinaStateSettlementConstructorArgs,
     wallet: &EthereumWallet,
 ) -> Result<alloy::primitives::Address, String> {
     let provider = ProviderBuilder::new()
@@ -342,11 +316,11 @@ pub async fn deploy_mina_bridge_contract(
         .wallet(wallet)
         .on_http(reqwest::Url::parse(eth_rpc_url).map_err(|err| err.to_string())?);
 
-    let MinaBridgeConstructorArgs {
+    let MinaStateSettlementConstructorArgs {
         aligned_service_addr,
         root_state_hash,
     } = constructor_args;
-    let contract = MinaBridge::deploy(&provider, aligned_service_addr, root_state_hash)
+    let contract = MinaStateSettlement::deploy(&provider, aligned_service_addr, root_state_hash)
         .await
         .map_err(|err| err.to_string())?;
     let address = contract.address();
@@ -390,7 +364,7 @@ fn mina_bridge_contract(
     contract_address: Address,
     chain: &Chain,
     wallet: Wallet<SigningKey>,
-) -> Result<MinaBridgeEthereum, String> {
+) -> Result<MinaStateSettlementEthereum, String> {
     let eth_rpc_provider =
         Provider::<Http>::try_from(eth_rpc_url).map_err(|err| err.to_string())?;
     let chain_id = match chain {
@@ -401,17 +375,20 @@ fn mina_bridge_contract(
     let signer = SignerMiddleware::new(eth_rpc_provider, wallet.with_chain_id(chain_id));
     let client = Arc::new(signer);
     debug!("contract address: {contract_address}");
-    Ok(MinaBridgeEthereum::new(contract_address, client))
+    Ok(MinaStateSettlementEthereum::new(contract_address, client))
 }
 
 fn mina_bridge_contract_call_only(
     eth_rpc_url: &str,
     contract_address: Address,
-) -> Result<MinaBridgeEthereumCallOnly, String> {
+) -> Result<MinaStateSettlementEthereumCallOnly, String> {
     let eth_rpc_provider =
         Provider::<Http>::try_from(eth_rpc_url).map_err(|err| err.to_string())?;
     let client = Arc::new(eth_rpc_provider);
-    Ok(MinaBridgeEthereumCallOnly::new(contract_address, client))
+    Ok(MinaStateSettlementEthereumCallOnly::new(
+        contract_address,
+        client,
+    ))
 }
 
 fn mina_account_validation_contract_call_only(
