@@ -57,9 +57,8 @@ pub async fn update_bridge_chain(
 ) -> Result<(), String> {
     let (proof, pub_input) = get_mina_proof_of_state(rpc_url, chain, eth_rpc_url).await?;
 
-    let candidate_root_state_hash = pub_input.candidate_chain_state_hashes.first().unwrap();
-    if is_state_verified(&candidate_root_state_hash.to_string(), chain, eth_rpc_url).await? {
-        debug!("Candidate root {candidate_root_state_hash} is verified, so the bridge chain is updated");
+    if pub_input.candidate_chain_state_hashes.last().unwrap() == &pub_input.bridge_tip_state_hash {
+        debug!("The bridge chain is updated");
         return Err("Latest chain is already verified".to_string());
     }
 

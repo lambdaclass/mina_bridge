@@ -102,6 +102,11 @@ pub async fn get_mina_proof_of_account(
 
     let encoded_account = MinaAccountValidation::Account::try_from(&account)?.abi_encode();
 
+    debug!(
+        "Retrieved proof of account for ledger {}",
+        LedgerHash::from_fp(ledger_hash)
+    );
+
     Ok((
         MinaAccountProof {
             merkle_path,

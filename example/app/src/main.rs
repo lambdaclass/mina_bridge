@@ -22,9 +22,9 @@ use mina_bridge_core::{
 };
 use std::{process, str::FromStr, time::SystemTime};
 
-const MINA_ZKAPP_ADDRESS: &str = "B62qmpq1JBejZYDQrZwASPRM5oLXW346WoXgbApVf5HJZXMWFPWFPuA";
+const MINA_ZKAPP_ADDRESS: &str = "B62qkAgG7MFhpemxLsveJC7Xr5G1RmkbttJjASAxeQR3sGGHQWQN3HP";
 const SUDOKU_VALIDITY_DEVNET_ADDRESS: &str = "0xb19b36b1456E65E3A6D514D3F715f204BD59f431";
-const SUDOKU_VALIDITY_HOLESKY_ADDRESS: &str = "0x0091D1d9Bd92FFcfEb38383079AE849639224e3D";
+const SUDOKU_VALIDITY_HOLESKY_ADDRESS: &str = "0xeAB6068E1e06941A9d47734FB49C3B9dD69E054d";
 
 sol!(
     #[allow(clippy::too_many_arguments)]
