@@ -47,7 +47,7 @@ async fn main() {
 
     let aligned_sm_addr = match chain {
         Chain::Devnet => Ok(ALIGNED_SM_DEVNET_ETH_ADDR.to_owned()),
-        Chain::Holesky => std::env::var("ALIGNED_SM_HOLESKY_ETH_ADDR")
+        Chain::Holesky => std::env::var("ALIGNED_SERVICE_MANAGER_ADDR")
             .map_err(|err| format!("Error getting Aligned SM contract address: {err}")),
         _ => Err("Unimplemented Ethereum contract on selected chain".to_owned()),
     }
