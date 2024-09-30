@@ -163,6 +163,8 @@ async fn main() {
                         process::exit(1);
                     });
 
+            info!("tip state hash: {}", &tip_state_hash);
+
             let AccountVerificationData {
                 proof_commitment,
                 proving_system_aux_data_commitment,

@@ -66,15 +66,10 @@ pub async fn update_bridge_chain(
     )
     .await?;
 
-    let candidate_root_state_hash = pub_input.candidate_chain_state_hashes.first().unwrap();
-    if is_state_verified(
-        &candidate_root_state_hash.to_string(),
-        state_settlement_addr,
-        eth_rpc_url,
-    )
-    .await?
+    if pub_input.candidate_chain_state_hashes
+        == get_bridge_chain_state_hashes(state_settlement_addr, eth_rpc_url).await?
     {
-        debug!("Candidate root {candidate_root_state_hash} is verified, so the bridge chain is updated");
+        debug!("The bridge chain is updated to the candidate chain");
         return Err("Latest chain is already verified".to_string());
     }
 
