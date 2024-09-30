@@ -90,28 +90,18 @@ You will need two Ethereum accounts: One to fund the Aligned operator (`operator
   ```
 
 1. Setup the `contracts/scripts/.env` file. A template is available in `contracts/scripts/.env.example.holesky`. Set `PRIVATE_KEY` to the private key of the account you chose to fund the operator (the one with address `operator_account_address`).
-1. Set `contracts/script/output/holesky/alignedlayer_deployment_output.json` to:
+
+1. Deploy the contracts with `make deploy_aligned_contracts`.
+
+1. `contracts/script/output/holesky/alignedlayer_deployment_output.json` should have been updated automatically. Set the `permissions` field on that file:
 
   ```json
   {
     "addresses": {
-      "alignedLayerProxyAdmin": "0x715e3F1c9F58832a606cf85C328250af32d20E93",
-      "alignedLayerServiceManager": "0x4d879A997f422FeB8AC2f3d9Dcc749e9d8d0E4a4",
-      "alignedLayerServiceManagerImplementation": "0x63257B1e36B78cb8be08A5A42317B93D7127D56b",
-      "blsApkRegistry": "0xf1e92D804230Cdb88D95A79e8D6E5B4e3182E632",
-      "blsApkRegistryImplementation": "0x6d3Bf64adAd29949766417543eF2eb8670964426",
-      "indexRegistry": "0xd2062Fb412923bE70F4d51E361Fe17408eE4b1b0",
-      "indexRegistryImplementation": "0x5Ee29B5d21CDA0ac24645Cb25DcdB9759E89628B",
-      "operatorStateRetriever": "0x38a45de56c29a3929Bb68aFD51d4B28F158d2900",
-      "registryCoordinator": "0x5EA37f0FdF065c047cdC0a5Ee7b3b99aC16C2B4a",
-      "registryCoordinatorImplementation": "0xE3Cef87B26f1A4CA37aF548e058f660F22Ef2E76",
-      "serviceManagerRouter": "0x6aA8AbaC32500eab9b67D4259602535619A6B919",
-      "stakeRegistry": "0x1763e9cEC4137a2031985A5D813dF5dC36ED71Ff",
-      "stakeRegistryImplementation": "0xd4a7d36B2c049613BEb5Ade3d92Af82aFc4a12d6"
+      // ...
     },
     "chainInfo": {
-      "chainId": 17000,
-      "deploymentBlock": 2421617
+      // ...
     },
     "permissions": {
       "alignedLayerAggregator": "<operator_account_address>",
