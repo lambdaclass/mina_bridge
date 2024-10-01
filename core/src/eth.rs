@@ -320,8 +320,8 @@ pub async fn deploy_mina_bridge_contract(
     } = constructor_args;
     let contract = MinaStateSettlement::deploy(
         &provider,
-        aligned_service_addr.clone(),
-        root_state_hash.clone(),
+        *aligned_service_addr,
+        *root_state_hash,
         is_state_proof_from_devnet,
     )
     .await
