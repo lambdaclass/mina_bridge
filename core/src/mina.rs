@@ -19,12 +19,12 @@ use mina_p2p_messages::{
 };
 
 use crate::{
-    eth::get_bridge_tip_hash,
+    eth::{get_bridge_tip_hash, MinaAccountValidation},
     proof::{
         account_proof::{MerkleNode, MinaAccountProof, MinaAccountPubInputs},
         state_proof::{MinaStateProof, MinaStatePubInputs},
     },
-    sol::account::MinaAccountValidation,
+    sol::account::MinaAccountValidation::Account as SolAccount,
     utils::constants::BRIDGE_TRANSITION_FRONTIER_LEN,
 };
 
@@ -316,4 +316,49 @@ pub async fn query_account(
         .map_err(|_| "Error deserializing merkle path nodes".to_string())?;
 
     Ok((account, ledger_hash, merkle_path))
+}
+
+pub async fn query_account_sol(
+    rpc_url: &str,
+    state_hash: &str,
+    public_key: &str,
+) -> Result<SolAccount, String> {
+    debug!(
+        "Querying account {public_key}, its merkle proof and ledger hash for state {state_hash}"
+    );
+    let client = reqwest::Client::new();
+
+    let variables = account_query::Variables {
+        state_hash: state_hash.to_owned(),
+        public_key: public_key.to_owned(),
+    };
+
+    let response = post_graphql::<AccountQuery, _>(&client, rpc_url, variables)
+        .await
+        .map_err(|err| err.to_string())?
+        .data
+        .ok_or("Missing merkle query response data".to_string())?;
+
+    let membership = response
+        .encoded_snarked_ledger_account_membership
+        .first()
+        .ok_or("Failed to retrieve membership query field".to_string())?;
+
+    let account = BASE64_STANDARD
+        .decode(&membership.account)
+        .map_err(|err| format!("Failed to decode account from base64: {err}"))
+        .and_then(|binprot| {
+            MinaAccount::binprot_read(&mut binprot.as_slice())
+                .map_err(|err| format!("Failed to deserialize account binprot: {err}"))
+        })?;
+
+    debug!(
+        "Queried account {} with token id {}",
+        account.public_key,
+        account.token_id //Into::<TokenIdKeyHash>::into(account.token_id.clone())
+    );
+
+    let account = SolAccount::try_from(&account)?;
+
+    Ok(account)
 }

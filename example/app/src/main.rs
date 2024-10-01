@@ -1,12 +1,14 @@
 use aligned_sdk::core::types::Chain;
 use alloy::{
-    primitives::{Address, U256},
+    primitives::{keccak256, Address, U256},
     providers::ProviderBuilder,
     sol_types::sol,
 };
+use alloy_sol_types::SolValue;
 use clap::{Parser, Subcommand};
 use log::{debug, error, info};
 use mina_bridge_core::{
+    mina::{query_account, query_account_sol},
     sdk::{
         get_bridged_chain_tip_state_hash, update_bridge_chain, validate_account,
         AccountVerificationData,
@@ -19,14 +21,13 @@ use mina_bridge_core::{
 };
 use std::{process, str::FromStr, time::SystemTime};
 
-const MINA_ZKAPP_ADDRESS: &str = "B62qmpq1JBejZYDQrZwASPRM5oLXW346WoXgbApVf5HJZXMWFPWFPuA";
-const SUDOKU_VALIDITY_DEVNET_ADDRESS: &str = "0xb19b36b1456E65E3A6D514D3F715f204BD59f431";
+const MINA_BALANCE_DEVNET_ADDRESS: &str = "0xb19b36b1456E65E3A6D514D3F715f204BD59f431";
 
 sol!(
     #[allow(clippy::too_many_arguments)]
     #[sol(rpc)]
-    SudokuValidity,
-    "abi/SudokuValidity.json"
+    MinaBalance,
+    "abi/MinaBalance.json"
 );
 
 #[derive(Parser)]
@@ -39,7 +40,7 @@ struct Cli {
 #[derive(Subcommand)]
 enum Command {
     DeployContract,
-    ValidateSolution,
+    BridgeBalance { public_key: String },
 }
 
 #[tokio::main]
@@ -86,7 +87,7 @@ async fn main() {
 
             let account_validation_addr = get_account_validation_contract_addr(&chain).unwrap();
 
-            let contract = SudokuValidity::deploy(
+            let contract = MinaBalance::deploy(
                 &provider,
                 Address::from_str(&state_settlement_addr).unwrap(),
                 Address::from_str(&account_validation_addr).unwrap(),
@@ -99,11 +100,11 @@ async fn main() {
             });
 
             info!(
-                "SudokuValidity contract successfuly deployed with address {}",
+                "MinaBalance contract successfuly deployed with address {}",
                 contract.address()
             );
         }
-        Command::ValidateSolution => {
+        Command::BridgeBalance { public_key } => {
             // We could check if the specific block containing the tx is already verified, before
             // updating the bridge's chain.
             // let is_state_verified = is_state_verified(&state_hash, &chain, &eth_rpc_url)
@@ -164,7 +165,7 @@ async fn main() {
                 verification_data_batch_index,
                 pub_input,
             } = validate_account(
-                MINA_ZKAPP_ADDRESS,
+                &public_key,
                 &tip_state_hash,
                 &rpc_url,
                 &chain,
@@ -184,19 +185,18 @@ async fn main() {
 
             debug!("Creating contract instance");
             let sudoku_address = match chain {
-                Chain::Devnet => SUDOKU_VALIDITY_DEVNET_ADDRESS,
+                Chain::Devnet => MINA_BALANCE_DEVNET_ADDRESS,
                 Chain::Holesky => {
-                    &std::env::var("SUDOKU_VALIDITY_HOLESKY_ADDRESS").unwrap_or_else(|err| {
-                        error!("Could not read SUDOKU_VALIDITY_HOLESKY_ADDRESS env var: {err}");
+                    &std::env::var("MINA_BALANCE_HOLESKY_ADDRESS").unwrap_or_else(|err| {
+                        error!("Could not read MINA_BALANCE_HOLESKY_ADDRESS env var: {err}");
                         process::exit(1);
                     })
                 }
                 _ => todo!(),
             };
-            let contract =
-                SudokuValidity::new(Address::from_str(sudoku_address).unwrap(), provider);
+            let contract = MinaBalance::new(Address::from_str(sudoku_address).unwrap(), provider);
 
-            let call = contract.validateSolution(
+            let call = contract.updateBalance(
                 proof_commitment.into(),
                 proving_system_aux_data_commitment.into(),
                 proof_generator_addr.into(),
@@ -207,7 +207,7 @@ async fn main() {
                 Address::from_str(&batcher_eth_addr).unwrap(),
             );
 
-            info!("Sending transaction to SudokuValidity contract...");
+            info!("Sending transaction to MinaBalance contract...");
             let tx = call.send().await;
 
             match tx {
@@ -216,8 +216,18 @@ async fn main() {
                         error!("{}", err);
                         process::exit(1);
                     });
-                    let new_timestamp: U256 = contract
-                        .getLatestSolutionTimestamp()
+                    let account_hash = keccak256(
+                        query_account_sol(&rpc_url, &tip_state_hash, &public_key)
+                            .await
+                            .unwrap_or_else(|err| {
+                                error!("{}", err);
+                                process::exit(1);
+                            })
+                            .abi_encode(),
+                    );
+
+                    let stored_balance: U256 = contract
+                        .getBalance(account_hash)
                         .call()
                         .await
                         .unwrap_or_else(|err| {
@@ -227,11 +237,15 @@ async fn main() {
                         ._0;
 
                     info!(
-                        "SudokuValidity contract was updated! transaction hash: {}, gas cost: {}, new timestamp: {}",
-                        receipt.transaction_hash, receipt.gas_used, new_timestamp
+                        "MinaBalance contract was updated! transaction hash: {}, gas cost: {}",
+                        receipt.transaction_hash, receipt.gas_used
+                    );
+                    info!(
+                        "New stored balance for account {}: {}",
+                        account_hash, stored_balance
                     );
                 }
-                Err(err) => error!("SudokuValidity transaction failed!: {err}"),
+                Err(err) => error!("MinaBalance transaction failed!: {err}"),
             }
         }
     }
