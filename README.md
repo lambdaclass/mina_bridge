@@ -38,7 +38,7 @@ Because the Bridge uses for now a forked version of Aligned, you may need to set
 
 You will need two Ethereum accounts: One to fund the Aligned operator (`operator_account_address`) and another to fund the Aligned batcher (`batcher_account_address`).
 
-1. Clone the [forked Aligned repo](https://github.com/lambdaclass/aligned_layer). Checkout to the `aligned` branch.
+1. Clone the [forked Aligned repo](https://github.com/lambdaclass/aligned_layer). Checkout to the `mina` branch.
 1. Run:
 
   ```sh
