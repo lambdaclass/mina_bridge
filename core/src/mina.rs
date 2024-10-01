@@ -101,22 +101,6 @@ pub async fn get_mina_proof_of_account(
     let (account, ledger_hash, merkle_path) =
         query_account(rpc_url, state_hash, public_key).await?;
 
-    info!(
-        "zkapp state[0]: {}",
-        account.zkapp.clone().unwrap().app_state.0 .0[0]
-            .to_fp()
-            .unwrap()
-    );
-
-    info!(
-        "zkapp state[1]: {}",
-        account.zkapp.clone().unwrap().app_state.0 .0[1]
-            .to_fp()
-            .unwrap()
-    );
-
-    info!("ledger hash: {}", LedgerHash::from_fp(ledger_hash));
-
     let encoded_account = MinaAccountValidation::Account::try_from(&account)?.abi_encode();
 
     Ok((
