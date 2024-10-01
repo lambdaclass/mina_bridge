@@ -15,9 +15,8 @@ use mina_bridge_core::{
 };
 use std::{process, str::FromStr, time::SystemTime};
 
-const MINA_ZKAPP_ADDRESS: &str = "B62qmpq1JBejZYDQrZwASPRM5oLXW346WoXgbApVf5HJZXMWFPWFPuA";
+const MINA_ZKAPP_ADDRESS: &str = "B62qmKCv2HaPwVRHBKrDFGUpjSh3PPY9VqSa6ZweGAmj9hBQL4pfewn";
 const SUDOKU_VALIDITY_DEVNET_ADDRESS: &str = "0x8ce361602B935680E8DeC218b820ff5056BeB7af";
-const SUDOKU_VALIDITY_HOLESKY_ADDRESS: &str = "0x0091D1d9Bd92FFcfEb38383079AE849639224e3D";
 
 sol!(
     #[allow(clippy::too_many_arguments)]
@@ -69,6 +68,15 @@ async fn main() {
         error!("Error getting Account validation contract address");
         process::exit(1);
     });
+
+    let sudoku_address = match chain {
+        Chain::Devnet => SUDOKU_VALIDITY_DEVNET_ADDRESS.to_string(),
+        Chain::Holesky => std::env::var("SUDOKU_VALIDITY_HOLESKY_ADDRESS").unwrap_or_else(|_| {
+            error!("Error getting Sudoku vality contract address");
+            process::exit(1);
+        }),
+        _ => todo!()
+    };
 
     let wallet_alloy =
         wallet_alloy::get_wallet(&chain, keystore_path.as_deref(), private_key.as_deref())
@@ -194,13 +202,8 @@ async fn main() {
             });
 
             debug!("Creating contract instance");
-            let sudoku_address = match chain {
-                Chain::Devnet => SUDOKU_VALIDITY_DEVNET_ADDRESS,
-                Chain::Holesky => SUDOKU_VALIDITY_HOLESKY_ADDRESS,
-                _ => todo!(),
-            };
             let contract =
-                SudokuValidity::new(Address::from_str(sudoku_address).unwrap(), provider);
+                SudokuValidity::new(Address::from_str(&sudoku_address).unwrap(), provider);
 
             let call = contract.validateSolution(
                 proof_commitment.into(),
