@@ -11,7 +11,7 @@ gen_contract_abis:
 	forge build --root example/eth_contract
 	cp contract/out/MinaStateSettlement.sol/MinaStateSettlement.json core/abi/MinaStateSettlement.json
 	cp contract/out/MinaAccountValidation.sol/MinaAccountValidation.json core/abi/MinaAccountValidation.json
-	cp example/eth_contract/out/SudokuValidity.sol/SudokuValidity.json example/app/abi/SudokuValidity.json
+	cp example/eth_contract/out/MinaBalance.sol/MinaBalance.json example/app/abi/MinaBalance.json
 
 deploy_contract: gen_contract_abis
 	@cargo run --manifest-path contract_deployer/Cargo.toml --release
