@@ -286,6 +286,8 @@ You will need two Ethereum accounts: One to fund the Aligned operator (`operator
   make operator_whitelist OPERATOR_ADDRESS=<operator_account_address>
   ```
 
+1. Deposit Strategy tokens for the operator. Follow [this section from the AlignedLayer docs](https://docs.alignedlayer.com/operators/0_running_an_operator#step-4-deposit-strategy-tokens).
+
 1. Start operator:
 
   ```sh
