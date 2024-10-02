@@ -1,3 +1,4 @@
+use aligned_sdk::core::types::Chain;
 use log::{debug, error, info};
 use mina_bridge_core::{
     eth::{
@@ -6,8 +7,9 @@ use mina_bridge_core::{
     },
     mina::query_root,
     utils::{
-        constants::BRIDGE_TRANSITION_FRONTIER_LEN, contract::get_aligned_sm_contract_addr,
-        env::EnvironmentVariables, wallet_alloy::get_wallet,
+        constants::{ALIGNED_SM_DEVNET_ETH_ADDR, BRIDGE_TRANSITION_FRONTIER_LEN},
+        env::EnvironmentVariables,
+        wallet_alloy::get_wallet,
     },
 };
 use std::process;
@@ -43,7 +45,13 @@ async fn main() {
         process::exit(1);
     });
 
-    let aligned_sm_addr = get_aligned_sm_contract_addr(&chain).unwrap_or_else(|err| {
+    let aligned_sm_addr = match chain {
+        Chain::Devnet => Ok(ALIGNED_SM_DEVNET_ETH_ADDR.to_owned()),
+        Chain::Holesky => std::env::var("ALIGNED_SERVICE_MANAGER_ADDR")
+            .map_err(|err| format!("Error getting Aligned SM contract address: {err}")),
+        _ => Err("Unimplemented Ethereum contract on selected chain".to_owned()),
+    }
+    .unwrap_or_else(|err| {
         error!("{err}");
         process::exit(1);
     });
@@ -67,7 +75,16 @@ async fn main() {
             process::exit(1);
         });
 
-    deploy_mina_bridge_contract(&eth_rpc_url, bridge_constructor_args, &wallet)
+    // Contract for Devnet state proofs
+    deploy_mina_bridge_contract(&eth_rpc_url, &bridge_constructor_args, &wallet, true)
+        .await
+        .unwrap_or_else(|err| {
+            error!("Failed to deploy contract: {err}");
+            process::exit(1);
+        });
+
+    // Contract for Mainnet state proofs
+    deploy_mina_bridge_contract(&eth_rpc_url, &bridge_constructor_args, &wallet, false)
         .await
         .unwrap_or_else(|err| {
             error!("Failed to deploy contract: {err}");

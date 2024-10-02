@@ -1,6 +1,5 @@
 use std::str::FromStr;
 
-use aligned_sdk::core::types::Chain;
 use alloy_sol_types::SolValue;
 use base64::prelude::*;
 use futures::future::join_all;
@@ -59,10 +58,11 @@ struct AccountQuery;
 
 pub async fn get_mina_proof_of_state(
     rpc_url: &str,
-    chain: &Chain,
     eth_rpc_url: &str,
+    contract_addr: &str,
+    is_state_proof_from_devnet: bool,
 ) -> Result<(MinaStateProof, MinaStatePubInputs), String> {
-    let bridge_tip_state_hash = get_bridge_tip_hash(chain, eth_rpc_url).await?.0;
+    let bridge_tip_state_hash = get_bridge_tip_hash(contract_addr, eth_rpc_url).await?.0;
     let (
         candidate_chain_states,
         candidate_chain_state_hashes,
@@ -85,6 +85,7 @@ pub async fn get_mina_proof_of_state(
             bridge_tip_state,
         },
         MinaStatePubInputs {
+            is_state_proof_from_devnet,
             bridge_tip_state_hash,
             candidate_chain_state_hashes,
             candidate_chain_ledger_hashes,

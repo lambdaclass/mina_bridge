@@ -1,7 +1,10 @@
-.PHONY: submit-state submit-account gen_contract_abi deploy_contract
+.PHONY: submit_mainnet_state submit_devnet_state submit_account gen_contract_abi deploy_contract
 
-submit_state:
+submit_mainnet_state:
 	@cargo run --manifest-path core/Cargo.toml --release -- submit-state
+
+submit_devnet_state:
+	@cargo run --manifest-path core/Cargo.toml --release -- submit-state --devnet
 
 submit_account:
 	@cargo run --manifest-path core/Cargo.toml --release -- submit-account ${PUBLIC_KEY} ${STATE_HASH}
