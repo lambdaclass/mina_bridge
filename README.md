@@ -293,7 +293,7 @@ You will need two Ethereum accounts: One to fund the Aligned operator (`operator
     make deploy_batcher_payment_service
     ```
 
-    `contracts/script/output/holesky/alignedlayer_deployment_output.json` will have two new fields: `addresses.batcherPaymentService` and `addresses.batcherPaymentServiceImplementation`.
+    The file `contracts/script/output/holesky/alignedlayer_deployment_output.json` will have two new fields: `addresses.batcherPaymentService` and `addresses.batcherPaymentServiceImplementation`.
 
 1. Pay the batcher:
 
