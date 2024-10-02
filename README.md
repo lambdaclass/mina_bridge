@@ -41,283 +41,283 @@ You will need two Ethereum accounts: One to fund the Aligned operator (`operator
 1. Clone the [forked Aligned repo](https://github.com/lambdaclass/aligned_layer). Checkout to the `mina` branch.
 1. Run:
 
-  ```sh
-  make deps go_deps
-  ```
+    ```sh
+    make deps go_deps
+    ```
 
 1. Copy the EigenLayer Holešky deployment config file into Aligned:
 
-  ```sh
-  cp contracts/lib/eigenlayer-middleware/lib/eigenlayer-contracts/script/configs/holesky/Holesky_current_deployment.config.json contracts/script/output/holesky
-  ```
+    ```sh
+    cp contracts/lib/eigenlayer-middleware/lib/eigenlayer-contracts/script/configs/holesky/Holesky_current_deployment.config.json contracts/script/output/holesky
+    ```
 
 1. Set `contracts/script/deploy/config/holesky/aligned.holesky.config.json` to:
 
-  ```json
-  {
-    "chainInfo": {
-      "chainId": 17000
-    },
-    "permissions": {
-      "owner": "<operator_account_address>",
-      "aggregator": "<operator_account_address>",
-      "upgrader": "<operator_account_address>",
-      "churner": "<operator_account_address>",
-      "ejector": "<operator_account_address>",
-      "deployer": "<operator_account_address>",
-      "initalPausedStatus": 0
-    },
-    "minimumStakes": [
-      1
-    ],
-    "strategyWeights": [
-      [
+    ```json
+    {
+      "chainInfo": {
+        "chainId": 17000
+      },
+      "permissions": {
+        "owner": "<operator_account_address>",
+        "aggregator": "<operator_account_address>",
+        "upgrader": "<operator_account_address>",
+        "churner": "<operator_account_address>",
+        "ejector": "<operator_account_address>",
+        "deployer": "<operator_account_address>",
+        "initalPausedStatus": 0
+      },
+      "minimumStakes": [
+        1
+      ],
+      "strategyWeights": [
+        [
+          {
+            "0_strategy": "0x80528D6e9A2BAbFc766965E0E26d5aB08D9CFaF9",
+            "1_multiplier": 1e+18
+          }
+        ]
+      ],
+      "operatorSetParams": [
         {
-          "0_strategy": "0x80528D6e9A2BAbFc766965E0E26d5aB08D9CFaF9",
-          "1_multiplier": 1e+18
+          "0_maxOperatorCount": 200,
+          "1_kickBIPsOfOperatorStake": 11000,
+          "2_kickBIPsOfTotalStake": 50
         }
-      ]
-    ],
-    "operatorSetParams": [
-      {
-        "0_maxOperatorCount": 200,
-        "1_kickBIPsOfOperatorStake": 11000,
-        "2_kickBIPsOfTotalStake": 50
-      }
-    ],
-    "uri": ""
-  }
-  ```
+      ],
+      "uri": ""
+    }
+    ```
 
 1. Setup the `contracts/scripts/.env` file. A template is available in `contracts/scripts/.env.example.holesky`. Set `PRIVATE_KEY` to the private key of the account you chose to fund the operator (the one with address `operator_account_address`).
 1. Deploy Aligned contracts:
 
-  ```sh
-  make deploy_aligned_contracts
-  ```
+    ```sh
+    make deploy_aligned_contracts
+    ```
 
-  This will create `contracts/script/output/holesky/alignedlayer_deployment_output.json`.
+    This will create `contracts/script/output/holesky/alignedlayer_deployment_output.json`.
 
 1. Create 3 EigenLayer keystores:
     1. Aggregator and operator ECDSA:
 
-    ```sh
-    eigenlayer operator keys import --key-type ecdsa mina_bridge <operator_account_private_key>
-    ```
+        ```sh
+        eigenlayer operator keys import --key-type ecdsa mina_bridge <operator_account_private_key>
+        ```
 
     1. Aggregator and operator BLS:
 
-    ```sh
-    eigenlayer operator keys import --key-type bls mina_bridge <operator_account_private_key>
-    ```
+        ```sh
+        eigenlayer operator keys import --key-type bls mina_bridge <operator_account_private_key>
+        ```
 
     1. Batcher ECDSA:
 
-    ```sh
-    eigenlayer operator keys import --key-type ecdsa mina_bridge.batcher <batcher_account_private_key>
-    ```
+        ```sh
+        eigenlayer operator keys import --key-type ecdsa mina_bridge.batcher <batcher_account_private_key>
+        ```
 
 1. Create `config-files/holesky/config.yaml` and set it to:
 
-  ```yaml
-  # Common variables for all the services
-  # 'production' only prints info and above. 'development' also prints debug
-  environment: "production"
-  aligned_layer_deployment_config_file_path: "./contracts/script/output/holesky/alignedlayer_deployment_output.json"
-  eigen_layer_deployment_config_file_path: "./contracts/script/output/holesky/eigenlayer_deployment_output.json"
-  eth_rpc_url: "<http_eth_rpc_url>"
-  eth_rpc_url_fallback: "<http_eth_rpc_url>"
-  eth_ws_url: "<ws_eth_rpc_url>"
-  eth_ws_url_fallback: "<ws_eth_rpc_url>"
-  eigen_metrics_ip_port_address: "localhost:9090"
+    ```yaml
+    # Common variables for all the services
+    # 'production' only prints info and above. 'development' also prints debug
+    environment: "production"
+    aligned_layer_deployment_config_file_path: "./contracts/script/output/holesky/alignedlayer_deployment_output.json"
+    eigen_layer_deployment_config_file_path: "./contracts/script/output/holesky/eigenlayer_deployment_output.json"
+    eth_rpc_url: "<http_eth_rpc_url>"
+    eth_rpc_url_fallback: "<http_eth_rpc_url>"
+    eth_ws_url: "<ws_eth_rpc_url>"
+    eth_ws_url_fallback: "<ws_eth_rpc_url>"
+    eigen_metrics_ip_port_address: "localhost:9090"
 
-  ## ECDSA Configurations
-  ecdsa:
-    private_key_store_path: "<home>/.eigenlayer/operator_keys/mina_bridge.ecdsa.key.json"
-    private_key_store_password: <password_used_to_create_keystore>
+    ## ECDSA Configurations
+    ecdsa:
+      private_key_store_path: "<home>/.eigenlayer/operator_keys/mina_bridge.ecdsa.key.json"
+      private_key_store_password: <password_used_to_create_keystore>
 
-  ## BLS Configurations
-  bls:
-    private_key_store_path: "<home>/.eigenlayer/operator_keys/mina_bridge.bls.key.json"
-    private_key_store_password: <password_used_to_create_keystore>
+    ## BLS Configurations
+    bls:
+      private_key_store_path: "<home>/.eigenlayer/operator_keys/mina_bridge.bls.key.json"
+      private_key_store_password: <password_used_to_create_keystore>
 
-  ## Batcher configurations
-  batcher:
-    block_interval: 3
-    batch_size_interval: 10
-    max_proof_size: 67108864 # 64 MiB
-    max_batch_size: 268435456 # 256 MiB
-    eth_ws_reconnects: 99999999999999
-    pre_verification_is_enabled: true
+    ## Batcher configurations
+    batcher:
+      block_interval: 3
+      batch_size_interval: 10
+      max_proof_size: 67108864 # 64 MiB
+      max_batch_size: 268435456 # 256 MiB
+      eth_ws_reconnects: 99999999999999
+      pre_verification_is_enabled: true
 
-  ## Aggregator Configurations
-  aggregator:
-    server_ip_port_address: localhost:8090
-    bls_public_key_compendium_address: 0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44
-    avs_service_manager_address: 0xc3e53F4d16Ae77Db1c982e75a937B9f60FE63690
-    enable_metrics: true
-    metrics_ip_port_address: localhost:9091
+    ## Aggregator Configurations
+    aggregator:
+      server_ip_port_address: localhost:8090
+      bls_public_key_compendium_address: 0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44
+      avs_service_manager_address: 0xc3e53F4d16Ae77Db1c982e75a937B9f60FE63690
+      enable_metrics: true
+      metrics_ip_port_address: localhost:9091
 
-  ## Operator Configurations
-  operator:
-    aggregator_rpc_server_ip_port_address: localhost:8090
-    address: <operator_account_address>
-    earnings_receiver_address: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
-    delegation_approver_address: "0x0000000000000000000000000000000000000000"
-    staker_opt_out_window_blocks: 0
-    metadata_url: "https://yetanotherco.github.io/operator_metadata/metadata.json"
-    enable_metrics: true
-    metrics_ip_port_address: localhost:9092
-    max_batch_size: 268435456 # 256 MiB
-  # Operators variables needed for register it in EigenLayer
-  el_delegation_manager_address: "0xA44151489861Fe9e3055d95adC98FbD462B948e7"
-  private_key_store_path: <home>/.eigenlayer/operator_keys/mina_bridge.ecdsa.key.json
-  bls_private_key_store_path: <home>/.eigenlayer/operator_keys/mina_bridge.bls.key.json
-  signer_type: local_keystore
-  chain_id: 17000
-  ```
+    ## Operator Configurations
+    operator:
+      aggregator_rpc_server_ip_port_address: localhost:8090
+      address: <operator_account_address>
+      earnings_receiver_address: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+      delegation_approver_address: "0x0000000000000000000000000000000000000000"
+      staker_opt_out_window_blocks: 0
+      metadata_url: "https://yetanotherco.github.io/operator_metadata/metadata.json"
+      enable_metrics: true
+      metrics_ip_port_address: localhost:9092
+      max_batch_size: 268435456 # 256 MiB
+    # Operators variables needed for register it in EigenLayer
+    el_delegation_manager_address: "0xA44151489861Fe9e3055d95adC98FbD462B948e7"
+    private_key_store_path: <home>/.eigenlayer/operator_keys/mina_bridge.ecdsa.key.json
+    bls_private_key_store_path: <home>/.eigenlayer/operator_keys/mina_bridge.bls.key.json
+    signer_type: local_keystore
+    chain_id: 17000
+    ```
 
 1. Create `config-files/holesky/config-aggregator.yaml` and set it to:
 
-  ```yaml
-  # Common variables for all the services
-  # 'production' only prints info and above. 'development' also prints debug
-  environment: "production"
-  aligned_layer_deployment_config_file_path: "./contracts/script/output/holesky/alignedlayer_deployment_output.json"
-  eigen_layer_deployment_config_file_path: "./contracts/script/output/holesky/eigenlayer_deployment_output.json"
-  eth_rpc_url: "<http_eth_rpc_url>"
-  eth_rpc_url_fallback: "<http_eth_rpc_url>"
-  eth_ws_url: "<ws_eth_rpc_url>"
-  eth_ws_url_fallback: "<ws_eth_rpc_url>"
-  eigen_metrics_ip_port_address: "localhost:9090"
+    ```yaml
+    # Common variables for all the services
+    # 'production' only prints info and above. 'development' also prints debug
+    environment: "production"
+    aligned_layer_deployment_config_file_path: "./contracts/script/output/holesky/alignedlayer_deployment_output.json"
+    eigen_layer_deployment_config_file_path: "./contracts/script/output/holesky/eigenlayer_deployment_output.json"
+    eth_rpc_url: "<http_eth_rpc_url>"
+    eth_rpc_url_fallback: "<http_eth_rpc_url>"
+    eth_ws_url: "<ws_eth_rpc_url>"
+    eth_ws_url_fallback: "<ws_eth_rpc_url>"
+    eigen_metrics_ip_port_address: "localhost:9090"
 
-  ## ECDSA Configurations
-  ecdsa:
-    private_key_store_path: "<home>/.eigenlayer/operator_keys/mina_bridge.ecdsa.key.json"
-    private_key_store_password: <password_used_to_create_keystore>
+    ## ECDSA Configurations
+    ecdsa:
+      private_key_store_path: "<home>/.eigenlayer/operator_keys/mina_bridge.ecdsa.key.json"
+      private_key_store_password: <password_used_to_create_keystore>
 
-  ## BLS Configurations
-  bls:
-    private_key_store_path: "<home>/.eigenlayer/operator_keys/mina_bridge.bls.key.json"
-    private_key_store_password: <password_used_to_create_keystore>
+    ## BLS Configurations
+    bls:
+      private_key_store_path: "<home>/.eigenlayer/operator_keys/mina_bridge.bls.key.json"
+      private_key_store_password: <password_used_to_create_keystore>
 
-  ## Aggregator Configurations
-  aggregator:
-    server_ip_port_address: localhost:8090
-    bls_public_key_compendium_address: 0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44
-    avs_service_manager_address: 0xc3e53F4d16Ae77Db1c982e75a937B9f60FE63690
-    enable_metrics: true
-    metrics_ip_port_address: localhost:9091
-  ```
+    ## Aggregator Configurations
+    aggregator:
+      server_ip_port_address: localhost:8090
+      bls_public_key_compendium_address: 0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44
+      avs_service_manager_address: 0xc3e53F4d16Ae77Db1c982e75a937B9f60FE63690
+      enable_metrics: true
+      metrics_ip_port_address: localhost:9091
+    ```
 
 1. Create `config-files/holesky/config-batcher.yaml` and set it to:
 
-  ```yaml
-  environment: "production"
-  aligned_layer_deployment_config_file_path: "./contracts/script/output/holesky/alignedlayer_deployment_output.json"
-  eigen_layer_deployment_config_file_path: "./contracts/script/output/holesky/eigenlayer_deployment_output.json"
-  eth_rpc_url: "<http_eth_rpc_url>"
-  eth_rpc_url_fallback: "<http_eth_rpc_url>"
-  eth_ws_url: "<ws_eth_rpc_url>"
-  eth_ws_url_fallback: "<ws_eth_rpc_url>"
-  eigen_metrics_ip_port_address: "localhost:9090"
+    ```yaml
+    environment: "production"
+    aligned_layer_deployment_config_file_path: "./contracts/script/output/holesky/alignedlayer_deployment_output.json"
+    eigen_layer_deployment_config_file_path: "./contracts/script/output/holesky/eigenlayer_deployment_output.json"
+    eth_rpc_url: "<http_eth_rpc_url>"
+    eth_rpc_url_fallback: "<http_eth_rpc_url>"
+    eth_ws_url: "<ws_eth_rpc_url>"
+    eth_ws_url_fallback: "<ws_eth_rpc_url>"
+    eigen_metrics_ip_port_address: "localhost:9090"
 
-  ## ECDSA Configurations
-  ecdsa:
-    private_key_store_path: "<home>/.eigenlayer/operator_keys/mina_bridge.batcher.ecdsa.key.json"
-    private_key_store_password: <password_used_to_create_keystore>
+    ## ECDSA Configurations
+    ecdsa:
+      private_key_store_path: "<home>/.eigenlayer/operator_keys/mina_bridge.batcher.ecdsa.key.json"
+      private_key_store_password: <password_used_to_create_keystore>
 
-  ## Batcher configurations
-  batcher:
-    block_interval: 3
-    batch_size_interval: 10
-    max_proof_size: 67108864 # 64 MiB
-    max_batch_size: 268435456 # 256 MiB
-    eth_ws_reconnects: 99999999999999
-    pre_verification_is_enabled: true
-    non_paying:
-      address: <batcher_account_address>
-      replacement_private_key: <batcher_account_private_key>
-  ```
+    ## Batcher configurations
+    batcher:
+      block_interval: 3
+      batch_size_interval: 10
+      max_proof_size: 67108864 # 64 MiB
+      max_batch_size: 268435456 # 256 MiB
+      eth_ws_reconnects: 99999999999999
+      pre_verification_is_enabled: true
+      non_paying:
+        address: <batcher_account_address>
+        replacement_private_key: <batcher_account_private_key>
+    ```
 
 1. Start the aggregator:
 
-  ```sh
-  make aggregator_start AGG_CONFIG_FILE=config-files/holesky/config-aggregator.yaml
-  ```
+    ```sh
+    make aggregator_start AGG_CONFIG_FILE=config-files/holesky/config-aggregator.yaml
+    ```
 
 1. Open a new terminal and register the operator:
 
-  ```sh
-  eigenlayer operator register config-files/holesky/config.yaml
-  ```
+    ```sh
+    eigenlayer operator register config-files/holesky/config.yaml
+    ```
 
 1. Whitelist the registered operator:
 
-  ```sh
-  make operator_whitelist OPERATOR_ADDRESS=<operator_account_address>
-  ```
+    ```sh
+    make operator_whitelist OPERATOR_ADDRESS=<operator_account_address>
+    ```
 
 1. Deposit Strategy tokens for the operator. Follow [this section from the AlignedLayer docs](https://docs.alignedlayer.com/operators/0_running_an_operator#step-4-deposit-strategy-tokens).
 
 1. Start operator:
 
-  ```sh
-  make operator_start CONFIG_FILE=config-files/holesky/config.yaml
-  ```
+    ```sh
+    make operator_start CONFIG_FILE=config-files/holesky/config.yaml
+    ```
 
 1. Set `contracts/script/deploy/config/holesky/batcher-payment-service.holesky.config.json` to:
 
-  ```json
-  {
-    "address": {
-      "batcherWallet": "<batcher_account_address>",
-      "alignedLayerServiceManager": "<aligned_service_manager_address>"
-    },
-    "amounts": {
-      "gasForAggregator": "300000",
-      "gasPerProof": "21000"
-    },
-    "permissions": {
-      "owner": "<operator_account_address>"
-    },
-    "eip712": {
-      "noncedVerificationDataTypeHash": "41817b5c5b0c3dcda70ccb43ba175fdcd7e586f9e0484422a2c6bba678fdf4a3"
+    ```json
+    {
+      "address": {
+        "batcherWallet": "<batcher_account_address>",
+        "alignedLayerServiceManager": "<aligned_service_manager_address>"
+      },
+      "amounts": {
+        "gasForAggregator": "300000",
+        "gasPerProof": "21000"
+      },
+      "permissions": {
+        "owner": "<operator_account_address>"
+      },
+      "eip712": {
+        "noncedVerificationDataTypeHash": "41817b5c5b0c3dcda70ccb43ba175fdcd7e586f9e0484422a2c6bba678fdf4a3"
+      }
     }
-  }
-  ```
+    ```
 
 1. Deploy Batcher payment contract:
 
-  ```sh
-  make deploy_batcher_payment_service
-  ```
+    ```sh
+    make deploy_batcher_payment_service
+    ```
 
-  `contracts/script/output/holesky/alignedlayer_deployment_output.json` will have two new fields: `addresses.batcherPaymentService` and `addresses.batcherPaymentServiceImplementation`.
+    `contracts/script/output/holesky/alignedlayer_deployment_output.json` will have two new fields: `addresses.batcherPaymentService` and `addresses.batcherPaymentServiceImplementation`.
 
 1. Pay the batcher:
 
-  ```sh
-  cast send <batcher_payment_service_address> --rpc-url <eth_rpc_url> --private-key <bridge_account_private_key> --value 1ether
-  ```
+    ```sh
+    cast send <batcher_payment_service_address> --rpc-url <eth_rpc_url> --private-key <bridge_account_private_key> --value 1ether
+    ```
 
 1. Deposit to batcher in the Aligned Service Manager Contract:
 
-  ```sh
-  cast send <aligned_service_manager_address> --rpc-url <eth_rpc_url> --private-key <bridge_account_private_key> --value 1ether "depositToBatcher(address)" <batcher_payment_service_address>
-  ```
+    ```sh
+    cast send <aligned_service_manager_address> --rpc-url <eth_rpc_url> --private-key <bridge_account_private_key> --value 1ether "depositToBatcher(address)" <batcher_payment_service_address>
+    ```
 
 1. Setup local storage for the batcher:
 
-  ```sh
-  make run_storage
-  ```
+    ```sh
+    make run_storage
+    ```
 
 1. Start the batcher:
 
-  ```sh
-  cargo run --manifest-path ./batcher/aligned-batcher/Cargo.toml --release -- --config ./config-files/holesky/config-batcher.yaml --env-file ./batcher/aligned-batcher/.env.dev
-  ```
+    ```sh
+    cargo run --manifest-path ./batcher/aligned-batcher/Cargo.toml --release -- --config ./config-files/holesky/config-batcher.yaml --env-file ./batcher/aligned-batcher/.env.dev
+    ```
 
 #### Bridge environment setup
 
