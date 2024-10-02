@@ -25,7 +25,7 @@ You can bridge Mina accounts to Ethereum Devnet or Ethereum Testnet. The followi
 
 #### Ethereum Devnet
 
-1. [Setup Aligned (Devnet) infrastructure locally](https://docs.alignedlayer.com/guides/6_setup_aligned)
+1. [Setup Aligned Devnet locally](https://github.com/yetanotherco/aligned_layer/blob/staging/docs/3_guides/6_setup_aligned.md#booting-devnet-with-default-configs)
 1. Setup the `.env` file of the Bridge. A template is available in `.env.template`.
     1. Set `ETH_CHAIN` to `devnet`.
     1. Set `MINA_RPC_URL` to the URL of the Mina node GraphQL API (See [Mina node section](#mina-node)).
@@ -34,7 +34,7 @@ You can bridge Mina accounts to Ethereum Devnet or Ethereum Testnet. The followi
 
 Because the Bridge uses for now a forked version of Aligned, you may need to setup a local instance of Aligned to verify Mina proofs.
 
-##### Setup Aligned Testnet infrastructure locally
+##### Aligned Testnet setup
 
 You will need two Ethereum accounts: One to fund the Aligned operator (`operator_account_address`) and another to fund the Aligned batcher (`batcher_account_address`).
 
