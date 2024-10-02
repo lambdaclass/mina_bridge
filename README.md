@@ -90,39 +90,13 @@ You will need two Ethereum accounts: One to fund the Aligned operator (`operator
   ```
 
 1. Setup the `contracts/scripts/.env` file. A template is available in `contracts/scripts/.env.example.holesky`. Set `PRIVATE_KEY` to the private key of the account you chose to fund the operator (the one with address `operator_account_address`).
-1. Set `contracts/script/output/holesky/alignedlayer_deployment_output.json` to:
+1. Deploy Aligned contracts:
 
-  ```json
-  {
-    "addresses": {
-      "alignedLayerProxyAdmin": "0x715e3F1c9F58832a606cf85C328250af32d20E93",
-      "alignedLayerServiceManager": "0x4d879A997f422FeB8AC2f3d9Dcc749e9d8d0E4a4",
-      "alignedLayerServiceManagerImplementation": "0x63257B1e36B78cb8be08A5A42317B93D7127D56b",
-      "blsApkRegistry": "0xf1e92D804230Cdb88D95A79e8D6E5B4e3182E632",
-      "blsApkRegistryImplementation": "0x6d3Bf64adAd29949766417543eF2eb8670964426",
-      "indexRegistry": "0xd2062Fb412923bE70F4d51E361Fe17408eE4b1b0",
-      "indexRegistryImplementation": "0x5Ee29B5d21CDA0ac24645Cb25DcdB9759E89628B",
-      "operatorStateRetriever": "0x38a45de56c29a3929Bb68aFD51d4B28F158d2900",
-      "registryCoordinator": "0x5EA37f0FdF065c047cdC0a5Ee7b3b99aC16C2B4a",
-      "registryCoordinatorImplementation": "0xE3Cef87B26f1A4CA37aF548e058f660F22Ef2E76",
-      "serviceManagerRouter": "0x6aA8AbaC32500eab9b67D4259602535619A6B919",
-      "stakeRegistry": "0x1763e9cEC4137a2031985A5D813dF5dC36ED71Ff",
-      "stakeRegistryImplementation": "0xd4a7d36B2c049613BEb5Ade3d92Af82aFc4a12d6"
-    },
-    "chainInfo": {
-      "chainId": 17000,
-      "deploymentBlock": 2421617
-    },
-    "permissions": {
-      "alignedLayerAggregator": "<operator_account_address>",
-      "alignedLayerChurner": "<operator_account_address>",
-      "alignedLayerEjector": "<operator_account_address>",
-      "alignedLayerOwner": "<operator_account_address>",
-      "alignedLayerUpgrader": "<operator_account_address>",
-      "pauserRegistry": "0x85Ef7299F8311B25642679edBF02B62FA2212F06"
-    }
-  }
+  ```sh
+  make deploy_aligned_contracts
   ```
+
+  This will create `contracts/script/output/holesky/alignedlayer_deployment_output.json`.
 
 1. Create 3 EigenLayer keystores:
     1. Aggregator and operator ECDSA:
@@ -151,21 +125,21 @@ You will need two Ethereum accounts: One to fund the Aligned operator (`operator
   environment: "production"
   aligned_layer_deployment_config_file_path: "./contracts/script/output/holesky/alignedlayer_deployment_output.json"
   eigen_layer_deployment_config_file_path: "./contracts/script/output/holesky/eigenlayer_deployment_output.json"
-  eth_rpc_url: "https://holesky.internal.lambdaclass.com"
-  eth_rpc_url_fallback: "https://holesky.internal.lambdaclass.com"
-  eth_ws_url: "wss://ws.holesky.internal.lambdaclass.com"
-  eth_ws_url_fallback: "wss://ws.holesky.internal.lambdaclass.com"
+  eth_rpc_url: "<http_eth_rpc_url>"
+  eth_rpc_url_fallback: "<http_eth_rpc_url>"
+  eth_ws_url: "<ws_eth_rpc_url>"
+  eth_ws_url_fallback: "<ws_eth_rpc_url>"
   eigen_metrics_ip_port_address: "localhost:9090"
 
   ## ECDSA Configurations
   ecdsa:
     private_key_store_path: "<home>/.eigenlayer/operator_keys/mina_bridge.ecdsa.key.json"
-    private_key_store_password: "<password_used_to_create_keystore>"
+    private_key_store_password: <password_used_to_create_keystore>
 
   ## BLS Configurations
   bls:
     private_key_store_path: "<home>/.eigenlayer/operator_keys/mina_bridge.bls.key.json"
-    private_key_store_password: "<password_used_to_create_keystore>"
+    private_key_store_password: <password_used_to_create_keystore>
 
   ## Batcher configurations
   batcher:
@@ -211,21 +185,21 @@ You will need two Ethereum accounts: One to fund the Aligned operator (`operator
   environment: "production"
   aligned_layer_deployment_config_file_path: "./contracts/script/output/holesky/alignedlayer_deployment_output.json"
   eigen_layer_deployment_config_file_path: "./contracts/script/output/holesky/eigenlayer_deployment_output.json"
-  eth_rpc_url: "https://holesky.internal.lambdaclass.com"
-  eth_rpc_url_fallback: "https://holesky.internal.lambdaclass.com"
-  eth_ws_url: "wss://ws.holesky.internal.lambdaclass.com"
-  eth_ws_url_fallback: "wss://ws.holesky.internal.lambdaclass.com"
+  eth_rpc_url: "<http_eth_rpc_url>"
+  eth_rpc_url_fallback: "<http_eth_rpc_url>"
+  eth_ws_url: "<ws_eth_rpc_url>"
+  eth_ws_url_fallback: "<ws_eth_rpc_url>"
   eigen_metrics_ip_port_address: "localhost:9090"
 
   ## ECDSA Configurations
   ecdsa:
     private_key_store_path: "<home>/.eigenlayer/operator_keys/mina_bridge.ecdsa.key.json"
-    private_key_store_password: "<password_used_to_create_keystore>"
+    private_key_store_password: <password_used_to_create_keystore>
 
   ## BLS Configurations
   bls:
     private_key_store_path: "<home>/.eigenlayer/operator_keys/mina_bridge.bls.key.json"
-    private_key_store_password: "<password_used_to_create_keystore>"
+    private_key_store_password: <password_used_to_create_keystore>
 
   ## Aggregator Configurations
   aggregator:
@@ -239,21 +213,19 @@ You will need two Ethereum accounts: One to fund the Aligned operator (`operator
 1. Create `config-files/holesky/config-batcher.yaml` and set it to:
 
   ```yaml
-  # Common variables for all the services
-  # 'production' only prints info and above. 'development' also prints debug
   environment: "production"
   aligned_layer_deployment_config_file_path: "./contracts/script/output/holesky/alignedlayer_deployment_output.json"
   eigen_layer_deployment_config_file_path: "./contracts/script/output/holesky/eigenlayer_deployment_output.json"
-  eth_rpc_url: "https://holesky.internal.lambdaclass.com"
-  eth_rpc_url_fallback: "https://holesky.internal.lambdaclass.com"
-  eth_ws_url: "wss://ws.holesky.internal.lambdaclass.com"
-  eth_ws_url_fallback: "wss://ws.holesky.internal.lambdaclass.com"
+  eth_rpc_url: "<http_eth_rpc_url>"
+  eth_rpc_url_fallback: "<http_eth_rpc_url>"
+  eth_ws_url: "<ws_eth_rpc_url>"
+  eth_ws_url_fallback: "<ws_eth_rpc_url>"
   eigen_metrics_ip_port_address: "localhost:9090"
 
   ## ECDSA Configurations
   ecdsa:
     private_key_store_path: "<home>/.eigenlayer/operator_keys/mina_bridge.batcher.ecdsa.key.json"
-    private_key_store_password: "<password_used_to_create_keystore>"
+    private_key_store_password: <password_used_to_create_keystore>
 
   ## Batcher configurations
   batcher:
@@ -300,7 +272,7 @@ You will need two Ethereum accounts: One to fund the Aligned operator (`operator
   {
     "address": {
       "batcherWallet": "<batcher_account_address>",
-      "alignedLayerServiceManager": "0x4d879A997f422FeB8AC2f3d9Dcc749e9d8d0E4a4"
+      "alignedLayerServiceManager": "<aligned_service_manager_address>"
     },
     "amounts": {
       "gasForAggregator": "300000",
@@ -326,19 +298,25 @@ You will need two Ethereum accounts: One to fund the Aligned operator (`operator
 1. Pay the batcher:
 
   ```sh
-  cast send <batcher_payment_service_address> --rpc-url https://holesky.internal.lambdaclass.com --private-key <batcher_account_private_key> --value 1ether
+  cast send <batcher_payment_service_address> --rpc-url <eth_rpc_url> --private-key <bridge_account_private_key> --value 1ether
   ```
 
 1. Deposit to batcher in the Aligned Service Manager Contract:
 
   ```sh
-  cast send 0x4d879A997f422FeB8AC2f3d9Dcc749e9d8d0E4a4 --rpc-url https://holesky.internal.lambdaclass.com --private-key <batcher_account_private_key> --value 1ether "depositToBatcher(address)" <batcher_payment_service_address>
+  cast send <aligned_service_manager_address> --rpc-url <eth_rpc_url> --private-key <bridge_account_private_key> --value 1ether "depositToBatcher(address)" <batcher_payment_service_address>
+  ```
+
+1. Setup local storage for the batcher:
+
+  ```sh
+  make run_storage
   ```
 
 1. Start the batcher:
 
   ```sh
-  cargo run --manifest-path ./batcher/aligned-batcher/Cargo.toml --release -- --config ./config-files/holesky/config-batcher.yaml --env-file ./batcher/aligned-batcher/.env
+  cargo run --manifest-path ./batcher/aligned-batcher/Cargo.toml --release -- --config ./config-files/holesky/config-batcher.yaml --env-file ./batcher/aligned-batcher/.env.dev
   ```
 
 #### Bridge environment setup
@@ -351,11 +329,11 @@ In the Mina Bridge repo, setup the `.env` file. A template is available in `.env
 
   ```sh
   BATCHER_ADDR="ws://localhost:8080"
-  BATCHER_ETH_ADDR=<batcher_payment_service>
+  BATCHER_ETH_ADDR=<batcher_payment_service_address>
   ETH_RPC_URL=<url>
   PROOF_GENERATOR_ADDR=0x66f9664f97F2b50F62D13eA064982f936dE76657
-  PRIVATE_KEY=<operator_account_private_key>
-  ALIGNED_SM_HOLESKY_ETH_ADDR=0x4d879A997f422FeB8AC2f3d9Dcc749e9d8d0E4a4
+  PRIVATE_KEY=<bridge_account_private_key>
+  ALIGNED_SM_HOLESKY_ETH_ADDR=<aligned_service_manager_address>
   ```
 
 ### Bridge a Mina account
