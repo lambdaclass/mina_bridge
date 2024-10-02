@@ -348,9 +348,7 @@ In the Mina Bridge repo, setup the `.env` file. A template is available in `.env
 
 1. Submit a Mina state proof to verify (**NOTE:** Because of the Aligned minimum batch size, you may need to submit two proofs to make Aligned Devnet verify them):
 
-    ```sh
-    make submit_state
-    ```
+    - Run `make submit_devnet_state` if you are using Mina Devnet or `make submit_mainnet_state` if you are using Mina Mainnet.
 
 1. Submit an account to verify (**NOTE:** Because of the Aligned minimum batch size, you may need to submit two proofs to make Aligned Devnet verify them):
 
