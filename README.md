@@ -19,7 +19,7 @@ The bridge leverages [Aligned Layer](https://github.com/yetanotherco/aligned_lay
 ### Mina node
 
 - If you want the Bridge to use Mina Devnet then use a node that runs a Devnet instance corresponding to the commit `599a76d` [of the Mina repo](https://github.com/MinaProtocol/mina/tree/599a76dd47be99183d2102d9eb93eda679dd46ec) or a newer one (e.g.: [this Docker image](https://console.cloud.google.com/gcr/images/o1labs-192920/GLOBAL/mina-daemon:3.0.1-compatible-599a76d-bullseye-devnet/details)). See [how to connect to Mina Devnet](https://docs.minaprotocol.com/node-operators/block-producer-node/connecting-to-devnet#docker) if you want to run an instance yourself.
-- If you want the Bridge to use Mina Mainnet use a node that runs a Mainnet instance corresponding to the commit `65c84ad` [of the Mina repo](https://github.com/MinaProtocol/mina/tree/65c84adacd55272160d9f77c31063d94a942afb6) or a newer one (e.g.: [this Docker image](https://console.cloud.google.com/gcr/images/o1labs-192920/GLOBAL/mina-daemon:65c84ada-bullseye-mainnet/details?tab=info)). See [how to connect to Mina Mainnet](https://docs.minaprotocol.com/node-operators/block-producer-node/connecting-to-the-network#docker) if you want to run an instance yourself.
+- If you want the Bridge to use Mina Mainnet use a node that runs a Mainnet instance corresponding to the commit `65c84ad` [of the Mina repo](https://github.com/MinaProtocol/mina/tree/65c84adacd55272160d9f77c31063d94a942afb6) or a newer one (e.g.: [this Docker image](http://gcr.io/o1labs-192920/mina-daemon:3.0.1-beta1-sai-query-snarked-ledger-c439ce5-bullseye-mainnet)). See [how to connect to Mina Mainnet](https://docs.minaprotocol.com/node-operators/block-producer-node/connecting-to-the-network#docker) if you want to run an instance yourself.
 
 You can bridge Mina accounts to Ethereum Devnet or Ethereum Testnet. The following subsections describe how to config the Bridge for each network.
 
@@ -38,7 +38,7 @@ Because the Bridge uses for now a forked version of Aligned, you may need to set
 
 You will need two Ethereum accounts: One to fund the Aligned operator (`operator_account_address`) and another to fund the Aligned batcher (`batcher_account_address`).
 
-1. Clone the [forked Aligned repo](https://github.com/lambdaclass/aligned_layer). Checkout to the `aligned` branch.
+1. Clone the [forked Aligned repo](https://github.com/lambdaclass/aligned_layer). Checkout to the `mina` branch.
 1. Run:
 
   ```sh
@@ -93,7 +93,7 @@ You will need two Ethereum accounts: One to fund the Aligned operator (`operator
 
 1. Deploy the contracts with `make deploy_aligned_contracts`.
 
-1. `contracts/script/output/holesky/alignedlayer_deployment_output.json` should have been updated automatically. Set the `permissions` field on that file:
+  `contracts/script/output/holesky/alignedlayer_deployment_output.json` should have been updated automatically. Set the `permissions` field on that file:
 
   ```json
   {
@@ -112,7 +112,7 @@ You will need two Ethereum accounts: One to fund the Aligned operator (`operator
       "pauserRegistry": "0x85Ef7299F8311B25642679edBF02B62FA2212F06"
     }
   }
-  ```
+ ```
 
 1. Create 3 EigenLayer keystores:
     1. Aggregator and operator ECDSA:
@@ -141,21 +141,21 @@ You will need two Ethereum accounts: One to fund the Aligned operator (`operator
   environment: "production"
   aligned_layer_deployment_config_file_path: "./contracts/script/output/holesky/alignedlayer_deployment_output.json"
   eigen_layer_deployment_config_file_path: "./contracts/script/output/holesky/eigenlayer_deployment_output.json"
-  eth_rpc_url: "https://holesky.internal.lambdaclass.com"
-  eth_rpc_url_fallback: "https://holesky.internal.lambdaclass.com"
-  eth_ws_url: "wss://ws.holesky.internal.lambdaclass.com"
-  eth_ws_url_fallback: "wss://ws.holesky.internal.lambdaclass.com"
+  eth_rpc_url: "<http_eth_rpc_url>"
+  eth_rpc_url_fallback: "<http_eth_rpc_url>"
+  eth_ws_url: "<ws_eth_rpc_url>"
+  eth_ws_url_fallback: "<ws_eth_rpc_url>"
   eigen_metrics_ip_port_address: "localhost:9090"
 
   ## ECDSA Configurations
   ecdsa:
     private_key_store_path: "<home>/.eigenlayer/operator_keys/mina_bridge.ecdsa.key.json"
-    private_key_store_password: "<password_used_to_create_keystore>"
+    private_key_store_password: <password_used_to_create_keystore>
 
   ## BLS Configurations
   bls:
     private_key_store_path: "<home>/.eigenlayer/operator_keys/mina_bridge.bls.key.json"
-    private_key_store_password: "<password_used_to_create_keystore>"
+    private_key_store_password: <password_used_to_create_keystore>
 
   ## Batcher configurations
   batcher:
@@ -201,21 +201,21 @@ You will need two Ethereum accounts: One to fund the Aligned operator (`operator
   environment: "production"
   aligned_layer_deployment_config_file_path: "./contracts/script/output/holesky/alignedlayer_deployment_output.json"
   eigen_layer_deployment_config_file_path: "./contracts/script/output/holesky/eigenlayer_deployment_output.json"
-  eth_rpc_url: "https://holesky.internal.lambdaclass.com"
-  eth_rpc_url_fallback: "https://holesky.internal.lambdaclass.com"
-  eth_ws_url: "wss://ws.holesky.internal.lambdaclass.com"
-  eth_ws_url_fallback: "wss://ws.holesky.internal.lambdaclass.com"
+  eth_rpc_url: "<http_eth_rpc_url>"
+  eth_rpc_url_fallback: "<http_eth_rpc_url>"
+  eth_ws_url: "<ws_eth_rpc_url>"
+  eth_ws_url_fallback: "<ws_eth_rpc_url>"
   eigen_metrics_ip_port_address: "localhost:9090"
 
   ## ECDSA Configurations
   ecdsa:
     private_key_store_path: "<home>/.eigenlayer/operator_keys/mina_bridge.ecdsa.key.json"
-    private_key_store_password: "<password_used_to_create_keystore>"
+    private_key_store_password: <password_used_to_create_keystore>
 
   ## BLS Configurations
   bls:
     private_key_store_path: "<home>/.eigenlayer/operator_keys/mina_bridge.bls.key.json"
-    private_key_store_password: "<password_used_to_create_keystore>"
+    private_key_store_password: <password_used_to_create_keystore>
 
   ## Aggregator Configurations
   aggregator:
@@ -229,21 +229,19 @@ You will need two Ethereum accounts: One to fund the Aligned operator (`operator
 1. Create `config-files/holesky/config-batcher.yaml` and set it to:
 
   ```yaml
-  # Common variables for all the services
-  # 'production' only prints info and above. 'development' also prints debug
   environment: "production"
   aligned_layer_deployment_config_file_path: "./contracts/script/output/holesky/alignedlayer_deployment_output.json"
   eigen_layer_deployment_config_file_path: "./contracts/script/output/holesky/eigenlayer_deployment_output.json"
-  eth_rpc_url: "https://holesky.internal.lambdaclass.com"
-  eth_rpc_url_fallback: "https://holesky.internal.lambdaclass.com"
-  eth_ws_url: "wss://ws.holesky.internal.lambdaclass.com"
-  eth_ws_url_fallback: "wss://ws.holesky.internal.lambdaclass.com"
+  eth_rpc_url: "<http_eth_rpc_url>"
+  eth_rpc_url_fallback: "<http_eth_rpc_url>"
+  eth_ws_url: "<ws_eth_rpc_url>"
+  eth_ws_url_fallback: "<ws_eth_rpc_url>"
   eigen_metrics_ip_port_address: "localhost:9090"
 
   ## ECDSA Configurations
   ecdsa:
     private_key_store_path: "<home>/.eigenlayer/operator_keys/mina_bridge.batcher.ecdsa.key.json"
-    private_key_store_password: "<password_used_to_create_keystore>"
+    private_key_store_password: <password_used_to_create_keystore>
 
   ## Batcher configurations
   batcher:
@@ -276,6 +274,8 @@ You will need two Ethereum accounts: One to fund the Aligned operator (`operator
   make operator_whitelist OPERATOR_ADDRESS=<operator_account_address>
   ```
 
+1. Deposit Strategy tokens for the operator. Follow [this section from the AlignedLayer docs](https://docs.alignedlayer.com/operators/0_running_an_operator#step-4-deposit-strategy-tokens).
+
 1. Start operator:
 
   ```sh
@@ -288,7 +288,7 @@ You will need two Ethereum accounts: One to fund the Aligned operator (`operator
   {
     "address": {
       "batcherWallet": "<batcher_account_address>",
-      "alignedLayerServiceManager": "0x4d879A997f422FeB8AC2f3d9Dcc749e9d8d0E4a4"
+      "alignedLayerServiceManager": "<aligned_service_manager_address>"
     },
     "amounts": {
       "gasForAggregator": "300000",
@@ -314,19 +314,25 @@ You will need two Ethereum accounts: One to fund the Aligned operator (`operator
 1. Pay the batcher:
 
   ```sh
-  cast send <batcher_payment_service_address> --rpc-url https://holesky.internal.lambdaclass.com --private-key <batcher_account_private_key> --value 1ether
+  cast send <batcher_payment_service_address> --rpc-url <eth_rpc_url> --private-key <bridge_account_private_key> --value 1ether
   ```
 
 1. Deposit to batcher in the Aligned Service Manager Contract:
 
   ```sh
-  cast send 0x4d879A997f422FeB8AC2f3d9Dcc749e9d8d0E4a4 --rpc-url https://holesky.internal.lambdaclass.com --private-key <batcher_account_private_key> --value 1ether "depositToBatcher(address)" <batcher_payment_service_address>
+  cast send <aligned_service_manager_address> --rpc-url <eth_rpc_url> --private-key <bridge_account_private_key> --value 1ether "depositToBatcher(address)" <batcher_payment_service_address>
+  ```
+
+1. Setup local storage for the batcher:
+
+  ```sh
+  make run_storage
   ```
 
 1. Start the batcher:
 
   ```sh
-  cargo run --manifest-path ./batcher/aligned-batcher/Cargo.toml --release -- --config ./config-files/holesky/config-batcher.yaml --env-file ./batcher/aligned-batcher/.env
+  cargo run --manifest-path ./batcher/aligned-batcher/Cargo.toml --release -- --config ./config-files/holesky/config-batcher.yaml --env-file ./batcher/aligned-batcher/.env.dev
   ```
 
 #### Bridge environment setup
@@ -339,11 +345,11 @@ In the Mina Bridge repo, setup the `.env` file. A template is available in `.env
 
   ```sh
   BATCHER_ADDR="ws://localhost:8080"
-  BATCHER_ETH_ADDR=<batcher_payment_service>
+  BATCHER_ETH_ADDR=<batcher_payment_service_address>
   ETH_RPC_URL=<url>
   PROOF_GENERATOR_ADDR=0x66f9664f97F2b50F62D13eA064982f936dE76657
-  PRIVATE_KEY=<operator_account_private_key>
-  ALIGNED_SM_HOLESKY_ETH_ADDR=0x4d879A997f422FeB8AC2f3d9Dcc749e9d8d0E4a4
+  PRIVATE_KEY=<bridge_account_private_key>
+  ALIGNED_SM_HOLESKY_ETH_ADDR=<aligned_service_manager_address>
   ```
 
 ### Bridge a Mina account
@@ -378,7 +384,7 @@ The `example/` folder contains a project that uses the Sudoku zkApp example from
 
 For running the example you need to:
 
-1. [Setup Aligned Devnet locally](https://github.com/yetanotherco/aligned_layer/blob/main/docs/guides/3_setup_aligned.md#booting-devnet-with-default-configs)
+1. [Setup Aligned Devnet locally](https://github.com/yetanotherco/aligned_layer/blob/staging/docs/3_guides/6_setup_aligned.md#booting-devnet-with-default-configs)
 1. Deploy the bridge smart contracts by executing
 
     ```sh
@@ -568,7 +574,7 @@ The first step of the verifier is to check that the public inputs correspond to 
 
 The second step of the verifier is to execute consensus checks, specific to the [Ouroboros Samasika consensus mechanism](https://github.com/MinaProtocol/mina/blob/develop/docs/specs/consensus/README.md) that the Mina Protocol uses. The checks are comparisons of state data between the candidate tip state and the bridge tip state.
 
-There are two general rules that implement a set of checks each: a rule for short-range forks, and another for long-range forks. The implementation can be found in the [aligned_layer repo: operator/mina/lib/src/consensus_state.rs](https://github.com/lambdaclass/aligned_layer/blob/consensus_state_input_checks/operator/mina/lib/src/consensus_state.rs) file. The implementation was based on the official [Mina Protocol consensus documentation](https://github.com/MinaProtocol/mina/blob/develop/docs/specs/consensus/README.md).
+There are two general rules that implement a set of checks each: a rule for short-range forks, and another for long-range forks. The implementation can be found in the [aligned_layer repo: operator/mina/lib/src/consensus_state.rs](https://github.com/lambdaclass/aligned_layer/blob/mina/operator/mina/lib/src/consensus_state.rs) file. The implementation was based on the official [Mina Protocol consensus documentation](https://github.com/MinaProtocol/mina/blob/develop/docs/specs/consensus/README.md).
 
 ### Transition frontier
 
@@ -760,7 +766,9 @@ The two curves pallas and vesta (pa(llas ve)sta) created by the [Zcash team](htt
 These curves are referred to as “tick” and “tock” within the Mina source code.
 
 - Tick - Vesta (a.k.a. Step), constraint domain size 2¹⁸  [block and transaction proofs]
-- Tock - Pallas (a.k.a. Wrap), constraint domain size 2¹²  [signatures]
+- Tock - Pallas (a.k.a. Wrap), constraint domain size 2¹⁷  [signatures]
+
+See [the Pickles section of the Mina book](https://o1-labs.github.io/proof-systems/specs/pickles.html) for more details.
 
 The Tock prover does less (only performs recursive verifications and
 no other logic), so it requires fewer constraints and has a smaller
