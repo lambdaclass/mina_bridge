@@ -17,6 +17,8 @@ struct Cli {
 #[derive(Subcommand)]
 enum Command {
     SubmitState {
+        #[arg(short, long)]
+        devnet: bool,
         /// Write the proof into .proof and .pub files
         #[arg(short, long)]
         save_proof: bool,
@@ -41,6 +43,8 @@ async fn main() {
     let EnvironmentVariables {
         rpc_url,
         chain,
+        state_settlement_addr,
+        account_validation_addr,
         batcher_addr,
         batcher_eth_addr,
         eth_rpc_url,
@@ -52,6 +56,15 @@ async fn main() {
         process::exit(1);
     });
 
+    let state_settlement_addr = state_settlement_addr.unwrap_or_else(|| {
+        error!("Error getting State settlement contract address");
+        process::exit(1);
+    });
+    let account_validation_addr = account_validation_addr.unwrap_or_else(|| {
+        error!("Error getting Account validation contract address");
+        process::exit(1);
+    });
+
     let wallet = get_wallet(&chain, keystore_path.as_deref(), private_key.as_deref())
         .unwrap_or_else(|err| {
             error!("{}", err);
@@ -59,13 +72,18 @@ async fn main() {
         });
 
     match cli.command {
-        Command::SubmitState { save_proof } => {
-            let (proof, pub_input) = mina::get_mina_proof_of_state(&rpc_url, &chain, &eth_rpc_url)
-                .await
-                .unwrap_or_else(|err| {
-                    error!("{}", err);
-                    process::exit(1);
-                });
+        Command::SubmitState { devnet, save_proof } => {
+            let (proof, pub_input) = mina::get_mina_proof_of_state(
+                &rpc_url,
+                &eth_rpc_url,
+                &state_settlement_addr,
+                devnet,
+            )
+            .await
+            .unwrap_or_else(|err| {
+                error!("{}", err);
+                process::exit(1);
+            });
 
             let verification_data = aligned::submit(
                 MinaProof::State((proof, pub_input.clone())),
@@ -89,6 +107,7 @@ async fn main() {
                 &chain,
                 &eth_rpc_url,
                 wallet,
+                &state_settlement_addr,
                 &batcher_eth_addr,
             )
             .await
@@ -129,8 +148,8 @@ async fn main() {
             if let Err(err) = eth::validate_account(
                 verification_data,
                 &pub_input,
-                &chain,
                 &eth_rpc_url,
+                &account_validation_addr,
                 &batcher_eth_addr,
             )
             .await

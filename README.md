@@ -25,7 +25,7 @@ You can bridge Mina accounts to Ethereum Devnet or Ethereum Testnet. The followi
 
 #### Ethereum Devnet
 
-1. [Setup Aligned Devnet locally](https://github.com/yetanotherco/aligned_layer/blob/main/docs/guides/3_setup_aligned.md#booting-devnet-with-default-configs)
+1. [Setup Aligned Devnet locally](https://github.com/yetanotherco/aligned_layer/blob/staging/docs/3_guides/6_setup_aligned.md#booting-devnet-with-default-configs)
 1. Setup the `.env` file of the Bridge. A template is available in `.env.template`.
     1. Set `ETH_CHAIN` to `devnet`.
     1. Set `MINA_RPC_URL` to the URL of the Mina node GraphQL API (See [Mina node section](#mina-node)).
@@ -368,7 +368,7 @@ The `example/` folder contains a project that uses the Sudoku zkApp example from
 
 For running the example you need to:
 
-1. [Setup Aligned Devnet locally](https://github.com/yetanotherco/aligned_layer/blob/main/docs/guides/3_setup_aligned.md#booting-devnet-with-default-configs)
+1. [Setup Aligned Devnet locally](https://github.com/yetanotherco/aligned_layer/blob/staging/docs/3_guides/6_setup_aligned.md#booting-devnet-with-default-configs)
 1. Deploy the bridge smart contracts by executing
 
     ```sh
@@ -558,7 +558,7 @@ The first step of the verifier is to check that the public inputs correspond to 
 
 The second step of the verifier is to execute consensus checks, specific to the [Ouroboros Samasika consensus mechanism](https://github.com/MinaProtocol/mina/blob/develop/docs/specs/consensus/README.md) that the Mina Protocol uses. The checks are comparisons of state data between the candidate tip state and the bridge tip state.
 
-There are two general rules that implement a set of checks each: a rule for short-range forks, and another for long-range forks. The implementation can be found in the [aligned_layer repo: operator/mina/lib/src/consensus_state.rs](https://github.com/lambdaclass/aligned_layer/blob/consensus_state_input_checks/operator/mina/lib/src/consensus_state.rs) file. The implementation was based on the official [Mina Protocol consensus documentation](https://github.com/MinaProtocol/mina/blob/develop/docs/specs/consensus/README.md).
+There are two general rules that implement a set of checks each: a rule for short-range forks, and another for long-range forks. The implementation can be found in the [aligned_layer repo: operator/mina/lib/src/consensus_state.rs](https://github.com/lambdaclass/aligned_layer/blob/mina/operator/mina/lib/src/consensus_state.rs) file. The implementation was based on the official [Mina Protocol consensus documentation](https://github.com/MinaProtocol/mina/blob/develop/docs/specs/consensus/README.md).
 
 ### Transition frontier
 
@@ -750,7 +750,9 @@ The two curves pallas and vesta (pa(llas ve)sta) created by the [Zcash team](htt
 These curves are referred to as “tick” and “tock” within the Mina source code.
 
 - Tick - Vesta (a.k.a. Step), constraint domain size 2¹⁸  [block and transaction proofs]
-- Tock - Pallas (a.k.a. Wrap), constraint domain size 2¹²  [signatures]
+- Tock - Pallas (a.k.a. Wrap), constraint domain size 2¹⁷  [signatures]
+
+See [the Pickles section of the Mina book](https://o1-labs.github.io/proof-systems/specs/pickles.html) for more details.
 
 The Tock prover does less (only performs recursive verifications and
 no other logic), so it requires fewer constraints and has a smaller
