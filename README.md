@@ -63,8 +63,9 @@ The bridge leverages [Aligned Layer](https://github.com/yetanotherco/aligned_lay
 
 This repo includes utilities for the Mina Bridge that facilitate:
 
-- Interacting with a Mina node to fetch state proofs and account states.
+- Interacting with a Mina node to fetch states, accounts and their proofs.
 - Sending proofs to the Mina verifiers in Aligned.
+- Interacting with the Bridge's example smart contracts on Ethereum.
 
 This repo also includes example contracts that show how to interact with Aligned to check that a Mina state proof is valid or a Mina account state is included in the Mina Ledger.
 
