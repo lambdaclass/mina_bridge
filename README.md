@@ -462,15 +462,15 @@ For running the example you need to:
 
 ![Example diagram](/img/example_diagram.png)
 
-# Specification
+## Specification
 
-## core
+### core
 
 [mina_bridge repo: core/](https://github.com/lambdaclass/mina_bridge/tree/aligned/core)
 
 A Rust library+binary project that includes the next modules:
 
-### mina
+#### mina
 
 [mina_bridge repo: core/src/mina.rs](https://github.com/lambdaclass/mina_bridge/tree/aligned/core/src/mina.rs)
 
@@ -479,7 +479,7 @@ This module can query a Mina node (defined by the user via the `MINA_RPC_URL` en
 - state data and state proof
 - account data and its Merkle proof of inclusion in some snarked ledger (which itself is contained in state data, so by verifying a state you are verifying its snarked ledger).
 
-### aligned
+#### aligned
 
 [mina_bridge repo: core/src/aligned.rs](https://github.com/lambdaclass/mina_bridge/tree/aligned/core/src/aligned.rs)
 
@@ -487,21 +487,21 @@ This module implements functions for sending the Mina Proof of State or Account 
 
 The verification data sent by Aligned is returned after proof submission. This is used for updating the verified chain in the State Settlement contract.
 
-### eth
+#### eth
 
 [mina_bridge repo: core/src/eth.rs](https://github.com/lambdaclass/mina_bridge/tree/aligned/core/src/eth.rs)
 
 Implements functions for interacting with the example bridge’s smart contracts on Ethereum (getters for storage variables, update the verified state chain, validate an account). Also includes code for deploying both contracts.
 
-### sdk
+#### sdk
 
 [mina_bridge repo: core/src/sdk.rs](https://github.com/lambdaclass/mina_bridge/tree/aligned/core/src/sdk.rs)
 
 Abstracts the previous modules to provide an easy way to verify states or accounts, and to retrieve storage data from the State Settlement contract.
 
-## Mina Proof of State
+### Mina Proof of State
 
-### Definition
+#### Definition
 
 We understand a Mina Proof of State to be composed of:
 
@@ -541,17 +541,17 @@ bridge_tip_state,
 ]
 ```
 
-### Serialization
+#### Serialization
 
 We use **bincode** for serializing the data into bytes, which will then be deserialized by Aligned operators. Because the public inputs also need to be deserialized in Solidity, the module defines a `SolSerialize` struct that implements traits for serializing specific types into a Solidity-friendly format (the goal is to be able to serialize the types the same way they’re represented in the EVM and move them from calldata to memory via single Yul instructions).
 
-### Aligned’s Mina Proof of State verifier
+#### Aligned’s Mina Proof of State verifier
 
 [aligned_layer repo: operator/mina/](https://github.com/lambdaclass/aligned_layer/tree/mina/operator/mina)
 
 Aligned Layer integrated a verifier in its operator code for verifying Mina Proofs of State.
 
-### Public input checking
+#### Public input checking
 
 The first step of the verifier is to check that the public inputs correspond to the proof data. This is:
 
@@ -560,13 +560,13 @@ The first step of the verifier is to check that the public inputs correspond to 
 - that the chain ledger hashes are the hashes of the ledgers (stored in the states) in the proof
 - that the states form a chain (by hashing together the **state hash** of a state `n` and the **state body hash** of state `n+1`, we retrieve the **state hash** of the state `n+1`, so the states form a chain if we can hash from the root all the way until arriving to the tip state hash.
 
-### Consensus checking
+#### Consensus checking
 
 The second step of the verifier is to execute consensus checks, specific to the [Ouroboros Samasika consensus mechanism](https://github.com/MinaProtocol/mina/blob/develop/docs/specs/consensus/README.md) that the Mina Protocol uses. The checks are comparisons of state data between the candidate tip state and the bridge tip state.
 
 There are two general rules that implement a set of checks each: a rule for short-range forks, and another for long-range forks. The implementation can be found in the [aligned_layer repo: operator/mina/lib/src/consensus_state.rs](https://github.com/lambdaclass/aligned_layer/blob/mina/operator/mina/lib/src/consensus_state.rs) file. The implementation was based on the official [Mina Protocol consensus documentation](https://github.com/MinaProtocol/mina/blob/develop/docs/specs/consensus/README.md).
 
-### Transition frontier
+#### Transition frontier
 
 The **transition frontier** is a chain of the latest `k` blocks of the network. The GraphQL DB of a Mina node only stores these blocks and forgets the previous ones. Currently, `k = 291`
 
@@ -576,7 +576,7 @@ We can define that a block is **partially finalized** if it has `n` blocks ahead
 
 A block is **finalized** when there’s `k - 1` blocks ahead of it., meaning that it’s the first block of the transition frontier, also called the **root block**. The latest block of the transition frontier is called the **tip**.
 
-### Pickles verification
+#### Pickles verification
 
 This is the last step of the Mina Proof of State verifier. We are leveraging OpenMina’s “block verifier” to verify the Pickles proof of the candidate tip state. The verifier takes as public input the hash of the state.
 
@@ -585,7 +585,7 @@ After validating the candidate tip state, because in a previous step we verified
 > [!WARNING]
 > OpenMina’s block verifier is yet to be audited.
 
-## Mina Proof of Account
+### Mina Proof of Account
 
 After a Mina Proof of State was verified, it’s possible to verify a Proof of Account of some Mina account in the verified state.
 
@@ -593,7 +593,7 @@ Verifying that some account and its state is valid in a bridged Mina state is on
 
 Account verification (paired with state verification) essentially allows to verify off-chain computation on Ethereum, after it has been validated by Mina.
 
-### Definition
+#### Definition
 
 We understand a Mina Proof of Account to be composed of:
 
@@ -624,17 +624,17 @@ The account is included in the proof to:
 - compare it with the Solidity-friendly `encoded_account` in the public inputs
 - hash it to retrieve the leaf hash of the Merkle tree to verify
 
-### Serialization
+#### Serialization
 
 We use **bincode** for serializing the data into bytes, which will then be deserialized by Aligned operators. Because the public inputs also need to be deserialized in Solidity, the module defines a `SolSerialize` struct that implements traits for serializing specific types into a Solidity-friendly format (the goal is to be able to serialize the types the same way they’re represented in the EVM and move them from calldata to memory via single Yul instructions).
 
-### Aligned’s Proof of Account verification
+#### Aligned’s Proof of Account verification
 
 [aligned_layer repo: operator/mina_account/](https://github.com/lambdaclass/aligned_layer/tree/mina/operator/mina_account)
 
 The verification consists in calculating the merkle root by hashing the branch (whose nodes are contained in the `merkle_path`) corresponding to the account’s leaf, and comparing the root with the snarked ledger hash included in the public inputs.
 
-## Mina State Settlement contract
+### Mina State Settlement contract
 
 [mina_bridge repo: contract/src/MinaStateSettlement.sol](https://github.com/lambdaclass/mina_bridge/tree/aligned/contract/src/MinaStateSettlement.sol)
 
@@ -644,11 +644,11 @@ Any user can submit a Mina Proof of State to Aligned and then provide the contra
 
 The contract is deployed by a `contract_deployer` crate with an initial state that is assumed to be valid. The default is to use a relatively finalized state (the sixteenth one) from the Mina node chosen to execute the query to.
 
-### Gas cost
+#### Gas cost
 
 - Currently the cost of the “update chain” transaction is ~220k.
 
-## Mina Account Validation contract
+### Mina Account Validation contract
 
 [mina_bridge repo: contract/src/MinaAccountValidation.sol](https://github.com/lambdaclass/mina_bridge/tree/aligned/contract/src/MinaAccountValidation.sol)
 
@@ -658,11 +658,11 @@ Any user can submit a Mina Proof of Account to Aligned and then provide the cont
 
 The contract is deployed by a `contract_deployer` crate.
 
-### Gas cost
+#### Gas cost
 
 - The cost of the “update account” transaction is ~80k.
 
-# Kimchi proving system
+## Kimchi proving system
 
 Kimchi is a zero-knowledge proof system that’s a variant of PLONK.
 
@@ -679,9 +679,9 @@ Another enhancement in Kimchi involves the incorporation of lookups for performa
 
 In the beginning, Kimchi relies on an interactive protocol, which undergoes a conversion into a non-interactive form through the Fiat-Shamir transform.
 
-## Proof Construction & Verification
+### Proof Construction & Verification
 
-### Secuence diagram linked to ``proof-systems/kimchi/src/verifier.rs``
+#### Secuence diagram linked to ``proof-systems/kimchi/src/verifier.rs``
 
 ![Commitments to secret polynomials](/img/commitments_to_secret_poly.png)
 
@@ -747,7 +747,7 @@ Links to the associated code.
 
 [polynomials that have an evaluation proof](https://github.com/o1-labs/proof-systems/blob/17041948eb2742244464d6749560a304213f4198/kimchi/src/verifier.rs#L346)
 
-## Pickles - Mina’s inductive zk-SNARK composition system
+### Pickles - Mina’s inductive zk-SNARK composition system
 
 Pickles uses a pair of amicable curves called [Pasta](https://o1-labs.github.io/proof-systems/specs/pasta.html) in order to deliver incremental verifiable computation efficiently.
 
@@ -804,7 +804,7 @@ Both [Step and Wrap circuits](https://o1-labs.github.io/proof-systems/pickles/ov
 
 ---
 
-### Accumulator
+#### Accumulator
 
 The accumulator is an abstraction introduced for the purpose of this diagram. In practice, each kimchi proof consists of (1) commitments to polynomials, (2) evaluations of them, (3) and the opening proof.
 
@@ -816,7 +816,7 @@ In pickles, what we do is that we “absorb” this commitment `sg` from the p
 
 That is, for example, Step 1 will produce this commitment that is denoted as `acc1` on the diagram, as part of its opening proof, and Step 2 will absorb this commitment. And this “absorbtion” is what Wrap 2 will prove (and, partially, Step 3 will also refer to the challenges used to build `acc1`, but this detail is completely avoided in this overview). In the end, `acc2` will be the result of Step 2, so in a way `acc2` “aggregates” `acc1` which somewhat justifies the language used.
 
-### Analysis of the Induction (recursion) method applied in Pickles
+#### Analysis of the Induction (recursion) method applied in Pickles
 
 The **Verifier** is divided into 2 modules, one part **Slow** and one part **Fast**.
 
@@ -865,7 +865,7 @@ Let's now see how the Verifier Fast is divided.
 
 The proof **Pi** is divided into 2 parts, one corresponding to group operations **G**, and it exposes, as a public input to the circuit, the part of the proof that is necessary to execute **Vf**.
 
-### Pickles Technical Diagrams
+#### Pickles Technical Diagrams
 
   The black boxes are data structures that have names and labels following the implementation.  
   `MFNStep/MFNWrap` is an abbreviation from `MessagesForNextStep` and `MessagesForNextWrap` that is used for brevity. Most other datatypes are exactly the same as in the codebase.  
@@ -876,7 +876,7 @@ The proof **Pi** is divided into 2 parts, one corresponding to group operations 
 
 ![Figure](/img/pickles_structure_drawio.png)
 
-## Consensus
+### Consensus
 
 Mina employs [Ouroboros Samasika](https://eprint.iacr.org/2020/352.pdf) as its consensus mechanism, which will be subsequently denoted as Samasika.
 Three essential commitments provided include:
@@ -889,21 +889,21 @@ Joseph Bonneau, Izaak Meckler, Vanishree Rao, and Evan Shapiro collaborated to c
 The complexity of fully verifying the entire blockchain is independent of chain length.  
 Samasika takes its name from the Sanskrit term, meaning small or succinct.
 
-### Chain selection rules
+#### Chain selection rules
 
 Samasika uses two consensus rules: one for _short-range forks_ and one for _long-range forks_.
 
-#### Short-range fork rule
+##### Short-range fork rule
 
 This rule is triggered whenever the fork is such that the adversary has not yet had the opportunity to mutate the block density distribution.  
 A fork is considered short-range if it took place within the last **m** blocks. The straightforward implementation of this rule involves consistently storing the most recent **m** blocks. Yet, in the context of a succinct blockchain, this is considered not desirable. Mina Samasika follows a methodology that necessitates information about only two blocks, the concept involves a decentralized checkpointing algorithm.
 
-#### Long-range fork rule
+##### Long-range fork rule
 
 When a malicious actor generates an long-range fork, it gradually distorts the leader selection distribution, resulting in a longer adversarial chain. At the start, the dishonest chain will have a reduced density, but eventually, the adversary will work to elevate it. Therefore, the only factor we can depend on is the variation in density in the initial slots after the fork, which is known as the _critical window_.  
 The reasoning is that the critical window of the honest chain is very likely to have a higher density because this chain has the most stake
 
-### Decentralized checkpointing
+#### Decentralized checkpointing
 
 Samasika employs decentralized checkpointing to discern the nature of a fork, categorizing it as either short-range or long-range.
 
@@ -917,17 +917,17 @@ Remember, a fork is categorized as short-range if either:
 
 As Mina prioritizes succinctness, it implies the need to maintain checkpoints for both the current and the previous epoch.
 
-### Short-range fork check
+#### Short-range fork check
 
 Keep in mind that short-range forks occur when the fork point occurs after the lock_checkpoint of the previous epoch; otherwise, it qualifies as a long-range fork.  
 The position of the previous epoch is a measurement relative to a block's perspective. In cases where candidate blocks belong to distinct epochs, each will possess distinct current and previous epoch values.  
 Alternatively, if the blocks belong to the same epoch, they will both reference the identical previous epoch. Thus we can simply check whether the blocks have the same lock_checkpoint in their previous epoch data.
 
-### Sliding window density
+#### Sliding window density
 
 Let describe Mina's succinct sliding window density algorithm used by the long-range fork rule. In detail how windows are represented in blocks and how to compute _minimum window density_
 
-#### Nomenclature
+##### Nomenclature
 
 - We say a slot is _filled_ if it contains a valid non-orphaned block.
 - An _w-window_ is a sequential list of slots s1,...,sw of length _w_.
@@ -944,13 +944,13 @@ The density of a window is computed as the sum of the densities of its sub-windo
 
 Given a window ``W`` that is a list of sub-window densities, the window density is: ``density(W) = sum(W)``
 
-#### Window structure
+##### Window structure
 
 We use the phrase "window at sub-window _s_" to refer to the window _W_ whose most recent global sub-window is _s_.  
 In the Samasika paper the window structure actually consists of the **11 previous sub-window densities**, the **current sub-window density** and the **minimum window density** .A total of _13_ densities.  
 The most recent sub-window may be a previous sub-window or the current sub-window.  
 
-#### Minimum window density
+##### Minimum window density
 
 The **minimum window density** at a given slot is defined as the minimum window density observed over all previous sub-windows and previous windows, all the way back to genesis.  
 When a new block _B_ with parent _P_ is created, the minimum window density is computed like this.  
@@ -959,13 +959,13 @@ where ``current_window_density`` is the density of _B's_ projected window
 
 The relative sub-window _i_ of a sub-window _sw_ is its index within the window.
 
-#### Ring-shift
+##### Ring-shift
 
 When we shift a window ``[d0, d1, ..., d10]`` in order to add in a new sub-window ``d11``, we could evict the oldest sub-window d0 by shifting down all of the other sub-windows. Unfortunately, shifting a list in a SNARK circuit is very expensive.  
 It is more efficient (and also equivalent) to just replace the sub-window we wish to evict by overwriting it with the new sub-window, like this:
  ``sub_window_densities: d11 | d1 | d2 | d3 | d4 | d5 | d6 | d7 | d8 | d9 | d10``
 
-#### Projected window
+##### Projected window
 
 Generating a new block and determining the optimal chain in accordance with the long-range fork rule involve the computation of a projected window.  
 Given a window _W_ and a future global slot _next_, the projected window of _W_ to slot _next_ is a transformation of _W_ into what it would look like if it were positioned at slot _next_.  
@@ -992,11 +992,11 @@ We can derive some instructive cases from the general rule
 
 ![consensus03](/img/consensus03.png)
 
-##### Genesis window
+###### Genesis window
 
 Anything related to Genesis windows is not involved in the Mina Bridge.
 
-##### Relative minimum window density
+###### Relative minimum window density
 
 When Mina engages "chain selection" in the long-range fork rule, It doesn't directly employ the minimum window densities found in  in the current and candidate blocks.  
 Rather than that, Mina opts for the relative minimum window density...
@@ -1007,20 +1007,20 @@ The calculation of the minimum window density does not take into account the rel
 Within Samasika, time is encapsulated and safeguarded by the notions of slots and the VRF. When computing the minimum window density, it is imperative to factor in these elements as well.  
 The relative minimum window density solves this problem by projecting the joining peer's current block's window to the global slot of the candidate block.  
 
-## Protocol
+### Protocol
 
 This section outlines the consensus protocol in terms of events. **Initialize consensus** and **Select chain**.
 
 In the following description, dot notation is used to refer to the local data members of peers. For example, given peer P, we use P.genesis_block and P.tip, to refer to the genesis block and currently selected chain, respectively.  
 For example, given peer ``P``, we use ``P.genesis_block`` and ``P.tip``, to refer to the genesis block and currently selected chain, respectively.
 
-### Initialize consensus
+#### Initialize consensus
 
 Things a peer MUST do to initialize consensus includes are _Load the genesis block_, _Get the tip_, _Bootstrap_ and _Catchup_  
 Bootstrapping consensus requires the ability to synchronize epoch ledgers from the network.  
 All peers MUST have the ability to load both the staking epoch ledger and next epoch ledger from disk and by downloading them. P2P peers MUST also make these ledgers available for other peers.  
 
-### Select chain
+#### Select chain
 
 Each time a peer's chains receive an update, the select chain event takes place.  
 A chain is said to be updated anytime a valid block is added or removed from its head. The chain selection algorithm also incorporates certain tiebreak logic.  
@@ -1038,14 +1038,14 @@ And the ``selectLongerChain`` algorithm:
 
 ![consensus08](/img/consensus08.png)
 
-### Maintaining the k-th predecessor epoch ledger
+#### Maintaining the k-th predecessor epoch ledger
 
 The staking and next epoch ledgers MUST be finalized ledgers and can only advance when there is sufficient depth to achieve finality.  
 The staking and next epoch ledgers must be in a finalized state and can progress only when there is enough depth to ensure finality. Peers are required to retain the epoch ledger of the k-th predecessor from the tip, where ``k`` represents the depth of finality.  
 Due to the security prerequisites of Ouroboros, the gap in slots between the staking and next epoch ledgers may be great. Consequently, at any given moment, we essentially have three "pointers": staking ``s``, next ``n``, and finality ``k``.  
 The ``final_ledger`` (epoch ledger of the k-th predecessor from the tip) is updated each time chain selection occurs, i.e., for every new tip block appended.  
 
-### Getting the tip
+#### Getting the tip
 
 For a joining peer to discover the head of the current chain it MUST not only obtain the tip, but also the min(k, tip.height - 1)-th block back from the tip. For the latter the peer MUST check the block's proof of finality.  
 Peers perform the proof of finality check by verifying two zero-knowledge proofs, one for the _tip_ and one for the _root_, and a Merkle proof for the chain of protocol state hashes between them.
