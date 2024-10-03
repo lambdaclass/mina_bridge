@@ -75,7 +75,7 @@ async fn main() {
             error!("Error getting Sudoku vality contract address");
             process::exit(1);
         }),
-        _ => todo!()
+        _ => todo!(),
     };
 
     let wallet_alloy =
@@ -202,7 +202,6 @@ async fn main() {
             });
 
             debug!("Creating contract instance");
-<<<<<<< HEAD
             let sudoku_address = match chain {
                 Chain::Devnet => SUDOKU_VALIDITY_DEVNET_ADDRESS,
                 Chain::Holesky => {
@@ -213,8 +212,7 @@ async fn main() {
                 }
                 _ => todo!(),
             };
-=======
->>>>>>> aligned
+
             let contract =
                 SudokuValidity::new(Address::from_str(&sudoku_address).unwrap(), provider);
 
