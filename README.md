@@ -346,7 +346,7 @@ In the Mina Bridge repo, setup the `.env` file. A template is available in `.env
 
 ### Bridge a Mina account
 
-1. In the root folder, deploy the Bridge's contracts with:
+1. In the root folder, deploy the example Bridge's contracts with:
 
     ```sh
     make deploy_contract
@@ -375,7 +375,7 @@ The `example/` folder contains a project that uses the Sudoku zkApp example from
 For running the example you need to:
 
 1. [Setup Aligned Devnet locally](https://github.com/yetanotherco/aligned_layer/blob/staging/docs/3_guides/6_setup_aligned.md#booting-devnet-with-default-configs)
-1. Deploy the bridge smart contracts by executing
+1. Deploy the example bridge smart contracts by executing
 
     ```sh
     make deploy_contract
@@ -491,7 +491,7 @@ The verification data sent by Aligned is returned after proof submission. This i
 
 [mina_bridge repo: core/src/eth.rs](https://github.com/lambdaclass/mina_bridge/tree/aligned/core/src/eth.rs)
 
-Implements functions for interacting with the bridge’s smart contracts on Ethereum (getters for storage variables, update the verified state chain, validate an account). Also includes code for deploying both contracts.
+Implements functions for interacting with the example bridge’s smart contracts on Ethereum (getters for storage variables, update the verified state chain, validate an account). Also includes code for deploying both contracts.
 
 ### sdk
 
