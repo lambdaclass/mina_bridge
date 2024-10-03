@@ -1,6 +1,4 @@
-<div align="center">
-
-# mina_bridge 🌉
+# Mina Bridge
 
 ## Zero-knowledge state bridge from Mina to Ethereum
 
@@ -11,6 +9,16 @@
 This project introduces the verification of [Mina Protocol](https://minaprotocol.com/) states and accounts in Ethereum, which will serve as a foundation for applications and infrastructure that take advantage of bridged blockchain and zkApp state.
 
 The bridge leverages [Aligned Layer](https://github.com/yetanotherco/aligned_layer) to verify Mina Proofs of State and Mina Proofs of Account in Ethereum.
+
+This repo includes utilities for the Mina Bridge that facilitate:
+
+- Interacting with a Mina node to fetch state proofs and account states.
+- Sending proofs to the Mina verifiers in Aligned.
+
+This repo also includes example contracts that show how to interact with Aligned to check that a Mina state proof is valid or a Mina account state is included in the Mina Ledger.
+
+> [!WARNING]
+> The contracts included in this repo are only included as examples. Do not use them in production.
 
 ## Usage
 
