@@ -15,10 +15,7 @@ use serde_with::serde_as;
 use crate::{
     proof::{account_proof::MinaAccountPubInputs, state_proof::MinaStatePubInputs},
     sol::serialization::SolSerialize,
-    utils::{
-        constants::{ANVIL_CHAIN_ID, BRIDGE_TRANSITION_FRONTIER_LEN, HOLESKY_CHAIN_ID},
-        contract::{get_account_validation_contract_addr, get_bridge_contract_addr},
-    },
+    utils::constants::{ANVIL_CHAIN_ID, BRIDGE_TRANSITION_FRONTIER_LEN, HOLESKY_CHAIN_ID},
 };
 
 abigen!(
@@ -97,10 +94,10 @@ pub async fn update_chain(
     chain: &Chain,
     eth_rpc_url: &str,
     wallet: Wallet<SigningKey>,
+    contract_addr: &str,
     batcher_payment_service: &str,
 ) -> Result<(), String> {
-    let bridge_eth_addr =
-        Address::from_str(&get_bridge_contract_addr(chain)?).map_err(|err| err.to_string())?;
+    let bridge_eth_addr = Address::from_str(contract_addr).map_err(|err| err.to_string())?;
 
     let serialized_pub_input = bincode::serialize(pub_input)
         .map_err(|err| format!("Failed to serialize public inputs: {err}"))?;
@@ -173,7 +170,7 @@ pub async fn update_chain(
 
     // TODO(xqft): do the same for ledger hashes
     debug!("Getting chain state hashes");
-    let new_chain_state_hashes = get_bridge_chain_state_hashes(chain, eth_rpc_url)
+    let new_chain_state_hashes = get_bridge_chain_state_hashes(contract_addr, eth_rpc_url)
         .await
         .map_err(|err| err.to_string())?;
 
@@ -190,9 +187,11 @@ pub async fn update_chain(
     Ok(())
 }
 
-pub async fn get_bridge_tip_hash(chain: &Chain, eth_rpc_url: &str) -> Result<SolStateHash, String> {
-    let bridge_eth_addr =
-        Address::from_str(&get_bridge_contract_addr(chain)?).map_err(|err| err.to_string())?;
+pub async fn get_bridge_tip_hash(
+    contract_addr: &str,
+    eth_rpc_url: &str,
+) -> Result<SolStateHash, String> {
+    let bridge_eth_addr = Address::from_str(contract_addr).map_err(|err| err.to_string())?;
 
     debug!("Creating contract instance");
     let mina_bridge_contract = mina_bridge_contract_call_only(eth_rpc_url, bridge_eth_addr)?;
@@ -210,11 +209,10 @@ pub async fn get_bridge_tip_hash(chain: &Chain, eth_rpc_url: &str) -> Result<Sol
 }
 
 pub async fn get_bridge_chain_state_hashes(
-    chain: &Chain,
+    contract_addr: &str,
     eth_rpc_url: &str,
 ) -> Result<[StateHash; BRIDGE_TRANSITION_FRONTIER_LEN], String> {
-    let bridge_eth_addr =
-        Address::from_str(&get_bridge_contract_addr(chain)?).map_err(|err| err.to_string())?;
+    let bridge_eth_addr = Address::from_str(contract_addr).map_err(|err| err.to_string())?;
 
     debug!("Creating contract instance");
     let mina_bridge_contract = mina_bridge_contract_call_only(eth_rpc_url, bridge_eth_addr)?;
@@ -243,12 +241,11 @@ pub async fn get_bridge_chain_state_hashes(
 pub async fn validate_account(
     verification_data: AlignedVerificationData,
     pub_input: &MinaAccountPubInputs,
-    chain: &Chain,
     eth_rpc_url: &str,
+    contract_addr: &str,
     batcher_payment_service: &str,
 ) -> Result<(), String> {
-    let bridge_eth_addr = Address::from_str(&get_account_validation_contract_addr(chain)?)
-        .map_err(|err| err.to_string())?;
+    let bridge_eth_addr = Address::from_str(contract_addr).map_err(|err| err.to_string())?;
 
     debug!("Creating contract instance");
 
@@ -308,8 +305,9 @@ pub async fn validate_account(
 
 pub async fn deploy_mina_bridge_contract(
     eth_rpc_url: &str,
-    constructor_args: MinaStateSettlementConstructorArgs,
+    constructor_args: &MinaStateSettlementConstructorArgs,
     wallet: &EthereumWallet,
+    is_state_proof_from_devnet: bool,
 ) -> Result<alloy::primitives::Address, String> {
     let provider = ProviderBuilder::new()
         .with_recommended_fillers()
@@ -320,14 +318,29 @@ pub async fn deploy_mina_bridge_contract(
         aligned_service_addr,
         root_state_hash,
     } = constructor_args;
-    let contract = MinaStateSettlement::deploy(&provider, aligned_service_addr, root_state_hash)
-        .await
-        .map_err(|err| err.to_string())?;
+    let contract = MinaStateSettlement::deploy(
+        &provider,
+        *aligned_service_addr,
+        *root_state_hash,
+        is_state_proof_from_devnet,
+    )
+    .await
+    .map_err(|err| err.to_string())?;
     let address = contract.address();
 
+    let network = if is_state_proof_from_devnet {
+        "Devnet"
+    } else {
+        "Mainnet"
+    };
+
     info!(
-        "Mina Bridge contract successfuly deployed with address {}",
-        address
+        "Mina {} Bridge contract successfuly deployed with address {}",
+        network, address
+    );
+    info!(
+        "Set STATE_SETTLEMENT_ETH_ADDR={} if using Mina {}",
+        address, network
     );
 
     Ok(*address)
@@ -355,6 +368,7 @@ pub async fn deploy_mina_account_validation_contract(
         "Mina Account Validation contract successfuly deployed with address {}",
         address
     );
+    info!("Set ACCOUNT_VALIDATION_ETH_ADDR={}", address);
 
     Ok(*address)
 }

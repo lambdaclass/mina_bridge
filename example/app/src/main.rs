@@ -11,11 +11,7 @@ use mina_bridge_core::{
         get_bridged_chain_tip_state_hash, update_bridge_chain, validate_account,
         AccountVerificationData,
     },
-    utils::{
-        contract::{get_account_validation_contract_addr, get_bridge_contract_addr},
-        env::EnvironmentVariables,
-        wallet, wallet_alloy,
-    },
+    utils::{env::EnvironmentVariables, wallet, wallet_alloy},
 };
 use std::{process, str::FromStr, time::SystemTime};
 
@@ -51,6 +47,8 @@ async fn main() {
     let EnvironmentVariables {
         rpc_url,
         chain,
+        state_settlement_addr,
+        account_validation_addr,
         batcher_addr,
         batcher_eth_addr,
         eth_rpc_url,
@@ -61,6 +59,24 @@ async fn main() {
         error!("{}", err);
         process::exit(1);
     });
+
+    let state_settlement_addr = state_settlement_addr.unwrap_or_else(|| {
+        error!("Error getting State settlement contract address");
+        process::exit(1);
+    });
+    let account_validation_addr = account_validation_addr.unwrap_or_else(|| {
+        error!("Error getting Account validation contract address");
+        process::exit(1);
+    });
+
+    let sudoku_address = match chain {
+        Chain::Devnet => SUDOKU_VALIDITY_DEVNET_ADDRESS.to_string(),
+        Chain::Holesky => std::env::var("SUDOKU_VALIDITY_HOLESKY_ADDRESS").unwrap_or_else(|_| {
+            error!("Error getting Sudoku vality contract address");
+            process::exit(1);
+        }),
+        _ => todo!()
+    };
 
     let wallet_alloy =
         wallet_alloy::get_wallet(&chain, keystore_path.as_deref(), private_key.as_deref())
@@ -82,9 +98,6 @@ async fn main() {
         Command::DeployContract => {
             // TODO(xqft): we might as well use the Chain type from Alloy, it isn't right to add
             // aligned-sdk as a dependency only for this type.
-            let state_settlement_addr = get_bridge_contract_addr(&chain).unwrap();
-
-            let account_validation_addr = get_account_validation_contract_addr(&chain).unwrap();
 
             let contract = SudokuValidity::deploy(
                 &provider,
@@ -106,7 +119,7 @@ async fn main() {
         Command::ValidateSolution => {
             // We could check if the specific block containing the tx is already verified, before
             // updating the bridge's chain.
-            // let is_state_verified = is_state_verified(&state_hash, &chain, &eth_rpc_url)
+            // let is_state_verified = is_state_verified(&state_hash, &state_settlement_addr, &eth_rpc_url)
             //     .await
             //     .unwrap_or_else(|err| {
             //         error!("{}", err);
@@ -126,12 +139,14 @@ async fn main() {
             let state_verification_result = update_bridge_chain(
                 &rpc_url,
                 &chain,
+                &state_settlement_addr,
                 &batcher_addr,
                 &batcher_eth_addr,
                 &eth_rpc_url,
                 &proof_generator_addr,
                 wallet.clone(),
                 &batcher_eth_addr,
+                true,
                 false,
             )
             .await;
@@ -148,12 +163,15 @@ async fn main() {
             }
             // }
 
-            let tip_state_hash = get_bridged_chain_tip_state_hash(&chain, &eth_rpc_url)
-                .await
-                .unwrap_or_else(|err| {
-                    error!("{}", err);
-                    process::exit(1);
-                });
+            let tip_state_hash =
+                get_bridged_chain_tip_state_hash(&state_settlement_addr, &eth_rpc_url)
+                    .await
+                    .unwrap_or_else(|err| {
+                        error!("{}", err);
+                        process::exit(1);
+                    });
+
+            info!("tip state hash: {}", &tip_state_hash);
 
             let AccountVerificationData {
                 proof_commitment,
@@ -168,6 +186,7 @@ async fn main() {
                 &tip_state_hash,
                 &rpc_url,
                 &chain,
+                &account_validation_addr,
                 &batcher_addr,
                 &batcher_eth_addr,
                 &eth_rpc_url,
@@ -183,6 +202,7 @@ async fn main() {
             });
 
             debug!("Creating contract instance");
+<<<<<<< HEAD
             let sudoku_address = match chain {
                 Chain::Devnet => SUDOKU_VALIDITY_DEVNET_ADDRESS,
                 Chain::Holesky => {
@@ -193,8 +213,10 @@ async fn main() {
                 }
                 _ => todo!(),
             };
+=======
+>>>>>>> aligned
             let contract =
-                SudokuValidity::new(Address::from_str(sudoku_address).unwrap(), provider);
+                SudokuValidity::new(Address::from_str(&sudoku_address).unwrap(), provider);
 
             let call = contract.validateSolution(
                 proof_commitment.into(),

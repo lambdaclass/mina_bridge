@@ -10,6 +10,8 @@ use super::constants::{
 pub struct EnvironmentVariables {
     pub rpc_url: String,
     pub chain: Chain,
+    pub state_settlement_addr: Option<String>,
+    pub account_validation_addr: Option<String>,
     pub batcher_addr: String,
     pub batcher_eth_addr: String,
     pub eth_rpc_url: String,
@@ -57,6 +59,9 @@ impl EnvironmentVariables {
             ),
         };
 
+        let state_settlement_addr = std::env::var("STATE_SETTLEMENT_ETH_ADDR").ok();
+        let account_validation_addr = std::env::var("ACCOUNT_VALIDATION_ETH_ADDR").ok();
+
         let batcher_addr = load_var_or("BATCHER_ADDR", ANVIL_BATCHER_ADDR, &chain)?;
         let batcher_eth_addr = load_var_or("BATCHER_ETH_ADDR", ANVIL_BATCHER_ETH_ADDR, &chain)?;
         let eth_rpc_url = load_var_or("ETH_RPC_URL", ANVIL_ETH_RPC_URL, &chain)?;
@@ -76,6 +81,8 @@ impl EnvironmentVariables {
         Ok(EnvironmentVariables {
             rpc_url,
             chain,
+            state_settlement_addr,
+            account_validation_addr,
             batcher_addr,
             batcher_eth_addr,
             eth_rpc_url,
