@@ -2,8 +2,6 @@
 
 ## Zero-knowledge state bridge from Mina to Ethereum
 
-</div>
-
 ## Table of Contents
 
 - [About](#about)
