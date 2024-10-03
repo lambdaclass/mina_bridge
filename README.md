@@ -1,6 +1,6 @@
 # Mina Bridge
 
-## Zero-knowledge state bridge from Mina to Ethereum
+Docs and utils for the Zero-knowledge state bridge from Mina to Ethereum
 
 ## Table of Contents
 
