@@ -1,5 +1,9 @@
-/proof.json
-/proof.mpk
-monitor/priv/native/libverifier.so
 .DS_Store
 mina_3_0_0_devnet
+mina_state.pub
+mina_state.proof
+mina_account.pub
+mina_account.proof
+aligned_verification_data
+.env
+nonce_*.bin
