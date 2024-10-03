@@ -5,14 +5,14 @@ import "mina_bridge/contract/src/MinaStateSettlement.sol";
 import "mina_bridge/contract/src/MinaAccountValidation.sol";
 
 contract SudokuValidity {
-    error InvalidZkappAccount();
-    error InvalidLedger(bytes32 ledgerHash);
-    error IncorrectZkappAccount(uint256 verificationKeyHash);
-    error UnsolvedSudoku();
+    error InvalidZkappAccount(); // f281a183
+    error InvalidLedger(bytes32 ledgerHash); // 76f145ea
+    error IncorrectZkappAccount(bytes32 verificationKeyHash); // 170e89eb
+    error UnsolvedSudoku(); // a3790c0e
 
     /// @notice The Sudoku zkApp verification key hash.
-    uint256 public constant ZKAPP_VERIFICATION_KEY_HASH =
-        19387792026269240922986233885372582803610254872042773421723960761233199555267;
+    bytes32 constant ZKAPP_VERIFICATION_KEY_HASH =
+        0xdc9c283f73ce17466a01b90d36141b848805a3db129b6b80d581adca52c9b6f3;
 
     /// @notice Mina bridge contract that validates and stores Mina states.
     MinaStateSettlement stateSettlement;
@@ -67,12 +67,15 @@ contract SudokuValidity {
         bytes calldata encodedAccount = pubInput[32 + 8:];
         MinaAccountValidation.Account memory account = abi.decode(encodedAccount, (MinaAccountValidation.Account));
 
-        // TODO(xqft): check verification key, it may be a poseidon hash so we should
-        // need to change it to a keccak hash.
-        // if (account.verificationKeyKash != ZKAPP_VERIFICATION_KEY_HASH) {
-        //    revert IncorrectZkappAccount(account.verificationKeyHash);
-        // }
+        // check that this account represents the circuit we expect
+        bytes32 verificationKeyHash = keccak256(
+            abi.encode(account.zkapp.verificationKey)
+        );
+        if (verificationKeyHash != ZKAPP_VERIFICATION_KEY_HASH) {
+            revert IncorrectZkappAccount(verificationKeyHash);
+        }
 
+        // if isSolved == true
         if (account.zkapp.appState[1] != 0) {
             latestSolutionValidationAt = block.timestamp;
         } else {
