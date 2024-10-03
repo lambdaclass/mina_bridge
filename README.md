@@ -12,28 +12,353 @@ This project introduces the verification of [Mina Protocol](https://minaprotocol
 
 The bridge leverages [Aligned Layer](https://github.com/yetanotherco/aligned_layer) to verify Mina Proofs of State and Mina Proofs of Account in Ethereum.
 
-
 ## Usage
 
-1. [Setup Aligned Devnet locally](https://github.com/yetanotherco/aligned_layer/blob/staging/docs/3_guides/6_setup_aligned.md#booting-devnet-with-default-configs)
-1. Setup the `.env` file of the bridge. A template is available in `.env.template`.
+### Setup
 
-1. In the root folder, deploy the bridge's contract with:
+### Mina node
+
+- If you want the Bridge to use Mina Devnet then use a node that runs a Devnet instance corresponding to the commit `599a76d` [of the Mina repo](https://github.com/MinaProtocol/mina/tree/599a76dd47be99183d2102d9eb93eda679dd46ec) or a newer one (e.g.: [this Docker image](https://console.cloud.google.com/gcr/images/o1labs-192920/GLOBAL/mina-daemon:3.0.1-compatible-599a76d-bullseye-devnet/details)). See [how to connect to Mina Devnet](https://docs.minaprotocol.com/node-operators/block-producer-node/connecting-to-devnet#docker) if you want to run an instance yourself.
+- If you want the Bridge to use Mina Mainnet use a node that runs a Mainnet instance corresponding to the commit `65c84ad` [of the Mina repo](https://github.com/MinaProtocol/mina/tree/65c84adacd55272160d9f77c31063d94a942afb6) or a newer one (e.g.: [this Docker image](http://gcr.io/o1labs-192920/mina-daemon:3.0.1-beta1-sai-query-snarked-ledger-c439ce5-bullseye-mainnet)). See [how to connect to Mina Mainnet](https://docs.minaprotocol.com/node-operators/block-producer-node/connecting-to-the-network#docker) if you want to run an instance yourself.
+
+You can bridge Mina accounts to Ethereum Devnet or Ethereum Testnet. The following subsections describe how to config the Bridge for each network.
+
+#### Ethereum Devnet
+
+1. [Setup Aligned Devnet locally](https://github.com/yetanotherco/aligned_layer/blob/staging/docs/3_guides/6_setup_aligned.md#booting-devnet-with-default-configs)
+1. Setup the `.env` file of the Bridge. A template is available in `.env.template`.
+    1. Set `ETH_CHAIN` to `devnet`.
+    1. Set `MINA_RPC_URL` to the URL of the Mina node GraphQL API (See [Mina node section](#mina-node)).
+
+#### Ethereum Testnet
+
+Because the Bridge uses for now a forked version of Aligned, you may need to setup a local instance of Aligned to verify Mina proofs.
+
+##### Aligned Testnet setup
+
+You will need two Ethereum accounts: One to fund the Aligned operator (`operator_account_address`) and another to fund the Aligned batcher (`batcher_account_address`).
+
+1. Clone the [forked Aligned repo](https://github.com/lambdaclass/aligned_layer). Checkout to the `mina` branch.
+1. Run:
+
+    ```sh
+    make deps go_deps
+    ```
+
+1. Copy the EigenLayer Holešky deployment config file into Aligned:
+
+    ```sh
+    cp contracts/lib/eigenlayer-middleware/lib/eigenlayer-contracts/script/configs/holesky/Holesky_current_deployment.config.json contracts/script/output/holesky
+    ```
+
+1. Set `contracts/script/deploy/config/holesky/aligned.holesky.config.json` to:
+
+    ```json
+    {
+      "chainInfo": {
+        "chainId": 17000
+      },
+      "permissions": {
+        "owner": "<operator_account_address>",
+        "aggregator": "<operator_account_address>",
+        "upgrader": "<operator_account_address>",
+        "churner": "<operator_account_address>",
+        "ejector": "<operator_account_address>",
+        "deployer": "<operator_account_address>",
+        "initalPausedStatus": 0
+      },
+      "minimumStakes": [
+        1
+      ],
+      "strategyWeights": [
+        [
+          {
+            "0_strategy": "0x80528D6e9A2BAbFc766965E0E26d5aB08D9CFaF9",
+            "1_multiplier": 1e+18
+          }
+        ]
+      ],
+      "operatorSetParams": [
+        {
+          "0_maxOperatorCount": 200,
+          "1_kickBIPsOfOperatorStake": 11000,
+          "2_kickBIPsOfTotalStake": 50
+        }
+      ],
+      "uri": ""
+    }
+    ```
+
+1. Setup the `contracts/scripts/.env` file. A template is available in `contracts/scripts/.env.example.holesky`. Set `PRIVATE_KEY` to the private key of the account you chose to fund the operator (the one with address `operator_account_address`).
+1. Deploy Aligned contracts:
+
+    ```sh
+    make deploy_aligned_contracts
+    ```
+
+    This will create `contracts/script/output/holesky/alignedlayer_deployment_output.json`.
+
+1. Create 3 EigenLayer keystores:
+    1. Aggregator and operator ECDSA:
+
+        ```sh
+        eigenlayer operator keys import --key-type ecdsa mina_bridge <operator_account_private_key>
+        ```
+
+    1. Aggregator and operator BLS:
+
+        ```sh
+        eigenlayer operator keys import --key-type bls mina_bridge <operator_account_private_key>
+        ```
+
+    1. Batcher ECDSA:
+
+        ```sh
+        eigenlayer operator keys import --key-type ecdsa mina_bridge.batcher <batcher_account_private_key>
+        ```
+
+1. Create `config-files/holesky/config.yaml` and set it to:
+
+    ```yaml
+    # Common variables for all the services
+    # 'production' only prints info and above. 'development' also prints debug
+    environment: "production"
+    aligned_layer_deployment_config_file_path: "./contracts/script/output/holesky/alignedlayer_deployment_output.json"
+    eigen_layer_deployment_config_file_path: "./contracts/script/output/holesky/eigenlayer_deployment_output.json"
+    eth_rpc_url: "<http_eth_rpc_url>"
+    eth_rpc_url_fallback: "<http_eth_rpc_url>"
+    eth_ws_url: "<ws_eth_rpc_url>"
+    eth_ws_url_fallback: "<ws_eth_rpc_url>"
+    eigen_metrics_ip_port_address: "localhost:9090"
+
+    ## ECDSA Configurations
+    ecdsa:
+      private_key_store_path: "<home>/.eigenlayer/operator_keys/mina_bridge.ecdsa.key.json"
+      private_key_store_password: <password_used_to_create_keystore>
+
+    ## BLS Configurations
+    bls:
+      private_key_store_path: "<home>/.eigenlayer/operator_keys/mina_bridge.bls.key.json"
+      private_key_store_password: <password_used_to_create_keystore>
+
+    ## Batcher configurations
+    batcher:
+      block_interval: 3
+      batch_size_interval: 10
+      max_proof_size: 67108864 # 64 MiB
+      max_batch_size: 268435456 # 256 MiB
+      eth_ws_reconnects: 99999999999999
+      pre_verification_is_enabled: true
+
+    ## Aggregator Configurations
+    aggregator:
+      server_ip_port_address: localhost:8090
+      bls_public_key_compendium_address: 0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44
+      avs_service_manager_address: 0xc3e53F4d16Ae77Db1c982e75a937B9f60FE63690
+      enable_metrics: true
+      metrics_ip_port_address: localhost:9091
+
+    ## Operator Configurations
+    operator:
+      aggregator_rpc_server_ip_port_address: localhost:8090
+      address: <operator_account_address>
+      earnings_receiver_address: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+      delegation_approver_address: "0x0000000000000000000000000000000000000000"
+      staker_opt_out_window_blocks: 0
+      metadata_url: "https://yetanotherco.github.io/operator_metadata/metadata.json"
+      enable_metrics: true
+      metrics_ip_port_address: localhost:9092
+      max_batch_size: 268435456 # 256 MiB
+    # Operators variables needed for register it in EigenLayer
+    el_delegation_manager_address: "0xA44151489861Fe9e3055d95adC98FbD462B948e7"
+    private_key_store_path: <home>/.eigenlayer/operator_keys/mina_bridge.ecdsa.key.json
+    bls_private_key_store_path: <home>/.eigenlayer/operator_keys/mina_bridge.bls.key.json
+    signer_type: local_keystore
+    chain_id: 17000
+    ```
+
+1. Create `config-files/holesky/config-aggregator.yaml` and set it to:
+
+    ```yaml
+    # Common variables for all the services
+    # 'production' only prints info and above. 'development' also prints debug
+    environment: "production"
+    aligned_layer_deployment_config_file_path: "./contracts/script/output/holesky/alignedlayer_deployment_output.json"
+    eigen_layer_deployment_config_file_path: "./contracts/script/output/holesky/eigenlayer_deployment_output.json"
+    eth_rpc_url: "<http_eth_rpc_url>"
+    eth_rpc_url_fallback: "<http_eth_rpc_url>"
+    eth_ws_url: "<ws_eth_rpc_url>"
+    eth_ws_url_fallback: "<ws_eth_rpc_url>"
+    eigen_metrics_ip_port_address: "localhost:9090"
+
+    ## ECDSA Configurations
+    ecdsa:
+      private_key_store_path: "<home>/.eigenlayer/operator_keys/mina_bridge.ecdsa.key.json"
+      private_key_store_password: <password_used_to_create_keystore>
+
+    ## BLS Configurations
+    bls:
+      private_key_store_path: "<home>/.eigenlayer/operator_keys/mina_bridge.bls.key.json"
+      private_key_store_password: <password_used_to_create_keystore>
+
+    ## Aggregator Configurations
+    aggregator:
+      server_ip_port_address: localhost:8090
+      bls_public_key_compendium_address: 0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44
+      avs_service_manager_address: 0xc3e53F4d16Ae77Db1c982e75a937B9f60FE63690
+      enable_metrics: true
+      metrics_ip_port_address: localhost:9091
+    ```
+
+1. Create `config-files/holesky/config-batcher.yaml` and set it to:
+
+    ```yaml
+    environment: "production"
+    aligned_layer_deployment_config_file_path: "./contracts/script/output/holesky/alignedlayer_deployment_output.json"
+    eigen_layer_deployment_config_file_path: "./contracts/script/output/holesky/eigenlayer_deployment_output.json"
+    eth_rpc_url: "<http_eth_rpc_url>"
+    eth_rpc_url_fallback: "<http_eth_rpc_url>"
+    eth_ws_url: "<ws_eth_rpc_url>"
+    eth_ws_url_fallback: "<ws_eth_rpc_url>"
+    eigen_metrics_ip_port_address: "localhost:9090"
+
+    ## ECDSA Configurations
+    ecdsa:
+      private_key_store_path: "<home>/.eigenlayer/operator_keys/mina_bridge.batcher.ecdsa.key.json"
+      private_key_store_password: <password_used_to_create_keystore>
+
+    ## Batcher configurations
+    batcher:
+      block_interval: 3
+      batch_size_interval: 10
+      max_proof_size: 67108864 # 64 MiB
+      max_batch_size: 268435456 # 256 MiB
+      eth_ws_reconnects: 99999999999999
+      pre_verification_is_enabled: true
+      non_paying:
+        address: <batcher_account_address>
+        replacement_private_key: <batcher_account_private_key>
+    ```
+
+1. Start the aggregator:
+
+    ```sh
+    make aggregator_start AGG_CONFIG_FILE=config-files/holesky/config-aggregator.yaml
+    ```
+
+1. Open a new terminal and register the operator:
+
+    ```sh
+    eigenlayer operator register config-files/holesky/config.yaml
+    ```
+
+1. Whitelist the registered operator:
+
+    ```sh
+    make operator_whitelist OPERATOR_ADDRESS=<operator_account_address>
+    ```
+
+1. Deposit Strategy tokens for the operator. Follow [this section from the AlignedLayer docs](https://docs.alignedlayer.com/operators/0_running_an_operator#step-4-deposit-strategy-tokens).
+
+1. Start operator:
+
+    ```sh
+    make operator_start CONFIG_FILE=config-files/holesky/config.yaml
+    ```
+
+1. Set `contracts/script/deploy/config/holesky/batcher-payment-service.holesky.config.json` to:
+
+    ```json
+    {
+      "address": {
+        "batcherWallet": "<batcher_account_address>",
+        "alignedLayerServiceManager": "<aligned_service_manager_address>"
+      },
+      "amounts": {
+        "gasForAggregator": "300000",
+        "gasPerProof": "21000"
+      },
+      "permissions": {
+        "owner": "<operator_account_address>"
+      },
+      "eip712": {
+        "noncedVerificationDataTypeHash": "41817b5c5b0c3dcda70ccb43ba175fdcd7e586f9e0484422a2c6bba678fdf4a3"
+      }
+    }
+    ```
+
+1. Deploy Batcher payment contract:
+
+    ```sh
+    make deploy_batcher_payment_service
+    ```
+
+    The file `contracts/script/output/holesky/alignedlayer_deployment_output.json` will have two new fields: `addresses.batcherPaymentService` and `addresses.batcherPaymentServiceImplementation`.
+
+1. Pay the batcher:
+
+    ```sh
+    cast send <batcher_payment_service_address> --rpc-url <eth_rpc_url> --private-key <bridge_account_private_key> --value 1ether
+    ```
+
+1. Deposit to batcher in the Aligned Service Manager Contract:
+
+    ```sh
+    cast send <aligned_service_manager_address> --rpc-url <eth_rpc_url> --private-key <bridge_account_private_key> --value 1ether "depositToBatcher(address)" <batcher_payment_service_address>
+    ```
+
+1. Setup local storage for the batcher:
+
+    ```sh
+    make run_storage
+    ```
+
+1. Start the batcher:
+
+    ```sh
+    cargo run --manifest-path ./batcher/aligned-batcher/Cargo.toml --release -- --config ./config-files/holesky/config-batcher.yaml --env-file ./batcher/aligned-batcher/.env.dev
+    ```
+
+#### Bridge environment setup
+
+In the Mina Bridge repo, setup the `.env` file. A template is available in `.env.template`.
+
+1. Set `ETH_CHAIN` to `holesky`.
+1. Set `MINA_RPC_URL` to the URL of the Mina node GraphQL API (See [Mina node section](#mina-node)).
+1. Set the rest of the env vars to:
+
+  ```sh
+  BATCHER_ADDR="ws://localhost:8080"
+  BATCHER_ETH_ADDR=<batcher_payment_service_address>
+  ETH_RPC_URL=<url>
+  PROOF_GENERATOR_ADDR=0x66f9664f97F2b50F62D13eA064982f936dE76657
+  PRIVATE_KEY=<bridge_account_private_key>
+  ALIGNED_SM_HOLESKY_ETH_ADDR=<aligned_service_manager_address>
+  ```
+
+### Bridge a Mina account
+
+1. In the root folder, deploy the Bridge's contracts with:
 
     ```sh
     make deploy_contract
     ```
+  
+  In the `.env` file, set `STATE_SETTLEMENT_ETH_ADDR` and `ACCOUNT_VALIDATION_ETH_ADDR` to the corresponding deployed contract addresses.
 
-1. Submit a state to verify:
+1. Submit a Mina state proof to verify (**NOTE:** Because of the Aligned minimum batch size, you may need to submit two proofs to make Aligned Devnet verify them):
+
+    - Run `make submit_devnet_state` if you are using Mina Devnet or `make submit_mainnet_state` if you are using Mina Mainnet.
+
+1. Submit an account to verify (**NOTE:** Because of the Aligned minimum batch size, you may need to submit two proofs to make Aligned Devnet verify them):
 
     ```sh
-    make submit-state
+    make submit_account PUBLIC_KEY=<string> STATE_HASH=<string>
     ```
-1. Submit an account to verify:
 
-    ```sh
-    make submit-account PUBLIC_KEY=<string>
-    ```
+    Where:
+    - `PUBLIC_KEY` is the public key of the Mina account you want to verify
+    - `STATE_HASH` is the hash of a Mina state that was verified in Ethereum
 
 ## Example use case
 
@@ -43,16 +368,19 @@ For running the example you need to:
 
 1. [Setup Aligned Devnet locally](https://github.com/yetanotherco/aligned_layer/blob/staging/docs/3_guides/6_setup_aligned.md#booting-devnet-with-default-configs)
 1. Deploy the bridge smart contracts by executing
+
     ```sh
     make deploy_contract
     ```
 
 1. Deploy the SudokuValidity smart contract by executing
+
     ```sh
     make deploy_example_contract
     ```
 
 1. Install `zkapp-cli`:
+
     ```sh
     npm install -g zkapp-cli
     ```
@@ -62,9 +390,11 @@ For running the example you need to:
 1. After deployment, set the `zkappAddress` field on `example/mina_zkapp/config.json`
 
 1. Run the example by executing from the root folder:
+
     ```sh
     make execute_example
     ```
+
    this will upload a new Sudoku, submit a solution to it and run the example Rust app that will bridge the new state of the zkApp and update the SudokuValidty smart contract on Ethereum.
 
    The zkApp will wait until both Mina transactions are included in a block, so this may take a while. Below is a diagram explaining the execution flow:
@@ -72,56 +402,57 @@ For running the example you need to:
 ![Example diagram](/img/example_diagram.png)
 
 ## Table of Contents
+
 - [About](#about)
 - [Usage](#usage)
 - [Example use case](#example-use-case)
 - [Table of Contents](#table-of-contents)
 - [Specification](#specification)
-  * [core](#core)
-    + [mina](#mina)
-    + [aligned](#aligned)
-    + [eth](#eth)
-  * [Mina Proof of State](#mina-proof-of-state)
-    + [Definition](#definition)
-    + [Serialization](#serialization)
-    + [Aligned’s Mina Proof of State verifier](#aligneds-mina-proof-of-state-verifier)
-    + [Consensus checking](#consensus-checking)
-    + [Transition frontier](#transition-frontier)
-    + [Pickles verification](#pickles-verification)
-  * [Mina Proof of Account](#mina-proof-of-account)
-    + [Definition](#definition-1)
-    + [Serialization](#serialization-1)
-    + [Aligned’s Proof of Account verification](#aligneds-proof-of-account-verifier)
-  * [Smart contract](#smart-contract)
-    + [Gas cost](#gas-cost)
-  * [Mina Account Validation contract](#mina-account-validation-contract)
-    + [Gas cost](#gas-cost-1)
+  - [core](#core)
+    - [mina](#mina)
+    - [aligned](#aligned)
+    - [eth](#eth)
+  - [Mina Proof of State](#mina-proof-of-state)
+    - [Definition](#definition)
+    - [Serialization](#serialization)
+    - [Aligned’s Mina Proof of State verifier](#aligneds-mina-proof-of-state-verifier)
+    - [Consensus checking](#consensus-checking)
+    - [Transition frontier](#transition-frontier)
+    - [Pickles verification](#pickles-verification)
+  - [Mina Proof of Account](#mina-proof-of-account)
+    - [Definition](#definition-1)
+    - [Serialization](#serialization-1)
+    - [Aligned’s Proof of Account verification](#aligneds-proof-of-account-verifier)
+  - [Smart contract](#smart-contract)
+    - [Gas cost](#gas-cost)
+  - [Mina Account Validation contract](#mina-account-validation-contract)
+    - [Gas cost](#gas-cost-1)
 - [Kimchi proving system](#kimchi-proving-system)
-  * [Proof Construction & Verification](#proof-construction---verification)
-    + [Secuence diagram linked to ``proof-systems/kimchi/src/verifier.rs``](#secuence-diagram-linked-to---proof-systems-kimchi-src-verifierrs--)
-  * [Pickles - Mina’s inductive zk-SNARK composition system](#pickles---mina-s-inductive-zk-snark-composition-system)
-    + [Accumulator](#accumulator)
-    + [Analysis of the Induction (recursion) method applied in Pickles](#analysis-of-the-induction--recursion--method-applied-in-pickles)
-    + [Pickles Technical Diagrams](#pickles-technical-diagrams)
-  * [Consensus](#consensus)
-    + [Chain selection rules](#chain-selection-rules)
+  - [Proof Construction & Verification](#proof-construction---verification)
+    - [Secuence diagram linked to ``proof-systems/kimchi/src/verifier.rs``](#secuence-diagram-linked-to---proof-systems-kimchi-src-verifierrs--)
+  - [Pickles - Mina’s inductive zk-SNARK composition system](#pickles---mina-s-inductive-zk-snark-composition-system)
+    - [Accumulator](#accumulator)
+    - [Analysis of the Induction (recursion) method applied in Pickles](#analysis-of-the-induction--recursion--method-applied-in-pickles)
+    - [Pickles Technical Diagrams](#pickles-technical-diagrams)
+  - [Consensus](#consensus)
+    - [Chain selection rules](#chain-selection-rules)
       - [Short-range fork rule](#short-range-fork-rule)
       - [Long-range fork rule](#long-range-fork-rule)
-    + [Decentralized checkpointing](#decentralized-checkpointing)
-    + [Short-range fork check](#short-range-fork-check)
-    + [Sliding window density](#sliding-window-density)
+    - [Decentralized checkpointing](#decentralized-checkpointing)
+    - [Short-range fork check](#short-range-fork-check)
+    - [Sliding window density](#sliding-window-density)
       - [Nomenclature](#nomenclature)
       - [Window structure](#window-structure)
       - [Minimum window density](#minimum-window-density)
       - [Ring-shift](#ring-shift)
       - [Projected window](#projected-window)
-        * [Genesis window](#genesis-window)
-        * [Relative minimum window density](#relative-minimum-window-density)
-  * [Protocol](#protocol)
-    + [Initialize consensus](#initialize-consensus)
-    + [Select chain](#select-chain)
-    + [Maintaining the k-th predecessor epoch ledger](#maintaining-the-k-th-predecessor-epoch-ledger)
-    + [Getting the tip](#getting-the-tip)
+        - [Genesis window](#genesis-window)
+        - [Relative minimum window density](#relative-minimum-window-density)
+  - [Protocol](#protocol)
+    - [Initialize consensus](#initialize-consensus)
+    - [Select chain](#select-chain)
+    - [Maintaining the k-th predecessor epoch ledger](#maintaining-the-k-th-predecessor-epoch-ledger)
+    - [Getting the tip](#getting-the-tip)
 
 # Specification
 
@@ -221,7 +552,6 @@ The first step of the verifier is to check that the public inputs correspond to 
 - that the chain ledger hashes are the hashes of the ledgers (stored in the states) in the proof
 - that the states form a chain (by hashing together the **state hash** of a state `n` and the **state body hash** of state `n+1`, we retrieve the **state hash** of the state `n+1`, so the states form a chain if we can hash from the root all the way until arriving to the tip state hash.
 
-
 ### Consensus checking
 
 The second step of the verifier is to execute consensus checks, specific to the [Ouroboros Samasika consensus mechanism](https://github.com/MinaProtocol/mina/blob/develop/docs/specs/consensus/README.md) that the Mina Protocol uses. The checks are comparisons of state data between the candidate tip state and the bridge tip state.
@@ -251,7 +581,7 @@ After validating the candidate tip state, because in a previous step we verified
 
 After a Mina Proof of State was verified, it’s possible to verify a Proof of Account of some Mina account in the verified state.
 
-Verifying that some account and its state is valid in a bridged Mina state is one of the basic components of a Mina to Ethereum bridge, as it not only allows to validate account data but also the state of a [zkApp](https://docs.minaprotocol.com/zkapps/writing-a-zkapp) tracked by this account (see [zkApp Account](https://docs.minaprotocol.com/glossary#zkapp-account)), which leverages zk-SNARKs to verify (optionally private) off-chain computation on the Mina blockchain. 
+Verifying that some account and its state is valid in a bridged Mina state is one of the basic components of a Mina to Ethereum bridge, as it not only allows to validate account data but also the state of a [zkApp](https://docs.minaprotocol.com/zkapps/writing-a-zkapp) tracked by this account (see [zkApp Account](https://docs.minaprotocol.com/glossary#zkapp-account)), which leverages zk-SNARKs to verify (optionally private) off-chain computation on the Mina blockchain.
 
 Account verification (paired with state verification) essentially allows to verify off-chain computation on Ethereum, after it has been validated by Mina.
 
