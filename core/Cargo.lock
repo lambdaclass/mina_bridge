@@ -2816,16 +2816,6 @@ dependencies = [
 [[package]]
 name = "groupmap"
 version = "0.1.0"
-source = "git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf#44e0d3b98b8747de54e595f53d97c035ff43167c"
-dependencies = [
- "ark-ec 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "ark-ff 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "rand",
-]
-
-[[package]]
-name = "groupmap"
-version = "0.1.0"
 source = "git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge#5188339f34b67bcaff810a18d35c70e687e5a189"
 dependencies = [
  "ark-ec 0.3.0 (git+https://github.com/openmina/algebra?branch=openmina)",
@@ -3401,41 +3391,6 @@ dependencies = [
 [[package]]
 name = "kimchi"
 version = "0.1.0"
-source = "git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf#44e0d3b98b8747de54e595f53d97c035ff43167c"
-dependencies = [
- "ark-ec 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "ark-ff 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "ark-poly 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "ark-serialize 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "blake2",
- "disjoint-set",
- "groupmap 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
- "hex",
- "itertools 0.10.5",
- "mina-curves 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
- "mina-poseidon 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
- "num-bigint",
- "num-derive",
- "num-integer",
- "num-traits",
- "o1-utils 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
- "once_cell",
- "poly-commitment 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
- "rand",
- "rand_core",
- "rayon",
- "rmp-serde",
- "serde",
- "serde_with 1.14.0",
- "strum 0.24.1",
- "strum_macros 0.24.3",
- "thiserror",
- "turshi 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
-]
-
-[[package]]
-name = "kimchi"
-version = "0.1.0"
 source = "git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge#5188339f34b67bcaff810a18d35c70e687e5a189"
 dependencies = [
  "ark-ec 0.3.0 (git+https://github.com/openmina/algebra?branch=openmina)",
@@ -3444,18 +3399,18 @@ dependencies = [
  "ark-serialize 0.3.0 (git+https://github.com/openmina/algebra?branch=openmina)",
  "blake2",
  "disjoint-set",
- "groupmap 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "groupmap",
  "hex",
  "itertools 0.10.5",
- "mina-curves 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
- "mina-poseidon 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "mina-curves",
+ "mina-poseidon",
  "num-bigint",
  "num-derive",
  "num-integer",
  "num-traits",
  "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
  "once_cell",
- "poly-commitment 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "poly-commitment",
  "rand",
  "rand_core",
  "rayon",
@@ -3465,7 +3420,7 @@ dependencies = [
  "strum 0.24.1",
  "strum_macros 0.24.3",
  "thiserror",
- "turshi 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "turshi",
 ]
 
 [[package]]
@@ -3630,15 +3585,6 @@ checksum = "6877bb514081ee2a7ff5ef9de3281f14a4dd4bceac4c09388074a6b5df8a139a"
 [[package]]
 name = "mina-curves"
 version = "0.1.0"
-source = "git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf#44e0d3b98b8747de54e595f53d97c035ff43167c"
-dependencies = [
- "ark-ec 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "ark-ff 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "mina-curves"
-version = "0.1.0"
 source = "git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge#5188339f34b67bcaff810a18d35c70e687e5a189"
 dependencies = [
  "ark-ec 0.3.0 (git+https://github.com/openmina/algebra?branch=openmina)",
@@ -3648,25 +3594,12 @@ dependencies = [
 [[package]]
 name = "mina-hasher"
 version = "0.1.0"
-source = "git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf#44e0d3b98b8747de54e595f53d97c035ff43167c"
-dependencies = [
- "ark-ff 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "bitvec",
- "mina-curves 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
- "mina-poseidon 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
- "o1-utils 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
- "serde",
-]
-
-[[package]]
-name = "mina-hasher"
-version = "0.1.0"
 source = "git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge#5188339f34b67bcaff810a18d35c70e687e5a189"
 dependencies = [
  "ark-ff 0.3.0 (git+https://github.com/openmina/algebra?branch=openmina)",
  "bitvec",
- "mina-curves 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
- "mina-poseidon 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "mina-curves",
+ "mina-poseidon",
  "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
  "serde",
 ]
@@ -3684,10 +3617,10 @@ dependencies = [
  "bs58 0.4.0",
  "derive_more 0.99.18",
  "hex",
- "mina-curves 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
- "mina-hasher 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
- "mina-poseidon 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
- "mina-signer 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "mina-curves",
+ "mina-hasher",
+ "mina-poseidon",
+ "mina-signer",
  "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
  "rsexp",
  "serde",
@@ -3700,29 +3633,12 @@ dependencies = [
 [[package]]
 name = "mina-poseidon"
 version = "0.1.0"
-source = "git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf#44e0d3b98b8747de54e595f53d97c035ff43167c"
-dependencies = [
- "ark-ec 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "ark-ff 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "ark-poly 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "mina-curves 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
- "o1-utils 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
- "once_cell",
- "rand",
- "rayon",
- "serde",
- "serde_with 1.14.0",
-]
-
-[[package]]
-name = "mina-poseidon"
-version = "0.1.0"
 source = "git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge#5188339f34b67bcaff810a18d35c70e687e5a189"
 dependencies = [
  "ark-ec 0.3.0 (git+https://github.com/openmina/algebra?branch=openmina)",
  "ark-ff 0.3.0 (git+https://github.com/openmina/algebra?branch=openmina)",
  "ark-poly 0.3.0 (git+https://github.com/openmina/algebra?branch=openmina)",
- "mina-curves 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "mina-curves",
  "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
  "once_cell",
  "rand",
@@ -3734,25 +3650,6 @@ dependencies = [
 [[package]]
 name = "mina-signer"
 version = "0.1.0"
-source = "git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf#44e0d3b98b8747de54e595f53d97c035ff43167c"
-dependencies = [
- "ark-ec 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "ark-ff 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "bitvec",
- "blake2",
- "bs58 0.4.0",
- "hex",
- "mina-curves 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
- "mina-hasher 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
- "o1-utils 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
- "rand",
- "sha2 0.10.8",
- "thiserror",
-]
-
-[[package]]
-name = "mina-signer"
-version = "0.1.0"
 source = "git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge#5188339f34b67bcaff810a18d35c70e687e5a189"
 dependencies = [
  "ark-ec 0.3.0 (git+https://github.com/openmina/algebra?branch=openmina)",
@@ -3761,8 +3658,8 @@ dependencies = [
  "blake2",
  "bs58 0.4.0",
  "hex",
- "mina-curves 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
- "mina-hasher 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "mina-curves",
+ "mina-hasher",
  "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
  "rand",
  "sha2 0.10.8",
@@ -3790,19 +3687,19 @@ dependencies = [
  "getrandom",
  "hex",
  "itertools 0.10.5",
- "kimchi 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "kimchi",
  "lazy_static",
  "libc",
- "mina-curves 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
- "mina-hasher 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "mina-curves",
+ "mina-hasher",
  "mina-p2p-messages",
- "mina-poseidon 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
- "mina-signer 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "mina-poseidon",
+ "mina-signer",
  "num-bigint",
  "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
  "once_cell",
  "openmina-core",
- "poly-commitment 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "poly-commitment",
  "postcard",
  "rand",
  "rand_pcg",
@@ -3842,16 +3739,16 @@ dependencies = [
  "futures",
  "graphql_client",
  "hex",
- "kimchi 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
+ "kimchi",
  "log",
- "mina-curves 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
+ "mina-curves",
  "mina-p2p-messages",
- "mina-signer 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
+ "mina-signer",
  "mina-tree",
  "num-bigint",
  "num-traits",
  "o1-utils 0.1.0 (git+https://github.com/lambdaclass/proof-systems?branch=add-verifier-serializations)",
- "poly-commitment 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
+ "poly-commitment",
  "reqwest 0.11.27",
  "rmp-serde",
  "rpassword",
@@ -4042,29 +3939,6 @@ dependencies = [
 [[package]]
 name = "o1-utils"
 version = "0.1.0"
-source = "git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf#44e0d3b98b8747de54e595f53d97c035ff43167c"
-dependencies = [
- "ark-ec 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "ark-ff 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "ark-poly 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "ark-serialize 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "bcs",
- "hex",
- "num-bigint",
- "num-integer",
- "num-traits",
- "rand",
- "rand_core",
- "rayon",
- "serde",
- "serde_with 1.14.0",
- "sha2 0.10.8",
- "thiserror",
-]
-
-[[package]]
-name = "o1-utils"
-version = "0.1.0"
 source = "git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge#5188339f34b67bcaff810a18d35c70e687e5a189"
 dependencies = [
  "ark-ec 0.3.0 (git+https://github.com/openmina/algebra?branch=openmina)",
@@ -4145,7 +4019,7 @@ dependencies = [
  "hex",
  "lazy_static",
  "md5",
- "mina-hasher 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "mina-hasher",
  "mina-p2p-messages",
  "multihash",
  "openmina-macros",
@@ -4485,30 +4359,6 @@ checksum = "953ec861398dccce10c670dfeaf3ec4911ca479e9c02154b3a215178c5f566f2"
 [[package]]
 name = "poly-commitment"
 version = "0.1.0"
-source = "git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf#44e0d3b98b8747de54e595f53d97c035ff43167c"
-dependencies = [
- "ark-ec 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "ark-ff 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "ark-poly 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "ark-serialize 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "blake2",
- "groupmap 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
- "itertools 0.10.5",
- "mina-curves 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
- "mina-poseidon 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
- "o1-utils 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
- "once_cell",
- "rand",
- "rand_core",
- "rayon",
- "serde",
- "serde_with 1.14.0",
- "thiserror",
-]
-
-[[package]]
-name = "poly-commitment"
-version = "0.1.0"
 source = "git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge#5188339f34b67bcaff810a18d35c70e687e5a189"
 dependencies = [
  "ark-ec 0.3.0 (git+https://github.com/openmina/algebra?branch=openmina)",
@@ -4516,10 +4366,10 @@ dependencies = [
  "ark-poly 0.3.0 (git+https://github.com/openmina/algebra?branch=openmina)",
  "ark-serialize 0.3.0 (git+https://github.com/openmina/algebra?branch=openmina)",
  "blake2",
- "groupmap 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "groupmap",
  "itertools 0.10.5",
- "mina-curves 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
- "mina-poseidon 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "mina-curves",
+ "mina-poseidon",
  "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
  "once_cell",
  "rand",
@@ -6244,16 +6094,6 @@ name = "tuple-map"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "23d5919d7121237af683b7fa982450597b1eaa2643e597aec3b519e4e5ab3d62"
-
-[[package]]
-name = "turshi"
-version = "0.1.0"
-source = "git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf#44e0d3b98b8747de54e595f53d97c035ff43167c"
-dependencies = [
- "ark-ff 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "hex",
- "o1-utils 0.1.0 (git+https://github.com/openmina/proof-systems?branch=ledger-newtypes-rampup4-vrf)",
-]
 
 [[package]]
 name = "turshi"
