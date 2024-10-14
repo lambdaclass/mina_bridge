@@ -1,7 +1,7 @@
 use std::str::FromStr;
 use std::sync::Arc;
 
-use aligned_sdk::core::types::{AlignedVerificationData, Chain, VerificationDataCommitment};
+use aligned_sdk::core::types::{AlignedVerificationData, Network, VerificationDataCommitment};
 use alloy::network::EthereumWallet;
 use alloy::providers::ProviderBuilder;
 use alloy::sol;
@@ -91,7 +91,7 @@ impl MinaAccountValidationConstructorArgs {
 pub async fn update_chain(
     verification_data: AlignedVerificationData,
     pub_input: &MinaStatePubInputs,
-    chain: &Chain,
+    network: &Network,
     eth_rpc_url: &str,
     wallet: Wallet<SigningKey>,
     contract_addr: &str,
@@ -106,7 +106,7 @@ pub async fn update_chain(
         .map_err(|err| format!("Failed to parse batcher payment service address: {err}"))?;
 
     debug!("Creating contract instance");
-    let mina_bridge_contract = mina_bridge_contract(eth_rpc_url, bridge_eth_addr, chain, wallet)?;
+    let mina_bridge_contract = mina_bridge_contract(eth_rpc_url, bridge_eth_addr, network, wallet)?;
 
     let AlignedVerificationData {
         verification_data_commitment,
@@ -169,20 +169,20 @@ pub async fn update_chain(
     info!("Checking that the state hashes were stored correctly..");
 
     // TODO(xqft): do the same for ledger hashes
-    debug!("Getting chain state hashes");
-    let new_chain_state_hashes = get_bridge_chain_state_hashes(contract_addr, eth_rpc_url)
+    debug!("Getting network state hashes");
+    let new_network_state_hashes = get_bridge_chain_state_hashes(contract_addr, eth_rpc_url)
         .await
         .map_err(|err| err.to_string())?;
 
-    if new_chain_state_hashes != pub_input.candidate_chain_state_hashes {
-        return Err("Stored chain state hashes don't match the candidate's".to_string());
+    if new_network_state_hashes != pub_input.candidate_chain_state_hashes {
+        return Err("Stored network state hashes don't match the candidate's".to_string());
     }
 
-    let tip_state_hash = new_chain_state_hashes
+    let tip_state_hash = new_network_state_hashes
         .last()
         .ok_or("Failed to get tip state hash".to_string())?
         .clone();
-    info!("Successfuly updated smart contract to verified chain of tip {tip_state_hash}");
+    info!("Successfuly updated smart contract to verified network of tip {tip_state_hash}");
 
     Ok(())
 }
@@ -226,7 +226,7 @@ pub async fn get_bridge_chain_state_hashes(
                 .into_iter()
                 .map(|hash| {
                     bincode::deserialize::<SolStateHash>(&hash)
-                        .map_err(|err| format!("Failed to deserialize chain state hashes: {err}"))
+                        .map_err(|err| format!("Failed to deserialize network state hashes: {err}"))
                         .map(|hash| hash.0)
                 })
                 .collect::<Result<Vec<_>, _>>()
@@ -234,7 +234,7 @@ pub async fn get_bridge_chain_state_hashes(
         .and_then(|hashes| {
             hashes
                 .try_into()
-                .map_err(|_| "Failed to convert chain state hashes vec into array".to_string())
+                .map_err(|_| "Failed to convert network state hashes vec into array".to_string())
         })
 }
 
@@ -376,17 +376,17 @@ pub async fn deploy_mina_account_validation_contract(
 fn mina_bridge_contract(
     eth_rpc_url: &str,
     contract_address: Address,
-    chain: &Chain,
+    network: &Network,
     wallet: Wallet<SigningKey>,
 ) -> Result<MinaStateSettlementEthereum, String> {
     let eth_rpc_provider =
         Provider::<Http>::try_from(eth_rpc_url).map_err(|err| err.to_string())?;
-    let chain_id = match chain {
-        Chain::Devnet => ANVIL_CHAIN_ID,
-        Chain::Holesky => HOLESKY_CHAIN_ID,
+    let network_id = match network {
+        Network::Devnet => ANVIL_CHAIN_ID,
+        Network::Holesky => HOLESKY_CHAIN_ID,
         _ => unimplemented!(),
     };
-    let signer = SignerMiddleware::new(eth_rpc_provider, wallet.with_chain_id(chain_id));
+    let signer = SignerMiddleware::new(eth_rpc_provider, wallet.with_chain_id(network_id));
     let client = Arc::new(signer);
     debug!("contract address: {contract_address}");
     Ok(MinaStateSettlementEthereum::new(contract_address, client))
