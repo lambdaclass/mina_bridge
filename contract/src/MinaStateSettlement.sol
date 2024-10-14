@@ -31,10 +31,7 @@ contract MinaStateSettlement {
     /// @notice Reference to the AlignedLayerServiceManager contract.
     AlignedLayerServiceManager aligned;
 
-    constructor(
-        address payable _alignedServiceAddr,
-        bytes32 _tipStateHash,
-        bool _devnetFlag
+    constructor(address payable _alignedServiceAddr, bytes32 _tipStateHash, bool _devnetFlag
     ) {
         aligned = AlignedLayerServiceManager(_alignedServiceAddr);
         chainStateHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1] = _tipStateHash;
@@ -52,19 +49,13 @@ contract MinaStateSettlement {
     }
 
     /// @notice Returns the latest verified chain state hashes.
-    function getChainStateHashes()
-        external
-        view
-        returns (bytes32[BRIDGE_TRANSITION_FRONTIER_LEN] memory)
+    function getChainStateHashes() external view returns (bytes32[BRIDGE_TRANSITION_FRONTIER_LEN] memory)
     {
         return chainStateHashes;
     }
 
     /// @notice Returns the latest verified chain ledger hashes.
-    function getChainLedgerHashes()
-        external
-        view
-        returns (bytes32[BRIDGE_TRANSITION_FRONTIER_LEN] memory)
+    function getChainLedgerHashes() external view returns (bytes32[BRIDGE_TRANSITION_FRONTIER_LEN] memory)
     {
         return chainLedgerHashes;
     }
@@ -93,9 +84,7 @@ contract MinaStateSettlement {
         address batcherPaymentService
     ) external {
         if (provingSystemAuxDataCommitment != PROVING_SYSTEM_ID_COMM) {
-            revert MinaProvingSystemIdIsNotValid(
-                provingSystemAuxDataCommitment
-            );
+            revert MinaProvingSystemIdIsNotValid(provingSystemAuxDataCommitment);
         }
 
         bool pubInputDevnetFlag;
@@ -112,14 +101,8 @@ contract MinaStateSettlement {
             pubInputBridgeTipStateHash := mload(add(pubInput, 0x21))
         }
 
-        if (
-            pubInputBridgeTipStateHash !=
-            chainStateHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1]
-        ) {
-            revert TipStateIsWrong(
-                pubInputBridgeTipStateHash,
-                chainStateHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1]
-            );
+        if (pubInputBridgeTipStateHash != chainStateHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1]) {
+            revert TipStateIsWrong(pubInputBridgeTipStateHash, chainStateHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1]);
         }
 
         bytes32 pubInputCommitment = keccak256(pubInput);
@@ -152,11 +135,7 @@ contract MinaStateSettlement {
                     mul(32, BRIDGE_TRANSITION_FRONTIER_LEN)
                 )
 
-                for {
-                    let i := 0
-                } lt(i, BRIDGE_TRANSITION_FRONTIER_LEN) {
-                    i := add(i, 1)
-                } {
+                for { let i := 0 } lt(i, BRIDGE_TRANSITION_FRONTIER_LEN) { i := add(i, 1) } {
                     sstore(slot_states, mload(addr_states))
                     addr_states := add(addr_states, 32)
                     slot_states := add(slot_states, 1)
