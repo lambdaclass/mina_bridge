@@ -13,7 +13,7 @@ alloy = { version = "0.3.1", features = ["full", "signer-keystore"] }
 alloy-sol-types = "0.8.2"
 alloy-contract = "0.3.1"
 reqwest = "^0.11"
-aligned-sdk = { git = "https://github.com/lambdaclass/aligned_layer.git", branch = "use_two_vks" }
+aligned-sdk = { git = "https://github.com/lambdaclass/aligned_layer.git", branch = "update_batcher_deps" }
 
 [patch.crates-io]
 ark-ff = { git = "https://github.com/lambdaclass/openmina_algebra", branch = "mina_bridge" }
