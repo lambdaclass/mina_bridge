@@ -1,4 +1,4 @@
-use aligned_sdk::core::types::Chain;
+use aligned_sdk::core::types::Network;
 use log::{debug, error, info};
 use mina_bridge_core::{
     eth::{
@@ -22,7 +22,7 @@ async fn main() {
     let EnvironmentVariables {
         rpc_url,
         eth_rpc_url,
-        chain,
+        network,
         private_key,
         keystore_path,
         ..
@@ -45,9 +45,9 @@ async fn main() {
         process::exit(1);
     });
 
-    let aligned_sm_addr = match chain {
-        Chain::Devnet => Ok(ALIGNED_SM_DEVNET_ETH_ADDR.to_owned()),
-        Chain::Holesky => std::env::var("ALIGNED_SERVICE_MANAGER_ADDR")
+    let aligned_sm_addr = match network {
+        Network::Devnet => Ok(ALIGNED_SM_DEVNET_ETH_ADDR.to_owned()),
+        Network::Holesky => std::env::var("ALIGNED_SERVICE_MANAGER_ADDR")
             .map_err(|err| format!("Error getting Aligned SM contract address: {err}")),
         _ => Err("Unimplemented Ethereum contract on selected chain".to_owned()),
     }
@@ -69,7 +69,7 @@ async fn main() {
             process::exit(1);
         });
 
-    let wallet = get_wallet(&chain, keystore_path.as_deref(), private_key.as_deref())
+    let wallet = get_wallet(&network, keystore_path.as_deref(), private_key.as_deref())
         .unwrap_or_else(|err| {
             error!("Failed to get wallet: {err}");
             process::exit(1);

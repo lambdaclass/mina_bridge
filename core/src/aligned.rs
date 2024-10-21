@@ -1,7 +1,7 @@
 use std::{path::PathBuf, process, str::FromStr};
 
 use aligned_sdk::{
-    core::types::{AlignedVerificationData, Chain, ProvingSystemId, VerificationData},
+    core::types::{AlignedVerificationData, Network, ProvingSystemId, VerificationData},
     sdk::{get_next_nonce, submit_and_wait_verification},
 };
 use ethers::{
@@ -17,10 +17,9 @@ use crate::proof::MinaProof;
 #[allow(clippy::too_many_arguments)]
 pub async fn submit(
     proof: MinaProof,
-    chain: &Chain,
+    network: &Network,
     proof_generator_addr: &str,
     batcher_addr: &str,
-    batcher_eth_addr: &str,
     eth_rpc_url: &str,
     wallet: Wallet<SigningKey>,
     save_proof: bool,
@@ -79,17 +78,16 @@ pub async fn submit(
     };
 
     let wallet_address = wallet.address();
-    let nonce = get_nonce(eth_rpc_url, wallet_address, batcher_eth_addr).await?;
+    let nonce = get_nonce(eth_rpc_url, wallet_address, network).await?;
 
     info!("Submitting {proof_name} into Aligned and waiting for the batch to be verified...");
     submit_with_nonce(
         batcher_addr,
         eth_rpc_url,
-        chain,
+        network,
         &verification_data,
         wallet,
         nonce,
-        batcher_eth_addr,
     )
     .await
     .or_else(|err| {
@@ -104,11 +102,10 @@ pub async fn submit(
 async fn submit_with_nonce(
     batcher_addr: &str,
     eth_rpc_url: &str,
-    chain: &Chain,
+    network: &Network,
     mina_proof: &VerificationData,
     wallet: Wallet<SigningKey>,
     nonce: U256,
-    payment_service_addr: &str,
 ) -> Result<AlignedVerificationData, String> {
     // Temporary max fee. We should consider calculating this or setting it as an env var.
     let fixed_max_fee = U256::from_dec_str("1300000000000000").map_err(|err| err.to_string())?;
@@ -116,23 +113,18 @@ async fn submit_with_nonce(
     submit_and_wait_verification(
         batcher_addr,
         eth_rpc_url,
-        chain.to_owned(),
+        network.to_owned(),
         mina_proof,
         fixed_max_fee,
         wallet,
         nonce,
-        payment_service_addr,
     )
     .await
     .map_err(|err| format!("Verification data was not returned when submitting the proof: {err}"))
 }
 
-async fn get_nonce(
-    eth_rpc_url: &str,
-    address: Address,
-    batcher_eth_addr: &str,
-) -> Result<U256, String> {
-    let nonce = get_next_nonce(eth_rpc_url, address, batcher_eth_addr)
+async fn get_nonce(eth_rpc_url: &str, address: Address, network: &Network) -> Result<U256, String> {
+    let nonce = get_next_nonce(eth_rpc_url, address, network.to_owned())
         .await
         .map_err(|err| err.to_string())?;
 

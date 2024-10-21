@@ -42,7 +42,7 @@ async fn main() {
 
     let EnvironmentVariables {
         rpc_url,
-        chain,
+        network,
         state_settlement_addr,
         account_validation_addr,
         batcher_addr,
@@ -65,7 +65,7 @@ async fn main() {
         process::exit(1);
     });
 
-    let wallet = get_wallet(&chain, keystore_path.as_deref(), private_key.as_deref())
+    let wallet = get_wallet(&network, keystore_path.as_deref(), private_key.as_deref())
         .unwrap_or_else(|err| {
             error!("{}", err);
             process::exit(1);
@@ -87,10 +87,9 @@ async fn main() {
 
             let verification_data = aligned::submit(
                 MinaProof::State((proof, pub_input.clone())),
-                &chain,
+                &network,
                 &proof_generator_addr,
                 &batcher_addr,
-                &batcher_eth_addr,
                 &eth_rpc_url,
                 wallet.clone(),
                 save_proof,
@@ -104,7 +103,7 @@ async fn main() {
             eth::update_chain(
                 verification_data,
                 &pub_input,
-                &chain,
+                &network,
                 &eth_rpc_url,
                 wallet,
                 &state_settlement_addr,
@@ -131,10 +130,9 @@ async fn main() {
 
             let verification_data = aligned::submit(
                 MinaProof::Account((proof, pub_input.clone())),
-                &chain,
+                &network,
                 &proof_generator_addr,
                 &batcher_addr,
-                &batcher_eth_addr,
                 &eth_rpc_url,
                 wallet.clone(),
                 save_proof,
