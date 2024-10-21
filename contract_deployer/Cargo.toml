@@ -13,9 +13,9 @@ ethers = { tag = "v2.0.15-fix-reconnections", features = [
   "rustls",
   "solc",
 ], git = "https://github.com/yetanotherco/ethers-rs.git" }
-mina-curves = { git = "https://github.com/openmina/proof-systems", branch = "ledger-newtypes-rampup4-vrf" }
+mina-curves = { git = "https://github.com/lambdaclass/openmina-proof-systems", branch = "mina_bridge" }
 o1-utils = { git = "https://github.com/lambdaclass/proof-systems", branch = "add-verifier-serializations" }
-kimchi = { git = "https://github.com/openmina/proof-systems", branch = "ledger-newtypes-rampup4-vrf" }
+kimchi = { git = "https://github.com/lambdaclass/openmina-proof-systems", branch = "mina_bridge" }
 aligned-sdk = { git = "https://github.com/lambdaclass/aligned_layer.git", branch = "use_two_vks" }
 serde = { version = "1.0", features = ["derive"] }
 mina-p2p-messages = { git = "https://github.com/lambdaclass/openmina/", branch = "mina_bridge" }
