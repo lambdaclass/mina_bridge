@@ -3,9 +3,9 @@ use std::str::FromStr;
 use aligned_sdk::core::types::Network;
 use ethers::{
     prelude::k256::ecdsa::SigningKey,
-    signers::{LocalWallet, Wallet},
+    signers::{LocalWallet, Wallet, Signer},
 };
-use ethers_signers::Signer;
+
 use log::info;
 
 use crate::utils::constants::{ANVIL_CHAIN_ID, ANVIL_PRIVATE_KEY, HOLESKY_CHAIN_ID};

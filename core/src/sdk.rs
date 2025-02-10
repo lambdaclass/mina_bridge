@@ -1,8 +1,7 @@
 use std::str::FromStr;
 
 use aligned_sdk::core::types::{AlignedVerificationData, Network, VerificationDataCommitment};
-use ethers::core::k256::ecdsa::SigningKey;
-use ethers_signers::Wallet;
+use ethers::{core::k256::ecdsa::SigningKey, signers::Wallet};
 use log::debug;
 use mina_p2p_messages::v2::StateHash;
 

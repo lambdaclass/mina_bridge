@@ -23,12 +23,7 @@ ark-serialize = "0.3.0"
 mina-tree = { git = "https://github.com/lambdaclass/openmina/", branch = "mina_bridge" }
 mina-p2p-messages = { git = "https://github.com/lambdaclass/openmina/", branch = "mina_bridge" }
 aligned-sdk = { git = "https://github.com/lambdaclass/aligned_layer.git", branch = "mina" }
-ethers = { tag = "v2.0.15-fix-reconnections", features = [
-  "ws",
-  "rustls",
-  "solc",
-], git = "https://github.com/yetanotherco/ethers-rs.git" }
-ethers-signers = { tag = "v2.0.15-fix-reconnections", git = "https://github.com/yetanotherco/ethers-rs.git" }
+ethers = { version = "2.0", features = ["ws", "rustls"] }
 rpassword = "7.3.1"
 tokio = "1.39.1"
 dotenv = "0.15.0"
