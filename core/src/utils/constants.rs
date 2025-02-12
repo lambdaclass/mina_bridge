@@ -3,7 +3,7 @@ pub const ANVIL_PRIVATE_KEY: &str =
     "2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6"; // Anvil wallet 9
 pub const ANVIL_CHAIN_ID: u64 = 31337;
 pub const ANVIL_BATCHER_ADDR: &str = "ws://localhost:8080";
-pub const ANVIL_BATCHER_ETH_ADDR: &str = "0x7969c5eD335650692Bc04293B07F5BF2e7A673C0";
+pub const ANVIL_BATCHER_ETH_ADDR: &str = "0x7bc06c482DEAd17c0e297aFbC32f6e63d3846650";
 pub const ANVIL_ETH_RPC_URL: &str = "http://localhost:8545";
 
 // Holesky related constants
@@ -23,4 +23,4 @@ pub const BRIDGE_ACCOUNT_DEVNET_ETH_ADDR: &str = "0xA15BB66138824a1c7167f5E85b95
 
 // Aligned related constants
 pub const PROOF_GENERATOR_ADDR: &str = "0x66f9664f97F2b50F62D13eA064982f936dE76657";
-pub const ALIGNED_SM_DEVNET_ETH_ADDR: &str = "0x1613beB3B2C4f22Ee086B2b38C1476A3cE7f78E8";
+pub const ALIGNED_SM_DEVNET_ETH_ADDR: &str = "0x851356ae760d987E095750cCeb3bC6014560891C";
