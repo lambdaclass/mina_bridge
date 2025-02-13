@@ -96,44 +96,47 @@ Because the Bridge uses for now a forked version of Aligned, you may need to set
 
 ##### Setup Aligned Testnet infrastructure locally
 
-1. Have docker runnin
+1. Have docker running
 
 2. Clone the [forked Aligned repo](https://github.com/lambdaclass/aligned_layer). Checkout to the `mina` branch.
    
 3. Run:
 
-    ```sh
-    make deps
-    ```
+  ```sh
+  make deps
+  ```
 
-   1. Start anvil 
+4. Start anvil:
 
-   ```sh
-   make anvil_start_with_block_time
+  ```sh
+  make anvil_start_with_block_time
+  ```
 
-   2. Start the aggregator:
+5. Start the aggregator:
 
-    ```sh
-    make aggregator_start
-    ```
+  ```sh
+  make aggregator_start ENVIRONMENT=devnet
+  ```
 
-4.  Start the batcher 
+6.  Start the batcher: 
    
-    ```sh
-    make batcher_start
-    ```
+  ```sh
+  make batcher_start_local
+  ```
 
-5.  Start operator:
+7.  Start an operator:
 
-    ```sh
-    make operator_start CONFIG_FILE=config-files/holesky/config.yaml
-    ```
+  ```sh
+  make operator_full_registration CONFIG_FILE=config-files/config-operator-1.yaml ENVIRONMENT=devnet
+  make operator_start CONFIG_FILE=config-files/config-operator-1.yaml ENVIRONMENT=devnet
+  ```
 
 #### Bridge environment setup
 
 In the Mina Bridge repo, setup the `.env` file. A template is available in `.env.template`.
 
 1. Set `ETH_CHAIN` to `holesky`.
+
 2. Set `MINA_RPC_URL` to the URL of the Mina node GraphQL API (See [Mina node section](#mina-node)). //
 
 docker pull gcr.io/o1labs-192920/mina-daemon:599a76d-bullseye-devnet
@@ -161,11 +164,11 @@ docker run gcr.io/o1labs-192920/mina-daemon:599a76d-bullseye-devnet
   
   In the `.env` file, set `STATE_SETTLEMENT_ETH_ADDR` and `ACCOUNT_VALIDATION_ETH_ADDR` to the corresponding deployed contract addresses.
 
-1. Submit a Mina state proof to verify (**NOTE:** Because of the Aligned minimum batch size, you may need to submit two proofs to make Aligned Devnet verify them):
+2. Submit a Mina state proof to verify (**NOTE:** Because of the Aligned minimum batch size, you may need to submit two proofs to make Aligned Devnet verify them):
 
     - Run `make submit_devnet_state` if you are using Mina Devnet or `make submit_mainnet_state` if you are using Mina Mainnet.
 
-1. Submit an account to verify (**NOTE:** Because of the Aligned minimum batch size, you may need to submit two proofs to make Aligned Devnet verify them):
+3. Submit an account to verify (**NOTE:** Because of the Aligned minimum batch size, you may need to submit two proofs to make Aligned Devnet verify them):
 
     ```sh
     make submit_account PUBLIC_KEY=<string> STATE_HASH=<string>
@@ -182,29 +185,30 @@ The `example/` folder contains a project that uses the Sudoku zkApp example from
 For running the example you need to:
 
 1. [Setup Aligned Devnet locally](https://github.com/yetanotherco/aligned_layer/blob/staging/docs/3_guides/6_setup_aligned.md#booting-devnet-with-default-configs)
-1. Deploy the example bridge smart contracts by executing
+
+2. Deploy the example bridge smart contracts by executing
 
     ```sh
     make deploy_contract
     ```
 
-1. Deploy the SudokuValidity smart contract by executing
+3. Deploy the SudokuValidity smart contract by executing
 
     ```sh
     make deploy_example_contract
     ```
 
-1. Install `zkapp-cli`:
+4. Install `zkapp-cli`:
 
     ```sh
     npm install -g zkapp-cli
     ```
 
-1. Inside the `example/mina_zkapp` directory, configure the zkApp and deploy the contract following [this guide](https://docs.minaprotocol.com/zkapps/writing-a-zkapp/introduction-to-zkapps/how-to-deploy-a-zkapp) on the Mina Protocol documentation
+5. Inside the `example/mina_zkapp` directory, configure the zkApp and deploy the contract following [this guide](https://docs.minaprotocol.com/zkapps/writing-a-zkapp/introduction-to-zkapps/how-to-deploy-a-zkapp) on the Mina Protocol documentation
 
-1. After deployment, set the `zkappAddress` field on `example/mina_zkapp/config.json`
+6. After deployment, set the `zkappAddress` field on `example/mina_zkapp/config.json`
 
-1. Run the example by executing from the root folder:
+7. Run the example by executing from the root folder:
 
     ```sh
     make execute_example
