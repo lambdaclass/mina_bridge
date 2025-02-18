@@ -3,10 +3,10 @@ pragma solidity ^0.8.12;
 
 import "aligned_layer/contracts/src/core/AlignedLayerServiceManager.sol";
 
-error MinaProvingSystemIdIsNotValid(bytes32);
-error MinaNetworkIsWrong();
-error NewStateIsNotValid();
-error TipStateIsWrong(bytes32 pubInputTipStateHash, bytes32 tipStatehash);
+error MinaProvingSystemIdIsNotValid(bytes32); // c35f1ecd
+error MinaNetworkIsWrong(); // 042eb0cf
+error NewStateIsNotValid(); // 114602f0
+error TipStateIsWrong(bytes32 pubInputTipStateHash, bytes32 tipStatehash); // bbd80128
 error AccountIsNotValid(bytes32 accountIdHash);
 
 /// @title Mina to Ethereum Bridge's smart contract for verifying and storing a valid state chain.
@@ -87,10 +87,7 @@ contract MinaStateSettlement {
             revert MinaProvingSystemIdIsNotValid(provingSystemAuxDataCommitment);
         }
 
-        bool pubInputDevnetFlag;
-        assembly {
-            pubInputDevnetFlag := mload(add(pubInput, 0x20))
-        }
+        bool pubInputDevnetFlag = pubInput[0] == 0x01;
 
         if (pubInputDevnetFlag != devnetFlag) {
             revert MinaNetworkIsWrong();
@@ -98,7 +95,7 @@ contract MinaStateSettlement {
 
         bytes32 pubInputBridgeTipStateHash;
         assembly {
-            pubInputBridgeTipStateHash := mload(add(pubInput, 0x21))
+            pubInputBridgeTipStateHash := mload(add(pubInput, 0x21)) // Shift 33 bytes (32 bytes length + 1 byte Devnet flag)
         }
 
         if (pubInputBridgeTipStateHash != chainStateHashes[BRIDGE_TRANSITION_FRONTIER_LEN - 1]) {
