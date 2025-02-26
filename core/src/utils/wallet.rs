@@ -3,7 +3,7 @@ use std::str::FromStr;
 use aligned_sdk::core::types::Network;
 use ethers::{
     prelude::k256::ecdsa::SigningKey,
-    signers::{LocalWallet, Wallet, Signer},
+    signers::{LocalWallet, Signer, Wallet},
 };
 
 use log::info;

@@ -1,10 +1,10 @@
 use std::{path::PathBuf, process, str::FromStr};
 
+use aligned_sdk::core::types::FeeEstimationType;
 use aligned_sdk::{
     core::types::{AlignedVerificationData, Network, ProvingSystemId, VerificationData},
     sdk::{estimate_fee, submit_and_wait_verification},
 };
-use aligned_sdk::core::types::FeeEstimationType;
 
 use ethers::{
     core::k256::ecdsa::SigningKey,
