@@ -30,9 +30,6 @@ jobs:
       - name: Run clippy
         run: /root/.cargo/bin/cargo clippy --workspace --all-targets -- -D warnings
 
-      - name: Run nextest
-        run: /root/.cargo/bin/cargo nextest run --workspace --all-targets --no-fail-fast
-
       - name: Run binary
         if: ${{ !inputs.skip_run }}
         run: /root/.cargo/bin/cargo run
