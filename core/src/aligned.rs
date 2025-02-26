@@ -1,14 +1,12 @@
-use std::{path::PathBuf, process, str::FromStr};
+use std::{process, str::FromStr};
 
-use aligned_sdk::core::types::FeeEstimationType;
-use aligned_sdk::{
-    core::types::{AlignedVerificationData, Network, ProvingSystemId, VerificationData},
-    sdk::{estimate_fee, submit_and_wait_verification},
+use aligned_sdk::core::types::{
+    AlignedVerificationData, Network, ProvingSystemId, VerificationData,
 };
 
 use ethers::{
     core::k256::ecdsa::SigningKey,
-    signers::{Signer, Wallet},
+    signers::Wallet,
     types::{Address, U256},
 };
 use log::{error, info};
@@ -21,7 +19,7 @@ pub async fn submit(
     proof: MinaProof,
     network: &Network,
     proof_generator_addr: &str,
-    batcher_addr: &str,
+    _batcher_addr: &str,
     eth_rpc_url: &str,
     wallet: Wallet<SigningKey>,
     save_proof: bool,
