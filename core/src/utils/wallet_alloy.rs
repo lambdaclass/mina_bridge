@@ -1,4 +1,4 @@
-use aligned_sdk::core::types::Chain;
+use aligned_sdk::core::types::Network;
 use alloy::{
     network::EthereumWallet,
     signers::local::{LocalSigner, PrivateKeySigner},
@@ -8,7 +8,7 @@ use log::info;
 use crate::utils::constants::ANVIL_PRIVATE_KEY;
 
 pub fn get_wallet(
-    chain: &Chain,
+    network: &Network,
     keystore_path: Option<&str>,
     private_key: Option<&str>,
 ) -> Result<EthereumWallet, String> {
@@ -19,7 +19,7 @@ pub fn get_wallet(
         );
     }
 
-    if matches!(chain, Chain::Holesky) {
+    if matches!(network, Network::Holesky) {
         if let Some(keystore_path) = keystore_path {
             info!("Using keystore for Holesky wallet");
             let password = rpassword::prompt_password("Please enter your keystore password:")

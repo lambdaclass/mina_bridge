@@ -11,10 +11,10 @@ num-bigint = "0.4.3"
 rmp-serde = "1.1.2"
 hex = "0.4.3"
 reqwest = { version = "^0.11", features = ["blocking"] }
-kimchi = { git = "https://github.com/openmina/proof-systems", branch = "ledger-newtypes-rampup4-vrf" }
-mina-signer = { git = "https://github.com/openmina/proof-systems", branch = "ledger-newtypes-rampup4-vrf" }
-poly-commitment = { git = "https://github.com/openmina/proof-systems", branch = "ledger-newtypes-rampup4-vrf" }
-mina-curves = { git = "https://github.com/openmina/proof-systems", branch = "ledger-newtypes-rampup4-vrf" }
+kimchi = { git = "https://github.com/lambdaclass/openmina-proof-systems", branch = "mina_bridge" }
+mina-signer = { git = "https://github.com/lambdaclass/openmina-proof-systems", branch = "mina_bridge" }
+poly-commitment = { git = "https://github.com/lambdaclass/openmina-proof-systems", branch = "mina_bridge" }
+mina-curves = { git = "https://github.com/lambdaclass/openmina-proof-systems", branch = "mina_bridge" }
 o1-utils = { git = "https://github.com/lambdaclass/proof-systems", branch = "add-verifier-serializations" }
 ark-ff = { version = "0.3.0", features = ["parallel", "asm"] }
 ark-ec = { version = "0.3.0", features = ["parallel"] }
@@ -22,13 +22,8 @@ ark-poly = { version = "0.3.0", features = ["parallel"] }
 ark-serialize = "0.3.0"
 mina-tree = { git = "https://github.com/lambdaclass/openmina/", branch = "mina_bridge" }
 mina-p2p-messages = { git = "https://github.com/lambdaclass/openmina/", branch = "mina_bridge" }
-aligned-sdk = { git = "https://github.com/lambdaclass/aligned_layer.git", branch = "use_two_vks" }
-ethers = { tag = "v2.0.15-fix-reconnections", features = [
-  "ws",
-  "rustls",
-  "solc",
-], git = "https://github.com/yetanotherco/ethers-rs.git" }
-ethers-signers = { tag = "v2.0.15-fix-reconnections", git = "https://github.com/yetanotherco/ethers-rs.git" }
+aligned-sdk = { git = "https://github.com/lambdaclass/aligned_layer.git", branch = "mina" }
+ethers = { version = "2.0", features = ["ws", "rustls"] }
 rpassword = "7.3.1"
 tokio = "1.39.1"
 dotenv = "0.15.0"
@@ -49,7 +44,13 @@ alloy-sol-types = "0.8.2"
 alloy-contract = "0.3.1"
 
 [patch.crates-io]
-ark-ff = { git = "https://github.com/openmina/algebra", branch = "openmina" }
-ark-ec = { git = "https://github.com/openmina/algebra", branch = "openmina" }
-ark-poly = { git = "https://github.com/openmina/algebra", branch = "openmina" }
-ark-serialize = { git = "https://github.com/openmina/algebra", branch = "openmina" }
+ark-ff = { git = "https://github.com/lambdaclass/openmina_algebra", branch = "mina_bridge" }
+ark-ec = { git = "https://github.com/lambdaclass/openmina_algebra", branch = "mina_bridge" }
+ark-poly = { git = "https://github.com/lambdaclass/openmina_algebra", branch = "mina_bridge" }
+ark-serialize = { git = "https://github.com/lambdaclass/openmina_algebra", branch = "mina_bridge" }
+
+[patch.'https://github.com/openmina/algebra']
+ark-ff = { git = "https://github.com/lambdaclass/openmina_algebra", branch = "mina_bridge" }
+ark-ec = { git = "https://github.com/lambdaclass/openmina_algebra", branch = "mina_bridge" }
+ark-poly = { git = "https://github.com/lambdaclass/openmina_algebra", branch = "mina_bridge" }
+ark-serialize = { git = "https://github.com/lambdaclass/openmina_algebra", branch = "mina_bridge" }

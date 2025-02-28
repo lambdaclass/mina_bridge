@@ -1,8 +1,7 @@
 use std::str::FromStr;
 
-use aligned_sdk::core::types::{AlignedVerificationData, Chain, VerificationDataCommitment};
-use ethers::core::k256::ecdsa::SigningKey;
-use ethers_signers::Wallet;
+use aligned_sdk::core::types::{AlignedVerificationData, Network, VerificationDataCommitment};
+use ethers::{core::k256::ecdsa::SigningKey, signers::Wallet};
 use log::debug;
 use mina_p2p_messages::v2::StateHash;
 
@@ -47,10 +46,9 @@ pub async fn get_bridged_chain_tip_state_hash(
 #[allow(clippy::too_many_arguments)]
 pub async fn update_bridge_chain(
     rpc_url: &str,
-    chain: &Chain,
+    network: &Network,
     state_settlement_addr: &str,
     batcher_addr: &str,
-    batcher_eth_addr: &str,
     eth_rpc_url: &str,
     proof_generator_addr: &str,
     wallet: Wallet<SigningKey>,
@@ -75,10 +73,9 @@ pub async fn update_bridge_chain(
 
     let verification_data = submit(
         MinaProof::State((proof, pub_input.clone())),
-        chain,
+        network,
         proof_generator_addr,
         batcher_addr,
-        batcher_eth_addr,
         eth_rpc_url,
         wallet.clone(),
         save_proof,
@@ -88,7 +85,7 @@ pub async fn update_bridge_chain(
     update_chain(
         verification_data,
         &pub_input,
-        chain,
+        network,
         eth_rpc_url,
         wallet,
         state_settlement_addr,
@@ -104,10 +101,9 @@ pub async fn validate_account(
     public_key: &str,
     state_hash: &str,
     rpc_url: &str,
-    chain: &Chain,
+    network: &Network,
     account_validation_addr: &str,
     batcher_addr: &str,
-    batcher_eth_addr: &str,
     eth_rpc_url: &str,
     proof_generator_addr: &str,
     batcher_payment_service: &str,
@@ -118,10 +114,9 @@ pub async fn validate_account(
 
     let verification_data = submit(
         MinaProof::Account((proof, pub_input.clone())),
-        chain,
+        network,
         proof_generator_addr,
         batcher_addr,
-        batcher_eth_addr,
         eth_rpc_url,
         wallet.clone(),
         save_proof,

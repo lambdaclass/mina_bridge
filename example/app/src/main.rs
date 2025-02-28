@@ -1,4 +1,4 @@
-use aligned_sdk::core::types::Chain;
+use aligned_sdk::core::types::Network;
 use alloy::{
     primitives::{Address, U256},
     providers::ProviderBuilder,
@@ -16,7 +16,7 @@ use mina_bridge_core::{
 use std::{process, str::FromStr, time::SystemTime};
 
 const MINA_ZKAPP_ADDRESS: &str = "B62qmKCv2HaPwVRHBKrDFGUpjSh3PPY9VqSa6ZweGAmj9hBQL4pfewn";
-const SUDOKU_VALIDITY_DEVNET_ADDRESS: &str = "0xb19b36b1456E65E3A6D514D3F715f204BD59f431";
+const SUDOKU_VALIDITY_DEVNET_ADDRESS: &str = "0x8ce361602B935680E8DeC218b820ff5056BeB7af";
 
 sol!(
     #[allow(clippy::too_many_arguments)]
@@ -46,7 +46,7 @@ async fn main() {
 
     let EnvironmentVariables {
         rpc_url,
-        chain,
+        network,
         state_settlement_addr,
         account_validation_addr,
         batcher_addr,
@@ -69,9 +69,9 @@ async fn main() {
         process::exit(1);
     });
 
-    let sudoku_address = match chain {
-        Chain::Devnet => SUDOKU_VALIDITY_DEVNET_ADDRESS.to_string(),
-        Chain::Holesky => std::env::var("SUDOKU_VALIDITY_HOLESKY_ADDRESS").unwrap_or_else(|_| {
+    let sudoku_address = match network {
+        Network::Devnet => SUDOKU_VALIDITY_DEVNET_ADDRESS.to_string(),
+        Network::Holesky => std::env::var("SUDOKU_VALIDITY_HOLESKY_ADDRESS").unwrap_or_else(|_| {
             error!("Error getting Sudoku vality contract address");
             process::exit(1);
         }),
@@ -79,7 +79,7 @@ async fn main() {
     };
 
     let wallet_alloy =
-        wallet_alloy::get_wallet(&chain, keystore_path.as_deref(), private_key.as_deref())
+        wallet_alloy::get_wallet(&network, keystore_path.as_deref(), private_key.as_deref())
             .unwrap_or_else(|err| {
                 error!("{}", err);
                 process::exit(1);
@@ -130,7 +130,7 @@ async fn main() {
             //     info!("State that includes the zkApp tx isn't verified. Bridging latest chain...");
 
             let wallet =
-                wallet::get_wallet(&chain, keystore_path.as_deref(), private_key.as_deref())
+                wallet::get_wallet(&network, keystore_path.as_deref(), private_key.as_deref())
                     .unwrap_or_else(|err| {
                         error!("{}", err);
                         process::exit(1);
@@ -138,10 +138,9 @@ async fn main() {
 
             let state_verification_result = update_bridge_chain(
                 &rpc_url,
-                &chain,
+                &network,
                 &state_settlement_addr,
                 &batcher_addr,
-                &batcher_eth_addr,
                 &eth_rpc_url,
                 &proof_generator_addr,
                 wallet.clone(),
@@ -185,10 +184,9 @@ async fn main() {
                 MINA_ZKAPP_ADDRESS,
                 &tip_state_hash,
                 &rpc_url,
-                &chain,
+                &network,
                 &account_validation_addr,
                 &batcher_addr,
-                &batcher_eth_addr,
                 &eth_rpc_url,
                 &proof_generator_addr,
                 &batcher_eth_addr,
@@ -202,17 +200,6 @@ async fn main() {
             });
 
             debug!("Creating contract instance");
-            let sudoku_address = match chain {
-                Chain::Devnet => SUDOKU_VALIDITY_DEVNET_ADDRESS,
-                Chain::Holesky => {
-                    &std::env::var("SUDOKU_VALIDITY_HOLESKY_ADDRESS").unwrap_or_else(|err| {
-                        error!("Could not read SUDOKU_VALIDITY_HOLESKY_ADDRESS env var: {err}");
-                        process::exit(1);
-                    })
-                }
-                _ => todo!(),
-            };
-
             let contract =
                 SudokuValidity::new(Address::from_str(&sudoku_address).unwrap(), provider);
 
