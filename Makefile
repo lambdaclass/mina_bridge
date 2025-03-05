@@ -16,10 +16,10 @@ gen_contract_abis:
 	cp contract/out/MinaAccountValidation.sol/MinaAccountValidation.json core/abi/MinaAccountValidation.json
 	cp example/eth_contract/out/SudokuValidity.sol/SudokuValidity.json example/app/abi/SudokuValidity.json
 
-deploy_contract: gen_contract_abis
+deploy_contract:
 	@cargo run --manifest-path contract_deployer/Cargo.toml --release
 
-deploy_example_contract: gen_contract_abis
+deploy_example_contract:
 	@cargo run --manifest-path example/app/Cargo.toml --release -- deploy-contract
 
 execute_example:
