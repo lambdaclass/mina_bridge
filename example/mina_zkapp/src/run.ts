@@ -1,48 +1,25 @@
-import fs from 'fs/promises';
+import path from 'path';
 import { Sudoku, SudokuZkApp } from './sudoku.js';
 import { generateSudoku, solveSudoku } from './sudoku-lib.js';
-import { Mina, PrivateKey, NetworkId, fetchAccount } from 'o1js';
+import { Mina, PrivateKey, NetworkId, fetchAccount, PublicKey } from 'o1js';
+import dotenv from 'dotenv';
+
+dotenv.config({ path: '../../.env' });
 
 const TX_MAX_TRIES = 5;
-const DEPLOY_ALIAS = "devnet";
+const FEE = 0.1; // in MINA
 
-type Config = {
-  deployAliases: Record<
-    string,
-    {
-      networkId?: string;
-      url: string;
-      keyPath: string;
-      fee: string;
-      feepayerKeyPath: string;
-      feepayerAlias: string;
-    }
-  >;
-};
-
-let configJson: Config = JSON.parse(await fs.readFile('config.json', 'utf8'));
-let config = configJson.deployAliases[DEPLOY_ALIAS];
-
-let feepayerKeysBase58: { privateKey: string; publicKey: string } = JSON.parse(
-  await fs.readFile(config.feepayerKeyPath, 'utf8')
-);
-let zkAppKeysBase58: { privateKey: string; publicKey: string } = JSON.parse(
-  await fs.readFile(config.keyPath, 'utf8')
-);
-let feepayerKey = PrivateKey.fromBase58(feepayerKeysBase58.privateKey);
-let zkAppKey = PrivateKey.fromBase58(zkAppKeysBase58.privateKey);
-
+let feepayerKey = PrivateKey.fromBase58(process.env.FEEPAYER_KEY as string);
 let feepayerAddress = feepayerKey.toPublicKey();
-let zkAppAddress = zkAppKey.toPublicKey();
+
+let zkAppAddress = PublicKey.fromBase58("B62qmKCv2HaPwVRHBKrDFGUpjSh3PPY9VqSa6ZweGAmj9hBQL4pfewn");
 
 // define network (devnet)
 const Network = Mina.Network({
-  // We need to default to the testnet networkId if none is specified for this deploy alias in config.json
-  // This is to ensure the backward compatibility.
-  networkId: config.networkId as NetworkId,
-  mina: config.url,
+  networkId: "testnet" as NetworkId,
+  mina: "https://api.minascan.io/node/devnet/v1/graphql",
 });
-const fee = Number(config.fee) * 1e9; // in nanomina (1 billion = 1.0 mina)
+const fee = Number(FEE) * 1e9; // in nanomina (1 billion = 1.0 mina)
 Mina.setActiveInstance(Network);
 
 // define zkapp and create sudoku to upload
@@ -55,7 +32,7 @@ const sudoku = generateSudoku(0.5);
 console.log('Compiling Sudoku');
 await SudokuZkApp.compile();
 
-console.log("Sending update transaction and waiting until it's included in a block");
+console.log("Sending update transaction");
 await trySendTx(
   { sender: feepayerAddress, fee },
   async () => {
@@ -77,7 +54,7 @@ console.log('Is the sudoku solved?', zkApp.isSolved.get().toBoolean());
 async function trySendTx(sender: Mina.FeePayerSpec, f: () => Promise<void>) {
   for (let i = 1; i <= TX_MAX_TRIES; i++) {
     try {
-      console.log("Defining transaction");
+      console.log("Define new transaction");
       const tx = await Mina.transaction(sender, f);
 
       console.log("Proving transaction");

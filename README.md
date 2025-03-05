@@ -99,7 +99,7 @@ Because the Bridge uses for now a forked version of Aligned, you may need to set
 1. Have docker running
 
 2. Clone the [forked Aligned repo](https://github.com/lambdaclass/aligned_layer). Checkout to the `mina` branch.
-   
+
 3. Run:
 
   ```sh
@@ -118,13 +118,13 @@ Because the Bridge uses for now a forked version of Aligned, you may need to set
   make aggregator_start ENVIRONMENT=devnet
   ```
 
-6.  Start the batcher: 
-   
+6. Start the batcher:
+
   ```sh
   make batcher_start_local
   ```
 
-7.  Start an operator:
+7. Start an operator:
 
   ```sh
   make operator_full_registration CONFIG_FILE=config-files/config-operator-1.yaml ENVIRONMENT=devnet
@@ -139,9 +139,10 @@ In the Mina Bridge repo, setup the `.env` file. A template is available in `.env
 
 2. Set `MINA_RPC_URL` to the URL of the Mina node GraphQL API (See [Mina node section](#mina-node)). //
 
-docker pull gcr.io/o1labs-192920/mina-daemon:599a76d-bullseye-devnet
-docker run gcr.io/o1labs-192920/mina-daemon:599a76d-bullseye-devnet
-
+    ```sh
+    docker pull gcr.io/o1labs-192920/mina-daemon:599a76d-bullseye-devnet
+    docker run gcr.io/o1labs-192920/mina-daemon:599a76d-bullseye-devnet
+    ```
 
 3. Set the rest of the env vars to:
 
@@ -208,7 +209,9 @@ For running the example you need to:
 
 6. After deployment, set the `zkappAddress` field on `example/mina_zkapp/config.json`
 
-7. Run the example by executing from the root folder:
+7. Set the environment variables in a `.env` file accordingly. A template can be found in `.env.template`.
+
+8. Run the example by executing from the root folder:
 
     ```sh
     make execute_example
