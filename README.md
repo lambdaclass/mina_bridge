@@ -126,7 +126,7 @@ This repo also includes example contracts that show how to interact with Aligned
 1. In the root folder, deploy the example Bridge's contracts with:
 
     ```sh
-    make deploy_contract
+    make deploy_example_bridge_contracts
     ```
   
     In the `.env` file, set `STATE_SETTLEMENT_ETH_ADDR` and `ACCOUNT_VALIDATION_ETH_ADDR` to the corresponding deployed contract addresses.
@@ -156,13 +156,13 @@ For running the example you need to:
 2. Deploy the example bridge smart contracts by executing
 
     ```sh
-    make deploy_contract
+    make deploy_example_bridge_contracts
     ```
 
 3. Deploy the SudokuValidity smart contract by executing
 
     ```sh
-    make deploy_example_contract
+    make deploy_example_app_contracts
     ```
 
 4. Install `zkapp-cli`:
@@ -363,7 +363,7 @@ The verification consists in calculating the merkle root by hashing the branch (
 
 ### Mina State Settlement contract
 
-[mina_bridge repo: contract/src/MinaStateSettlement.sol](https://github.com/lambdaclass/mina_bridge/tree/aligned/contract/src/MinaStateSettlement.sol)
+[mina_bridge repo: contract/src/MinaStateSettlementExample.sol](https://github.com/lambdaclass/mina_bridge/tree/aligned/contract/src/MinaStateSettlementExample.sol)
 
 This contract stores the latest verified state and ledger hashes (also called the bridge’s transition frontier) and updates the arrays with new values whenever a new Mina Proof of State is submitted.
 
@@ -377,7 +377,7 @@ The contract is deployed by a `contract_deployer` crate with an initial state th
 
 ### Mina Account Validation contract
 
-[mina_bridge repo: contract/src/MinaAccountValidation.sol](https://github.com/lambdaclass/mina_bridge/tree/aligned/contract/src/MinaAccountValidation.sol)
+[mina_bridge repo: contract/src/MinaAccountValidationExample.sol](https://github.com/lambdaclass/mina_bridge/tree/aligned/contract/src/MinaAccountValidationExample.sol)
 
 This contract implements a method for validating an account, taking as parameter the verification data and public inputs of the proof sent to Aligned. It also implements a structure for representing account data. A user can decode the account from the public inputs into this structure.
 

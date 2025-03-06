@@ -10,7 +10,9 @@ error TipStateIsWrong(bytes32 pubInputTipStateHash, bytes32 tipStatehash); // bb
 error AccountIsNotValid(bytes32 accountIdHash);
 
 /// @title Mina to Ethereum Bridge's smart contract for verifying and storing a valid state chain.
-contract MinaStateSettlement {
+/// WARNING: This contract is meant ot be used as an example of how to use the Bridge.
+/// NEVER use this contract in a production environment.
+contract MinaStateSettlementExample {
     /// @notice The commitment to Mina proving system ID.
     bytes32 constant PROVING_SYSTEM_ID_COMM =
         0xdbb8d0f4c497851a5043c6363657698cb1387682cac2f786c731f8936109d795;

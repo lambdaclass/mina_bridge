@@ -2,8 +2,9 @@ use aligned_sdk::core::types::Network;
 use log::{debug, error, info};
 use mina_bridge_core::{
     eth::{
-        deploy_mina_account_validation_contract, deploy_mina_bridge_contract,
-        MinaAccountValidationConstructorArgs, MinaStateSettlementConstructorArgs, SolStateHash,
+        deploy_mina_account_validation_example_contract, deploy_mina_bridge_example_contract,
+        MinaAccountValidationExampleConstructorArgs, MinaStateSettlementExampleConstructorArgs,
+        SolStateHash,
     },
     mina::query_root,
     utils::{
@@ -57,14 +58,14 @@ async fn main() {
     });
 
     let bridge_constructor_args =
-        MinaStateSettlementConstructorArgs::new(&aligned_sm_addr, root_hash).unwrap_or_else(
+        MinaStateSettlementExampleConstructorArgs::new(&aligned_sm_addr, root_hash).unwrap_or_else(
             |err| {
                 error!("Failed to make constructor args for bridge contract call: {err}");
                 process::exit(1);
             },
         );
-    let account_constructor_args = MinaAccountValidationConstructorArgs::new(&aligned_sm_addr)
-        .unwrap_or_else(|err| {
+    let account_constructor_args =
+        MinaAccountValidationExampleConstructorArgs::new(&aligned_sm_addr).unwrap_or_else(|err| {
             error!("Failed to make constructor args for account contract call: {err}");
             process::exit(1);
         });
@@ -76,7 +77,7 @@ async fn main() {
         });
 
     // Contract for Devnet state proofs
-    deploy_mina_bridge_contract(&eth_rpc_url, &bridge_constructor_args, &wallet, true)
+    deploy_mina_bridge_example_contract(&eth_rpc_url, &bridge_constructor_args, &wallet, true)
         .await
         .unwrap_or_else(|err| {
             error!("Failed to deploy contract: {err}");
@@ -84,17 +85,21 @@ async fn main() {
         });
 
     // Contract for Mainnet state proofs
-    deploy_mina_bridge_contract(&eth_rpc_url, &bridge_constructor_args, &wallet, false)
+    deploy_mina_bridge_example_contract(&eth_rpc_url, &bridge_constructor_args, &wallet, false)
         .await
         .unwrap_or_else(|err| {
             error!("Failed to deploy contract: {err}");
             process::exit(1);
         });
 
-    deploy_mina_account_validation_contract(&eth_rpc_url, account_constructor_args, &wallet)
-        .await
-        .unwrap_or_else(|err| {
-            error!("Failed to deploy contract: {err}");
-            process::exit(1);
-        });
+    deploy_mina_account_validation_example_contract(
+        &eth_rpc_url,
+        account_constructor_args,
+        &wallet,
+    )
+    .await
+    .unwrap_or_else(|err| {
+        error!("Failed to deploy contract: {err}");
+        process::exit(1);
+    });
 }

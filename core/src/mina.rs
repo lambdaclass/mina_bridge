@@ -23,7 +23,7 @@ use crate::{
         account_proof::{MerkleNode, MinaAccountProof, MinaAccountPubInputs},
         state_proof::{MinaStateProof, MinaStatePubInputs},
     },
-    sol::account::MinaAccountValidation,
+    sol::account::MinaAccountValidationExample,
     utils::constants::BRIDGE_TRANSITION_FRONTIER_LEN,
 };
 
@@ -101,7 +101,7 @@ pub async fn get_mina_proof_of_account(
     let (account, ledger_hash, merkle_path) =
         query_account(rpc_url, state_hash, public_key).await?;
 
-    let encoded_account = MinaAccountValidation::Account::try_from(&account)?.abi_encode();
+    let encoded_account = MinaAccountValidationExample::Account::try_from(&account)?.abi_encode();
 
     debug!(
         "Retrieved proof of account for ledger {}",

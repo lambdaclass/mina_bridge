@@ -7,7 +7,7 @@ use mina_p2p_messages::{
 use serde::{Deserialize, Serialize};
 
 /// Serialization to bytes for simple types that need to be deserialized in Ethereum.
-/// More complex structures, like an [`MinaAccountValidation::Account`], may use Solidity's ABI Encoding.
+/// More complex structures, like an [`MinaAccountValidationExample::Account`], may use Solidity's ABI Encoding.
 pub struct SolSerialize;
 
 impl serde_with::SerializeAs<StateHash> for SolSerialize {
