@@ -4,6 +4,7 @@ use alloy::{
     signers::local::{LocalSigner, PrivateKeySigner},
 };
 use log::info;
+use zeroize::Zeroizing;
 
 use crate::utils::constants::ANVIL_PRIVATE_KEY;
 
@@ -22,8 +23,10 @@ pub fn get_wallet(
     if matches!(network, Network::Holesky) {
         if let Some(keystore_path) = keystore_path {
             info!("Using keystore for Holesky wallet");
-            let password = rpassword::prompt_password("Please enter your keystore password:")
-                .map_err(|err| err.to_string())?;
+            let password = Zeroizing::new(
+                rpassword::prompt_password("Please enter your keystore password:")
+                    .map_err(|err| err.to_string())?,
+            );
             let signer = LocalSigner::decrypt_keystore(keystore_path, password)
                 .map_err(|err| err.to_string())?;
             Ok(EthereumWallet::new(signer))
