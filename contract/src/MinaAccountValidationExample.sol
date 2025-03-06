@@ -5,7 +5,7 @@ import "aligned_layer/contracts/src/core/AlignedLayerServiceManager.sol";
 
 error MinaAccountProvingSystemIdIsNotValid(bytes32); // c1872967
 
-contract MinaAccountValidation {
+contract MinaAccountValidationExample {
     /// @notice The commitment to Mina Account proving system ID.
     bytes32 constant PROVING_SYSTEM_ID_COMM = 0xd0591206d9e81e07f4defc5327957173572bcd1bca7838caa7be39b0c12b1873;
 

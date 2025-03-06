@@ -14,9 +14,12 @@ use mina_p2p_messages::{
     },
 };
 use num_traits::ToPrimitive;
-use MinaAccountValidation::*;
+use MinaAccountValidationExample::*;
 
-sol!(MinaAccountValidation, "abi/MinaAccountValidation.json");
+sol!(
+    MinaAccountValidationExample,
+    "abi/MinaAccountValidationExample.json"
+);
 
 #[allow(non_snake_case)]
 impl TryFrom<&MinaAccount> for Account {
