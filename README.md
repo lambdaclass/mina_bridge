@@ -81,79 +81,45 @@ This repo also includes example contracts that show how to interact with Aligned
 - If you want the Bridge to use Mina Devnet then use a node that runs a Devnet instance corresponding to the commit `599a76d` [of the Mina repo](https://github.com/MinaProtocol/mina/tree/599a76dd47be99183d2102d9eb93eda679dd46ec) or a newer one (e.g.: [this Docker image](https://console.cloud.google.com/gcr/images/o1labs-192920/GLOBAL/mina-daemon:3.0.1-compatible-599a76d-bullseye-devnet/details)). See [how to connect to Mina Devnet](https://docs.minaprotocol.com/node-operators/block-producer-node/connecting-to-devnet#docker) if you want to run an instance yourself.
 - If you want the Bridge to use Mina Mainnet use a node that runs a Mainnet instance corresponding to the commit `65c84ad` [of the Mina repo](https://github.com/MinaProtocol/mina/tree/65c84adacd55272160d9f77c31063d94a942afb6) or a newer one (e.g.: [this Docker image](http://gcr.io/o1labs-192920/mina-daemon:3.0.1-beta1-sai-query-snarked-ledger-c439ce5-bullseye-mainnet)). See [how to connect to Mina Mainnet](https://docs.minaprotocol.com/node-operators/block-producer-node/connecting-to-the-network#docker) if you want to run an instance yourself.
 
-You can bridge Mina accounts to Ethereum Devnet or Ethereum Testnet. The following subsections describe how to config the Bridge for each network.
+### Setup Aligned Devnet infrastructure locally
 
-#### Ethereum Devnet
+1. Start Docker
 
-1. [Setup Aligned (Devnet) infrastructure locally](https://docs.alignedlayer.com/guides/6_setup_aligned)
 1. Setup the `.env` file of the Bridge. A template is available in `.env.template`.
     1. Set `ETH_CHAIN` to `devnet`.
     1. Set `MINA_RPC_URL` to the URL of the Mina node GraphQL API (See [Mina node section](#mina-node)).
 
-#### Ethereum Testnet
+1. Clone the [forked Aligned repo](https://github.com/lambdaclass/aligned_layer). Checkout to the `mina` branch.
 
-Because the Bridge uses for now a forked version of Aligned, you may need to setup a local instance of Aligned to verify Mina proofs.
-
-##### Setup Aligned Testnet infrastructure locally
-
-1. Have docker running
-
-2. Clone the [forked Aligned repo](https://github.com/lambdaclass/aligned_layer). Checkout to the `mina` branch.
-
-3. Run:
-
-  ```sh
-  make deps
-  ```
-
-4. Start anvil:
-
-  ```sh
-  make anvil_start_with_block_time
-  ```
-
-5. Start the aggregator:
-
-  ```sh
-  make aggregator_start ENVIRONMENT=devnet
-  ```
-
-6. Start the batcher:
-
-  ```sh
-  make batcher_start_local
-  ```
-
-7. Start an operator:
-
-  ```sh
-  make operator_full_registration CONFIG_FILE=config-files/config-operator-1.yaml ENVIRONMENT=devnet
-  make operator_start CONFIG_FILE=config-files/config-operator-1.yaml ENVIRONMENT=devnet
-  ```
-
-#### Bridge environment setup
-
-In the Mina Bridge repo, setup the `.env` file. A template is available in `.env.template`.
-
-1. Set `ETH_CHAIN` to `holesky`.
-
-2. Set `MINA_RPC_URL` to the URL of the Mina node GraphQL API (See [Mina node section](#mina-node)). //
+1. Run:
 
     ```sh
-    docker pull gcr.io/o1labs-192920/mina-daemon:599a76d-bullseye-devnet
-    docker run gcr.io/o1labs-192920/mina-daemon:599a76d-bullseye-devnet
+    make deps
     ```
 
-3. Set the rest of the env vars to:
+1. Start anvil:
 
-  ```sh
-  BATCHER_ADDR="ws://localhost:8080"
-  BATCHER_ETH_ADDR=<batcher_payment_service_address>
-  ETH_RPC_URL=<url>
-  PROOF_GENERATOR_ADDR=0x66f9664f97F2b50F62D13eA064982f936dE76657
-  PRIVATE_KEY=<bridge_account_private_key>
-  ALIGNED_SM_HOLESKY_ETH_ADDR=<aligned_service_manager_address>
-  ```
+    ```sh
+    make anvil_start_with_block_time
+    ```
+
+1. Start the aggregator:
+
+    ```sh
+    make aggregator_start ENVIRONMENT=devnet
+    ```
+
+1. Start the batcher:
+
+    ```sh
+    make batcher_start_local ENVIRONMENT=devnet
+    ```
+
+1. Start an operator:
+
+    ```sh
+    make operator_register_and_start ENVIRONMENT=devnet
+    ```
 
 ### Bridge a Mina account
 
@@ -163,13 +129,13 @@ In the Mina Bridge repo, setup the `.env` file. A template is available in `.env
     make deploy_contract
     ```
   
-  In the `.env` file, set `STATE_SETTLEMENT_ETH_ADDR` and `ACCOUNT_VALIDATION_ETH_ADDR` to the corresponding deployed contract addresses.
+    In the `.env` file, set `STATE_SETTLEMENT_ETH_ADDR` and `ACCOUNT_VALIDATION_ETH_ADDR` to the corresponding deployed contract addresses.
 
-2. Submit a Mina state proof to verify (**NOTE:** Because of the Aligned minimum batch size, you may need to submit two proofs to make Aligned Devnet verify them):
+1. Submit a Mina state proof to verify (**NOTE:** Because of the Aligned minimum batch size, you may need to submit two proofs to make Aligned Devnet verify them):
 
     - Run `make submit_devnet_state` if you are using Mina Devnet or `make submit_mainnet_state` if you are using Mina Mainnet.
 
-3. Submit an account to verify (**NOTE:** Because of the Aligned minimum batch size, you may need to submit two proofs to make Aligned Devnet verify them):
+1. Submit an account to verify (**NOTE:** Because of the Aligned minimum batch size, you may need to submit two proofs to make Aligned Devnet verify them):
 
     ```sh
     make submit_account PUBLIC_KEY=<string> STATE_HASH=<string>
@@ -217,9 +183,9 @@ For running the example you need to:
     make execute_example
     ```
 
-   this will upload a new Sudoku, submit a solution to it and run the example Rust app that will bridge the new state of the zkApp and update the SudokuValidty smart contract on Ethereum.
+    this will upload a new Sudoku, submit a solution to it and run the example Rust app that will bridge the new state of the zkApp and update the SudokuValidty smart contract on Ethereum.
 
-   The zkApp will wait until both Mina transactions are included in a block, so this may take a while. Below is a diagram explaining the execution flow:
+    The zkApp will wait until both Mina transactions are included in a block, so this may take a while. Below is a diagram explaining the execution flow:
 
 ![Example diagram](/img/example_diagram.png)
 
