@@ -50,6 +50,11 @@ sol!(
     "abi/MinaAccountValidationExample.json"
 );
 
+// Define constant values that will be used for gas limits and calculations
+const MAX_GAS_LIMIT_VALUE: u64 = 1_000_000; // Maximum allowed gas for a transaction
+const MAX_GAS_PRICE_GWEI: u64 = 300; // Maximum allowed gas price in Gwei
+const GAS_ESTIMATE_MARGIN: u64 = 110; // Safety margin (110 means 110%, or +10%)
+
 #[serde_as]
 #[derive(Serialize, Deserialize)]
 pub struct SolStateHash(#[serde_as(as = "SolSerialize")] pub StateHash);
@@ -91,6 +96,51 @@ impl MinaAccountValidationExampleConstructorArgs {
     }
 }
 
+// Main function that validates gas parameters
+// Takes provider (connection to Ethereum) and estimated_gas as parameters
+async fn validate_gas_params(
+    provider: &Provider<Http>,
+    estimated_gas: U256,
+) -> Result<U256, String> {
+    // Query the current network gas price
+    let current_gas_price = provider
+        .get_gas_price()
+        .await
+        .map_err(|err| err.to_string())?;
+
+    // Convert gas price from Wei to Gwei by dividing by 1_000_000_000
+    let gas_price_gwei = current_gas_price
+        .checked_div(U256::from(1_000_000_000))
+        .ok_or("Gas price calculation overflow")?;
+
+    // Check if the current gas price is above our maximum allowed price
+    if gas_price_gwei > U256::from(MAX_GAS_PRICE_GWEI) {
+        return Err(format!(
+            "Gas price too high: {} gwei (max: {} gwei)",
+            gas_price_gwei, MAX_GAS_PRICE_GWEI
+        ));
+    }
+
+    // Calculate gas limit with safety margin:
+    // 1. Multiply estimated gas by 110 (for 10% extra)
+    // 2. Divide by 100 to get the final value
+    let gas_with_margin = estimated_gas
+        .checked_mul(U256::from(GAS_ESTIMATE_MARGIN))
+        .and_then(|v| v.checked_div(U256::from(100)))
+        .ok_or("Gas margin calculation overflow")?;
+
+    // Check if our gas limit with margin is above maximum allowed gas
+    if gas_with_margin > U256::from(MAX_GAS_LIMIT_VALUE) {
+        return Err(format!(
+            "Estimated gas too high: {} (max: {})",
+            gas_with_margin, MAX_GAS_LIMIT_VALUE
+        ));
+    }
+
+    // If all checks pass, return the gas limit with safety margin
+    Ok(gas_with_margin)
+}
+
 pub async fn update_chain(
     verification_data: AlignedVerificationData,
     pub_input: &MinaStatePubInputs,
@@ -100,6 +150,7 @@ pub async fn update_chain(
     contract_addr: &str,
     batcher_payment_service: &str,
 ) -> Result<(), String> {
+    let provider = Provider::<Http>::try_from(eth_rpc_url).map_err(|err| err.to_string())?;
     let bridge_eth_addr = Address::from_str(contract_addr).map_err(|err| err.to_string())?;
 
     let serialized_pub_input = bincode::serialize(pub_input)
@@ -145,15 +196,21 @@ pub async fn update_chain(
     );
     // update call reverts if batch is not valid or proof isn't included in it.
 
-    info!(
-        "Estimated gas cost: {}",
-        update_call
-            .estimate_gas()
-            .await
-            .map_err(|err| err.to_string())?
-    );
+    let estimated_gas = update_call
+        .estimate_gas()
+        .await
+        .map_err(|err| err.to_string())?;
 
-    let pending_tx = update_call.send().await.map_err(|err| err.to_string())?;
+    info!("Estimated gas cost: {}", estimated_gas);
+
+    // Validate gas parameters and get safe gas limit
+    let gas_limit = validate_gas_params(&provider, estimated_gas).await?;
+    let update_call_with_gas_limit = update_call.gas(gas_limit);
+
+    let pending_tx = update_call_with_gas_limit
+        .send()
+        .await
+        .map_err(|err| err.to_string())?;
     info!(
         "Transaction {} was submitted and is now pending",
         pending_tx.tx_hash().encode_hex()
@@ -248,6 +305,7 @@ pub async fn validate_account(
     contract_addr: &str,
     batcher_payment_service: &str,
 ) -> Result<(), String> {
+    let provider = Provider::<Http>::try_from(eth_rpc_url).map_err(|err| err.to_string())?;
     let bridge_eth_addr = Address::from_str(contract_addr).map_err(|err| err.to_string())?;
 
     debug!("Creating contract instance");
@@ -295,13 +353,13 @@ pub async fn validate_account(
     };
 
     let call = contract.validate_account(aligned_args);
+    let estimated_gas = call.estimate_gas().await.map_err(|err| err.to_string())?;
 
-    info!(
-        "Estimated account verification gas cost: {}",
-        call.estimate_gas().await.map_err(|err| err.to_string())?
-    );
+    info!("Estimated account verification gas cost: {estimated_gas}");
 
-    call.await.map_err(|err| err.to_string())?;
+    let gas_limit = validate_gas_params(&provider, estimated_gas).await?;
+
+    call.gas(gas_limit).await.map_err(|err| err.to_string())?;
 
     Ok(())
 }
