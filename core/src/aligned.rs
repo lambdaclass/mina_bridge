@@ -1,7 +1,10 @@
 use std::{process, str::FromStr};
 
-use aligned_sdk::core::types::{
-    AlignedVerificationData, Network, ProvingSystemId, VerificationData,
+use aligned_sdk::{
+    core::types::{
+        AlignedVerificationData, FeeEstimationType, Network, ProvingSystemId, VerificationData,
+    },
+    sdk::estimate_fee,
 };
 
 use ethers::{
@@ -9,6 +12,7 @@ use ethers::{
     signers::Wallet,
     types::{Address, U256},
 };
+use futures::TryFutureExt;
 use log::{error, info};
 
 use crate::proof::MinaProof;
@@ -77,12 +81,18 @@ pub async fn submit(
         proof_generator_addr,
     };
 
+    let max_fee = estimate_fee(eth_rpc_url, FeeEstimationType::Instant)
+        .map_err(|err| err.to_string())
+        .await?;
+
+    info!("Max fee: {max_fee} gas");
+
     info!("Submitting {proof_name} into Aligned and waiting for the batch to be verified...");
     aligned_sdk::sdk::submit_and_wait_verification(
         eth_rpc_url,
         network.to_owned(),
         &verification_data,
-        U256::from(40_000_000_000_000_000u64), // max_fee
+        max_fee,
         wallet,
         U256::from(0),
     )
