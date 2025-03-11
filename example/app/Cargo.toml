@@ -13,7 +13,7 @@ alloy = { version = "0.3.1", features = ["full", "signer-keystore"] }
 alloy-sol-types = "0.8.2"
 alloy-contract = "0.3.1"
 reqwest = "^0.11"
-aligned-sdk = { git = "https://github.com/lambdaclass/aligned_layer.git", rev = "cebeee7b86de0fcd3fd6f97bcd8a1096d7708bc5" }
+aligned-sdk = { git = "https://github.com/lambdaclass/aligned_layer.git", rev = "220546afa12c035a508529224f5148cd6af4ca78" }
 
 [patch.crates-io]
 ark-ff = { git = "https://github.com/lambdaclass/openmina_algebra", rev = "017531e7aaa15a2c856532b0843876e371b01122" }

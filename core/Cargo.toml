@@ -20,9 +20,9 @@ ark-ff = { version = "0.3.0", features = ["parallel", "asm"] }
 ark-ec = { version = "0.3.0", features = ["parallel"] }
 ark-poly = { version = "0.3.0", features = ["parallel"] }
 ark-serialize = "0.3.0"
-mina-tree = { git = "https://github.com/lambdaclass/openmina/", rev = "711c99f92ca3241dfbe8ae6d257b333e63abe643" }
-mina-p2p-messages = { git = "https://github.com/lambdaclass/openmina/", rev = "711c99f92ca3241dfbe8ae6d257b333e63abe643" }
-aligned-sdk = { git = "https://github.com/lambdaclass/aligned_layer.git", rev = "cebeee7b86de0fcd3fd6f97bcd8a1096d7708bc5" }
+mina-tree = { git = "https://github.com/lambdaclass/openmina/", rev = "860a55dde0e2943c9437ebdfdecbee5f1ac4976f" }
+mina-p2p-messages = { git = "https://github.com/lambdaclass/openmina/", rev = "860a55dde0e2943c9437ebdfdecbee5f1ac4976f" }
+aligned-sdk = { git = "https://github.com/lambdaclass/aligned_layer.git", rev = "220546afa12c035a508529224f5148cd6af4ca78" }
 ethers = { version = "2.0", features = ["ws", "rustls"] }
 rpassword = "7.3.1"
 tokio = "1.39.1"

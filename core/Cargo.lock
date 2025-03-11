@@ -73,7 +73,7 @@ dependencies = [
 [[package]]
 name = "aligned-sdk"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/aligned_layer.git?rev=cebeee7b86de0fcd3fd6f97bcd8a1096d7708bc5#cebeee7b86de0fcd3fd6f97bcd8a1096d7708bc5"
+source = "git+https://github.com/lambdaclass/aligned_layer.git?rev=220546afa12c035a508529224f5148cd6af4ca78#220546afa12c035a508529224f5148cd6af4ca78"
 dependencies = [
  "ciborium",
  "dialoguer",
@@ -3749,7 +3749,7 @@ dependencies = [
 [[package]]
 name = "mina-p2p-messages"
 version = "0.6.4"
-source = "git+https://github.com/lambdaclass/openmina/?rev=711c99f92ca3241dfbe8ae6d257b333e63abe643#711c99f92ca3241dfbe8ae6d257b333e63abe643"
+source = "git+https://github.com/lambdaclass/openmina/?rev=860a55dde0e2943c9437ebdfdecbee5f1ac4976f#860a55dde0e2943c9437ebdfdecbee5f1ac4976f"
 dependencies = [
  "ark-ff 0.3.0",
  "base64 0.13.1",
@@ -3811,7 +3811,7 @@ dependencies = [
 [[package]]
 name = "mina-tree"
 version = "0.6.0"
-source = "git+https://github.com/lambdaclass/openmina/?rev=711c99f92ca3241dfbe8ae6d257b333e63abe643#711c99f92ca3241dfbe8ae6d257b333e63abe643"
+source = "git+https://github.com/lambdaclass/openmina/?rev=860a55dde0e2943c9437ebdfdecbee5f1ac4976f#860a55dde0e2943c9437ebdfdecbee5f1ac4976f"
 dependencies = [
  "anyhow",
  "ark-ec",
@@ -4148,7 +4148,7 @@ dependencies = [
 [[package]]
 name = "openmina-core"
 version = "0.6.0"
-source = "git+https://github.com/lambdaclass/openmina/?rev=711c99f92ca3241dfbe8ae6d257b333e63abe643#711c99f92ca3241dfbe8ae6d257b333e63abe643"
+source = "git+https://github.com/lambdaclass/openmina/?rev=860a55dde0e2943c9437ebdfdecbee5f1ac4976f#860a55dde0e2943c9437ebdfdecbee5f1ac4976f"
 dependencies = [
  "ark-ff 0.3.0",
  "binprot",
@@ -4172,7 +4172,7 @@ dependencies = [
 [[package]]
 name = "openmina-macros"
 version = "0.6.0"
-source = "git+https://github.com/lambdaclass/openmina/?rev=711c99f92ca3241dfbe8ae6d257b333e63abe643#711c99f92ca3241dfbe8ae6d257b333e63abe643"
+source = "git+https://github.com/lambdaclass/openmina/?rev=860a55dde0e2943c9437ebdfdecbee5f1ac4976f#860a55dde0e2943c9437ebdfdecbee5f1ac4976f"
 dependencies = [
  "proc-macro2",
  "quote",
