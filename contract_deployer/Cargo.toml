@@ -5,13 +5,20 @@ edition = "2021"
 
 [dependencies]
 mina_bridge_core = { path = "../core/" }
-aligned-sdk = { git = "https://github.com/lambdaclass/aligned_layer.git", branch = "mina" }
+aligned-sdk = { git = "https://github.com/lambdaclass/aligned_layer.git", rev = "220546afa12c035a508529224f5148cd6af4ca78" }
 tokio = "1.39.1"
 env_logger = "0.11.5"
 bincode = "1.3.3"
 log = "0.4.22"
+
 [patch.crates-io]
-ark-ff = { git = "https://github.com/openmina/algebra", branch = "openmina" }
-ark-ec = { git = "https://github.com/openmina/algebra", branch = "openmina" }
-ark-poly = { git = "https://github.com/openmina/algebra", branch = "openmina" }
-ark-serialize = { git = "https://github.com/openmina/algebra", branch = "openmina" }
+ark-ff = { git = "https://github.com/lambdaclass/openmina_algebra", rev = "017531e7aaa15a2c856532b0843876e371b01122" }
+ark-ec = { git = "https://github.com/lambdaclass/openmina_algebra", rev = "017531e7aaa15a2c856532b0843876e371b01122" }
+ark-poly = { git = "https://github.com/lambdaclass/openmina_algebra", rev = "017531e7aaa15a2c856532b0843876e371b01122" }
+ark-serialize = { git = "https://github.com/lambdaclass/openmina_algebra", rev = "017531e7aaa15a2c856532b0843876e371b01122" }
+
+[patch.'https://github.com/openmina/algebra']
+ark-ff = { git = "https://github.com/lambdaclass/openmina_algebra", rev = "017531e7aaa15a2c856532b0843876e371b01122" }
+ark-ec = { git = "https://github.com/lambdaclass/openmina_algebra", rev = "017531e7aaa15a2c856532b0843876e371b01122" }
+ark-poly = { git = "https://github.com/lambdaclass/openmina_algebra", rev = "017531e7aaa15a2c856532b0843876e371b01122" }
+ark-serialize = { git = "https://github.com/lambdaclass/openmina_algebra", rev = "017531e7aaa15a2c856532b0843876e371b01122" }

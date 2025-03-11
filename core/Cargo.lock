@@ -73,7 +73,7 @@ dependencies = [
 [[package]]
 name = "aligned-sdk"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/aligned_layer.git?branch=mina#458a55ee18b6ffd23c5f4dda959986ce11eba840"
+source = "git+https://github.com/lambdaclass/aligned_layer.git?rev=220546afa12c035a508529224f5148cd6af4ca78#220546afa12c035a508529224f5148cd6af4ca78"
 dependencies = [
  "ciborium",
  "dialoguer",
@@ -746,7 +746,7 @@ checksum = "34ac096ce696dc2fcabef30516bb13c0a68a11d30131d3df6f04711467681b04"
 [[package]]
 name = "ark-ec"
 version = "0.3.0"
-source = "git+https://github.com/lambdaclass/openmina_algebra?branch=mina_bridge#017531e7aaa15a2c856532b0843876e371b01122"
+source = "git+https://github.com/lambdaclass/openmina_algebra?rev=017531e7aaa15a2c856532b0843876e371b01122#017531e7aaa15a2c856532b0843876e371b01122"
 dependencies = [
  "ark-ff 0.3.0",
  "ark-serialize 0.3.0",
@@ -760,7 +760,7 @@ dependencies = [
 [[package]]
 name = "ark-ff"
 version = "0.3.0"
-source = "git+https://github.com/lambdaclass/openmina_algebra?branch=mina_bridge#017531e7aaa15a2c856532b0843876e371b01122"
+source = "git+https://github.com/lambdaclass/openmina_algebra?rev=017531e7aaa15a2c856532b0843876e371b01122#017531e7aaa15a2c856532b0843876e371b01122"
 dependencies = [
  "ark-ff-asm 0.3.0",
  "ark-ff-macros 0.3.0",
@@ -798,7 +798,7 @@ dependencies = [
 [[package]]
 name = "ark-ff-asm"
 version = "0.3.0"
-source = "git+https://github.com/lambdaclass/openmina_algebra?branch=mina_bridge#017531e7aaa15a2c856532b0843876e371b01122"
+source = "git+https://github.com/lambdaclass/openmina_algebra?rev=017531e7aaa15a2c856532b0843876e371b01122#017531e7aaa15a2c856532b0843876e371b01122"
 dependencies = [
  "quote",
  "syn 1.0.109",
@@ -817,7 +817,7 @@ dependencies = [
 [[package]]
 name = "ark-ff-macros"
 version = "0.3.0"
-source = "git+https://github.com/lambdaclass/openmina_algebra?branch=mina_bridge#017531e7aaa15a2c856532b0843876e371b01122"
+source = "git+https://github.com/lambdaclass/openmina_algebra?rev=017531e7aaa15a2c856532b0843876e371b01122#017531e7aaa15a2c856532b0843876e371b01122"
 dependencies = [
  "num-bigint",
  "num-traits",
@@ -841,7 +841,7 @@ dependencies = [
 [[package]]
 name = "ark-poly"
 version = "0.3.0"
-source = "git+https://github.com/lambdaclass/openmina_algebra?branch=mina_bridge#017531e7aaa15a2c856532b0843876e371b01122"
+source = "git+https://github.com/lambdaclass/openmina_algebra?rev=017531e7aaa15a2c856532b0843876e371b01122#017531e7aaa15a2c856532b0843876e371b01122"
 dependencies = [
  "ark-ff 0.3.0",
  "ark-serialize 0.3.0",
@@ -854,7 +854,7 @@ dependencies = [
 [[package]]
 name = "ark-serialize"
 version = "0.3.0"
-source = "git+https://github.com/lambdaclass/openmina_algebra?branch=mina_bridge#017531e7aaa15a2c856532b0843876e371b01122"
+source = "git+https://github.com/lambdaclass/openmina_algebra?rev=017531e7aaa15a2c856532b0843876e371b01122#017531e7aaa15a2c856532b0843876e371b01122"
 dependencies = [
  "ark-serialize-derive",
  "ark-std 0.3.0",
@@ -875,7 +875,7 @@ dependencies = [
 [[package]]
 name = "ark-serialize-derive"
 version = "0.3.0"
-source = "git+https://github.com/lambdaclass/openmina_algebra?branch=mina_bridge#017531e7aaa15a2c856532b0843876e371b01122"
+source = "git+https://github.com/lambdaclass/openmina_algebra?rev=017531e7aaa15a2c856532b0843876e371b01122#017531e7aaa15a2c856532b0843876e371b01122"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2824,7 +2824,7 @@ dependencies = [
 [[package]]
 name = "groupmap"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge#44e0d3b98b8747de54e595f53d97c035ff43167c"
+source = "git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c#44e0d3b98b8747de54e595f53d97c035ff43167c"
 dependencies = [
  "ark-ec",
  "ark-ff 0.3.0",
@@ -3535,7 +3535,7 @@ dependencies = [
 [[package]]
 name = "kimchi"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge#44e0d3b98b8747de54e595f53d97c035ff43167c"
+source = "git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c#44e0d3b98b8747de54e595f53d97c035ff43167c"
 dependencies = [
  "ark-ec",
  "ark-ff 0.3.0",
@@ -3552,7 +3552,7 @@ dependencies = [
  "num-derive",
  "num-integer",
  "num-traits",
- "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c)",
  "once_cell",
  "poly-commitment",
  "rand",
@@ -3727,7 +3727,7 @@ checksum = "6877bb514081ee2a7ff5ef9de3281f14a4dd4bceac4c09388074a6b5df8a139a"
 [[package]]
 name = "mina-curves"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge#44e0d3b98b8747de54e595f53d97c035ff43167c"
+source = "git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c#44e0d3b98b8747de54e595f53d97c035ff43167c"
 dependencies = [
  "ark-ec",
  "ark-ff 0.3.0",
@@ -3736,20 +3736,20 @@ dependencies = [
 [[package]]
 name = "mina-hasher"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge#44e0d3b98b8747de54e595f53d97c035ff43167c"
+source = "git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c#44e0d3b98b8747de54e595f53d97c035ff43167c"
 dependencies = [
  "ark-ff 0.3.0",
  "bitvec",
  "mina-curves",
  "mina-poseidon",
- "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c)",
  "serde",
 ]
 
 [[package]]
 name = "mina-p2p-messages"
 version = "0.6.4"
-source = "git+https://github.com/lambdaclass/openmina/?branch=mina_bridge#166e53d623404714aef45beae4a08bcbe1e367f4"
+source = "git+https://github.com/lambdaclass/openmina/?rev=860a55dde0e2943c9437ebdfdecbee5f1ac4976f#860a55dde0e2943c9437ebdfdecbee5f1ac4976f"
 dependencies = [
  "ark-ff 0.3.0",
  "base64 0.13.1",
@@ -3763,7 +3763,7 @@ dependencies = [
  "mina-hasher",
  "mina-poseidon",
  "mina-signer",
- "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c)",
  "rsexp",
  "serde",
  "serde_json",
@@ -3775,13 +3775,13 @@ dependencies = [
 [[package]]
 name = "mina-poseidon"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge#44e0d3b98b8747de54e595f53d97c035ff43167c"
+source = "git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c#44e0d3b98b8747de54e595f53d97c035ff43167c"
 dependencies = [
  "ark-ec",
  "ark-ff 0.3.0",
  "ark-poly",
  "mina-curves",
- "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c)",
  "once_cell",
  "rand",
  "rayon",
@@ -3792,7 +3792,7 @@ dependencies = [
 [[package]]
 name = "mina-signer"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge#44e0d3b98b8747de54e595f53d97c035ff43167c"
+source = "git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c#44e0d3b98b8747de54e595f53d97c035ff43167c"
 dependencies = [
  "ark-ec",
  "ark-ff 0.3.0",
@@ -3802,7 +3802,7 @@ dependencies = [
  "hex",
  "mina-curves",
  "mina-hasher",
- "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c)",
  "rand",
  "sha2 0.10.8",
  "thiserror 1.0.69",
@@ -3811,7 +3811,7 @@ dependencies = [
 [[package]]
 name = "mina-tree"
 version = "0.6.0"
-source = "git+https://github.com/lambdaclass/openmina/?branch=mina_bridge#166e53d623404714aef45beae4a08bcbe1e367f4"
+source = "git+https://github.com/lambdaclass/openmina/?rev=860a55dde0e2943c9437ebdfdecbee5f1ac4976f#860a55dde0e2943c9437ebdfdecbee5f1ac4976f"
 dependencies = [
  "anyhow",
  "ark-ec",
@@ -3838,7 +3838,7 @@ dependencies = [
  "mina-poseidon",
  "mina-signer",
  "num-bigint",
- "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c)",
  "once_cell",
  "openmina-core",
  "poly-commitment",
@@ -3888,7 +3888,7 @@ dependencies = [
  "mina-tree",
  "num-bigint",
  "num-traits",
- "o1-utils 0.1.0 (git+https://github.com/lambdaclass/proof-systems?branch=add-verifier-serializations)",
+ "o1-utils 0.1.0 (git+https://github.com/lambdaclass/proof-systems?rev=5bdeab3c2a43a671645952f63b9354b7a20b2326)",
  "poly-commitment",
  "reqwest 0.11.27",
  "rmp-serde",
@@ -4047,7 +4047,7 @@ version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af1844ef2428cc3e1cb900be36181049ef3d3193c63e43026cfe202983b27a56"
 dependencies = [
- "proc-macro-crate 3.2.0",
+ "proc-macro-crate 1.1.3",
  "proc-macro2",
  "quote",
  "syn 2.0.98",
@@ -4056,30 +4056,7 @@ dependencies = [
 [[package]]
 name = "o1-utils"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/proof-systems?branch=add-verifier-serializations#5bdeab3c2a43a671645952f63b9354b7a20b2326"
-dependencies = [
- "ark-ec",
- "ark-ff 0.3.0",
- "ark-poly",
- "ark-serialize 0.3.0",
- "bcs",
- "hex",
- "num-bigint",
- "num-integer",
- "num-traits",
- "rand",
- "rand_core",
- "rayon",
- "serde",
- "serde_with 3.12.0",
- "sha2 0.10.8",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "o1-utils"
-version = "0.1.0"
-source = "git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge#44e0d3b98b8747de54e595f53d97c035ff43167c"
+source = "git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c#44e0d3b98b8747de54e595f53d97c035ff43167c"
 dependencies = [
  "ark-ec",
  "ark-ff 0.3.0",
@@ -4095,6 +4072,29 @@ dependencies = [
  "rayon",
  "serde",
  "serde_with 1.14.0",
+ "sha2 0.10.8",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "o1-utils"
+version = "0.1.0"
+source = "git+https://github.com/lambdaclass/proof-systems?rev=5bdeab3c2a43a671645952f63b9354b7a20b2326#5bdeab3c2a43a671645952f63b9354b7a20b2326"
+dependencies = [
+ "ark-ec",
+ "ark-ff 0.3.0",
+ "ark-poly",
+ "ark-serialize 0.3.0",
+ "bcs",
+ "hex",
+ "num-bigint",
+ "num-integer",
+ "num-traits",
+ "rand",
+ "rand_core",
+ "rayon",
+ "serde",
+ "serde_with 3.12.0",
  "sha2 0.10.8",
  "thiserror 1.0.69",
 ]
@@ -4148,7 +4148,7 @@ dependencies = [
 [[package]]
 name = "openmina-core"
 version = "0.6.0"
-source = "git+https://github.com/lambdaclass/openmina/?branch=mina_bridge#166e53d623404714aef45beae4a08bcbe1e367f4"
+source = "git+https://github.com/lambdaclass/openmina/?rev=860a55dde0e2943c9437ebdfdecbee5f1ac4976f#860a55dde0e2943c9437ebdfdecbee5f1ac4976f"
 dependencies = [
  "ark-ff 0.3.0",
  "binprot",
@@ -4172,7 +4172,7 @@ dependencies = [
 [[package]]
 name = "openmina-macros"
 version = "0.6.0"
-source = "git+https://github.com/lambdaclass/openmina/?branch=mina_bridge#166e53d623404714aef45beae4a08bcbe1e367f4"
+source = "git+https://github.com/lambdaclass/openmina/?rev=860a55dde0e2943c9437ebdfdecbee5f1ac4976f#860a55dde0e2943c9437ebdfdecbee5f1ac4976f"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4489,7 +4489,7 @@ checksum = "953ec861398dccce10c670dfeaf3ec4911ca479e9c02154b3a215178c5f566f2"
 [[package]]
 name = "poly-commitment"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge#44e0d3b98b8747de54e595f53d97c035ff43167c"
+source = "git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c#44e0d3b98b8747de54e595f53d97c035ff43167c"
 dependencies = [
  "ark-ec",
  "ark-ff 0.3.0",
@@ -4500,7 +4500,7 @@ dependencies = [
  "itertools 0.10.5",
  "mina-curves",
  "mina-poseidon",
- "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c)",
  "once_cell",
  "rand",
  "rand_core",
@@ -6268,11 +6268,11 @@ checksum = "23d5919d7121237af683b7fa982450597b1eaa2643e597aec3b519e4e5ab3d62"
 [[package]]
 name = "turshi"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge#44e0d3b98b8747de54e595f53d97c035ff43167c"
+source = "git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c#44e0d3b98b8747de54e595f53d97c035ff43167c"
 dependencies = [
  "ark-ff 0.3.0",
  "hex",
- "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c)",
 ]
 
 [[package]]
