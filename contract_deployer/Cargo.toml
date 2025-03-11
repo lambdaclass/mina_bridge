@@ -5,13 +5,13 @@ edition = "2021"
 
 [dependencies]
 mina_bridge_core = { path = "../core/" }
-aligned-sdk = { git = "https://github.com/lambdaclass/aligned_layer.git", branch = "mina" }
+aligned-sdk = { git = "https://github.com/lambdaclass/aligned_layer.git", rev = "cebeee7b86de0fcd3fd6f97bcd8a1096d7708bc5" }
 tokio = "1.39.1"
 env_logger = "0.11.5"
 bincode = "1.3.3"
 log = "0.4.22"
 [patch.crates-io]
-ark-ff = { git = "https://github.com/openmina/algebra", branch = "openmina" }
-ark-ec = { git = "https://github.com/openmina/algebra", branch = "openmina" }
-ark-poly = { git = "https://github.com/openmina/algebra", branch = "openmina" }
-ark-serialize = { git = "https://github.com/openmina/algebra", branch = "openmina" }
+ark-ff = { git = "https://github.com/openmina/algebra", rev = "017531e7aaa15a2c856532b0843876e371b01122" }
+ark-ec = { git = "https://github.com/openmina/algebra", rev = "017531e7aaa15a2c856532b0843876e371b01122" }
+ark-poly = { git = "https://github.com/openmina/algebra", rev = "017531e7aaa15a2c856532b0843876e371b01122" }
+ark-serialize = { git = "https://github.com/openmina/algebra", rev = "017531e7aaa15a2c856532b0843876e371b01122" }

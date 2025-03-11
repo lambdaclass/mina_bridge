@@ -73,7 +73,7 @@ dependencies = [
 [[package]]
 name = "aligned-sdk"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/aligned_layer.git?branch=mina#458a55ee18b6ffd23c5f4dda959986ce11eba840"
+source = "git+https://github.com/lambdaclass/aligned_layer.git?rev=cebeee7b86de0fcd3fd6f97bcd8a1096d7708bc5#cebeee7b86de0fcd3fd6f97bcd8a1096d7708bc5"
 dependencies = [
  "ciborium",
  "dialoguer",
@@ -748,8 +748,21 @@ name = "ark-ec"
 version = "0.3.0"
 source = "git+https://github.com/openmina/algebra?branch=openmina#017531e7aaa15a2c856532b0843876e371b01122"
 dependencies = [
- "ark-ff 0.3.0",
- "ark-serialize 0.3.0",
+ "ark-ff 0.3.0 (git+https://github.com/openmina/algebra?branch=openmina)",
+ "ark-serialize 0.3.0 (git+https://github.com/openmina/algebra?branch=openmina)",
+ "ark-std 0.3.0",
+ "derivative",
+ "num-traits",
+ "zeroize",
+]
+
+[[package]]
+name = "ark-ec"
+version = "0.3.0"
+source = "git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122#017531e7aaa15a2c856532b0843876e371b01122"
+dependencies = [
+ "ark-ff 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
+ "ark-serialize 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
  "ark-std 0.3.0",
  "derivative",
  "num-traits",
@@ -762,9 +775,27 @@ name = "ark-ff"
 version = "0.3.0"
 source = "git+https://github.com/openmina/algebra?branch=openmina#017531e7aaa15a2c856532b0843876e371b01122"
 dependencies = [
- "ark-ff-asm 0.3.0",
- "ark-ff-macros 0.3.0",
- "ark-serialize 0.3.0",
+ "ark-ff-asm 0.3.0 (git+https://github.com/openmina/algebra?branch=openmina)",
+ "ark-ff-macros 0.3.0 (git+https://github.com/openmina/algebra?branch=openmina)",
+ "ark-serialize 0.3.0 (git+https://github.com/openmina/algebra?branch=openmina)",
+ "ark-std 0.3.0",
+ "derivative",
+ "num-bigint",
+ "num-traits",
+ "paste",
+ "rayon",
+ "rustc_version 0.3.3",
+ "zeroize",
+]
+
+[[package]]
+name = "ark-ff"
+version = "0.3.0"
+source = "git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122#017531e7aaa15a2c856532b0843876e371b01122"
+dependencies = [
+ "ark-ff-asm 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
+ "ark-ff-macros 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
+ "ark-serialize 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
  "ark-std 0.3.0",
  "derivative",
  "num-bigint",
@@ -806,6 +837,15 @@ dependencies = [
 
 [[package]]
 name = "ark-ff-asm"
+version = "0.3.0"
+source = "git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122#017531e7aaa15a2c856532b0843876e371b01122"
+dependencies = [
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
+name = "ark-ff-asm"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3ed4aa4fe255d0bc6d79373f7e31d2ea147bcf486cba1be5ba7ea85abdb92348"
@@ -818,6 +858,17 @@ dependencies = [
 name = "ark-ff-macros"
 version = "0.3.0"
 source = "git+https://github.com/openmina/algebra?branch=openmina#017531e7aaa15a2c856532b0843876e371b01122"
+dependencies = [
+ "num-bigint",
+ "num-traits",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
+name = "ark-ff-macros"
+version = "0.3.0"
+source = "git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122#017531e7aaa15a2c856532b0843876e371b01122"
 dependencies = [
  "num-bigint",
  "num-traits",
@@ -843,8 +894,20 @@ name = "ark-poly"
 version = "0.3.0"
 source = "git+https://github.com/openmina/algebra?branch=openmina#017531e7aaa15a2c856532b0843876e371b01122"
 dependencies = [
- "ark-ff 0.3.0",
- "ark-serialize 0.3.0",
+ "ark-ff 0.3.0 (git+https://github.com/openmina/algebra?branch=openmina)",
+ "ark-serialize 0.3.0 (git+https://github.com/openmina/algebra?branch=openmina)",
+ "ark-std 0.3.0",
+ "derivative",
+ "hashbrown 0.11.2",
+]
+
+[[package]]
+name = "ark-poly"
+version = "0.3.0"
+source = "git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122#017531e7aaa15a2c856532b0843876e371b01122"
+dependencies = [
+ "ark-ff 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
+ "ark-serialize 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
  "ark-std 0.3.0",
  "derivative",
  "hashbrown 0.11.2",
@@ -856,7 +919,17 @@ name = "ark-serialize"
 version = "0.3.0"
 source = "git+https://github.com/openmina/algebra?branch=openmina#017531e7aaa15a2c856532b0843876e371b01122"
 dependencies = [
- "ark-serialize-derive",
+ "ark-serialize-derive 0.3.0 (git+https://github.com/openmina/algebra?branch=openmina)",
+ "ark-std 0.3.0",
+ "digest 0.9.0",
+]
+
+[[package]]
+name = "ark-serialize"
+version = "0.3.0"
+source = "git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122#017531e7aaa15a2c856532b0843876e371b01122"
+dependencies = [
+ "ark-serialize-derive 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
  "ark-std 0.3.0",
  "digest 0.9.0",
 ]
@@ -876,6 +949,16 @@ dependencies = [
 name = "ark-serialize-derive"
 version = "0.3.0"
 source = "git+https://github.com/openmina/algebra?branch=openmina#017531e7aaa15a2c856532b0843876e371b01122"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
+name = "ark-serialize-derive"
+version = "0.3.0"
+source = "git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122#017531e7aaa15a2c856532b0843876e371b01122"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2836,10 +2919,10 @@ dependencies = [
 [[package]]
 name = "groupmap"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge#44e0d3b98b8747de54e595f53d97c035ff43167c"
+source = "git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c#44e0d3b98b8747de54e595f53d97c035ff43167c"
 dependencies = [
- "ark-ec",
- "ark-ff 0.3.0",
+ "ark-ec 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
+ "ark-ff 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
  "rand",
 ]
 
@@ -3547,12 +3630,12 @@ dependencies = [
 [[package]]
 name = "kimchi"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge#44e0d3b98b8747de54e595f53d97c035ff43167c"
+source = "git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c#44e0d3b98b8747de54e595f53d97c035ff43167c"
 dependencies = [
- "ark-ec",
- "ark-ff 0.3.0",
- "ark-poly",
- "ark-serialize 0.3.0",
+ "ark-ec 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
+ "ark-ff 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
+ "ark-poly 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
+ "ark-serialize 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
  "blake2",
  "disjoint-set",
  "groupmap",
@@ -3564,7 +3647,7 @@ dependencies = [
  "num-derive",
  "num-integer",
  "num-traits",
- "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c)",
  "once_cell",
  "poly-commitment",
  "rand",
@@ -3739,31 +3822,31 @@ checksum = "6877bb514081ee2a7ff5ef9de3281f14a4dd4bceac4c09388074a6b5df8a139a"
 [[package]]
 name = "mina-curves"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge#44e0d3b98b8747de54e595f53d97c035ff43167c"
+source = "git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c#44e0d3b98b8747de54e595f53d97c035ff43167c"
 dependencies = [
- "ark-ec",
- "ark-ff 0.3.0",
+ "ark-ec 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
+ "ark-ff 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
 ]
 
 [[package]]
 name = "mina-hasher"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge#44e0d3b98b8747de54e595f53d97c035ff43167c"
+source = "git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c#44e0d3b98b8747de54e595f53d97c035ff43167c"
 dependencies = [
- "ark-ff 0.3.0",
+ "ark-ff 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
  "bitvec",
  "mina-curves",
  "mina-poseidon",
- "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c)",
  "serde",
 ]
 
 [[package]]
 name = "mina-p2p-messages"
 version = "0.6.4"
-source = "git+https://github.com/lambdaclass/openmina/?branch=mina_bridge#166e53d623404714aef45beae4a08bcbe1e367f4"
+source = "git+https://github.com/lambdaclass/openmina/?rev=711c99f92ca3241dfbe8ae6d257b333e63abe643#711c99f92ca3241dfbe8ae6d257b333e63abe643"
 dependencies = [
- "ark-ff 0.3.0",
+ "ark-ff 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
  "base64 0.13.1",
  "binprot",
  "binprot_derive",
@@ -3775,7 +3858,7 @@ dependencies = [
  "mina-hasher",
  "mina-poseidon",
  "mina-signer",
- "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c)",
  "rsexp",
  "serde",
  "serde_json",
@@ -3787,13 +3870,13 @@ dependencies = [
 [[package]]
 name = "mina-poseidon"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge#44e0d3b98b8747de54e595f53d97c035ff43167c"
+source = "git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c#44e0d3b98b8747de54e595f53d97c035ff43167c"
 dependencies = [
- "ark-ec",
- "ark-ff 0.3.0",
- "ark-poly",
+ "ark-ec 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
+ "ark-ff 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
+ "ark-poly 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
  "mina-curves",
- "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c)",
  "once_cell",
  "rand",
  "rayon",
@@ -3804,17 +3887,17 @@ dependencies = [
 [[package]]
 name = "mina-signer"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge#44e0d3b98b8747de54e595f53d97c035ff43167c"
+source = "git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c#44e0d3b98b8747de54e595f53d97c035ff43167c"
 dependencies = [
- "ark-ec",
- "ark-ff 0.3.0",
+ "ark-ec 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
+ "ark-ff 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
  "bitvec",
  "blake2",
  "bs58 0.4.0",
  "hex",
  "mina-curves",
  "mina-hasher",
- "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c)",
  "rand",
  "sha2 0.10.8",
  "thiserror 1.0.69",
@@ -3823,13 +3906,13 @@ dependencies = [
 [[package]]
 name = "mina-tree"
 version = "0.6.0"
-source = "git+https://github.com/lambdaclass/openmina/?branch=mina_bridge#166e53d623404714aef45beae4a08bcbe1e367f4"
+source = "git+https://github.com/lambdaclass/openmina/?rev=711c99f92ca3241dfbe8ae6d257b333e63abe643#711c99f92ca3241dfbe8ae6d257b333e63abe643"
 dependencies = [
  "anyhow",
- "ark-ec",
- "ark-ff 0.3.0",
- "ark-poly",
- "ark-serialize 0.3.0",
+ "ark-ec 0.3.0 (git+https://github.com/openmina/algebra?branch=openmina)",
+ "ark-ff 0.3.0 (git+https://github.com/openmina/algebra?branch=openmina)",
+ "ark-poly 0.3.0 (git+https://github.com/openmina/algebra?branch=openmina)",
+ "ark-serialize 0.3.0 (git+https://github.com/openmina/algebra?branch=openmina)",
  "backtrace",
  "base64 0.13.1",
  "bitvec",
@@ -3850,7 +3933,7 @@ dependencies = [
  "mina-poseidon",
  "mina-signer",
  "num-bigint",
- "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c)",
  "once_cell",
  "openmina-core",
  "poly-commitment",
@@ -3879,10 +3962,10 @@ dependencies = [
  "alloy",
  "alloy-contract",
  "alloy-sol-types",
- "ark-ec",
- "ark-ff 0.3.0",
- "ark-poly",
- "ark-serialize 0.3.0",
+ "ark-ec 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
+ "ark-ff 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
+ "ark-poly 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
+ "ark-serialize 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
  "base64 0.22.1",
  "bincode",
  "clap",
@@ -3900,7 +3983,7 @@ dependencies = [
  "mina-tree",
  "num-bigint",
  "num-traits",
- "o1-utils 0.1.0 (git+https://github.com/lambdaclass/proof-systems?branch=add-verifier-serializations)",
+ "o1-utils 0.1.0 (git+https://github.com/lambdaclass/proof-systems?rev=5bdeab3c2a43a671645952f63b9354b7a20b2326)",
  "poly-commitment",
  "reqwest 0.11.27",
  "rmp-serde",
@@ -4059,7 +4142,7 @@ version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af1844ef2428cc3e1cb900be36181049ef3d3193c63e43026cfe202983b27a56"
 dependencies = [
- "proc-macro-crate 3.2.0",
+ "proc-macro-crate 1.1.3",
  "proc-macro2",
  "quote",
  "syn 2.0.98",
@@ -4068,35 +4151,12 @@ dependencies = [
 [[package]]
 name = "o1-utils"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/proof-systems?branch=add-verifier-serializations#5bdeab3c2a43a671645952f63b9354b7a20b2326"
+source = "git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c#44e0d3b98b8747de54e595f53d97c035ff43167c"
 dependencies = [
- "ark-ec",
- "ark-ff 0.3.0",
- "ark-poly",
- "ark-serialize 0.3.0",
- "bcs",
- "hex",
- "num-bigint",
- "num-integer",
- "num-traits",
- "rand",
- "rand_core",
- "rayon",
- "serde",
- "serde_with 3.12.0",
- "sha2 0.10.8",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "o1-utils"
-version = "0.1.0"
-source = "git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge#44e0d3b98b8747de54e595f53d97c035ff43167c"
-dependencies = [
- "ark-ec",
- "ark-ff 0.3.0",
- "ark-poly",
- "ark-serialize 0.3.0",
+ "ark-ec 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
+ "ark-ff 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
+ "ark-poly 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
+ "ark-serialize 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
  "bcs",
  "hex",
  "num-bigint",
@@ -4107,6 +4167,29 @@ dependencies = [
  "rayon",
  "serde",
  "serde_with 1.14.0",
+ "sha2 0.10.8",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "o1-utils"
+version = "0.1.0"
+source = "git+https://github.com/lambdaclass/proof-systems?rev=5bdeab3c2a43a671645952f63b9354b7a20b2326#5bdeab3c2a43a671645952f63b9354b7a20b2326"
+dependencies = [
+ "ark-ec 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
+ "ark-ff 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
+ "ark-poly 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
+ "ark-serialize 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
+ "bcs",
+ "hex",
+ "num-bigint",
+ "num-integer",
+ "num-traits",
+ "rand",
+ "rand_core",
+ "rayon",
+ "serde",
+ "serde_with 3.12.0",
  "sha2 0.10.8",
  "thiserror 1.0.69",
 ]
@@ -4160,9 +4243,9 @@ dependencies = [
 [[package]]
 name = "openmina-core"
 version = "0.6.0"
-source = "git+https://github.com/lambdaclass/openmina/?branch=mina_bridge#166e53d623404714aef45beae4a08bcbe1e367f4"
+source = "git+https://github.com/lambdaclass/openmina/?rev=711c99f92ca3241dfbe8ae6d257b333e63abe643#711c99f92ca3241dfbe8ae6d257b333e63abe643"
 dependencies = [
- "ark-ff 0.3.0",
+ "ark-ff 0.3.0 (git+https://github.com/openmina/algebra?branch=openmina)",
  "binprot",
  "binprot_derive",
  "hex",
@@ -4184,7 +4267,7 @@ dependencies = [
 [[package]]
 name = "openmina-macros"
 version = "0.6.0"
-source = "git+https://github.com/lambdaclass/openmina/?branch=mina_bridge#166e53d623404714aef45beae4a08bcbe1e367f4"
+source = "git+https://github.com/lambdaclass/openmina/?rev=711c99f92ca3241dfbe8ae6d257b333e63abe643#711c99f92ca3241dfbe8ae6d257b333e63abe643"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4501,18 +4584,18 @@ checksum = "953ec861398dccce10c670dfeaf3ec4911ca479e9c02154b3a215178c5f566f2"
 [[package]]
 name = "poly-commitment"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge#44e0d3b98b8747de54e595f53d97c035ff43167c"
+source = "git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c#44e0d3b98b8747de54e595f53d97c035ff43167c"
 dependencies = [
- "ark-ec",
- "ark-ff 0.3.0",
- "ark-poly",
- "ark-serialize 0.3.0",
+ "ark-ec 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
+ "ark-ff 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
+ "ark-poly 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
+ "ark-serialize 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
  "blake2",
  "groupmap",
  "itertools 0.10.5",
  "mina-curves",
  "mina-poseidon",
- "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c)",
  "once_cell",
  "rand",
  "rand_core",
@@ -5060,7 +5143,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2c3cc4c2511671f327125da14133d0c5c5d137f006a1017a16f557bc85b16286"
 dependencies = [
  "alloy-rlp",
- "ark-ff 0.3.0",
+ "ark-ff 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
  "ark-ff 0.4.2",
  "bytes",
  "fastrlp",
@@ -6281,11 +6364,11 @@ checksum = "23d5919d7121237af683b7fa982450597b1eaa2643e597aec3b519e4e5ab3d62"
 [[package]]
 name = "turshi"
 version = "0.1.0"
-source = "git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge#44e0d3b98b8747de54e595f53d97c035ff43167c"
+source = "git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c#44e0d3b98b8747de54e595f53d97c035ff43167c"
 dependencies = [
- "ark-ff 0.3.0",
+ "ark-ff 0.3.0 (git+https://github.com/openmina/algebra?rev=017531e7aaa15a2c856532b0843876e371b01122)",
  "hex",
- "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?branch=mina_bridge)",
+ "o1-utils 0.1.0 (git+https://github.com/lambdaclass/openmina-proof-systems?rev=44e0d3b98b8747de54e595f53d97c035ff43167c)",
 ]
 
 [[package]]
