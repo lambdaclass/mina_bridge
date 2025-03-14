@@ -56,6 +56,13 @@ struct BestChainQuery;
 /// merkle path.
 struct AccountQuery;
 
+/// Queries data from the Mina State Settlement Ethereum Contract Example and the Mina Node and returns
+/// the Mina state proof and its public inputs. These structures can then be serialized and submitted to Aligned Layer.
+///
+/// The queried data consists of:
+/// - Bridge tip state hash from the Mina State Settlement Ethereum Contract Example
+/// - Mina candidate chain states from the Mina node
+/// - Mina Bridge tip state from the Mina node
 pub async fn get_mina_proof_of_state(
     rpc_url: &str,
     eth_rpc_url: &str,
