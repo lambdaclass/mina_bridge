@@ -294,6 +294,12 @@ pub async fn get_bridge_tip_hash(
     Ok(state_hash)
 }
 
+/// Wrapper of the `getChainStateHashes` function of the Mina State Settlement Example Ethereum Contract with address
+/// `contract_addr`.
+/// Calls `getChainStateHashes` on Ethereum.
+///
+/// See [getChainStateHashes](https://github.com/lambdaclass/mina_bridge/blob/7f2fa1f0eac39499ff2ed3ed2d989ea7314805e3/contract/src/MinaStateSettlementExample.sol#L54)
+/// for more info.
 pub async fn get_bridge_chain_state_hashes(
     contract_addr: &str,
     eth_rpc_url: &str,
