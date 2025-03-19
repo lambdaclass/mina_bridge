@@ -258,6 +258,8 @@ async fn query_candidate_chain(
     ))
 }
 
+/// Queries the ledger hash of the Mina node with URL `rpc_url` and returns the ledger hash structured so that it can
+/// be sent to the Mina State Settlement Ethereum Contract Example constructor.
 pub async fn query_root(rpc_url: &str, length: usize) -> Result<StateHash, String> {
     let client = reqwest::Client::new();
     let variables = best_chain_query::Variables {
