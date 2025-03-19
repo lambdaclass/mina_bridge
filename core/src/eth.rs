@@ -158,6 +158,9 @@ async fn validate_gas_params(
 /// `contract_addr`.
 /// Adapts arguments to be Ethereum friendly and sends the corresponding transaction to run `updateChain` on
 /// Ethereum.
+///
+/// See [updateChain](https://github.com/lambdaclass/mina_bridge/blob/7f2fa1f0eac39499ff2ed3ed2d989ea7314805e3/contract/src/MinaStateSettlementExample.sol#L78)
+/// for more info.
 pub async fn update_chain(
     verification_data: AlignedVerificationData,
     pub_input: &MinaStatePubInputs,
@@ -267,6 +270,9 @@ pub async fn update_chain(
 /// Wrapper of the `getTipStateHash` function of the Mina State Settlement Example Ethereum Contract with address
 /// `contract_addr`.
 /// Calls `getTipStateHash` on Ethereum.
+///
+/// See [getTipStateHash](https://github.com/lambdaclass/mina_bridge/blob/7f2fa1f0eac39499ff2ed3ed2d989ea7314805e3/contract/src/MinaStateSettlementExample.sol#L44)
+/// for more info.
 pub async fn get_bridge_tip_hash(
     contract_addr: &str,
     eth_rpc_url: &str,
