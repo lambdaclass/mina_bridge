@@ -140,7 +140,7 @@ pub async fn get_mina_proof_of_account(
     ))
 }
 
-pub async fn query_state(
+async fn query_state(
     rpc_url: &str,
     state_hash: &StateHash,
 ) -> Result<MinaStateProtocolStateValueStableV2, String> {
@@ -167,7 +167,7 @@ pub async fn query_state(
     Ok(proof)
 }
 
-pub async fn query_candidate_chain(
+async fn query_candidate_chain(
     rpc_url: &str,
 ) -> Result<
     (
@@ -275,7 +275,7 @@ pub async fn query_root(rpc_url: &str, length: usize) -> Result<StateHash, Strin
     Ok(root.state_hash.clone())
 }
 
-pub async fn query_account(
+async fn query_account(
     rpc_url: &str,
     state_hash: &str,
     public_key: &str,
