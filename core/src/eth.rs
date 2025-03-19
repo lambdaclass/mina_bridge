@@ -77,6 +77,9 @@ pub struct MinaAccountValidationExampleConstructorArgs {
 }
 
 impl MinaStateSettlementExampleConstructorArgs {
+    /// Creates the arguments of the Mina State Settlement Example Ethereum Contract constructor.
+    /// Receives `aligned_service_addr` as a string slice and `root_state_hash` as a vector of bytes
+    /// and converts them to Ethereum friendly types.
     pub fn new(aligned_service_addr: &str, root_state_hash: Vec<u8>) -> Result<Self, String> {
         let aligned_service_addr =
             alloy::primitives::Address::parse_checksummed(aligned_service_addr, None)
@@ -94,6 +97,8 @@ impl MinaStateSettlementExampleConstructorArgs {
 }
 
 impl MinaAccountValidationExampleConstructorArgs {
+    /// Creates the arguments of the Mina Account Validation Example Ethereum Contract constructor.
+    /// Receives `aligned_service_addr` as a string slice and converts them to Ethereum friendly types.
     pub fn new(aligned_service_addr: &str) -> Result<Self, String> {
         let aligned_service_addr =
             alloy::primitives::Address::parse_checksummed(aligned_service_addr, None)
