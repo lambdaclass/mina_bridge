@@ -330,6 +330,13 @@ pub async fn get_bridge_chain_state_hashes(
         })
 }
 
+/// Wrapper of the `validateAccount` function of the Mina Account Validation Example Ethereum Contract with address
+/// `contract_addr`.
+/// Adapts arguments to be Ethereum friendly and sends the corresponding transaction to run `validateAccount` on
+/// Ethereum.
+///
+/// See [validateAccount](https://github.com/lambdaclass/mina_bridge/blob/7f2fa1f0eac39499ff2ed3ed2d989ea7314805e3/contract/src/MinaAccountValidationExample.sol#L32)
+/// for more info.
 pub async fn validate_account(
     verification_data: AlignedVerificationData,
     pub_input: &MinaAccountPubInputs,
