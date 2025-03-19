@@ -64,7 +64,7 @@ struct AccountQuery;
 ///
 /// The queried data consists of:
 ///
-/// - Bridge tip state hash from the Mina State Settlement Ethereum Contract Example
+/// - Bridge tip state hash from the Mina State Settlement Example Ethereum Contract
 /// - Mina candidate chain states from the Mina node
 /// - Mina Bridge tip state from the Mina node
 pub async fn get_mina_proof_of_state(
