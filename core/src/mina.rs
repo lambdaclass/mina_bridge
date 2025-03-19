@@ -56,11 +56,14 @@ struct BestChainQuery;
 /// merkle path.
 struct AccountQuery;
 
-/// Queries the last Mina state from the Mina Node and returns the proof that the queried Mina state is finalized. This
-/// proof along its public inputs are structured so that they can be sent to Aligned Layer to be verified. To fetch the
-/// public inputs this function also queries info from the Mina State Settlement Example Ethereum Contract.
+/// Queries the Mina state from the Mina Node and returns the proof that the queried Mina state is the last finalized state
+/// of the blockchain.
+/// This proof along its public inputs are structured so that they can be sent to Aligned Layer to be verified.
+/// This function also queries info from the Mina State Settlement Example Ethereum Contract to fetch one of the public
+/// inputs.
 ///
 /// The queried data consists of:
+///
 /// - Bridge tip state hash from the Mina State Settlement Ethereum Contract Example
 /// - Mina candidate chain states from the Mina node
 /// - Mina Bridge tip state from the Mina node
@@ -101,6 +104,15 @@ pub async fn get_mina_proof_of_state(
     ))
 }
 
+/// Queries the state of the account that corresponds to `public_key` from the Mina node and returns the proof that the
+/// queried account is included in the ledger hash.
+/// This proof along its public inputs are structured so that they can be sent to Aligned Layer to be verified.
+///
+/// The proof consists of:
+///
+/// - A Merkle root which maps to the ledger hash.
+/// - A Merkle leaf which maps to the queried account.
+/// - A Merkle path from the root to the leaf both mentioned above.
 pub async fn get_mina_proof_of_account(
     public_key: &str,
     state_hash: &str,
