@@ -55,15 +55,23 @@ const MAX_GAS_LIMIT_VALUE: u64 = 1_000_000; // Maximum allowed gas for a transac
 const MAX_GAS_PRICE_GWEI: u64 = 300; // Maximum allowed gas price in Gwei
 const GAS_ESTIMATE_MARGIN: u64 = 110; // Safety margin (110 means 110%, or +10%)
 
+/// Wrapper of Mina Ledger hash for Ethereum
 #[serde_as]
 #[derive(Serialize, Deserialize)]
 pub struct SolStateHash(#[serde_as(as = "SolSerialize")] pub StateHash);
 
+/// Arguments of the Mina State Settlement Example Ethereum Contract constructor:
+///
+/// - `aligned_service_addr`: Address of the Aligned Service Manager Ethereum Contract
+/// - `root_state_hash`: Root state hash of the Mina transition frontier
 pub struct MinaStateSettlementExampleConstructorArgs {
     aligned_service_addr: alloy::primitives::Address,
     root_state_hash: alloy::primitives::FixedBytes<32>,
 }
 
+/// Arguments of the Mina Account Validation Example Ethereum Contract constructor:
+///
+/// - `aligned_service_addr`: Address of the Aligned Service Manager Ethereum Contract
 pub struct MinaAccountValidationExampleConstructorArgs {
     aligned_service_addr: alloy::primitives::Address,
 }
