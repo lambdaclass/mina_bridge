@@ -154,8 +154,9 @@ async fn validate_gas_params(
     Ok(gas_with_margin)
 }
 
-/// Wrapper of the `update_chain` function of the Mina State Settlement Example Ethereum Contract.
-/// Adapts arguments to be Ethereum friendly and sends the corresponding transaction to run `update_chain` on
+/// Wrapper of the `updateChain` function of the Mina State Settlement Example Ethereum Contract with address
+/// `contract_addr`.
+/// Adapts arguments to be Ethereum friendly and sends the corresponding transaction to run `updateChain` on
 /// Ethereum.
 pub async fn update_chain(
     verification_data: AlignedVerificationData,
@@ -263,6 +264,9 @@ pub async fn update_chain(
     Ok(())
 }
 
+/// Wrapper of the `getTipStateHash` function of the Mina State Settlement Example Ethereum Contract with address
+/// `contract_addr`.
+/// Calls `getTipStateHash` on Ethereum.
 pub async fn get_bridge_tip_hash(
     contract_addr: &str,
     eth_rpc_url: &str,
