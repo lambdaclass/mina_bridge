@@ -154,6 +154,9 @@ async fn validate_gas_params(
     Ok(gas_with_margin)
 }
 
+/// Wrapper of the `update_chain` function of the Mina State Settlement Example Ethereum Contract.
+/// Adapts arguments to be Ethereum friendly and sends the corresponding transaction to run `update_chain` on
+/// Ethereum.
 pub async fn update_chain(
     verification_data: AlignedVerificationData,
     pub_input: &MinaStatePubInputs,
