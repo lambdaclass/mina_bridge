@@ -1,6 +1,6 @@
 /// Sends Mina proofs to AlignedLayer.
 pub mod aligned;
-/// Interacts with the bridge's smart contracts on Ethereum.
+/// Interacts with the bridge's example smart contracts on Ethereum.
 pub mod eth;
 /// Interacts with a Mina node for requesting proofs and data.
 pub mod mina;
