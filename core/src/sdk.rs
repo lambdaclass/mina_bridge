@@ -35,6 +35,11 @@ pub struct AccountVerificationData {
     pub pub_input: Vec<u8>,
 }
 
+/// Given a Mina state `hash`, checks that it has been verified by calling the Mina State Settlement Example Contract with
+/// address `state_settlement_addr`.
+/// The function `updateChain` of the example contract verifies the Mina state.
+/// So `is_state_verified` returns `true` if the `updateChain` function of the example contract was called by passing the
+/// Mina state `hash` and the Mina state was considered valid. Returns `false` otherwise.
 pub async fn is_state_verified(
     hash: &str,
     state_settlement_addr: &str,
