@@ -52,6 +52,8 @@ pub async fn is_state_verified(
     Ok(chain_state_hashes.contains(&hash))
 }
 
+/// Returns the hash of the Mina tip state stored on Ethereum.
+/// This function calls the Mina State Settlement Example Contract.
 pub async fn get_bridged_chain_tip_state_hash(
     state_settlement_addr: &str,
     eth_rpc_url: &str,
