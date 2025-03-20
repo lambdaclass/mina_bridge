@@ -18,9 +18,9 @@ use super::constants::{
 /// - `batcher_eth_addr`: Address of the Aligned Batcher Payment Service
 /// - `eth_rpc_url`: Ethereum node RPC URL to send the transaction to update the Mina state
 /// - `proof_generator_addr`: Address of the Aligned Proof Generator
-/// - `keystore_path`: Path to the keystore used to sign transactions that are sent to Aligned.
+/// - `keystore_path`: Path to the keystore used to sign Ethereum transactions.
 ///   `None` if `private_key` is defined.
-/// - `private_key`: Private key of the Ethereum wallet used to sign transactions that are sent to Aligned.
+/// - `private_key`: Private key of the Ethereum wallet used to sign Ethereum transactions.
 ///   `None` if `keystore_path` is defined.
 pub struct EnvironmentVariables {
     pub rpc_url: String,
