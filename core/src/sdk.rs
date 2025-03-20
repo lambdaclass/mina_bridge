@@ -70,7 +70,7 @@ pub async fn get_bridged_chain_tip_state_hash(
 /// - `rpc_url`: Mina node RPC URL to get the Mina state
 /// - `network`: Enum variant to specify the Ethereum network to update the Mina state
 /// - `state_settlement_addr`: Address of the Mina State Settlement Example Contract
-/// - `batcher_addr`: Address of the Aligned Batcher Contract
+/// - `batcher_addr`: Address of the Aligned Batcher Service
 /// - `eth_rpc_url`: Ethereum node RPC URL to send the transaction to update the Mina state
 /// - `proof_generator_addr`: Address of the Aligned Proof Generator
 /// - `wallet`: Ethereum wallet used to sign transactions for Aligned verification and Mina state update
