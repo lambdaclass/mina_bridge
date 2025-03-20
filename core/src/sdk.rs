@@ -76,6 +76,7 @@ pub async fn get_bridged_chain_tip_state_hash(
 /// - `wallet`: Ethereum wallet used to sign transactions for Aligned verification and Mina state update
 /// - `batcher_payment_service`: Address of the Aligned Batcher Payment Service
 /// - `is_state_proof_from_devnet`: `true` if the Mina state to fetch is from Mina Devnet. `false` if it is from Mainnet.
+/// - `save_proof`: `true` if the proof with its public inputs are persisted in a file. `false` otherwise.
 #[allow(clippy::too_many_arguments)]
 pub async fn update_bridge_chain(
     rpc_url: &str,
@@ -129,6 +130,22 @@ pub async fn update_bridge_chain(
     Ok(())
 }
 
+/// Validates that a Mina account is included of the ledger hash that corresponds to a valid Mina state bridged on Ethereum.
+/// Calls the Mina Account Validation Example Contract.
+///
+/// Arguments:
+///
+/// - `public_key`: Public key of the Mina account to validate.
+/// - `state_hash`: Hash of the Mina state that includes the Mina account state to validate.
+/// - `rpc_url`: Mina node RPC URL to get the Mina state
+/// - `network`: Enum variant to specify the Ethereum network to update the Mina state
+/// - `account_validation_addr`: Address of the Mina Account Validation Example Contract
+/// - `batcher_addr`: Address of the Aligned Batcher Contract
+/// - `eth_rpc_url`: Ethereum node RPC URL to send the transaction to update the Mina state
+/// - `proof_generator_addr`: Address of the Aligned Proof Generator
+/// - `batcher_payment_service`: Address of the Aligned Batcher Payment Service
+/// - `wallet`: Ethereum wallet used to sign transactions for Aligned verification and Mina state update
+/// - `save_proof`: `true` if the proof with its public inputs are persisted in a file. `false` otherwise.
 #[allow(clippy::too_many_arguments)]
 pub async fn validate_account(
     public_key: &str,
