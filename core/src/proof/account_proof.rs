@@ -5,6 +5,7 @@ use serde_with::serde_as;
 
 use crate::sol::serialization::SolSerialize;
 
+/// Node of the Merkle path used to build the proof that a Mina account is included in the ledger hash
 #[serde_as]
 #[derive(Serialize, Deserialize)]
 pub enum MerkleNode {
@@ -12,6 +13,7 @@ pub enum MerkleNode {
     Right(#[serde_as(as = "o1_utils::serialization::SerdeAs")] Fp),
 }
 
+/// Public inputs of the proof that a Mina account is included in the ledger hash
 #[serde_as]
 #[derive(Serialize, Deserialize, Clone)]
 pub struct MinaAccountPubInputs {
@@ -22,6 +24,7 @@ pub struct MinaAccountPubInputs {
     pub encoded_account: Vec<u8>,
 }
 
+/// Proof that a Mina account is included in the ledger hash
 #[serde_as]
 #[derive(Serialize, Deserialize)]
 pub struct MinaAccountProof {
