@@ -403,6 +403,7 @@ pub async fn validate_account(
     Ok(())
 }
 
+/// Deploys the Mina State Settlement Example Contract on Ethereum
 pub async fn deploy_mina_bridge_example_contract(
     eth_rpc_url: &str,
     constructor_args: &MinaStateSettlementExampleConstructorArgs,
@@ -446,6 +447,7 @@ pub async fn deploy_mina_bridge_example_contract(
     Ok(*address)
 }
 
+/// Deploys the Mina Account Validation Example Contract on Ethereum
 pub async fn deploy_mina_account_validation_example_contract(
     eth_rpc_url: &str,
     constructor_args: MinaAccountValidationExampleConstructorArgs,
