@@ -1,12 +1,20 @@
 // Anvil related constants
+
+/// Private key used to sign transactions to Aligned Devnet
 pub const ANVIL_PRIVATE_KEY: &str =
     "2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6"; // Anvil wallet 9
+/// Chain ID of Aligned Devnet network
 pub const ANVIL_CHAIN_ID: u64 = 31337;
+/// URL of the Aligned Devnet Batcher
 pub const ANVIL_BATCHER_ADDR: &str = "ws://localhost:8080";
+/// Address of the Aligned Batcher Payment Service on Devnet
 pub const ANVIL_BATCHER_ETH_ADDR: &str = "0x7bc06c482DEAd17c0e297aFbC32f6e63d3846650";
+/// URL of Aligned Devnet RPC
 pub const ANVIL_ETH_RPC_URL: &str = "http://localhost:8545";
 
 // Holesky related constants
+
+/// Chain ID of Aligned Testnet network
 pub const HOLESKY_CHAIN_ID: u64 = 17000;
 
 // Mina related constants
@@ -17,10 +25,15 @@ pub const MINA_TIP_STATE_HASH_FIELD: &str =
 pub const MINA_HASH_SIZE: usize = 32;
 
 // Bridge related constants
+
 pub const BRIDGE_DEVNET_ETH_ADDR: &str = "0x700b6A60ce7EaaEA56F065753d8dcB9653dbAD35";
+/// Length of the Mina transition frontier that will or is bridged to Ethereum
 pub const BRIDGE_TRANSITION_FRONTIER_LEN: usize = 16;
 pub const BRIDGE_ACCOUNT_DEVNET_ETH_ADDR: &str = "0xA15BB66138824a1c7167f5E85b957d04Dd34E468";
 
 // Aligned related constants
+
+/// Address of the Aligned Proof Generator
 pub const PROOF_GENERATOR_ADDR: &str = "0x66f9664f97F2b50F62D13eA064982f936dE76657";
+/// Address of the Aligned Service Manager on Devnet
 pub const ALIGNED_SM_DEVNET_ETH_ADDR: &str = "0x851356ae760d987E095750cCeb3bC6014560891C";
