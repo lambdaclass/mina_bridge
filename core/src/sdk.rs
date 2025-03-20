@@ -12,6 +12,19 @@ use crate::{
     proof::MinaProof,
 };
 
+/// Minimum data needed to verify a Mina account on Ethereum.
+/// To use this struct you need to:
+///
+/// 1. Deploy an Ethereum contract that refers to a deployed Mina zkapp.
+///    The contract functions that mimic the ones from Mina should recieve this struct's fields as arguments.
+///    The contract's functions should verify that the referred Mina account is included in the
+///    ledger hash and also run the same logic that the function of the Mina zkapp the Ethereum contract is
+///    mimicing.
+/// 1. Call `validate_account` function which creates an instance of this struct.
+/// 1. Send a transaction that calls the verification function and pass the struct fields as arguments.
+///
+/// For reference see [SudokuValidity](https://github.com/lambdaclass/mina_bridge/blob/7f2fa1f0eac39499ff2ed3ed2d989ea7314805e3/example/eth_contract/src/SudokuValidity.sol)
+/// example contract and [how can it be called](https://github.com/lambdaclass/mina_bridge/blob/7f2fa1f0eac39499ff2ed3ed2d989ea7314805e3/example/app/src/main.rs#L175-L200).
 pub struct AccountVerificationData {
     pub proof_commitment: [u8; 32],
     pub proving_system_aux_data_commitment: [u8; 32],
