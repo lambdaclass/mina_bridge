@@ -6,6 +6,7 @@ use serde_with::serde_as;
 
 use crate::{sol::serialization::SolSerialize, utils::constants::BRIDGE_TRANSITION_FRONTIER_LEN};
 
+/// The public inputs of the proof that a certain Mina state is valid
 #[serde_as]
 #[derive(Serialize, Deserialize, Clone)]
 pub struct MinaStatePubInputs {
@@ -23,6 +24,7 @@ pub struct MinaStatePubInputs {
     pub candidate_chain_ledger_hashes: [LedgerHash; BRIDGE_TRANSITION_FRONTIER_LEN],
 }
 
+/// The proof that a certain Mina state is valid
 #[derive(Serialize, Deserialize)]
 pub struct MinaStateProof {
     /// The state proof of the tip state (latest state of the chain, or "transition frontier"). If

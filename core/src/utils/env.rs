@@ -7,6 +7,21 @@ use super::constants::{
     ANVIL_BATCHER_ADDR, ANVIL_BATCHER_ETH_ADDR, ANVIL_ETH_RPC_URL, PROOF_GENERATOR_ADDR,
 };
 
+/// Struct that is created by reading environment variables or, for some fields, from defined constants if the
+/// corresponding environment variable is not defined.
+///
+/// - `rpc_url`: Mina node RPC URL to get the Mina state
+/// - `network`: Enum variant to specify the Ethereum network to update the Mina state
+/// - `state_settlement_addr`: Address of the Mina State Settlement Example Contract
+/// - `account_validation_addr`: Address of the Mina Account Validation Example Contract
+/// - `batcher_addr`: Address of the Aligned Batcher Service
+/// - `batcher_eth_addr`: Address of the Aligned Batcher Payment Service
+/// - `eth_rpc_url`: Ethereum node RPC URL to send the transaction to update the Mina state
+/// - `proof_generator_addr`: Address of the Aligned Proof Generator
+/// - `keystore_path`: Path to the keystore used to sign Ethereum transactions.
+///   `None` if `private_key` is defined.
+/// - `private_key`: Private key of the Ethereum wallet used to sign Ethereum transactions.
+///   `None` if `keystore_path` is defined.
 pub struct EnvironmentVariables {
     pub rpc_url: String,
     pub network: Network,
@@ -36,6 +51,14 @@ fn load_var_or(key: &str, default: &str, network: &Network) -> Result<String, St
 }
 
 impl EnvironmentVariables {
+    /// Creates the `EnvironmentVariables` struct from environment variables or, for some fields, from defined
+    /// constants if the corresponding environment variable is not defined.
+    ///
+    /// Returns `Err` if:
+    ///
+    /// - `MINA_RPC_URL` or `ETH_CHAIN` environemnt variables are not defined
+    /// - `ETH_CHAIN` is not set to a valid Ethereum network (`"devnet"` or `"holesky"`)
+    /// - Both `KEYSTORE_PATH` and `PRIVATE_KEY` are set
     pub fn new() -> Result<EnvironmentVariables, String> {
         dotenv().map_err(|err| format!("Couldn't load .env file: {}", err))?;
 

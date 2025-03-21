@@ -55,20 +55,31 @@ const MAX_GAS_LIMIT_VALUE: u64 = 1_000_000; // Maximum allowed gas for a transac
 const MAX_GAS_PRICE_GWEI: u64 = 300; // Maximum allowed gas price in Gwei
 const GAS_ESTIMATE_MARGIN: u64 = 110; // Safety margin (110 means 110%, or +10%)
 
+/// Wrapper of Mina Ledger hash for Ethereum
 #[serde_as]
 #[derive(Serialize, Deserialize)]
 pub struct SolStateHash(#[serde_as(as = "SolSerialize")] pub StateHash);
 
+/// Arguments of the Mina State Settlement Example Ethereum Contract constructor:
+///
+/// - `aligned_service_addr`: Address of the Aligned Service Manager Ethereum Contract
+/// - `root_state_hash`: Root state hash of the Mina transition frontier
 pub struct MinaStateSettlementExampleConstructorArgs {
     aligned_service_addr: alloy::primitives::Address,
     root_state_hash: alloy::primitives::FixedBytes<32>,
 }
 
+/// Arguments of the Mina Account Validation Example Ethereum Contract constructor:
+///
+/// - `aligned_service_addr`: Address of the Aligned Service Manager Ethereum Contract
 pub struct MinaAccountValidationExampleConstructorArgs {
     aligned_service_addr: alloy::primitives::Address,
 }
 
 impl MinaStateSettlementExampleConstructorArgs {
+    /// Creates the arguments of the Mina State Settlement Example Ethereum Contract constructor.
+    /// Receives `aligned_service_addr` as a string slice and `root_state_hash` as a vector of bytes
+    /// and converts them to Ethereum friendly types.
     pub fn new(aligned_service_addr: &str, root_state_hash: Vec<u8>) -> Result<Self, String> {
         let aligned_service_addr =
             alloy::primitives::Address::parse_checksummed(aligned_service_addr, None)
@@ -86,6 +97,8 @@ impl MinaStateSettlementExampleConstructorArgs {
 }
 
 impl MinaAccountValidationExampleConstructorArgs {
+    /// Creates the arguments of the Mina Account Validation Example Ethereum Contract constructor.
+    /// Receives `aligned_service_addr` as a string slice and converts them to Ethereum friendly types.
     pub fn new(aligned_service_addr: &str) -> Result<Self, String> {
         let aligned_service_addr =
             alloy::primitives::Address::parse_checksummed(aligned_service_addr, None)
@@ -141,6 +154,13 @@ async fn validate_gas_params(
     Ok(gas_with_margin)
 }
 
+/// Wrapper of the `updateChain` function of the Mina State Settlement Example Ethereum Contract with address
+/// `contract_addr`.
+/// Adapts arguments to be Ethereum friendly and sends the corresponding transaction to run `updateChain` on
+/// Ethereum.
+///
+/// See [updateChain](https://github.com/lambdaclass/mina_bridge/blob/7f2fa1f0eac39499ff2ed3ed2d989ea7314805e3/contract/src/MinaStateSettlementExample.sol#L78)
+/// for more info.
 pub async fn update_chain(
     verification_data: AlignedVerificationData,
     pub_input: &MinaStatePubInputs,
@@ -247,6 +267,12 @@ pub async fn update_chain(
     Ok(())
 }
 
+/// Wrapper of the `getTipStateHash` function of the Mina State Settlement Example Ethereum Contract with address
+/// `contract_addr`.
+/// Calls `getTipStateHash` on Ethereum.
+///
+/// See [getTipStateHash](https://github.com/lambdaclass/mina_bridge/blob/7f2fa1f0eac39499ff2ed3ed2d989ea7314805e3/contract/src/MinaStateSettlementExample.sol#L44)
+/// for more info.
 pub async fn get_bridge_tip_hash(
     contract_addr: &str,
     eth_rpc_url: &str,
@@ -268,6 +294,12 @@ pub async fn get_bridge_tip_hash(
     Ok(state_hash)
 }
 
+/// Wrapper of the `getChainStateHashes` function of the Mina State Settlement Example Ethereum Contract with address
+/// `contract_addr`.
+/// Calls `getChainStateHashes` on Ethereum.
+///
+/// See [getChainStateHashes](https://github.com/lambdaclass/mina_bridge/blob/7f2fa1f0eac39499ff2ed3ed2d989ea7314805e3/contract/src/MinaStateSettlementExample.sol#L54)
+/// for more info.
 pub async fn get_bridge_chain_state_hashes(
     contract_addr: &str,
     eth_rpc_url: &str,
@@ -298,6 +330,13 @@ pub async fn get_bridge_chain_state_hashes(
         })
 }
 
+/// Wrapper of the `validateAccount` function of the Mina Account Validation Example Ethereum Contract with address
+/// `contract_addr`.
+/// Adapts arguments to be Ethereum friendly and sends the corresponding transaction to run `validateAccount` on
+/// Ethereum.
+///
+/// See [validateAccount](https://github.com/lambdaclass/mina_bridge/blob/7f2fa1f0eac39499ff2ed3ed2d989ea7314805e3/contract/src/MinaAccountValidationExample.sol#L32)
+/// for more info.
 pub async fn validate_account(
     verification_data: AlignedVerificationData,
     pub_input: &MinaAccountPubInputs,
@@ -364,6 +403,7 @@ pub async fn validate_account(
     Ok(())
 }
 
+/// Deploys the Mina State Settlement Example Contract on Ethereum
 pub async fn deploy_mina_bridge_example_contract(
     eth_rpc_url: &str,
     constructor_args: &MinaStateSettlementExampleConstructorArgs,
@@ -407,6 +447,7 @@ pub async fn deploy_mina_bridge_example_contract(
     Ok(*address)
 }
 
+/// Deploys the Mina Account Validation Example Contract on Ethereum
 pub async fn deploy_mina_account_validation_example_contract(
     eth_rpc_url: &str,
     constructor_args: MinaAccountValidationExampleConstructorArgs,

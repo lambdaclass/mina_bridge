@@ -12,6 +12,19 @@ use crate::{
     proof::MinaProof,
 };
 
+/// Minimum data needed to verify a Mina account on Ethereum.
+/// To use this struct you need to:
+///
+/// 1. Deploy an Ethereum contract that refers to a deployed Mina zkapp.
+///    The contract functions that mimic the ones from Mina should recieve this struct's fields as arguments.
+///    The contract's functions should verify that the referred Mina account is included in the
+///    ledger hash and also run the same logic that the function of the Mina zkapp the Ethereum contract is
+///    mimicing.
+/// 1. Call `validate_account` function which creates an instance of this struct.
+/// 1. Send a transaction that calls the verification function and pass the struct fields as arguments.
+///
+/// For reference see [SudokuValidity](https://github.com/lambdaclass/mina_bridge/blob/7f2fa1f0eac39499ff2ed3ed2d989ea7314805e3/example/eth_contract/src/SudokuValidity.sol)
+/// example contract and [how can it be called](https://github.com/lambdaclass/mina_bridge/blob/7f2fa1f0eac39499ff2ed3ed2d989ea7314805e3/example/app/src/main.rs#L175-L200).
 pub struct AccountVerificationData {
     pub proof_commitment: [u8; 32],
     pub proving_system_aux_data_commitment: [u8; 32],
@@ -22,6 +35,11 @@ pub struct AccountVerificationData {
     pub pub_input: Vec<u8>,
 }
 
+/// Given a Mina state `hash`, checks that it has been verified by calling the Mina State Settlement Example Contract with
+/// address `state_settlement_addr`.
+/// The function `updateChain` of the example contract verifies the Mina state.
+/// So `is_state_verified` returns `true` if the `updateChain` function of the example contract was called by passing the
+/// Mina state `hash` and the Mina state was considered valid. Returns `false` otherwise.
 pub async fn is_state_verified(
     hash: &str,
     state_settlement_addr: &str,
@@ -34,6 +52,8 @@ pub async fn is_state_verified(
     Ok(chain_state_hashes.contains(&hash))
 }
 
+/// Returns the hash of the Mina tip state stored on Ethereum.
+/// This function calls the Mina State Settlement Example Contract.
 pub async fn get_bridged_chain_tip_state_hash(
     state_settlement_addr: &str,
     eth_rpc_url: &str,
@@ -43,6 +63,20 @@ pub async fn get_bridged_chain_tip_state_hash(
         .map(|hashes| hashes.last().unwrap().to_string())
 }
 
+/// Updates the Mina state bridged on Ethereum using the Mina State Settlement Example Contract.
+///
+/// Arguments:
+///
+/// - `rpc_url`: Mina node RPC URL to get the Mina state
+/// - `network`: Enum variant to specify the Ethereum network to update the Mina state
+/// - `state_settlement_addr`: Address of the Mina State Settlement Example Contract
+/// - `batcher_addr`: Address of the Aligned Batcher Service
+/// - `eth_rpc_url`: Ethereum node RPC URL to send the transaction to update the Mina state
+/// - `proof_generator_addr`: Address of the Aligned Proof Generator
+/// - `wallet`: Ethereum wallet used to sign transactions for Aligned verification and Mina state update
+/// - `batcher_payment_service`: Address of the Aligned Batcher Payment Service
+/// - `is_state_proof_from_devnet`: `true` if the Mina state to fetch is from Mina Devnet. `false` if it is from Mainnet.
+/// - `save_proof`: `true` if the proof with its public inputs are persisted in a file. `false` otherwise.
 #[allow(clippy::too_many_arguments)]
 pub async fn update_bridge_chain(
     rpc_url: &str,
@@ -96,6 +130,22 @@ pub async fn update_bridge_chain(
     Ok(())
 }
 
+/// Validates that a Mina account is included of the ledger hash that corresponds to a valid Mina state bridged on Ethereum.
+/// Calls the Mina Account Validation Example Contract.
+///
+/// Arguments:
+///
+/// - `public_key`: Public key of the Mina account to validate.
+/// - `state_hash`: Hash of the Mina state that includes the Mina account state to validate.
+/// - `rpc_url`: Mina node RPC URL to get the Mina state
+/// - `network`: Enum variant to specify the Ethereum network to update the Mina state
+/// - `account_validation_addr`: Address of the Mina Account Validation Example Contract
+/// - `batcher_addr`: Address of the Aligned Batcher Contract
+/// - `eth_rpc_url`: Ethereum node RPC URL to send the transaction to update the Mina state
+/// - `proof_generator_addr`: Address of the Aligned Proof Generator
+/// - `batcher_payment_service`: Address of the Aligned Batcher Payment Service
+/// - `wallet`: Ethereum wallet used to sign transactions for Aligned verification and Mina state update
+/// - `save_proof`: `true` if the proof with its public inputs are persisted in a file. `false` otherwise.
 #[allow(clippy::too_many_arguments)]
 pub async fn validate_account(
     public_key: &str,
