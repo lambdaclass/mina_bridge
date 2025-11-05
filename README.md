@@ -81,6 +81,10 @@ This repo also includes example contracts that show how to interact with Aligned
 - If you want the Bridge to use Mina Devnet then use a node that runs a Devnet instance corresponding to the commit `599a76d` [of the Mina repo](https://github.com/MinaProtocol/mina/tree/599a76dd47be99183d2102d9eb93eda679dd46ec) or a newer one (e.g.: [this Docker image](https://console.cloud.google.com/gcr/images/o1labs-192920/GLOBAL/mina-daemon:3.0.1-compatible-599a76d-bullseye-devnet/details)). See [how to connect to Mina Devnet](https://docs.minaprotocol.com/node-operators/block-producer-node/connecting-to-devnet#docker) if you want to run an instance yourself.
 - If you want the Bridge to use Mina Mainnet use a node that runs a Mainnet instance corresponding to the commit `65c84ad` [of the Mina repo](https://github.com/MinaProtocol/mina/tree/65c84adacd55272160d9f77c31063d94a942afb6) or a newer one (e.g.: [this Docker image](http://gcr.io/o1labs-192920/mina-daemon:3.0.1-beta1-sai-query-snarked-ledger-c439ce5-bullseye-mainnet)). See [how to connect to Mina Mainnet](https://docs.minaprotocol.com/node-operators/block-producer-node/connecting-to-the-network#docker) if you want to run an instance yourself.
 
+Alternatively, you can try with mina public nodes:
+- devnet: https://api.minascan.io/node/devnet/v1/graphql
+- mainnet:https://api.minascan.io/node/mainnet/v1/graphql
+
 ### Setup Aligned Devnet infrastructure locally
 
 1. Start Docker
