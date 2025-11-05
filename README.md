@@ -88,13 +88,18 @@ Alternatively, you can try with Mina public nodes:
 
 ### Setup Aligned Devnet infrastructure locally
 
-1. Start Docker
 
 1. Setup the `.env` file of the Bridge. A template is available in `.env.template`.
     1. Set `ETH_CHAIN` to `devnet`.
     1. Set `MINA_RPC_URL` to the URL of the Mina node GraphQL API (See [Mina node section](#mina-node)).
 
-1. Clone the [forked Aligned repo](https://github.com/lambdaclass/aligned_layer). Checkout to the `mina` branch.
+0. Clone the [Aligned repo](https://github.com/yetanotherco/aligned_layer). And checkout to the `staging` branch:
+
+```sh
+git clone https://github.com/yetanotherco/aligned_layer
+cd aligned_layer
+git checkout staging
+```
 
 1. Run:
 
@@ -105,25 +110,25 @@ Alternatively, you can try with Mina public nodes:
 1. Start anvil:
 
     ```sh
-    make anvil_start_with_block_time
+    make anvil_start
     ```
 
-1. Start the aggregator:
+2. Start the aggregator:
 
     ```sh
     make aggregator_start ENVIRONMENT=devnet
     ```
 
-1. Start the batcher:
+3. Start the batcher:
 
     ```sh
-    make batcher_start_local ENVIRONMENT=devnet
+    make batcher_start_local
     ```
 
-1. Start an operator:
+4. Start an operator:
 
     ```sh
-    make operator_register_and_start ENVIRONMENT=devnet
+    make operator_full_registration_and_start ENVIRONMENT=devnet CONFIG_FILE=config-files/config-operator-1.yaml 
     ```
 
 ### Bridge a Mina account
