@@ -7,7 +7,7 @@ submit_devnet_state:
 	@cargo run --manifest-path core/Cargo.toml --release -- submit-state --devnet
 
 submit_account:
-	@cargo run --manifest-path core/Cargo.toml --release -- submit-account ${PUBLIC_KEY} ${STATE_HASH}
+	@cargo run --manifest-path core/Cargo.toml --release -- submit-account $(PUBLIC_KEY) $(STATE_HASH)
 
 gen_contract_abis:
 	forge build --root contract/
