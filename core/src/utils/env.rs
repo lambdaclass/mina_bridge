@@ -1,4 +1,4 @@
-use aligned_sdk::core::types::Network;
+use aligned_sdk::common::types::Network;
 extern crate dotenv;
 use dotenv::dotenv;
 use log::debug;

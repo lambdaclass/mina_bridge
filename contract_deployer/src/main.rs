@@ -1,4 +1,4 @@
-use aligned_sdk::core::types::Network;
+use aligned_sdk::common::types::Network;
 use log::{debug, error, info};
 use mina_bridge_core::{
     eth::{

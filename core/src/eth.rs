@@ -1,7 +1,7 @@
 use std::str::FromStr;
 use std::sync::Arc;
 
-use aligned_sdk::core::types::{AlignedVerificationData, Network, VerificationDataCommitment};
+use aligned_sdk::common::types::{AlignedVerificationData, Network, VerificationDataCommitment};
 use alloy::network::EthereumWallet;
 use alloy::providers::ProviderBuilder;
 use alloy::sol;

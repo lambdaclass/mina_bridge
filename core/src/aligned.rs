@@ -1,10 +1,10 @@
 use std::{process, str::FromStr};
 
 use aligned_sdk::{
-    core::types::{
+    common::types::{
         AlignedVerificationData, FeeEstimationType, Network, ProvingSystemId, VerificationData,
     },
-    sdk::estimate_fee,
+    verification_layer::estimate_fee,
 };
 
 use ethers::{
@@ -88,13 +88,14 @@ pub async fn submit(
     info!("Max fee: {max_fee} gas");
 
     info!("Submitting {proof_name} into Aligned and waiting for the batch to be verified...");
-    aligned_sdk::sdk::submit_and_wait_verification(
+    aligned_sdk::verification_layer::submit_and_wait_verification(
         eth_rpc_url,
         network.to_owned(),
         &verification_data,
         max_fee,
         wallet,
-        U256::from(0),
+        // TODO: retrieve the nonce from the batcher
+        U256::from(4),
     )
     .await
     .map_err(|e| e.to_string())

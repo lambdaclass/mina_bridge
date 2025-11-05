@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use aligned_sdk::core::types::Network;
+use aligned_sdk::common::types::Network;
 use ethers::{
     prelude::k256::ecdsa::SigningKey,
     signers::{LocalWallet, Signer, Wallet},
