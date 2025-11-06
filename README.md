@@ -96,34 +96,36 @@ cd aligned_layer
 git checkout staging
 ```
 
-2. Run:
+2. Install Kurtosis by following the instructions [here](https://docs.kurtosis.com/install).
+
+3. Run:
 
     ```sh
     make deps
     ```
 
-3. Start anvil:
+4. Start Ethereum Package:
 
     ```sh
-    make anvil_start
+    make ethereum_package_start
     ```
 
-4. Start the aggregator:
+5. Start the aggregator:
 
     ```sh
-    make aggregator_start ENVIRONMENT=devnet
+    make aggregator_start_ethereum_package ENVIRONMENT=devnet
     ```
 
-5. Start the batcher (needs to have docker running):
+6. Start the batcher (needs to have docker running):
 
     ```sh
-    make batcher_start_local
+    make batcher_start_ethereum_package
     ```
 
-6. Start an operator:
+7. Start an operator:
 
     ```sh
-    make operator_full_registration_and_start ENVIRONMENT=devnet CONFIG_FILE=config-files/config-operator-1.yaml 
+    make operator_full_registration_and_start_ethereum_package ENVIRONMENT=devnet
     ```
 
 ### Bridge a Mina account
@@ -140,11 +142,11 @@ git checkout staging
   
     In the `.env` file, set `STATE_SETTLEMENT_ETH_ADDR` and `ACCOUNT_VALIDATION_ETH_ADDR` to the corresponding deployed contract addresses.
 
-3. Submit a Mina state proof to verify (**NOTE:** Because of the Aligned minimum batch size, you may need to submit two proofs to make Aligned Devnet verify them):
+3. Submit a Mina state proof to verify:
 
     - Run `make submit_devnet_state` if you are using Mina Devnet or `make submit_mainnet_state` if you are using Mina Mainnet.
 
-4. Submit an account to verify (**NOTE:** Because of the Aligned minimum batch size, you may need to submit two proofs to make Aligned Devnet verify them):
+4. Submit an account to verify:
 
     ```sh
     make submit_account PUBLIC_KEY=<string> STATE_HASH=<string>
@@ -153,7 +155,7 @@ git checkout staging
     Where:
     - `PUBLIC_KEY` is the public key of the Mina account you want to verify
     - `STATE_HASH` is the hash of a Mina state that was verified in Ethereum
-
+  
 ## Example use case
 
 The `example/` folder contains a project that uses the Sudoku zkApp example from Mina and bridges its state to a SudokuValidity Ethereum smart contract.
@@ -785,3 +787,4 @@ The ``final_ledger`` (epoch ledger of the k-th predecessor from the tip) is upda
 
 For a joining peer to discover the head of the current chain it MUST not only obtain the tip, but also the min(k, tip.height - 1)-th block back from the tip. For the latter the peer MUST check the block's proof of finality.  
 Peers perform the proof of finality check by verifying two zero-knowledge proofs, one for the _tip_ and one for the _root_, and a Merkle proof for the chain of protocol state hashes between them.
+
